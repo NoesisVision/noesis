@@ -1,0 +1,13 @@
+# Bun configuration — https://bun.com/docs/runtime/bunfig
+
+[install]
+# `bun add` saves exact versions instead of ^ranges.
+exact = true
+
+# Registry/auth also goes under [install], e.g.:
+#
+# [install]
+# registry = "https://registry.npmjs.org"
+#
+# [install.scopes]
+# "mycompany" = { url = "https://npm.pkg.github.com", token = "$NPM_TOKEN" }

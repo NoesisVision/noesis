@@ -1,0 +1,33 @@
+{
+  "name": "@noesis/claude-code-plugin",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Noesis Claude Code plugin — skills for preparing and validating MCP tool payloads",
+  "files": [
+    ".claude-plugin/plugin.json",
+    ".mcp.json",
+    "bin",
+    "contracts",
+    "servers",
+    "skills"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "generate": "bun run scripts/generate-references.ts && bun run scripts/bundle-server.ts && bun run scripts/copy-contracts.ts",
+    "validate": "bun run bin/validate.ts",
+    "check-types": "tsc --noEmit",
+    "bump": "bun run scripts/bump-version.ts",
+    "prepublishOnly": "bun run generate"
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@repo/mcp-contracts": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

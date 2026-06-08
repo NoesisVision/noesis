@@ -1,0 +1,17 @@
+{
+  "name": "noesis",
+  "owner": {
+    "name": "lszydlo"
+  },
+  "plugins": [
+    {
+      "name": "noesis",
+      "source": {
+        "source": "npm",
+        "package": "@noesis/claude-code-plugin",
+        "version": "0.1.0"
+      },
+      "description": "Noesis skills for preparing and validating MCP tool payloads"
+    }
+  ]
+}

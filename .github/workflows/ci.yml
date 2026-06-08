@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    name: Lint, type-check, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bun run format:check
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type-check
+        run: bun run check-types
+
+      - name: Test
+        run: bun run test
+
+      - name: E2E test
+        run: bun run test:e2e
+
+      - name: Build
+        run: bun run build
+
+  generate-check:
+    name: Generated output is committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          # Pin to packageManager from package.json — bundle output may differ
+          # across bun versions, which would show up as false drift.
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Regenerate plugin artifacts
+        run: bun run generate
+
+      - name: Verify generated output is committed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated output is stale. Run 'bun run generate' and commit the result."
+            git status --porcelain
+            git diff
+            exit 1
+          fi
+
+      - name: Verify plugin npm tarball contents
+        working-directory: plugins/claude-code
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          for f in .claude-plugin/plugin.json .mcp.json servers/noesis-local.js bin/validate.ts contracts/registry.ts contracts/shared/index.ts skills/prepare-mcp-data/SKILL.md; do
+            if ! grep -q "\"$f\"" /tmp/pack.json; then
+              echo "::error::$f missing from npm tarball — check the 'files' field."
+              exit 1
+            fi
+          done
+          if grep -q "marketplace.json" /tmp/pack.json; then
+            echo "::error::marketplace.json must not ship inside the plugin tarball."
+            exit 1
+          fi

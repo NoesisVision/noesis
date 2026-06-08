@@ -1,0 +1,20 @@
+{
+  "name": "@repo/mcp-contracts",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/shared-contracts": "workspace:*",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

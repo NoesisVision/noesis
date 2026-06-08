@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "noesis-local": {
+      "command": "bun",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/noesis-local.js"],
+      "env": {
+        "NOESIS_SERVER_URL": "${NOESIS_SERVER_URL:-http://localhost:3000}"
+      }
+    }
+  }
+}

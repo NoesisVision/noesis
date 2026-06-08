@@ -1,0 +1,11 @@
+{
+  "extends": "@repo/typescript-config/nest.json",
+  "compilerOptions": {
+    // Duplicated from nest.json: bun's transpiler does not resolve package-specifier
+    // `extends`, and Nest DI breaks without legacy decorators + metadata.
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "./dist",
+    "baseUrl": "./"
+  }
+}
