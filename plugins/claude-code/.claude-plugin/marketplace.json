@@ -8,10 +8,19 @@
       "name": "noesis",
       "source": {
         "source": "npm",
-        "package": "@noesis/claude-code-plugin",
+        "package": "@noesis-vision/claude-code-plugin",
         "version": "0.1.0"
       },
       "description": "Noesis skills for preparing and validating MCP tool payloads"
+    },
+    {
+      "name": "noesis-beta",
+      "source": {
+        "source": "npm",
+        "package": "@noesis-vision/claude-code-plugin",
+        "version": "beta"
+      },
+      "description": "Noesis (beta channel) — prerelease builds for testers; tracks the npm `beta` dist-tag"
     }
   ]
 }

@@ -47,7 +47,7 @@ One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https
 - **`bin/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
 - **`.mcp.json`** — launches the bundled server; target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
 
-The plugin is distributed as the npm package **`@noesis/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `bin`, `contracts`, `servers`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `bin`, `contracts`, `servers`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Config packages
 
@@ -119,17 +119,25 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 ```sh
 # in Claude Code:
 /plugin marketplace add https://raw.githubusercontent.com/<owner>/noesis/main/plugins/claude-code/.claude-plugin/marketplace.json
-/plugin install noesis@noesis
+/plugin install noesis@noesis        # stable channel
+/plugin install noesis-beta@noesis   # beta channel (prerelease builds)
 ```
 
-> Note: the catalog references the **published npm package**, so installs track releases, not `main`. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
+> Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry tracks the npm `beta` dist-tag. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
 
 Releasing a new plugin version (from `plugins/claude-code`):
 
 ```sh
+# Stable release:
 bun run bump 0.2.0     # syncs version across package.json, plugin.json, marketplace.json
-bun publish            # prepublishOnly regenerates artifacts automatically
+bun publish            # publishes to the `latest` dist-tag (prepublishOnly regenerates artifacts)
+
+# Beta / test release (only opt-in testers get it):
+bun run bump 0.3.0-beta.1   # prerelease semver
+bun run publish:beta        # publishes to the `beta` dist-tag, leaving `latest` untouched
 ```
+
+Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`). Promote a beta to stable without republishing: `npm dist-tag add @noesis-vision/claude-code-plugin@0.3.0-beta.1 latest`.
 
 > Publish with **bun**, not npm — bun rewrites the `workspace:*`/`catalog:` versions in the packed manifest; npm would publish them verbatim.
 

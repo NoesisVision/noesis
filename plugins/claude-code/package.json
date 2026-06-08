@@ -1,6 +1,6 @@
 {
-  "name": "@noesis/claude-code-plugin",
-  "version": "0.1.0",
+  "name": "@noesis-vision/claude-code-plugin",
+  "version": "0.1.0-beta.1",
   "private": false,
   "description": "Noesis Claude Code plugin — skills for preparing and validating MCP tool payloads",
   "files": [
@@ -19,6 +19,7 @@
     "validate": "bun run bin/validate.ts",
     "check-types": "tsc --noEmit",
     "bump": "bun run scripts/bump-version.ts",
+    "publish:beta": "bun publish --tag beta",
     "prepublishOnly": "bun run generate"
   },
   "dependencies": {

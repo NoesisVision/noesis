@@ -1,5 +1,7 @@
-// Bumps the plugin version in the three files that must stay in sync:
-// package.json, .claude-plugin/plugin.json, .claude-plugin/marketplace.json.
+// Bumps the plugin version in package.json and .claude-plugin/plugin.json, and
+// advances the *stable* marketplace entry. Marketplace entries pinned to a
+// dist-tag (e.g. "beta") are channel pointers and left untouched; semver-pinned
+// (stable) entries advance only on a stable release, never on a prerelease.
 // Usage: `bun run bump 0.2.0` (from plugins/claude-code).
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -33,8 +35,13 @@ await update('.claude-plugin/plugin.json', (json) => {
   json.version = version;
 });
 await update('.claude-plugin/marketplace.json', (json) => {
+  const isPrerelease = version.includes('-');
   const plugins = json.plugins as { source: { version: string } }[];
   for (const plugin of plugins) {
+    // Dist-tag pointers (e.g. "beta") track a channel — never repin them.
+    if (!/^\d+\.\d+\.\d+/.test(plugin.source.version)) continue;
+    // Semver-pinned (stable) entries advance only on a stable release.
+    if (isPrerelease) continue;
     plugin.source.version = version;
   }
 });
