@@ -1,4 +1,4 @@
-# noesis-turbo
+# noesis
 
 A [Turborepo](https://turborepo.dev/) monorepo containing the Noesis apps, their shared contract packages, and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
 
@@ -118,7 +118,7 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 
 ```sh
 # in Claude Code:
-/plugin marketplace add https://raw.githubusercontent.com/<owner>/noesis-turbo/main/plugins/claude-code/.claude-plugin/marketplace.json
+/plugin marketplace add https://raw.githubusercontent.com/<owner>/noesis/main/plugins/claude-code/.claude-plugin/marketplace.json
 /plugin install noesis@noesis
 ```
 

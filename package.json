@@ -1,5 +1,5 @@
 {
-  "name": "noesis-turbo",
+  "name": "noesis",
   "private": true,
   "scripts": {
     "build": "turbo run build",
