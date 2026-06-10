@@ -221,3 +221,23 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The server owns derived views (block-to-block usage via `INVOKES` lifting) — the scanner ships facts, not aggregations.
 - Custom team annotations must map onto the closed set via scanner config or they are dropped.
 - Remaining open questions move to design-doc §10: `SENDS` derivation beyond constructor calls, ambiguous access targets in `INVOKES`, multi-module aggregation, transport, coordinates.
+
+## 21. Primary toolchain owns the repo root; CI runs only what a push affects
+
+**Context:** Two related questions. First, every push ran the full TS pipeline regardless of what changed, and the Java scanner (19, 20) had no CI job at all. Second, with a second language in the repo, should the turbo-managed workspace move under a subfolder (e.g. `ts/`) so the root holds no technology-specific files?
+
+**Decision:**
+
+- **Layout stays as-is: the dominant toolchain (bun/turbo workspace) owns the repo root; minority languages live in self-contained subtrees** (`scanners/java` with its own `pom.xml`, future `scanners/dotnet` likewise). Nesting the TS workspace under a subfolder was rejected: the JS ecosystem assumes workspace root = repo root, so the move costs permanent friction (`working-directory:` on every CI step, IDE/TS-server roots, Docker build context, the npm trusted-publisher workflow path) and still leaves `.github/`, `Dockerfile`, `railway.json` at root — the symmetry is never actually achieved. Revisit only if the repo becomes genuinely polyglot with no dominant language.
+- **CI change detection is job-level, not workflow-level:** a `changes` job (`dorny/paths-filter`) exposes `java` and `ts` outputs; downstream jobs gate on them with `if:`. Per-workflow `paths:` filters were rejected because a path-skipped workflow leaves required status checks pending on PRs, while a skipped job satisfies them.
+- **TS tasks run with `turbo run <task> --affected`** so a change rebuilds only the touched packages plus their dependents (turbo already owns the graph — no path lists to maintain per package). `TURBO_SCM_BASE` is the PR base branch, or `github.event.before` on main pushes, falling back to `HEAD^` after a force push; checkout uses `fetch-depth: 0`.
+- **The Java scanner gets its own CI job** (`mvn verify`, Temurin 17 matching `maven.compiler.release`, maven cache), gated on `scanners/java/**`.
+- **Format check becomes its own ungated job:** prettier covers `**/*.md`, so doc-only commits must still be checked even when both gated areas are skipped.
+- **Deploy keys off the TS gate implicitly:** it `needs` the gated `verify`/`generate-check` jobs, so a java-only push to main skips deploy (the image contains only server + ui).
+
+**Consequences:**
+
+- `generate-check` still runs the full `bun run generate` (the task is `cache: false`) whenever any TS path changes — the staleness check stays whole-workspace.
+- Branch protection should require `changes`, `format`, and the gated job names; skipped gated jobs count as passing.
+- Workflow edits (`.github/workflows/ci.yml`) are in both filters, so CI changes exercise both pipelines.
+- The release workflow (tag-triggered) is unchanged and still runs the full TS verify suite — tags must validate everything regardless of what the last push touched.

@@ -6,8 +6,39 @@ on:
   pull_request:
 
 jobs:
-  verify:
-    name: Lint, type-check, test, build
+  # Job-level gating (instead of per-workflow `paths:`) so skipped jobs still
+  # satisfy required status checks on PRs.
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    outputs:
+      java: ${{ steps.filter.outputs.java }}
+      ts: ${{ steps.filter.outputs.ts }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            java:
+              - 'scanners/java/**'
+              - '.github/workflows/ci.yml'
+            ts:
+              - 'apps/**'
+              - 'packages/**'
+              - 'plugins/**'
+              - 'package.json'
+              - 'bun.lock'
+              - 'bunfig.toml'
+              - 'turbo.json'
+              - 'Dockerfile'
+              - 'railway.json'
+              - '.github/workflows/ci.yml'
+
+  # Ungated: prettier covers **/*.md, so doc-only commits are still checked.
+  format:
+    name: Format check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -22,24 +53,57 @@ jobs:
       - name: Format check
         run: bun run format:check
 
+  verify:
+    name: Lint, type-check, test, build
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # turbo --affected diffs against TURBO_SCM_BASE.
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Resolve base for turbo --affected
+        env:
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "TURBO_SCM_BASE=origin/$GITHUB_BASE_REF" >> "$GITHUB_ENV"
+          elif [ -n "$PUSH_BEFORE" ] && git cat-file -e "$PUSH_BEFORE" 2>/dev/null; then
+            echo "TURBO_SCM_BASE=$PUSH_BEFORE" >> "$GITHUB_ENV"
+          else
+            # Force push or new branch: the pre-push commit is gone.
+            echo "TURBO_SCM_BASE=HEAD^" >> "$GITHUB_ENV"
+          fi
+
       - name: Lint
-        run: bun run lint
+        run: bunx turbo run lint --affected
 
       - name: Type-check
-        run: bun run check-types
+        run: bunx turbo run check-types --affected
 
       - name: Test
-        run: bun run test
+        run: bunx turbo run test --affected
 
       - name: E2E test
-        run: bun run test:e2e
+        run: bunx turbo run test:e2e --affected
 
       - name: Build
-        run: bun run build
+        run: bunx turbo run build --affected
 
   generate-check:
     name: Generated output is committed
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.ts == 'true'
     steps:
       - uses: actions/checkout@v5
 
@@ -62,12 +126,34 @@ jobs:
             exit 1
           fi
 
+  java-scanner:
+    name: Java scanner build
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.java == 'true'
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # Matches maven.compiler.release in scanners/java/pom.xml.
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: scanners/java/**/pom.xml
+
+      - name: Build and test
+        run: mvn -B --no-transfer-progress verify
+        working-directory: scanners/java
+
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: [verify, generate-check]
-    # Deploys every green push to main. Railway builds the Dockerfile
-    # (railway.json); auth is a project token, so no `railway link` is needed.
+    # Deploys every green push to main that touched the TS workspace; a
+    # java-only push skips verify, which skips this job too. Railway builds
+    # the Dockerfile (railway.json); auth is a project token, so no
+    # `railway link` is needed.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v5
@@ -86,3 +172,4 @@ jobs:
         run: railway up --service "${{ vars.RAILWAY_SERVICE }}" --ci
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
