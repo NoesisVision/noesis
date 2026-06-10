@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets",
+    "build": "bun build src/main.ts --outdir dist --target bun --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets --external @fastify/static",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
@@ -24,6 +24,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/serve-static": "5.0.5",
     "@repo/local-contracts": "workspace:*",
     "@repo/ui-contracts": "workspace:*",
     "reflect-metadata": "^0.2.2",
