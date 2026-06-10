@@ -29,6 +29,9 @@ dist/
 # Plugin MCP server bundle — built at pack/test time, never committed
 plugins/claude-code/servers/
 
+# Vendored React Flow Pro examples — licensed reference material, never committed
+apps/ui/docs/react-flow-examples/
+
 
 # Debug
 npm-debug.log*
