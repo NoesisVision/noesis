@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { uiPath } from '@repo/ui-contracts';
 import reactLogo from './assets/react.svg';
 import viteLogo from './assets/vite.svg';
 import heroImg from './assets/hero.png';
@@ -6,6 +7,14 @@ import './App.css';
 
 function App() {
   const [count, setCount] = useState(0);
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    fetch(`/${uiPath('hello')}`)
+      .then((res) => (res.ok ? res.text() : ''))
+      .then(setGreeting)
+      .catch(() => setGreeting(''));
+  }, []);
 
   return (
     <>
@@ -16,7 +25,7 @@ function App() {
           <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>Get started</h1>
+          <h1>{greeting || 'Get started'}</h1>
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>

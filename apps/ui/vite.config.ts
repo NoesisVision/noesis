@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:3000',
+      // The ui app only calls the server's /ui surface (see @repo/ui-contracts
+      // routes); /api belongs to the local app and /internal to ops tooling.
+      '/ui': 'http://localhost:3000',
     },
   },
 });

@@ -3,3 +3,4 @@
 // DTOs shared with the ui/mcp contracts live in @repo/shared-contracts.
 
 export * from '@repo/shared-contracts';
+export * from './routes.js';
