@@ -145,3 +145,18 @@ _Last updated: 2026-06-10_
 - The `noesis-beta` marketplace entry is pinned to an exact prerelease version. `bun run bump` advances the channel matching the bumped version's prerelease-ness: prerelease bumps advance prerelease-pinned entries, stable bumps advance stable-pinned ones. Testers get updates when the bumped `marketplace.json` lands on `main` (the catalog is fetched by raw URL), so nothing is lost versus the dist-tag pointer — except the reliance on undocumented behavior.
 
 **Consequence:** A bare-command validator (`bin/noesis-validate` with shebang + exec bit on the Bash PATH) was considered and skipped — the validator is only invoked from SKILL.md, where an explicit `bun "${CLAUDE_PLUGIN_ROOT}/scripts/validate.ts"` is clearer.
+
+## 17. Hosting: single Railway service; Nest serves the UI
+
+**Status: decided, not yet implemented.**
+
+**Context:** `apps/server` (NestJS on bun) and `apps/ui` (Vite SPA) need hosting on a single platform. Options considered: Vercel (UI fits perfectly, but its serverless functions don't support NestJS — the bun runtime is beta and framework-limited — and the server's main consumers are MCP servers on developer machines hitting `NOESIS_SERVER_URL`, which want an always-on REST target); a Vercel-UI + Railway-server split (rejected: two platforms); Render (always-on tier costs more for the same); Fly.io (more hand-rolled ops). A serverless backend was explicitly evaluated and rejected: the planned **in-memory LadybugDB graph** (embedded, in-process, native bindings) is architecturally opposed to serverless — ephemeral instances lose the graph, horizontal fan-out diverges it, and native addons fight function packaging. An embedded in-memory database means the database _is_ the process, so the process must be long-running.
+
+**Decision:** Deploy on **Railway** as **one service**: the NestJS server serves the built UI statically (`@nestjs/serve-static`, serving `apps/ui/dist` staged into the server's deploy). One URL, one deploy, no CORS; "serverless economics" available later via Railway app sleeping if idle cost matters.
+
+**Consequences:**
+
+- UI and server deploy together (acceptable at this stage); static assets are served by the app process, not a CDN.
+- Splitting into two Railway services later (independent deploys/scaling) is a small change — only the serving location of `apps/ui/dist` moves; the apps stay separate in the repo either way.
+- When LadybugDB lands: keep a single instance (single writer), persist via a Railway volume (on-disk Ladybug, or in-memory + checkpoint on `OnModuleDestroy` and on an interval, reload on boot).
+- Implementation when picked up: `ServeStaticModule` in `apps/server` (path empty in dev), build step staging `apps/ui/dist`, Railway service config, README deploy notes.
