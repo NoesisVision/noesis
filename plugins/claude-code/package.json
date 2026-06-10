@@ -3,11 +3,17 @@
   "version": "0.1.0-beta.1",
   "private": false,
   "description": "Noesis Claude Code plugin — skills for preparing and validating MCP tool payloads",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NoesisVision/noesis.git",
+    "directory": "plugins/claude-code"
+  },
   "files": [
     ".claude-plugin/plugin.json",
     ".mcp.json",
-    "bin",
     "contracts",
+    "scripts",
     "servers",
     "skills"
   ],
@@ -15,19 +21,23 @@
     "access": "public"
   },
   "scripts": {
-    "generate": "bun run scripts/generate-references.ts && bun run scripts/bundle-server.ts && bun run scripts/copy-contracts.ts",
-    "validate": "bun run bin/validate.ts",
+    "generate": "bun run tools/generate-references.ts && bun run tools/copy-contracts.ts && bun run tools/stamp-plugin-version.ts",
+    "bundle": "bun run tools/bundle-server.ts",
+    "validate": "bun run scripts/validate.ts",
+    "test": "bun test",
     "check-types": "tsc --noEmit",
-    "bump": "bun run scripts/bump-version.ts",
+    "bump": "bun run tools/bump-version.ts",
     "publish:beta": "bun publish --tag beta",
-    "prepublishOnly": "bun run generate"
+    "prepublishOnly": "bun run generate && bun run bundle"
   },
   "dependencies": {
     "zod": "^4.1.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@repo/mcp-contracts": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@types/bun": "^1.2.0",
     "@types/node": "catalog:",
     "typescript": "catalog:"
   }

@@ -26,6 +26,8 @@ coverage
 out/
 build/
 dist/
+# Plugin MCP server bundle — built at pack/test time, never committed
+plugins/claude-code/servers/
 
 
 # Debug

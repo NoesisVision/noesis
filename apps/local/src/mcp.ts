@@ -1,5 +1,5 @@
 // Stdio MCP server entry point. Bundled into the Claude Code plugin via
-// `turbo generate` (plugins/claude-code/scripts/bundle-server.ts).
+// `bun run bundle` (plugins/claude-code/tools/bundle-server.ts).
 //
 // stdout belongs to the MCP protocol — all logging MUST go to stderr.
 import { NestFactory } from '@nestjs/core';

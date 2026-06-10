@@ -1,0 +1,80 @@
+name: Release
+
+# Publishes the Claude Code plugin to npm when a v* tag is pushed.
+# Auth is npm trusted publishing (OIDC) — no token secret. Provenance is
+# attached automatically. Requires a trusted publisher configured on npmjs.com
+# for @noesis-vision/claude-code-plugin pointing at this repo + workflow file.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  # Exchanged by npm for short-lived publish credentials (trusted publishing).
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish plugin to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # bun publish does not support trusted publishing yet (oven-sh/bun#15601),
+      # so the tarball is packed with bun (which rewrites workspace:/catalog:
+      # specifiers) and published with npm. Trusted publishing needs npm >= 11.5.1.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Tags don't trigger the CI workflow, so the full verify suite runs here.
+      - name: Verify
+        run: |
+          bun run format:check
+          bun run lint
+          bun run check-types
+          bun run test
+          bun run test:e2e
+          bun run build
+
+      - name: Verify generated output is committed
+        run: |
+          bun run generate
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Generated output is stale. Run 'bun run generate' and commit before tagging."
+            git status --porcelain
+            exit 1
+          fi
+
+      - name: Verify tag matches package version
+        id: version
+        working-directory: plugins/claude-code
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package version $VERSION."
+            exit 1
+          fi
+          # Prereleases go to the beta dist-tag, stable releases to latest.
+          case "$VERSION" in
+            *-*) echo "dist-tag=beta" >> "$GITHUB_OUTPUT" ;;
+            *) echo "dist-tag=latest" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Pack
+        working-directory: plugins/claude-code
+        run: |
+          bun run bundle
+          bun pm pack
+
+      - name: Publish
+        working-directory: plugins/claude-code
+        run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public

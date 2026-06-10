@@ -1,7 +1,9 @@
-// Bumps the plugin version in package.json and .claude-plugin/plugin.json, and
-// advances the *stable* marketplace entry. Marketplace entries pinned to a
-// dist-tag (e.g. "beta") are channel pointers and left untouched; semver-pinned
-// (stable) entries advance only on a stable release, never on a prerelease.
+// Bumps the plugin version in package.json (the single version source — run
+// `bun run generate` afterwards to stamp .claude-plugin/plugin.json) and
+// advances the matching marketplace channel entry. Marketplace npm sources
+// only document exact-semver pins (no dist-tags), so each entry stays pinned:
+// the beta entry always to a prerelease, the stable entry to a stable release.
+// A bump advances only the entries of its own channel.
 // Usage: `bun run bump 0.2.0` (from plugins/claude-code).
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -31,17 +33,17 @@ async function update(
 await update('package.json', (json) => {
   json.version = version;
 });
-await update('.claude-plugin/plugin.json', (json) => {
-  json.version = version;
-});
 await update('.claude-plugin/marketplace.json', (json) => {
   const isPrerelease = version.includes('-');
   const plugins = json.plugins as { source: { version: string } }[];
   for (const plugin of plugins) {
-    // Dist-tag pointers (e.g. "beta") track a channel — never repin them.
-    if (!/^\d+\.\d+\.\d+/.test(plugin.source.version)) continue;
-    // Semver-pinned (stable) entries advance only on a stable release.
-    if (isPrerelease) continue;
-    plugin.source.version = version;
+    // An entry belongs to the channel its current pin is on; prerelease bumps
+    // advance prerelease pins, stable bumps advance stable pins.
+    if (plugin.source.version.includes('-') === isPrerelease) {
+      plugin.source.version = version;
+    }
   }
 });
+console.log(
+  'Now run `bun run generate` to stamp .claude-plugin/plugin.json, then commit and tag.',
+);

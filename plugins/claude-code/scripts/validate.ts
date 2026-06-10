@@ -1,12 +1,14 @@
 // Validates a JSON file against a named contract using the zod schemas in
 // contracts/ (copied from @repo/mcp-contracts by `bun run generate`).
-// Usage: bun bin/validate.ts <contract-name> <path/to/payload.json>
+// Usage: bun scripts/validate.ts <contract-name> <path/to/payload.json>
 import { readFile } from 'node:fs/promises';
 import { contracts, type ContractName } from '../contracts';
 
 const [name, file] = process.argv.slice(2);
 if (!name || !file) {
-  console.error('Usage: bun bin/validate.ts <contract-name> <payload.json>');
+  console.error(
+    'Usage: bun scripts/validate.ts <contract-name> <payload.json>',
+  );
   console.error(`Contracts: ${Object.keys(contracts).join(', ')}`);
   process.exit(2);
 }

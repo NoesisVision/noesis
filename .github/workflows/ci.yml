@@ -45,8 +45,6 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          # Pin to packageManager from package.json — bundle output may differ
-          # across bun versions, which would show up as false drift.
           bun-version-file: package.json
 
       - name: Install dependencies
@@ -61,20 +59,5 @@ jobs:
             echo "::error::Generated output is stale. Run 'bun run generate' and commit the result."
             git status --porcelain
             git diff
-            exit 1
-          fi
-
-      - name: Verify plugin npm tarball contents
-        working-directory: plugins/claude-code
-        run: |
-          npm pack --dry-run --json > /tmp/pack.json
-          for f in .claude-plugin/plugin.json .mcp.json servers/noesis-local.js bin/validate.ts contracts/registry.ts contracts/shared/index.ts skills/prepare-mcp-data/SKILL.md; do
-            if ! grep -q "\"$f\"" /tmp/pack.json; then
-              echo "::error::$f missing from npm tarball — check the 'files' field."
-              exit 1
-            fi
-          done
-          if grep -q "marketplace.json" /tmp/pack.json; then
-            echo "::error::marketplace.json must not ship inside the plugin tarball."
             exit 1
           fi

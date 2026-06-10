@@ -18,9 +18,9 @@
       "source": {
         "source": "npm",
         "package": "@noesis-vision/claude-code-plugin",
-        "version": "beta"
+        "version": "0.1.0-beta.1"
       },
-      "description": "Noesis (beta channel) — prerelease builds for testers; tracks the npm `beta` dist-tag"
+      "description": "Noesis (beta channel) — prerelease builds for testers; pinned to the latest published prerelease"
     }
   ]
 }

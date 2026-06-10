@@ -1,5 +1,11 @@
 {
   "name": "noesis",
   "description": "Noesis skills for preparing and validating MCP tool payloads",
-  "version": "0.1.0-beta.1"
+  "version": "0.1.0-beta.1",
+  "author": {
+    "name": "NoesisVision"
+  },
+  "homepage": "https://github.com/NoesisVision/noesis",
+  "repository": "https://github.com/NoesisVision/noesis",
+  "license": "MIT"
 }

@@ -43,11 +43,12 @@ contracts   contracts     (MCP tool payloads + registry;
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** from `@repo/mcp-contracts`
-- **`servers/noesis-local.js`** — self-contained 3.6 MB bundle of `apps/local`'s MCP entry (committed, so the plugin works without the monorepo's node_modules)
-- **`bin/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
+- **`servers/noesis-local.js`** — self-contained 3.6 MB bundle of `apps/local`'s MCP entry (gitignored; built by `bun run bundle` at pack/test time)
+- **`scripts/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
+- **`tools/`** — dev/build tooling (generate, bundle, bump); not shipped
 - **`.mcp.json`** — launches the bundled server; target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
 
-The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `bin`, `contracts`, `servers`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts`, `scripts`, `servers`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Config packages
 
@@ -64,17 +65,17 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 
 ## 2. Tools
 
-| Tool                                                                                | Role                                                                          |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (Nest apps run TS directly), bundler, test runner |
-| [Turborepo](https://turborepo.dev/)                                                 | Task orchestration + caching (`build`, `lint`, `check-types`, `generate`)     |
-| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                |
-| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                      |
-| [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                     |
-| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                      |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                    |
-| ESLint 9/10 + Prettier                                                              | Linting and formatting                                                        |
-| GitHub Actions                                                                      | CI: verifies generated plugin artifacts are committed                         |
+| Tool                                                                                | Role                                                                                            |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (Nest apps run TS directly), bundler, test runner                   |
+| [Turborepo](https://turborepo.dev/)                                                 | Task orchestration + caching (`build`, `lint`, `check-types`, `generate`)                       |
+| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                  |
+| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                        |
+| [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                                       |
+| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                                        |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                      |
+| ESLint 9/10 + Prettier                                                              | Linting and formatting                                                                          |
+| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing |
 
 ## 3. Getting started
 
@@ -107,7 +108,7 @@ Filter to one package with turbo: `bun x turbo build --filter=server`.
 3. Regenerate plugin artifacts:
 
 ```sh
-bun run generate       # refreshes skill schemas/examples + re-bundles the MCP server
+bun run generate       # refreshes skill schemas/examples, contract copies, plugin.json version
 ```
 
 4. **Commit the generated output** — CI (`.github/workflows/ci.yml`) regenerates and fails on any diff.
@@ -123,23 +124,20 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 /plugin install noesis-beta@noesis   # beta channel (prerelease builds)
 ```
 
-> Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry tracks the npm `beta` dist-tag. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
+> Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry is pinned to the latest published prerelease. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
 
 Releasing a new plugin version (from `plugins/claude-code`):
 
 ```sh
-# Stable release:
-bun run bump 0.2.0     # syncs version across package.json, plugin.json, marketplace.json
-bun publish            # publishes to the `latest` dist-tag (prepublishOnly regenerates artifacts)
-
-# Beta / test release (only opt-in testers get it):
-bun run bump 0.3.0-beta.1   # prerelease semver
-bun run publish:beta        # publishes to the `beta` dist-tag, leaving `latest` untouched
+bun run bump 0.2.0     # package.json + matching marketplace channel pin
+                       # (prerelease semver like 0.3.0-beta.1 → beta channel)
+bun run generate       # stamps .claude-plugin/plugin.json
+git commit -am "Release 0.2.0" && git tag v0.2.0 && git push --follow-tags
 ```
 
-Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`). Promote a beta to stable without republishing: `npm dist-tag add @noesis-vision/claude-code-plugin@0.3.0-beta.1 latest`.
+The `Release` workflow (`.github/workflows/release.yml`) verifies the tag, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes via npm **trusted publishing** — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
 
-> Publish with **bun**, not npm — bun rewrites the `workspace:*`/`catalog:` versions in the packed manifest; npm would publish them verbatim.
+> Local fallback: `bun publish` / `bun run publish:beta` (never raw `npm publish` from the workspace — only the bun pack pipeline rewrites `workspace:*`/`catalog:` versions in the manifest).
 
 Point the MCP server at a different backend per project via `.claude/settings.local.json`:
 
@@ -150,5 +148,5 @@ Point the MCP server at a different backend per project via `.claude/settings.lo
 Validate a hand-written payload against a contract (works in-repo and in installed copies):
 
 ```sh
-bun plugins/claude-code/bin/validate.ts hello-request path/to/payload.json
+bun plugins/claude-code/scripts/validate.ts hello-request path/to/payload.json
 ```

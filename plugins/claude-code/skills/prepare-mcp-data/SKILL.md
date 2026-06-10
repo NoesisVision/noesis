@@ -14,7 +14,7 @@ Every Noesis MCP tool payload has a contract. Before constructing a payload:
 3. Validate the result before using it:
 
 ```bash
-bun "${CLAUDE_PLUGIN_ROOT}/bin/validate.ts" <contract-name> <payload.json>
+bun "${CLAUDE_PLUGIN_ROOT}/scripts/validate.ts" <contract-name> <payload.json>
 ```
 
 The validator exits 0 when valid and prints per-field errors otherwise.

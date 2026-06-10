@@ -6,8 +6,8 @@
     "noEmit": true,
     "declaration": false,
     "declarationMap": false,
-    "types": ["node"]
+    "types": ["node", "bun"]
   },
-  "include": ["scripts", "bin", "contracts"],
+  "include": ["tools", "scripts", "contracts", "test"],
   "exclude": ["node_modules"]
 }

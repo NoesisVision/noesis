@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-06-08_
+_Last updated: 2026-06-10_
 
 ---
 
@@ -114,3 +114,34 @@ _Last updated: 2026-06-08_
 
 - The committed `bin/validate.js` blob (~540 kB) is replaced by small readable TS; drift surface shrinks but is still CI-guarded.
 - `tsconfig.json` `include` widened to `["scripts", "bin", "contracts"]` so the shipped entry point and generated copies are type-checked.
+
+## 15. Tag-driven releases via npm trusted publishing; bundle built at pack time; version single-sourced
+
+**Supersedes the release flow of 14 and the committed-bundle parts of 9/11.**
+
+**Decision:**
+
+- **Releases are tag-driven.** Pushing a `v*` tag runs `.github/workflows/release.yml`: full verify suite (tags don't trigger CI), generate-drift check, tag↔version assertion, then `bun run bundle` + `bun pm pack` (bun rewrites `workspace:*`/`catalog:`) and `npm publish <tarball>` via **npm trusted publishing** (OIDC, npm ≥ 11.5.1) — no token secret, provenance attached automatically. `bun publish` can't do this yet (oven-sh/bun#15601). The dist-tag is derived from the version: prerelease (`-` present) → `beta`, otherwise `latest` — removing the manual `publish:beta` footgun (the script remains as a local escape hatch). Prerequisites added: `license: MIT` (+ LICENSE file), `repository` with `directory` (provenance validation requires it), README (npm page was blank). _One-time setup: configure the trusted publisher on npmjs.com for `@noesis-vision/claude-code-plugin` → this repo + `release.yml`._
+- **`servers/noesis-local.js` is no longer committed** (gitignored). Since npm is the only distribution channel (12), committing it only grew git history ~3.6 MB per regeneration with unreviewable diffs. It's built by `bun run bundle` — split out of `generate` — at pack time (`prepublishOnly`, release workflow) and by the tarball smoke test. The small readable generated artifacts (`contracts/`, skill references) stay committed and drift-checked.
+- **`package.json` is the single version source.** `generate` stamps `.claude-plugin/plugin.json` from it (`scripts/stamp-plugin-version.ts`), so the CI drift check now also enforces version sync. `bun run bump` writes only `package.json` + the stable marketplace pin.
+- **Smoke tests replace the CI tarball grep.** `bun test` (runs under `turbo test`): every contract's committed `example.json` must pass `bin/validate.ts`; the real tarball is packed and extracted, file whitelist and `workspace:`/`catalog:`-free manifest asserted, and the bundled MCP server is booted from the extracted tarball in an empty directory for an MCP initialize + `tools/list` handshake — decision 9's "boots from an empty dir" property is now verified on every CI run.
+
+**Consequences:**
+
+- Release flow: `bun run bump <ver>` → `bun run generate` → commit → `git tag v<ver>` → push tag. Each release has an anchor commit.
+- A plain checkout no longer has a working MCP server bundle — run `bun run bundle` once (or `bun test`, which builds it).
+- Known wart: npm's `latest` dist-tag currently points at `0.1.0-beta.1` (first publish always claims `latest`; it can only be moved, not removed). The first stable release fixes it.
+
+## 16. Plugin folders follow documented Claude Code semantics; beta channel pinned to semver
+
+**Supersedes the `bin/` location of 14 and the beta dist-tag pin of 14.** Triggered by checking the layout against the official plugin reference.
+
+**Context:** The plugin docs assign meanings to folder names: `scripts/` = shipped hook/utility scripts invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...`; `bin/` = executables added to the Bash tool's PATH (invokable as bare commands while the plugin is enabled). Our `scripts/` held unshipped dev/build tooling, and `bin/validate.ts` sat in the PATH folder without using (or being usable by) its semantics. Separately, the marketplace npm source only documents exact-semver pins (`2.1.0`, `^2.0.0`) — the `noesis-beta` entry's `"version": "beta"` dist-tag pin relied on undocumented behavior.
+
+**Decision:**
+
+- Dev/build tooling moved `scripts/` → `tools/` (the standard JS-ecosystem alternative; stays unshipped). The validator moved `bin/validate.ts` → `scripts/validate.ts`, matching the docs' shipped-utility-script convention; `bin/` is gone. The MCP server bundle deliberately **stays** in `servers/` — the docs' own example location — and must not move to `bin/`: PATH exposure would let the model accidentally launch a long-running stdio server in a Bash call. `files` ships `scripts` instead of `bin`; the tarball test asserts `tools/` and `test/` do not leak into the package.
+- `plugin.json` gained the recommended metadata fields (`author`, `homepage`, `repository`, `license`).
+- The `noesis-beta` marketplace entry is pinned to an exact prerelease version. `bun run bump` advances the channel matching the bumped version's prerelease-ness: prerelease bumps advance prerelease-pinned entries, stable bumps advance stable-pinned ones. Testers get updates when the bumped `marketplace.json` lands on `main` (the catalog is fetched by raw URL), so nothing is lost versus the dist-tag pointer — except the reliance on undocumented behavior.
+
+**Consequence:** A bare-command validator (`bin/noesis-validate` with shebang + exec bit on the Bash PATH) was considered and skipped — the validator is only invoked from SKILL.md, where an explicit `bun "${CLAUDE_PLUGIN_ROOT}/scripts/validate.ts"` is clearer.

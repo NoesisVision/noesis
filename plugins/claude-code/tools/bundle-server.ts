@@ -1,6 +1,7 @@
 // Bundles apps/local's stdio MCP entry into a self-contained single file at
-// servers/noesis-local.js. Run via `bun run generate` (or `turbo generate`).
-// The output is committed so the plugin works without the monorepo's node_modules.
+// servers/noesis-local.js. Run via `bun run bundle`. The output is gitignored —
+// it is built at pack time (prepublishOnly / release workflow) and by the
+// tarball smoke test, so what ships is always built from current sources.
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
