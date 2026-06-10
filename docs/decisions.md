@@ -180,3 +180,44 @@ _Last updated: 2026-06-10_
 - `@fastify/static` joined the server build externals (lazy-required by `@nestjs/serve-static`; unused on the Express adapter) — the decision 9 externals list grows with each Nest optional dep.
 - The route move was breaking for old plugin builds; shipped before any server was deployed, so no consumer broke. A plugin beta release carries the client fix.
 - `NOESIS_SERVER_URL` for plugin users is the Railway-generated service domain.
+
+## 19. Java scanner: ArchUnit importer as the engine, Spoon for source fidelity
+
+**Context:** The Java scanner (`scanners/java/`, see `scanners/java/design-doc.md` for the full research) must extract graph objects, behaviours, and relations from Java codebases and ship as both a Maven and a Gradle plugin. Candidates evaluated: ArchUnit's `ClassFileImporter` (bytecode, Apache 2.0, shaded single JAR, `@PublicAPI`-stable, proven standalone by Spring Modulith), jQAssistant (closest off-the-shelf code graph but **GPLv3** — embedding would infect the plugin license — and no official Gradle support), Spoon (source-based JDT metamodel, MIT option, exact positions/comments/parameter names, no-classpath mode, but slower and heavier), and roll-your-own ASM (maximal control, but re-implements what ArchUnit already solved). CodeQL was disqualified on license grounds.
+
+**Decision:** Two-engine design inside `scanner-core`:
+
+- **ArchUnit's importer is the primary engine** — it produces the graph (objects, behaviours, relations) from compiled bytecode.
+- **Spoon provides the source-fidelity enrichment pass** — exact source positions, comments/Javadoc, and parameter names, merged into the graph as optional fields keyed by FQN + member descriptor. Spoon is chosen over JavaParser for this role because of its no-classpath mode (best-effort model without resolution failures) and the MIT license option.
+- The engines stay invisible above `scanner-core`: the Maven Mojo and Gradle plugin (Worker API, isolated classloader) only gather inputs (class dirs, source roots, classpath) and invoke the core, per the OpenRewrite/SpotBugs three-artifact pattern.
+
+**Rationale:** ArchUnit gives the best effort-to-coverage ratio — its metamodel maps ~1:1 onto the objects/behaviours/relations contract and its fully-shaded JAR avoids classpath conflicts inside build-tool plugins. Bytecode-only analysis loses comments, parameter names, and exact positions; Spoon fills exactly that gap without replacing the structurally complete bytecode graph.
+
+**Consequences:**
+
+- Scan binds after compilation (Maven post-`compile`, Gradle `dependsOn(classes)`); the Spoon pass needs source roots in addition to class dirs.
+- The contract schema must model enrichment fields as **optional** (the Spoon pass may be skipped or partial) and must represent unresolved/ambiguous access targets explicitly (ArchUnit targets can resolve to 0..n members).
+- Spoon's JDT dependency is unshaded — classloader isolation in the plugins is mandatory, not optional.
+- Performance guardrails for large codebases: disable ArchUnit's classpath dependency resolution by default, scan module-by-module, stream JSON output.
+- Remaining open questions tracked in design-doc §10: graph schema variant, relation derivation rules, multi-module aggregation, transport (file vs direct POST), Maven/Gradle coordinates.
+
+## 20. Java scanner graph schema: typed DDD graph with messages and behaviour-level invocation
+
+**Context:** The graph's purpose is visualizing system structure as DDD building blocks (tactical patterns plus hexagonal ports/adapters), detected via class annotations in ArchUnit's model (see `scanners/java/design-doc.md` §8–9). Three schema variants were evaluated: (A) generic property graph with open string vocabulary — flexible but contract-unsafe; (B) strongly-typed closed vocabulary as zod discriminated unions — the contract becomes the ubiquitous language; (C) layered architecture-over-code graph — drill-down capable but class-level payload volume on day one.
+
+**Decision:** **Variant B, modified**, with three structural choices on top:
+
+- **All communication is modeled as messages**: `Command`, `Query`, `Event` are first-class message nodes (annotated classes); communication edges (`SENDS`, `HANDLES`) point at messages, never block-to-block. One edge vocabulary for all three kinds — the message node's type distinguishes rendering.
+- **Building blocks contain `Behaviour` nodes** (public methods, id = `fqn#method(paramTypes)`); an `ApplicationService` exposes its message handlers as behaviours with `HANDLES` edges. Invariants at ingest: commands and queries have exactly one handler (on an `ApplicationService`), events 0..n.
+- **Invocation is behaviour-level**: `INVOKES` edges between behaviours replace block-level `USES`; block-to-block usage is derived server-side by lifting `INVOKES` through `CONTAINS`. Derived edges carry an optional `evidence: string[]` (borrowed from variant C) with source locations.
+
+Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stereotype detection defaults to the **jMolecules** vocabulary (Apache-2.0) via a configurable annotation→stereotype mapping; `Query` has no jMolecules annotation and comes from the mapping (team annotation or a small `noesis-annotations` artifact).
+
+**Rationale:** The typed contract rejects invalid graphs at ingest and gives the visualizer bespoke rendering per type without a side registry. Messages + behaviours capture _how the system communicates_ — the part of structure the visualization is for — at behaviour granularity (~5–10× block count), still orders of magnitude below variant C's class-level volume.
+
+**Consequences:**
+
+- Schema evolution is lock-step (zod contract + scanner + server ship together); new stereotypes are contract changes.
+- The server owns derived views (block-to-block usage via `INVOKES` lifting) — the scanner ships facts, not aggregations.
+- Custom team annotations must map onto the closed set via scanner config or they are dropped.
+- Remaining open questions move to design-doc §10: `SENDS` derivation beyond constructor calls, ambiguous access targets in `INVOKES`, multi-module aggregation, transport, coordinates.
