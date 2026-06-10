@@ -27,6 +27,7 @@
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "bump": "bun run tools/bump-version.ts",
+    "release:beta": "bun run tools/release-beta.ts",
     "publish:beta": "bun publish --tag beta",
     "prepublishOnly": "bun run generate && bun run bundle"
   },

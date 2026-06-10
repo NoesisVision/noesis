@@ -41,13 +41,25 @@ The MCP server targets `http://localhost:3000` by default. Override with the
 
 ## Releasing (maintainers)
 
-Versions are single-sourced from `package.json`:
+Beta releases are fully scripted (from `plugins/claude-code`):
+
+```
+bun run release:beta                # next beta counter (0.1.0-beta.2 -> 0.1.0-beta.3)
+bun run release:beta 0.2.0-beta.1   # explicit target prerelease
+```
+
+The script verifies a clean, up-to-date `main`, bumps `package.json` + the
+beta marketplace pin, regenerates stamped artifacts, smoke-tests the packed
+tarball, then commits, tags, and pushes. The `v*` tag triggers the `Release`
+workflow, which publishes to npm via trusted publishing (prereleases go to the
+`beta` dist-tag, stable releases to `latest`).
+
+Stable releases follow the same steps by hand — versions are single-sourced
+from `package.json`:
 
 ```
 bun run bump 0.2.0   # package.json + matching marketplace channel pin
 bun run generate     # stamps .claude-plugin/plugin.json, regenerates references
-git commit && git tag v0.2.0 && git push --follow-tags
+git commit -am "Release 0.2.0"
+git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```
-
-The `Release` GitHub Actions workflow publishes the tag to npm via trusted
-publishing (prerelease versions go to the `beta` dist-tag, stable to `latest`).

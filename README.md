@@ -129,10 +129,14 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 Releasing a new plugin version (from `plugins/claude-code`):
 
 ```sh
+# Beta: one command — bump, generate, smoke-test, commit, tag, push
+bun run release:beta            # or: bun run release:beta 0.2.0-beta.1
+
+# Stable: the same steps by hand
 bun run bump 0.2.0     # package.json + matching marketplace channel pin
-                       # (prerelease semver like 0.3.0-beta.1 → beta channel)
 bun run generate       # stamps .claude-plugin/plugin.json
-git commit -am "Release 0.2.0" && git tag v0.2.0 && git push --follow-tags
+git commit -am "Release 0.2.0"
+git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```
 
 The `Release` workflow (`.github/workflows/release.yml`) verifies the tag, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes via npm **trusted publishing** — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
