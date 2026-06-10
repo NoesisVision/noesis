@@ -143,10 +143,10 @@ The `Release` workflow (`.github/workflows/release.yml`) verifies the tag, packs
 
 > Local fallback: `bun publish` / `bun run publish:beta` (never raw `npm publish` from the workspace — only the bun pack pipeline rewrites `workspace:*`/`catalog:` versions in the manifest).
 
-Point the MCP server at a different backend per project via `.claude/settings.local.json`:
+Point the MCP server at a different backend per project via `.claude/settings.local.json` (e.g. the deployed Railway domain):
 
 ```json
-{ "env": { "NOESIS_SERVER_URL": "https://staging.noesis.dev" } }
+{ "env": { "NOESIS_SERVER_URL": "https://<service>.up.railway.app" } }
 ```
 
 Validate a hand-written payload against a contract (works in-repo and in installed copies):
@@ -154,3 +154,28 @@ Validate a hand-written payload against a contract (works in-repo and in install
 ```sh
 bun plugins/claude-code/scripts/validate.ts hello-request path/to/payload.json
 ```
+
+## 4. Deployment
+
+`server` + `ui` deploy as **one Railway service**: the NestJS server serves the
+built SPA (decisions 17/18). Routes are segregated by consumer — `/ui/*` for
+the SPA, `/api/*` for the local app / MCP, `/internal/*` for health and other
+technical endpoints — so each surface can carry its own auth later.
+
+- **How it ships:** every green push to `main` triggers the `deploy` job in
+  `ci.yml`, which runs `railway up --ci`. Railway builds the repo-root
+  `Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`) and
+  health-checks `/internal/health` (`railway.json`).
+- **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
+  token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway
+  service name). The container needs no service variables — Railway injects
+  `PORT`; `UI_DIST_PATH` is baked into the image.
+- **Run the production image locally:**
+
+```sh
+docker build -t noesis-server .
+docker run --rm -p 3000:3000 noesis-server
+```
+
+- **Plugin users** point `NOESIS_SERVER_URL` at the service's generated
+  Railway domain (see above).

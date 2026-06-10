@@ -148,7 +148,7 @@ _Last updated: 2026-06-10_
 
 ## 17. Hosting: single Railway service; Nest serves the UI
 
-**Status: decided, not yet implemented.**
+**Status: implemented (see 18 for the route surfaces and implementation deltas).**
 
 **Context:** `apps/server` (NestJS on bun) and `apps/ui` (Vite SPA) need hosting on a single platform. Options considered: Vercel (UI fits perfectly, but its serverless functions don't support NestJS — the bun runtime is beta and framework-limited — and the server's main consumers are MCP servers on developer machines hitting `NOESIS_SERVER_URL`, which want an always-on REST target); a Vercel-UI + Railway-server split (rejected: two platforms); Render (always-on tier costs more for the same); Fly.io (more hand-rolled ops). A serverless backend was explicitly evaluated and rejected: the planned **in-memory LadybugDB graph** (embedded, in-process, native bindings) is architecturally opposed to serverless — ephemeral instances lose the graph, horizontal fan-out diverges it, and native addons fight function packaging. An embedded in-memory database means the database _is_ the process, so the process must be long-running.
 
@@ -160,3 +160,23 @@ _Last updated: 2026-06-10_
 - Splitting into two Railway services later (independent deploys/scaling) is a small change — only the serving location of `apps/ui/dist` moves; the apps stay separate in the repo either way.
 - When LadybugDB lands: keep a single instance (single writer), persist via a Railway volume (on-disk Ladybug, or in-memory + checkpoint on `OnModuleDestroy` and on an interval, reload on boot).
 - Implementation when picked up: `ServeStaticModule` in `apps/server` (path empty in dev), build step staging `apps/ui/dist`, Railway service config, README deploy notes.
+
+## 18. Route surfaces by consumer; Dockerfile deploys via CI `railway up`
+
+**Implements 17, with deltas. Supersedes the single `/api` global prefix (12-era `main.ts`).**
+
+**Context:** Implementing 17 surfaced two things. First, serving the SPA and the REST API from one origin needs route prefixes that can't collide — and different consumers will need different auth. Second, the original `setGlobalPrefix('api')` had silently broken the MCP client, which fetched the server root (404); nothing caught it because no test exercised an MCP `tools/call` end to end.
+
+**Decision:**
+
+- **Routes are segregated by consumer, one Nest module per surface:** `/ui/*` (ui app; future session-style auth), `/api/*` (local app / MCP; future token auth), `/internal/*` (health and technical endpoints; must stay harmless while publicly reachable). Future auth is a per-module guard binding — never global.
+- **Route constants live in the contracts packages** (`@repo/ui-contracts` → `uiRoutes`/`uiPath`, `@repo/local-contracts` → `apiRoutes`/`apiPath`); controllers, the ui fetch, and `ServerClientService` import them, so client/server drift is impossible. This fixed the MCP client 404 by construction.
+- **SPA serving is opt-in via `UI_DIST_PATH`** (absolute-resolved; set in the container, unset in dev where Vite serves the ui and in tests). The three surfaces are excluded from the index.html fallback so their JSON 404s survive.
+- **Deployment:** repo-root multi-stage `Dockerfile` (`oven/bun` pinned to `packageManager`; manifests-first install layer; `turbo build --filter=server --filter=ui`; slim runtime with only the two dist outputs, non-root). `railway.json` sets the Dockerfile builder, `/internal/health` healthcheck, and on-failure restarts. The `deploy` job in `ci.yml` runs `railway up --ci` on green main pushes only (needs `RAILWAY_TOKEN` secret + `RAILWAY_SERVICE` repo variable) — deltas from 17's sketch: Dockerfile instead of builder auto-detect, Actions-driven instead of Railway auto-deploy.
+- **New test layers:** a full-stack MCP e2e (boots the server app, drives a real `tools/call` through `apps/local` — the test that would have caught the 404) and a black-box SPA-serving e2e (fixture `UI_DIST_PATH`, asserts fallback and surface 404 behavior).
+
+**Consequences:**
+
+- `@fastify/static` joined the server build externals (lazy-required by `@nestjs/serve-static`; unused on the Express adapter) — the decision 9 externals list grows with each Nest optional dep.
+- The route move was breaking for old plugin builds; shipped before any server was deployed, so no consumer broke. A plugin beta release carries the client fix.
+- `NOESIS_SERVER_URL` for plugin users is the Railway-generated service domain.
