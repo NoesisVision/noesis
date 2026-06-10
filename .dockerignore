@@ -1,0 +1,14 @@
+# Keep the build context small and reproducible: dependencies are installed
+# and artifacts built inside the image, never copied in from the host.
+.git
+.idea
+.turbo
+**/.turbo
+node_modules
+**/node_modules
+**/dist
+plugins/claude-code/servers
+**/*.tgz
+coverage
+Dockerfile
+.dockerignore
