@@ -1,7 +1,6 @@
 # Noesis Claude Code plugin
 
-Skills for preparing and validating Noesis MCP tool payloads, plus the
-`noesis-local` MCP server that talks to a Noesis server app over REST.
+Plugin for visual spec-driven development.
 
 ## Requirements
 
