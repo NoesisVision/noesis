@@ -61,3 +61,28 @@ jobs:
             git diff
             exit 1
           fi
+
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: [verify, generate-check]
+    # Deploys every green push to main. Railway builds the Dockerfile
+    # (railway.json); auth is a project token, so no `railway link` is needed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Check deploy configuration
+        run: |
+          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ] || [ -z "${{ vars.RAILWAY_SERVICE }}" ]; then
+            echo "::error::Set the RAILWAY_TOKEN secret and the RAILWAY_SERVICE repository variable (Railway service name)."
+            exit 1
+          fi
+
+      - name: Deploy
+        run: railway up --service "${{ vars.RAILWAY_SERVICE }}" --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
