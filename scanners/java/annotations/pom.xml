@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>vision.noesis</groupId>
+    <artifactId>noesis-scanner-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>noesis-annotations</artifactId>
+  <name>Noesis Annotations</name>
+  <description>Stereotype annotations marking DDD building blocks for the Noesis scanner</description>
+
+  <properties>
+    <!-- Lives in user codebases — keep the bytecode target low. -->
+    <maven.compiler.release>11</maven.compiler.release>
+  </properties>
+</project>
