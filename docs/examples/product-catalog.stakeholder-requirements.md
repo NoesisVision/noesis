@@ -39,14 +39,14 @@ storefront would duplicate effort and drift out of sync.
   want its title, description, and imagery localized for their market, so they can
   understand and judge the product in terms familiar to them.
 
-- **[PC-restricted-product-block]** *(integrity)* When a shopper in a region where a product
+- **[PC-restricted-product-block]** _(integrity)_ When a shopper in a region where a product
   is restricted tries to open or order it, they want the storefront to refuse and explain
   that it is unavailable in their region, so they can avoid attempting a purchase that
   cannot be fulfilled or is not permitted.
 
-*Coverage rows: read (regional view, localized content), write/curate (channel assortment,
+_Coverage rows: read (regional view, localized content), write/curate (channel assortment,
 storefront price), integrity (restricted-product refusal). Lifecycle of the catalog
-structure itself is owned by section 3.*
+structure itself is owned by section 3._
 
 ---
 
@@ -74,14 +74,14 @@ characteristics that do not apply to it.
   want them set side by side on the same characteristics, so they can judge the differences
   that actually matter for that kind of product.
 
-- **[PC-incomplete-product-block]** *(integrity)* When a product data steward tries to
+- **[PC-incomplete-product-block]** _(integrity)_ When a product data steward tries to
   publish a product missing the characteristics required for its type, they want the system
   to refuse and name what is missing, so they can avoid putting an unsearchable or
   misleading product in front of shoppers.
 
-*Coverage rows: write/author (typed attributes), read (faceted browse, compare), integrity
+_Coverage rows: write/author (typed attributes), read (faceted browse, compare), integrity
 (incomplete-product refusal). No storefront-scoping stories here — that tension is owned by
-section 1.*
+section 1._
 
 ---
 
@@ -96,32 +96,32 @@ characteristic to wait on a re-platforming effort.
 
 **Job Stories**
 
-- **[PC-new-category]** *(lifecycle)* When the business introduces a new product line, a
+- **[PC-new-category]** _(lifecycle)_ When the business introduces a new product line, a
   merchandiser wants to add a category for it and place products into it, so they can make
   the line shoppable without engineering work.
 
-- **[PC-new-attribute]** *(lifecycle)* When a product type gains a characteristic shoppers
+- **[PC-new-attribute]** _(lifecycle)_ When a product type gains a characteristic shoppers
   now care about (for example, water resistance), a product data steward wants to add it as
   a characteristic of that type, so they can capture and expose it from then on.
 
-- **[PC-recategorize]** *(lifecycle)* When a merchandiser reorganizes the taxonomy for a new
+- **[PC-recategorize]** _(lifecycle)_ When a merchandiser reorganizes the taxonomy for a new
   season, they want to move products and categories into the new structure, so they can
   match how shoppers currently browse without losing existing product information.
 
-- **[PC-category-safe-removal]** *(integrity)* When a merchandiser tries to remove a category
+- **[PC-category-safe-removal]** _(integrity)_ When a merchandiser tries to remove a category
   that still contains products or is still referenced elsewhere in the catalog structure,
   they want the system to refuse and identify what still depends on it, so they can resolve
   the dependency intentionally rather than leave products unreachable.
 
-- **[PC-attribute-safe-retire]** *(integrity)* When a product data steward retires a
+- **[PC-attribute-safe-retire]** _(integrity)_ When a product data steward retires a
   characteristic, they want the system to allow it only when no product type still requires
   it, so they can keep the set of characteristics clean without breaking existing products.
 
-*Coverage rows: lifecycle (new category, new attribute, recategorize), integrity (two safe
--removal stories). Read and curate of the resulting structure are owned by sections 1–2.*
+_Coverage rows: lifecycle (new category, new attribute, recategorize), integrity (two safe
+-removal stories). Read and curate of the resulting structure are owned by sections 1–2._
 
 ---
 
-*All stories carry stable `PC-*` IDs and are ready for a solution-space artifact to link up
+_All stories carry stable `PC-_` IDs and are ready for a solution-space artifact to link up
 to. Until one exists, every story is **unspecified** — expected at discovery stage, and the
-point at which a coverage check would flag them for build.*
+point at which a coverage check would flag them for build.\*

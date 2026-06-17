@@ -30,8 +30,8 @@ See [[domain-stories]] for the problem-space half.
 
 1. **Job stories** — the problem-space source (IDs like `DS-charger-company-view`). Required.
    If absent, ask for them or offer to run `domain-stories` first; do not invent stories.
-2. **High-level design** — the solution shape that constrains *what systems exist* and
-   *what they're responsible for* (services, components, boundaries, key data, the authz
+2. **High-level design** — the solution shape that constrains _what systems exist_ and
+   _what they're responsible for_ (services, components, boundaries, key data, the authz
    model, etc.). This is what lets you name a concrete system as the EARS subject. If it's
    missing or too vague to name subjects and responses, ask 2-3 targeted questions before
    drafting — do not invent architecture.
@@ -43,7 +43,7 @@ See [[domain-stories]] for the problem-space half.
    Each EARS requirement's subject must be one of these — never "the system" generically if
    a more specific named element exists, never a person.
 2. **Walk each job story and derive behaviors.** For each story, ask: what must which system
-   *do* for that outcome to hold? Express each as an EARS sentence (patterns below). One
+   _do_ for that outcome to hold? Express each as an EARS sentence (patterns below). One
    story often yields several requirements (happy path, state constraint, refusal); several
    stories often collapse into one general requirement — prefer the general one and list all
    the stories it fulfills.
@@ -58,16 +58,17 @@ See [[domain-stories]] for the problem-space half.
 
 Fixed clause order; the subject is always a named system; the obligation is always `shall`.
 
-| Pattern | Template | Use for |
-|---|---|---|
-| Ubiquitous | The `<system>` shall `<response>`. | always-active rules |
-| Event-driven | **When** `<trigger>`, the `<system>` shall `<response>`. | response to an occurrence |
-| State-driven | **While** `<state>`, the `<system>` shall `<response>`. | behavior bounded by a mode/context |
-| Unwanted behavior | **If** `<condition>`, **then** the `<system>` shall `<response>`. | failures, conflicts, refusals |
-| Optional feature | **Where** `<feature is included>`, the `<system>` shall `<response>`. | behavior present only with a feature |
-| Complex | Combinations, e.g. **While** `<state>`, **when** `<trigger>`, the `<system>` shall `<response>`. | use sparingly |
+| Pattern           | Template                                                                                         | Use for                              |
+| ----------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| Ubiquitous        | The `<system>` shall `<response>`.                                                               | always-active rules                  |
+| Event-driven      | **When** `<trigger>`, the `<system>` shall `<response>`.                                         | response to an occurrence            |
+| State-driven      | **While** `<state>`, the `<system>` shall `<response>`.                                          | behavior bounded by a mode/context   |
+| Unwanted behavior | **If** `<condition>`, **then** the `<system>` shall `<response>`.                                | failures, conflicts, refusals        |
+| Optional feature  | **Where** `<feature is included>`, the `<system>` shall `<response>`.                            | behavior present only with a feature |
+| Complex           | Combinations, e.g. **While** `<state>`, **when** `<trigger>`, the `<system>` shall `<response>`. | use sparingly                        |
 
 Rules:
+
 - Exactly one `shall` per requirement (one obligation). Split compound requirements.
 - Keep the keyword order. The trigger/state/condition comes before the system, the response
   after `shall`.
@@ -76,24 +77,24 @@ Rules:
 
 ## INCOSE lint (apply to every requirement before presenting)
 
-A pragmatic subset of the INCOSE *Guide to Writing Requirements* rules — enough to catch the
+A pragmatic subset of the INCOSE _Guide to Writing Requirements_ rules — enough to catch the
 common defects at markdown weight:
 
 - [ ] **Singular** — one `shall`, one thought. No "and also", no embedded lists of behaviors.
-- [ ] **Unambiguous** — no vague terms: *fast, quickly, user-friendly, appropriate, efficient,
-      robust, etc., minimize, maximize, support, handle*. Replace with a measurable response.
+- [ ] **Unambiguous** — no vague terms: _fast, quickly, user-friendly, appropriate, efficient,
+      robust, etc., minimize, maximize, support, handle_. Replace with a measurable response.
 - [ ] **Verifiable** — a tester could write a pass/fail check. If you can't, it's vague or it's
       a goal, not a requirement.
 - [ ] **Quantified with units** — every quantity has a unit and, where relevant, a tolerance or
       percentile ("within 2 s at the 95th percentile", not "within 2 s" if load varies).
-- [ ] **No escape clauses** — no *where possible, if appropriate, as applicable, etc., and/or*.
+- [ ] **No escape clauses** — no _where possible, if appropriate, as applicable, etc., and/or_.
 - [ ] **Active voice, named subject** — "the listing service shall…", never "it should be
       possible to…" or passive "shall be shown".
-- [ ] **shall** for obligations — not *should / will / must / may*. Reserve `should` for
+- [ ] **shall** for obligations — not _should / will / must / may_. Reserve `should` for
       genuine non-mandatory goals and mark them as such.
 - [ ] **Defined terms** — every domain term (privilege, role, context, scope, boundary) used
       with one consistent meaning; list them in a Glossary section and don't drift.
-- [ ] **Solution-free of design not yet decided** — state *what* the system does, not *how*,
+- [ ] **Solution-free of design not yet decided** — state _what_ the system does, not _how_,
       unless the high-level design has fixed the how.
 
 A requirement can be perfect EARS and still fail this lint ("When the user logs in, the system
@@ -145,13 +146,13 @@ These mirror Jama-style traceability, done in markdown + a small script — see 
 
 - **Every requirement has ≥1 `Fulfills:`** — a requirement tracing to no story/need is
   solutioning without a problem. Delete it or find the story it serves.
-- **Every job story is fulfilled by ≥1 requirement** — an unreferenced story is *unspecified*.
+- **Every job story is fulfilled by ≥1 requirement** — an unreferenced story is _unspecified_.
   Acceptable in discovery; flag it before build.
 - **Coverage is computed, never hand-stored** — generate the story→requirement matrix by
   scanning `Fulfills:` lines; don't maintain the reverse direction by hand (it drifts).
 - **Suspect-on-change (optional but recommended)** — keep a content hash per story ID in the
   generated matrix. When a commit changes a story's text, flag every requirement whose
-  `Fulfills:` references it as *suspect* until a human reviews and regenerates the matrix.
+  `Fulfills:` references it as _suspect_ until a human reviews and regenerates the matrix.
   This is the git-native equivalent of Jama suspect links, and it's why the link points
   solution → problem: when the problem moves, you learn exactly which solutions to re-check.
 

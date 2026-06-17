@@ -42,6 +42,7 @@ because <the structural reason the current or naive approach cannot work>.
 ```
 
 Rules:
+
 - The subject is whoever **owns the problem**, never the building team.
 - The capability is named at domain level — no mechanism (no scopes, claims, tables,
   endpoints, components, screens).
@@ -58,6 +59,7 @@ so they can <value gained or risk avoided in the domain>.
 ```
 
 Rules:
+
 - **Trigger is situational, not navigational**: "gives a person multiple
   responsibilities", "the business expands into a new country" — not "clicks the tab".
   The trigger's subject may be the business itself, not the actor.
@@ -70,7 +72,7 @@ Rules:
   Statement; if it takes seconds and has no standalone domain value, it is a subfunction —
   fold it into a story, don't write it as one.
 - **Guard-rail stories are first-class**: when the right behavior is refusal, write it as
-  its own story, and have the system refuse *and explain* — "refuse and point them at the
+  its own story, and have the system refuse _and explain_ — "refuse and point them at the
   existing assignment", "refuse and identify what still depends on it".
 - Two stories may share a trigger and differ only by role — that is the canonical way to
   express "same capability, different data per role". Keep them as separate stories.
@@ -84,6 +86,7 @@ N. <Theme phrased as a domain tension, plain words>
 ```
 
 Coverage rows to sweep when decomposing (most sections need stories from several):
+
 - **read** — who sees what (visibility, slicing by role/context)
 - **write/grant** — who may change what, and within what boundary
 - **lifecycle** — add, revoke, evolve over time (new capabilities, regions, retirement)
