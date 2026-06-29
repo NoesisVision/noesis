@@ -41,7 +41,13 @@ beforeAll(async () => {
 
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
-    env: { ...process.env, PORT: String(PORT), UI_DIST_PATH: uiDist },
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      UI_DIST_PATH: uiDist,
+      // Ephemeral in-memory DB so the e2e run touches no on-disk data dir.
+      NOESIS_DATA_DIR: ':memory:',
+    },
     stdio: 'ignore',
   });
   await waitForHealth(15_000);

@@ -5,3 +5,6 @@
 export * from '@repo/shared-contracts';
 export * from './hello.js';
 export * from './registry.js';
+
+// Skill-output schemas (the model-facing payloads each skill produces).
+export * from './skills/analyzed-topic.js';

@@ -26,10 +26,14 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/serve-static": "5.0.5",
     "@repo/local-contracts": "workspace:*",
+    "@repo/shared-contracts": "workspace:*",
     "@repo/ui-contracts": "workspace:*",
+    "lbug": "^0.14.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^4.1.0"
   },
+  "trustedDependencies": ["lbug"],
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",

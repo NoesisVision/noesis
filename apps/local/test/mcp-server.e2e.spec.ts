@@ -34,7 +34,8 @@ async function waitForHealth(timeoutMs: number): Promise<void> {
 beforeAll(async () => {
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
-    env: { ...process.env, PORT: String(PORT) },
+    // In-memory DB so the e2e run touches no on-disk data dir.
+    env: { ...process.env, PORT: String(PORT), NOESIS_DATA_DIR: ':memory:' },
     stdio: 'ignore',
   });
   await waitForHealth(15_000);

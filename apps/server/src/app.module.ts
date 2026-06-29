@@ -5,7 +5,11 @@ import { resolve } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ApiModule } from './api/api.module';
+import { ConfigModule } from './config/config.module';
+import { DatabaseModule } from './database/database.module';
 import { InternalModule } from './internal/internal.module';
+import { ProjectsModule } from './projects/projects.module';
+import { SchemaModule } from './schema/schema.module';
 import { UiModule } from './ui/ui.module';
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)
@@ -19,6 +23,10 @@ const uiDistPath = process.env.UI_DIST_PATH
 
 @Module({
   imports: [
+    ConfigModule,
+    DatabaseModule,
+    SchemaModule,
+    ProjectsModule,
     UiModule,
     ApiModule,
     InternalModule,

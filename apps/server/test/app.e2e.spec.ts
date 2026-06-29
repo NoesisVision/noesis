@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'bun:test';
+import { afterAll, beforeAll, describe, it } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
@@ -7,10 +7,14 @@ import { apiPath } from '@repo/local-contracts';
 import { uiPath } from '@repo/ui-contracts';
 import { AppModule } from '../src/app.module';
 
+// One shared app for all route assertions: AppModule now boots LadybugDB, and
+// lbug segfaults with many DB instances per process, so we avoid a per-test app.
+// The in-memory DB keeps the run off disk.
 describe('Route surfaces (e2e)', () => {
   let app: INestApplication<App>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
+    process.env.NOESIS_DATA_DIR = ':memory:';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -44,7 +48,7 @@ describe('Route surfaces (e2e)', () => {
     return request(app.getHttpServer()).get('/').expect(404);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 });

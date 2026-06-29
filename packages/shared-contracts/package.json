@@ -7,13 +7,16 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "bun test src"
   },
   "dependencies": {
     "zod": "^4.1.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@types/bun": "^1.2.0",
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   }
 }
