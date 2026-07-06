@@ -5,44 +5,36 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.ts"
+  },
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external lbug --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets --external @fastify/static",
+    "build": "bun build src/main.ts --outdir dist --target bun --external lbug",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
     "start:debug": "bun --inspect --watch src/main.ts",
     "start:prod": "bun run dist/main.js",
     "check-types": "tsc --noEmit",
-    "test": "bun test src",
-    "test:watch": "bun test src --watch",
-    "test:cov": "bun test src --coverage",
-    "test:e2e": "bun test test"
+    "test": "bun test test/unit",
+    "test:watch": "bun test test/unit --watch",
+    "test:cov": "bun test test/unit --coverage",
+    "test:e2e": "bun test test/e2e"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/serve-static": "5.0.5",
     "@repo/local-contracts": "workspace:*",
     "@repo/shared-contracts": "workspace:*",
-    "@repo/ui-contracts": "workspace:*",
+    "hono": "^4.12.0",
     "lbug": "^0.14.3",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
     "zod": "^4.1.0"
   },
   "trustedDependencies": [
     "lbug"
   ],
   "devDependencies": {
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.1",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
-    "@types/express": "^5.0.0",
     "@types/node": "catalog:",
-    "@types/supertest": "^7.0.0",
-    "supertest": "^7.0.0",
     "typescript": "catalog:"
   }
 }

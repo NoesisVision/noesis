@@ -9,7 +9,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-const serverRoot = resolve(__dirname, '..');
+const serverRoot = resolve(__dirname, '../..');
 
 const PORT = 3919;
 const BASE = `http://localhost:${PORT}`;

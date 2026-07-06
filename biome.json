@@ -33,7 +33,7 @@
   },
   "overrides": [
     {
-      "includes": ["apps/server/**", "apps/local/**"],
+      "includes": ["apps/local/**"],
       "linter": {
         "rules": {
           "style": {
@@ -41,7 +41,14 @@
           },
           "suspicious": {
             "noExplicitAny": "off"
-          },
+          }
+        }
+      }
+    },
+    {
+      "includes": ["apps/server/**", "apps/local/**"],
+      "linter": {
+        "rules": {
           "nursery": {
             "noFloatingPromises": "error"
           }

@@ -1,13 +1,5 @@
 import { mkdirSync } from 'node:fs';
-import {
-  Inject,
-  Injectable,
-  Logger,
-  type OnModuleDestroy,
-  type OnModuleInit,
-} from '@nestjs/common';
 import lbug, { type LbugValue } from 'lbug';
-import { DATA_DIR } from '../config/config.module.js';
 
 const { Database, Connection } = lbug;
 
@@ -15,15 +7,19 @@ type LbugDatabase = InstanceType<typeof Database>;
 type LbugConnection = InstanceType<typeof Connection>;
 export type QueryParams = Record<string, LbugValue>;
 
-@Injectable()
-export class DatabaseService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(DatabaseService.name);
+// Owns the lbug database handle. Constructed and initialized by the
+// composition root (main.ts), which also closes it on shutdown — lbug handles
+// left to GC finalizers segfault after their Database closes (decision 23).
+export class DatabaseService {
+  private readonly dataDir: string;
   private database: LbugDatabase | null = null;
   private connection: LbugConnection | null = null;
 
-  constructor(@Inject(DATA_DIR) private readonly dataDir: string) {}
+  constructor(dataDir: string) {
+    this.dataDir = dataDir;
+  }
 
-  onModuleInit(): void {
+  init(): void {
     let dbPath: string;
     if (this.dataDir === ':memory:') {
       // Ephemeral in-memory DB (used by tests).
@@ -36,10 +32,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     }
     this.database = new Database(dbPath);
     this.connection = new Connection(this.database);
-    this.logger.log('LadybugDB initialized');
+    console.log('[DatabaseService] LadybugDB initialized');
   }
 
-  async onModuleDestroy(): Promise<void> {
+  async close(): Promise<void> {
     if (this.connection !== null) {
       await this.connection.close();
       this.connection = null;

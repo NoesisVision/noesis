@@ -1,16 +1,18 @@
-import { uiPath } from '@repo/ui-contracts';
 import { useEffect, useState } from 'react';
 import heroImg from './assets/hero.png';
 import reactLogo from './assets/react.svg';
 import viteLogo from './assets/vite.svg';
 import './App.css';
+import { client } from './client';
 
 function App() {
   const [count, setCount] = useState(0);
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
-    fetch(`/${uiPath('hello')}`)
+    // Typed end-to-end: rename the server route and this stops compiling.
+    client.ui.hello
+      .$get()
       .then((res) => (res.ok ? res.text() : ''))
       .then(setGreeting)
       .catch(() => setGreeting(''));

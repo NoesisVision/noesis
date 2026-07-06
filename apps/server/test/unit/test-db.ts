@@ -1,7 +1,6 @@
-import 'reflect-metadata';
-import { DatabaseService } from '../database/database.service.js';
-import { GRAPH_SCHEMA } from '../schema/graph-schema.js';
-import { SchemaService } from '../schema/schema.service.js';
+import { DatabaseService } from '../../src/database/database.service.js';
+import { GRAPH_SCHEMA } from '../../src/schema/graph-schema.js';
+import { SchemaService } from '../../src/schema/schema.service.js';
 
 // Why this exists: the bundled `lbug` build segfaults once more than a handful
 // of `Database` instances are opened in a single OS process (a kuzu global-state
@@ -19,7 +18,7 @@ let shared: DatabaseService | undefined;
 export async function sharedTestDatabase(): Promise<DatabaseService> {
   if (shared === undefined) {
     const db = new DatabaseService(':memory:');
-    db.onModuleInit();
+    db.init();
     await new SchemaService(db).ensureSchema();
     shared = db;
   }

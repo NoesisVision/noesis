@@ -4,22 +4,22 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "check-types": "tsc -b",
+    "dev": "bunx --bun vite",
+    "build": "bunx --bun vite build",
+    "check-types": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@repo/ui-contracts": "workspace:*",
+    "hono": "^4.12.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "server": "workspace:*",
     "typescript": "catalog:",
     "vite": "^8.0.12"
   }

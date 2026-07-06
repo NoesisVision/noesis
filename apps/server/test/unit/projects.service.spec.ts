@@ -1,8 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
-import { ConcurrencyConflictError } from '../database/concurrency';
-import { resetGraph, sharedTestDatabase } from '../testing/test-db';
-import { ProjectsRepository } from './projects.repository';
-import { ProjectsService } from './projects.service';
+import { ConcurrencyConflictError } from '../../src/database/concurrency.js';
+import { ProjectsRepository } from '../../src/projects/projects.repository.js';
+import { ProjectsService } from '../../src/projects/projects.service.js';
+import { resetGraph, sharedTestDatabase } from './test-db.js';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

@@ -1,8 +1,4 @@
-import { Global, Logger, Module } from '@nestjs/common';
 import { z } from 'zod';
-
-// Injection token for the on-disk LadybugDB data directory.
-export const DATA_DIR = 'DATA_DIR';
 
 // Server configuration is read from the environment and zod-validated at
 // bootstrap, failing fast on garbage (decision 10's pattern). The server keeps
@@ -22,19 +18,10 @@ export function loadServerConfig(
 ): ServerConfig {
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
-    new Logger('ConfigModule').error(
-      `Invalid server configuration:\n${z.prettifyError(parsed.error)}`,
+    console.error(
+      `[config] Invalid server configuration:\n${z.prettifyError(parsed.error)}`,
     );
     process.exit(1);
   }
   return { dataDir: parsed.data.NOESIS_DATA_DIR };
 }
-
-@Global()
-@Module({
-  providers: [
-    { provide: DATA_DIR, useFactory: (): string => loadServerConfig().dataDir },
-  ],
-  exports: [DATA_DIR],
-})
-export class ConfigModule {}

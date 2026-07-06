@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { newUuid } from '@repo/shared-contracts/uuid';
 import { ConcurrencyConflictError } from '../database/concurrency.js';
-import { DatabaseService } from '../database/database.service.js';
+import type { DatabaseService } from '../database/database.service.js';
 
 // Internal row shape (includes the system-managed `version` and `created_at`,
 // which are not part of the client-facing Project DTO).
@@ -22,9 +21,12 @@ interface RawProjectRow {
 
 const RETURN_PROJECT = `RETURN p.id AS id, p.name AS name, p.version AS version, p.created_at AS created_at`;
 
-@Injectable()
 export class ProjectsRepository {
-  constructor(private readonly db: DatabaseService) {}
+  private readonly db: DatabaseService;
+
+  constructor(db: DatabaseService) {
+    this.db = db;
+  }
 
   // The server mints the id (UUIDv7) — all clients use it (OQ-2.2).
   async create(name: string): Promise<ProjectRow> {

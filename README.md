@@ -7,7 +7,7 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 ```
 ┌─────────────┐   REST    ┌─────────────┐   REST    ┌─────────────┐
 │  apps/ui    │ ────────► │ apps/server │ ◄──────── │ apps/local  │
-│ React/Vite  │           │   NestJS    │           │   NestJS    │
+│ React/Vite  │           │ Hono (bun)  │           │   NestJS    │
 │   :5173     │           │    :3000    │           │ MCP (stdio) │
 └─────────────┘           └─────────────┘           └─────────────┘
                                                           ▲ bundled into
@@ -20,11 +20,11 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ### Apps
 
-| App           | Stack           | Purpose                                                                                          |
-| ------------- | --------------- | ------------------------------------------------------------------------------------------------ |
-| `apps/ui`     | React 19 + Vite | Web frontend, talks to `server` over REST                                                        |
-| `apps/server` | NestJS (on bun) | Backend API (port `3000`)                                                                        |
-| `apps/local`  | NestJS (on bun) | Local companion app; hosts the **stdio MCP server** (`src/mcp.ts`) that calls `server` over REST |
+| App           | Stack               | Purpose                                                                                          |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------ |
+| `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server`                                              |
+| `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                                                                        |
+| `apps/local`  | NestJS (on bun)     | Local companion app; hosts the **stdio MCP server** (`src/mcp.ts`) that calls `server` over REST |
 
 ### Contract packages — single source of truth for DTOs
 
@@ -56,7 +56,7 @@ The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugi
 
 Linting and formatting need no config package: a single root `biome.json` covers the whole workspace (per-area rule tweaks live in its `overrides`).
 
-> ⚠️ bun's transpiler does not resolve package-specifier `extends` in tsconfig — the Nest apps duplicate `experimentalDecorators`/`emitDecoratorMetadata` inline. Don't remove those.
+> ⚠️ bun's transpiler does not resolve package-specifier `extends` in tsconfig — the Nest app (`apps/local`) duplicates `experimentalDecorators`/`emitDecoratorMetadata` inline. Don't remove those.
 
 Shared tool versions (`typescript`, `@biomejs/biome`, `prettier`, `@types/node`) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
 
@@ -66,16 +66,17 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 
 ## 2. Tools
 
-| Tool                                                                                | Role                                                                                                                   |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (Nest apps run TS directly), bundler, test runner, task orchestration (`bun run --filter`) |
-| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                                         |
-| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                                               |
-| [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                                                              |
-| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                                                               |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                                             |
-| [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                                                |
-| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing                        |
+| Tool                                                                                | Role                                                                                                |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (apps run TS directly), server bundler, test runner, task orchestration |
+| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                      |
+| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
+| [Hono](https://hono.dev/) 4                                                         | `server` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `ui` app                     |
+| [NestJS](https://nestjs.com/) 11                                                    | `local` app                                                                                         |
+| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app (Vite dev server proxies `/ui` to the server; `vite build` emits the SPA the server ships) |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                          |
+| [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |
+| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing     |
 
 ## 3. Getting started
 
@@ -157,8 +158,8 @@ bun plugins/claude-code/scripts/validate.ts hello-request path/to/payload.json
 
 ## 4. Deployment
 
-`server` + `ui` deploy as **one Railway service**: the NestJS server serves the
-built SPA (decisions 17/18). Routes are segregated by consumer — `/ui/*` for
+`server` + `ui` deploy as **one Railway service**: the Hono server serves the
+built SPA (decisions 17/18/28). Routes are segregated by consumer — `/ui/*` for
 the SPA, `/api/*` for the local app / MCP, `/internal/*` for health and other
 technical endpoints — so each surface can carry its own auth later.
 
@@ -174,7 +175,7 @@ technical endpoints — so each surface can carry its own auth later.
 - **Run the production image locally:**
 
 ```sh
-docker build -t noesis-server .
+docker build -f apps/server/Dockerfile -t noesis-server .
 docker run --rm -p 3000:3000 noesis-server
 ```
 

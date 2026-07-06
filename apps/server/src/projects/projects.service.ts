@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import type { Project } from '@repo/shared-contracts';
-import { ProjectRow, ProjectsRepository } from './projects.repository.js';
+import type { ProjectRow, ProjectsRepository } from './projects.repository.js';
 
-@Injectable()
 export class ProjectsService {
-  constructor(private readonly projects: ProjectsRepository) {}
+  private readonly projects: ProjectsRepository;
+
+  constructor(projects: ProjectsRepository) {
+    this.projects = projects;
+  }
 
   // The server owns the project id (UUIDv7); clients receive it and use it on
   // every subsequent call (OQ-2.2). Project resolution from the *authenticated*

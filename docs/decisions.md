@@ -318,3 +318,29 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 
 - Anyone building locally must pass `-f apps/server/Dockerfile`; a bare `docker build .` no longer finds it.
 - If a second deployable image ever appears (e.g. `local`), it follows the same pattern: `apps/<app>/Dockerfile`, shared root context.
+
+## 28. Hono replaces NestJS; bun replaces Vite; typed RPC client
+
+**Context:** The server used almost none of Nest's machinery (3 controllers, one `@Get` each, no guards/pipes/interceptors), yet paid for all of it: DI/decorator ceremony, Express + rxjs + reflect-metadata at runtime, 6 of the 7 `--external` bundling flags, and `TestingModule` + supertest in tests. The ui app carried Vite for a plain React SPA with no SSR planned. Full plan: `docs/work/chores/nest-to-hono-bun-migration.md`; wiring modeled on the `first-app` reference project.
+
+**Decision:** `apps/server` is a [Hono](https://hono.dev/) app on `Bun.serve` with an explicit composition root (`main.ts` constructs services, wires `createApp(deps)`, owns DB lifecycle incl. `SIGTERM`/`SIGINT` close — decision 23); surfaces are factory functions taking narrow deps interfaces. `apps/ui` is bundled by bun: `src/dev-server.ts` (dev-only `Bun.serve` with HMR, proxying `/ui/*` to `:3000` — same-origin like prod; a CLI-only `bun ./index.html` dev server was rejected because it cannot proxy) and `build.ts` (`Bun.build` → `dist/`, copying `public/` verbatim since bun has no public-dir convention). The ui calls the server through `hc<AppType>`: `server` exposes a **type-only** `./client` exports entry, and `ui` devDepends on `server` for it. `@repo/ui-contracts` route constants lost their consumer (retiring the package is a follow-up); the `/api` surface keeps `@repo/local-contracts` constants so it cannot drift from the unchanged `apps/local`. `@hono/zod-validator` arrives with the first validated route.
+
+**Consequences:**
+
+- The server bundles with a single external (`lbug`, decision 24 — which is also why the server keeps its `bun build` step instead of first-app's run-from-source: the minimal-lbug image staging needs a bundle). Dockerfile runtime stage unchanged.
+- Adding `"type": "module"` to `server` made NodeNext enforce explicit `.js` extensions in relative imports — specs updated to match src convention.
+- SPA parity subtleties, pinned by `test/static-ui.e2e.spec.ts`: hono's `serveStatic` honors absolute paths only in `root` (a leading `/` in `path` is stripped), and the SPA fallback excludes `/ui|/api|/internal` so surface 404s stay JSON-able.
+- Portability rules keeping the Vite exit open: no `bun:` imports/Bun APIs/import attributes under `apps/ui/src` except `dev-server.ts`; HTML imports confined to `dev-server.ts` + `build.ts`; client-visible env only via `BUN_PUBLIC_*` behind one module; ui imports only **types** from `server` (Biome `useImportType` is now active for `apps/server` too — the decorator-era override is scoped to `apps/local`).
+- Supersedes decision 17's "Nest serves the UI" wording (single-service hosting stands) and decision 7/README's decorator-duplication warning for the server (now `apps/local`-only). `nest.json` tsconfig preset remains for `apps/local`.
+
+## 29. UI toolchain back to Vite; Hono + `hc` stay
+
+**Context:** Decision 28 moved the ui app onto Bun's fullstack dev server + `Bun.build`. It worked, but the trade was re-evaluated after living with it: Bun's frontend toolchain is the least mature corner of the stack (no `public/`-dir convention, every `<link href>` must be bundler-resolvable, no plugin hooks comparable to Vite's), while the actual win over Vite was small — the dev-process count was identical and the proxy just moved from config into a script.
+
+**Decision:** Revert the ui app's toolchain to Vite (`vite` dev server with the `/ui` proxy, `tsc --noEmit && vite build`), exactly via the exit hatch decision 28 reserved: `dev-server.ts`, `build.ts`, and `bun-env.d.ts` are deleted; `vite.config.ts` and the root `index.html` return; `favicon.svg` moves back to `public/`. Everything else from decision 28 stands — Hono server, composition root, type-only `hc<AppType>` client (`server/client`), single ui tsconfig (the 3-file project-reference split is not restored), and the ui-imports-only-types-from-server rule. The "no Bun APIs in ui src" portability rule is now enforced by the toolchain itself.
+
+**Consequences:**
+
+- The exit hatch worked as designed: the React tree, `src/client.ts`, and the server were untouched; only toolchain files changed. The reverse door (back to Bun fullstack) remains equally cheap and is documented in `docs/work/chores/nest-to-hono-bun-migration.md`.
+- Tailwind, when adopted, uses `@tailwindcss/vite` instead of `bun-plugin-tailwind`.
+- `bun ./index.html`-era caveats in the chore doc's execution notes are historical; Vite's `public/` convention again serves `/favicon.svg` and `/icons.svg` verbatim.
