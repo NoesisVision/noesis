@@ -1,0 +1,13 @@
+#!/bin/sh
+# Pre-commit: fast checks on staged files only (mirrors CI's format + lint jobs).
+# Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
+# script on `bun install`. Bypass for a work-in-progress commit: `git commit -n`.
+set -e
+
+bunx biome check --staged --no-errors-on-unmatched
+
+# Prettier owns Markdown (Biome has no md support).
+staged_md=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
+if [ -n "$staged_md" ]; then
+  echo "$staged_md" | tr '\n' '\0' | xargs -0 bunx prettier --check
+fi

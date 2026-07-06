@@ -295,3 +295,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - `biome check` organizes imports (assist); import order is now enforced, autofixed via `lint:fix`/`format`.
 - Prettier's scope shrank to Markdown; `.prettierrc`/`.prettierignore` remain for that.
 - Editor integration is the Biome plugin (IntelliJ/VS Code), not ESLint + Prettier plugins.
+
+## 26. Pre-commit hook via `core.hooksPath`; no hook manager
+
+**Context:** With Biome making staged checks near-instant (decision 25), a local pre-commit guard became worth its cost. Husky and lefthook were considered; modern husky is essentially `git config core.hooksPath` plus a shim, and with two one-line checks there is nothing for lefthook's parallelism to win.
+
+**Decision:** A committed `.githooks/pre-commit` runs `biome check --staged --no-errors-on-unmatched` plus `prettier --check` on staged `*.md` — exactly mirroring CI's lint and format jobs, scoped to the commit. It is activated per clone by the root `prepare` script (`git config core.hooksPath .githooks || true`), which `bun install` runs automatically. The `|| true` keeps `bun install` working where there is no repo — the Docker build excludes `.git` via `.dockerignore`.
+
+**Consequences:**
+
+- Heavier checks (`check-types`, tests, e2e, build) are deliberately **not** hooked — pre-commit stays sub-second; CI and `bun run ci` remain the real gate.
+- `git commit -n` bypasses the hook for work-in-progress commits.
+- New clones get the hook on first `bun install`; nobody has to install or configure anything.
