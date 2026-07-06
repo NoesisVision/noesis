@@ -5,8 +5,9 @@
 
 // Primitives & helpers.
 // `uuid.ts` is intentionally NOT re-exported here: it uses Bun/node runtime
-// APIs, and this barrel is consumed by the browser-facing ui-contracts. Import
-// it via the subpath instead — `@repo/shared-contracts/uuid`.
+// APIs, and this barrel must stay runtime-agnostic (its types reach the
+// browser via the server's hc client, and the plugin ships a generated copy).
+// Import it via the subpath instead — `@repo/shared-contracts/uuid`.
 export * from './assert-never.js';
 export * from './decision.js';
 export * from './design-doc.js';

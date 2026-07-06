@@ -31,12 +31,15 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consumed directly as TypeScript source (no build step):
 
 ```
-@repo/shared-contracts        DTOs common to all of the below
-   ▲           ▲          ▲
-@repo/ui-   @repo/local-  @repo/mcp-contracts
-contracts   contracts     (MCP tool payloads + registry;
-(server↔ui) (server↔local) feeds plugin schemas & validators)
+@repo/shared-contracts      DTOs common to all of the below
+     ▲              ▲
+@repo/local-   @repo/mcp-contracts
+contracts      (MCP tool payloads + registry;
+(server↔local) feeds plugin schemas & validators)
 ```
+
+The server↔ui boundary needs no contracts package: the ui infers request and
+response types from the server's route tree via Hono's `hc<AppType>` client.
 
 ### Plugins (`plugins/`)
 
@@ -58,7 +61,7 @@ Linting and formatting need no config package: a single root `biome.json` covers
 
 > ⚠️ bun's transpiler does not resolve package-specifier `extends` in tsconfig — the Nest app (`apps/local`) duplicates `experimentalDecorators`/`emitDecoratorMetadata` inline. Don't remove those.
 
-Shared tool versions (`typescript`, `@biomejs/biome`, `prettier`, `@types/node`) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
+Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
 
 ### Scanners (`scanners/`)
 
@@ -104,7 +107,7 @@ Filter to one package: `bun run --filter=server build`.
 
 ### Working with contracts
 
-1. Add/edit a zod schema in the right package (`shared-`, `ui-`, `local-`, or `mcp-contracts`).
+1. Add/edit a zod schema in the right package (`shared-`, `local-`, or `mcp-contracts`).
 2. For MCP payloads, register it in `packages/mcp-contracts/src/registry.ts`.
 3. Regenerate plugin artifacts:
 

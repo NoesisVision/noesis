@@ -24,9 +24,9 @@
   "dependencies": {
     "@repo/local-contracts": "workspace:*",
     "@repo/shared-contracts": "workspace:*",
-    "hono": "^4.12.0",
+    "hono": "catalog:",
     "lbug": "^0.14.3",
-    "zod": "^4.1.0"
+    "zod": "catalog:"
   },
   "trustedDependencies": [
     "lbug"

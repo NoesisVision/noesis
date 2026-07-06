@@ -344,3 +344,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The exit hatch worked as designed: the React tree, `src/client.ts`, and the server were untouched; only toolchain files changed. The reverse door (back to Bun fullstack) remains equally cheap and is documented in `docs/work/chores/nest-to-hono-bun-migration.md`.
 - Tailwind, when adopted, uses `@tailwindcss/vite` instead of `bun-plugin-tailwind`.
 - `bun ./index.html`-era caveats in the chore doc's execution notes are historical; Vite's `public/` convention again serves `/favicon.svg` and `/icons.svg` verbatim.
+
+## 30. Config sweep: lib layering fixed, catalog for shared runtime deps, `exact` dropped, `ui-contracts` retired
+
+**Context:** An external-style review of the workspace config surfaced leftovers the recent migrations didn't sweep up: `base.json` shipped DOM libs to every consumer (so the _server_ type-checked against `document`/`window` while the vite preset stripped DOM and the ui added it back — inverted layering); `zod` was hand-synced across five manifests and `hono` across two (the `hc<AppType>` typed client relies on ui and server resolving compatible hono types, so independent ranges are a real drift risk, not just untidiness); `bunfig.toml`'s `exact = true` was a copied default, not a decision, and contradicted the all-`^` manifests; `@repo/typescript-config`'s manifest was `private: true` yet carried `license: MIT` + `publishConfig.access: public` (create-turbo fossil); `apps/server/tsconfig.json` kept `outDir`/`baseUrl` although the server never emits via tsc; and `@repo/ui-contracts` had lost its last consumer in decision 28.
+
+**Decision:** Fix the lib layering (`base.json` → `["ES2022"]` only; `vite.json` owns `DOM`/`DOM.Iterable`; the ui tsconfig drops its `lib` override). Move `zod` and `hono` into the root catalog (`"catalog:"` everywhere; bun's pack pipeline already rewrites catalog specifiers for the published plugin, decision 14). Remove `exact = true` — the standard combo is `^`ranges + `bun.lock` (frozen in CI). Strip the typescript-config manifest to name/version/private and the server tsconfig to bare `extends`. Delete `packages/ui-contracts` (Dockerfile manifest COPY and README updated); the server↔ui boundary is typed by `hc<AppType>` alone.
+
+**Consequences:**
+
+- A stray DOM global in server/package code is now a type error; browser types are opt-in per app type.
+- Single-consumer deps (react, vite, MCP SDK, lbug) deliberately stay inline in their app manifests — the catalog holds only deps that must stay in lock-step across workspaces.
+- `apiRoutes` in `@repo/local-contracts` remains the only hand-written route-constants package; if the `/api` surface ever moves to `hc` the same retirement applies to it.

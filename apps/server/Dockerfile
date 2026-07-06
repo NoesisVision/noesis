@@ -16,7 +16,6 @@ COPY packages/local-contracts/package.json packages/local-contracts/
 COPY packages/mcp-contracts/package.json packages/mcp-contracts/
 COPY packages/shared-contracts/package.json packages/shared-contracts/
 COPY packages/typescript-config/package.json packages/typescript-config/
-COPY packages/ui-contracts/package.json packages/ui-contracts/
 COPY plugins/claude-code/package.json plugins/claude-code/
 RUN bun install --frozen-lockfile
 
