@@ -37,7 +37,7 @@
     "@nestjs/testing": "^11.0.1",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/bun": "^1.2.0",
+    "@types/bun": "catalog:",
     "@types/express": "^5.0.0",
     "@types/node": "catalog:",
     "@types/supertest": "^7.0.0",

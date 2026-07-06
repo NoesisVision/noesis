@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
-    "@types/bun": "^1.2.0",
+    "@types/bun": "catalog:",
     "typescript": "catalog:"
   }
 }
