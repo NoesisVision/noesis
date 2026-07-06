@@ -11,7 +11,6 @@ COPY package.json bun.lock bunfig.toml ./
 COPY apps/server/package.json apps/server/
 COPY apps/ui/package.json apps/ui/
 COPY apps/local/package.json apps/local/
-COPY packages/eslint-config/package.json packages/eslint-config/
 COPY packages/local-contracts/package.json packages/local-contracts/
 COPY packages/mcp-contracts/package.json packages/mcp-contracts/
 COPY packages/shared-contracts/package.json packages/shared-contracts/
