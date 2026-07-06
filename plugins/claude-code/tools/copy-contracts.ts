@@ -3,6 +3,7 @@
 // imports to relative ones so the installed plugin is self-contained.
 // Run via `bun run generate`. Output is committed — CI fails on drift.
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
@@ -18,17 +19,32 @@ const copies: { from: string; to: string }[] = [
   { from: 'mcp-contracts/src/', to: 'contracts/' },
 ];
 
+// Rewrites `@repo/shared-contracts` (and its `/subpath` form) to a relative
+// specifier pointing at contracts/shared/, from the copied file's location.
+function rewriteImports(source: string, destRel: string): string {
+  const toShared = path.posix.relative(
+    path.posix.dirname(destRel),
+    'contracts/shared',
+  );
+  const prefix = toShared.startsWith('.') ? toShared : `./${toShared}`;
+  return source
+    .replace(/'@repo\/shared-contracts\/([^']+)'/g, `'${prefix}/$1.js'`)
+    .replaceAll("'@repo/shared-contracts'", `'${prefix}/index.js'`);
+}
+
 for (const { from, to } of copies) {
-  const outDir = `${pluginRoot}${to}`;
-  await mkdir(outDir, { recursive: true });
-  for (const file of await readdir(`${packagesRoot}${from}`)) {
-    if (!file.endsWith('.ts')) continue;
-    const source = await readFile(`${packagesRoot}${from}${file}`, 'utf8');
-    const rewritten = source.replaceAll(
-      "'@repo/shared-contracts'",
-      "'./shared/index.js'",
+  const srcRoot = `${packagesRoot}${from}`;
+  for (const entry of await readdir(srcRoot, { recursive: true })) {
+    const rel = entry.split(path.sep).join('/');
+    // Copy contract sources only — tests stay in the source packages.
+    if (!rel.endsWith('.ts') || rel.endsWith('.spec.ts')) continue;
+    const destRel = `${to}${rel}`;
+    const source = await readFile(`${srcRoot}${rel}`, 'utf8');
+    await mkdir(path.dirname(`${pluginRoot}${destRel}`), { recursive: true });
+    await writeFile(
+      `${pluginRoot}${destRel}`,
+      HEADER + rewriteImports(source, destRel),
     );
-    await writeFile(`${outDir}${file}`, HEADER + rewritten);
-    console.log(`copied ${from}${file} -> ${to}${file}`);
+    console.log(`copied ${from}${rel} -> ${destRel}`);
   }
 }
