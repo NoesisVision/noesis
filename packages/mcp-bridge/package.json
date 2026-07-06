@@ -1,6 +1,6 @@
 {
   "name": "@noesis-vision/mcp-bridge",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "description": "Noesis stdio MCP bridge — connects a coding agent (Claude Code, OpenCode, Codex, ...) to a Noesis server's /api surface over REST",
   "license": "MIT",
   "repository": {
