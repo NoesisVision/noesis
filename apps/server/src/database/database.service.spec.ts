@@ -20,12 +20,14 @@ describe('DatabaseService', () => {
     const service = newService();
     service.onModuleInit();
 
-    // Parameterized query (prepare + execute) returns typed rows.
-    const conn = service.getConnection();
-    await conn.query(
+    // Set up via service.query — raw conn.query would leave QueryResults to
+    // the GC, whose post-close native finalizer segfaults (see query()).
+    await service.query(
       'CREATE NODE TABLE IF NOT EXISTS Thing(id STRING, label STRING, PRIMARY KEY(id))',
     );
-    await conn.query("CREATE (t:Thing {id: 'b', label: 'beta'})");
+    await service.query("CREATE (t:Thing {id: 'b', label: 'beta'})");
+
+    // Parameterized query (prepare + execute) returns typed rows.
     const rows = await service.query<{ label: string }>(
       'MATCH (t:Thing) WHERE t.id = $id RETURN t.label AS label',
       { id: 'b' },

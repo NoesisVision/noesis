@@ -256,3 +256,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - No local build cache; real build work is only the 3 apps.
 - `bun run dev` loses turbo's TUI multiplexing — output is interleaved plain logs.
 - A root `ci` script (`lint && check-types && test && test:e2e && build`) mirrors the CI verify job for local pre-push runs.
+
+## 23. lbug QueryResults are closed eagerly; never left to the GC
+
+**Context:** `bun test` in `apps/server` segfaulted (`Segmentation fault at address 0x8`). Bisection isolated the mechanism: an lbug `QueryResult` holds a native handle, and if the object is left to the garbage collector and its finalizer runs **after** the parent `Database` was closed, the native finalizer touches freed kuzu state — use-after-free. The crash was GC-timing dependent (deterministic in the specs only because Nest `Logger` churn triggers GC reliably). Explicitly closing results fixed it in 5/5 runs; closing only the `Connection` did not (0/5).
+
+**Decision:** `DatabaseService.query()` closes every `QueryResult` in a `finally` after row extraction (rows are already materialized by `getAllSync`), and `onModuleDestroy` closes the `Connection` before the `Database` (proper teardown order, though not the crash trigger). **Convention: all lbug access goes through `DatabaseService.query()`** — raw `getConnection().query(...)` callers would reintroduce the leak; the lifecycle spec was converted accordingly. `PreparedStatement` has no close API and is safe to leave to the GC.
+
+**Consequences:**
+
+- The shared-fixture rationale in `testing/test-db.ts` (one DB per test process) still stands — multi-instance pressure remains an independent lbug limitation.
+- `query()` returns fully materialized rows only; code must not expect to stream rows from a held `QueryResult` later.
+- If a streaming API is ever needed, it must own explicit close semantics (e.g. a callback-scoped variant), not hand out raw results.

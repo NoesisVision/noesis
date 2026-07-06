@@ -40,7 +40,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    this.connection = null;
+    if (this.connection !== null) {
+      await this.connection.close();
+      this.connection = null;
+    }
     if (this.database !== null) {
       await this.database.close();
       this.database = null;
@@ -59,17 +62,28 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     params?: QueryParams,
   ): Promise<Row[]> {
     const conn = this.getConnection();
-    if (params === undefined) {
-      const result = await conn.query(cypher);
+    const result =
+      params === undefined
+        ? await conn.query(cypher)
+        : await conn.execute(await conn.prepare(cypher), params);
+    try {
       return extractRows<Row>(result);
+    } finally {
+      // QueryResults hold native handles. One left to the GC and finalized
+      // after its Database was closed segfaults the process (use-after-free
+      // in lbug's native finalizer), so always close them explicitly here.
+      closeResults(result);
     }
-    const stmt = await conn.prepare(cypher);
-    const result = await conn.execute(stmt, params);
-    return extractRows<Row>(result);
   }
 }
 
 function extractRows<Row>(result: unknown): Row[] {
   const source: unknown = Array.isArray(result) ? result[0] : result;
   return (source as { getAllSync(): unknown[] }).getAllSync() as Row[];
+}
+
+function closeResults(result: unknown): void {
+  for (const r of Array.isArray(result) ? result : [result]) {
+    (r as { close(): void }).close();
+  }
 }
