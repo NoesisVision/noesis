@@ -1,15 +1,15 @@
 // Full-stack MCP e2e: boots the real server app, then drives the stdio MCP
-// entry (src/mcp.ts) through an actual `tools/call` — covering the REST hop
-// from ServerClientService to the server's /api surface. tools/list alone
-// does not exercise that hop (a broken path slipped through before).
+// entry (src/main.ts) through an actual `tools/call` — covering the REST hop
+// from ServerClient to the server's /api surface. tools/list alone does not
+// exercise that hop (a broken path slipped through before).
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const localRoot = resolve(__dirname, '..');
-const serverRoot = resolve(__dirname, '../../server');
+const localRoot = resolve(__dirname, '../..');
+const serverRoot = resolve(__dirname, '../../../server');
 
 const PORT = 3917;
 const SERVER_URL = `http://localhost:${PORT}`;
@@ -44,7 +44,7 @@ beforeAll(async () => {
   await client.connect(
     new StdioClientTransport({
       command: 'bun',
-      args: ['run', 'src/mcp.ts'],
+      args: ['run', 'src/main.ts'],
       cwd: localRoot,
       env: { ...process.env, NOESIS_SERVER_URL: SERVER_URL },
       stderr: 'ignore',
@@ -66,7 +66,7 @@ describe('MCP server against the running server app (e2e)', () => {
 
     expect(result.isError).toBeFalsy();
     const [content] = result.content as { type: string; text: string }[];
-    expect(content.type).toBe('text');
-    expect(content.text).toBe('Hello World! Greetings, E2E!');
+    expect(content?.type).toBe('text');
+    expect(content?.text).toBe('Hello World! Greetings, E2E!');
   }, 15_000);
 });

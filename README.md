@@ -7,8 +7,8 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 ```
 ┌─────────────┐   REST    ┌─────────────┐   REST    ┌─────────────┐
 │  apps/ui    │ ────────► │ apps/server │ ◄──────── │ apps/local  │
-│ React/Vite  │           │ Hono (bun)  │           │   NestJS    │
-│   :5173     │           │    :3000    │           │ MCP (stdio) │
+│ React/Vite  │           │ Hono (bun)  │           │ MCP bridge  │
+│   :5173     │           │    :3000    │           │   (stdio)   │
 └─────────────┘           └─────────────┘           └─────────────┘
                                                           ▲ bundled into
                                                           │
@@ -20,11 +20,11 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ### Apps
 
-| App           | Stack               | Purpose                                                                                          |
-| ------------- | ------------------- | ------------------------------------------------------------------------------------------------ |
-| `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server`                                              |
-| `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                                                                        |
-| `apps/local`  | NestJS (on bun)     | Local companion app; hosts the **stdio MCP server** (`src/mcp.ts`) that calls `server` over REST |
+| App           | Stack               | Purpose                                                                           |
+| ------------- | ------------------- | --------------------------------------------------------------------------------- |
+| `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server`                               |
+| `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                                                         |
+| `apps/local`  | Plain TS on bun     | **stdio MCP server** (`src/main.ts`) bridging coding agents to `server` over REST |
 
 ### Contract packages — single source of truth for DTOs
 
@@ -46,7 +46,7 @@ response types from the server's route tree via Hono's `hc<AppType>` client.
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** from `@repo/mcp-contracts`
-- **`servers/noesis-local.js`** — self-contained 3.6 MB bundle of `apps/local`'s MCP entry (gitignored; built by `bun run bundle` at pack/test time)
+- **`servers/noesis-local.js`** — self-contained ~1.1 MB bundle of `apps/local`'s MCP entry (gitignored; built by `bun run bundle` at pack/test time)
 - **`scripts/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
 - **`tools/`** — dev/build tooling (generate, bundle, bump); not shipped
 - **`.mcp.json`** — launches the bundled server; target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
@@ -55,11 +55,9 @@ The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugi
 
 ### Config packages
 
-- `@repo/typescript-config` — shared tsconfig presets: `base.json`, `nest.json`, `vite.json`
+- `@repo/typescript-config` — shared tsconfig presets: `base.json`, `vite.json`
 
 Linting and formatting need no config package: a single root `biome.json` covers the whole workspace (per-area rule tweaks live in its `overrides`).
-
-> ⚠️ bun's transpiler does not resolve package-specifier `extends` in tsconfig — the Nest app (`apps/local`) duplicates `experimentalDecorators`/`emitDecoratorMetadata` inline. Don't remove those.
 
 Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
 
@@ -75,7 +73,6 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 | [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                      |
 | [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
 | [Hono](https://hono.dev/) 4                                                         | `server` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `ui` app                     |
-| [NestJS](https://nestjs.com/) 11                                                    | `local` app                                                                                         |
 | [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app (Vite dev server proxies `/ui` to the server; `vite build` emits the SPA the server ships) |
 | [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                          |
 | [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |

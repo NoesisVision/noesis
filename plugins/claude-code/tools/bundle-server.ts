@@ -6,23 +6,14 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url));
-const entry = `${repoRoot}apps/local/src/mcp.ts`;
+const entry = `${repoRoot}apps/local/src/main.ts`;
 const outfile = fileURLToPath(
   new URL('../servers/noesis-local.js', import.meta.url),
 );
 
-// Same optional-dependency externals as the app's own build script — Nest
-// lazy-requires these in try/catch, so the bundle runs fine without them.
-const externals = [
-  'class-transformer',
-  'class-validator',
-  '@nestjs/microservices',
-  '@nestjs/websockets',
-].flatMap((dep) => ['--external', dep]);
-
 const result = spawnSync(
   'bun',
-  ['build', entry, '--outfile', outfile, '--target', 'bun', ...externals],
+  ['build', entry, '--outfile', outfile, '--target', 'bun'],
   { stdio: 'inherit' },
 );
 process.exit(result.status ?? 1);

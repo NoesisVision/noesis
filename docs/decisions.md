@@ -356,3 +356,18 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - A stray DOM global in server/package code is now a type error; browser types are opt-in per app type.
 - Single-consumer deps (react, vite, MCP SDK, lbug) deliberately stay inline in their app manifests — the catalog holds only deps that must stay in lock-step across workspaces.
 - `apiRoutes` in `@repo/local-contracts` remains the only hand-written route-constants package; if the `/api` surface ever moves to `hc` the same retirement applies to it.
+
+## 31. `apps/local` off NestJS: plain-TS stdio MCP bridge
+
+**Supersedes the Nest parts of 8; retires the decision 7 workaround and `nest.json`.**
+
+**Context:** Decision 28 removed Nest from the server because it used none of the machinery it paid for. That argument applied more strongly to `local`: its entire Nest usage was DI for two providers plus an untouched `AppModule` hello-world HTTP scaffold nobody called, while it paid the decision 7 inline-decorator-flags wart, the `nest.json` preset with `strict: false`, two Biome rule exemptions, four bundle externals, and ~2.5 MB of Nest/Express/rxjs in the plugin's MCP bundle. The app's actual job (confirmed): a local stdio MCP server bridging a coding agent to the server's `/api` REST surface.
+
+**Decision:** Rewrite `apps/local` as plain TypeScript on bun, mirroring the server's composition-root pattern: `src/main.ts` (entry; wires `loadConfig()` → `ServerClient` → `createMcpServer()` → `StdioServerTransport`), `src/server-client.ts` (plain class, was `ServerClientService`), `src/config.ts` (unchanged), `src/mcp-server.ts` (tool registration factory). The vestigial HTTP app is deleted outright, not ported. `local` adopts `"type": "module"`, `base.json` full strictness, and the server's test layout (`test/unit` + `test/e2e`; the full-stack MCP e2e from decision 18 moved unchanged apart from the entry path). Deleted with it: `nest-cli.json`, `tsconfig.build.json`, `@repo/typescript-config/nest.json`, the `apps/local` Biome override (`useImportType`/`noExplicitAny`), and all Nest/rxjs/reflect-metadata/supertest dependencies. `bundle-server.ts` and the app build lose their `--external` lists — the bundle is fully self-contained again.
+
+**Consequences:**
+
+- The plugin's `servers/noesis-local.js` shrinks ~3.6 MB → ~1.1 MB, and decision 9's "externals list grows with each Nest optional dep" problem is gone.
+- Decision 7 (bun doesn't resolve package-specifier tsconfig `extends`) is now fully historical — no workspace uses decorators; `unsafeParameterDecoratorsEnabled` is removed from `biome.json` too.
+- The MCP entry is now `src/main.ts` (was `src/mcp.ts`) — the app _is_ the MCP server, so the main-entry convention matches server/ui.
+- Test-layout convention is now uniform: apps use `test/unit` + `test/e2e`; contract packages co-locate specs in `src/`.

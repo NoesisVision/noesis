@@ -1,13 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { apiPath, type apiRoutes } from '@repo/local-contracts';
-import type { McpConfig } from './config';
-
-export const MCP_CONFIG = 'MCP_CONFIG';
+import type { McpConfig } from './config.js';
 
 /** Thin REST client for the server app's `/api` surface. */
-@Injectable()
-export class ServerClientService {
-  constructor(@Inject(MCP_CONFIG) private readonly config: McpConfig) {}
+export class ServerClient {
+  constructor(private readonly config: McpConfig) {}
 
   get serverUrl(): string {
     return this.config.serverUrl;

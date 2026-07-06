@@ -18,9 +18,6 @@
     "indentStyle": "space"
   },
   "javascript": {
-    "parser": {
-      "unsafeParameterDecoratorsEnabled": true
-    },
     "formatter": {
       "quoteStyle": "single"
     }
@@ -32,19 +29,6 @@
     }
   },
   "overrides": [
-    {
-      "includes": ["apps/local/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useImportType": "off"
-          },
-          "suspicious": {
-            "noExplicitAny": "off"
-          }
-        }
-      }
-    },
     {
       "includes": ["apps/server/**", "apps/local/**"],
       "linter": {
