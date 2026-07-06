@@ -1,6 +1,7 @@
 // Stdio MCP entry point — the bridge between a coding agent (MCP over stdio)
-// and the server app's /api surface (REST). Bundled into the Claude Code
-// plugin via `bun run bundle` (plugins/claude-code/tools/bundle-server.ts).
+// and the server app's /api surface (REST). Published to npm as
+// @noesis-vision/mcp-bridge (self-contained dist/main.js bin, built by
+// `bun run build`); agent plugins launch it via bunx (decision 33).
 //
 // stdout belongs to the MCP protocol — all logging MUST go to stderr.
 

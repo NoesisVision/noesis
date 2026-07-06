@@ -5,37 +5,47 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 ## 1. Architecture
 
 ```
-┌─────────────┐   REST    ┌─────────────┐   REST    ┌─────────────┐
-│  apps/ui    │ ────────► │ apps/server │ ◄──────── │ apps/local  │
-│ React/Vite  │           │ Hono (bun)  │           │ MCP bridge  │
-│   :5173     │           │    :3000    │           │   (stdio)   │
-└─────────────┘           └─────────────┘           └─────────────┘
-                                                          ▲ bundled into
+┌─────────────┐   REST    ┌─────────────┐   REST    ┌─────────────────────┐
+│  apps/ui    │ ────────► │ apps/server │ ◄──────── │ packages/mcp-bridge │
+│ React/Vite  │           │ Hono (bun)  │           │  MCP bridge (stdio) │
+│   :5173     │           │    :3000    │           │  npm: @noesis-vision│
+└─────────────┘           └─────────────┘           │     /mcp-bridge     │
+                                                    └─────────────────────┘
+                                                          ▲ launched via bunx by
                                                           │
                                               ┌───────────┴───────────┐
                                               │ plugins/claude-code   │
-                                              │ skills + MCP server   │
+                                              │ (OpenCode, Codex, ... │
+                                              │  planned)             │
                                               └───────────────────────┘
 ```
 
 ### Apps
 
-| App           | Stack               | Purpose                                                                           |
-| ------------- | ------------------- | --------------------------------------------------------------------------------- |
-| `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server`                               |
-| `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                                                         |
-| `apps/local`  | Plain TS on bun     | **stdio MCP server** (`src/main.ts`) bridging coding agents to `server` over REST |
+| App           | Stack               | Purpose                                             |
+| ------------- | ------------------- | --------------------------------------------------- |
+| `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server` |
+| `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                           |
+
+### The MCP bridge (`packages/mcp-bridge`)
+
+A **stdio MCP server** (plain TS on bun) bridging coding agents to `server`
+over REST. Published to npm as **`@noesis-vision/mcp-bridge`** — a
+self-contained `dist/main.js` bin built at publish time — so every agent
+plugin launches the same bridge via `bunx @noesis-vision/mcp-bridge@<version>`
+instead of shipping its own copy (decision 33). Versioned in lockstep with the
+Claude Code plugin.
 
 ### Contract packages — single source of truth for DTOs
 
 All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consumed directly as TypeScript source (no build step):
 
 ```
-@repo/shared-contracts      DTOs common to all of the below
+@repo/shared-contracts       DTOs common to all of the below
      ▲              ▲
 @repo/local-   @repo/mcp-contracts
 contracts      (MCP tool payloads + registry;
-(server↔local) feeds plugin schemas & validators)
+(server↔bridge) feeds plugin schemas & validators)
 ```
 
 The server↔ui boundary needs no contracts package: the ui infers request and
@@ -46,12 +56,11 @@ response types from the server's route tree via Hono's `hc<AppType>` client.
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** from `@repo/mcp-contracts`
-- **`servers/noesis-local.js`** — self-contained ~1.1 MB bundle of `apps/local`'s MCP entry (gitignored; built by `bun run bundle` at pack/test time)
 - **`scripts/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
-- **`tools/`** — dev/build tooling (generate, bundle, bump); not shipped
-- **`.mcp.json`** — launches the bundled server; target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
+- **`tools/`** — dev/build tooling (generate, bump, release); not shipped
+- **`.mcp.json`** — launches the bridge via `bunx @noesis-vision/mcp-bridge@<version>` (pin stamped by `bun run generate`); target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
 
-The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts`, `scripts`, `servers`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts`, `scripts`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Config packages
 
@@ -74,7 +83,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 | [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
 | [Hono](https://hono.dev/) 4                                                         | `server` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `ui` app                     |
 | [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app (Vite dev server proxies `/ui` to the server; `vite build` emits the SPA the server ships) |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                          |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `packages/mcp-bridge`                                                                 |
 | [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |
 | GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing     |
 
@@ -127,20 +136,20 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 
 > Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry is pinned to the latest published prerelease. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
 
-Releasing a new plugin version (from `plugins/claude-code`):
+Releasing a new version (from `plugins/claude-code`; the plugin and `@noesis-vision/mcp-bridge` release in lockstep — one version train, decision 33):
 
 ```sh
 # Beta: one command — bump, generate, smoke-test, commit, tag, push
 bun run release:beta            # or: bun run release:beta 0.2.0-beta.1
 
 # Stable: the same steps by hand
-bun run bump 0.2.0     # package.json + matching marketplace channel pin
-bun run generate       # stamps .claude-plugin/plugin.json
+bun run bump 0.2.0     # plugin + bridge package.json + matching marketplace channel pin
+bun run generate       # stamps .claude-plugin/plugin.json + the .mcp.json bridge pin
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```
 
-The `Release` workflow (`.github/workflows/release.yml`) verifies the tag, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes via npm **trusted publishing** — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
+The `Release` workflow (`.github/workflows/release.yml`) verifies the tag against both package versions, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes both packages via npm **trusted publishing** (bridge first, so the plugin's pin always resolves) — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
 
 > Local fallback: `bun publish` / `bun run publish:beta` (never raw `npm publish` from the workspace — only the bun pack pipeline rewrites `workspace:*`/`catalog:` versions in the manifest).
 
@@ -160,7 +169,7 @@ bun plugins/claude-code/scripts/validate.ts hello-request path/to/payload.json
 
 `server` + `ui` deploy as **one Railway service**: the Hono server serves the
 built SPA (decisions 17/18/28). Routes are segregated by consumer — `/ui/*` for
-the SPA, `/api/*` for the local app / MCP, `/internal/*` for health and other
+the SPA, `/api/*` for the MCP bridge, `/internal/*` for health and other
 technical endpoints — so each surface can carry its own auth later.
 
 - **How it ships:** every green push to `main` triggers the `deploy` job in

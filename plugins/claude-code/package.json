@@ -14,7 +14,6 @@
     ".mcp.json",
     "contracts",
     "scripts",
-    "servers",
     "skills"
   ],
   "publishConfig": {
@@ -22,14 +21,13 @@
   },
   "scripts": {
     "generate": "bun run tools/generate-references.ts && bun run tools/copy-contracts.ts && bun run tools/stamp-plugin-version.ts",
-    "bundle": "bun run tools/bundle-server.ts",
     "validate": "bun run scripts/validate.ts",
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "bump": "bun run tools/bump-version.ts",
     "release:beta": "bun run tools/release-beta.ts",
     "publish:beta": "bun publish --tag beta",
-    "prepublishOnly": "bun run generate && bun run bundle"
+    "prepublishOnly": "bun run generate"
   },
   "dependencies": {
     "zod": "catalog:"

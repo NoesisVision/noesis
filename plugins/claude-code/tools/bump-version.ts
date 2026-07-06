@@ -1,9 +1,10 @@
 // Bumps the plugin version in package.json (the single version source — run
-// `bun run generate` afterwards to stamp .claude-plugin/plugin.json) and
-// advances the matching marketplace channel entry. Marketplace npm sources
-// only document exact-semver pins (no dist-tags), so each entry stays pinned:
-// the beta entry always to a prerelease, the stable entry to a stable release.
-// A bump advances only the entries of its own channel.
+// `bun run generate` afterwards to stamp .claude-plugin/plugin.json and the
+// .mcp.json bridge pin), the mcp-bridge package released in lockstep with it
+// (decision 33), and the matching marketplace channel entry. Marketplace npm
+// sources only document exact-semver pins (no dist-tags), so each entry stays
+// pinned: the beta entry always to a prerelease, the stable entry to a stable
+// release. A bump advances only the entries of its own channel.
 // Usage: `bun run bump 0.2.0` (from plugins/claude-code).
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +32,9 @@ async function update(
 }
 
 await update('package.json', (json) => {
+  json.version = version;
+});
+await update('../../packages/mcp-bridge/package.json', (json) => {
   json.version = version;
 });
 await update('.claude-plugin/marketplace.json', (json) => {

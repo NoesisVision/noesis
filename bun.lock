@@ -10,22 +10,6 @@
         "typescript": "catalog:",
       },
     },
-    "apps/local": {
-      "name": "local",
-      "version": "0.0.1",
-      "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.29.0",
-        "@repo/local-contracts": "workspace:*",
-        "@repo/mcp-contracts": "workspace:*",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@repo/typescript-config": "workspace:*",
-        "@types/bun": "catalog:",
-        "@types/node": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
     "apps/server": {
       "name": "server",
       "version": "0.0.1",
@@ -70,6 +54,23 @@
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",
         "typescript": "catalog:",
+      },
+    },
+    "packages/mcp-bridge": {
+      "name": "@noesis-vision/mcp-bridge",
+      "version": "0.1.0-beta.2",
+      "bin": {
+        "noesis-mcp-bridge": "dist/main.js",
+      },
+      "devDependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
+        "@repo/local-contracts": "workspace:*",
+        "@repo/mcp-contracts": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "catalog:",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
       },
     },
     "packages/mcp-contracts": {
@@ -172,6 +173,8 @@
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg=="],
 
     "@noesis-vision/claude-code-plugin": ["@noesis-vision/claude-code-plugin@workspace:plugins/claude-code"],
+
+    "@noesis-vision/mcp-bridge": ["@noesis-vision/mcp-bridge@workspace:packages/mcp-bridge"],
 
     "@oxc-project/types": ["@oxc-project/types@0.138.0", "", {}, "sha512-1a7ZKmrRTCoN1XMZ4L0PyyqrMnrNlLyPuOkdSX2MZg7IiIGRUyurNhAm73ptDOraoBcIordsIGKNPKUzy3ZmfA=="],
 
@@ -434,8 +437,6 @@
     "lightningcss-win32-arm64-msvc": ["lightningcss-win32-arm64-msvc@1.32.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-8SbC8BR40pS6baCM8sbtYDSwEVQd4JlFTOlaD3gWGHfThTcABnNDBda6eTZeqbofalIJhFx0qKzgHJmcPTnGdw=="],
 
     "lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.32.0", "", { "os": "win32", "cpu": "x64" }, "sha512-Amq9B/SoZYdDi1kFrojnoqPLxYhQ4Wo5XiL8EVJrVsB8ARoC1PWW6VGtT0WKCemjy8aC+louJnjS7U18x3b06Q=="],
-
-    "local": ["local@workspace:apps/local"],
 
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 

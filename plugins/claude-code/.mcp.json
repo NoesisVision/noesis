@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "noesis-local": {
-      "command": "bun",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/noesis-local.js"],
+      "command": "bunx",
+      "args": ["@noesis-vision/mcp-bridge@0.1.0-beta.2"],
       "env": {
         "NOESIS_SERVER_URL": "${NOESIS_SERVER_URL:-http://localhost:3000}"
       }

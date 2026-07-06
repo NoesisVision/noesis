@@ -8,8 +8,8 @@ import { resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const localRoot = resolve(__dirname, '../..');
-const serverRoot = resolve(__dirname, '../../../server');
+const bridgeRoot = resolve(__dirname, '../..');
+const serverRoot = resolve(__dirname, '../../../../apps/server');
 
 const PORT = 3917;
 const SERVER_URL = `http://localhost:${PORT}`;
@@ -45,7 +45,7 @@ beforeAll(async () => {
     new StdioClientTransport({
       command: 'bun',
       args: ['run', 'src/main.ts'],
-      cwd: localRoot,
+      cwd: bridgeRoot,
       env: { ...process.env, NOESIS_SERVER_URL: SERVER_URL },
       stderr: 'ignore',
     }),

@@ -1,0 +1,42 @@
+{
+  "name": "@noesis-vision/mcp-bridge",
+  "version": "0.1.0-beta.2",
+  "description": "Noesis stdio MCP bridge — connects a coding agent (Claude Code, OpenCode, Codex, ...) to a Noesis server's /api surface over REST",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NoesisVision/noesis.git",
+    "directory": "packages/mcp-bridge"
+  },
+  "type": "module",
+  "bin": {
+    "noesis-mcp-bridge": "dist/main.js"
+  },
+  "files": [
+    "dist/main.js"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun build src/main.ts --outdir dist --target bun --banner '#!/usr/bin/env bun'",
+    "start": "bun run src/main.ts",
+    "dev": "bun --watch src/main.ts",
+    "check-types": "tsc --noEmit",
+    "test": "bun test test/unit",
+    "test:watch": "bun test test/unit --watch",
+    "test:cov": "bun test test/unit --coverage",
+    "test:e2e": "bun test test/e2e",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@repo/local-contracts": "workspace:*",
+    "@repo/mcp-contracts": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  }
+}

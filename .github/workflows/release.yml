@@ -1,9 +1,12 @@
 name: Release
 
-# Publishes the Claude Code plugin to npm when a v* tag is pushed.
-# Auth is npm trusted publishing (OIDC) — no token secret. Provenance is
-# attached automatically. Requires a trusted publisher configured on npmjs.com
-# for @noesis-vision/claude-code-plugin pointing at this repo + workflow file.
+# Publishes the MCP bridge and the Claude Code plugin to npm when a v* tag is
+# pushed — one version train (decision 33): both packages carry the tag's
+# version, bridge first so the plugin's .mcp.json pin resolves the moment the
+# plugin lands. Auth is npm trusted publishing (OIDC) — no token secret.
+# Provenance is attached automatically. Requires a trusted publisher configured
+# on npmjs.com for BOTH @noesis-vision/claude-code-plugin and
+# @noesis-vision/mcp-bridge pointing at this repo + workflow file.
 on:
   push:
     tags: ['v*']
@@ -15,7 +18,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish plugin to npm
+    name: Publish bridge + plugin to npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -52,13 +55,17 @@ jobs:
             exit 1
           fi
 
-      - name: Verify tag matches package version
+      - name: Verify tag matches package versions
         id: version
-        working-directory: plugins/claude-code
         run: |
-          VERSION=$(node -p 'require("./package.json").version')
+          VERSION=$(node -p 'require("./plugins/claude-code/package.json").version')
+          BRIDGE_VERSION=$(node -p 'require("./packages/mcp-bridge/package.json").version')
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package version $VERSION."
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $VERSION."
+            exit 1
+          fi
+          if [ "$BRIDGE_VERSION" != "$VERSION" ]; then
+            echo "::error::Bridge version $BRIDGE_VERSION does not match plugin version $VERSION (one version train)."
             exit 1
           fi
           # Prereleases go to the beta dist-tag, stable releases to latest.
@@ -67,12 +74,22 @@ jobs:
             *) echo "dist-tag=latest" >> "$GITHUB_OUTPUT" ;;
           esac
 
-      - name: Pack
-        working-directory: plugins/claude-code
+      - name: Pack bridge
+        working-directory: packages/mcp-bridge
         run: |
-          bun run bundle
+          bun run build
           bun pm pack
 
-      - name: Publish
+      - name: Pack plugin
+        working-directory: plugins/claude-code
+        run: bun pm pack
+
+      # Bridge first: the plugin's .mcp.json pins this exact bridge version, so
+      # a plugin without its bridge must never be the published state.
+      - name: Publish bridge
+        working-directory: packages/mcp-bridge
+        run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public
+
+      - name: Publish plugin
         working-directory: plugins/claude-code
         run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public

@@ -30,7 +30,7 @@
   },
   "overrides": [
     {
-      "includes": ["apps/server/**", "apps/local/**"],
+      "includes": ["apps/server/**", "packages/mcp-bridge/**"],
       "linter": {
         "rules": {
           "nursery": {

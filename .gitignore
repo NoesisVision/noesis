@@ -23,8 +23,6 @@ coverage
 out/
 build/
 dist/
-# Plugin MCP server bundle — built at pack/test time, never committed
-plugins/claude-code/servers/
 
 # Vendored React Flow Pro examples — licensed reference material, never committed
 apps/ui/docs/react-flow-examples/
@@ -42,3 +40,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# npm pack artifacts
+*.tgz
