@@ -58,7 +58,7 @@
     },
     "packages/mcp-bridge": {
       "name": "@noesis-vision/mcp-bridge",
-      "version": "0.1.0-beta.2",
+      "version": "0.1.0-beta.3",
       "bin": {
         "noesis-mcp-bridge": "dist/main.js",
       },
@@ -105,10 +105,7 @@
     },
     "plugins/claude-code": {
       "name": "@noesis-vision/claude-code-plugin",
-      "version": "0.1.0-beta.2",
-      "dependencies": {
-        "zod": "catalog:",
-      },
+      "version": "0.1.0-beta.3",
       "devDependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0",
         "@repo/mcp-contracts": "workspace:*",

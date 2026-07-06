@@ -5,8 +5,7 @@ Plugin for visual spec-driven development.
 ## Requirements
 
 - [bun](https://bun.com) on your `PATH` — the MCP bridge is launched with
-  `bunx` (fetched from npm on first run, cached afterwards) and the payload
-  validator with `bun`.
+  `bunx` (fetched from npm on first run, cached afterwards).
 
 ## Install
 
@@ -36,11 +35,11 @@ The MCP bridge targets `http://localhost:3000` by default. Override with the
 ## What's inside
 
 - `skills/prepare-mcp-data` — JSON Schema + canonical example for every MCP
-  payload contract, and a zod-backed validator (`scripts/validate.ts`)
+  payload contract; the MCP bridge validates every call against its contract
+  and returns descriptive errors the model can act on
 - `.mcp.json` — launches the stdio MCP bridge via
   `bunx @noesis-vision/mcp-bridge@<version>` (same repo, released in lockstep
   with the plugin)
-- `contracts/` — readable copies of the zod contract sources
 
 ## Releasing (maintainers)
 

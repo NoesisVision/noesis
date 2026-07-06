@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-07-06_
+_Last updated: 2026-07-07_
 
 ---
 
@@ -403,3 +403,17 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - npm trusted publishing must be configured for `@noesis-vision/mcp-bridge` (same repo + workflow) before the next release; until that release, the committed pin (`0.1.0-beta.2`) names a not-yet-published bridge version — harmless, since installed plugin 0.1.0-beta.2 tarballs still carry the old bundled server, and the next tag publishes both.
 - The bridge keeps its full-stack e2e (now under `packages/mcp-bridge/test/e2e`); the plugin's tarball smoke test boots the workspace-built `dist/main.js` — the exact artifact `prepublishOnly` publishes — instead of a tarball-internal bundle.
 - Bundle-byte determinism across bun versions (decisions 11/32) stops mattering for drift checks: the bundle is built only at publish time inside the release workflow, never committed or diffed. The Dockerfile bun-version guard (decision 32) is unaffected.
+
+## 34. Validation moves into the MCP bridge; the plugin ships references only
+
+**Context:** The plugin shipped the contracts three ways: `skills/prepare-mcp-data/references/*.schema.json` (generated JSON Schema + examples the model reads), `contracts/` (readable zod copies with rewritten imports, maintained by `tools/copy-contracts.ts`), and `scripts/validate.ts` (a zod validator over those copies, which the skill told the model to run before every tool call). Three shipped representations of one contract is drift surface, and pre-call validation in the plugin is the wrong layer anyway: it only works if the model remembers to run it, other agent plugins (OpenCode, Codex, ...) would each need their own copy, and the MCP SDK's built-in input validation rejects bad payloads with a protocol-level `InvalidParams` error carrying a raw zod issue dump — the MCP spec's guidance is that tool-level failures belong in-band (`isError` results) precisely so the calling model can read them and self-correct.
+
+**Decision:** Validation moves into the MCP bridge; the plugin becomes pure content (skills + `.mcp.json`, no scripts, no runtime dependencies). `createMcpServer` drops `McpServer.registerTool` (whose schema hook triggers the SDK's own pre-handler validation) for the low-level `Server` API with explicit `tools/list` + `tools/call` handlers driven by a tool→contract table: `tools/list` advertises the JSON Schema generated from each tool's contract via `toJsonSchema` (byte-identical to the skill references), and `tools/call` runs `schema.safeParse` itself, answering schema violations with an in-band `isError` result containing the failing contract's name, `z.prettifyError` per-field issues, and the contract's canonical example — followed by an instruction to correct the payload and retry. Unknown tools get the same treatment (available tools listed). Deleted from the plugin: `contracts/`, `tools/copy-contracts.ts`, `scripts/validate.ts`, its smoke test, the ajv/zod dependency, and the Biome exclusion; the skill's "validate before calling" step becomes "call — the tool tells you what to fix". `bun run generate` is now references + version stamps only.
+
+**Consequences:**
+
+- Every agent host gets identical validation for free — it rides the bridge (decision 33), not each plugin; the zod schemas in `@repo/mcp-contracts` stay the single runtime source of truth, refinements included.
+- A malformed payload costs one tool-call round trip instead of a pre-flight script run; the error text is designed for model self-correction (field issues + valid example), pinned by an in-memory-transport spec (`mcp-server.spec.ts`) asserting schema violations never surface as protocol errors.
+- The advertised `tools/list` input schema and the skill's reference schema are generated from the same `toJsonSchema` call and cannot drift.
+- New tools must route through the tool→contract table; there is deliberately no way to register a tool without a contract.
+- zod parse semantics apply at the boundary: unknown keys are stripped, not rejected (the advertised JSON Schema still says `additionalProperties: false`, so honest clients see the strict contract).

@@ -53,10 +53,6 @@ test('ships exactly the expected plugin files', async () => {
     '.mcp.json',
     'LICENSE',
     'README.md',
-    'contracts/index.ts',
-    'contracts/registry.ts',
-    'contracts/shared/index.ts',
-    'scripts/validate.ts',
     'skills/prepare-mcp-data/SKILL.md',
     'skills/prepare-mcp-data/references/hello-request.schema.json',
     'skills/prepare-mcp-data/references/hello-request.example.json',
@@ -65,13 +61,16 @@ test('ships exactly the expected plugin files', async () => {
   expect(missing).toEqual([]);
 
   // The marketplace catalog points at the package — it must not ship inside it.
-  // tools/ (dev/build tooling), test/, and the pre-decision-33 bundled server
-  // are not part of the plugin either.
+  // tools/ (dev/build tooling), test/, the pre-decision-33 bundled server, and
+  // the pre-decision-34 contract copies + validator are not part of the
+  // plugin either.
   const excluded = [
     '.claude-plugin/marketplace.json',
     'tools',
     'test',
     'servers',
+    'contracts',
+    'scripts',
   ];
   const leaked = excluded.filter((f) => existsSync(join(packageDir, f)));
   expect(leaked).toEqual([]);

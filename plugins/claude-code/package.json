@@ -12,25 +12,19 @@
   "files": [
     ".claude-plugin/plugin.json",
     ".mcp.json",
-    "contracts",
-    "scripts",
     "skills"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "generate": "bun run tools/generate-references.ts && bun run tools/copy-contracts.ts && bun run tools/stamp-plugin-version.ts",
-    "validate": "bun run scripts/validate.ts",
+    "generate": "bun run tools/generate-references.ts && bun run tools/stamp-plugin-version.ts",
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "bump": "bun run tools/bump-version.ts",
     "release:beta": "bun run tools/release-beta.ts",
     "publish:beta": "bun publish --tag beta",
     "prepublishOnly": "bun run generate"
-  },
-  "dependencies": {
-    "zod": "catalog:"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

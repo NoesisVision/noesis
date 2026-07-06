@@ -45,7 +45,7 @@ All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consum
      ▲              ▲
 @repo/local-   @repo/mcp-contracts
 contracts      (MCP tool payloads + registry;
-(server↔bridge) feeds plugin schemas & validators)
+(server↔bridge) feeds skill schemas & bridge validation)
 ```
 
 The server↔ui boundary needs no contracts package: the ui infers request and
@@ -56,11 +56,10 @@ response types from the server's route tree via Hono's `hc<AppType>` client.
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** from `@repo/mcp-contracts`
-- **`scripts/validate.ts`** — simple script that validates any JSON against a named contract using the real zod schemas in **`contracts/`** (readable copies of `@repo/mcp-contracts`, **generated** by `bun run generate`; zod is a regular plugin dependency)
 - **`tools/`** — dev/build tooling (generate, bump, release); not shipped
 - **`.mcp.json`** — launches the bridge via `bunx @noesis-vision/mcp-bridge@<version>` (pin stamped by `bun run generate`); target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
 
-The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts`, `scripts`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Config packages
 
@@ -118,7 +117,7 @@ Filter to one package: `bun run --filter=server build`.
 3. Regenerate plugin artifacts:
 
 ```sh
-bun run generate       # refreshes skill schemas/examples, contract copies, plugin.json version
+bun run generate       # refreshes skill schemas/examples, plugin.json version, .mcp.json pin
 ```
 
 4. **Commit the generated output** — CI (`.github/workflows/ci.yml`) regenerates and fails on any diff.
@@ -159,11 +158,7 @@ Point the MCP server at a different backend per project via `.claude/settings.lo
 { "env": { "NOESIS_SERVER_URL": "https://<service>.up.railway.app" } }
 ```
 
-Validate a hand-written payload against a contract (works in-repo and in installed copies):
-
-```sh
-bun plugins/claude-code/scripts/validate.ts hello-request path/to/payload.json
-```
+Payload validation happens in the MCP bridge itself (decision 34): every `tools/call` is checked against its contract's zod schema, and mismatches come back as descriptive in-band tool errors (failing fields + a valid example) so the calling agent can correct itself.
 
 ## 4. Deployment
 

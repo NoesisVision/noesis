@@ -8,7 +8,6 @@
   "files": {
     "includes": [
       "**",
-      "!plugins/claude-code/contracts",
       "!plugins/claude-code/skills/**/references",
       "!apps/ui/public"
     ]
