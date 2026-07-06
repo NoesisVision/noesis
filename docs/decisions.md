@@ -371,3 +371,20 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - Decision 7 (bun doesn't resolve package-specifier tsconfig `extends`) is now fully historical — no workspace uses decorators; `unsafeParameterDecoratorsEnabled` is removed from `biome.json` too.
 - The MCP entry is now `src/main.ts` (was `src/mcp.ts`) — the app _is_ the MCP server, so the main-entry convention matches server/ui.
 - Test-layout convention is now uniform: apps use `test/unit` + `test/e2e`; contract packages co-locate specs in `src/`.
+
+## 32. CI/release hardening: SHA-pinned actions, one verify definition, Dockerfile bun-version guard
+
+**Context:** Three review findings on the workflows. First, third-party actions were pinned by tag — a mutable reference the action owner (or an attacker who compromises the action repo) can retarget. That matters most where credentials live: `release.yml` holds `id-token: write` (npm trusted publishing — a compromised action publishes as us, with provenance), and `ci.yml`'s deploy job holds `RAILWAY_TOKEN`; since a compromised `checkout` runs in every job, both workflows carry the exposure. `npm install -g npm@latest` was similarly unpinned. Second, the release verify block hand-duplicated the root `ci` script's five commands — two definitions of "verified" that can drift. Third, the bun version lives in three places (`packageManager` plus the Dockerfile's two `FROM` tags) guarded only by a comment, while bundle-byte determinism explicitly depends on the bun version (decision 11).
+
+**Decision:**
+
+- **All actions in both workflows are pinned to full commit SHAs**, with the tag they correspond to in a trailing comment. Bumping means editing the SHA and comment together; there is no update automation yet (Renovate/Dependabot is the natural follow-up if churn gets annoying).
+- **npm is pinned to its major** (`npm@11`; trusted publishing needs ≥ 11.5.1).
+- **The release Verify step is `bun run format:check && bun run ci`** — the definition of "verified" lives once, in the root `package.json`, shared by local pre-push runs (decision 22) and the release gate. `ci.yml`'s verify job deliberately keeps split steps (Lint / Type-check / Test / …): per-step names and timings are worth the nominal duplication there, and the steps invoke the same root scripts.
+- **`ci.yml`'s verify job greps the Dockerfile's `FROM oven/bun` tags against `packageManager`** (jq is present on GitHub runners) — version drift becomes a red build instead of a silent image/toolchain mismatch, the same treatment generated artifacts got in decision 11.
+
+**Consequences:**
+
+- Action bumps are deliberate, reviewable SHA edits; the tag comment is documentation only — the SHA is what runs.
+- A bun upgrade now touches `package.json` and both Dockerfile `FROM` tags in one commit, enforced by CI.
+- The drift guard lives in `verify` (gated on ts changes), which `apps/**` covers — a Dockerfile-only edit still triggers it.
