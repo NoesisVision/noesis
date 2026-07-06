@@ -307,3 +307,14 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - Heavier checks (`check-types`, tests, e2e, build) are deliberately **not** hooked — pre-commit stays sub-second; CI and `bun run ci` remain the real gate.
 - `git commit -n` bypasses the hook for work-in-progress commits.
 - New clones get the hook on first `bun install`; nobody has to install or configure anything.
+
+## 27. Dockerfile lives in `apps/server/`, not the repo root
+
+**Context:** The Dockerfile builds the server image (decision 17/18), yet sat at the repo root among workspace-wide config, purely because that's Docker's default lookup path. Root files should be things that genuinely govern the whole repo.
+
+**Decision:** Move it to `apps/server/Dockerfile` — next to the app it builds. `railway.json` stays at root (Railway reads it from the service root) with `dockerfilePath: "apps/server/Dockerfile"`. The **build context remains the repo root**, so `COPY` paths and the root `.dockerignore` are unchanged; locally the build is `docker build -f apps/server/Dockerfile .`. The CI `ts` paths filter drops its explicit `Dockerfile` entry — `apps/**` now covers it.
+
+**Consequences:**
+
+- Anyone building locally must pass `-f apps/server/Dockerfile`; a bare `docker build .` no longer finds it.
+- If a second deployable image ever appears (e.g. `local`), it follows the same pattern: `apps/<app>/Dockerfile`, shared root context.

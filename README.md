@@ -163,8 +163,9 @@ the SPA, `/api/*` for the local app / MCP, `/internal/*` for health and other
 technical endpoints — so each surface can carry its own auth later.
 
 - **How it ships:** every green push to `main` triggers the `deploy` job in
-  `ci.yml`, which runs `railway up --ci`. Railway builds the repo-root
-  `Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`) and
+  `ci.yml`, which runs `railway up --ci`. Railway builds
+  `apps/server/Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`,
+  repo-root build context) and
   health-checks `/internal/health` (`railway.json`).
 - **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
   token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway

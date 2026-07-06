@@ -1,5 +1,6 @@
 # Builds the single production image: the NestJS server (bundled, self-contained)
-# serving the built ui app (decision 17). Built by Railway via `railway up`.
+# serving the built ui app (decision 17). Built by Railway via `railway up`
+# with the repo root as build context (railway.json's dockerfilePath points here).
 # Bun version must match `packageManager` in package.json (and CI).
 
 # --- build stage ----------------------------------------------------------

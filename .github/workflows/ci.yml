@@ -31,7 +31,6 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'bunfig.toml'
-              - 'Dockerfile'
               - 'railway.json'
               - '.github/workflows/ci.yml'
 
