@@ -46,10 +46,11 @@ ENV NODE_ENV=production
 ENV UI_DIST_PATH=/app/ui
 
 # Writable home for the on-disk LadybugDB (the default `.data` would land in
-# root-owned /app). Mount a Railway volume here for persistence across deploys.
-RUN mkdir -p /data && chown bun:bun /data
+# root-owned /app). A Railway volume is mounted here for persistence across
+# deploys — but Railway mounts volumes root-owned, shadowing any image chown.
+# So CMD starts as root, fixes the mount's ownership, and drops to bun.
+RUN mkdir -p /data
 ENV NOESIS_DATA_DIR=/data
 
-USER bun
 EXPOSE 3000
-CMD ["bun", "server/main.js"]
+CMD ["sh", "-c", "chown bun:bun /data && exec setpriv --reuid bun --regid bun --init-groups bun server/main.js"]
