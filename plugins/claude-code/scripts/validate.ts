@@ -2,7 +2,7 @@
 // contracts/ (copied from @repo/mcp-contracts by `bun run generate`).
 // Usage: bun scripts/validate.ts <contract-name> <path/to/payload.json>
 import { readFile } from 'node:fs/promises';
-import { contracts, type ContractName } from '../contracts';
+import { type ContractName, contracts } from '../contracts';
 
 const [name, file] = process.argv.slice(2);
 if (!name || !file) {

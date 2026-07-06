@@ -1,11 +1,11 @@
+import { mkdirSync } from 'node:fs';
 import {
   Inject,
   Injectable,
   Logger,
-  OnModuleDestroy,
-  OnModuleInit,
+  type OnModuleDestroy,
+  type OnModuleInit,
 } from '@nestjs/common';
-import { mkdirSync } from 'node:fs';
 import lbug, { type LbugValue } from 'lbug';
 import { DATA_DIR } from '../config/config.module.js';
 

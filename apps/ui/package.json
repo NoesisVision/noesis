@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc -b",
     "preview": "vite preview"
   },
@@ -16,13 +15,11 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "catalog:",
     "typescript": "catalog:",
     "vite": "^8.0.12"
   }

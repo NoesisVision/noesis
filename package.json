@@ -5,16 +5,18 @@
     "build": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
     "dev:server": "bun run --filter=server --filter=ui dev",
-    "lint": "bun run --filter '*' lint",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "test": "bun run --filter '*' test",
     "test:e2e": "bun run --filter '*' test:e2e",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md}\"",
+    "format": "biome format --write . && prettier --write \"**/*.md\"",
+    "format:check": "biome format . && prettier --check \"**/*.md\"",
     "check-types": "bun run --filter '*' check-types",
     "generate": "bun run --filter '*' generate",
     "ci": "bun run lint && bun run check-types && bun run test && bun run test:e2e && bun run build"
   },
   "devDependencies": {
+    "@biomejs/biome": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
@@ -26,9 +28,9 @@
       "plugins/*"
     ],
     "catalog": {
+      "@biomejs/biome": "^2.5.2",
       "@types/bun": "^1.2.0",
       "@types/node": "^24.0.0",
-      "eslint": "^9.39.1",
       "prettier": "^3.7.4",
       "typescript": "5.9.2"
     }

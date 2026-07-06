@@ -53,11 +53,12 @@ The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugi
 ### Config packages
 
 - `@repo/typescript-config` — shared tsconfig presets: `base.json`, `nest.json`, `vite.json`
-- `@repo/eslint-config` — shared ESLint flat configs: `base`, `nest`, `vite-react`
+
+Linting and formatting need no config package: a single root `biome.json` covers the whole workspace (per-area rule tweaks live in its `overrides`).
 
 > ⚠️ bun's transpiler does not resolve package-specifier `extends` in tsconfig — the Nest apps duplicate `experimentalDecorators`/`emitDecoratorMetadata` inline. Don't remove those.
 
-Shared tool versions (`typescript`, `eslint`, `prettier`, `@types/node`) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
+Shared tool versions (`typescript`, `@biomejs/biome`, `prettier`, `@types/node`) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
 
 ### Scanners (`scanners/`)
 
@@ -73,7 +74,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 | [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                                                              |
 | [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                                                               |
 | [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                                             |
-| ESLint 9/10 + Prettier                                                              | Linting and formatting                                                                                                 |
+| [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                                                |
 | GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing                        |
 
 ## 3. Getting started
@@ -91,11 +92,11 @@ bun run dev            # run all apps in watch mode
 bun run dev:server     # just server + ui
 
 bun run build          # build everything
-bun run lint           # lint everything (check only; `lint:fix` in each app to autofix)
+bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
 bun run check-types    # tsc --noEmit across packages
 bun run test           # unit tests
 bun run test:e2e       # e2e tests
-bun run format         # prettier --write (`format:check` to verify)
+bun run format         # biome + prettier(md) --write (`format:check` to verify)
 ```
 
 Filter to one package: `bun run --filter=server build`.

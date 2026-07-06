@@ -1,5 +1,4 @@
 // GENERATED from @repo/mcp-contracts — do not edit; run `bun run generate`.
-import { z } from 'zod';
 import {
   DecisionContextSchema,
   DecisionOptionSchema,
@@ -7,6 +6,7 @@ import {
   InformationFragmentRefSchema,
 } from '../shared/index.js';
 import { newUuid } from '../shared/uuid.js';
+import { z } from 'zod';
 
 // Model-facing output of the `analyze-conversation` skill. Skill-output schemas
 // are the payloads the model produces, so per OQ-1.1 they live with the other

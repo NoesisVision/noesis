@@ -280,3 +280,18 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - "Bundled, self-contained server" (17) now reads: self-contained **except native modules**, which ship as real `node_modules` entries. Any future native dep follows the same pattern (external + staged copy).
 - The container has no `USER` directive; non-root is enforced by the `setpriv` drop in CMD. Anyone overriding CMD must drop privileges themselves.
 - The staged file list is explicit; if an lbug upgrade adds a runtime file, the container boot (healthcheck) is the guard.
+
+## 25. Biome replaces ESLint + Prettier for code; Prettier stays for Markdown only
+
+**Context:** Linting/formatting spanned two tools and a config package: `@repo/eslint-config` (flat configs `base`/`nest`/`vite-react`, typed linting in the Nest apps via `typescript-eslint`, `eslint-plugin-prettier`, `only-warn` + `--max-warnings 0`) plus root Prettier for `**/*.{ts,tsx,md}`. That's 8 lint-related dependencies, per-app configs and lint scripts, and two tools that had to agree on style.
+
+**Decision:** Migrate to Biome 2 (`biome check`) for all code linting **and** formatting — one root `biome.json`, no per-package configs or lint scripts (root `lint` is `biome check .` directly, no longer a `--filter '*'` fan-out). Biome has no Markdown support, so Prettier stays as a root-only dev dependency scoped to `**/*.md` — the ungated CI `format` job keeps checking doc-only commits (decision 21). Rule mapping: Biome recommended preset ≈ eslint+tseslint recommended; `noExplicitAny` off in the Nest apps (as before); `@typescript-eslint/no-floating-promises` → nursery `noFloatingPromises` (Biome's own type inference, no tsc) as `error` in the Nest apps; react-hooks rules → Biome's react domain (auto-enabled); `react-refresh/only-export-components` → `useComponentExportOnlyModules` in `apps/ui`. NestJS parameter decorators need `unsafeParameterDecoratorsEnabled: true` (without it Biome mis-parses `@Inject()` constructor params). Generated output (`plugins/claude-code/contracts/`, `plugins/claude-code/skills/**/references/` — both `JSON.stringify`-emitted) and `apps/ui/public/` assets are excluded from Biome.
+
+**Rationale:** One tool, one config, ~50× faster, no eslint-vs-prettier coordination. The `only-warn` + `--max-warnings 0` dance (everything is a warning, any warning fails) collapses into Biome's default semantics: errors fail, and `biome check` also verifies formatting and import organization.
+
+**Consequences:**
+
+- Typed linting is weaker than `recommendedTypeChecked`: Biome's type inference backs `noFloatingPromises`, but rules like `no-unsafe-argument` have no equivalent. Accepted — tsc (`check-types`) still gates type errors.
+- `biome check` organizes imports (assist); import order is now enforced, autofixed via `lint:fix`/`format`.
+- Prettier's scope shrank to Markdown; `.prettierrc`/`.prettierignore` remain for that.
+- Editor integration is the Biome plugin (IntelliJ/VS Code), not ESLint + Prettier plugins.

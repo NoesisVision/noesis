@@ -1,12 +1,12 @@
 // GENERATED from @repo/mcp-contracts — do not edit; run `bun run generate`.
 import { z } from 'zod';
 import {
-  ConversationFragmentRefSchema,
   type ConversationFragmentRef,
+  ConversationFragmentRefSchema,
 } from './conversation.js';
 import {
-  DocumentFragmentRefSchema,
   type DocumentFragmentRef,
+  DocumentFragmentRefSchema,
 } from './document.js';
 
 // A reference to a single information fragment in any source — a fragment of a

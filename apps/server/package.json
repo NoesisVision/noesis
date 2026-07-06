@@ -7,13 +7,10 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "bun build src/main.ts --outdir dist --target bun --external lbug --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets --external @fastify/static",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
     "start:debug": "bun --inspect --watch src/main.ts",
     "start:prod": "bun run dist/main.js",
-    "lint": "eslint \"{src,test}/**/*.ts\" --max-warnings 0",
-    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix --max-warnings 0",
     "check-types": "tsc --noEmit",
     "test": "bun test src",
     "test:watch": "bun test src --watch",
@@ -33,19 +30,18 @@
     "rxjs": "^7.8.1",
     "zod": "^4.1.0"
   },
-  "trustedDependencies": ["lbug"],
+  "trustedDependencies": [
+    "lbug"
+  ],
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
-    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/express": "^5.0.0",
     "@types/node": "catalog:",
     "@types/supertest": "^7.0.0",
-    "eslint": "catalog:",
-    "prettier": "catalog:",
     "supertest": "^7.0.0",
     "typescript": "catalog:"
   }

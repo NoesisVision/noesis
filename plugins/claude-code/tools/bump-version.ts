@@ -26,7 +26,7 @@ async function update(
     unknown
   >;
   mutate(json);
-  await writeFile(path, JSON.stringify(json, null, 2) + '\n');
+  await writeFile(path, `${JSON.stringify(json, null, 2)}\n`);
   console.log(`bumped ${relPath} -> ${version}`);
 }
 

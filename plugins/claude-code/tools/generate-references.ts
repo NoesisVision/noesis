@@ -13,11 +13,11 @@ await mkdir(outDir, { recursive: true });
 for (const [name, entry] of Object.entries(contracts)) {
   await writeFile(
     `${outDir}${name}.schema.json`,
-    JSON.stringify(toJsonSchema(entry), null, 2) + '\n',
+    `${JSON.stringify(toJsonSchema(entry), null, 2)}\n`,
   );
   await writeFile(
     `${outDir}${name}.example.json`,
-    JSON.stringify(entry.example, null, 2) + '\n',
+    `${JSON.stringify(entry.example, null, 2)}\n`,
   );
   console.log(`generated ${name}.schema.json + ${name}.example.json`);
 }

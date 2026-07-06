@@ -16,5 +16,5 @@ const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<
   unknown
 >;
 manifest.version = version;
-await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 console.log(`stamped .claude-plugin/plugin.json -> ${version}`);

@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, it } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { App } from 'supertest/types';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { apiPath } from '@repo/local-contracts';
 import { uiPath } from '@repo/ui-contracts';
+import request from 'supertest';
+import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 
 // One shared app for all route assertions: AppModule now boots LadybugDB, and

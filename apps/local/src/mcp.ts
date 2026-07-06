@@ -2,10 +2,11 @@
 // `bun run bundle` (plugins/claude-code/tools/bundle-server.ts).
 //
 // stdout belongs to the MCP protocol — all logging MUST go to stderr.
-import { NestFactory } from '@nestjs/core';
-import type { LoggerService } from '@nestjs/common';
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import type { LoggerService } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { helloRequestSchema } from '@repo/mcp-contracts';
 import { McpModule } from './mcp/mcp.module';
 import { ServerClientService } from './mcp/server-client.service';

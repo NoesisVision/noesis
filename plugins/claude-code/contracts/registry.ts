@@ -1,6 +1,6 @@
 // GENERATED from @repo/mcp-contracts — do not edit; run `bun run generate`.
-import { z, type ZodType } from 'zod';
-import { helloRequestSchema, helloRequestExample } from './hello.js';
+import { type ZodType, z } from 'zod';
+import { helloRequestExample, helloRequestSchema } from './hello.js';
 
 export interface ContractEntry {
   /** Zod schema — use for runtime validation (schema.safeParse). */

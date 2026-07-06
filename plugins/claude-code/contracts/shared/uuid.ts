@@ -1,5 +1,5 @@
 // GENERATED from @repo/mcp-contracts — do not edit; run `bun run generate`.
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 
 export function newUuid(): string {
   return Bun.randomUUIDv7();

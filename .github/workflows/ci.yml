@@ -35,7 +35,8 @@ jobs:
               - 'railway.json'
               - '.github/workflows/ci.yml'
 
-  # Ungated: prettier covers **/*.md, so doc-only commits are still checked.
+  # Ungated: format:check covers **/*.md (prettier), so doc-only commits are
+  # still checked; biome covers the code side.
   format:
     name: Format check
     runs-on: ubuntu-latest

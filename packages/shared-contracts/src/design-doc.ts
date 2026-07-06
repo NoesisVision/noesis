@@ -82,6 +82,7 @@ export const DesignedScenarioSchema = z.object({
   given_locked: lockedBool(),
   when: z.string(),
   when_locked: lockedBool(),
+  // biome-ignore lint/suspicious/noThenProperty: Gherkin given/when/then scenario field, never awaited
   then: z.string(),
   then_locked: lockedBool(),
 });

@@ -38,11 +38,11 @@ test('packs the npm tarball from a freshly built server bundle', async () => {
   expect(pack.status).toBe(0);
 
   const tarball = (await readdir(workDir)).find((f) => f.endsWith('.tgz'));
-  expect(tarball).toBeDefined();
+  if (!tarball) throw new Error('bun pm pack produced no tarball');
 
   const extract = spawnSync(
     'tar',
-    ['-xzf', join(workDir, tarball!), '-C', workDir],
+    ['-xzf', join(workDir, tarball), '-C', workDir],
     { encoding: 'utf8' },
   );
   expect(extract.status).toBe(0);

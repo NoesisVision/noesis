@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { GRAPH_SCHEMA } from './graph-schema.js';
 

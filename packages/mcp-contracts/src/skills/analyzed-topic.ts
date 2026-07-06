@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import {
   DecisionContextSchema,
   DecisionOptionSchema,
@@ -6,6 +5,7 @@ import {
   InformationFragmentRefSchema,
 } from '@repo/shared-contracts';
 import { newUuid } from '@repo/shared-contracts/uuid';
+import { z } from 'zod';
 
 // Model-facing output of the `analyze-conversation` skill. Skill-output schemas
 // are the payloads the model produces, so per OQ-1.1 they live with the other
