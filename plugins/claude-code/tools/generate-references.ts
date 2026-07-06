@@ -1,5 +1,5 @@
 // Regenerates skills/*/references/*.json from @repo/mcp-contracts.
-// Run via `bun run generate` (or `turbo generate`). Output is committed so the
+// Run via `bun run generate`. Output is committed so the
 // plugin stays self-contained when installed outside this monorepo.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';

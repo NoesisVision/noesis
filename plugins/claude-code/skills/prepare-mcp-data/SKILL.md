@@ -33,4 +33,4 @@ environment variable — e.g. per project in `.claude/settings.local.json`:
 { "env": { "NOESIS_SERVER_URL": "https://staging.noesis.dev" } }
 ```
 
-(These files are generated from `@repo/mcp-contracts` — do not edit them by hand; run `turbo generate` after changing the zod schemas.)
+(These files are generated from `@repo/mcp-contracts` — do not edit them by hand; run `bun run generate` after changing the zod schemas.)

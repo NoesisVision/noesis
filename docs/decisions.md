@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-06-10_
+_Last updated: 2026-07-06_
 
 ---
 
@@ -241,3 +241,18 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - Branch protection should require `changes`, `format`, and the gated job names; skipped gated jobs count as passing.
 - Workflow edits (`.github/workflows/ci.yml`) are in both filters, so CI changes exercise both pipelines.
 - The release workflow (tag-triggered) is unchanged and still runs the full TS verify suite — tags must validate everything regardless of what the last push touched.
+
+## 22. Remove Turborepo; pure bun workspace with `bun run --filter`
+
+**Context:** Turbo's two value propositions — build caching and topological `^build` ordering — were unused in practice: every shared package exports TypeScript source (`"./src/index.ts"`, no `build` script), bun runs `.ts` natively, and no workspace consumes another's `dist`. Only the three apps build at all, independently. Meanwhile turbo cost a dependency, a config file, an eslint plugin, and CI machinery (`TURBO_SCM_BASE` resolution, `fetch-depth: 0`).
+
+**Decision:** Remove Turborepo entirely. Root scripts become `bun run --filter '*' <task>` (which skips packages lacking the script and runs in workspace-dependency order in bun ≥ 1.3). Supersedes the turbo-specific parts of decision 21: CI's `verify` job drops `--affected` and runs all TS tasks on every gated push (**run-all**); the job-level java/ts gating via `dorny/paths-filter` stays. Per-package path filters were rejected — they'd reintroduce by hand the dependency-graph maintenance turbo provided for free. The `eslint-plugin-turbo` `no-undeclared-env-vars` rule is dropped without replacement; `turbo.json`'s `globalEnv` needed no new home (apps read `process.env` directly — it was only a cache-key declaration). Full inventory and steps: `docs/work/chores/turbo-to-bun-migration.md`.
+
+**Rationale:** One less tool with zero lost correctness — turbo's ordering was never load-bearing here. Matches the "primary toolchain owns the repo root" principle (21) more honestly: the toolchain is bun, full stop.
+
+**Consequences:**
+
+- CI runs the whole TS suite on every gated push. Acceptable at ~10 small packages; revisit selective execution (or turbo) if verify times grow painful.
+- No local build cache; real build work is only the 3 apps.
+- `bun run dev` loses turbo's TUI multiplexing — output is interleaved plain logs.
+- A root `ci` script (`lint && check-types && test && test:e2e && build`) mirrors the CI verify job for local pre-push runs.

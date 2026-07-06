@@ -1,6 +1,6 @@
 # noesis
 
-A [Turborepo](https://turborepo.dev/) monorepo containing the Noesis apps, their shared contract packages, and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
+A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, their shared contract packages, and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
 
 ## 1. Architecture
 
@@ -65,17 +65,16 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 
 ## 2. Tools
 
-| Tool                                                                                | Role                                                                                            |
-| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (Nest apps run TS directly), bundler, test runner                   |
-| [Turborepo](https://turborepo.dev/)                                                 | Task orchestration + caching (`build`, `lint`, `check-types`, `generate`)                       |
-| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                  |
-| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                        |
-| [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                                       |
-| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                                        |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                      |
-| ESLint 9/10 + Prettier                                                              | Linting and formatting                                                                          |
-| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing |
+| Tool                                                                                | Role                                                                                                                   |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (Nest apps run TS directly), bundler, test runner, task orchestration (`bun run --filter`) |
+| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                                         |
+| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                                               |
+| [NestJS](https://nestjs.com/) 11                                                    | `server` and `local` apps                                                                                              |
+| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app                                                                                                               |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `apps/local`                                                                                             |
+| ESLint 9/10 + Prettier                                                              | Linting and formatting                                                                                                 |
+| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing                        |
 
 ## 3. Getting started
 
@@ -88,7 +87,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 ```sh
 bun install            # install all workspaces
 
-bun run dev            # run all apps in watch mode (turbo TUI)
+bun run dev            # run all apps in watch mode
 bun run dev:server     # just server + ui
 
 bun run build          # build everything
@@ -99,7 +98,7 @@ bun run test:e2e       # e2e tests
 bun run format         # prettier --write (`format:check` to verify)
 ```
 
-Filter to one package with turbo: `bun x turbo build --filter=server`.
+Filter to one package: `bun run --filter=server build`.
 
 ### Working with contracts
 

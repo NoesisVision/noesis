@@ -31,7 +31,6 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'bunfig.toml'
-              - 'turbo.json'
               - 'Dockerfile'
               - 'railway.json'
               - '.github/workflows/ci.yml'
@@ -60,9 +59,6 @@ jobs:
     if: needs.changes.outputs.ts == 'true'
     steps:
       - uses: actions/checkout@v5
-        with:
-          # turbo --affected diffs against TURBO_SCM_BASE.
-          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -71,33 +67,20 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Resolve base for turbo --affected
-        env:
-          PUSH_BEFORE: ${{ github.event.before }}
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            echo "TURBO_SCM_BASE=origin/$GITHUB_BASE_REF" >> "$GITHUB_ENV"
-          elif [ -n "$PUSH_BEFORE" ] && git cat-file -e "$PUSH_BEFORE" 2>/dev/null; then
-            echo "TURBO_SCM_BASE=$PUSH_BEFORE" >> "$GITHUB_ENV"
-          else
-            # Force push or new branch: the pre-push commit is gone.
-            echo "TURBO_SCM_BASE=HEAD^" >> "$GITHUB_ENV"
-          fi
-
       - name: Lint
-        run: bunx turbo run lint --affected
+        run: bun run lint
 
       - name: Type-check
-        run: bunx turbo run check-types --affected
+        run: bun run check-types
 
       - name: Test
-        run: bunx turbo run test --affected
+        run: bun run test
 
       - name: E2E test
-        run: bunx turbo run test:e2e --affected
+        run: bun run test:e2e
 
       - name: Build
-        run: bunx turbo run build --affected
+        run: bun run build
 
   generate-check:
     name: Generated output is committed

@@ -7,7 +7,7 @@ FROM oven/bun:1.3.14 AS build
 WORKDIR /repo
 
 # Workspace manifests first so the install layer caches across source changes.
-COPY package.json bun.lock bunfig.toml turbo.json ./
+COPY package.json bun.lock bunfig.toml ./
 COPY apps/server/package.json apps/server/
 COPY apps/ui/package.json apps/ui/
 COPY apps/local/package.json apps/local/
@@ -21,7 +21,7 @@ COPY plugins/claude-code/package.json plugins/claude-code/
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bunx turbo build --filter=server --filter=ui
+RUN bun run --filter=server --filter=ui build
 
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim

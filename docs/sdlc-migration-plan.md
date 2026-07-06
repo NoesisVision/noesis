@@ -182,7 +182,7 @@ SDLC `CLAUDE.md` (the good parts).
    instances per process, and `bun test` runs all specs in one process (see
    Part 2). Never open a fresh `Database` per test.
 4. **Generated artifacts are committed and CI-drift-checked** (decisions 6, 11).
-   Any new model-facing schema/example follows the `turbo generate` pipeline.
+   Any new model-facing schema/example follows the `bun run generate` pipeline.
 5. **Route constants live in contract packages** (decision 18) — never hardcode a
    path in a controller or client.
 6. **No `any` without justification; strict TS.** Note the bun tsconfig-`extends`
@@ -682,7 +682,7 @@ implement-design-doc,search-topics,clarify-requirements}/` (SKILL.md + reference
 - Generated references: noesis generates `references/*.schema.json` +
   `*.example.json` from `mcp-contracts` (decisions 6, 13) and commits them (CI
   drift-checked). SDLC's skill references are hand-written prose — keep the prose,
-  **add** the generated schema/example artifacts via `turbo generate`.
+  **add** the generated schema/example artifacts via `bun run generate`.
 - Skill outputs are validated by zod load at the server merge endpoint (no
   separate tool).
 
@@ -716,7 +716,7 @@ exhaustive optional/ChangeSet/union coverage rules), and the `test:smoke` harnes
   fixtures; every ChangeSet slot exercised; every union variant present) are
   excellent — **keep them** and apply transitively to the new contracts. Seed
   data is now written to the **server DB** (project-scoped), not to files.
-- Per noesis (decision 21), tests run under `turbo test` / `--affected`; the smoke
+- Per noesis (decisions 21, 22), tests run under `bun run test`; the smoke
   test consumes tokens and must stay **opt-in** (env-gated, never autonomous) —
   preserve SDLC's `NOESIS_SMOKE_CONFIRM` guard.
 - The smoke test now drives the full distributed path (`local` → remote `server`)
