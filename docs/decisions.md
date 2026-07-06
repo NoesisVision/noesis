@@ -268,3 +268,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The shared-fixture rationale in `testing/test-db.ts` (one DB per test process) still stands — multi-instance pressure remains an independent lbug limitation.
 - `query()` returns fully materialized rows only; code must not expect to stream rows from a held `QueryResult` later.
 - If a streaming API is ever needed, it must own explicit close semantics (e.g. a callback-scoped variant), not hand out raw results.
+
+## 24. Native modules are externals: lbug ships as node_modules in the image
+
+**Context:** The Railway deploy failed its healthcheck after the SDLC migration added lbug to the server. `bun build` cannot bundle a native `.node` binding — it inlined lbug's JS wrapper with the **build machine's absolute install path** baked into the dlopen call, which doesn't exist in the runtime image (decision 17's slim stage copies only `dist`). The server crashed at `DatabaseModule` init. A second latent issue surfaced right after: the default `NOESIS_DATA_DIR` (`.data`) landed in root-owned `/app` while the container runs as `USER bun` → `EACCES`.
+
+**Decision:** The server bundle marks `lbug` `--external`; the Dockerfile stages a minimal runtime copy (JS wrapper + `lbugjs.node` + `package.json`, ~17 MB of the ~500 MB installed package, from the version-agnostic `apps/server/node_modules/lbug` workspace symlink) into `/app/node_modules/lbug`, where `require("lbug")` from `/app/server/main.js` resolves naturally. The image pre-creates a bun-owned `/data` and sets `NOESIS_DATA_DIR=/data` — mount a Railway volume there for persistence across deploys. Verified locally: `docker build` + `docker run` → `/internal/health` 200, LadybugDB initialized on disk.
+
+**Consequences:**
+
+- "Bundled, self-contained server" (17) now reads: self-contained **except native modules**, which ship as real `node_modules` entries. Any future native dep follows the same pattern (external + staged copy).
+- Without a Railway volume mounted at `/data`, graph data is ephemeral per deploy.
+- The staged file list is explicit; if an lbug upgrade adds a runtime file, the container boot (healthcheck) is the guard.

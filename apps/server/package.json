@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets --external @fastify/static",
+    "build": "bun build src/main.ts --outdir dist --target bun --external lbug --external class-transformer --external class-validator --external @nestjs/microservices --external @nestjs/websockets --external @fastify/static",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",

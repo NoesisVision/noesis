@@ -23,15 +23,32 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run --filter=server --filter=ui build
 
+# lbug is a native module (dlopen'd .node binding), so the server bundle marks
+# it external. Stage a minimal runtime copy — the installed package is ~500 MB
+# of which only the JS wrapper + binding (~17 MB) is needed at runtime.
+RUN mkdir -p /runtime/node_modules/lbug \
+  && cp -L /repo/apps/server/node_modules/lbug/*.js \
+    /repo/apps/server/node_modules/lbug/*.mjs \
+    /repo/apps/server/node_modules/lbug/package.json \
+    /repo/apps/server/node_modules/lbug/lbugjs.node \
+    /runtime/node_modules/lbug/
+
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim
 WORKDIR /app
 
 COPY --from=build /repo/apps/server/dist ./server
 COPY --from=build /repo/apps/ui/dist ./ui
+# require("lbug") from server/main.js resolves up to /app/node_modules.
+COPY --from=build /runtime/node_modules ./node_modules
 
 ENV NODE_ENV=production
 ENV UI_DIST_PATH=/app/ui
+
+# Writable home for the on-disk LadybugDB (the default `.data` would land in
+# root-owned /app). Mount a Railway volume here for persistence across deploys.
+RUN mkdir -p /data && chown bun:bun /data
+ENV NOESIS_DATA_DIR=/data
 
 USER bun
 EXPOSE 3000
