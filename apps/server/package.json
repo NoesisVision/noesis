@@ -10,7 +10,7 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external lbug",
+    "build": "bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
     "start:debug": "bun --inspect --watch src/main.ts",
@@ -24,12 +24,12 @@
   "dependencies": {
     "@repo/local-contracts": "workspace:*",
     "@repo/shared-contracts": "workspace:*",
+    "@ladybugdb/core": "^0.18.0",
     "hono": "catalog:",
-    "lbug": "^0.14.3",
     "zod": "catalog:"
   },
   "trustedDependencies": [
-    "lbug"
+    "@ladybugdb/core"
   ],
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

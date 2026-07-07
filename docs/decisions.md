@@ -417,3 +417,16 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The advertised `tools/list` input schema and the skill's reference schema are generated from the same `toJsonSchema` call and cannot drift.
 - New tools must route through the tool→contract table; there is deliberately no way to register a tool without a contract.
 - zod parse semantics apply at the boundary: unknown keys are stripped, not rejected (the advertised JSON Schema still says `additionalProperties: false`, so honest clients see the strict contract).
+
+## 35. LadybugDB moves to `@ladybugdb/core` 0.18.0 (prebuilt binaries); 0.14-era segfault workarounds verified obsolete
+
+**Context:** The server pinned `lbug@0.14.3`, but that package is dead — last publish January 2026. LadybugDB's official npm home is now `@ladybugdb/core` (0.18.0), API-compatible (`Database`/`Connection`/`LbugValue`, `prepare`/`execute`, `getAllSync`), shipping prebuilt per-platform binaries as optional sub-packages (`@ladybugdb/core-{platform}-{arch}`) that its install script copies into the package dir — no cmake source build, ~19 MB installed vs ~500 MB. The two documented 0.14.3 crashes were re-tested against 0.18.0: (a) decision 23's use-after-free — 200 deliberately unclosed `QueryResult`s, `Database` closed, GC forced 10×: no segfault in 5/5 runs; (b) the test-db.ts multi-instance limit — 30 sequential + 10 concurrently open `Database` instances in one process: no segfault. Storage compatibility was verified directly: a database written by 0.14.3 (storage version 40) opens and reads correctly under 0.18.0 (storage version 42), so the Railway volume survives the upgrade in place.
+
+**Decision:** Swap `lbug` → `@ladybugdb/core@^0.18.0` (dependency, `trustedDependencies` — the install script must run to place the platform binary — and the bundle's `--external`). The Dockerfile's hand-maintained staged file list (decision 24) is replaced by copying the whole self-contained package directory. The eager `QueryResult.close()` in `DatabaseService.query()` and the close-before-Database teardown order **stay** — no longer crash-critical, but deterministic native-handle release is the right hygiene and costs nothing. The shared test fixture (one DB per test process) also stays, now justified by speed rather than the fixed multi-instance crash; comments at all these sites were updated to mark the segfault rationale as historical (0.14.3).
+
+**Consequences:**
+
+- Storage upgrade is one-way: once 0.18.0 opens the production volume it may migrate it (40 → 42); rolling the image back to a 0.14.3 build after that is not safe. Take a volume snapshot before the first deploy if rollback matters.
+- The runtime image stages `node_modules/@ladybugdb/core` wholesale — an upstream file-layout change can no longer silently drop a needed file (decision 24's healthcheck guard remains the backstop).
+- `apache-arrow` is declared as a dependency upstream but never `require`d on our code paths, so it is deliberately not staged into the runtime image; if an upgrade starts importing it, container boot fails visibly.
+- The convention that all lbug access goes through `DatabaseService.query()` (decision 23) is retained as an interface discipline, not a crash workaround.

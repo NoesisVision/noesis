@@ -1,5 +1,5 @@
 import { mkdirSync } from 'node:fs';
-import lbug, { type LbugValue } from 'lbug';
+import lbug, { type LbugValue } from '@ladybugdb/core';
 
 const { Database, Connection } = lbug;
 
@@ -7,9 +7,9 @@ type LbugDatabase = InstanceType<typeof Database>;
 type LbugConnection = InstanceType<typeof Connection>;
 export type QueryParams = Record<string, LbugValue>;
 
-// Owns the lbug database handle. Constructed and initialized by the
-// composition root (main.ts), which also closes it on shutdown — lbug handles
-// left to GC finalizers segfault after their Database closes (decision 23).
+// Owns the LadybugDB database handle. Constructed and initialized by the
+// composition root (main.ts), which also closes it on shutdown so native
+// resources are released deterministically (decisions 23/35).
 export class DatabaseService {
   private readonly dataDir: string;
   private database: LbugDatabase | null = null;
@@ -65,9 +65,10 @@ export class DatabaseService {
     try {
       return extractRows<Row>(result);
     } finally {
-      // QueryResults hold native handles. One left to the GC and finalized
-      // after its Database was closed segfaults the process (use-after-free
-      // in lbug's native finalizer), so always close them explicitly here.
+      // QueryResults hold native handles; close them here so they are freed
+      // deterministically instead of at the GC's whim. (On lbug 0.14.3 a
+      // result finalized after its Database closed segfaulted — decision 23;
+      // not reproducible on @ladybugdb/core 0.18.0, kept as hygiene.)
       closeResults(result);
     }
   }

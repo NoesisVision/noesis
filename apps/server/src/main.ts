@@ -45,9 +45,9 @@ const server = Bun.serve({
 });
 console.log(`[server] listening on ${server.url}`);
 
-// Explicit shutdown (Nest's lifecycle hooks, made ours): lbug handles left to
-// GC finalizers segfault after their Database closes (decision 23), so stop
-// accepting requests, then close the connection deterministically.
+// Explicit shutdown (Nest's lifecycle hooks, made ours): stop accepting
+// requests, then close the database deterministically so on-disk state is
+// flushed (decisions 23/35).
 async function shutdown(): Promise<void> {
   await server.stop();
   await db.close();

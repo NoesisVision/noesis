@@ -22,15 +22,13 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run --filter=server --filter=ui build
 
-# lbug is a native module (dlopen'd .node binding), so the server bundle marks
-# it external. Stage a minimal runtime copy — the installed package is ~500 MB
-# of which only the JS wrapper + binding (~17 MB) is needed at runtime.
-RUN mkdir -p /runtime/node_modules/lbug \
-  && cp -L /repo/apps/server/node_modules/lbug/*.js \
-    /repo/apps/server/node_modules/lbug/*.mjs \
-    /repo/apps/server/node_modules/lbug/package.json \
-    /repo/apps/server/node_modules/lbug/lbugjs.node \
-    /runtime/node_modules/lbug/
+# @ladybugdb/core is a native module (dlopen'd .node binding), so the server
+# bundle marks it external. After install its package dir is self-contained
+# (~19 MB: JS wrapper + platform binary copied in by its install script), so
+# stage the whole directory — no hand-maintained file list.
+RUN mkdir -p /runtime/node_modules/@ladybugdb \
+  && cp -RL /repo/apps/server/node_modules/@ladybugdb/core \
+    /runtime/node_modules/@ladybugdb/core
 
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim
@@ -38,7 +36,7 @@ WORKDIR /app
 
 COPY --from=build /repo/apps/server/dist ./server
 COPY --from=build /repo/apps/ui/dist ./ui
-# require("lbug") from server/main.js resolves up to /app/node_modules.
+# require("@ladybugdb/core") from server/main.js resolves up to /app/node_modules.
 COPY --from=build /runtime/node_modules ./node_modules
 
 ENV NODE_ENV=production

@@ -59,7 +59,7 @@ all per project, launched by Claude Code with `NOESIS_PROJECT_DIR=$(pwd)`.
 
 | Subsystem                    | What it does                                                                                                                           | Key paths (under `mcp/noesis-graph/` unless noted) |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| **Database**                 | LadybugDB (`lbug`) embedded graph DB, Cypher-like, on-disk at `${dataDir}/ladybug-db`                                                  | `database/database.service.ts`                     |
+| **Database**                 | LadybugDB (`@ladybugdb/core`) embedded graph DB, Cypher-like, on-disk at `${dataDir}/ladybug-db`                                       | `database/database.service.ts`                     |
 | **Knowledge: conversations** | ingest `analyze-conversation` output, split to source content, index, serve UI                                                         | `knowledge/conversations/*`                        |
 | **Knowledge: documents**     | ingest `analyze-design-draft` output (incl. design-doc + decision attachments)                                                         | `knowledge/documents/*`                            |
 | **Knowledge: topics**        | topic tree, manual edits, staleness via per-item `source_sha`                                                                          | `knowledge/topics/*`                               |

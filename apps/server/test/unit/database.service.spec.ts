@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import { DatabaseService } from '../../src/database/database.service.js';
 
-// This spec deliberately stands up its own DatabaseService instances to exercise
-// the init/destroy lifecycle — it cannot use the shared fixture. lbug segfaults
-// with many instances per process (see test-db.ts), so instance count
-// here is kept to the minimum: one test creates none, one creates two.
+// This spec deliberately stands up its own DatabaseService instances to
+// exercise the init/destroy lifecycle — it cannot use the shared fixture
+// (see test-db.ts).
 function newService(): DatabaseService {
   return new DatabaseService(':memory:');
 }
@@ -19,8 +18,8 @@ describe('DatabaseService', () => {
     const service = newService();
     service.init();
 
-    // Set up via service.query — raw conn.query would leave QueryResults to
-    // the GC, whose post-close native finalizer segfaults (see query()).
+    // Set up via service.query — the convention is that all lbug access goes
+    // through it so QueryResults are closed deterministically (see query()).
     await service.query(
       'CREATE NODE TABLE IF NOT EXISTS Thing(id STRING, label STRING, PRIMARY KEY(id))',
     );
