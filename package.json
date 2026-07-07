@@ -31,9 +31,9 @@
     "catalog": {
       "@biomejs/biome": "^2.5.2",
       "@types/bun": "^1.2.0",
-      "@types/node": "^24.0.0",
-      "hono": "^4.12.0",
-      "prettier": "^3.7.4",
+      "@types/node": "^24.13.2",
+      "hono": "^4.12.28",
+      "prettier": "^3.9.4",
       "typescript": "5.9.2",
       "zod": "^4.1.0"
     }
