@@ -59,7 +59,7 @@ jobs:
         id: version
         run: |
           VERSION=$(node -p 'require("./plugins/claude-code/package.json").version')
-          BRIDGE_VERSION=$(node -p 'require("./packages/mcp-bridge/package.json").version')
+          BRIDGE_VERSION=$(node -p 'require("./plugins/mcp-bridge/package.json").version')
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $VERSION."
             exit 1
@@ -75,7 +75,7 @@ jobs:
           esac
 
       - name: Pack bridge
-        working-directory: packages/mcp-bridge
+        working-directory: plugins/mcp-bridge
         run: |
           bun run build
           bun pm pack
@@ -87,7 +87,7 @@ jobs:
       # Bridge first: the plugin's .mcp.json pins this exact bridge version, so
       # a plugin without its bridge must never be the published state.
       - name: Publish bridge
-        working-directory: packages/mcp-bridge
+        working-directory: plugins/mcp-bridge
         run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public
 
       - name: Publish plugin

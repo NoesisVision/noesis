@@ -6,7 +6,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NoesisVision/noesis.git",
-    "directory": "packages/mcp-bridge"
+    "directory": "plugins/mcp-bridge"
   },
   "type": "module",
   "bin": {

@@ -6,7 +6,7 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ```
 ┌─────────────┐   REST    ┌─────────────┐   REST    ┌─────────────────────┐
-│  apps/ui    │ ────────► │ apps/server │ ◄──────── │ packages/mcp-bridge │
+│  apps/ui    │ ────────► │ apps/server │ ◄──────── │ plugins/mcp-bridge │
 │ React/Vite  │           │ Hono (bun)  │           │  MCP bridge (stdio) │
 │   :5173     │           │    :3000    │           │  npm: @noesis-vision│
 └─────────────┘           └─────────────┘           │     /mcp-bridge     │
@@ -27,7 +27,7 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 | `apps/ui`     | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `server` |
 | `apps/server` | Hono on `Bun.serve` | Backend API (port `3000`)                           |
 
-### The MCP bridge (`packages/mcp-bridge`)
+### The MCP bridge (`plugins/mcp-bridge`)
 
 A **stdio MCP server** (plain TS on bun) bridging coding agents to `server`
 over REST. Published to npm as **`@noesis-vision/mcp-bridge`** — a
@@ -82,7 +82,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 | [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
 | [Hono](https://hono.dev/) 4                                                         | `server` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `ui` app                     |
 | [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `ui` app (Vite dev server proxies `/ui` to the server; `vite build` emits the SPA the server ships) |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `packages/mcp-bridge`                                                                 |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `plugins/mcp-bridge`                                                                  |
 | [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |
 | GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing     |
 

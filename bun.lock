@@ -56,23 +56,6 @@
         "typescript": "catalog:",
       },
     },
-    "packages/mcp-bridge": {
-      "name": "@noesis-vision/mcp-bridge",
-      "version": "0.1.0-beta.4",
-      "bin": {
-        "noesis-mcp-bridge": "dist/main.js",
-      },
-      "devDependencies": {
-        "@modelcontextprotocol/sdk": "^1.29.0",
-        "@repo/local-contracts": "workspace:*",
-        "@repo/shared-contracts": "workspace:*",
-        "@repo/typescript-config": "workspace:*",
-        "@types/bun": "catalog:",
-        "@types/node": "catalog:",
-        "typescript": "catalog:",
-        "zod": "catalog:",
-      },
-    },
     "packages/shared-contracts": {
       "name": "@repo/shared-contracts",
       "version": "0.0.0",
@@ -99,6 +82,23 @@
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
         "typescript": "catalog:",
+      },
+    },
+    "plugins/mcp-bridge": {
+      "name": "@noesis-vision/mcp-bridge",
+      "version": "0.1.0-beta.4",
+      "bin": {
+        "noesis-mcp-bridge": "dist/main.js",
+      },
+      "devDependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
+        "@repo/local-contracts": "workspace:*",
+        "@repo/shared-contracts": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "catalog:",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+        "zod": "catalog:",
       },
     },
   },
@@ -171,7 +171,7 @@
 
     "@noesis-vision/claude-code-plugin": ["@noesis-vision/claude-code-plugin@workspace:plugins/claude-code"],
 
-    "@noesis-vision/mcp-bridge": ["@noesis-vision/mcp-bridge@workspace:packages/mcp-bridge"],
+    "@noesis-vision/mcp-bridge": ["@noesis-vision/mcp-bridge@workspace:plugins/mcp-bridge"],
 
     "@oxc-project/types": ["@oxc-project/types@0.138.0", "", {}, "sha512-1a7ZKmrRTCoN1XMZ4L0PyyqrMnrNlLyPuOkdSX2MZg7IiIGRUyurNhAm73ptDOraoBcIordsIGKNPKUzy3ZmfA=="],
 

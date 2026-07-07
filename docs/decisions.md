@@ -469,3 +469,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The bridge writes outside its own package at generate time — accepted because the coupling is one explicit list and the `generate-check` CI job verifies the committed output on every change, exactly as before.
 - MCP payload contracts are no longer importable by other workspaces. If an app ever needs them, they must be re-extracted — accepted; cross-cutting domain DTOs already live in `@repo/shared-contracts`, and the re-export of those from the contracts index remains bridge-internal convenience.
 - Generated reference output is byte-identical before and after the move; the release flow is untouched (the plugin's `prepublishOnly` still stamps versions, the bridge's still builds the bundle).
+
+## 39. The MCP bridge lives under `plugins/`
+
+**Context:** After decision 38 the bridge owns the MCP contracts and generates every plugin's reference JSONs; it already releases on the plugin's version train (decision 33) and exists solely to be launched by agent-host plugins via `bunx`. Keeping it in `packages/` — otherwise all private, source-exported workspace libraries (`shared-contracts`, `local-contracts`, `typescript-config`) — misfiled the one other published, agent-facing artifact in the repo.
+
+**Decision:** Move `packages/mcp-bridge` → `plugins/mcp-bridge`. `plugins/` now means "everything shipped to agent hosts" (the bridge plus per-host plugins); `packages/` means internal workspace libraries. Path references updated in `release.yml`, `biome.json` (the `noFloatingPromises` override), the plugin's `bump-version.ts` and `tarball.test.ts`, `README.md`, and the bridge's own `repository.directory`.
+
+**Consequences:**
+
+- Workspace globs (`plugins/*`), the Dockerfile's `COPY --parents` manifest globs (decision 36), and the CI `ts` paths filter all already covered `plugins/**` — none needed changes, exactly the insulation decision 36 aimed for.
+- The bridge's `generate-references.ts` reaches sibling plugins as `../../../plugins/<name>/...` from its tools dir, which resolves identically from the new location.
+- Git history follows the move (rename detection); decision log references to the old path remain as history.

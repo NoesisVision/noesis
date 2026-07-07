@@ -15,9 +15,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
-const bridgeRoot = fileURLToPath(
-  new URL('../../../packages/mcp-bridge/', import.meta.url),
-);
+const bridgeRoot = fileURLToPath(new URL('../../mcp-bridge/', import.meta.url));
 
 let workDir: string;
 let packageDir: string;

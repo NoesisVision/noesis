@@ -34,7 +34,7 @@ async function update(
 await update('package.json', (json) => {
   json.version = version;
 });
-await update('../../packages/mcp-bridge/package.json', (json) => {
+await update('../../mcp-bridge/package.json', (json) => {
   json.version = version;
 });
 await update('.claude-plugin/marketplace.json', (json) => {

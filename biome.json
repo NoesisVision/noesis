@@ -29,7 +29,7 @@
   },
   "overrides": [
     {
-      "includes": ["apps/server/**", "packages/mcp-bridge/**"],
+      "includes": ["apps/server/**", "plugins/mcp-bridge/**"],
       "linter": {
         "rules": {
           "nursery": {
