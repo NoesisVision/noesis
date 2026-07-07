@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import heroImg from './assets/hero.png';
 import reactLogo from './assets/react.svg';
 import viteLogo from './assets/vite.svg';
@@ -7,16 +8,15 @@ import { client } from './client';
 
 function App() {
   const [count, setCount] = useState(0);
-  const [greeting, setGreeting] = useState('');
 
-  useEffect(() => {
-    // Typed end-to-end: rename the server route and this stops compiling.
-    client.ui.hello
-      .$get()
-      .then((res) => (res.ok ? res.text() : ''))
-      .then(setGreeting)
-      .catch(() => setGreeting(''));
-  }, []);
+  const { data: greeting } = useQuery({
+    queryKey: ['greeting'],
+    queryFn: async () => {
+      // Typed end-to-end: rename the server route and this stops compiling.
+      const res = await client.ui.hello.$get();
+      return res.ok ? res.text() : '';
+    },
+  });
 
   return (
     <>
