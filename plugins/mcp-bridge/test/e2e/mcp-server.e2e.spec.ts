@@ -9,7 +9,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const bridgeRoot = resolve(__dirname, '../..');
-const serverRoot = resolve(__dirname, '../../../../apps/backend');
+const serverRoot = resolve(__dirname, '../../../../server/backend');
 
 const PORT = 3917;
 const SERVER_URL = `http://localhost:${PORT}`;

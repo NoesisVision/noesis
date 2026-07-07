@@ -494,3 +494,16 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - Workspace globs, Dockerfile manifest `COPY --parents` globs, and the CI paths filter needed no changes (`apps/*` covered both names).
 - Verified beyond CI: the production image was built and booted locally (healthcheck + SPA serve) since Dockerfile changes only otherwise surface at Railway deploy time.
 - The README's contracts diagram was refreshed in passing — it still described `@repo/mcp-contracts`, which decision 38 had merged into the bridge.
+
+## 41. The `apps/` workspace directory is `server/`
+
+**Context:** After decision 40 the repo's top-level split was `apps/` (backend + frontend), `plugins/` (agent-host side: bridge + per-host plugins), `packages/` (internal libraries), `scanners/`. "apps" was scaffold vocabulary; the two members it held are not independent apps operationally — they build into one Docker image and deploy as one Railway service (decisions 17/18/28).
+
+**Decision:** Rename `apps/` → `server/`: the directory now names the deployed Noesis service, mirroring `plugins/` naming the agent side. Layout: `server/backend`, `server/frontend`. Updated: `workspaces.packages` glob, the Dockerfile's `COPY --parents` manifest glob and stage paths (the "one remaining duplication" decision 36 called out), `railway.json`, the CI paths filter and bun-version guard, `biome.json`, `.gitignore`, `renovate.json`, bridge e2e path, README. The root `dev:apps` script (named in decision 40) becomes `dev:server` — with the directory rename the name finally matches what it runs: the server stack.
+
+**Consequences:**
+
+- Package names (`backend`, `frontend`) and all `--filter` invocations are untouched; only paths changed.
+- The CI `ts` filter now watches `server/**` — a path-gating rename, verified by this change itself triggering the full verify.
+- The production image was rebuilt and booted locally from the new Dockerfile paths (healthcheck ok) before commit.
+- Historical docs keep the old paths, as always.

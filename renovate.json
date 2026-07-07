@@ -3,7 +3,7 @@
   "extends": ["config:recommended"],
   "schedule": ["before 8am on monday"],
   "minimumReleaseAge": "3 days",
-  "ignorePaths": ["**/node_modules/**", "apps/frontend/docs/**"],
+  "ignorePaths": ["**/node_modules/**", "server/frontend/docs/**"],
   "packageRules": [
     {
       "description": "All GitHub Actions bumps in one weekly PR",

@@ -10,41 +10,6 @@
         "typescript": "catalog:",
       },
     },
-    "apps/backend": {
-      "name": "backend",
-      "version": "0.0.1",
-      "dependencies": {
-        "@ladybugdb/core": "^0.18.0",
-        "@repo/local-contracts": "workspace:*",
-        "@repo/shared-contracts": "workspace:*",
-        "hono": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@repo/typescript-config": "workspace:*",
-        "@types/bun": "catalog:",
-        "@types/node": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
-    "apps/frontend": {
-      "name": "frontend",
-      "version": "0.0.0",
-      "dependencies": {
-        "hono": "catalog:",
-        "react": "^19.2.6",
-        "react-dom": "^19.2.6",
-      },
-      "devDependencies": {
-        "@repo/typescript-config": "workspace:*",
-        "@types/react": "^19.2.14",
-        "@types/react-dom": "^19.2.3",
-        "@vitejs/plugin-react": "^6.0.1",
-        "backend": "workspace:*",
-        "typescript": "catalog:",
-        "vite": "^8.0.12",
-      },
-    },
     "packages/local-contracts": {
       "name": "@repo/local-contracts",
       "version": "0.0.0",
@@ -99,6 +64,41 @@
         "@types/node": "catalog:",
         "typescript": "catalog:",
         "zod": "catalog:",
+      },
+    },
+    "server/backend": {
+      "name": "backend",
+      "version": "0.0.1",
+      "dependencies": {
+        "@ladybugdb/core": "^0.18.0",
+        "@repo/local-contracts": "workspace:*",
+        "@repo/shared-contracts": "workspace:*",
+        "hono": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "catalog:",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
+    "server/frontend": {
+      "name": "frontend",
+      "version": "0.0.0",
+      "dependencies": {
+        "hono": "catalog:",
+        "react": "^19.2.6",
+        "react-dom": "^19.2.6",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "backend": "workspace:*",
+        "typescript": "catalog:",
+        "vite": "^8.0.12",
       },
     },
   },
@@ -247,7 +247,7 @@
 
     "array-back": ["array-back@6.2.3", "", {}, "sha512-SGDvmg6QTYiTxCBkYVmThcoa67uLl35pyzRHdpCGBOcqFy6BtwnphoFPk7LhJshD+Yk1Kt35WGWeZPTgwR4Fhw=="],
 
-    "backend": ["backend@workspace:apps/backend"],
+    "backend": ["backend@workspace:server/backend"],
 
     "body-parser": ["body-parser@2.2.2", "", { "dependencies": { "bytes": "^3.1.2", "content-type": "^1.0.5", "debug": "^4.4.3", "http-errors": "^2.0.0", "iconv-lite": "^0.7.0", "on-finished": "^2.4.1", "qs": "^6.14.1", "raw-body": "^3.0.1", "type-is": "^2.0.1" } }, "sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA=="],
 
@@ -347,7 +347,7 @@
 
     "fresh": ["fresh@2.0.0", "", {}, "sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A=="],
 
-    "frontend": ["frontend@workspace:apps/frontend"],
+    "frontend": ["frontend@workspace:server/frontend"],
 
     "fs-extra": ["fs-extra@11.3.5", "", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-eKpRKAovdpZtR1WopLHxlBWvAgPny3c4gX1G5Jhwmmw4XJj0ifSD5qB5TOo8hmA0wlRKDAOAhEE1yVPgs6Fgcg=="],
 

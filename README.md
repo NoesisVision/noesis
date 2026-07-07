@@ -5,12 +5,12 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 ## 1. Architecture
 
 ```
-┌────────────────┐   REST    ┌───────────────┐   REST    ┌─────────────────────┐
-│ apps/frontend  │ ────────► │ apps/backend  │ ◄──────── │ plugins/mcp-bridge  │
-│  React/Vite    │           │  Hono (bun)   │           │  MCP bridge (stdio) │
-│    :5173       │           │     :3000     │           │  npm: @noesis-vision│
-└────────────────┘           └───────────────┘           │     /mcp-bridge     │
-                                                         └─────────────────────┘
+┌─────────────────┐   REST    ┌────────────────┐   REST    ┌─────────────────────┐
+│ server/frontend │ ────────► │ server/backend │ ◄──────── │ plugins/mcp-bridge  │
+│   React/Vite    │           │   Hono (bun)   │           │  MCP bridge (stdio) │
+│     :5173       │           │      :3000     │           │  npm: @noesis-vision│
+└─────────────────┘           └────────────────┘           │     /mcp-bridge     │
+                                                           └─────────────────────┘
                                                           ▲ launched via bunx by
                                                           │
                                               ┌───────────┴───────────┐
@@ -22,10 +22,10 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ### Apps
 
-| App             | Stack               | Purpose                                              |
-| --------------- | ------------------- | ---------------------------------------------------- |
-| `apps/frontend` | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `backend` |
-| `apps/backend`  | Hono on `Bun.serve` | Backend API (port `3000`)                            |
+| App               | Stack               | Purpose                                              |
+| ----------------- | ------------------- | ---------------------------------------------------- |
+| `server/frontend` | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `backend` |
+| `server/backend`  | Hono on `Bun.serve` | Backend API (port `3000`)                            |
 
 ### The MCP bridge (`plugins/mcp-bridge`)
 
@@ -99,7 +99,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 bun install            # install all workspaces
 
 bun run dev            # run all apps in watch mode
-bun run dev:apps       # just backend + frontend
+bun run dev:server     # just backend + frontend
 
 bun run build          # build everything
 bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
@@ -170,7 +170,7 @@ technical endpoints — so each surface can carry its own auth later.
 
 - **How it ships:** every green push to `main` triggers the `deploy` job in
   `ci.yml`, which runs `railway up --ci`. Railway builds
-  `apps/backend/Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`,
+  `server/backend/Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`,
   repo-root build context) and
   health-checks `/internal/health` (`railway.json`).
 - **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
@@ -180,7 +180,7 @@ technical endpoints — so each surface can carry its own auth later.
 - **Run the production image locally:**
 
 ```sh
-docker build -f apps/backend/Dockerfile -t noesis-backend .
+docker build -f server/backend/Dockerfile -t noesis-backend .
 docker run --rm -p 3000:3000 noesis-backend
 ```
 

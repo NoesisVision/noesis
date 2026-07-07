@@ -9,7 +9,7 @@
     "includes": [
       "**",
       "!plugins/claude-code/skills/**/references",
-      "!apps/frontend/public"
+      "!server/frontend/public"
     ]
   },
   "formatter": {
@@ -29,7 +29,7 @@
   },
   "overrides": [
     {
-      "includes": ["apps/backend/**", "plugins/mcp-bridge/**"],
+      "includes": ["server/backend/**", "plugins/mcp-bridge/**"],
       "linter": {
         "rules": {
           "nursery": {
@@ -39,7 +39,7 @@
       }
     },
     {
-      "includes": ["apps/frontend/**"],
+      "includes": ["server/frontend/**"],
       "linter": {
         "rules": {
           "style": {

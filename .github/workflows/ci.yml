@@ -25,7 +25,7 @@ jobs:
               - 'scanners/java/**'
               - '.github/workflows/ci.yml'
             ts:
-              - 'apps/**'
+              - 'server/**'
               - 'packages/**'
               - 'plugins/**'
               - 'package.json'
@@ -65,8 +65,8 @@ jobs:
       - name: Dockerfile bun version matches packageManager
         run: |
           want=$(jq -r '.packageManager | split("@")[1]' package.json)
-          if grep -E '^FROM oven/bun' apps/backend/Dockerfile | grep -vE "oven/bun:${want}(-slim)?( |$)"; then
-            echo "::error::apps/backend/Dockerfile FROM tags must use oven/bun:${want} (packageManager in package.json)."
+          if grep -E '^FROM oven/bun' server/backend/Dockerfile | grep -vE "oven/bun:${want}(-slim)?( |$)"; then
+            echo "::error::server/backend/Dockerfile FROM tags must use oven/bun:${want} (packageManager in package.json)."
             exit 1
           fi
 

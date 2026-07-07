@@ -13,7 +13,7 @@ WORKDIR /repo
 # Workspace manifests first so the install layer caches across source changes.
 # The globs mirror `workspaces.packages` in the root package.json.
 COPY package.json bun.lock bunfig.toml ./
-COPY --parents apps/*/package.json packages/*/package.json plugins/*/package.json ./
+COPY --parents server/*/package.json packages/*/package.json plugins/*/package.json ./
 RUN bun install --frozen-lockfile
 
 COPY . .
@@ -24,15 +24,15 @@ RUN bun run --filter=backend --filter=frontend build
 # (~19 MB: JS wrapper + platform binary copied in by its install script), so
 # stage the whole directory — no hand-maintained file list.
 RUN mkdir -p /runtime/node_modules/@ladybugdb \
-  && cp -RL /repo/apps/backend/node_modules/@ladybugdb/core \
+  && cp -RL /repo/server/backend/node_modules/@ladybugdb/core \
     /runtime/node_modules/@ladybugdb/core
 
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim
 WORKDIR /app
 
-COPY --from=build /repo/apps/backend/dist ./server
-COPY --from=build /repo/apps/frontend/dist ./ui
+COPY --from=build /repo/server/backend/dist ./server
+COPY --from=build /repo/server/frontend/dist ./ui
 # require("@ladybugdb/core") from server/main.js resolves up to /app/node_modules.
 COPY --from=build /runtime/node_modules ./node_modules
 
