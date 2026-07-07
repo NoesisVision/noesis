@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 8am on monday"],
+  "minimumReleaseAge": "3 days",
+  "ignorePaths": ["**/node_modules/**", "apps/ui/docs/**"],
+  "packageRules": [
+    {
+      "description": "All GitHub Actions bumps in one weekly PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "CI enforces that the Dockerfile oven/bun tags match packageManager, so bun runtime bumps must land as one PR",
+      "matchDepNames": ["bun", "oven/bun"],
+      "groupName": "Bun runtime"
+    },
+    {
+      "description": "All Maven bumps for the Java scanner in one weekly PR",
+      "matchManagers": ["maven"],
+      "groupName": "Java scanner (Maven)"
+    }
+  ]
+}
