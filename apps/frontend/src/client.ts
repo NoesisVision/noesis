@@ -1,5 +1,5 @@
+import type { AppType } from 'backend/client';
 import { hc } from 'hono/client';
-import type { AppType } from 'server/client';
 
 // Typed RPC client inferred from the server's route tree: path, method,
 // params, and response types all come from `AppType`. Import ONLY types from

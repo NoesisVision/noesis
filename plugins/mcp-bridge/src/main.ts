@@ -10,7 +10,7 @@ import { loadConfig } from './config.js';
 import { createMcpServer } from './mcp-server.js';
 import { ServerClient } from './server-client.js';
 
-// The composition root (same pattern as apps/server): the ONE place that
+// The composition root (same pattern as apps/backend): the ONE place that
 // constructs dependencies and wires them together.
 try {
   const serverClient = new ServerClient(loadConfig());

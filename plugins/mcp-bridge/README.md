@@ -6,7 +6,7 @@ surface over REST. Published to npm as a self-contained bin (decision 33) —
 agent plugins launch it with `bunx @noesis-vision/mcp-bridge@<version>`
 instead of shipping their own bundle.
 
-Plain TypeScript on bun, mirroring `apps/server`'s composition-root pattern
+Plain TypeScript on bun, mirroring `apps/backend`'s composition-root pattern
 (decision 31): `src/main.ts` wires config → `ServerClient` →
 `createMcpServer` → `StdioServerTransport`. stdout belongs to the MCP
 protocol; all logging goes to stderr.

@@ -17,22 +17,22 @@ COPY --parents apps/*/package.json packages/*/package.json plugins/*/package.jso
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bun run --filter=server --filter=ui build
+RUN bun run --filter=backend --filter=frontend build
 
 # @ladybugdb/core is a native module (dlopen'd .node binding), so the server
 # bundle marks it external. After install its package dir is self-contained
 # (~19 MB: JS wrapper + platform binary copied in by its install script), so
 # stage the whole directory — no hand-maintained file list.
 RUN mkdir -p /runtime/node_modules/@ladybugdb \
-  && cp -RL /repo/apps/server/node_modules/@ladybugdb/core \
+  && cp -RL /repo/apps/backend/node_modules/@ladybugdb/core \
     /runtime/node_modules/@ladybugdb/core
 
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim
 WORKDIR /app
 
-COPY --from=build /repo/apps/server/dist ./server
-COPY --from=build /repo/apps/ui/dist ./ui
+COPY --from=build /repo/apps/backend/dist ./server
+COPY --from=build /repo/apps/frontend/dist ./ui
 # require("@ladybugdb/core") from server/main.js resolves up to /app/node_modules.
 COPY --from=build /runtime/node_modules ./node_modules
 

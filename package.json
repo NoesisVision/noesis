@@ -4,7 +4,7 @@
   "scripts": {
     "build": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
-    "dev:server": "bun run --filter=server --filter=ui dev",
+    "dev:apps": "bun run --filter=backend --filter=frontend dev",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "bun run --filter '*' test",

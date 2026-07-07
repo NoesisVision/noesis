@@ -481,3 +481,16 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - Workspace globs (`plugins/*`), the Dockerfile's `COPY --parents` manifest globs (decision 36), and the CI `ts` paths filter all already covered `plugins/**` — none needed changes, exactly the insulation decision 36 aimed for.
 - The bridge's `generate-references.ts` reaches sibling plugins as `../../../plugins/<name>/...` from its tools dir, which resolves identically from the new location.
 - Git history follows the move (rename detection); decision log references to the old path remain as history.
+
+## 40. The apps are `backend` and `frontend`
+
+**Context:** `apps/server` and `apps/ui` carried names from the original scaffold. "server" was ambiguous (the MCP bridge is also a server; `Bun.serve`, the Vite dev server, and the `/ui` HTTP surface all overload the words further) and "ui" doubled as the name of a workspace, an HTTP surface (`/ui/*`), a container path (`./ui`, `UI_DIST_PATH`), and a Railway artifact.
+
+**Decision:** Rename the workspaces to `apps/backend` / `apps/frontend`, package names `backend` / `frontend` (the frontend's typed-client devDep becomes `"backend": "workspace:*"`, imported as `backend/client`). The root `dev:server` script becomes `dev:apps`. Renamed _repo-side_ references only: Dockerfile build filters and stage paths, `railway.json`'s `dockerfilePath`, the CI bun-version guard path, `biome.json` overrides, `.gitignore`, `renovate.json` ignorePaths, the bridge e2e's backend path, and README. Deliberately **not** renamed: the `/ui/*` HTTP surface, `UI_DIST_PATH`, and the container-internal `./server` / `./ui` layout — those are runtime API and image-internal naming, decoupled from workspace names; historical docs (`docs/work/`, `docs/sdlc-migration-plan.md`) stay as written.
+
+**Consequences:**
+
+- `bun run --filter=backend` / `--filter=frontend` replace the old filter names; muscle-memory `dev:server` is gone in favor of `dev:apps`.
+- Workspace globs, Dockerfile manifest `COPY --parents` globs, and the CI paths filter needed no changes (`apps/*` covered both names).
+- Verified beyond CI: the production image was built and booted locally (healthcheck + SPA serve) since Dockerfile changes only otherwise surface at Railway deploy time.
+- The README's contracts diagram was refreshed in passing — it still described `@repo/mcp-contracts`, which decision 38 had merged into the bridge.
