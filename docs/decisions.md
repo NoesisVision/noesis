@@ -430,3 +430,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The runtime image stages `node_modules/@ladybugdb/core` wholesale — an upstream file-layout change can no longer silently drop a needed file (decision 24's healthcheck guard remains the backstop).
 - `apache-arrow` is declared as a dependency upstream but never `require`d on our code paths, so it is deliberately not staged into the runtime image; if an upgrade starts importing it, container boot fails visibly.
 - The convention that all lbug access goes through `DatabaseService.query()` (decision 23) is retained as an interface discipline, not a crash workaround.
+
+## 36. Dockerfile manifest COPY uses `COPY --parents` globs instead of a hand-maintained list
+
+**Context:** The build stage copied each workspace's `package.json` with an explicit `COPY` line per workspace so the `bun install` layer caches across source changes. That list duplicated `workspaces.packages` from the root `package.json` and had to be edited by hand whenever a workspace was added, moved, or removed — it already broke once when `apps/local` moved to `packages/mcp-bridge` (fixed in f2b1ff8), failing only at image build time on Railway, not in local dev or CI type-checks. Alternatives considered: a manifest-prune stage (`COPY . .` + `find -delete`, then `COPY --from`) — stable syntax but an extra stage that re-runs on every source change and reads as a trick; dropping manifest layering for a `RUN --mount=type=cache` install cache — simplest file but trades dependable layer cache for Railway's less reliable cache-mount persistence; `turbo prune --docker` — adopting a build orchestrator to fix a COPY list is disproportionate.
+
+**Decision:** Use BuildKit's `COPY --parents` with globs that mirror the workspace declaration: `COPY --parents apps/*/package.json packages/*/package.json plugins/*/package.json ./`. Unlike classic `COPY` (which flattens glob matches into the destination), `--parents` preserves each match's directory path, reproducing the exact layout the hand-maintained list built. The flag lives in the labs channel of the Dockerfile frontend, so the file's first line is now the parser directive `# syntax=docker/dockerfile:1-labs` — it must precede every comment and instruction or Docker silently treats it as a plain comment. Railway builds with BuildKit and fetches the declared frontend, so nothing Railway-side changes.
+
+**Consequences:**
+
+- Adding, moving, or removing a workspace no longer touches the Dockerfile, as long as it stays under the `apps/*`/`packages/*`/`plugins/*` globs. Changing `workspaces.packages` itself (new top-level dir, nested globs) still requires updating the `COPY --parents` line to match — the globs are the one remaining duplication.
+- The build now depends on the `docker/dockerfile:1-labs` frontend image (pulled by BuildKit at build time). `--parents` has been in labs since 1.7 (early 2024) and is behaviorally stable; if it graduates to the mainline `dockerfile:1` frontend, the directive can be dropped.
+- Layer caching semantics are unchanged: the install layer still keys on manifest content only.

@@ -1,3 +1,6 @@
+# syntax=docker/dockerfile:1-labs
+# ^ labs frontend for `COPY --parents` (decision 36). Must stay line 1.
+
 # Builds the single production image: the Hono server (bundled, self-contained)
 # serving the built ui app (decisions 17/28). Built by Railway via `railway up`
 # with the repo root as build context (railway.json's dockerfilePath points here).
@@ -8,15 +11,9 @@ FROM oven/bun:1.3.14 AS build
 WORKDIR /repo
 
 # Workspace manifests first so the install layer caches across source changes.
+# The globs mirror `workspaces.packages` in the root package.json.
 COPY package.json bun.lock bunfig.toml ./
-COPY apps/server/package.json apps/server/
-COPY apps/ui/package.json apps/ui/
-COPY packages/local-contracts/package.json packages/local-contracts/
-COPY packages/mcp-bridge/package.json packages/mcp-bridge/
-COPY packages/mcp-contracts/package.json packages/mcp-contracts/
-COPY packages/shared-contracts/package.json packages/shared-contracts/
-COPY packages/typescript-config/package.json packages/typescript-config/
-COPY plugins/claude-code/package.json plugins/claude-code/
+COPY --parents apps/*/package.json packages/*/package.json plugins/*/package.json ./
 RUN bun install --frozen-lockfile
 
 COPY . .
