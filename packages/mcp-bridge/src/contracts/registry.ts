@@ -10,7 +10,8 @@ export interface ContractEntry {
 
 /**
  * Every MCP payload contract, keyed by its artifact name.
- * Plugin generators iterate this to emit `<key>.schema.json` / `<key>.example.json`.
+ * tools/generate-references.ts iterates this to emit each plugin's
+ * `<key>.schema.json` / `<key>.example.json`.
  */
 export const contracts = {
   'hello-request': {

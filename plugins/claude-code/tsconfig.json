@@ -8,6 +8,6 @@
     "declarationMap": false,
     "types": ["node", "bun"]
   },
-  "include": ["tools", "scripts", "contracts", "test"],
+  "include": ["tools", "scripts", "test"],
   "exclude": ["node_modules"]
 }

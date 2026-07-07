@@ -5,13 +5,13 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 import {
   type ContractName,
   contracts,
   type HelloRequest,
   toJsonSchema,
-} from '@repo/mcp-contracts';
-import { z } from 'zod';
+} from './contracts/index.js';
 import type { ServerClient } from './server-client.js';
 
 interface ToolDefinition {

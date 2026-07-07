@@ -22,6 +22,7 @@
     "build": "bun build src/main.ts --outdir dist --target bun --banner '#!/usr/bin/env bun'",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
+    "generate": "bun run tools/generate-references.ts",
     "check-types": "tsc --noEmit",
     "test": "bun test test/unit",
     "test:watch": "bun test test/unit --watch",
@@ -32,7 +33,7 @@
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@repo/local-contracts": "workspace:*",
-    "@repo/mcp-contracts": "workspace:*",
+    "@repo/shared-contracts": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",

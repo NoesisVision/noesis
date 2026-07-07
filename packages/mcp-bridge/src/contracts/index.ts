@@ -1,5 +1,6 @@
-// Shared zod contracts for MCP tool payloads, consumed by harness plugins
-// (Claude Code, Codex, OpenCode, pi, ...) and by the apps.
+// Zod contracts for MCP tool payloads — the bridge validates against them and
+// generates the reference JSONs shipped by harness plugins (Claude Code,
+// Codex, OpenCode, pi, ...) via tools/generate-references.ts.
 // DTOs shared with the ui/local contracts live in @repo/shared-contracts.
 
 export * from '@repo/shared-contracts';

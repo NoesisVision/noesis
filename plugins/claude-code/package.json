@@ -18,7 +18,7 @@
     "access": "public"
   },
   "scripts": {
-    "generate": "bun run tools/generate-references.ts && bun run tools/stamp-plugin-version.ts",
+    "generate": "bun run tools/stamp-plugin-version.ts",
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "bump": "bun run tools/bump-version.ts",
@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@repo/mcp-contracts": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
