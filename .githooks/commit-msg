@@ -1,0 +1,33 @@
+#!/bin/sh
+# Commit-msg: enforce the commit convention (decision 42) — Conventional
+# Commits v1.0.0 restricted to the types feat | fix | improvement | chore.
+# Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
+# script on `bun install`. Bypass for a work-in-progress commit: `git commit -n`.
+
+# Strip comment lines the same way git will before recording the message.
+msg=$(git stripspace --strip-comments <"$1")
+[ -n "$msg" ] || exit 0 # git aborts empty commits itself
+
+subject=$(printf '%s\n' "$msg" | head -n 1)
+
+# Out of scope: merges, reverts, and autosquash commits keep git's own format.
+case "$subject" in
+"Merge "* | "Revert "* | "fixup! "* | "squash! "*) exit 0 ;;
+esac
+
+fail() {
+  echo "commit-msg: $1" >&2
+  echo "  subject: $subject" >&2
+  echo "  format:  <feat|fix|improvement|chore>[(scope)][!]: <description>  (<= 72 chars)" >&2
+  echo "  see docs/decisions.md (decision 42) and .claude/skills/commit-message/SKILL.md" >&2
+  exit 1
+}
+
+printf '%s\n' "$subject" | grep -Eq '^(feat|fix|improvement|chore)(\([a-z0-9][a-z0-9-]*\))?!?: [^ ]' ||
+  fail "subject must be '<type>[(scope)][!]: <description>' with type feat, fix, improvement, or chore"
+
+[ ${#subject} -le 72 ] || fail "subject exceeds 72 characters (${#subject})"
+
+# Body and footers, when present, are separated from the subject by a blank line.
+[ -z "$(printf '%s\n' "$msg" | sed -n '2p')" ] ||
+  fail "second line must be blank (separate subject from body with one blank line)"

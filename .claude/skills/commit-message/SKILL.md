@@ -29,12 +29,12 @@ user said about it.
 Only these four types are permitted — never use `docs`, `refactor`, `style`,
 `test`, `perf`, `build`, `ci`, or any other type:
 
-| Type          | Use when the commit...                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| `feat`        | adds a new feature to the application or library                                                             |
-| `fix`         | patches a bug                                                                                                |
-| `improvement` | improves existing behavior without adding a feature or fixing a bug (refactoring, performance, code quality) |
-| `chore`       | is maintenance with no production-behavior change (deps, tooling, CI, docs, config, renames)                 |
+| Type          | Use when the commit...                                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `feat`        | adds a new feature to the application or library                                                                                   |
+| `fix`         | patches a bug                                                                                                                      |
+| `improvement` | makes something better once, without adding a feature or fixing a bug — code quality, performance, docs, tooling, the dev pipeline |
+| `chore`       | is recurring maintenance that will happen again — dependency updates, lockfile refreshes, routine housekeeping                     |
 
 ## Rules (per the v1.0.0 specification)
 
@@ -64,8 +64,13 @@ Only these four types are permitted — never use `docs`, `refactor`, `style`,
 
 - Behavior visible to users/consumers is new → `feat`.
 - Behavior was wrong and is now correct → `fix`.
-- Behavior unchanged but code/performance is better → `improvement`.
-- Everything else (deps, tooling, docs, CI, config) → `chore`.
+- One-time betterment — behavior unchanged but code, performance, docs, or
+  the dev pipeline is durably better → `improvement`.
+- Recurring upkeep that will happen again — dep bumps, lockfile refreshes,
+  routine maintenance → `chore`.
+- The improvement/chore discriminator is cadence, not surface: a one-time CI
+  upgrade is an `improvement`; the dependency bumps it produces forever
+  after are `chore`s.
 - One commit, one type: if the diff mixes concerns, pick the type of the
   dominant change and mention the rest in the body — or suggest splitting
   the commit.
