@@ -9,7 +9,8 @@
     "includes": [
       "**",
       "!plugins/claude-code/skills/**/references",
-      "!server/frontend/public"
+      "!server/frontend/public",
+      "!server/frontend/src/routeTree.gen.ts"
     ]
   },
   "formatter": {
