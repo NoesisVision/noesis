@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-07-07_
+_Last updated: 2026-07-08_
 
 ---
 
@@ -507,3 +507,16 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The CI `ts` filter now watches `server/**` — a path-gating rename, verified by this change itself triggering the full verify.
 - The production image was rebuilt and booted locally from the new Dockerfile paths (healthcheck ok) before commit.
 - Historical docs keep the old paths, as always.
+
+## 42. Commit messages follow Conventional Commits with a four-type vocabulary
+
+**Context:** Commit messages so far were free-form. Conventional Commits v1.0.0 is the ecosystem standard for machine-readable history, but its open-ended type list (Angular's `docs`, `refactor`, `style`, `test`, `perf`, `build`, `ci`, ...) invites taxonomy bikeshedding for a repo of this size.
+
+**Decision:** Adopt [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) with the type vocabulary restricted to exactly four: `feat` (new behavior), `fix` (wrong behavior made correct), `improvement` (same behavior, better code/performance — subsumes `refactor` and `perf`), and `chore` (no production-behavior change — subsumes `docs`, `test`, `build`, `ci`, deps, config). Spec rule 14 explicitly permits types beyond `feat`/`fix`, so `improvement` is spec-compliant. All other spec mechanics apply unchanged: optional noun scope, `!` and/or uppercase `BREAKING CHANGE:` footer for breaking changes, imperative ≤72-char subject. The convention is encoded as an agent skill at `.claude/skills/commit-message/SKILL.md`, which generates messages from the actual staged diff.
+
+**Consequences:**
+
+- History becomes greppable by intent (`git log --oneline | grep '^....... fix'`) and ready for changelog tooling should it ever be wanted; nothing currently parses the types, so this costs only discipline.
+- The four-way split has one judgment call per commit (feature vs improvement vs chore), resolved by the skill's rule: dominant change wins, or split the commit.
+- `improvement` deviates from the Angular-preset names most tooling defaults to; if a `commitlint`-style checker is ever added, its type enum must be configured to these four.
+- Existing history stays as written, per the usual convention.
