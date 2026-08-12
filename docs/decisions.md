@@ -521,3 +521,16 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - `improvement` deviates from the Angular-preset names most tooling defaults to; the `commit-msg` hook is hand-rolled sh (matching the existing hook style) rather than `commitlint`, so there is no type enum to keep in sync beyond the one regex.
 - Pre-convention subjects fail the hook's check by design — it gates new commits only; history stays as written. `git commit -n` remains the WIP escape hatch, at the cost of also skipping the pre-commit format/lint checks.
 - Existing history stays as written, per the usual convention.
+
+## 43. Work starts as typed, scoped task docs under `docs/work/`; the `init-task` skill owns initiation
+
+**Context:** Task documents existed only ad hoc at the repo root (`docs/work/chores/*.md`), with no defined place for feature or fix write-ups and no defined process for starting a piece of work. With the four-type commit vocabulary (42) and per-area docs folders already emerging (`docs/`, `server/docs/`, `server/frontend/docs/`), task initiation needed the same structure: where a task doc lives, what it contains, and how its requirements get elicited.
+
+**Decision:** Every scope directory owns a `docs/work/` tree with one subfolder per commit type, in plural form: `feats/`, `fixes/`, `improvements/`, `chores/` (the existing `docs/work/chores/` already complies). Scopes are three-leveled and discovered from the tree, never hardcoded: the repo root (`docs/`), the four subsystems `server`/`plugins`/`packages`/`scanners` (`<subsystem>/docs/`), and any package directory holding a project manifest (`<package>/docs/`). Folders are created lazily — only when a task first lands there. Tasks are initiated through the `init-task` agent skill (`.claude/skills/init-task/SKILL.md`): it determines type and narrowest-containing scope, elicits requirements before writing anything — delegating to the `domain-stories` skill for `feat` tasks (Need Statements + Job Stories become the Requirements section) and running a lighter type-specific interview for `fix`/`improvement`/`chore` — then, after a confirmed summary, writes a kebab-case task file with frontmatter (`type`, `scope`, `status`, `created`) and the sections Context, Problem/Goal, Requirements, Constraints, Non-goals, Open questions, and an empty Solution options.
+
+**Consequences:**
+
+- A task file is deliberately problem-space only; it ends where solutioning begins (the empty Solution options section), and whatever solutioning decides belongs in the scope's `decisions.md`, keeping the two document kinds disjoint.
+- The task's `scope` value doubles as the commit scope, so the folder taxonomy and commit history stay aligned by construction.
+- `system-requirements` (EARS) is intentionally not part of initiation — it applies after a solution option is chosen.
+- New packages need no registration anywhere: having a manifest makes a directory a valid scope, and its `docs/work/` appears with its first task.
