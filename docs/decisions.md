@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-07-08_
+_Last updated: 2026-08-12_
 
 ---
 
@@ -534,3 +534,15 @@ Full node/edge taxonomy and ArchUnit derivation rules in design-doc §9.4. Stere
 - The task's `scope` value doubles as the commit scope, so the folder taxonomy and commit history stay aligned by construction.
 - `system-requirements` (EARS) is intentionally not part of initiation — it applies after a solution option is chosen.
 - New packages need no registration anywhere: having a manifest makes a directory a valid scope, and its `docs/work/` appears with its first task.
+
+## 44. TypeScript 7 (native Go compiler)
+
+**Context:** TypeScript 7.0 replaces the JavaScript-based compiler with a native Go port (8–12× faster full builds, parallel check/emit); 6.0 was the designated migration bridge that turned the legacy options into deprecations. The workspace was already on 6.0.3 and clean of everything 7.0 removes: `NodeNext`/`Bundler` module resolution, ES2022+ targets, `strict`, no `baseUrl`/`outFile`/AMD/UMD. Nothing in the toolchain consumes the TypeScript programmatic API — linting is Biome (25), transpilation is bun/Vite, and `tsc` runs only as `check-types` (`--noEmit`) — so 7.0's biggest gap (no stable programmatic API until 7.1, which blocks typescript-eslint and framework tooling elsewhere) does not apply here.
+
+**Decision:** Bump the root catalog `typescript` from `^6.0.3` to `^7.0.2` — a one-line change, since every workspace resolves TypeScript via `catalog:` (30). Verified before committing: all six workspaces pass `check-types` on the native compiler, plus lint, tests, and builds.
+
+**Consequences:**
+
+- `tsc` is now a per-platform native binary shipped via `optionalDependencies` (one entry per OS/arch in the lockfile), no longer a JS package with a `tsserver` bin.
+- If a future tool needs the TypeScript API before 7.1 lands, the escape hatch is the `@typescript/typescript6` compatibility package (`tsc6` binary + 6.0 API re-exports) — not a downgrade.
+- Renovate (37) keeps the catalog entry current within `^7`; the 7.1 API release needs no action here unless a consumer appears.
