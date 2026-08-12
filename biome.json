@@ -53,6 +53,42 @@
           }
         }
       }
+    },
+    {
+      "includes": ["server/frontend/src/routes/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": {
+              "level": "error",
+              "options": {
+                "allowExportNames": ["Route"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["server/frontend/src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useFocusableInteractive": "off",
+            "useKeyWithClickEvents": "off",
+            "useSemanticElements": "off"
+          },
+          "correctness": {
+            "useExhaustiveDependencies": "off"
+          },
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          },
+          "suspicious": {
+            "noDocumentCookie": "off"
+          }
+        }
+      }
     }
   ]
 }

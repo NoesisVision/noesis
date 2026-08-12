@@ -1,6 +1,7 @@
 # Feature Plan: UI Shell
 
-**Status:** planned (2026-08-12)
+**Status:** implemented (2026-08-12) — architecture recorded as decision 45 in
+[`docs/decisions.md`](../../decisions.md)
 **Prototype:** [`ui-shell-prototype.html`](./ui-shell-prototype.html) — static
 single-file HTML mock of the shell (open in a browser); demonstrates the
 sidebar with project selector, bottom-pinned Settings, top bar, contextual

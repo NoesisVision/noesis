@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ui</title>
+    <script>
+      // Paint the stored theme before React mounts, so a dark-mode reload does
+      // not flash light. ThemeProvider owns the class from then on.
+      try {
+        const stored = JSON.parse(localStorage.getItem('noesis.shell.theme'));
+        const dark =
+          stored === 'dark' ||
+          (stored !== 'light' &&
+            matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

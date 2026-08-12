@@ -6,40 +6,25 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
   --border: oklch(0.8847 0.0069 97.3627);
-  --code-bg: #f4f3ec;
   --accent: oklch(0.9245 0.0138 92.9892);
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
   --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px / 145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-
   --background: oklch(0.9818 0.0054 95.0986);
 
   --foreground: oklch(0.3438 0.0269 95.7226);
 
-  --card: oklch(0.9818 0.0054 95.0986);
+  /* Deviation from the tweakcn Claude theme, carried over from the shell
+     prototype: the theme sets --card equal to --background in both modes, so
+     every card melts into the page. Cards are the surface the whole shell
+     builds on, so they get their own elevation step here (white on cream in
+     light, one stop lighter than the page in dark). */
+  --card: oklch(1 0 0);
 
   --card-foreground: oklch(0.1908 0.002 106.5859);
 
@@ -91,9 +76,10 @@
 
   --sidebar-accent-foreground: oklch(0.325 0 0);
 
-  --sidebar-border: oklch(0.9401 0 0);
+  /* Warm-tinted to sit with the cream sidebar; the theme's value is neutral grey. */
+  --sidebar-border: oklch(0.9401 0.0069 97.3627);
 
-  --sidebar-ring: oklch(0.7731 0 0);
+  --sidebar-ring: oklch(0.6171 0.1375 39.0427);
 
   --destructive-foreground: oklch(1 0 0);
 
@@ -141,86 +127,6 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
   --tracking-normal: 0em;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading), serif;
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono), serif;
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
 
 @theme inline {
@@ -298,14 +204,17 @@ code {
 .dark {
   --background: oklch(0.2679 0.0036 106.6427);
   --foreground: oklch(0.8074 0.0142 93.0137);
-  --card: oklch(0.2679 0.0036 106.6427);
+  /* See the light-mode note: one elevation step above the page. */
+  --card: oklch(0.3085 0.0035 106.6039);
   --card-foreground: oklch(0.9818 0.0054 95.0986);
   --popover: oklch(0.3085 0.0035 106.6039);
   --popover-foreground: oklch(0.9211 0.004 106.4781);
   --primary: oklch(0.6724 0.1308 38.7559);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.9818 0.0054 95.0986);
-  --secondary-foreground: oklch(0.3085 0.0035 106.6039);
+  /* The theme's dark --secondary is a near-white fill with a dark foreground —
+     an inverted chip in a dark ui. Kept dark, as in the prototype. */
+  --secondary: oklch(0.35 0.006 106);
+  --secondary-foreground: oklch(0.9 0.008 95);
   --muted: oklch(0.2213 0.0038 106.707);
   --muted-foreground: oklch(0.7713 0.0169 99.0657);
   --accent: oklch(0.213 0.0078 95.4245);
@@ -321,12 +230,15 @@ code {
   --chart-5: oklch(0.5608 0.1348 42.0584);
   --sidebar: oklch(0.2357 0.0024 67.7077);
   --sidebar-foreground: oklch(0.8074 0.0142 93.0137);
-  --sidebar-primary: oklch(0.325 0 0);
-  --sidebar-primary-foreground: oklch(0.9881 0 0);
-  --sidebar-accent: oklch(0.168 0.002 106.6177);
-  --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
-  --sidebar-border: oklch(0.9401 0 0);
-  --sidebar-ring: oklch(0.7731 0 0);
+  /* Terracotta in dark too — the theme greys it out, which loses the one
+     accent colour the shell has. */
+  --sidebar-primary: oklch(0.6724 0.1308 38.7559);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.3085 0.0035 106.6039);
+  --sidebar-accent-foreground: oklch(0.9211 0.004 106.4781);
+  /* The theme's near-white value draws a light line down a dark sidebar. */
+  --sidebar-border: oklch(0.3618 0.0101 106.8928);
+  --sidebar-ring: oklch(0.6724 0.1308 38.7559);
   --destructive-foreground: oklch(1 0 0);
   --radius: 0.5rem;
   --font-sans:

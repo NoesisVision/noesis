@@ -5,6 +5,7 @@ import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
 import { SchemaService } from './schema/schema.service.js';
+import { SearchService } from './ui/search/search.service.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
@@ -13,7 +14,12 @@ const db = new DatabaseService(config.dataDir);
 db.init();
 await new SchemaService(db).ensureSchema();
 
-const app = createApp({ greetingService: new GreetingService() });
+// No search providers yet — no entity is searchable. Providers register here
+// as their entities land (documents, graph nodes, projects).
+const app = createApp({
+  greetingService: new GreetingService(),
+  searchService: new SearchService([]),
+});
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)
 // is opt-in via UI_DIST_PATH — set in the production container, unset in dev
