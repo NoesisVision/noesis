@@ -70,7 +70,7 @@
       "name": "backend",
       "version": "0.0.1",
       "dependencies": {
-        "@ladybugdb/core": "^0.18.0",
+        "@ladybugdb/core": "^0.19.0",
         "@octokit/auth-app": "^8.3.0",
         "@octokit/oauth-methods": "^6.0.4",
         "@octokit/request": "^10.0.13",
@@ -271,17 +271,17 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@ladybugdb/core": ["@ladybugdb/core@0.18.0", "", { "dependencies": { "apache-arrow": "^21.1.0", "cmake-js": "^8.0.0", "node-addon-api": "^6.0.0" }, "optionalDependencies": { "@ladybugdb/core-darwin-arm64": "0.18.0", "@ladybugdb/core-darwin-x64": "0.18.0", "@ladybugdb/core-linux-arm64": "0.18.0", "@ladybugdb/core-linux-x64": "0.18.0", "@ladybugdb/core-win32-x64": "0.18.0" } }, "sha512-3X1NCsZZn2oPF/KtvrbQtRu9NvRw9z6BvNSW3lO9xe/I89HSnAsXXFaMDIirLnm3hgGb8ocnVhuMAyfS4DXnhA=="],
+    "@ladybugdb/core": ["@ladybugdb/core@0.19.1", "", { "dependencies": { "apache-arrow": "^21.1.0", "cmake-js": "^8.0.0", "node-addon-api": "^6.0.0" }, "optionalDependencies": { "@ladybugdb/core-darwin-arm64": "0.19.1", "@ladybugdb/core-darwin-x64": "0.19.1", "@ladybugdb/core-linux-arm64": "0.19.1", "@ladybugdb/core-linux-x64": "0.19.1", "@ladybugdb/core-win32-x64": "0.19.1" } }, "sha512-8W2g6xUi4jm96fs4EayyMcsvEEtIb8vboZhw9/YG98881cIcmZjmqAN91XGUp4vb8NqoFr3Wp7wcu3dqJk0b7w=="],
 
-    "@ladybugdb/core-darwin-arm64": ["@ladybugdb/core-darwin-arm64@0.18.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-HlJswkjSdPyXDp+krZBnU5jHQYK/1G4jTBj9Y5cUkm7ze+qR7mj9bkstUldEC3t2N7W6Os7wzTIUUORpHDRGvA=="],
+    "@ladybugdb/core-darwin-arm64": ["@ladybugdb/core-darwin-arm64@0.19.1", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VGQs1NThAygMsoOlxud05pqKA9xfUptl55iYkwvW45As5MSI7+M86WN0Pp0VdPEfw8vNQJehrlHR5LvVAuWc2Q=="],
 
-    "@ladybugdb/core-darwin-x64": ["@ladybugdb/core-darwin-x64@0.18.0", "", { "os": "darwin", "cpu": "x64" }, "sha512-NUqnxnnGPs3XR86/4fLWsn+Cz9/sykVIaNOw3BsYccpiGWKvnGnDcpKID1HVHRcSa84N+CrXPkuzUvkRD36s3Q=="],
+    "@ladybugdb/core-darwin-x64": ["@ladybugdb/core-darwin-x64@0.19.1", "", { "os": "darwin", "cpu": "x64" }, "sha512-CGfM6ostxDS5jztxwjkXXtxrjMDgsFMRoyr5HZDCFw1+iXC1rIzmK/Y7RIw+KbQ49aPzSmkhBC447mFviBJxoA=="],
 
-    "@ladybugdb/core-linux-arm64": ["@ladybugdb/core-linux-arm64@0.18.0", "", { "os": "linux", "cpu": "arm64" }, "sha512-/wHoqsPOna+lZZbeAOFRiTHHpaiuA+07H5FUQqZI/qrEfjjN38xznmnLVCE5YZcFCzNxAS4aK40rXaUFZLj+Ow=="],
+    "@ladybugdb/core-linux-arm64": ["@ladybugdb/core-linux-arm64@0.19.1", "", { "os": "linux", "cpu": "arm64" }, "sha512-BZUQwlkvNXENc5GVyXdfRF0Dv9JX8XMlcdMMiB5GKrEhTCpajQ3D58woHPVvn0JEjw7Ms3tHo6kXUAMZKYXIVg=="],
 
-    "@ladybugdb/core-linux-x64": ["@ladybugdb/core-linux-x64@0.18.0", "", { "os": "linux", "cpu": "x64" }, "sha512-ge9pGnU94jVBOYxAuUq3d9BYSS3ProtwIKse9ZKXxeL9Hh8Qmwcz9Ey++BJMm+lSN8dE0lUBQTGXCTd1jrMnpA=="],
+    "@ladybugdb/core-linux-x64": ["@ladybugdb/core-linux-x64@0.19.1", "", { "os": "linux", "cpu": "x64" }, "sha512-LDx+E1UHlmNXSb3F9QmvdBgZGfB3wI/DcrHzfOwXgT3BP8C4ScB2tZdpiYQiuPp8MiSZ9kuuGqos8A4tQKQu8Q=="],
 
-    "@ladybugdb/core-win32-x64": ["@ladybugdb/core-win32-x64@0.18.0", "", { "os": "win32", "cpu": "x64" }, "sha512-RLW9m9BJ4LdFjKsTOZdg43FjmdboZ1gvhmnP494JPfVsmNt+7lMJOmhtvuePj3uAhOEd9qOpGN8hqGiPDywbOA=="],
+    "@ladybugdb/core-win32-x64": ["@ladybugdb/core-win32-x64@0.19.1", "", { "os": "win32", "cpu": "x64" }, "sha512-2spst1g+Z050Fz/5z7Pc6Fuc5dVXLzekOuWW4lP+mEGCL3tkv3QWYxk37DiFy+O9fDFxiWK2f3aauab58/f9kQ=="],
 
     "@modelcontextprotocol/sdk": ["@modelcontextprotocol/sdk@1.29.0", "", { "dependencies": { "@hono/node-server": "^1.19.9", "ajv": "^8.17.1", "ajv-formats": "^3.0.1", "content-type": "^1.0.5", "cors": "^2.8.5", "cross-spawn": "^7.0.5", "eventsource": "^3.0.2", "eventsource-parser": "^3.0.0", "express": "^5.2.1", "express-rate-limit": "^8.2.1", "hono": "^4.11.4", "jose": "^6.1.3", "json-schema-typed": "^8.0.2", "pkce-challenge": "^5.0.0", "raw-body": "^3.0.0", "zod": "^3.25 || ^4.0", "zod-to-json-schema": "^3.25.1" }, "peerDependencies": { "@cfworker/json-schema": "^4.1.1" }, "optionalPeers": ["@cfworker/json-schema"] }, "sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ=="],
 
