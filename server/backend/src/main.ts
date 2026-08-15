@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
+import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
@@ -16,9 +17,17 @@ await new SchemaService(db).ensureSchema();
 
 // No search providers yet — no entity is searchable. Providers register here
 // as their entities land (documents, graph nodes, projects).
+const authModule = createAuthModule(config.auth, db);
+if (authModule.mode === 'disabled') {
+  console.warn(
+    '[server] NOESIS_AUTH_MODE=disabled — every request runs as a fixed local owner.',
+  );
+}
+
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
+  authModule,
 });
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)
@@ -31,7 +40,7 @@ const uiDistPath = process.env.UI_DIST_PATH
 if (uiDistPath !== undefined) {
   // Registered after the routes in createApp, so surface endpoints win and
   // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/api', '/internal'];
+  const surfaces = ['/ui', '/api', '/internal', '/auth'];
   // `path` must be relative — hono's serveStatic strips a leading slash from
   // it (absolute paths are only honored in `root`).
   const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });

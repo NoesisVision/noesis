@@ -9,8 +9,13 @@ import { createRouter, RouterProvider } from '@tanstack/react-router';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
-// Create a new router instance
-const router = createRouter({ routeTree });
+// Create a client
+const queryClient = new QueryClient();
+
+// Create a new router instance. The query client rides in the router context
+// so route guards can read cached server state (the session, via /ui/me)
+// before their components mount.
+const router = createRouter({ routeTree, context: { queryClient } });
 
 // Register the router instance for type safety
 declare module '@tanstack/react-router' {
@@ -18,9 +23,6 @@ declare module '@tanstack/react-router' {
     router: typeof router;
   }
 }
-
-// Create a client
-const queryClient = new QueryClient();
 
 const root = document.getElementById('root');
 if (!root) throw new Error('missing #root element in index.html');

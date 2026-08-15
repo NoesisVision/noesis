@@ -7,6 +7,7 @@ describe('ui routes', () => {
   const app = createUiApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
+    authModule: { mode: 'disabled' },
   });
 
   it('returns the greeting', async () => {

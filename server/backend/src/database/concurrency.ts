@@ -3,11 +3,13 @@
 // matches, a concurrent writer won. Repositories surface that as this error so
 // the caller (or the client that supplied the stale version) can reload + retry.
 export class ConcurrencyConflictError extends Error {
-  constructor(
-    readonly entity: string,
-    readonly id: string,
-  ) {
+  readonly entity: string;
+  readonly id: string;
+
+  constructor(entity: string, id: string) {
     super(`Concurrent modification of ${entity} ${id}; reload and retry.`);
     this.name = 'ConcurrencyConflictError';
+    this.entity = entity;
+    this.id = id;
   }
 }

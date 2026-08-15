@@ -47,6 +47,9 @@ beforeAll(async () => {
       UI_DIST_PATH: uiDist,
       // Ephemeral in-memory DB so the e2e run touches no on-disk data dir.
       NOESIS_DATA_DIR: ':memory:',
+      // No GitHub App to register for a static-file test; the guard resolves
+      // to the fixed local owner so /ui/hello still answers (decision 46).
+      NOESIS_AUTH_MODE: 'disabled',
     },
     stdio: 'ignore',
   });

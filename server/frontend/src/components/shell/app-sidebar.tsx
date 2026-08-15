@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { AccountMenu } from '@/components/shell/account-menu';
 import {
   SHELL_NAV_ITEMS,
   SHELL_SETTINGS_ITEM,
@@ -72,11 +73,13 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Settings sits apart from the content views, pinned to the bottom. */}
+      {/* Settings and the signed-in account sit apart from the content views,
+          pinned to the bottom. */}
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <NavMenuItem item={SHELL_SETTINGS_ITEM} />
         </SidebarMenu>
+        <AccountMenu />
       </SidebarFooter>
 
       <SidebarRail />

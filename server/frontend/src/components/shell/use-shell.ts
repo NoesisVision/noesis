@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { Account, Installation } from '@/lib/auth';
 
 // What the main section hands to the right panel when the user picks
 // something. Deliberately shallow: the inspector renders a title and a set of
@@ -30,6 +31,11 @@ export function clampPanelWidth(width: number): number {
 
 export interface ShellContextValue {
   viewId: string;
+  // The signed-in account, resolved by `_shell`'s guard before anything here
+  // mounts — so it is never null inside the shell, and no component has to
+  // handle a loading identity.
+  account: Account;
+  installations: Installation[];
   project: string;
   projects: string[];
   switchProject: (name: string) => void;

@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Outlet, useMatches } from '@tanstack/react-router';
 import * as React from 'react';
 import { AppSidebar } from '@/components/shell/app-sidebar';
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/resizable';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { meQueryOptions } from '@/lib/auth';
 
 function ContentArea() {
   const { rightPanel, setRightPanelWidth } = useShell();
@@ -85,6 +87,10 @@ function ShellFrame() {
  */
 export function ShellLayout() {
   const matches = useMatches();
+  // The route guard already resolved this into the cache, so the suspense
+  // never actually suspends — it is how the shell reads an account that is
+  // guaranteed to exist by the time it renders.
+  const { data: me } = useSuspenseQuery(meQueryOptions);
   // The deepest route that claims a view id owns the per-view shell state.
   const viewId =
     matches.findLast((match) => match.staticData.viewId)?.staticData.viewId ??
@@ -95,7 +101,11 @@ export function ShellLayout() {
   );
 
   return (
-    <ShellProvider viewId={viewId}>
+    <ShellProvider
+      viewId={viewId}
+      account={me.account}
+      installations={me.installations}
+    >
       <SidebarProvider
         open={sidebarOpen}
         onOpenChange={(open) => {

@@ -11,6 +11,7 @@ import {
   type ShellContextValue,
   type ShellSelection,
 } from '@/components/shell/use-shell';
+import type { Account, Installation } from '@/lib/auth';
 
 interface RightPanelEntry {
   id: string;
@@ -43,9 +44,13 @@ function readRightPanel(viewId: string): RightPanelState {
  */
 export function ShellProvider({
   viewId,
+  account,
+  installations,
   children,
 }: {
   viewId: string;
+  account: Account;
+  installations: Installation[];
   children: React.ReactNode;
 }) {
   const [projects, setProjects] = React.useState<string[]>(() => {
@@ -121,6 +126,8 @@ export function ShellProvider({
   const value = React.useMemo<ShellContextValue>(
     () => ({
       viewId,
+      account,
+      installations,
       project,
       projects,
       switchProject,
@@ -142,6 +149,8 @@ export function ShellProvider({
     }),
     [
       viewId,
+      account,
+      installations,
       project,
       projects,
       switchProject,

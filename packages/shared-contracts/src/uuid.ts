@@ -1,3 +1,7 @@
+/// <reference types="bun" />
+// The reference is not redundant: this module is reachable from the ui app's
+// type graph (through `backend/client` → the auth repository), and that
+// compilation does not carry Bun's ambient types.
 import { createHash } from 'node:crypto';
 
 export function newUuid(): string {

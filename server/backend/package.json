@@ -22,10 +22,14 @@
     "test:e2e": "bun test test/e2e"
   },
   "dependencies": {
+    "@ladybugdb/core": "^0.18.0",
+    "@octokit/auth-app": "^8.3.0",
+    "@octokit/oauth-methods": "^6.0.4",
+    "@octokit/request": "^10.0.13",
     "@repo/local-contracts": "workspace:*",
     "@repo/shared-contracts": "workspace:*",
-    "@ladybugdb/core": "^0.18.0",
     "hono": "catalog:",
+    "octokit": "^5.0.5",
     "zod": "catalog:"
   },
   "trustedDependencies": [

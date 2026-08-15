@@ -111,6 +111,65 @@ bun run format         # biome + prettier(md) --write (`format:check` to verify)
 
 Filter to one package: `bun run --filter=backend build`.
 
+By default the server refuses to start without a GitHub App (see below). To run
+and test without registering one:
+
+```sh
+NOESIS_AUTH_MODE=disabled bun run dev:server
+```
+
+Every request then runs as a fixed local owner. The mode refuses to start with
+`NODE_ENV=production`, so it cannot leak into a deployment.
+
+### Registering the GitHub App
+
+Identity is a GitHub App, which is also how Noesis reads repositories
+(decision 46). **Every deployment registers its own** — there is no central
+Noesis App and no secret custody. Register one at
+`https://github.com/settings/apps/new` (or under an organisation's settings):
+
+| Field                                             | Value                                                                      |
+| ------------------------------------------------- | -------------------------------------------------------------------------- |
+| Homepage URL                                      | your `NOESIS_PUBLIC_URL`                                                   |
+| Redirect URI (older docs call it "Callback URL")  | `<NOESIS_PUBLIC_URL>/auth/callback`; leave wildcard matching off           |
+| Expire user authorization tokens                  | **checked** — Noesis refuses tokens that never expire                      |
+| Request user authorization (OAuth) during install | unchecked (sign-in is its own step)                                        |
+| Enable Device Flow                                | unchecked — it belongs to the `/api` bridge's own flow, which is not built |
+| Setup URL                                         | `<NOESIS_PUBLIC_URL>/auth/install/callback`, with "Redirect on update"     |
+| Webhook → Active                                  | **uncheck it** — it defaults on, and the receiver arrives with ingestion   |
+| Repository permissions                            | Contents: read-only (Metadata: read-only follows automatically)            |
+| Account permissions                               | Email addresses: read-only (optional)                                      |
+| Where can this App be installed                   | "Any account" if you need organisation repositories                        |
+
+Without a Setup URL the install screen still works, but GitHub has nowhere to
+send the browser afterwards — the installation exists on GitHub and never
+registers in Noesis.
+
+Then generate a private key on the App's page and set:
+
+| Variable                      | Where it comes from                                                   |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `NOESIS_PUBLIC_URL`           | The origin the browser reaches Noesis on; must match the redirect URI |
+| `NOESIS_GITHUB_APP_ID`        | The App's numeric id                                                  |
+| `NOESIS_GITHUB_APP_SLUG`      | The App's URL slug (`https://github.com/apps/<slug>`)                 |
+| `NOESIS_GITHUB_CLIENT_ID`     | The App's client id                                                   |
+| `NOESIS_GITHUB_CLIENT_SECRET` | A generated client secret                                             |
+| `NOESIS_GITHUB_PRIVATE_KEY`   | The downloaded `.pem`, base64-encoded (`base64 -i key.pem`)           |
+| `NOESIS_TOKEN_KEY`            | 32 random bytes, base64 — encrypts GitHub tokens at rest              |
+| `NOESIS_AUTH_MODE`            | `github` (default) or `disabled` (never in production)                |
+
+```sh
+bun -e "console.log(crypto.getRandomValues(new Uint8Array(32)).toBase64())"  # NOESIS_TOKEN_KEY
+```
+
+In local development, `NOESIS_PUBLIC_URL` is the **Vite dev server's** origin
+(`http://localhost:5173`), not the backend port: sign-in is a navigation, and
+the dev server proxies `/auth` and `/ui` through to the backend.
+
+**Who may sign in:** the first account to reach `/auth/login` claims the
+instance as its owner. Everyone after that needs an owner to invite them by
+GitHub login, from Settings → Members.
+
 ### Working with contracts
 
 1. Add/edit a zod schema in the right place (`@repo/shared-contracts`, `@repo/local-contracts`, or `plugins/mcp-bridge/src/contracts`).
@@ -165,8 +224,8 @@ Payload validation happens in the MCP bridge itself (decision 34): every `tools/
 
 `backend` + `frontend` deploy as **one Railway service**: the Hono backend
 serves the built SPA (decisions 17/18/28). Routes are segregated by consumer — `/ui/*` for
-the SPA, `/api/*` for the MCP bridge, `/internal/*` for health and other
-technical endpoints — so each surface can carry its own auth later.
+the SPA (session-guarded), `/api/*` for the MCP bridge, `/internal/*` for health
+and other technical endpoints, `/auth/*` for the GitHub sign-in flow.
 
 - **How it ships:** every green push to `main` triggers the `deploy` job in
   `ci.yml`, which runs `railway up --ci`. Railway builds
@@ -175,13 +234,16 @@ technical endpoints — so each surface can carry its own auth later.
   health-checks `/internal/health` (`railway.json`).
 - **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
   token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway
-  service name). The container needs no service variables — Railway injects
-  `PORT`; `UI_DIST_PATH` is baked into the image.
+  service name). Railway injects `PORT`; `UI_DIST_PATH` and `NOESIS_DATA_DIR`
+  are baked into the image. The seven `NOESIS_*` GitHub App variables above are
+  Railway **service variables** — set them before the first deploy, since the
+  server fails fast without them (`NOESIS_PUBLIC_URL` is the service's public
+  domain, which must also be the App's registered callback host).
 - **Run the production image locally:**
 
 ```sh
 docker build -f server/backend/Dockerfile -t noesis-backend .
-docker run --rm -p 3000:3000 noesis-backend
+docker run --rm -p 3000:3000 --env-file .env.local noesis-backend
 ```
 
 - **Plugin users** point `NOESIS_SERVER_URL` at the service's generated

@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as ShellSettingsRouteImport } from './routes/_shell/settings'
 import { Route as ShellGraphRouteImport } from './routes/_shell/graph'
 import { Route as ShellDocumentsRouteImport } from './routes/_shell/documents'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShellRoute = ShellRouteImport.update({
   id: '/_shell',
   getParentRoute: () => rootRouteImport,
@@ -42,11 +48,13 @@ const ShellDocumentsRoute = ShellDocumentsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
+  '/login': typeof LoginRoute
   '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
   '/settings': typeof ShellSettingsRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
   '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
   '/settings': typeof ShellSettingsRoute
@@ -55,6 +63,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shell': typeof ShellRouteWithChildren
+  '/login': typeof LoginRoute
   '/_shell/documents': typeof ShellDocumentsRoute
   '/_shell/graph': typeof ShellGraphRoute
   '/_shell/settings': typeof ShellSettingsRoute
@@ -62,12 +71,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/documents' | '/graph' | '/settings'
+  fullPaths: '/' | '/login' | '/documents' | '/graph' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/documents' | '/graph' | '/settings' | '/'
+  to: '/login' | '/documents' | '/graph' | '/settings' | '/'
   id:
     | '__root__'
     | '/_shell'
+    | '/login'
     | '/_shell/documents'
     | '/_shell/graph'
     | '/_shell/settings'
@@ -76,10 +86,18 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   ShellRoute: typeof ShellRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shell': {
       id: '/_shell'
       path: ''
@@ -136,6 +154,7 @@ const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   ShellRoute: ShellRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

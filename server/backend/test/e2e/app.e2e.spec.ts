@@ -11,6 +11,7 @@ describe('Route surfaces (e2e)', () => {
   const app = createApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
+    authModule: { mode: 'disabled' },
   });
 
   it('/ui/hello (GET) — ui surface', async () => {

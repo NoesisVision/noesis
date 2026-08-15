@@ -34,8 +34,15 @@ async function waitForHealth(timeoutMs: number): Promise<void> {
 beforeAll(async () => {
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
-    // In-memory DB so the e2e run touches no on-disk data dir.
-    env: { ...process.env, PORT: String(PORT), NOESIS_DATA_DIR: ':memory:' },
+    // In-memory DB so the e2e run touches no on-disk data dir. The bridge
+    // drives the unguarded /api surface, so no GitHub App is needed — auth
+    // stays off rather than making this test register one (decision 46).
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      NOESIS_DATA_DIR: ':memory:',
+      NOESIS_AUTH_MODE: 'disabled',
+    },
     stdio: 'ignore',
   });
   await waitForHealth(15_000);

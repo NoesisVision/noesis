@@ -15,7 +15,7 @@ export class SchemaService {
       await this.db.query(ddl);
     }
     console.log(
-      `[SchemaService] Graph schema ensured (${GRAPH_SCHEMA.length} tables)`,
+      `[SchemaService] Graph schema ensured (${GRAPH_SCHEMA.length} statements)`,
     );
   }
 
