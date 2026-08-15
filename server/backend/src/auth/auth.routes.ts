@@ -1,9 +1,12 @@
 import { type Context, Hono } from 'hono';
 import {
+  clearReturnToCookie,
   clearSessionCookie,
   clearStateCookie,
+  readReturnToCookie,
   readSessionCookie,
   readStateCookie,
+  setReturnToCookie,
   setSessionCookie,
   setStateCookie,
 } from './auth.cookies.js';
@@ -77,6 +80,18 @@ export function createAuthApp(deps: AuthDeps) {
       if (module.mode === 'disabled') return c.redirect('/');
       const state = randomToken();
       await setStateCookie(c, state, module.stateSecret, module.secureCookies);
+      // Where to land after the round-trip (projects.md §2): carried in its
+      // own signed cookie, so the connect flow the user left is the one they
+      // come back to. An absent or unsafe value falls back to /settings.
+      const returnTo = safeReturnTo(c.req.query('returnTo'));
+      if (returnTo !== undefined) {
+        await setReturnToCookie(
+          c,
+          returnTo,
+          module.stateSecret,
+          module.secureCookies,
+        );
+      }
       return c.redirect(module.github.installUrl(state));
     })
 
@@ -85,8 +100,17 @@ export function createAuthApp(deps: AuthDeps) {
     // confirms it against the App's API before writing anything.
     .get('/install/callback', async (c) => {
       if (module.mode === 'disabled') return c.redirect('/settings');
+      // The returnTo cookie is consumed either way — it is good for exactly
+      // one round-trip, like the state cookie.
+      const base =
+        safeReturnTo(await readReturnToCookie(c, module.stateSecret)) ??
+        '/settings';
+      clearReturnToCookie(c, module.secureCookies);
+
       const check = await consumeState(c, module);
-      if (!check.ok) return c.redirect(settingsError(check.reason));
+      if (!check.ok) {
+        return c.redirect(installOutcome(base, 'error', check.reason));
+      }
 
       const token = readSessionCookie(c);
       const session =
@@ -97,7 +121,7 @@ export function createAuthApp(deps: AuthDeps) {
       if (installationId === undefined || installationId === '') {
         // `setup_action=request` — the user asked an org admin to approve the
         // install, so there is nothing to link yet.
-        return c.redirect('/settings?install=requested');
+        return c.redirect(installOutcome(base, 'requested'));
       }
 
       try {
@@ -110,11 +134,13 @@ export function createAuthApp(deps: AuthDeps) {
           installationId,
         );
         return c.redirect(
-          linked ? '/settings?install=connected' : settingsError('not_visible'),
+          linked
+            ? installOutcome(base, 'connected')
+            : installOutcome(base, 'error', 'not_visible'),
         );
       } catch (error) {
         console.warn(`[auth] install callback failed: ${String(error)}`);
-        return c.redirect(settingsError('install_failed'));
+        return c.redirect(installOutcome(base, 'error', 'install_failed'));
       }
     });
 
@@ -152,6 +178,26 @@ function loginError(reason: string, login?: string): string {
   return `/login?${params.toString()}`;
 }
 
-function settingsError(reason: string): string {
-  return `/settings?${new URLSearchParams({ install: 'error', reason }).toString()}`;
+/**
+ * Only a same-origin relative path may steer the post-install redirect —
+ * anything else (absolute URLs, protocol-relative `//host`, backslash
+ * variants) is an open-redirect vector and is dropped.
+ */
+function safeReturnTo(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  if (!value.startsWith('/') || value.startsWith('//')) return undefined;
+  if (value.includes('\\')) return undefined;
+  return value;
+}
+
+/** Appends the install outcome to the return target, preserving its own query. */
+function installOutcome(
+  base: string,
+  install: 'connected' | 'requested' | 'error',
+  reason?: string,
+): string {
+  const url = new URL(base, 'http://relative.invalid');
+  url.searchParams.set('install', install);
+  if (reason !== undefined) url.searchParams.set('reason', reason);
+  return `${url.pathname}?${url.searchParams.toString()}`;
 }

@@ -12,14 +12,12 @@ import {
   type ShellSelection,
 } from '@/components/shell/use-shell';
 import type { Account, Installation } from '@/lib/auth';
+import type { ProjectSummary } from '@/lib/projects';
 
 interface RightPanelEntry {
   id: string;
   Component: React.ComponentType;
 }
-
-const DEFAULT_PROJECT = 'noesis';
-const DEFAULT_PROJECTS = [DEFAULT_PROJECT];
 
 function rightPanelKey(viewId: string): string {
   return `rightPanel.${viewId}`;
@@ -46,21 +44,26 @@ export function ShellProvider({
   viewId,
   account,
   installations,
+  projects,
   children,
 }: {
   viewId: string;
   account: Account;
   installations: Installation[];
+  /** Server data (`/ui/projects`), loaded by the layout — the shell only consumes it. */
+  projects: ProjectSummary[];
   children: React.ReactNode;
 }) {
-  const [projects, setProjects] = React.useState<string[]>(() => {
-    const stored = readShellState<string[]>('projects', DEFAULT_PROJECTS);
-    return stored.length > 0 ? stored : DEFAULT_PROJECTS;
-  });
-  const [project, setProject] = React.useState<string>(() => {
-    const stored = readShellState<string | null>('project', null);
-    return stored ?? DEFAULT_PROJECT;
-  });
+  // Only the *selection* persists locally; the projects themselves are the
+  // server's. A stored id that no longer exists (deleted elsewhere) falls
+  // back to the first project rather than a dead reference.
+  const [projectId, setProjectId] = React.useState<string | null>(() =>
+    readShellState<string | null>('projectId', null),
+  );
+  const project =
+    projects.find((candidate) => candidate.id === projectId) ??
+    projects[0] ??
+    null;
   const [selection, setSelection] = React.useState<ShellSelection | null>(null);
   const [entries, setEntries] = React.useState<RightPanelEntry[]>([]);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
@@ -83,24 +86,10 @@ export function ShellProvider({
     [viewId],
   );
 
-  const switchProject = React.useCallback((name: string) => {
-    setProject(name);
-    writeShellState('project', name);
+  const switchProject = React.useCallback((id: string) => {
+    setProjectId(id);
+    writeShellState('projectId', id);
   }, []);
-
-  const addProject = React.useCallback(
-    (rawName: string) => {
-      const name = rawName.trim();
-      if (name === '') return;
-      setProjects((prev) => {
-        const next = prev.includes(name) ? prev : [...prev, name];
-        writeShellState('projects', next);
-        return next;
-      });
-      switchProject(name);
-    },
-    [switchProject],
-  );
 
   // Registration is a stack: the route registers its default panel on mount,
   // and anything more specific (a selection inspector) registers on top of it.
@@ -131,7 +120,6 @@ export function ShellProvider({
       project,
       projects,
       switchProject,
-      addProject,
       selection,
       setSelection,
       rightPanel,
@@ -154,7 +142,6 @@ export function ShellProvider({
       project,
       projects,
       switchProject,
-      addProject,
       selection,
       rightPanel,
       persistRightPanel,

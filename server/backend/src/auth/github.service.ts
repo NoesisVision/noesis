@@ -35,6 +35,13 @@ export interface GhInstallationSummary {
   repositorySelection: string;
 }
 
+/** `id` is GitHub's immutable numeric repository id, as string (decision 48). */
+export interface GhRepositorySummary {
+  id: string;
+  fullName: string;
+  private: boolean;
+}
+
 /** GitHub said no. Carries a slug the callback can put in `/login?error=`. */
 export class GithubAuthError extends Error {
   readonly reason: string;
@@ -180,6 +187,38 @@ export class GithubService {
       accountType: accountTypeOf(installation.account),
       repositorySelection: installation.repository_selection ?? 'selected',
     }));
+  }
+
+  /**
+   * The repo-picker source: what the *acting user* can reach through one
+   * installation (`GET /user/installations/{id}/repositories`), paginated so
+   * fleets past 100 repositories stay complete. Pages are walked by hand —
+   * `octokit.paginate` needs `Response.url`, which the injected test fetch
+   * cannot provide.
+   */
+  async listInstallationRepositories(
+    accessToken: string,
+    installationId: string,
+  ): Promise<GhRepositorySummary[]> {
+    const octokit = this.octokitFor(accessToken);
+    const summaries: GhRepositorySummary[] = [];
+    const perPage = 100;
+    for (let page = 1; ; page += 1) {
+      const { data } =
+        await octokit.rest.apps.listInstallationReposForAuthenticatedUser({
+          installation_id: Number(installationId),
+          per_page: perPage,
+          page,
+        });
+      for (const repository of data.repositories) {
+        summaries.push({
+          id: String(repository.id),
+          fullName: repository.full_name,
+          private: repository.private,
+        });
+      }
+      if (data.repositories.length < perPage) return summaries;
+    }
   }
 
   async fetchInstallation(

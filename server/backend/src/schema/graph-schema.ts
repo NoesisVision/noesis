@@ -81,4 +81,28 @@ export const GRAPH_SCHEMA: readonly string[] = [
   `CREATE REL TABLE IF NOT EXISTS HasSession(FROM Account TO Session)`,
   `CREATE REL TABLE IF NOT EXISTS HasCredential(FROM Account TO GhCredential)`,
   `CREATE REL TABLE IF NOT EXISTS HasInstallation(FROM Account TO GhInstallation)`,
+
+  // --- Projects × repositories (decision 48) ---
+  //
+  // `id` is GitHub's immutable numeric repository id (as STRING, like
+  // GhInstallation.id), so renames and transfers keep the key; `full_name`
+  // (`owner/name`) is display metadata refreshed on access checks. A
+  // Repository node exists only while a project tracks it — exclusivity means
+  // at most one — so project deletion removes its Repository nodes outright.
+  `CREATE NODE TABLE IF NOT EXISTS Repository(
+     id STRING,
+     full_name STRING,
+     private BOOLEAN,
+     status STRING,
+     status_changed_at STRING,
+     version INT64 DEFAULT 0,
+     created_at STRING,
+     PRIMARY KEY(id)
+   )`,
+  // The decision-46 shape: a project binds to exactly one installation and
+  // tracks ≥1 of its repositories. Cardinality is enforced in the repository
+  // layer (conditional writes), not by the DDL.
+  `CREATE REL TABLE IF NOT EXISTS UsesInstallation(FROM Project TO GhInstallation)`,
+  `CREATE REL TABLE IF NOT EXISTS Tracks(FROM Project TO Repository)`,
+  `CREATE REL TABLE IF NOT EXISTS InInstallation(FROM Repository TO GhInstallation)`,
 ];

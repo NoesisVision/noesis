@@ -37,6 +37,10 @@ export class GhAppService {
   /**
    * Authenticated as one installation. The token lasts an hour and the auth
    * strategy caches and re-mints it, so callers may hold the client.
+   *
+   * Retries are off: the caller (the on-demand access check) sits on a UI
+   * request and already degrades gracefully when GitHub is unreachable —
+   * built-in exponential backoff would just hang the page.
    */
   installationOctokit(installationId: string): Octokit {
     return new Octokit({
@@ -47,6 +51,8 @@ export class GhAppService {
         installationId: Number(installationId),
       },
       request: { fetch: this.fetchImpl },
+      retry: { enabled: false },
+      throttle: { enabled: false },
     });
   }
 }

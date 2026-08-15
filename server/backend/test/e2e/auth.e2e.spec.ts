@@ -4,6 +4,9 @@ import { createAuthModule } from '../../src/auth/auth.module.js';
 import { AuthRepository } from '../../src/auth/auth.repository.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { ProjectsRepository } from '../../src/projects/projects.repository.js';
+import { ProjectsService } from '../../src/projects/projects.service.js';
+import { RepoAccessService } from '../../src/projects/repo-access.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { createFakeGithub, testAuthConfig } from '../unit/github-fake.js';
 import { resetGraph, sharedTestDatabase } from '../unit/test-db.js';
@@ -31,6 +34,7 @@ function harness() {
   const github = createFakeGithub();
   const module = createAuthModule(testAuthConfig(), db, github.fetch);
   if (module.mode !== 'github') throw new Error('expected github mode');
+  const projectsRepository = new ProjectsRepository(db);
   return {
     module,
     repo: new AuthRepository(db),
@@ -38,6 +42,8 @@ function harness() {
       greetingService: new GreetingService(),
       searchService: new SearchService(),
       authModule: module,
+      projectsService: new ProjectsService(projectsRepository),
+      repoAccess: new RepoAccessService(projectsRepository, module.ghApp),
     }),
   };
 }
@@ -201,6 +207,8 @@ describe('NOESIS_AUTH_MODE=disabled (e2e)', () => {
       greetingService: new GreetingService(),
       searchService: new SearchService(),
       authModule: { mode: 'disabled' },
+      projectsService: new ProjectsService(new ProjectsRepository(db)),
+      repoAccess: null,
     });
 
     const me = await app.request('/ui/me');

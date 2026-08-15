@@ -5,6 +5,8 @@ import type { AuthModule } from './auth/auth.module.js';
 import { createAuthApp } from './auth/auth.routes.js';
 import type { GreetingService } from './greeting/greeting.service.js';
 import { createInternalApp } from './internal/internal.routes.js';
+import type { ProjectsService } from './projects/projects.service.js';
+import type { RepoAccessService } from './projects/repo-access.service.js';
 import type { SearchService } from './ui/search/search.service.js';
 import { createUiApp } from './ui/ui.routes.js';
 
@@ -18,6 +20,9 @@ export interface AppDeps {
   greetingService: GreetingService;
   searchService: SearchService;
   authModule: AuthModule;
+  projectsService: ProjectsService;
+  /** Null in disabled auth mode — no App to check access with. */
+  repoAccess: RepoAccessService | null;
 }
 
 // No global prefix — each surface carries its own. Keep the .route() chain
@@ -32,6 +37,8 @@ export function createApp(deps: AppDeps) {
           greetingService: deps.greetingService,
           searchService: deps.searchService,
           authModule: deps.authModule,
+          projectsService: deps.projectsService,
+          repoAccess: deps.repoAccess,
         }),
       )
       .route(

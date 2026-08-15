@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { Account, Installation } from '@/lib/auth';
+import type { ProjectSummary } from '@/lib/projects';
 
 // What the main section hands to the right panel when the user picks
 // something. Deliberately shallow: the inspector renders a title and a set of
@@ -36,10 +37,10 @@ export interface ShellContextValue {
   // handle a loading identity.
   account: Account;
   installations: Installation[];
-  project: string;
-  projects: string[];
-  switchProject: (name: string) => void;
-  addProject: (name: string) => void;
+  /** Null only while no project exists yet — the empty workspace. */
+  project: ProjectSummary | null;
+  projects: ProjectSummary[];
+  switchProject: (id: string) => void;
   selection: ShellSelection | null;
   setSelection: (selection: ShellSelection | null) => void;
   rightPanel: RightPanelState;

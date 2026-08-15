@@ -5,6 +5,9 @@ import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
+import { ProjectsRepository } from './projects/projects.repository.js';
+import { ProjectsService } from './projects/projects.service.js';
+import { RepoAccessService } from './projects/repo-access.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { SearchService } from './ui/search/search.service.js';
 
@@ -24,10 +27,18 @@ if (authModule.mode === 'disabled') {
   );
 }
 
+const projectsRepository = new ProjectsRepository(db);
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
   authModule,
+  projectsService: new ProjectsService(projectsRepository),
+  // The access check needs the App's own identity; disabled mode has none,
+  // and the routes serve stored state flagged unchecked instead.
+  repoAccess:
+    authModule.mode === 'github'
+      ? new RepoAccessService(projectsRepository, authModule.ghApp)
+      : null,
 });
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)

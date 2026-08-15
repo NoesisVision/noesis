@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'bun:test';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { ProjectsRepository } from '../../src/projects/projects.repository.js';
+import { ProjectsService } from '../../src/projects/projects.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { createUiApp } from '../../src/ui/ui.routes.js';
+import { sharedTestDatabase } from './test-db.js';
+
+const db = await sharedTestDatabase();
 
 describe('ui routes', () => {
   const app = createUiApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
     authModule: { mode: 'disabled' },
+    projectsService: new ProjectsService(new ProjectsRepository(db)),
+    repoAccess: null,
   });
 
   it('returns the greeting', async () => {

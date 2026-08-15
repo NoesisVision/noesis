@@ -16,6 +16,7 @@ import {
   useShell,
 } from '@/components/shell/use-shell';
 import { useShellHotkeys } from '@/components/shell/use-shell-hotkeys';
+import { WelcomeView } from '@/components/shell/welcome-view';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -24,6 +25,7 @@ import {
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { meQueryOptions } from '@/lib/auth';
+import { projectsQueryOptions } from '@/lib/projects';
 
 function ContentArea() {
   const { rightPanel, setRightPanelWidth } = useShell();
@@ -91,6 +93,7 @@ export function ShellLayout() {
   // never actually suspends — it is how the shell reads an account that is
   // guaranteed to exist by the time it renders.
   const { data: me } = useSuspenseQuery(meQueryOptions);
+  const { data: projects } = useSuspenseQuery(projectsQueryOptions);
   // The deepest route that claims a view id owns the per-view shell state.
   const viewId =
     matches.findLast((match) => match.staticData.viewId)?.staticData.viewId ??
@@ -100,11 +103,20 @@ export function ShellLayout() {
     () => readShellState<string>('sidebar', 'expanded') !== 'collapsed',
   );
 
+  // No project yet: the whole workspace is the first-run page — no sidebar,
+  // no nav. The shell (and its chrome) appears with the first project.
+  if (projects.length === 0) {
+    return (
+      <WelcomeView account={me.account} installations={me.installations} />
+    );
+  }
+
   return (
     <ShellProvider
       viewId={viewId}
       account={me.account}
       installations={me.installations}
+      projects={projects}
     >
       <SidebarProvider
         open={sidebarOpen}

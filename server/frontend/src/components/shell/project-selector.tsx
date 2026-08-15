@@ -1,15 +1,13 @@
-import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
-import * as React from 'react';
-import { useShell } from '@/components/shell/use-shell';
-import { Button } from '@/components/ui/button';
+import { Link } from '@tanstack/react-router';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  CheckIcon,
+  ChevronsUpDownIcon,
+  PlusIcon,
+  SettingsIcon,
+} from 'lucide-react';
+import * as React from 'react';
+import { CreateProjectDialog } from '@/components/shell/create-project-dialog';
+import { useShell } from '@/components/shell/use-shell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -34,21 +31,24 @@ function ProjectMark({ name }: { name: string }) {
   );
 }
 
-// The sidebar header doubles as the project switcher (IntelliJ-style): the
-// current project is always visible, and switching is one click away. Project
-// storage lives elsewhere — the shell only consumes whatever list it is given.
-export function ProjectSelector() {
-  const { project, projects, switchProject, addProject } = useShell();
-  const [addOpen, setAddOpen] = React.useState(false);
-  const [newName, setNewName] = React.useState('');
+/** A red dot when some of the project's repositories lost App access. */
+function HealthDot({ disconnected }: { disconnected: number }) {
+  if (disconnected === 0) return null;
+  return (
+    <span
+      className="size-2 shrink-0 rounded-full bg-destructive"
+      title={`${disconnected} repositor${disconnected === 1 ? 'y' : 'ies'} disconnected`}
+    />
+  );
+}
 
-  function submitNewProject(event: React.FormEvent) {
-    event.preventDefault();
-    if (newName.trim() === '') return;
-    addProject(newName);
-    setNewName('');
-    setAddOpen(false);
-  }
+// The sidebar header doubles as the project switcher (IntelliJ-style): the
+// current project is always visible, and switching is one click away. The
+// projects themselves are server data (`/ui/projects`) — the shell only
+// consumes the list.
+export function ProjectSelector() {
+  const { project, projects, switchProject } = useShell();
+  const [createOpen, setCreateOpen] = React.useState(false);
 
   return (
     <SidebarMenu>
@@ -60,9 +60,11 @@ export function ProjectSelector() {
                 size="lg"
                 className="data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground"
               >
-                <ProjectMark name={project} />
+                <ProjectMark name={project?.name ?? '?'} />
                 <span className="grid flex-1 text-left leading-tight">
-                  <span className="truncate font-medium">{project}</span>
+                  <span className="truncate font-medium">
+                    {project?.name ?? 'No project'}
+                  </span>
                   <span className="truncate text-xs text-muted-foreground">
                     Project
                   </span>
@@ -72,23 +74,40 @@ export function ProjectSelector() {
             }
           />
           <DropdownMenuContent className="min-w-56" align="start" side="bottom">
+            {projects.length > 0 && (
+              <>
+                <DropdownMenuGroup>
+                  {/* Base UI requires the label to sit inside its group. */}
+                  <DropdownMenuLabel>Projects</DropdownMenuLabel>
+                  {projects.map((candidate) => (
+                    <DropdownMenuItem
+                      key={candidate.id}
+                      onClick={() => switchProject(candidate.id)}
+                    >
+                      <ProjectMark name={candidate.name} />
+                      <span className="truncate">{candidate.name}</span>
+                      <HealthDot disconnected={candidate.disconnectedCount} />
+                      {candidate.id === project?.id && (
+                        <CheckIcon className="ml-auto size-4" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuGroup>
-              {/* Base UI requires the label to sit inside its group. */}
-              <DropdownMenuLabel>Projects</DropdownMenuLabel>
-              {projects.map((name) => (
+              {project !== null && (
                 <DropdownMenuItem
-                  key={name}
-                  onClick={() => switchProject(name)}
-                >
-                  <ProjectMark name={name} />
-                  <span className="truncate">{name}</span>
-                  {name === project && <CheckIcon className="ml-auto size-4" />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => setAddOpen(true)}>
+                  render={
+                    <Link to="/project">
+                      <SettingsIcon className="size-4" />
+                      <span>Project settings</span>
+                    </Link>
+                  }
+                />
+              )}
+              <DropdownMenuItem onClick={() => setCreateOpen(true)}>
                 <PlusIcon className="size-4" />
                 <span>New project</span>
               </DropdownMenuItem>
@@ -97,31 +116,7 @@ export function ProjectSelector() {
         </DropdownMenu>
       </SidebarMenuItem>
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
-          <form onSubmit={submitNewProject} className="flex flex-col gap-4">
-            <DialogHeader>
-              <DialogTitle>New project</DialogTitle>
-              <DialogDescription>
-                Projects scope everything the shell shows. Backing storage is
-                not wired up yet — this one lives in your browser.
-              </DialogDescription>
-            </DialogHeader>
-            <Input
-              autoFocus
-              value={newName}
-              onChange={(event) => setNewName(event.target.value)}
-              placeholder="Project name"
-              aria-label="Project name"
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={newName.trim() === ''}>
-                Create
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <CreateProjectDialog open={createOpen} onOpenChange={setCreateOpen} />
     </SidebarMenu>
   );
 }

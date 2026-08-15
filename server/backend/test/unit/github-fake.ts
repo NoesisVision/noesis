@@ -9,6 +9,8 @@ import type { GithubAuthConfig } from '../../src/config/config.js';
 export interface FakeGithubOptions {
   profile?: Partial<FakeProfile>;
   installations?: FakeInstallation[];
+  /** Repositories reachable per installation id, served on both listing endpoints. */
+  repositories?: Record<number, FakeRepository[]>;
   /** Seconds until the access token expires; the default matches GitHub's 8 h. */
   accessTtlSeconds?: number;
   /** Seconds until the refresh token expires; the default matches GitHub's 6 months. */
@@ -29,6 +31,12 @@ export interface FakeInstallation {
   repository_selection: string;
 }
 
+export interface FakeRepository {
+  id: number;
+  full_name: string;
+  private: boolean;
+}
+
 export interface FakeGithub {
   fetch: FetchLike;
   /** Every request that reached the fake, in order, as `METHOD path`. */
@@ -39,6 +47,10 @@ export interface FakeGithub {
   validRefreshTokens: Set<string>;
   profile: FakeProfile;
   installations: FakeInstallation[];
+  /** Repositories reachable per installation id — mutate to simulate grants/revocations. */
+  repositories: Record<number, FakeRepository[]>;
+  /** Installation ids whose repository listing answers 404 (uninstalled/suspended). */
+  goneInstallations: Set<number>;
   /** Access tokens minted so far, oldest first. */
   issuedAccessTokens: string[];
   /** Forces the next OAuth call to answer with a GitHub error body. */
@@ -60,6 +72,8 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
     validRefreshTokens: new Set(['refresh-0']),
     profile: { ...DEFAULT_PROFILE, ...options.profile },
     installations: options.installations ?? [],
+    repositories: options.repositories ?? {},
+    goneInstallations: new Set(),
     issuedAccessTokens: [],
     fetch: (() => {
       throw new Error('unreachable');
@@ -146,7 +160,21 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
       });
     }
 
-    // App JWT → installation token (GhAppService's only outbound call).
+    // User-side picker source: what the acting user reaches through one
+    // installation. The fake serves the installation's whole set.
+    const userInstallationRepos =
+      /^\/user\/installations\/(\d+)\/repositories$/.exec(url.pathname);
+    if (userInstallationRepos !== null) {
+      const id = Number(userInstallationRepos[1]);
+      if (state.goneInstallations.has(id)) {
+        return json({ message: 'Not Found' }, 404);
+      }
+      return json(repositoriesPage(state.repositories[id] ?? [], url));
+    }
+
+    // App JWT → installation token (GhAppService's outbound call). The minted
+    // token encodes the installation id so `/installation/repositories` below
+    // knows whose set to serve.
     const installationToken =
       /^\/app\/installations\/(\d+)\/access_tokens$/.exec(url.pathname);
     if (installationToken !== null) {
@@ -159,10 +187,37 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
       );
     }
 
+    // Installation-token side: everything the App reaches through the calling
+    // installation — the access check's ground truth (projects.md §3).
+    if (url.pathname === '/installation/repositories') {
+      const auth =
+        init?.headers instanceof Headers
+          ? init.headers.get('authorization')
+          : ((init?.headers as Record<string, string> | undefined)
+              ?.authorization ?? '');
+      const match = /ghs_(\d+)/.exec(auth ?? '');
+      const id = match ? Number(match[1]) : Number.NaN;
+      if (!match || state.goneInstallations.has(id)) {
+        return json({ message: 'Not Found' }, 404);
+      }
+      return json(repositoriesPage(state.repositories[id] ?? [], url));
+    }
+
     return json({ message: `fake github: no route for ${url.pathname}` }, 404);
   }) as unknown as FetchLike;
 
   return state;
+}
+
+// Honours `page`/`per_page` like GitHub, so the hand-rolled pagination in
+// GithubService is actually exercised.
+function repositoriesPage(all: FakeRepository[], url: URL) {
+  const perPage = Number(url.searchParams.get('per_page') ?? '30');
+  const page = Number(url.searchParams.get('page') ?? '1');
+  return {
+    total_count: all.length,
+    repositories: all.slice((page - 1) * perPage, page * perPage),
+  };
 }
 
 function parseBody(body: RequestInit['body']): Record<string, unknown> {

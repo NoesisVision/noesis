@@ -430,13 +430,13 @@
   #scrim { position: fixed; inset: 0; z-index: 60; background: color-mix(in oklch, oklch(0.2 0.003 106) 45%, transparent); }
   #scrim[hidden] { display: none; }
   @media (max-width: 767px) {
-    #resize-handle, #right-panel { display: none !important; }
+    #resize-handle, #right-panel { display: none; }
     #search-btn { width: auto; }
     #search-btn .s-text, #search-btn kbd, .proto-badge { display: none; }
     #main { padding: 20px 16px; }
     #sidebar {
       position: fixed; z-index: 70; top: 0; bottom: 0; left: 0;
-      width: 260px !important;
+      width: 260px;
       translate: -100% 0; transition: translate 0.2s ease;
       box-shadow: var(--shadow-lg);
     }
@@ -657,10 +657,10 @@
   const shell = $('#shell');
   const store = {
     get(k, fallback) {
-      try { const v = localStorage.getItem('noesis.shell.' + k); return v === null ? fallback : JSON.parse(v); }
+      try { const v = localStorage.getItem(`noesis.shell.${k}`); return v === null ? fallback : JSON.parse(v); }
       catch { return fallback; }
     },
-    set(k, v) { try { localStorage.setItem('noesis.shell.' + k, JSON.stringify(v)); } catch {} },
+    set(k, v) { try { localStorage.setItem(`noesis.shell.${k}`, JSON.stringify(v)); } catch {} },
   };
   const isMobile = () => matchMedia('(max-width: 767px)').matches;
 
@@ -685,12 +685,12 @@
   function setTheme(mode) { // 'light' | 'dark' | null (system)
     const r = document.documentElement;
     r.classList.remove('theme-dark', 'theme-light');
-    if (mode) r.classList.add('theme-' + mode);
+    if (mode) r.classList.add(`theme-${mode}`);
     if (mode) store.set('theme', mode); else localStorage.removeItem('noesis.shell.theme');
     renderTheme();
   }
   function toggleTheme() { setTheme(appliedTheme() === 'dark' ? 'light' : 'dark'); }
-  { const saved = store.get('theme', null); if (saved) document.documentElement.classList.add('theme-' + saved); }
+  { const saved = store.get('theme', null); if (saved) document.documentElement.classList.add(`theme-${saved}`); }
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderTheme);
   $('#theme-toggle').addEventListener('click', toggleTheme);
 
@@ -775,17 +775,17 @@
   }
 
   /* right panel open/width persisted per view */
-  function rpState(view) { return store.get('rightPanel.' + view, { open: true, width: 300 }); }
+  function rpState(view) { return store.get(`rightPanel.${view}`, { open: true, width: 300 }); }
   function applyRpState() {
     const s = rpState(currentView);
     shell.classList.toggle('rp-closed', !s.open);
-    $('#right-panel').style.width = s.width + 'px';
+    $('#right-panel').style.width = `${s.width}px`;
     $('#rp-toggle').setAttribute('aria-pressed', String(s.open));
   }
   function toggleRightPanel() {
     const s = rpState(currentView);
     s.open = !s.open;
-    store.set('rightPanel.' + currentView, s);
+    store.set(`rightPanel.${currentView}`, s);
     applyRpState();
   }
   $('#rp-toggle').addEventListener('click', toggleRightPanel);
@@ -827,7 +827,7 @@
     shell.classList.add('resizing');
     const move = (ev) => {
       const w = Math.min(480, Math.max(220, window.innerWidth - ev.clientX));
-      $('#right-panel').style.width = w + 'px';
+      $('#right-panel').style.width = `${w}px`;
     };
     const up = (ev) => {
       document.removeEventListener('mousemove', move);
@@ -835,7 +835,7 @@
       shell.classList.remove('resizing');
       const s = rpState(currentView);
       s.width = Math.min(480, Math.max(220, window.innerWidth - ev.clientX));
-      store.set('rightPanel.' + currentView, s);
+      store.set(`rightPanel.${currentView}`, s);
     };
     document.addEventListener('mousemove', move);
     document.addEventListener('mouseup', up);
@@ -845,7 +845,7 @@
     e.preventDefault();
     const s = rpState(currentView);
     s.width = Math.min(480, Math.max(220, s.width + (e.key === 'ArrowLeft' ? 16 : -16)));
-    store.set('rightPanel.' + currentView, s);
+    store.set(`rightPanel.${currentView}`, s);
     applyRpState();
   });
 
@@ -879,8 +879,8 @@
   function openProjectPop() {
     renderProjectList();
     const r = projBtn.getBoundingClientRect();
-    projPop.style.left = Math.max(8, r.left) + 'px';
-    projPop.style.top = (r.bottom + 6) + 'px';
+    projPop.style.left = `${Math.max(8, r.left)}px`;
+    projPop.style.top = `${r.bottom + 6}px`;
     projPop.hidden = false;
     projBtn.setAttribute('aria-expanded', 'true');
     $('#project-add-input').value = '';

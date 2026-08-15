@@ -10,6 +10,7 @@ import { SESSION_TTL_MS } from './session.service.js';
 
 export const SESSION_COOKIE = 'noesis_session';
 export const STATE_COOKIE = 'noesis_oauth_state';
+export const RETURN_TO_COOKIE = 'noesis_return_to';
 
 /** The `state` cookie only has to outlive a trip to github.com and back. */
 export const STATE_TTL_SECONDS = 10 * 60;
@@ -77,4 +78,35 @@ export async function readStateCookie(
 
 export function clearStateCookie(c: Context, secure: boolean): void {
   deleteCookie(c, STATE_COOKIE, baseCookieOptions(secure));
+}
+
+/**
+ * Where the install round-trip should land back (projects.md §2): set when
+ * `/auth/install` is entered from a flow that wants the user returned to it,
+ * read once by the install callback. Signed like the state cookie — the value
+ * steers a redirect, so it must not be forgeable — and validated as a
+ * same-origin relative path on both write and read.
+ */
+export async function setReturnToCookie(
+  c: Context,
+  returnTo: string,
+  secret: string,
+  secure: boolean,
+): Promise<void> {
+  await setSignedCookie(c, RETURN_TO_COOKIE, returnTo, secret, {
+    ...baseCookieOptions(secure),
+    maxAge: STATE_TTL_SECONDS,
+  });
+}
+
+export async function readReturnToCookie(
+  c: Context,
+  secret: string,
+): Promise<string | undefined> {
+  const value = await getSignedCookie(c, secret, RETURN_TO_COOKIE);
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function clearReturnToCookie(c: Context, secure: boolean): void {
+  deleteCookie(c, RETURN_TO_COOKIE, baseCookieOptions(secure));
 }

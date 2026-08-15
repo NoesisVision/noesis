@@ -604,3 +604,99 @@ For the implementation vehicle, Arctic — the usual "OAuth clients, bring your 
 - `GhAppService` (installation tokens via `@octokit/auth-app`) ships with no caller, as §10 anticipated. It is here because it is the same App registration and the same configuration; webhook handling and background scanning pick it up.
 - Every process that spawns the real server in a test — the SPA-serving e2e and the MCP bridge's full-stack e2e — now passes `NOESIS_AUTH_MODE=disabled`, because the server fails fast without a GitHub App. That is the escape hatch doing its job, but it does mean the guard itself is only exercised by the in-process e2e (`test/e2e/auth.e2e.spec.ts`), which drives the composed app directly.
 - In local development `NOESIS_PUBLIC_URL` is the **Vite dev server's** origin, not the backend's: sign-in is a navigation, so the callback has to land on the origin the browser is on. The dev server proxy gained `/auth` alongside `/ui` for the same reason.
+
+## 47. Scanning runs on CI or the developer's machine; the server only receives results
+
+**Context:** Decision 46 and the projects-feature elicitation
+(`docs/work/features/projects.md`) both implicitly assumed that source-code
+scanning would run on the Noesis server, with installation tokens
+(`GhAppService`) as the credential for cloning and reading repositories in the
+background. The high-level architecture (`docs/arch/high_level.png`) says
+otherwise: scanners live inside the project repositories themselves (the TS,
+.NET and Java scanners plus per-language Noesis annotations), and the
+"Noesis local" process that runs them sits next to the code — on a developer's
+machine or in CI — talking to the server over its API.
+
+**Decision:** Source-code scanning executes where the code already is — in a
+CI pipeline or on a local machine — never on the Noesis server. The scanners
+read the working copy that the CI job or developer already has checked out,
+using that environment's existing credentials. Only scan _results_ are
+uploaded to the server, which stores them in the graph. The server never
+clones, fetches, or reads repository source.
+
+**Consequences:**
+
+- Installation tokens are not a scanning credential. The GitHub App's
+  repository access serves identity, repository listing/verification for
+  project connections, and later webhooks or PR integration — not source
+  reads. The background-scanning caller that decision 46 anticipated for
+  `GhAppService` will not materialise in that form.
+- The server needs a result-ingestion surface that CI can authenticate
+  against without a browser session. This lands together with the
+  MCP-bridge/API-token question decision 46 already deferred (`/api` is
+  currently unauthenticated); it is a separate decision.
+- Private source code never leaves the owner's infrastructure; the server
+  holds only derived analysis data. This is a deliberate data-locality
+  property, not an accident of the topology.
+- Revoking the App's access to a repository does not technically stop
+  scanning — CI still has the code. Whether the server keeps accepting
+  result uploads for a disconnected repository is a policy question, tracked
+  in the projects feature's open questions.
+- The server carries no clone storage, no scanning queue, and no scanner
+  runtime; scaling scanning means scaling CI, which the customer already
+  owns.
+
+## 48. Projects own their repositories in a server-side registry; scanners route uploads by repository identity
+
+**Context:** The projects feature (`docs/work/features/projects.md`) needs a
+binding between projects and GitHub repositories. Two shapes were compared:
+(A) a server-side connection registry in the graph, created through the UI
+repo picker, with the server as source of truth; and (B) a repo-side
+declaration — a config file in the repository naming its project — with the
+server deriving membership from uploads. B's rename problem is fixable by
+declaring a project _id_ rather than a name, but the deeper issues remain:
+branches and forks of one repository can carry divergent or hijacked
+declarations, conflicts surface asynchronously in CI logs instead of at the
+point of action, lifecycle operations become commits across N repositories,
+and a project would not exist before its first pipeline run — leaving the
+elicited connection, grant-access, and refusal flows nowhere to live. Since
+scanning runs off-server (47), the scanner still needs to route results to
+the right project regardless of which side owns the binding.
+
+**Decision:** Option A. Project–repository connections live in the graph as a
+server-side registry, created and changed through the Noesis UI; the
+repository carries no Noesis project state. Routing rides on the exclusivity
+rule the domain already demands: a repository belongs to at most one project,
+so the scanner authenticates and states _which repository it scanned_
+(derived from the git remote / CI context) and the server resolves the owning
+project from the registry — renames, detach-and-reconnect, and deletions are
+registry operations with no repo-side residue, and a fork resolves to its own
+repository identity and simply is not connected. Repository identity in an
+upload is a claim and must be attested, not trusted: the intended default is
+GitHub Actions OIDC (a GitHub-signed JWT whose `repository` claim is checked
+against the registry), which needs no secret in the repo or in CI; the repo
+then carries at most the server URL. Non-GitHub CI and local scans
+authenticate via a Noesis-minted upload credential — the same deferred
+credential mechanism as the MCP bridge (46). The ingestion surface itself is
+a separate feature and decision.
+
+**Consequences:**
+
+- The elicited integrity rules (one repo → one project, duplicate-name
+  refusal, last-repo detach refusal) are enforceable synchronously at the
+  point of action, because the registry is consulted before anything is
+  written.
+- Spoofed uploads for a registered repository fail structurally: rejecting
+  unregistered repositories is not the protection — attestation of the
+  claimed identity is.
+- A repo-side declaration may return later as a convenience on top of the
+  registry, never as the binding: an onboarding hint (unknown repository
+  with a declared project id → pending connection awaiting confirmation) or
+  an App-authored onboarding PR adding the config file / workflow. That PR
+  path requires widening the App's permissions to Contents + Pull requests
+  (+ Workflows) read/write, which every existing installation must
+  re-approve — a cost that grows with adoption, so the permission set should
+  be settled early in the App's life.
+- The scanner's configuration surface stays minimal: server URL plus
+  whatever the ingestion feature defines for authentication; nothing
+  project-specific to maintain in repo content or CI variables.

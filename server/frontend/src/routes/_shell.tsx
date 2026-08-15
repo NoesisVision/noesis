@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ShellLayout } from '@/components/shell/shell-layout';
 import { meQueryOptions, UnauthenticatedError } from '@/lib/auth';
+import { projectsQueryOptions } from '@/lib/projects';
 
 // Pathless layout route: it frames its children without adding a url segment.
 export const Route = createFileRoute('/_shell')({
@@ -10,6 +11,9 @@ export const Route = createFileRoute('/_shell')({
   beforeLoad: async ({ context }) => {
     try {
       await context.queryClient.ensureQueryData(meQueryOptions);
+      // The shell reads projects with a suspense query; resolving it here
+      // keeps the layout from suspending on first paint.
+      await context.queryClient.ensureQueryData(projectsQueryOptions);
     } catch (error) {
       if (error instanceof UnauthenticatedError)
         throw redirect({ to: '/login' });

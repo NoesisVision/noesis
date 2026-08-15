@@ -4,7 +4,11 @@ import { requireSession } from '../auth/auth.middleware.js';
 import type { AuthModule } from '../auth/auth.module.js';
 import { toAccountDto } from '../auth/auth.service.js';
 import type { GreetingService } from '../greeting/greeting.service.js';
+import type { ProjectsService } from '../projects/projects.service.js';
+import type { RepoAccessService } from '../projects/repo-access.service.js';
 import { createInvitesApp } from './invites/invites.routes.js';
+import { createPickerApp } from './projects/picker.routes.js';
+import { createProjectsApp } from './projects/projects.routes.js';
 import { createSearchApp } from './search/search.routes.js';
 import type { SearchService } from './search/search.service.js';
 
@@ -14,6 +18,9 @@ export interface UiDeps {
   greetingService: GreetingService;
   searchService: SearchService;
   authModule: AuthModule;
+  projectsService: ProjectsService;
+  /** Null in disabled auth mode — no App to check access with. */
+  repoAccess: RepoAccessService | null;
 }
 
 // Endpoints under the `ui` prefix (mounted in app.ts) carry ui-session auth
@@ -44,5 +51,20 @@ export function createUiApp(deps: UiDeps) {
       })
       .route('/search', createSearchApp({ searchService: deps.searchService }))
       .route('/invites', createInvitesApp({ authModule: deps.authModule }))
+      .route(
+        '/projects',
+        createProjectsApp({
+          authModule: deps.authModule,
+          projectsService: deps.projectsService,
+          repoAccess: deps.repoAccess,
+        }),
+      )
+      .route(
+        '/github',
+        createPickerApp({
+          authModule: deps.authModule,
+          projectsService: deps.projectsService,
+        }),
+      )
   );
 }

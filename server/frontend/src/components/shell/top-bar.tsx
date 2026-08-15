@@ -42,7 +42,9 @@ function ShellBreadcrumbs() {
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <span className="truncate text-muted-foreground">{project}</span>
+          <span className="truncate text-muted-foreground">
+            {project?.name ?? 'No project'}
+          </span>
         </BreadcrumbItem>
         {crumbs.map((crumb, index) => (
           <React.Fragment key={crumb}>
