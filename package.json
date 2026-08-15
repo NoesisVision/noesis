@@ -7,6 +7,7 @@
     "dev:server": "bun run --filter=backend --filter=frontend dev",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "lint:md": "prettier --check \"**/*.md\"",
     "test": "bun run --filter '*' test",
     "test:e2e": "bun run --filter '*' test:e2e",
     "format": "biome format --write . && prettier --write \"**/*.md\"",
@@ -14,7 +15,7 @@
     "check-types": "bun run --filter '*' check-types",
     "generate": "bun run --filter '*' generate",
     "prepare": "git config core.hooksPath .githooks || true",
-    "ci": "bun run lint && bun run check-types && bun run test && bun run test:e2e && bun run build"
+    "ci": "bun run lint && bun run lint:md && bun run check-types && bun run test && bun run test:e2e && bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
