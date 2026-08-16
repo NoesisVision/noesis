@@ -4,6 +4,8 @@ import { createAuthModule } from '../../src/auth/auth.module.js';
 import { AuthRepository } from '../../src/auth/auth.repository.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { InboxRepository } from '../../src/inbox/inbox.repository.js';
+import { InboxService } from '../../src/inbox/inbox.service.js';
 import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
 import { RepoAccessService } from '../../src/projects/repo-access.service.js';
@@ -43,6 +45,7 @@ function harness() {
       searchService: new SearchService(),
       authModule: module,
       projectsService: new ProjectsService(projectsRepository),
+      inboxService: new InboxService(new InboxRepository(db)),
       repoAccess: new RepoAccessService(projectsRepository, module.ghApp),
     }),
   };
@@ -208,6 +211,7 @@ describe('NOESIS_AUTH_MODE=disabled (e2e)', () => {
       searchService: new SearchService(),
       authModule: { mode: 'disabled' },
       projectsService: new ProjectsService(new ProjectsRepository(db)),
+      inboxService: new InboxService(new InboxRepository(db)),
       repoAccess: null,
     });
 

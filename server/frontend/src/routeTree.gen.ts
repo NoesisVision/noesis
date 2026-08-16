@@ -14,6 +14,7 @@ import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as ShellSettingsRouteImport } from './routes/_shell/settings'
 import { Route as ShellProjectRouteImport } from './routes/_shell/project'
+import { Route as ShellInboxRouteImport } from './routes/_shell/inbox'
 import { Route as ShellGraphRouteImport } from './routes/_shell/graph'
 import { Route as ShellDocumentsRouteImport } from './routes/_shell/documents'
 
@@ -41,6 +42,11 @@ const ShellProjectRoute = ShellProjectRouteImport.update({
   path: '/project',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellInboxRoute = ShellInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => ShellRoute,
+} as any)
 const ShellGraphRoute = ShellGraphRouteImport.update({
   id: '/graph',
   path: '/graph',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
+  '/inbox': typeof ShellInboxRoute
   '/project': typeof ShellProjectRoute
   '/settings': typeof ShellSettingsRoute
 }
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
+  '/inbox': typeof ShellInboxRoute
   '/project': typeof ShellProjectRoute
   '/settings': typeof ShellSettingsRoute
   '/': typeof ShellIndexRoute
@@ -74,21 +82,37 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_shell/documents': typeof ShellDocumentsRoute
   '/_shell/graph': typeof ShellGraphRoute
+  '/_shell/inbox': typeof ShellInboxRoute
   '/_shell/project': typeof ShellProjectRoute
   '/_shell/settings': typeof ShellSettingsRoute
   '/_shell/': typeof ShellIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/documents' | '/graph' | '/project' | '/settings'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/documents'
+    | '/graph'
+    | '/inbox'
+    | '/project'
+    | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/documents' | '/graph' | '/project' | '/settings' | '/'
+  to:
+    | '/login'
+    | '/documents'
+    | '/graph'
+    | '/inbox'
+    | '/project'
+    | '/settings'
+    | '/'
   id:
     | '__root__'
     | '/_shell'
     | '/login'
     | '/_shell/documents'
     | '/_shell/graph'
+    | '/_shell/inbox'
     | '/_shell/project'
     | '/_shell/settings'
     | '/_shell/'
@@ -136,6 +160,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellProjectRouteImport
       parentRoute: typeof ShellRoute
     }
+    '/_shell/inbox': {
+      id: '/_shell/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof ShellInboxRouteImport
+      parentRoute: typeof ShellRoute
+    }
     '/_shell/graph': {
       id: '/_shell/graph'
       path: '/graph'
@@ -156,6 +187,7 @@ declare module '@tanstack/react-router' {
 interface ShellRouteChildren {
   ShellDocumentsRoute: typeof ShellDocumentsRoute
   ShellGraphRoute: typeof ShellGraphRoute
+  ShellInboxRoute: typeof ShellInboxRoute
   ShellProjectRoute: typeof ShellProjectRoute
   ShellSettingsRoute: typeof ShellSettingsRoute
   ShellIndexRoute: typeof ShellIndexRoute
@@ -164,6 +196,7 @@ interface ShellRouteChildren {
 const ShellRouteChildren: ShellRouteChildren = {
   ShellDocumentsRoute: ShellDocumentsRoute,
   ShellGraphRoute: ShellGraphRoute,
+  ShellInboxRoute: ShellInboxRoute,
   ShellProjectRoute: ShellProjectRoute,
   ShellSettingsRoute: ShellSettingsRoute,
   ShellIndexRoute: ShellIndexRoute,
