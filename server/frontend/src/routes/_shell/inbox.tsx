@@ -97,17 +97,17 @@ function ProjectInbox({ projectId }: { projectId: string }) {
       </div>
 
       {items.isPending ? (
-        <div className="flex max-w-3xl flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <Skeleton className="h-14" />
           <Skeleton className="h-14" />
           <Skeleton className="h-14" />
         </div>
       ) : items.isError ? (
-        <p className="max-w-3xl rounded-lg border bg-card p-3 text-sm text-destructive shadow-xs">
+        <p className="rounded-lg border bg-card p-3 text-sm text-destructive shadow-xs">
           {items.error.message}
         </p>
       ) : (
-        <div className="flex max-w-3xl flex-col gap-5">
+        <div className="flex flex-col gap-5">
           {tab === 'open' && <OpenTab groups={groups} now={now} />}
           {tab === 'handled' && <HandledTab items={groups.handled} now={now} />}
           {tab === 'expired' && <ExpiredTab items={groups.expired} now={now} />}
