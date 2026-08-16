@@ -979,3 +979,77 @@ and `removal-without-baseline` integrity warnings, and the `source_scan` and
 - Proposals keep the impact-summary and challenged-decision shape, which is
   independent of baseline comparison; scan-driven triggers return with the
   feature.
+
+## 53. Hocuspocus is the Yjs collaboration backend, persisted in the graph, behind a `/collab` surface
+
+**Status: proposed** — drafted ahead of phase 3; confirm or amend when that phase starts.
+
+**Context:** Decision 51 makes one Yjs document per design document the stored
+truth for editing, seeded exactly once server-side, with `DesignDocument`
+derived on read. That leaves the transport and persistence unnamed: the
+frontend holds only `yjs` itself (no `y-websocket`, no `@hocuspocus/*`, no
+`@blocknote/xl-*` collaboration packages), and the backend — Hono on Bun with
+LadybugDB as its single datastore (decision 46) — has no WebSocket surface at
+all. Phase 3 needs a server that speaks the Yjs sync and awareness protocols,
+authenticates the connection, persists updates, and hosts the seed-once hook.
+
+Three options were considered. A bare `y-websocket` server is minimal but
+leaves auth, persistence, debouncing and awareness plumbing hand-rolled — the
+Better Auth trade from decision 46 in reverse. A hosted service (Liveblocks,
+y-sweet) removes the backend work but moves document content to a third
+party, sits poorly beside the self-registered GitHub App model where every
+deployment owns its data, and adds a paid external dependency to
+self-hosting. Hocuspocus is the de-facto self-hosted Yjs server: maintained
+by the Tiptap team, protocol-complete (sync, awareness, auth hook,
+debounced persistence), storage-agnostic through fetch/store hooks, and the
+server BlockNote's own collaboration documentation pairs with.
+
+**Decision:**
+
+- **`@hocuspocus/server` provides the collaboration protocol**, embedded in
+  the existing backend process rather than run as a second service, so one
+  deployment stays one process and one configuration.
+- **`/collab` is a fifth top-level surface** beside `/ui`, `/api`,
+  `/internal` and `/auth`, joining the SPA-fallback exclusion list. It
+  qualifies under decision 18's criterion the same way `/auth` did: its
+  consumer is a WebSocket speaking the Yjs binary protocols, not the typed
+  JSON RPC contract `/ui` owes `hc<AppType>`.
+- **The session cookie authenticates the upgrade.** The browser sends the
+  existing `HttpOnly` session cookie with the WebSocket upgrade request;
+  `onAuthenticate` verifies its SHA-256 against the graph exactly as
+  `requireSession` does, and rejects the connection otherwise. No second
+  token scheme.
+- **Documents persist in the graph, as Yjs binary state.** An
+  `onStoreDocument` hook (debounced) writes the encoded Y.Doc state into a
+  node owned by the design document; `onLoadDocument` reads it back. This
+  keeps decision 46's single-datastore principle — no second store appears
+  because collaboration arrived.
+- **Seeding stays decision 51's:** creation runs
+  `DesignDocumentSchema.parse → checkDesignDocument → toBlocks → seed`,
+  server-side, once, before any client connects. `onLoadDocument` only ever
+  loads existing state; it never initialises an empty document.
+- **The frontend connects with `@hocuspocus/provider`**, handed to
+  BlockNote's collaboration option, carrying presence and cursors on the
+  same awareness channel (plan §5).
+
+**Consequences:**
+
+- Two verification items block the phase-3 start: whether Hocuspocus's
+  WebSocket stack runs on Bun's Node-compat layer (it builds on the Node
+  `ws` ecosystem), and whether `@blocknote/server-util` at 0.53 covers
+  headless block-to-ProseMirror conversion for seeding. Either failing
+  revisits this decision before code is written — the fallbacks are running
+  the collab server as a Node sidecar, or driving `prosemirror-model`
+  directly.
+- The Yjs binary state in the graph is opaque to queries. Anything that
+  needs to read a document server-side goes through the projection to
+  `DesignDocument` (decision 51), never through the stored bytes.
+- Undo, version history and the durable substring anchors (marks) all live
+  in the Y.Doc and therefore in this persistence path; losing the stored
+  state loses them, so the graph's backup story now covers editor history
+  too.
+- Comments and suggestions remain their own records (specification §14.8);
+  the awareness channel carries their live updates but never their truth.
+- The `/collab` surface is browser-facing only. The MCP bridge and future
+  agents write through whole-document replacement on the API surface, not
+  through a Yjs connection.
