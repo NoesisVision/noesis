@@ -750,3 +750,197 @@ context, which containment in the catalog already communicates.
   a sample dataset and a section list.
 - The earlier prototype sketches predate this model and moved to
   `docs/work/features/design-doc/prior-art/` as reference material.
+
+## 50. The design-doc model is normalised, addressed by stable ids, and derives codebase state rather than storing it
+
+**Context:** Phase 1 of the design-document workspace plan
+(`docs/work/features/design-doc/plan.md`) replaces `design-doc.ts`. The old
+schema was a tree of `changeSetSchema(...)` wrappers — every level carried
+`added` / `removed` / `modified` arrays — with behaviours nested inside
+building blocks, an `actor: string | null`, one string each for `given`, `when`
+and `then`, and a `*_locked` boolean beside every field. Three product
+decisions have since made that shape unworkable: New / Modified / Removed
+describe the accepted design's delta from a scanned codebase baseline rather
+than the contents of a pending proposal (specification §14.7), use cases are
+first-class and reference many actors (§14.1–14.2), and comments, suggestions
+and agent chat context all anchor to an individual typed element (§14.8), which
+requires that element to have an address. The schema had no consumers outside
+its own tests, so it could be replaced rather than migrated.
+
+**Decision:**
+
+1. The portable specification is a normalised document: flat arrays of actors,
+   bounded contexts, domain modules, building blocks, use cases and behaviours,
+   related by id. Change-set wrappers are gone.
+2. Every element the document renders as its own block carries a stable `id`,
+   including rules, fields, Gherkin steps and example rows. Ids are unique
+   across the whole document, not per collection. Nothing is addressed by
+   position.
+3. An address is an `ElementRef` (`design-doc-ref.ts`):
+   `{ kind: 'element', id }` for anything carrying an id, resolved through one
+   document-wide index, and `{ kind: 'slot', ownerId, path }` for the few places
+   that hold no element of their own — the goal text, `output.summary`, a list
+   as an insertion point. There is no string form of an address, and nothing
+   parses one.
+4. Codebase-relative state is derived, not stored. Each comparable element
+   holds a snapshot of its baseline-comparable projection plus an explicit
+   `markedForRemoval`; `design-doc-baseline.ts` turns those into Existing, New,
+   Modified or Removed and explains the difference.
+5. Comments, suggestions and whole-document agent proposals live in
+   `design-doc-collaboration.ts`, referencing the document by id and anchoring
+   into it by element ref. They never travel inside the specification.
+6. The `*_locked` booleans are dropped in favour of authorship (§14.6): prose
+   records whether a human or the agent wrote it, and nothing in the model
+   claims a collaborator is prevented from editing.
+7. A use case and a behaviour are separate types that name each other. A
+   `DesignedBehaviour` belongs to a building block and is a node of the
+   invocation graph; a `DesignedUseCase` belongs to an application service,
+   references actors and owns the document's acceptance scenarios. The
+   behaviour that is a use case's entry point carries `useCaseId`, and the use
+   case carries `behaviourId` back.
+8. There is no separate application-service record. An application service is a
+   `DesignedBuildingBlock` whose `type` is `application_service`, so
+   `UseCase.applicationServiceId` and `DesignedBehaviour.buildingBlockId`
+   resolve in one id space.
+
+**Rationale:** Ids-not-positions is what makes the rest safe. The editor lets
+people drag a block within its schema array, so a positional address would
+silently re-point every comment on a list the moment someone reordered it.
+Storing the id rather than the path goes further: a ref survives the element
+being renamed, moved to another parent, and a schema field around it being
+renamed — none of which an embedded path survives. An earlier draft of this
+decision carried a readable path expression, `useCase[uc-book].rules[rule-hold]`,
+as the stored address, with a grammar to parse it back. Once refs became what
+gets stored, nothing produced such a string that anything had to read, and a
+display format that no longer round-trips belongs with the view that renders it,
+not in a contracts package. Deriving state rather than storing it makes
+decision 49 enforceable in code instead of by convention — the comparable
+projection simply has no field for a summary, so no amount of prose editing can
+produce a Modified marker — and the stored snapshot is what lets a Modified
+element say what the source code must change. Keeping collaboration out of the
+specification means exporting or scanning a document does not drag conversation
+along with it.
+
+**Consequences:**
+
+- `DesignDocSchema` is now `DesignDocumentSchema`, and the `Designed*` element
+  schemas changed shape. Nothing outside `packages/shared-contracts` imported
+  them, so there is no migration to write; stored documents do not exist yet.
+- Ids must be non-empty and unique across the whole document, since an element
+  ref is a bare id resolved through one index. There is no restriction on their
+  characters, because nothing parses them.
+- Anything that creates an element must mint an id for it, including the editor
+  and any agent or scanner that writes into the model.
+- A slot ref is the one address that embeds a field name, so renaming `rules` or
+  `summary` invalidates slot refs while leaving every element ref intact.
+- Behaviour relationships and scenario paths (§14.4–14.5) are still absent.
+  Behaviour and scenario ids are stable so they can be added without
+  re-anchoring anything.
+- Building blocks, domain modules, properties and behaviours are modelled but
+  largely unrendered: nothing in the document view reads them this iteration.
+  They are here because the Technical lens and the scanners need the vocabulary,
+  and because a behaviour graph with no behaviour type has no nodes.
+- Referential integrity cannot be enforced by the element schemas, since zod
+  validates one object at a time. `design-doc-integrity.ts` carries it as a
+  separate whole-document pass: `checkDesignDocument` returns coded issues, each
+  anchored to an element ref and naming the element in words, separating errors
+  (a broken document) from warnings (a
+  document that resolves but will read wrong, such as an element compared
+  against a scan the document is no longer on).
+
+## 51. The Yjs document is the editing truth; `DesignDocument` is the interchange format
+
+**Context:** Phase 3 of the design-document plan puts the document view on
+BlockNote with a custom block schema. BlockNote wraps ProseMirror, and
+ProseMirror owns its own document representation — a tree of nodes conforming to
+a schema, with integer positions its transaction system maps through every
+change, and with selection, undo, input rules, decorations and the Yjs binding
+all operating on that tree. A ProseMirror document therefore exists whether or
+not one is designed for it. The two representations are also not isomorphic:
+`rule.text` is a `string` in the model, but the same text in the editor carries
+marks — comment anchors, suggestion tracking — which ProseMirror holds as
+mark-bearing inline nodes.
+
+Plan §4 says each block type maps to one design-doc element but does not say
+which side holds the truth. Phase 1 shipped `DesignDocument` as a zod schema
+with nothing persisting it yet, and the agent produces one as structured
+output, so the question is open while it is still free to answer.
+
+Three shapes were considered. Two stores kept in step — a Y.Doc and a persisted
+`DesignDocument` — is a dual write, where every sync bug is a data-loss bug.
+`DesignDocument` as the truth with the editor rebuilt from it on each change
+cannot carry collaboration: rebuilding the ProseMirror document discards
+cursors, undo history and concurrent merges. A shared CRDT model that is not a
+ProseMirror document, with BlockNote projecting it, fights y-prosemirror, which
+requires the editor's document to be the shared type.
+
+**Decision:**
+
+1. The custom BlockNote block schema is required rather than incidental. What
+   may be inserted at a point, what may nest in what, what a paste coerces to
+   and what a drag may reparent all come from the ProseMirror schema, so it is
+   the mechanism by which "nothing untyped" is enforced rather than merely
+   intended.
+2. One Yjs document per design document is the stored truth for editing. Marks
+   and Yjs relative positions live there and nowhere else.
+3. `DesignDocument` is the interchange format, not a store: agent output,
+   scanner output, API reads, export, and the input to
+   `checkDesignDocument`. It is derived from the Y.Doc on read and may be
+   cached, invalidated on Y.Doc update — a cache, never a second source of
+   truth.
+4. Every write from outside the editor is whole-document replacement: initial
+   creation, an accepted proposal, a scanner import, a baseline refresh. One
+   `toBlocks(document)` function serves all four. No incremental external
+   change is ever merged into live editor state.
+5. An incoming document is validated at the boundary — `DesignDocumentSchema`
+   then `checkDesignDocument` — before it is seeded. A document that fails is a
+   retry, not a seeded Y.Doc.
+6. Seeding happens exactly once, server-side, when the document is created.
+   Clients sync into an already-populated document and never initialise an
+   empty one.
+7. Design-doc ids are the BlockNote block ids. Elements below block granularity
+   — Gherkin steps, example rows — keep their ids in block attributes.
+
+**Rationale:** The editor needs its own _schema_; it does not need its own
+_store_, and the distinction is where the sync bugs live. Making the Y.Doc the
+single stored representation removes the dual write outright: a projection
+recomputed from the truth cannot drift from it. The direction that would be
+hard — merging an external incremental change into a live collaborative state —
+never has to exist, because every external write is already whole-document by
+product decision (specification §6.3–6.4). And the direction that remains,
+`DesignDocument` to blocks, is needed under every option anyway, since an
+agent-generated document has to reach the editor somehow.
+
+Keeping `DesignDocument` as the interchange format also keeps the agent
+interface unchanged and correct: a model emits a typed JSON object it can be
+constrained to, never a ProseMirror node tree or a CRDT update. Validating at
+the boundary turns the agent's normal failure mode — inventing an
+`applicationServiceId` that names nothing — into a retry prompt instead of a
+corrupted document.
+
+Seeding once and server-side is not a preference. Two clients that each
+initialise the same empty Y.Doc produce two concurrent inserts of the whole
+document, and Yjs merges both.
+
+**Consequences:**
+
+- The projection must be total. If the Y.Doc can reach a state that does not
+  project to a valid `DesignDocument`, the typed guarantee has already failed
+  and `checkDesignDocument` is catching it rather than the schema preventing
+  it. Running the integrity check over the projection during phase 3 is how
+  that stays honest.
+- Seeding runs headless, so block-to-ProseMirror conversion must work outside a
+  browser. BlockNote ships `@blocknote/server-util` for this; the frontend
+  currently depends only on `core`, `react` and `shadcn`, so confirm it exists
+  at 0.53 before planning around it rather than driving `prosemirror-model`
+  directly.
+- A stale projection cache is indistinguishable from drift at the point it is
+  read. Invalidate on update and keep the cache visibly a cache.
+- The portable specification carries plain text, because marks stay in the
+  Y.Doc. That is what §14.8 asks for, and it means an export never leaks
+  comment or suggestion state.
+- Undo and version history belong to the Y.Doc, which is what makes a
+  chat-applied change reversible (plan §8): "applied directly" is only
+  acceptable while undo is within reach.
+- Document-wide unique ids (decision 50) become load-bearing twice over, since
+  they are now also the editor's block ids.

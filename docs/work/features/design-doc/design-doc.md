@@ -482,7 +482,9 @@ A comment may mention people. Comment threads are a human conversation: agents a
 
 ## 14. Schema implications
 
-The existing `design-doc.ts` schema is a useful starting point, but several confirmed UX decisions require changes.
+The original `design-doc.ts` schema was a useful starting point, but several confirmed UX decisions required changes.
+
+> **Built.** Every subsection below is now implemented in `packages/shared-contracts/src`, except 14.4 and 14.5, which stay deferred with the Technical lens. Decision 50 records the model, decision 51 the relationship between it and the editor, and `plan.md` section 3 the delivered shape. Each subsection ends with a note on how it was settled.
 
 ### 14.1 Make use cases first-class
 
@@ -499,15 +501,21 @@ The existing `design-doc.ts` schema is a useful starting point, but several conf
 
 The precise distinction between a use case and a lower-level building-block behavior should be explicit in the model.
 
+> **Settled as two types that name each other.** `DesignedUseCase` is top-level and owned by an application service; `DesignedBehaviour` is top-level and owned by a building block, and is the node type of the graph in 14.4. A use case is not a behavior — it references actors, holds acceptance scenarios, and has a place in the document's reading order, none of which an interior behavior like `SlotHold.place()` has. The behavior that is a use case's entry point carries `useCaseId`, and the use case carries `behaviourId` back. There is no separate application-service record: an application service is a building block whose type is `application_service`, so a use case and its entry-point behavior resolve into one ID space.
+
 ### 14.2 Replace actor string with references
 
 `DesignedBehaviour.actor: string | null` cannot represent the agreed many-to-many relationship. Use cases should reference actor IDs, and actors should have stable IDs.
+
+> **Settled.** `DesignedUseCase.actorIds: string[]`, against actors with stable IDs. Actor references are baseline-comparable and compare as a set, so reordering them in the document is not mistaken for a code change.
 
 ### 14.3 Replace simple scenario fields with Gherkin structure
 
 `DesignedScenario` currently contains one string each for `given`, `when`, and `then`. Full Gherkin requires a richer hierarchy for features, backgrounds, scenarios, outlines, examples, tags, comments, and ordered steps.
 
 Acceptance scenarios and building-block behavioral scenarios should have explicit ownership semantics.
+
+> **Settled as one shape, two owners.** `DesignedScenario` carries background, ordered steps, outline kind, examples table and tags. A use case's acceptance scenarios and a behavior's behavioral scenarios are the same structure — ownership is the distinction, not shape — with `DesignedAcceptanceScenario` as the use-case-owned alias. Background sits on the scenario rather than on its owner, because that is how the document renders it.
 
 ### 14.4 Add behavior relationships
 
@@ -523,15 +531,21 @@ The schema needs stable behavior IDs and first-class relationship objects suppor
 - optional display label or description;
 - stable identity for comments and scenario references.
 
+> **Still deferred, but the nodes exist.** `DesignedBehaviour` is modelled with stable IDs so the relationship objects have something to connect; nothing renders them yet.
+
 ### 14.5 Add scenario paths
 
 > _Deferred with the Technical lens (12.3)._
 
 An acceptance scenario needs an ordered set of behavior-relationship references. This path is the source for its generated sequence diagram.
 
+> **Still deferred.** Scenario IDs are stable, so paths can be added later without re-anchoring anything.
+
 ### 14.6 Reconsider lock fields
 
 The repeated `*_locked` booleans should be reconsidered in favor of provenance metadata and agent proposal policy. The UI should not imply that ordinary collaborators are prevented from editing unless access control is introduced as a separate requirement.
+
+> **Settled as authorship.** Every `*_locked` boolean is gone. Prose carries `author: 'human' | 'agent'` — on rules, quality attributes, and a use case's description — which is what the quiet `person` tag renders and what tells the agent what it may rewrite unasked. Nothing in the model claims a collaborator is prevented from editing.
 
 ### 14.7 Separate current state from proposals
 
@@ -546,9 +560,15 @@ These dimensions must not be collapsed into one `added` or `modified` flag. Engi
 
 Elements imported from the scanner need stable source identities so the system can distinguish a renamed or edited element from a newly introduced one. An element marked as Removed remains in the design document and should retain its scanner identity and relevant baseline details.
 
+> **Settled as a normalized model with derived state.** Change sets are gone; the document is flat arrays related by ID. Codebase-relative state is computed, not stored: each comparable element holds a snapshot of its baseline-comparable projection plus an explicit `markedForRemoval`, and `design-doc-baseline.ts` derives Existing, New, Modified or Removed from the two. Proposal state is a separate object entirely — a whole-document `DesignDocProposal` held outside the specification.
+
 ### 14.8 Add collaboration metadata outside core domain fields
 
 Comments, mentions, presence, cursors, versions, and provenance are collaborative concerns. They should reference stable document/model IDs without forcing real-time session data into the portable domain specification itself.
+
+> **Settled.** Comments, suggestions and proposals live in `design-doc-collaboration.ts`, keyed by document ID and anchored by an `ElementRef` — an element's ID alone, or `{ ownerId, path }` for a place that holds no element of its own, such as the goal text or a list as an insertion point. An anchor names what it points at and not where that thing sits, so it survives the element being renamed, reordered or moved to another parent. The quoted text travels with the anchor as evidence, not as the anchoring mechanism.
+>
+> Once the editor exists, the durable substring anchor is a mark carried in the shared Yjs document (decision 51); the portable specification carries plain text, so an export never leaks comment or suggestion state.
 
 ### 14.9 Track scanner origin and baseline comparison
 
@@ -570,6 +590,8 @@ A refresh reconciliation should reuse the normal proposal mechanism while retain
 - what the Draft intended to change;
 - how the proposed result reconciles both;
 - which human-authored decisions the agent preserved or challenged.
+
+> **Settled for the model; the reconciliation is phase 7.** Every scannable element carries a `ScannerIdentity` (`scannerId` plus the scanner's own stable `sourceRef`) and a baseline snapshot naming the scan it came from. The document names its active baseline scan and, when there is one, the newer scan available; refreshing is an explicit action. A `DesignDocProposal` carries the whole proposed document, an impact summary with added / changed / removed / specification-only entries, and the human decisions it challenges, each with the agent's reasoning — which is the three-way explanation this section asks for. `checkDesignDocument` warns when an element compares against a scan the document is no longer on, since that quietly produces wrong markers.
 
 ## 15. Prototype plan
 
@@ -681,8 +703,8 @@ Settled by the document-view prototype (details in `plan.md`, section 2): **1** 
 Still open for the first iteration:
 
 5. What collaboration and versioning semantics apply when several humans edit while an agent proposal is pending?
-6. What happens to a comment or suggestion whose anchored text is edited away — reanchor, orphan, or resolve?
-7. How is a chat-applied change shown and undone, so "applied directly" does not read as "changed behind my back"?
+6. What happens to a comment or suggestion whose anchored text is edited away — reanchor, orphan, or resolve? _Narrowed by the model: an anchor points at an element by ID, so editing the words inside a rule cannot detach a thread from it. Only the substring case is left, and it lands with the Yjs marks in phase 4._
+7. How is a chat-applied change shown and undone, so "applied directly" does not read as "changed behind my back"? _Decision 51 supplies the mechanism — undo and version history belong to the Yjs document — but not the presentation._
 
 Open, but only when their features arrive:
 

@@ -1,11 +1,15 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Agreed direction, ready to break into tasks
+**Status:** Phase 1 delivered; phases 2–7 ready to break into tasks
 **Date:** 2026-08-16
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
-[`design-doc.md`](design-doc.md), and decision 49 in `docs/decisions.md`.
+[`design-doc.md`](design-doc.md), and decisions 49, 50 and 51 in `docs/decisions.md`.
 **Supersedes:** the Stage 1 three-concept comparison (section 15 of the specification). Those
 prototypes moved to [`prior-art/stage1/`](prior-art/README.md).
+
+Sections 3 to 6 record the shape as built where phase 1 settled it, and as intended where it has
+not been built yet. Decision 50 owns the model; decision 51 owns which representation is the truth
+once the editor exists.
 
 ---
 
@@ -51,6 +55,11 @@ the prototype raised — what happens to a comment or suggestion whose anchor te
 how a chat-applied change is shown and undone. Questions **7** and **8** are parked with the
 features they belong to.
 
+Phase 1 narrowed the anchor question without closing it. An anchor now points at an element by id
+rather than at text, so editing the words inside a rule cannot detach a thread from it; what remains
+open is the substring case — a comment on "10 minutes" when that phrase is rewritten — which lands
+with the Yjs relative positions in phase 4.
+
 **Out of the first iteration.** The specification carries the whole product direction; this
 iteration deliberately builds less. Not now:
 
@@ -61,7 +70,7 @@ iteration deliberately builds less. Not now:
 | Behaviour graph, scenario paths, sequence diagrams (§10.2, §12, §14.4–14.5) | Nothing in the document view reads or edits them; they arrive with the Technical lens.   |
 | Visual canvas in every form (§8)                                            | The document replaced it as the primary surface.                                         |
 | Dashboard landing and catalogue filters (§7.1–7.2)                          | The table of contents is the catalogue; a document list belongs to the app shell.        |
-| Building-block behavioural scenarios (§11.1)                                | Acceptance scenarios are what the document shows.                                        |
+| Building-block behavioural scenarios (§11.1)                                | Acceptance scenarios are what the document shows. The type exists; nothing renders it.   |
 | Agent mentions in comments (§3.2, §13)                                      | Comments are a human conversation; the agent is asked in chat.                           |
 
 Keep the model lens-ready all the same: a lens must remain a pure presentation filter over the same
@@ -69,9 +78,19 @@ elements, so nothing in the schema or the editor may assume a single audience.
 
 ## 3. Model and schema work
 
-All in `packages/shared-contracts/src/design-doc.ts` unless noted. Current shape is a tree of
-`changeSetSchema(...)` wrappers; the target is a normalised accepted model with explicit baseline
-references and overlays (specification §14.7).
+**Delivered in phase 1** (decision 50), across five files in `packages/shared-contracts/src`:
+
+| File                          | Holds                                                |
+| ----------------------------- | ---------------------------------------------------- |
+| `design-doc.ts`               | The portable specification.                          |
+| `design-doc-ref.ts`           | `ElementRef` and resolution against the document.    |
+| `design-doc-baseline.ts`      | Comparable projections and derived codebase state.   |
+| `design-doc-collaboration.ts` | Comments, suggestions, whole-document proposals.     |
+| `design-doc-integrity.ts`     | Whole-document invariants no element schema can see. |
+
+The old tree of `changeSetSchema(...)` wrappers is gone, replaced by flat arrays related by id
+(specification §14.7). Nothing outside the package imported the old schema, so there was no
+migration to write.
 
 ### 3.1 New document-level fields
 
@@ -90,49 +109,108 @@ No actor-centred navigation, filtering or canvas presence.
 
 ### 3.3 First-class use cases (specification §14.1–14.2)
 
-`DesignedBehaviour` becomes a top-level `UseCase` with a stable id, one owning application-service
-reference, Command/Query/Event type, **actor id references** (replacing `actor: string | null`),
-and ownership of its rules, fields, scenarios and quality attributes.
+`DesignedUseCase` is top-level, with a stable id, one owning application-service reference,
+Command/Query/Event type, **actor id references** (replacing `actor: string | null`), and ownership
+of its rules, fields, scenarios and quality attributes.
+
+`DesignedBehaviour` was **not** replaced by it. A behaviour belongs to a building block and is the
+node type of the invocation graph (§14.4), which exists at every level from `BookAppointment` down
+to `SlotHold.place()`; a use case belongs to an application service, references actors and owns the
+document's acceptance scenarios. The two name each other: the behaviour that is a use case's entry
+point carries `useCaseId`, and the use case carries `behaviourId` back.
+
+There is no separate application-service record. An application service is a
+`DesignedBuildingBlock` whose `type` is `application_service`, so `useCase.applicationServiceId` and
+`behaviour.buildingBlockId` resolve in one id space.
 
 ### 3.4 One typed field list per direction
 
-Replace the split product/technical representations with a single list, as the prototype does:
+A single list replaces the split product/technical representations, as the prototype does:
 
 ```ts
-Field = { name: string; label: string; type: string; note?: string }
+Field = { id: string; name: string; label: string; type: string; note: string }
 UseCase.input  = { fields: Field[] }
 UseCase.output = { summary: string; fields: Field[] }
 ```
 
 `label` is the business wording, `name`/`type` the structural truth, and only `name`, `type` and the
-field set are baseline-comparable (decision 49).
+field set are baseline-comparable (decision 49). The `id` is not in the prototype's shape: without
+one, a comment on a field row would re-point the moment someone dragged the list, and a field rename
+would orphan it.
 
 ### 3.5 Gherkin (§14.3)
 
-Acceptance scenarios owned by use cases, with the full Gherkin hierarchy the document shows:
-background, scenario, scenario outline, examples table, ordered steps and tags.
+One `DesignedScenario` shape carries the full Gherkin hierarchy the document shows — background,
+scenario, scenario outline, examples table, ordered steps and tags. It serves both places the
+product writes scenarios: a use case's acceptance scenarios, aliased as
+`DesignedAcceptanceScenario`, and a behaviour's behavioural scenarios (§11.1). Ownership is what
+distinguishes them, not structure.
 
-Behaviour relationships and scenario paths (§14.4–14.5) are **not** in this iteration — they exist to
-feed interaction flow and sequence diagrams, which are deferred. Leave room for them (scenarios keep
-stable ids) but do not model them yet.
+Behaviour relationships and scenario paths (§14.4–14.5) are **not** modelled — they exist to feed
+interaction flow and sequence diagrams, which are deferred. Behaviour and scenario ids are stable so
+they slot in later without re-anchoring anything.
 
-### 3.6 Collaboration objects, kept outside the portable specification (§14.8)
+### 3.6 Technical vocabulary, modelled but unrendered
+
+`DesignedBuildingBlock`, `DesignedDomainModule`, `DesignedProperty` and `DesignedBehaviour` are in
+the model even though nothing in the document view reads them this iteration. They are here because
+the Technical lens and the scanners need the vocabulary, and because a behaviour graph with no
+behaviour type has no nodes to connect.
+
+### 3.7 Addressing (§14.8)
+
+An address is an `ElementRef`:
 
 ```ts
-Anchor     = { binding: string; quote: string }     // schema element + quoted text
-Comment    = { id, anchor, author, role, body, resolved, replies[], createdAt }
-Suggestion = { id, anchor, replacement, author, role, note, status: 'pending'|'accepted'|'rejected' }
+ElementRef = { kind: 'element'; id: string }
+           | { kind: 'slot'; ownerId: string; path: string[] }
 ```
 
-`binding` is the string the prototype prints in `Schema bindings` mode. It must be derivable from,
-and resolvable back to, a model path — that mapping is the contract between the editor and the
-model, so define it once and test it both ways.
+An element ref names something by its id and says nothing about where it sits, so it survives the
+element being renamed, reordered, moved to another parent, and a schema field around it being
+renamed. A slot ref names a place that holds no element of its own — the goal text,
+`output.summary`, a list addressed as the insertion point it is — and is the only form a schema
+rename can invalidate. Resolution is one lookup in `elementIndex`, which is why ids are unique
+across the whole document rather than per collection.
 
-### 3.7 Baseline and proposal dimensions (§14.7, §14.9)
+There is deliberately no string form. An earlier draft carried a readable path expression,
+`useCase[uc-book].rules[rule-hold]`, as the stored address with a grammar to parse it back; once
+refs became what gets stored, nothing produced such a string that anything had to read. A display
+format that no longer round-trips belongs with the view that renders it.
 
-Codebase-relative state (`existing | new | modified | removed`) derived from baseline-comparable
-fields only, scanner identity per element, active baseline scan id plus "newer scan available", and
-proposal state kept as a separate dimension. Not collapsible into one flag.
+### 3.8 Collaboration objects, kept outside the portable specification (§14.8)
+
+```ts
+Anchor     = { ref: ElementRef; quote: string }
+Comment    = { id, documentId, anchor, author, body, resolved, replies[], mentions[], createdAt }
+Suggestion = { id, documentId, anchor, replacement, author, note, createdAt, status }
+Proposal   = { id, documentId, trigger, status, rationale, document, impact, challengedDecisions[] }
+```
+
+The quote is evidence, not the anchor mechanism — it is what lets a thread still say what it was
+about once its mark is gone.
+
+### 3.9 Whole-document invariants
+
+`checkDesignDocument` carries what zod cannot, because zod validates one object at a time: id
+uniqueness and non-emptiness across the document, every id reference resolving, an
+`applicationServiceId` naming a block of the right type, `useCaseId` and `behaviourId` agreeing, a
+domain module living in its block's bounded context, and examples rows matching their header count.
+Errors mean the document is inconsistent; warnings mean it resolves but will read wrong — a stale
+baseline snapshot quietly produces incorrect delta markers, which is the failure decision 49 exists
+to prevent.
+
+### 3.10 Baseline and proposal dimensions (§14.7, §14.9)
+
+Codebase-relative state (`existing | new | modified | removed`) is **derived, not stored**. Each
+comparable element holds a snapshot of its baseline-comparable projection plus an explicit
+`markedForRemoval`, and `design-doc-baseline.ts` turns those into a state and explains the
+difference. The comparable projection has no field for a summary or a rule, so no amount of prose
+editing can produce a Modified marker — decision 49 enforced by construction rather than by
+convention. State never propagates upward through containment.
+
+Alongside it: scanner identity per element, the active baseline scan id plus "newer scan available",
+and proposal state as a separate dimension. Not collapsible into one flag.
 
 ## 4. Editor
 
@@ -153,6 +231,23 @@ block schema** where each block type maps to one design-doc element:
 | `scenario`         | `acceptanceScenario[id]`                      |
 | `qualityAttribute` | `useCase[id].qualityAttributes[]`             |
 
+The right-hand column is documentation shorthand for reading this table, not a type. An address in
+code is an `ElementRef` (§3.7); there is no string form of one.
+
+**Which side holds the truth** (decision 51). BlockNote wraps ProseMirror, which owns its own
+document representation, so a ProseMirror document exists whether or not one is designed. The Yjs
+document holding it is the **stored truth for editing**; `DesignDocument` is the **interchange
+format** — agent output, scanner output, API reads, export, integrity input — derived from the
+Y.Doc on read. It may be cached, invalidated on update, but it is a cache and never a second store.
+
+The custom block schema is therefore the mechanism by which "nothing untyped" is enforced rather
+than merely intended: what may be inserted at a point, what may nest in what, what a paste coerces
+to and what a drag may reparent all come from the ProseMirror schema.
+
+Design-doc ids are the BlockNote block ids — they are already unique document-wide, so one id space
+serves both, and an `ElementRef` resolves in either representation. Elements below block
+granularity, such as Gherkin steps and example rows, keep their ids in block attributes.
+
 Rules to enforce in the editor layer:
 
 - **One block menu**, opened from the gutter pen or by typing `/`: the typed elements insertable at
@@ -164,8 +259,10 @@ Rules to enforce in the editor layer:
   type or rejected. Deletion is offered per block through the drag-handle menu and is schema-aware:
   list members are removed, single fields are cleared, and elements the schema requires cannot be
   deleted at all. While Suggesting, a deletion is filed as a suggested removal rather than applied.
-- **Marks** for comments and suggestions (BlockNote inline styles / custom marks), so anchors survive
-  editing rather than being re-matched by text search as the prototype does.
+- **Marks** for comments and suggestions (BlockNote inline styles / custom marks), so a substring
+  anchor survives editing rather than being re-matched by text search as the prototype does. The
+  element an anchor belongs to is already durable — that is the `ElementRef` — so what the mark adds
+  is the position inside it.
 - **Modes**: Editing / Suggesting / Viewing, the last two being editor-level (read-only, and
   edits captured as suggestion objects instead of document mutations).
 
@@ -187,13 +284,35 @@ from the first line rather than retrofitted onto a single-user one.
   orphan, or resolve. Concurrent editing makes this sharper, not softer: two people can edit the
   anchored text at once.
 
+**Seeding a document.** Every write from outside the editor is whole-document replacement: initial
+creation from the agent, an accepted proposal, a scanner import, a baseline refresh. One
+`toBlocks(document)` function serves all four, and no incremental external change is ever merged
+into live editor state. The pipeline is validate then seed:
+
+```
+DesignDocumentSchema.parse  →  checkDesignDocument  →  toBlocks  →  seed the Y.Doc, persist
+```
+
+Validation happens at the boundary, so a document that fails is a retry rather than a corrupted
+Y.Doc. Seeding happens **exactly once, server-side**, at document creation: two clients that each
+initialise the same empty Y.Doc produce two concurrent inserts of the whole document and Yjs merges
+both. Clients sync into an already-populated document and never initialise an empty one. Because
+seeding runs headless, block-to-ProseMirror conversion must work outside a browser — check whether
+`@blocknote/server-util` covers it at 0.53 before planning to drive `prosemirror-model` directly.
+
 ## 6. Agent integration
 
 - **Chat** docked in the document, always reachable, with **schema-bound context**: each context item
-  is `{ binding, quote }` from the current selection, so the agent is asked about a typed element
-  rather than loose text. **Mocked in this iteration** — build the surface, the context plumbing and
-  both hand-offs against canned replies, and wire a real model afterwards. The prototype labels the
-  panel `mock` for the same reason.
+  is `{ ref, quote }` from the current selection, so the agent is asked about a typed element rather
+  than loose text. The chip a person sees, and the wording the prompt carries, are labels rendered
+  from the resolved element — that rendering lives in the view, not in the contracts package.
+  **Mocked in this iteration** — build the surface, the context plumbing and both hand-offs against
+  canned replies, and wire a real model afterwards. The prototype labels the panel `mock` for the
+  same reason.
+- **The agent emits `DesignDocument`**, a typed JSON object it can be constrained to, never a
+  ProseMirror node tree or a Yjs update. Validation at the boundary turns its normal failure mode —
+  inventing an `applicationServiceId` that names nothing — into a retry prompt rather than a
+  corrupted document.
 - **Comments address people only.** No agent mention: a comment thread is a human conversation. Ask
   the agent in chat instead.
 - **What the user asked for is applied; what the user did not ask for is proposed.** A change the
@@ -210,16 +329,22 @@ from the first line rather than retrofitted onto a single-user one.
 
 Each phase ends with something reviewable in the running app.
 
-**Phase 1 — Model.** Schema changes from section 3, migration of the existing `design-doc.ts`, and
-the binding ↔ model-path mapping with tests both directions. No UI.
+**Phase 1 — Model. Done.** The schema from section 3, `design-doc.ts` replaced in place, the
+ref ↔ model-path mapping tested both directions over every addressable position in a fixture
+document, derived codebase state, and the whole-document integrity check. No UI. Beyond what this
+section originally scoped, phase 1 also restored the technical vocabulary (§3.6), folded the
+application-service record into `DesignedBuildingBlock`, and dropped the binding string form
+(§3.7).
 
 **Phase 2 — Read-only document.** Render a stored design document in the reading order, with the
 table of contents, numbering, scroll-spy, delta markers and the "not written yet" line. Viewing mode
 only. This is the first thing to put in front of a product reviewer.
 
 **Phase 3 — Typed collaborative editing.** BlockNote with the custom block schema on a Yjs document:
-filtered block menu, constrained drag and drop, schema-aware deletion, and persistence of edits into
-the model. Two browsers editing the same document is the acceptance test for this phase.
+filtered block menu, constrained drag and drop, schema-aware deletion, `toBlocks` seeding, and the
+`DesignDocument` projection for reads. Two browsers editing the same document is the acceptance test
+for this phase; running `checkDesignDocument` over the projection is how the projection is kept
+total.
 
 **Phase 4 — Comments and presence.** Threads sidebar, anchors as marks, filters, replies, resolve,
 mentions of people, plus live presence and cursors on the awareness channel.
@@ -243,9 +368,14 @@ with agents and the codebase.
 
 ## 8. Risks
 
-- **Anchor durability under concurrent editing.** Comments and suggestions must survive edits to the
-  text they point at, including edits made by someone else at the same moment. The prototype matches
-  text; production needs real marks carried in the shared document and a reanchoring story.
+- **Anchor durability under concurrent editing.** Half of this is closed: an anchor points at an
+  element by id, so editing the words inside a rule cannot detach a thread from it. What remains is
+  the substring — a comment on "10 minutes" while someone else rewrites the sentence — which needs
+  real marks carried in the shared document and a reanchoring story.
+- **Projection totality.** If the Y.Doc can reach a state that does not project to a valid
+  `DesignDocument`, the typed guarantee has already failed and the integrity check is catching what
+  the ProseMirror schema should have prevented. Treat an integrity error found on the projection as
+  a bug in the block schema, not as a document to repair.
 - **Collaboration plus a custom block schema.** Yjs, custom BlockNote blocks and suggestion marks
   interact; prove the combination on one block type early rather than discovering it in phase 5.
 - **Schema churn.** Every block type is a contract between editor, model and agent. Adding a
