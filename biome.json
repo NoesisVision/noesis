@@ -10,7 +10,8 @@
       "**",
       "!plugins/claude-code/skills/**/references",
       "!server/frontend/public",
-      "!server/frontend/src/routeTree.gen.ts"
+      "!server/frontend/src/routeTree.gen.ts",
+      "!docs/**/prior-art"
     ]
   },
   "formatter": {

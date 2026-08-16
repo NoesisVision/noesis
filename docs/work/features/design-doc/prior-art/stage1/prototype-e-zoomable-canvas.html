@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype E — Zoomable canvas</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Prototype E has no side panel and no page transition: the document opens
+     in place on the canvas, and the canvas zooms to it. */
+  .main { flex: 1 1 auto; min-height: 0; position: relative; }
+  #canvas { position: absolute; inset: 0; }
+
+  .finder {
+    position: absolute; left: 14px; top: 12px; z-index: 9; width: 268px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .finder .f-head { padding: 8px; border-bottom: 1px solid var(--border); }
+  .finder .f-results { max-height: 320px; overflow: auto; padding: 4px; }
+  .finder .f-ctx { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted-foreground); padding: 6px 8px 2px; }
+  .finder .f-svc { font-size: 11.5px; font-weight: 600; color: var(--secondary-foreground); padding: 2px 8px; }
+  .finder.collapsed .f-results, .finder.collapsed .f-filters { display: none; }
+
+  .expanded {
+    position: absolute; z-index: 6; width: 624px; max-height: 560px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-lg); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .expanded .doc-panel { min-height: 0; }
+  .expanded .doc-body { max-height: 380px; }
+  /* A small pointer back to the node the card belongs to. */
+  .expanded::before {
+    content: ""; position: absolute; left: -9px; top: 52px;
+    width: 16px; height: 16px; background: var(--card);
+    border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+
+  .selbar {
+    position: absolute; left: 50%; transform: translateX(-50%); top: 12px; z-index: 9;
+    background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+    box-shadow: var(--shadow-sm); padding: 5px 8px 5px 14px;
+    display: flex; align-items: center; gap: 10px; font-size: 12.5px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="top"></div>
+  <div class="main">
+    <div id="canvas"></div>
+    <div class="finder" id="finder"></div>
+    <div id="selbar"></div>
+  </div>
+</div>
+
+<script src="sample-data.js"></script>
+<script src="shared.js"></script>
+<script>
+/*
+ * Prototype E — zoomable canvas.
+ *
+ * Selection expands the use case in place: the map stays on screen, the view
+ * zooms to the chosen node, and its document unfolds directly beneath it with
+ * the contextual building-block neighbourhood fanned above. There is no side
+ * panel and no separate workspace page.
+ */
+(() => {
+  const { h, clear, S, byId, state, select, onChange, marker, typeBadge } = DD;
+
+  DD.renderTopbar(document.getElementById('top'), { protoLabel: 'Prototype E · zoomable canvas' });
+
+  const canvasHost = document.getElementById('canvas');
+  const canvas = DD.buildCanvas(canvasHost, { wheelZoom: true });
+  const stage = canvasHost.querySelector('.canvas-stage');
+
+  let expandedId = null;
+  let card = null;
+
+  /* Expanding is what selection does here — there is nowhere else to read. */
+  DD.onChange(() => {
+    const sel = state.selection;
+    const id = sel && sel.kind === 'useCase' ? sel.id : null;
+    if (id !== expandedId) {
+      expandedId = id;
+      if (id) {
+        canvas.focusOn(id, 1);
+        canvas.view.x -= 300; // leave room for the card that opens to the right
+        canvas.applyView();
+      }
+    }
+    placeCard();
+    paintSelBar();
+  });
+
+  /* The card lives in canvas coordinates, so panning and zooming carry it
+     along with its node — that is the continuity this prototype tests. */
+  function placeCard() {
+    if (card) { card.remove(); card = null; }
+    if (!expandedId) return;
+    const nodeEl = stage.querySelector(`.node[data-id="${expandedId}"]`);
+    if (!nodeEl) return;
+    const left = parseFloat(nodeEl.style.left);
+    const top = parseFloat(nodeEl.style.top);
+    const uc = byId.useCase[expandedId];
+
+    card = h('div', { class: 'expanded', style: { left: `${left + 248}px`, top: `${Math.max(8, top - 150)}px` } });
+    const docHost = h('div', { class: 'doc-panel' });
+    card.appendChild(docHost);
+    DD.renderUseCaseDoc(docHost, uc, {
+      headActions: [
+        h('button', {
+          class: 'btn sm ghost', title: 'Zoom out to the whole map',
+          onclick: () => { select(null, null); canvas.view.k = 0.72; canvas.view.x = 20; canvas.view.y = 10; canvas.applyView(); },
+        }, '⤢ Zoom out'),
+        h('button', { class: 'btn sm ghost', onclick: () => select(null, null), 'aria-label': 'Collapse' }, '✕'),
+      ],
+    });
+    card.addEventListener('pointerdown', (e) => e.stopPropagation()); // do not pan while reading
+    card.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+    stage.appendChild(card);
+  }
+
+  function paintSelBar() {
+    const host = document.getElementById('selbar');
+    clear(host);
+    const sel = state.selection;
+    if (!sel) {
+      host.appendChild(h('div', { class: 'selbar' },
+        h('span', { style: { color: 'var(--muted-foreground)' } },
+          'Click a use case to expand it here · click an actor to see its use cases · ⌘/Ctrl + scroll to zoom')));
+      return;
+    }
+    if (sel.kind === 'actor') {
+      const a = byId.actor[sel.id];
+      const n = S.useCases.filter((u) => u.actors.includes(a.id)).length;
+      host.appendChild(h('div', { class: 'selbar' },
+        h('strong', {}, a.name),
+        h('span', { class: 'kind-chip' }, a.kind === 'human' ? 'human role' : 'external system'),
+        marker(a.state),
+        h('span', { style: { color: 'var(--muted-foreground)' } }, `${n} related use cases highlighted`),
+        h('button', { class: 'btn sm ghost', onclick: () => select(null, null) }, 'Clear')));
+      return;
+    }
+    if (sel.kind === 'block') {
+      const b = byId.block[sel.id];
+      host.appendChild(h('div', { class: 'selbar' },
+        h('strong', {}, b.name), h('span', { class: 'kind-chip' }, b.type), marker(b.state),
+        b.baselineDiff ? h('button', { class: 'btn sm ghost', onclick: () => DD.openBaselineDiff(b) }, 'vs codebase') : null,
+        h('button', { class: 'btn sm ghost', onclick: () => select(null, null) }, 'Clear')));
+      return;
+    }
+    const u = byId.useCase[sel.id];
+    host.appendChild(h('div', { class: 'selbar' },
+      h('span', { style: { color: 'var(--muted-foreground)' } }, DD.useCaseCrumb(u)),
+      h('strong', {}, u.name), typeBadge(u.type), marker(u.state),
+      h('button', { class: 'btn sm ghost', onclick: () => canvas.focusOn(u.id, 1.35) }, 'Zoom in'),
+      state.lens === 'technical'
+        ? h('button', {
+          class: 'btn sm ghost', title: 'Zoom out far enough to see the building-block neighbourhood',
+          onclick: () => canvas.fit(),
+        }, 'Show neighbourhood')
+        : null,
+      h('button', { class: 'btn sm ghost', onclick: () => select(null, null) }, 'Collapse')));
+  }
+
+  /* ------------------------------------------------------------- finder */
+
+  const finder = document.getElementById('finder');
+  (function buildFinder() {
+    const results = h('div', { class: 'f-results' });
+    const filters = h('div', { class: 'filters f-filters', style: { padding: '0 8px 8px' } });
+    let query = '';
+    const types = new Set();
+
+    for (const t of ['command', 'query', 'event']) {
+      filters.appendChild(h('button', {
+        class: 'filter', 'aria-pressed': 'false',
+        onclick: (e) => {
+          types.has(t) ? types.delete(t) : types.add(t);
+          e.currentTarget.setAttribute('aria-pressed', String(types.has(t)));
+          paint();
+        },
+      }, t[0].toUpperCase() + t.slice(1)));
+    }
+
+    finder.append(
+      h('div', { class: 'f-head' },
+        h('input', {
+          class: 'search', type: 'search', placeholder: 'Find a use case…', 'aria-label': 'Find a use case',
+          oninput: (e) => { query = e.target.value.toLowerCase(); paint(); },
+        })),
+      filters, results);
+
+    function paint() {
+      clear(results);
+      for (const ctx of S.contexts) {
+        const ctxRows = [];
+        for (const svc of ctx.services) {
+          const list = (DD.useCasesByService[svc.id] || []).filter((u) =>
+            (!types.size || types.has(u.type)) &&
+            (!query || u.name.toLowerCase().includes(query) || (u.summary || '').toLowerCase().includes(query)));
+          if (!list.length) continue;
+          ctxRows.push(h('div', { class: 'f-svc' }, svc.name, marker(svc.state)));
+          for (const u of list) {
+            ctxRows.push(h('button', {
+              class: `uc-row${u.state === 'removed' ? ' removed' : ''}`,
+              style: { paddingLeft: '16px' },
+              'aria-current': String(!!state.selection && state.selection.id === u.id),
+              onclick: () => { select('useCase', u.id); canvas.focusOn(u.id, 1); },
+            }, h('span', { class: 'nm' }, u.name), marker(u.state), typeBadge(u.type)));
+          }
+        }
+        if (ctxRows.length) results.append(h('div', { class: 'f-ctx' }, ctx.name), ...ctxRows);
+      }
+      if (!results.childElementCount) results.appendChild(h('div', { class: 'hint' }, 'Nothing matches.'));
+    }
+    paint();
+    onChange(paint);
+  })();
+
+  paintSelBar();
+  /* Start clear of the finder panel so the actor lane is not hidden by it. */
+  canvas.view.k = 0.76; canvas.view.x = 296; canvas.view.y = 8; canvas.applyView();
+})();
+</script>
+</body>
+</html>

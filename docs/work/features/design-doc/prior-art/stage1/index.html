@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design document workspace — Stage 1 prototypes</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  body { overflow: auto; }
+  .page { max-width: 1080px; margin: 0 auto; padding: 40px 24px 60px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .lede { color: var(--muted-foreground); max-width: 70ch; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 26px 0 30px; }
+  .proto {
+    border: 1px solid var(--border); border-radius: 12px; background: var(--card);
+    padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .proto h2 { margin: 0; font-size: 16px; }
+  .proto .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+  .proto p { margin: 0; font-size: 13px; }
+  .proto ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--secondary-foreground); }
+  .proto a.btn { margin-top: auto; text-decoration: none; justify-content: center; }
+  .sketch { height: 84px; border: 1px solid var(--border); border-radius: 8px; background: var(--canvas); display: flex; gap: 4px; padding: 6px; }
+  .sketch div { border: 1px solid var(--border); border-radius: 4px; background: var(--card); }
+  section.block { margin-top: 28px; }
+  section.block h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); margin-bottom: 8px; }
+  table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.grid th, table.grid td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  table.grid th { background: var(--secondary); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Collaborative design document workspace — Stage 1 prototypes</h1>
+  <p class="lede" style="color: var(--state-mod)">
+    Superseded. These three concepts were the Stage 1 comparison; the direction chosen from them is the
+    <a href="../../prototypes/document-view.html">document view</a>. They are kept here as reference and
+    run against a frozen copy of the sample data.
+  </p>
+  <p class="lede">
+    Three low-fidelity concepts for the same specification, rendered from one shared sample document
+    (an appointment-booking system with two bounded contexts, four application services, 19 use cases,
+    six actors and a pending agent proposal). Only the navigation shell differs, so the comparison is
+    about the interaction model rather than the content.
+  </p>
+
+  <div class="proto" style="margin-bottom: 26px">
+    <span class="tag">Current direction</span>
+    <h2>Document view</h2>
+    <p>
+      The specification read as one document: goal and business context first, then use cases with
+      their rules, inputs, outputs and scenarios. The left rail is the table of contents, and every
+      block is bound to one typed schema element — no free-floating prose.
+    </p>
+    <a class="btn primary" href="../../prototypes/document-view.html" style="max-width: 260px">Open the document view</a>
+  </div>
+
+  <h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground)">
+    Earlier Stage 1 comparison
+  </h3>
+
+  <div class="cards">
+    <div class="proto">
+      <span class="tag">Prototype A</span>
+      <h2>Persistent side panel</h2>
+      <div class="sketch"><div style="width:22%"></div><div style="flex:1"></div><div style="width:34%"></div></div>
+      <p>Catalogue and behaviour map stay on screen; the selected element's document lives in a resizable panel on the right.</p>
+      <ul><li>Continuity while comparing neighbours</li><li>Narrow column for long text</li></ul>
+      <a class="btn primary" href="prototype-a-side-panel.html">Open prototype A</a>
+    </div>
+
+    <div class="proto">
+      <span class="tag">Prototype D</span>
+      <h2>Preview then focused workspace</h2>
+      <div class="sketch"><div style="width:22%"></div><div style="flex:1;position:relative"><div style="position:absolute;right:6px;bottom:6px;width:52%;height:56%"></div></div></div>
+      <p>Selection opens a compact preview. An explicit action opens a full-width workspace for deep work on one use case.</p>
+      <ul><li>Browsing stays light</li><li>Editing gets the whole screen</li></ul>
+      <a class="btn primary" href="prototype-d-preview-workspace.html">Open prototype D</a>
+    </div>
+
+    <div class="proto">
+      <span class="tag">Prototype E</span>
+      <h2>Zoomable canvas</h2>
+      <div class="sketch"><div style="flex:1;position:relative"><div style="position:absolute;left:24%;top:14%;width:52%;height:70%"></div></div></div>
+      <p>No panel and no page change: the use case expands in place on the canvas, with its neighbourhood around it.</p>
+      <ul><li>Spatial continuity</li><li>Map is always the frame</li></ul>
+      <a class="btn primary" href="prototype-e-zoomable-canvas.html">Open prototype E</a>
+    </div>
+  </div>
+
+  <section class="block">
+    <h3>The ten comparison tasks</h3>
+    <table class="grid">
+      <thead><tr><th style="width:1%">#</th><th>Task</th><th>Where it lives in every prototype</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Find a use case inside a bounded context and application service</td><td>Catalogue tree (A, D) or canvas finder (E); the canvas groups by context and service in all three</td></tr>
+        <tr><td>2</td><td>Identify Command, Query or Event</td><td>Badge beside the name — catalogue row, canvas node, document heading</td></tr>
+        <tr><td>3</td><td>Select an actor and see related use cases</td><td>Click an actor node, actor pill or the actor filter; unrelated elements fade</td></tr>
+        <tr><td>4</td><td>Read and edit use-case details</td><td>The fixed eleven-section document; text is editable in place</td></tr>
+        <tr><td>5</td><td>Switch Product and Technical lenses</td><td>Top-bar switch; a lens only hides sections, never reorders them</td></tr>
+        <tr><td>6</td><td>Inspect acceptance scenarios</td><td>Acceptance scenarios section, full Gherkin including Background, Outline and Examples</td></tr>
+        <tr><td>7</td><td>Open a scenario-specific sequence diagram</td><td>“Sequence diagram” inside an expanded scenario; projected from the scenario’s ordered path</td></tr>
+        <tr><td>8</td><td>Reveal the building-block neighbourhood</td><td>Technical lens: the supporting blocks unfold in a band under the bounded context, wired to the selection, and list in the document</td></tr>
+        <tr><td>9</td><td>Comment mentioning a person or an agent</td><td>Comments section; type <code>@</code> for the mention menu, <code>@agent</code> answers with a proposal</td></tr>
+        <tr><td>10</td><td>Understand and review the pending proposal</td><td>Top-bar pill → whole-proposal impact, including the human decision it challenges</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block">
+    <h3>Shared conventions</h3>
+    <table class="grid">
+      <tbody>
+        <tr>
+          <th style="width:22%">Codebase delta</th>
+          <td>
+            <span class="marker new"><span class="glyph">+</span>New</span>
+            <span class="marker modified"><span class="glyph">±</span>Modified</span>
+            <span class="marker removed"><span class="glyph">−</span>Removed</span>
+            — Existing elements are unmarked. Markers carry a glyph and a word, never colour alone, and stay quieter
+            than the element name and its behaviour-type badge. Modified is derived from baseline-comparable fields only.
+          </td>
+        </tr>
+        <tr><th>Behaviour type</th><td><span class="badge-type command">command</span> <span class="badge-type query">query</span> <span class="badge-type event">event</span> — a badge beside the name, never a document section.</td></tr>
+        <tr><th>Relationships</th><td>Hidden until something is selected, then only the connections that belong to that selection appear.</td></tr>
+        <tr><th>Sequence diagrams</th><td>Projected from the scenario’s explicit ordered path through the behaviour graph — the same path, two lens projections.</td></tr>
+        <tr><th>Proposals</th><td>Accepted or rejected whole; the review lists added, changed, removed, specification-only changes and challenged human decisions.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block">
+    <h3>Prototype limits</h3>
+    <p class="lede">
+      Edits, comments and proposal decisions live in memory only and reset on reload. Collaboration is represented
+      (presence, comments, mentions) but not actually live. Layout targets 1280 px and wider. The lens choice is the
+      only state that persists, and only where the browser allows storage.
+    </p>
+  </section>
+</div>
+</body>
+</html>

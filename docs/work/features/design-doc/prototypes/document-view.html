@@ -1,0 +1,1951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design document — reading view</title>
+<style>
+/*
+ * Document view — one specification read top to bottom, edited in a
+ * BlockNote-style editor.
+ *
+ * Goal and business context first, then use cases with their rules, inputs,
+ * outputs and scenarios. Every block is bound to one typed element of the
+ * design-doc schema: there is no free-floating prose, and the slash menu only
+ * offers elements the schema allows at that point.
+ *
+ * Editor chrome follows BlockNote: a hover gutter with add and drag handles on
+ * every block, a slash menu, a selection toolbar, and a threads sidebar for
+ * comments (blocknotejs.org/docs/features/collaboration/comments).
+ *
+ * Tokens follow server/frontend/src/index.css (Claude theme).
+ */
+:root {
+  --background: oklch(0.9818 0.0054 95.0986);
+  --foreground: oklch(0.3438 0.0269 95.7226);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1908 0.002 106.5859);
+  --primary: oklch(0.6171 0.1375 39.0427);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9245 0.0138 92.9892);
+  --secondary-foreground: oklch(0.4334 0.0177 98.6048);
+  --muted-foreground: oklch(0.6059 0.0075 97.4233);
+  --accent: oklch(0.9245 0.0138 92.9892);
+  --border: oklch(0.8847 0.0069 97.3627);
+  --ring: oklch(0.6171 0.1375 39.0427);
+  --sidebar: oklch(0.9663 0.008 98.8792);
+  --state-new: oklch(0.52 0.1 150);
+  --state-mod: oklch(0.52 0.09 75);
+  --state-del: oklch(0.52 0.11 25);
+  --comment: oklch(0.86 0.13 92);
+  --comment-soft: oklch(0.95 0.07 92);
+  --radius: 0.5rem;
+  --shadow-lg: 0 12px 32px -8px hsl(0 0% 0% / 0.22);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+/* Doubled attribute so hiding beats the component display rules below. */
+[hidden][hidden] { display: none; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 15px;
+  line-height: 1.65;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* ------------------------------------------------------------------ chrome */
+
+.topbar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 20px;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.topbar strong { font-size: 14px; font-weight: 600; }
+.topbar .spacer { flex: 1; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 22px; padding: 0 9px; border-radius: 999px;
+  border: 1px solid var(--border); font-size: 12px; color: var(--secondary-foreground);
+}
+.toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); background: var(--card);
+  border-radius: 999px; padding: 3px 11px; font-size: 12.5px;
+  color: var(--secondary-foreground);
+}
+.toggle[aria-pressed="true"] { background: var(--foreground); color: var(--background); border-color: transparent; }
+
+.body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 288px minmax(0, 1fr) 340px; }
+body.no-comments .body { grid-template-columns: 288px minmax(0, 1fr); }
+body.no-comments .threads { display: none; }
+.body > * { min-width: 0; min-height: 0; }
+
+/* --------------------------------------------------------------------- TOC */
+
+.toc {
+  background: var(--sidebar); border-right: 1px solid var(--border);
+  overflow: auto; padding: 16px 12px 60px;
+}
+.toc h2 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--muted-foreground); margin: 0 0 10px; padding: 0 8px;
+}
+.toc a {
+  display: flex; gap: 8px; align-items: baseline;
+  text-decoration: none; color: var(--secondary-foreground);
+  padding: 3px 8px; border-radius: 6px; font-size: 13.5px; line-height: 1.4;
+}
+.toc a:hover { background: var(--accent); }
+.toc a.active { background: var(--card); color: var(--card-foreground); font-weight: 550; box-shadow: inset 0 0 0 1px var(--border); }
+.toc a .num { color: var(--muted-foreground); font-size: 12px; font-variant-numeric: tabular-nums; min-width: 34px; }
+.toc a.lvl-1 { font-weight: 550; margin-top: 10px; }
+.toc a.lvl-2 { padding-left: 16px; font-size: 13px; }
+.toc a.lvl-3 { padding-left: 30px; font-size: 13px; color: var(--muted-foreground); }
+.toc a.lvl-3.active { color: var(--card-foreground); }
+
+/* ---------------------------------------------------------------- document */
+
+.doc { overflow: auto; padding: 40px 24px 240px; }
+.sheet { max-width: 780px; margin: 0 auto; }
+
+.doc-title { font-size: 30px; line-height: 1.2; margin: 0 0 4px; font-weight: 600; }
+.doc-sub { color: var(--muted-foreground); font-size: 13px; margin-bottom: 34px; }
+
+h2.sec {
+  font-size: 21px; font-weight: 600; margin: 46px 0 10px;
+  padding-top: 14px; border-top: 1px solid var(--border);
+  scroll-margin-top: 12px;
+}
+h3.sec { font-size: 17px; font-weight: 600; margin: 34px 0 8px; scroll-margin-top: 12px; }
+h4.sec { font-size: 16px; font-weight: 600; margin: 30px 0 6px; scroll-margin-top: 12px; }
+.sec .num { color: var(--muted-foreground); font-weight: 400; margin-right: 10px; font-variant-numeric: tabular-nums; }
+
+.label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--muted-foreground); margin: 22px 0 4px; font-weight: 600;
+}
+
+/* --------------------------------------------------- BlockNote-style blocks */
+
+.block { position: relative; margin: 6px 0; border-radius: var(--radius); }
+.block > .gutter {
+  position: absolute; left: -52px; top: 2px;
+  display: flex; gap: 2px; opacity: 0; transition: opacity .1s ease;
+}
+.block:hover > .gutter, .block:focus-within > .gutter { opacity: 1; }
+.gutter button {
+  width: 22px; height: 22px; border: 0; border-radius: 5px;
+  background: transparent; color: var(--muted-foreground);
+  display: grid; place-items: center; font-size: 13px; line-height: 1;
+}
+.gutter button:hover { background: var(--accent); color: var(--card-foreground); }
+.gutter .drag { cursor: grab; }
+
+.block > .binding {
+  display: none;
+  position: absolute; right: 2px; top: -16px;
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--muted-foreground);
+  background: var(--secondary); border-radius: 4px; padding: 0 6px;
+  white-space: nowrap; pointer-events: none;
+}
+body.bindings .block > .binding { display: block; }
+body.bindings .block { margin-top: 24px; }
+
+.block.dragging { opacity: .4; }
+.block.drop-before::before, .block.drop-after::after {
+  content: ""; display: block; height: 2px; border-radius: 2px;
+  background: var(--primary); margin: 3px 0;
+}
+.block.flash { animation: flash 1.4s ease-out; }
+@keyframes flash {
+  0%, 40% { background: var(--comment-soft); }
+  100% { background: transparent; }
+}
+
+.prose { white-space: pre-wrap; }
+.lead { font-size: 17px; line-height: 1.55; }
+
+.editable { border-radius: var(--radius); padding: 4px 8px; margin: 0 -8px; }
+.editable:hover { background: color-mix(in oklab, var(--secondary) 40%, transparent); }
+.editable:focus { background: var(--card); box-shadow: 0 0 0 2px var(--ring); outline: none; }
+
+/* List blocks keep their marker even though each item is its own block, the
+   way BlockNote renders list-item blocks. */
+.item { margin-bottom: 2px; padding-left: 22px; position: relative; }
+.item::before {
+  position: absolute; left: 2px; top: 0;
+  color: var(--muted-foreground); font-size: 13px;
+}
+.item.bullet::before { content: "•"; }
+.item.numbered::before { content: attr(data-marker) "."; font-variant-numeric: tabular-nums; }
+.item .item-id {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--muted-foreground);
+  margin-left: 8px; opacity: 0;
+}
+.item:hover .item-id, body.bindings .item .item-id { opacity: 1; }
+.item .measure { color: var(--muted-foreground); font-size: 13px; }
+
+.meta-line { color: var(--muted-foreground); font-size: 13px; margin: 2px 0 14px; }
+.meta-line .k { color: var(--secondary-foreground); }
+
+.badge {
+  display: inline-block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 1px 6px; border-radius: 4px; vertical-align: middle;
+  background: var(--secondary); color: var(--secondary-foreground); margin-left: 8px;
+}
+.badge.command { background: oklch(0.93 0.03 250); color: oklch(0.42 0.1 250); }
+.badge.query { background: oklch(0.94 0.03 190); color: oklch(0.4 0.08 200); }
+.badge.event { background: oklch(0.94 0.04 300); color: oklch(0.43 0.11 300); }
+
+.delta { font-size: 11.5px; font-weight: 500; margin-left: 8px; vertical-align: middle; }
+.delta.new { color: var(--state-new); }
+.delta.modified { color: var(--state-mod); }
+.delta.removed { color: var(--state-del); }
+h4.sec.removed .name { text-decoration: line-through; color: var(--muted-foreground); }
+
+table.fields { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.fields td { padding: 5px 10px 5px 0; vertical-align: top; border-bottom: 1px solid var(--border); }
+table.fields tr:last-child td { border-bottom: 0; }
+table.fields .fname { white-space: nowrap; font-weight: 550; }
+table.fields .ftype { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted-foreground); white-space: nowrap; }
+table.fields .fnote { color: var(--muted-foreground); font-size: 13.5px; }
+
+.scenario { border-left: 2px solid var(--border); padding: 2px 0 2px 14px; }
+.scenario .sc-title { font-weight: 550; }
+.scenario .tags { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); margin-left: 8px; }
+.gherkin { font-size: 14px; margin-top: 4px; }
+.gherkin .g-line { display: flex; gap: 8px; }
+.gherkin .kw { font-weight: 600; color: var(--primary); min-width: 48px; text-align: right; }
+.gherkin .g-block { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); margin: 8px 0 2px; }
+table.examples { border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+table.examples th, table.examples td { border: 1px solid var(--border); padding: 3px 10px; text-align: left; }
+table.examples th { background: var(--secondary); font-weight: 550; }
+
+/* Missing sections are named once, quietly, instead of printing empty boxes. */
+.missing { color: var(--muted-foreground); font-size: 13px; margin-top: 16px; }
+.missing .link {
+  border: 0; background: transparent; padding: 0;
+  color: var(--secondary-foreground); text-decoration: underline;
+  text-decoration-style: dotted; text-underline-offset: 3px; font-size: 13px;
+}
+.missing .link:hover { color: var(--primary); }
+
+/* ------------------------------------------------------------- commenting */
+
+.commented {
+  background: var(--comment-soft);
+  border-bottom: 2px solid var(--comment);
+  cursor: pointer; border-radius: 2px;
+}
+.commented.resolved { background: transparent; border-bottom-color: var(--border); }
+.commented.active { background: color-mix(in oklab, var(--comment) 35%, var(--comment-soft)); }
+
+/* Tracked suggestions, shown inline the way Google Docs shows them: the old
+   wording struck through, the proposed wording underlined beside it. */
+.sug { border-radius: 2px; cursor: pointer; }
+.sug del { text-decoration: line-through; color: var(--state-del); text-decoration-thickness: 1px; }
+.sug ins {
+  text-decoration: underline; text-decoration-thickness: 2px;
+  color: var(--state-new); background: color-mix(in oklab, var(--state-new) 10%, transparent);
+}
+.sug.active { background: color-mix(in oklab, var(--state-new) 16%, transparent); }
+
+.thread.suggestion { border-left: 3px solid var(--state-new); }
+.thread .kind {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+  color: var(--state-new);
+}
+.thread .diff { font-size: 13px; margin: 6px 0 0 29px; }
+.thread .diff del { text-decoration: line-through; color: var(--state-del); }
+.thread .diff ins { text-decoration: none; color: var(--state-new); font-weight: 550; }
+.thread .note { font-size: 12.5px; color: var(--muted-foreground); margin: 6px 0 0 29px; }
+.thread .actions .accept { border-color: var(--state-new); color: var(--state-new); }
+.thread .actions .reject { border-color: var(--border); }
+
+body.mode-suggesting .editable:focus,
+body.mode-suggesting [contenteditable]:focus {
+  box-shadow: 0 0 0 2px var(--state-new);
+}
+
+/* Viewing is read-only: no editor chrome, no caret. */
+body.mode-viewing .gutter,
+body.mode-viewing .sel-toolbar { display: none; }
+body.mode-viewing .editable:hover { background: transparent; }
+
+/* Mode switch, in the shape Google Docs uses: current mode plus a caret,
+   opening a menu of the three modes. */
+.mode-switch {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); background: var(--card);
+  border-radius: 999px; padding: 3px 10px 3px 12px; font-size: 12.5px;
+  color: var(--secondary-foreground);
+}
+.mode-switch:hover { background: var(--accent); }
+.mode-switch .caret { color: var(--muted-foreground); font-size: 10px; }
+body.mode-suggesting .mode-switch { border-color: var(--state-new); color: var(--state-new); }
+
+.mode-menu {
+  position: fixed; z-index: 46; min-width: 300px; padding: 5px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+}
+.mode-menu button {
+  display: grid; grid-template-columns: 22px 1fr 16px; gap: 9px; align-items: baseline;
+  width: 100%; border: 0; background: transparent; text-align: left;
+  padding: 7px 9px; border-radius: 7px; font-size: 13.5px;
+}
+.mode-menu button:hover { background: var(--accent); }
+.mode-menu .desc { grid-column: 2; font-size: 12px; color: var(--muted-foreground); }
+.mode-menu .tick { color: var(--primary); }
+
+.sel-toolbar {
+  position: fixed; z-index: 40; display: flex; gap: 2px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: var(--shadow-lg); padding: 3px;
+}
+.sel-toolbar button {
+  border: 0; background: transparent; border-radius: 5px;
+  padding: 4px 8px; font-size: 13px; display: flex; align-items: center; gap: 6px;
+}
+.sel-toolbar button:hover { background: var(--accent); }
+.sel-toolbar .sep { width: 1px; background: var(--border); margin: 2px 3px; }
+
+/* Agent chat, docked at the bottom of the document column so the threads
+   sidebar stays visible beside it. */
+.chat {
+  position: fixed; z-index: 38; bottom: 0; left: 288px; right: 340px;
+  display: flex; justify-content: center;
+  pointer-events: none;
+}
+body.no-comments .chat { right: 0; }
+.chat-panel {
+  pointer-events: auto;
+  width: min(820px, calc(100% - 32px));
+  background: var(--card);
+  border: 1px solid var(--border); border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column;
+  max-height: 60vh;
+}
+.chat-head {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.chat-head .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--state-new); }
+.chat-head .title { font-weight: 600; font-size: 13.5px; }
+.chat-head .count { color: var(--muted-foreground); font-size: 12px; }
+.chat-head .spacer { flex: 1; }
+.chat-head button {
+  border: 0; background: transparent; border-radius: 5px;
+  width: 24px; height: 24px; display: grid; place-items: center; color: var(--muted-foreground);
+}
+.chat-head button:hover { background: var(--accent); color: var(--card-foreground); }
+
+/* Minimised is the resting state: a round launcher in the bottom-left corner,
+   always reachable. */
+body.chat-min .chat { left: 0; right: auto; bottom: 0; justify-content: flex-start; }
+.chat-launcher {
+  pointer-events: auto;
+  position: relative; margin: 0 0 18px 18px;
+  width: 52px; height: 52px; border-radius: 999px;
+  border: 0; background: var(--primary); color: var(--primary-foreground);
+  box-shadow: var(--shadow-lg);
+  font-size: 21px; line-height: 1;
+  display: grid; place-items: center;
+}
+.chat-launcher:hover { filter: brightness(1.06); }
+.chat-launcher .count-badge {
+  position: absolute; top: -3px; right: -3px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 999px; background: var(--card); color: var(--card-foreground);
+  border: 1px solid var(--border); font-size: 11px; font-weight: 600;
+  display: grid; place-items: center;
+}
+
+.chat-body { overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.msg { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; }
+.msg .avatar {
+  width: 24px; height: 24px; border-radius: 999px; flex: 0 0 auto;
+  display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 600;
+  background: var(--muted-foreground);
+}
+.msg.agent .avatar { background: var(--primary); }
+.mock-tag {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 0 6px; color: var(--muted-foreground);
+}
+.msg .bubble { background: var(--sidebar); border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; }
+.msg.you .bubble { background: var(--card); }
+.msg .bubble .actions { display: flex; gap: 6px; margin-top: 8px; }
+.msg .bubble .actions button {
+  border: 1px solid var(--border); background: var(--card);
+  border-radius: 6px; padding: 2px 9px; font-size: 12px;
+}
+.msg .bubble .actions button:hover { background: var(--accent); }
+
+.chat-context {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 0;
+}
+.ctx-chip {
+  display: inline-flex; align-items: center; gap: 7px; max-width: 100%;
+  background: var(--comment-soft); border: 1px solid var(--comment);
+  border-radius: 999px; padding: 2px 6px 2px 10px; font-size: 12px;
+}
+.ctx-chip .quote { max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-chip .path { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted-foreground); }
+.ctx-chip button { border: 0; background: transparent; padding: 0 4px; color: var(--muted-foreground); }
+
+.chat-foot { padding: 8px 12px 12px; display: flex; gap: 8px; align-items: flex-end; }
+.chat-foot textarea {
+  flex: 1; min-height: 40px; max-height: 140px; resize: vertical; font: inherit; font-size: 13.5px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--card);
+}
+
+/* A block staged for deletion stays in place, struck through, until the
+   suggestion is accepted or rejected. */
+.block.sug-delete {
+  background: color-mix(in oklab, var(--state-del) 7%, transparent);
+  outline: 1px dashed color-mix(in oklab, var(--state-del) 45%, transparent);
+  outline-offset: 3px;
+}
+.block.sug-delete .editable,
+.block.sug-delete .item,
+.block.sug-delete .scenario,
+.block.sug-delete table.fields {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--state-del) 60%, transparent);
+  color: var(--muted-foreground);
+}
+.block.is-empty .editable::before {
+  content: "Empty";
+  color: var(--muted-foreground);
+}
+
+.block-menu {
+  position: fixed; z-index: 46; min-width: 320px; padding: 5px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+}
+.block-menu header {
+  font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted-foreground); padding: 5px 9px;
+}
+.block-menu button {
+  display: flex; width: 100%; gap: 9px; align-items: baseline;
+  border: 0; background: transparent; text-align: left;
+  padding: 6px 9px; border-radius: 6px; font-size: 13.5px;
+}
+.block-menu button:hover { background: var(--accent); }
+.block-menu button[disabled] { color: var(--muted-foreground); cursor: default; }
+.block-menu button[disabled]:hover { background: transparent; }
+.block-menu .danger { color: var(--state-del); }
+.block-menu .hint { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+
+.block-menu .sep { height: 1px; background: var(--border); margin: 5px 4px; }
+
+/* --------------------------------------------------------- threads sidebar */
+
+.threads {
+  border-left: 1px solid var(--border); background: var(--sidebar);
+  display: flex; flex-direction: column;
+}
+.threads-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+.threads-head .title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted-foreground); font-weight: 600; }
+.filters { display: flex; gap: 4px; margin-top: 9px; }
+.filters button {
+  border: 1px solid var(--border); background: var(--card);
+  border-radius: 999px; padding: 2px 11px; font-size: 12.5px; color: var(--secondary-foreground);
+}
+.filters button[aria-pressed="true"] { background: var(--foreground); color: var(--background); border-color: transparent; }
+.threads-list { overflow: auto; padding: 10px; flex: 1 1 auto; }
+
+.thread {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 11px; margin-bottom: 9px; cursor: pointer;
+}
+.thread:hover { border-color: color-mix(in oklab, var(--primary) 35%, var(--border)); }
+.thread.active { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+.thread.resolved { opacity: 0.62; }
+.thread .scope {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted-foreground); margin-bottom: 6px;
+}
+.thread .quote {
+  font-size: 12px; color: var(--muted-foreground);
+  border-left: 2px solid var(--comment); padding-left: 7px; margin-bottom: 8px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.thread .who-row { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
+.thread .avatar {
+  width: 22px; height: 22px; border-radius: 999px; flex: 0 0 auto;
+  display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 600;
+  background: var(--muted-foreground);
+}
+.thread .nm { font-weight: 550; }
+.thread .time { color: var(--muted-foreground); font-size: 11.5px; margin-left: auto; }
+.thread .text { font-size: 13px; margin: 5px 0 0 29px; }
+.thread .text .mention { color: var(--primary); font-weight: 550; }
+.thread .reply { margin: 9px 0 0 12px; padding-left: 12px; border-left: 2px solid var(--border); }
+.thread .actions { display: flex; gap: 6px; margin-top: 9px; }
+.thread .actions button {
+  border: 1px solid var(--border); background: var(--card);
+  border-radius: 6px; padding: 2px 9px; font-size: 12px; color: var(--secondary-foreground);
+}
+.thread .actions button:hover { background: var(--accent); }
+.thread textarea {
+  width: 100%; margin-top: 8px; min-height: 56px; resize: vertical; font: inherit; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; background: var(--card);
+}
+.thread .composer-actions { display: flex; gap: 6px; margin-top: 6px; align-items: center; }
+.thread .composer-actions .hint { font-size: 11.5px; color: var(--muted-foreground); }
+.btn-primary {
+  border: 0; background: var(--primary); color: var(--primary-foreground);
+  border-radius: 6px; padding: 3px 11px; font-size: 12.5px;
+}
+.threads-empty { color: var(--muted-foreground); font-size: 13px; padding: 10px; }
+
+.mention-menu {
+  position: fixed; z-index: 50; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; box-shadow: var(--shadow-lg); padding: 4px; min-width: 220px;
+}
+.mention-menu button {
+  display: flex; gap: 8px; width: 100%; border: 0; background: transparent;
+  padding: 5px 8px; border-radius: 5px; font-size: 13px; text-align: left;
+}
+.mention-menu button:hover { background: var(--accent); }
+.mention-menu .hint { margin-left: auto; color: var(--muted-foreground); font-size: 11.5px; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px;
+  background: var(--foreground); color: var(--background);
+  padding: 8px 14px; border-radius: 999px; font-size: 13px; z-index: 60;
+}
+</style>
+</head>
+<body class="bindings">
+<div class="app">
+  <div class="topbar" id="top"></div>
+  <div class="body">
+    <nav class="toc" id="toc" aria-label="Table of contents"></nav>
+    <main class="doc" id="doc"><div class="sheet" id="sheet"></div></main>
+    <aside class="threads" id="threads" aria-label="Comments"></aside>
+  </div>
+</div>
+
+<script src="sample-data.js"></script>
+<script>
+/*
+ * The document is generated from the sample schema instance. Each render helper
+ * declares the schema element it is bound to, so every block on the page can
+ * say which typed field it writes to — and the slash menu can only offer
+ * elements the schema allows at that point.
+ */
+(() => {
+  const S = window.SAMPLE;
+  const doc = S.doc;
+
+  const byId = {
+    actor: Object.fromEntries(S.actors.map((a) => [a.id, a])),
+    service: Object.fromEntries(
+      S.contexts.flatMap((c) => c.services.map((s) => [s.id, s])),
+    ),
+  };
+  const useCasesByService = {};
+  for (const u of S.useCases) {
+    if (!useCasesByService[u.serviceId]) useCasesByService[u.serviceId] = [];
+    useCasesByService[u.serviceId].push(u);
+  }
+
+  /* ------------------------------------------------------------- helpers */
+
+  const h = (tag, props, ...kids) => {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      el.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+    }
+    return el;
+  };
+  const clear = (el) => { while (el.firstChild) el.removeChild(el.firstChild); return el; };
+  const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const initials = (name) => name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+  let toastEl = null;
+  const toast = (msg) => {
+    if (toastEl) toastEl.remove();
+    toastEl = h('div', { class: 'toast' }, msg);
+    document.body.appendChild(toastEl);
+    const mine = toastEl;
+    setTimeout(() => { if (mine === toastEl) { mine.remove(); toastEl = null; } }, 3200);
+  };
+
+  /* Which typed elements may be inserted at a given binding. The slash menu
+     reads this, so the editor can never produce untyped content. */
+  const ADDABLE = {
+    'designDocument.businessContext[]': [['Context paragraph', 'businessContext[]']],
+    'designDocument.outcomes[]': [['Target outcome', 'outcomes[]']],
+    'designDocument.scope.inScope[]': [['Scope item', 'scope.inScope[]']],
+    'designDocument.scope.outOfScope[]': [['Scope item', 'scope.outOfScope[]']],
+    'actor[]': [['Actor', 'actor[]']],
+  };
+  const USE_CASE_ADDABLE = [
+    ['Rule', 'rules[]'],
+    ['Acceptance scenario', 'acceptanceScenarios[]'],
+    ['Input field', 'input.fields[]'],
+    ['Output field', 'output.fields[]'],
+    ['Quality attribute', 'qualityAttributes[]'],
+    ['Comment', 'comments[]'],
+  ];
+
+  function addablesFor(binding) {
+    if (ADDABLE[binding]) return ADDABLE[binding];
+    const uc = /^useCase\[([^\]]+)\]/.exec(binding);
+    if (uc) return USE_CASE_ADDABLE.map(([name, path]) => [name, `useCase[${uc[1]}].${path}`]);
+    if (binding.startsWith('acceptanceScenario[')) {
+      return [
+        ['Given step', 'steps[]'],
+        ['When step', 'steps[]'],
+        ['Then step', 'steps[]'],
+        ['Examples row', 'examples.rows[]'],
+      ].map(([name, path]) => [name, `${binding}.${path}`]);
+    }
+    /* At document level only the document's own typed children can be added. */
+    return [
+      ['Context paragraph', 'designDocument.businessContext[]'],
+      ['Target outcome', 'designDocument.outcomes[]'],
+      ['Scope item', 'designDocument.scope.inScope[]'],
+      ['Actor', 'actor[]'],
+      ['Use case', 'useCase[]'],
+    ];
+  }
+
+  /* A schema-bound block: content, the element it maps to, and BlockNote-style
+     gutter controls. `group` marks blocks that may be reordered among each
+     other — the schema array they belong to. */
+  const block = (binding, content, opts) => {
+    const o = opts || {};
+    const el = h('div', {
+      class: `block${o.class ? ` ${o.class}` : ''}`,
+      'data-binding': binding,
+      'data-group': o.group || null,
+    },
+      h('span', { class: 'binding' }, binding),
+      h('div', { class: 'gutter' },
+        h('button', {
+          class: 'edit', title: `Edit this block — insert, delete, duplicate (${binding})`,
+          onclick: (e) => openBlockMenu(el, e.currentTarget.getBoundingClientRect()),
+        }, '✎'),
+        h('button', {
+          class: 'drag',
+          title: o.group
+            ? 'Drag to reorder inside this list'
+            : 'This block has a fixed place in the schema',
+          onpointerdown: (e) => startDrag(e, el),
+        }, '⠿')),
+      content);
+    return el;
+  };
+
+  const editable = (text, cls) =>
+    h('div', {
+      class: `editable ${cls || ''}`,
+      contenteditable: 'true',
+      spellcheck: 'false',
+    }, text);
+
+  const label = (text) => h('div', { class: 'label' }, text);
+
+  const delta = (state) =>
+    state && state !== 'existing'
+      ? h('span', {
+        class: `delta ${state}`,
+        title:
+          state === 'new'
+            ? 'Not present in the scanned codebase'
+            : state === 'modified'
+              ? 'A baseline-comparable field differs from the scanned codebase'
+              : 'Present in the scanned codebase, marked here for removal',
+      }, state === 'new' ? '+ new' : state === 'modified' ? '± modified' : '− removed')
+      : null;
+
+  /* --------------------------------------------------------- heading model */
+
+  const outline = []; // {id, level, num, title}
+  let sectionCount = 0;
+
+  const heading = (level, num, title, opts) => {
+    outline.push({ id: opts.id, level, num, title });
+    return h(`h${level + 1}`, { class: `sec${opts.removed ? ' removed' : ''}`, id: opts.id },
+      h('span', { class: 'num' }, num),
+      h('span', { class: 'name' }, title),
+      opts.badge ? h('span', { class: `badge ${opts.badge}` }, opts.badge) : null,
+      delta(opts.state));
+  };
+
+  /* ------------------------------------------------------------- sections */
+
+  const sheet = document.getElementById('sheet');
+
+  function buildDocument() {
+    sheet.append(
+      h('h1', { class: 'doc-title' }, doc.name),
+      h('div', { class: 'doc-sub' },
+        `${doc.status} · updated ${doc.updated} · baseline scan ${doc.baseline.scanId} of ${doc.baseline.repository}`),
+    );
+
+    /* 1 Goal */
+    sectionCount += 1;
+    sheet.append(
+      heading(1, String(sectionCount), 'Goal', { id: 'sec-goal' }),
+      block('designDocument.goal', editable(doc.goal, 'lead')),
+    );
+
+    /* 2 Business context */
+    sectionCount += 1;
+    sheet.append(heading(1, String(sectionCount), 'Business context', { id: 'sec-context' }));
+    for (const p of doc.businessContext) {
+      sheet.append(block('designDocument.businessContext[]', editable(p.text, 'prose'), {
+        group: 'businessContext',
+      }));
+    }
+
+    /* 3 Target outcomes */
+    sectionCount += 1;
+    sheet.append(heading(1, String(sectionCount), 'Target outcomes', { id: 'sec-outcomes' }));
+    for (const o of doc.outcomes) {
+      sheet.append(block('designDocument.outcomes[]',
+        h('div', { class: 'item bullet' },
+          h('span', { contenteditable: 'true', spellcheck: 'false' }, o.text),
+          h('span', { class: 'item-id' }, o.id),
+          h('div', { class: 'measure' }, `measure: ${o.measure}`)),
+        { group: 'outcomes' }));
+    }
+
+    /* 4 Scope */
+    sectionCount += 1;
+    sheet.append(heading(1, String(sectionCount), 'Scope', { id: 'sec-scope' }), label('In scope'));
+    for (const s of doc.scope.inScope) {
+      sheet.append(block('designDocument.scope.inScope[]', scopeItem(s), { group: 'inScope' }));
+    }
+    sheet.append(label('Out of scope'));
+    for (const s of doc.scope.outOfScope) {
+      sheet.append(block('designDocument.scope.outOfScope[]', scopeItem(s), { group: 'outOfScope' }));
+    }
+
+    /* 5 Actors */
+    sectionCount += 1;
+    sheet.append(heading(1, String(sectionCount), 'Actors', { id: 'sec-actors' }));
+    for (const a of S.actors) {
+      sheet.append(block('actor[]',
+        h('div', { class: 'item bullet' },
+          h('strong', { contenteditable: 'true', spellcheck: 'false' }, a.name),
+          delta(a.state),
+          h('span', { class: 'measure' }, ` — ${a.kind === 'human' ? 'human role' : 'external system'}`),
+          h('div', {},
+            h('span', { contenteditable: 'true', spellcheck: 'false' }, a.description))),
+        { group: 'actors' }));
+    }
+
+    /* 6+ Use cases, one numbered section per bounded context */
+    for (const ctx of S.contexts) {
+      sectionCount += 1;
+      const ctxNum = String(sectionCount);
+      sheet.append(
+        heading(1, ctxNum, `${ctx.name} context`, { id: `sec-${ctx.id}`, state: ctx.state }),
+        block(`boundedContext[${ctx.id}]`,
+          h('div', { class: 'meta-line' },
+            `${ctx.services.length} application services · `,
+            `${ctx.services.reduce((n, s) => n + (useCasesByService[s.id] || []).length, 0)} use cases`)),
+      );
+
+      ctx.services.forEach((svc, si) => {
+        const svcNum = `${ctxNum}.${si + 1}`;
+        sheet.append(heading(2, svcNum, svc.name, { id: `sec-${svc.id}`, state: svc.state }));
+        const list = useCasesByService[svc.id] || [];
+        list.forEach((uc, ui) => {
+          renderUseCase(uc, `${svcNum}.${ui + 1}`);
+        });
+      });
+    }
+  }
+
+  const scopeItem = (s) =>
+    h('div', { class: 'item bullet' },
+      h('span', { contenteditable: 'true', spellcheck: 'false' }, s.text),
+      h('span', { class: 'item-id' }, s.id));
+
+  /* ------------------------------------------------------------ use case */
+
+  function renderUseCase(uc, num) {
+    const b = (field) => `useCase[${uc.id}].${field}`;
+    sheet.append(
+      heading(3, num, uc.name, {
+        id: `sec-${uc.id}`,
+        badge: uc.type,
+        state: uc.state,
+        removed: uc.state === 'removed',
+      }),
+      block(b('actors[] · type'),
+        h('div', { class: 'meta-line' },
+          h('span', { class: 'k' }, 'Actors: '),
+          uc.actors.length ? uc.actors.map((id) => byId.actor[id].name).join(', ') : 'none yet',
+          ' · ',
+          h('span', { class: 'k' }, 'Service: '),
+          byId.service[uc.serviceId].name)),
+    );
+    if (uc.summary) sheet.append(block(b('summary'), editable(uc.summary, 'lead')));
+
+    /* Sections in the order fixed by the specification. Empty ones are not
+       printed as empty boxes: they are collected into one quiet line. */
+    const sections = [
+      { name: 'Summary', binding: b('summary'), rendered: !!uc.summary },
+      {
+        name: 'Description',
+        binding: b('description'),
+        blocks: uc.description
+          ? [block(b('description'), editable(uc.description, 'prose'))]
+          : [],
+      },
+      {
+        name: 'Rules',
+        binding: b('rules[]'),
+        blocks: uc.rules.map((r, i) => block(b('rules[]'),
+          h('div', { class: 'item numbered', 'data-marker': String(i + 1) },
+            h('span', { contenteditable: 'true', spellcheck: 'false' }, r.text),
+            h('span', { class: 'item-id' }, `${num}.R${i + 1}`)),
+          { group: `${uc.id}:rules` })),
+      },
+      {
+        name: 'Input',
+        binding: b('input.fields[]'),
+        blocks: uc.input.fields.length ? [block(b('input.fields[]'), fieldTable(uc.input.fields))] : [],
+      },
+      {
+        name: 'Output',
+        binding: b('output.summary + output.fields[]'),
+        blocks: uc.output.summary || uc.output.fields.length
+          ? [block(b('output.summary + output.fields[]'), renderOutput(uc))]
+          : [],
+      },
+      {
+        name: 'Acceptance scenarios',
+        binding: b('acceptanceScenarios[]'),
+        blocks: uc.scenarios.map((sc) => block(`acceptanceScenario[${sc.id}]`, renderScenario(sc), {
+          group: `${uc.id}:scenarios`,
+        })),
+      },
+      {
+        name: 'Quality attributes',
+        binding: b('qualityAttributes[]'),
+        blocks: uc.quality.map((q) => block(b('qualityAttributes[]'),
+          h('div', { class: 'item bullet' },
+            h('strong', {}, `${q.name}: `),
+            h('span', { contenteditable: 'true', spellcheck: 'false' }, q.text)),
+          { group: `${uc.id}:quality` })),
+      },
+    ];
+
+    const missing = [];
+    for (const sec of sections) {
+      if (sec.rendered) continue; // summary is printed above
+      if (!sec.blocks?.length) { missing.push(sec); continue; }
+      sheet.append(label(sec.name), ...sec.blocks);
+    }
+
+    if (missing.length) {
+      sheet.append(h('div', { class: 'missing' },
+        'Not written yet: ',
+        missing.flatMap((sec, i) => [
+          i ? ', ' : '',
+          h('button', {
+            class: 'link',
+            title: sec.binding,
+            onclick: () => toast(`Would start ${sec.name.toLowerCase()} at ${sec.binding}`),
+          }, sec.name.toLowerCase()),
+        ])));
+    }
+  }
+
+  /* One typed field list per direction: business label first, field name and
+     type beside it, so both readerships see the same row. */
+  const fieldTable = (fields) =>
+    h('table', { class: 'fields' }, h('tbody', {}, fields.map((f) =>
+      h('tr', {},
+        h('td', { class: 'fname' },
+          h('span', { contenteditable: 'true', spellcheck: 'false' }, f.label || f.name),
+          delta(f.state)),
+        h('td', { class: 'ftype' }, `${f.name}: ${f.type}`),
+        h('td', { class: 'fnote' }, f.note || '')))));
+
+  function renderOutput(uc) {
+    const rows = [];
+    if (uc.output.summary) {
+      rows.push(h('div', { class: 'prose', style: { marginBottom: '10px' } },
+        h('span', { contenteditable: 'true', spellcheck: 'false' }, uc.output.summary)));
+    }
+    if (uc.output.fields.length) rows.push(fieldTable(uc.output.fields));
+    return h('div', {}, rows);
+  }
+
+  function renderScenario(sc) {
+    const g = h('div', { class: 'gherkin', contenteditable: 'true', spellcheck: 'false' });
+    const line = (s) => h('div', { class: 'g-line' },
+      h('span', { class: 'kw' }, s.kw), h('span', {}, s.text));
+    if (sc.background?.length) {
+      g.append(h('div', { class: 'g-block' }, 'Background'), ...sc.background.map(line));
+      g.append(h('div', { class: 'g-block' }, sc.outline ? 'Scenario Outline' : 'Scenario'));
+    } else if (sc.outline) {
+      g.append(h('div', { class: 'g-block' }, 'Scenario Outline'));
+    }
+    g.append(...sc.steps.map(line));
+    if (sc.examples) {
+      g.append(
+        h('div', { class: 'g-block' }, 'Examples'),
+        h('table', { class: 'examples' },
+          h('thead', {}, h('tr', {}, sc.examples.headers.map((x) => h('th', {}, x)))),
+          h('tbody', {}, sc.examples.rows.map((r) => h('tr', {}, r.map((c) => h('td', {}, c)))))),
+      );
+    }
+    return h('div', { class: 'scenario' },
+      h('div', {},
+        h('span', { class: 'sc-title', contenteditable: 'true', spellcheck: 'false' }, sc.title),
+        sc.outline ? h('span', { class: 'badge' }, 'outline') : null,
+        (sc.tags || []).length ? h('span', { class: 'tags' }, sc.tags.join(' ')) : null),
+      g);
+  }
+
+  /* ------------------------------------------------------------ TOC + spy */
+
+  buildDocument();
+
+  const tocEl = document.getElementById('toc');
+  tocEl.append(h('h2', {}, 'Contents'));
+  const links = new Map();
+  for (const item of outline) {
+    const a = h('a', { href: `#${item.id}`, class: `lvl-${item.level}` },
+      h('span', { class: 'num' }, item.num),
+      h('span', {}, item.title));
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById(item.id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', `#${item.id}`);
+    });
+    links.set(item.id, a);
+    tocEl.append(a);
+  }
+
+  const docEl = document.getElementById('doc');
+  const visible = new Set();
+  const observer = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) visible.add(e.target.id);
+      else visible.delete(e.target.id);
+    }
+    const first = outline.find((i) => visible.has(i.id));
+    if (!first) return;
+    for (const [id, a] of links) a.classList.toggle('active', id === first.id);
+    const active = links.get(first.id);
+    const r = active.getBoundingClientRect();
+    const tr = tocEl.getBoundingClientRect();
+    if (r.top < tr.top + 40 || r.bottom > tr.bottom - 40) active.scrollIntoView({ block: 'center' });
+  }, { root: docEl, rootMargin: '0px 0px -70% 0px', threshold: 0 });
+  for (const item of outline) observer.observe(document.getElementById(item.id));
+
+  /* ------------------------------------------------ block drag and reorder */
+
+  /* Blocks may only be reordered inside the schema array they belong to, so a
+     rule can never be dropped into the scope list. */
+  let drag = null;
+  function startDrag(e, el) {
+    if (!el.dataset.group) {
+      toast('This block has a fixed place in the schema and cannot be moved.');
+      return;
+    }
+    e.preventDefault();
+    drag = { el, group: el.dataset.group, target: null, where: null };
+    el.classList.add('dragging');
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', endDrag, { once: true });
+  }
+  function onDragMove(e) {
+    if (!drag) return;
+    clearDropMarks();
+    const over = document.elementFromPoint(e.clientX, e.clientY);
+    const target = over?.closest(`.block[data-group="${drag.group}"]`);
+    if (!target || target === drag.el) return;
+    const r = target.getBoundingClientRect();
+    drag.where = e.clientY < r.top + r.height / 2 ? 'before' : 'after';
+    drag.target = target;
+    target.classList.add(`drop-${drag.where}`);
+  }
+  function endDrag() {
+    window.removeEventListener('pointermove', onDragMove);
+    if (!drag) return;
+    const { el, target, where } = drag;
+    el.classList.remove('dragging');
+    clearDropMarks();
+    if (target) {
+      target.parentNode.insertBefore(el, where === 'before' ? target : target.nextSibling);
+      renumber(drag.group);
+      toast('Reordered inside the same schema array.');
+      renderThreads();
+    }
+    drag = null;
+  }
+  /* Ordered lists renumber after a move: the marker is the item's position in
+     the schema array, not a stored value. */
+  function renumber(group) {
+    const items = document.querySelectorAll(`.block[data-group="${group}"] .item.numbered`);
+    items.forEach((item, i) => { item.dataset.marker = String(i + 1); });
+  }
+
+  const clearDropMarks = () => {
+    for (const el of document.querySelectorAll('.drop-before, .drop-after')) {
+      el.classList.remove('drop-before', 'drop-after');
+    }
+  };
+
+  /* -------------------------------------------------------- block menu */
+
+  /* What a block is called in the schema, for menu wording and toasts. */
+  const ELEMENT_NAMES = {
+    'designDocument.goal': 'goal',
+    'designDocument.businessContext[]': 'context paragraph',
+    'designDocument.outcomes[]': 'target outcome',
+    'designDocument.scope.inScope[]': 'scope item',
+    'designDocument.scope.outOfScope[]': 'scope item',
+    'actor[]': 'actor',
+  };
+  function elementName(binding) {
+    if (ELEMENT_NAMES[binding]) return ELEMENT_NAMES[binding];
+    if (binding.startsWith('acceptanceScenario[')) return 'acceptance scenario';
+    const field = /useCase\[[^\]]+\]\.(.+)$/.exec(binding);
+    if (!field) return 'block';
+    return {
+      'rules[]': 'rule',
+      'qualityAttributes[]': 'quality attribute',
+      'input.fields[]': 'input field list',
+      'output.summary + output.fields[]': 'output',
+      description: 'description',
+      summary: 'summary',
+      'actors[] · type': 'use-case header',
+    }[field[1]] || field[1];
+  }
+
+  /* Deleting is only offered where the schema allows the element to be absent:
+     list members can go, single fields can be cleared, and the pieces that
+     identify a use case cannot be removed at all. */
+  const REQUIRED = new Set(['designDocument.goal']);
+  const removable = (binding) =>
+    binding.endsWith('[]') || binding.startsWith('acceptanceScenario[');
+  const clearable = (binding) =>
+    !REQUIRED.has(binding) && !binding.includes('actors[] · type') && !binding.startsWith('boundedContext[');
+
+  let blockMenu = null;
+  function openBlockMenu(blockEl, rect) {
+    closeBlockMenu();
+    const binding = blockEl.dataset.binding;
+    const name = elementName(binding);
+    const canRemove = removable(binding);
+    const canClear = clearable(binding);
+    const verb = canRemove ? 'Delete' : 'Clear';
+
+    blockMenu = h('div', { class: 'block-menu', role: 'menu' },
+      h('header', {}, `Insert after this ${name}`),
+      addablesFor(binding).map(([label, path]) =>
+        h('button', {
+          onclick: () => {
+            closeBlockMenu();
+            toast(`Would insert a ${label.toLowerCase()} at ${path}`);
+          },
+        }, `＋ ${label}`, h('span', { class: 'hint' }, path))),
+      h('div', { class: 'sep' }),
+      h('header', {}, `This ${name}`),
+      canRemove
+        ? h('button', {
+          onclick: () => {
+            closeBlockMenu();
+            const copy = blockEl.cloneNode(true);
+            blockEl.after(copy);
+            toast(`Duplicated the ${name}. In the model this appends to ${binding}.`);
+          },
+        }, '⧉ Duplicate', h('span', { class: 'hint' }, binding.split('.').pop()))
+        : null,
+      h('button', {
+        class: canRemove || canClear ? 'danger' : '',
+        disabled: !canRemove && !canClear,
+        onclick: () => { closeBlockMenu(); removeBlock(blockEl, { canRemove, name, binding }); },
+      },
+        canRemove || canClear ? `🗑 ${verb} ${name}` : `🔒 ${name} is required by the schema`,
+        h('span', { class: 'hint' }, binding.split('.').pop())));
+
+    document.body.appendChild(blockMenu);
+    const mr = blockMenu.getBoundingClientRect();
+    blockMenu.style.left = `${Math.min(rect.left, window.innerWidth - mr.width - 12)}px`;
+    blockMenu.style.top = `${Math.min(rect.bottom + 6, window.innerHeight - mr.height - 12)}px`;
+  }
+  function closeBlockMenu() {
+    if (blockMenu) { blockMenu.remove(); blockMenu = null; }
+  }
+  document.addEventListener('click', (e) => {
+    if (blockMenu && !blockMenu.contains(e.target) && !e.target.closest('.gutter')) closeBlockMenu();
+  });
+
+  /* A block's own text, without the gutter glyphs or the binding label. */
+  function blockText(blockEl) {
+    const copy = blockEl.cloneNode(true);
+    for (const chrome of copy.querySelectorAll('.gutter, .binding, .item-id')) chrome.remove();
+    return copy.textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  /* In Editing the removal happens; in Suggesting it is filed like any other
+     suggestion, and the block stays struck through until someone decides. */
+  function removeBlock(blockEl, { canRemove, name, binding }) {
+    if (suggesting()) {
+      const sg = {
+        id: `sg-${Math.random().toString(36).slice(2, 8)}`,
+        kind: 'suggestion',
+        op: 'delete',
+        status: 'pending',
+        binding,
+        quote: blockText(blockEl).slice(0, 120),
+        replacement: '',
+        author: 'You',
+        role: 'Product',
+        time: 'just now',
+        note: `Remove this ${name}.`,
+        blockEl,
+      };
+      suggestions.push(sg);
+      activeThread = sg.id;
+      if (filter === 'resolved') { filter = 'open'; syncFilterButtons('Open'); }
+      renderThreads();
+      toast(`Suggested removing the ${name}. Accept it to take it out of the document.`);
+      return;
+    }
+
+    if (canRemove) {
+      blockEl.remove();
+      toast(`Removed the ${name} from ${binding}.`);
+    } else {
+      for (const field of blockEl.querySelectorAll('[contenteditable]')) field.textContent = '';
+      blockEl.classList.add('is-empty');
+      toast(`Cleared ${binding}. The element stays, holding no content.`);
+    }
+    renderThreads();
+  }
+
+  /* Typing "/" inside a block opens the same single menu, at the caret. */
+  docEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeBlockMenu(); hideSelToolbar(); return; }
+    if (e.key !== '/') return;
+    const blockEl = e.target.closest ? e.target.closest('.block') : null;
+    if (!blockEl) return;
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    setTimeout(() => openBlockMenu(blockEl, r.width || r.height ? r : blockEl.getBoundingClientRect()), 0);
+  });
+
+  /* ----------------------------------------------------- selection toolbar */
+
+  const selToolbar = h('div', { class: 'sel-toolbar', hidden: true },
+    h('button', { title: 'Bold', onclick: () => document.execCommand('bold') }, h('strong', {}, 'B')),
+    h('button', { title: 'Italic', onclick: () => document.execCommand('italic') }, h('em', {}, 'I')),
+    h('div', { class: 'sep' }),
+    h('button', { title: 'Comment on the selected text', onclick: () => startCommentFromSelection() },
+      '💬 Comment'),
+    h('button', { title: 'Ask the design agent about the selected text', onclick: () => askAgentFromSelection() },
+      '✦ Ask agent'));
+  document.body.appendChild(selToolbar);
+
+  let pendingSelection = null;
+  docEl.addEventListener('mouseup', () => setTimeout(updateSelToolbar, 0));
+  docEl.addEventListener('keyup', () => setTimeout(updateSelToolbar, 0));
+
+  function updateSelToolbar() {
+    const sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return hideSelToolbar();
+    const text = sel.toString().trim();
+    const anchorBlock = sel.anchorNode?.parentElement?.closest('.block');
+    if (!text || !anchorBlock) return hideSelToolbar();
+    pendingSelection = { text, binding: anchorBlock.dataset.binding, blockEl: anchorBlock };
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    selToolbar.hidden = false;
+    const tr = selToolbar.getBoundingClientRect();
+    selToolbar.style.left = `${Math.max(12, r.left + r.width / 2 - tr.width / 2)}px`;
+    selToolbar.style.top = `${Math.max(12, r.top - tr.height - 8)}px`;
+  }
+  function hideSelToolbar() { selToolbar.hidden = true; }
+
+  /* ---------------------------------------------------------- threads */
+
+  /* One flat thread list: document-level threads plus every use-case thread,
+     each anchored to the schema element it comments on. */
+  /* Suggestions are proposed wording that is not part of the accepted document
+     until someone accepts it. They share the sidebar with comment threads. */
+  const suggestions = doc.suggestions.map((sg) => ({ ...sg, kind: 'suggestion', status: 'pending' }));
+
+  const threads = [
+    ...doc.comments.map((c) => ({ ...c, scope: 'document' })),
+    ...S.useCases.flatMap((u) => u.comments.map((c) => ({ ...c, scope: u.name, ucId: u.id }))),
+  ];
+  let filter = 'open';
+  let activeThread = null;
+
+  const threadsEl = document.getElementById('threads');
+  const listEl = h('div', { class: 'threads-list' });
+  const filterBtn = (id, text) => h('button', {
+    'aria-pressed': String(filter === id),
+    onclick: (e) => {
+      filter = id;
+      for (const b of e.currentTarget.parentNode.children) {
+        b.setAttribute('aria-pressed', String(b === e.currentTarget));
+      }
+      renderThreads();
+    },
+  }, text);
+  threadsEl.append(
+    h('div', { class: 'threads-head' },
+      h('div', { class: 'title' }, 'Comments'),
+      h('div', { class: 'filters' },
+        filterBtn('open', 'Open'),
+        filterBtn('suggestions', 'Suggestions'),
+        filterBtn('resolved', 'Resolved'),
+        filterBtn('all', 'All'))),
+    listEl);
+
+  /* Anchors: wrap the quoted text inside its bound block so commented text is
+     marked in the document, the way BlockNote marks it. */
+  function applyAnchors() {
+    for (const el of document.querySelectorAll('.commented')) {
+      el.replaceWith(document.createTextNode(el.textContent));
+    }
+    for (const el of document.querySelectorAll('.sug')) {
+      el.replaceWith(document.createTextNode(el.dataset.original));
+      el.parentNode?.normalize();
+    }
+
+    for (const el of document.querySelectorAll('.block.sug-delete')) {
+      el.classList.remove('sug-delete');
+      el.removeAttribute('data-suggestion');
+    }
+
+    /* Suggestions are marked first: a comment quote may sit inside one. */
+    for (const sg of suggestions) {
+      if (sg.status !== 'pending') continue;
+      if (sg.op === 'delete') {
+        if (!sg.blockEl?.isConnected) continue;
+        sg.blockEl.classList.add('sug-delete');
+        sg.blockEl.dataset.suggestion = sg.id;
+        sg.anchorEl = sg.blockEl;
+        continue;
+      }
+      const range = quoteRange(sg.binding, sg.quote);
+      if (!range) continue;
+      const mark = h('span', {
+        class: 'sug',
+        'data-suggestion': sg.id,
+        'data-original': sg.quote,
+        title: `Suggested by ${sg.author}: ${sg.replacement}`,
+        onclick: (e) => { e.stopPropagation(); focusThread(sg.id, false); },
+      });
+      /* surroundContents discards any children the wrapper already has, so the
+         struck-through and inserted wording are added afterwards. */
+      range.surroundContents(mark);
+      clear(mark);
+      mark.append(h('del', {}, sg.quote), ' ', h('ins', {}, sg.replacement));
+      sg.anchorEl = mark;
+    }
+
+    for (const t of threads) {
+      if (!t.anchor) continue;
+      const range = quoteRange(t.anchor.binding, t.anchor.quote);
+      if (!range) continue;
+      const mark = h('span', {
+        class: `commented${t.resolved ? ' resolved' : ''}`,
+        'data-thread': t.id,
+        title: `${t.author}: ${t.body}`,
+        onclick: (e) => { e.stopPropagation(); focusThread(t.id, false); },
+      });
+      range.surroundContents(mark);
+      t.anchorEl = mark;
+    }
+  }
+  /* The range covering `quote` inside the block bound to `binding`. */
+  function quoteRange(binding, quote) {
+    const host = [...document.querySelectorAll(`.block[data-binding="${cssEscape(binding)}"]`)]
+      .find((el) => el.textContent.includes(quote));
+    if (!host) return null;
+    const node = findTextNode(host, quote);
+    if (!node) return null;
+    const idx = node.textContent.indexOf(quote);
+    const range = document.createRange();
+    range.setStart(node, idx);
+    range.setEnd(node, idx + quote.length);
+    return range;
+  }
+
+  const cssEscape = (s) => s.replace(/"/g, '\\"');
+  function findTextNode(root, needle) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      if (walker.currentNode.textContent.includes(needle)) return walker.currentNode;
+    }
+    return null;
+  }
+
+  const linkMentions = (text) => escapeHtml(text).replace(/@([A-Za-z]+)/g, '<span class="mention">@$1</span>');
+
+  function suggestionCard(sg) {
+    const card = h('div', {
+      class: `thread suggestion${activeThread === sg.id ? ' active' : ''}`,
+      'data-thread': sg.id,
+      onclick: () => focusThread(sg.id, true),
+    },
+      h('div', { class: 'kind' }, sg.op === 'delete' ? '🗑 Suggested removal' : '✎ Suggested change'),
+      h('div', { class: 'who-row' },
+        h('span', { class: 'avatar' }, initials(sg.author)),
+        h('span', { class: 'nm' }, sg.author),
+        h('span', { class: 'time' }, sg.time)),
+      sg.op === 'delete'
+        ? h('div', { class: 'diff' }, h('del', {}, sg.quote))
+        : h('div', { class: 'diff' },
+          h('del', {}, sg.quote),
+          ' → ',
+          h('ins', {}, sg.replacement)),
+      sg.note ? h('div', { class: 'note' }, sg.note) : null,
+      h('div', { class: 'actions' },
+        h('button', {
+          class: 'accept',
+          onclick: (e) => { e.stopPropagation(); resolveSuggestion(sg, true); },
+        }, '✓ Accept'),
+        h('button', {
+          class: 'reject',
+          onclick: (e) => { e.stopPropagation(); resolveSuggestion(sg, false); },
+        }, '✕ Reject'),
+        h('button', {
+          onclick: (e) => { e.stopPropagation(); focusThread(sg.id, true); },
+        }, 'Show in document')));
+    return card;
+  }
+
+  /* Accepting writes the proposed wording into the document; rejecting puts the
+     original back. Either way the tracked mark disappears. */
+  function resolveSuggestion(sg, accept) {
+    if (sg.op === 'delete') {
+      if (accept) sg.blockEl?.remove();
+      else sg.blockEl?.classList.remove('sug-delete');
+    } else {
+      const mark = sg.anchorEl || document.querySelector(`.sug[data-suggestion="${sg.id}"]`);
+      if (mark) mark.replaceWith(document.createTextNode(accept ? sg.replacement : sg.quote));
+    }
+    sg.status = accept ? 'accepted' : 'rejected';
+    if (accept) sg.quote = sg.replacement;
+    if (activeThread === sg.id) activeThread = null;
+    renderThreads();
+    toast(accept
+      ? `Accepted ${sg.author}'s suggestion into ${sg.binding}.`
+      : `Rejected ${sg.author}'s suggestion. The document is unchanged.`);
+  }
+
+  function threadCard(t) {
+    const card = h('div', {
+      class: `thread${t.resolved ? ' resolved' : ''}${activeThread === t.id ? ' active' : ''}`,
+      'data-thread': t.id,
+      onclick: () => focusThread(t.id, true),
+    });
+    /* Where in the document this thread hangs: the use case, or the document
+       itself for threads on goal, context, outcomes or scope. */
+    card.append(h('div', { class: 'scope' }, t.scope === 'document' ? 'Document' : t.scope));
+    if (t.anchor) card.append(h('div', { class: 'quote' }, `“${t.anchor.quote}”`));
+    card.append(
+      h('div', { class: 'who-row' },
+        h('span', { class: 'avatar' }, initials(t.author)),
+        h('span', { class: 'nm' }, t.author),
+        h('span', { class: 'time' }, t.time)),
+      h('div', { class: 'text' }),
+    );
+    card.querySelector('.text').innerHTML = t.body
+      ? linkMentions(t.body)
+      : '<span style="color: var(--muted-foreground)">New comment…</span>';
+
+    for (const r of t.replies || []) {
+      const reply = h('div', { class: 'reply' },
+        h('div', { class: 'who-row' },
+          h('span', { class: 'avatar' }, initials(r.author)),
+          h('span', { class: 'nm' }, r.author),
+          h('span', { class: 'time' }, r.time)),
+        h('div', { class: 'text' }));
+      reply.querySelector('.text').innerHTML = linkMentions(r.body);
+      card.append(reply);
+    }
+
+    if (activeThread === t.id && !t.resolved) card.append(composer(t));
+
+    card.append(h('div', { class: 'actions' },
+      h('button', {
+        onclick: (e) => {
+          e.stopPropagation();
+          t.resolved = !t.resolved;
+          toast(t.resolved ? 'Thread resolved.' : 'Thread reopened.');
+          applyAnchors();
+          renderThreads();
+        },
+      }, t.resolved ? 'Reopen' : 'Resolve'),
+      h('button', {
+        onclick: (e) => { e.stopPropagation(); focusThread(t.id, true); },
+      }, 'Show in document'),
+    ));
+    return card;
+  }
+
+  function composer(t) {
+    const ta = h('textarea', {
+      placeholder: t.draft && !t.body
+        ? 'Write a comment… type @ to mention someone'
+        : 'Reply… type @ to mention someone',
+      'aria-label': t.draft && !t.body ? 'New comment' : 'Reply',
+    });
+    ta.addEventListener('click', (e) => e.stopPropagation());
+    ta.addEventListener('input', () => mentionAutocomplete(ta));
+    const send = () => {
+      const text = ta.value.trim();
+      if (!text) return;
+      t.replies = t.replies || [];
+      if (t.draft && !t.body) {
+        t.body = text;
+        t.draft = false;
+      } else {
+        t.replies.push({ author: 'You', role: 'Product', time: 'just now', body: text });
+      }
+      renderThreads();
+      toast('Posted for the people on this document.');
+    };
+    return h('div', {},
+      ta,
+      h('div', { class: 'composer-actions' },
+        h('button', {
+          class: 'btn-primary',
+          onclick: (e) => { e.stopPropagation(); send(); },
+        }, t.draft && !t.body ? 'Comment' : 'Reply'),
+        h('span', { class: 'hint' }, 'Type @ to mention someone')));
+  }
+
+  let mentionMenu = null;
+  function mentionAutocomplete(ta) {
+    if (mentionMenu) { mentionMenu.remove(); mentionMenu = null; }
+    const upto = ta.value.slice(0, ta.selectionStart);
+    const m = /@(\w*)$/.exec(upto);
+    if (!m) return;
+    const q = m[1].toLowerCase();
+    const hits = S.mentionable.filter((p) => p.label.toLowerCase().includes(q) || p.id.includes(q));
+    if (!hits.length) return;
+    mentionMenu = h('div', { class: 'mention-menu' }, hits.map((p) =>
+      h('button', {
+        onclick: (e) => {
+          e.stopPropagation();
+          const insert = p.label.split(' ')[0];
+          ta.value = `${ta.value.slice(0, ta.selectionStart - m[0].length)}@${insert} ${ta.value.slice(ta.selectionStart)}`;
+          mentionMenu.remove();
+          mentionMenu = null;
+          ta.focus();
+        },
+      }, p.label, h('span', { class: 'hint' }, p.hint))));
+    document.body.appendChild(mentionMenu);
+    const r = ta.getBoundingClientRect();
+    mentionMenu.style.left = `${r.left}px`;
+    mentionMenu.style.top = `${r.bottom + 4}px`;
+  }
+
+  /* Threads are ordered by their position in the document, like the BlockNote
+     sidebar's "position" sort. */
+  function documentOrder(t) {
+    if (!t.anchorEl || !t.anchorEl.isConnected) return Number.MAX_SAFE_INTEGER;
+    const all = [...document.querySelectorAll('.commented, .sug')];
+    return all.indexOf(t.anchorEl);
+  }
+
+  const syncFilterButtons = (labelText) => {
+    for (const b of threadsEl.querySelectorAll('.filters button')) {
+      b.setAttribute('aria-pressed', String(b.textContent === labelText));
+    }
+  };
+
+  function renderThreads() {
+    applyAnchors();
+    clear(listEl);
+    const keep = (item) => {
+      const pending = item.kind === 'suggestion' ? item.status === 'pending' : !item.resolved;
+      if (filter === 'all') return true;
+      if (filter === 'suggestions') return item.kind === 'suggestion' && pending;
+      if (filter === 'open') return pending;
+      return !pending;
+    };
+    const shown = [...suggestions, ...threads]
+      .filter(keep)
+      .sort((a, b) => documentOrder(a) - documentOrder(b));
+    if (!shown.length) {
+      listEl.append(h('div', { class: 'threads-empty' },
+        filter === 'suggestions'
+          ? 'No suggestions. Turn on Suggesting and edit any block to propose wording.'
+          : filter === 'open'
+            ? 'Nothing open. Select text in the document to comment or suggest.'
+            : 'Nothing here.'));
+      return;
+    }
+    for (const t of shown) listEl.append(t.kind === 'suggestion' ? suggestionCard(t) : threadCard(t));
+    for (const mark of document.querySelectorAll('.commented')) {
+      mark.classList.toggle('active', mark.dataset.thread === activeThread);
+    }
+    for (const mark of document.querySelectorAll('.sug')) {
+      mark.classList.toggle('active', mark.dataset.suggestion === activeThread);
+    }
+  }
+
+  function focusThread(id, scrollDoc) {
+    activeThread = id;
+    renderThreads();
+    const t = [...suggestions, ...threads].find((x) => x.id === id);
+    const hidden = t
+      && ((t.kind === 'suggestion' && filter === 'resolved')
+        || (t.resolved && filter === 'open'));
+    if (hidden) {
+      filter = 'all';
+      syncFilterButtons('All');
+      renderThreads();
+    }
+    const card = listEl.querySelector(`.thread[data-thread="${id}"]`);
+    if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (scrollDoc && t?.anchorEl) {
+      const blockEl = t.anchorEl.closest('.block');
+      t.anchorEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (blockEl) {
+        blockEl.classList.remove('flash');
+        void blockEl.offsetWidth;
+        blockEl.classList.add('flash');
+      }
+    }
+  }
+
+  /* Commenting on a selection, as in the BlockNote floating composer. */
+  function startCommentFromSelection() {
+    if (!pendingSelection) return;
+    const { text, binding } = pendingSelection;
+    hideSelToolbar();
+    window.getSelection().removeAllRanges();
+    const t = {
+      id: `cm-${Math.random().toString(36).slice(2, 8)}`,
+      anchor: { binding, quote: text },
+      author: 'You',
+      role: 'Product',
+      time: 'just now',
+      body: '',
+      resolved: false,
+      replies: [],
+      scope: 'document',
+      draft: true,
+    };
+    threads.push(t);
+    activeThread = t.id;
+    renderThreads();
+    const card = listEl.querySelector(`.thread[data-thread="${t.id}"]`);
+    const ta = card?.querySelector('textarea');
+    if (ta) {
+      ta.placeholder = 'Write a comment… type @ to mention someone';
+      ta.focus();
+    }
+    toast('Commenting on the selected text.');
+  }
+
+  renderThreads();
+
+  /* ------------------------------------------------------- suggesting mode */
+
+  /* With Suggesting on, an edit does not change the accepted document: the old
+     wording is restored and the new wording is filed as a suggestion for
+     someone to accept or reject, as in Google Docs. */
+  /* Three modes, as in Google Docs: Editing writes straight into the document,
+     Suggesting files edits for review, Viewing is read-only. */
+  const MODES = [
+    ['editing', '✎', 'Editing', 'Edit the document directly'],
+    ['suggesting', '✏️', 'Suggesting', 'Edits become suggestions to accept or reject'],
+    ['viewing', '👁', 'Viewing', 'Read the document without editing it'],
+  ];
+  let mode = 'editing';
+  const suggesting = () => mode === 'suggesting';
+
+  function setMode(next) {
+    mode = next;
+    for (const [id] of MODES) document.body.classList.toggle(`mode-${id}`, id === next);
+    for (const field of document.querySelectorAll('[contenteditable]')) {
+      field.setAttribute('contenteditable', String(next !== 'viewing'));
+    }
+    if (next === 'viewing') hideSelToolbar();
+    if (modeSwitchEl) renderModeSwitch();
+    toast(MODES.find(([id]) => id === next)[3]);
+  }
+
+  let editedText = null;
+  document.body.classList.add('mode-editing');
+
+  /* Track the changed words, not the whole paragraph: strip the shared prefix
+     and suffix, then round out to word boundaries so the mark reads well. */
+  function narrowEdit(before, after) {
+    let start = 0;
+    while (start < before.length && start < after.length && before[start] === after[start]) start += 1;
+    let end = 0;
+    while (
+      end < before.length - start
+      && end < after.length - start
+      && before[before.length - 1 - end] === after[after.length - 1 - end]
+    ) end += 1;
+
+    while (start > 0 && !/\s/.test(before[start - 1])) start -= 1;
+    while (end > 0 && !/\s/.test(before[before.length - end])) end -= 1;
+
+    const quote = before.slice(start, before.length - end).trim();
+    const replacement = after.slice(start, after.length - end).trim();
+    if (!quote || !replacement) return { quote: before, replacement: after };
+    return { quote, replacement };
+  }
+
+  docEl.addEventListener('focusin', (e) => {
+    const field = e.target.closest?.('[contenteditable]');
+    editedText = field ? field.textContent : null;
+  });
+
+  docEl.addEventListener('focusout', (e) => {
+    const field = e.target.closest?.('[contenteditable]');
+    if (!field || editedText === null) return;
+    const before = editedText;
+    const after = field.textContent;
+    editedText = null;
+    if (before === after) return;
+
+    if (!suggesting()) {
+      toast('Saved into the bound schema field.');
+      return;
+    }
+
+    field.textContent = before; // the accepted document is untouched
+    const blockEl = field.closest('.block');
+    const { quote, replacement } = narrowEdit(before, after);
+    const sg = {
+      id: `sg-${Math.random().toString(36).slice(2, 8)}`,
+      kind: 'suggestion',
+      status: 'pending',
+      binding: blockEl ? blockEl.dataset.binding : 'designDocument',
+      quote,
+      replacement,
+      author: 'You',
+      role: 'Product',
+      time: 'just now',
+      note: '',
+    };
+    suggestions.push(sg);
+    activeThread = sg.id;
+    if (filter === 'resolved') { filter = 'open'; syncFilterButtons('Open'); }
+    renderThreads();
+    toast('Filed as a suggestion. Accept it to write it into the document.');
+  });
+
+  /* --------------------------------------------------------- mode switch */
+
+  const modeSwitchEl = h('button', {
+    class: 'mode-switch',
+    'aria-haspopup': 'menu',
+    'aria-expanded': 'false',
+    onclick: (e) => openModeMenu(e.currentTarget),
+  });
+
+  function renderModeSwitch() {
+    const [, icon, name] = MODES.find(([id]) => id === mode);
+    clear(modeSwitchEl);
+    modeSwitchEl.title = `Mode: ${name}`;
+    modeSwitchEl.append(h('span', {}, `${icon} ${name}`), h('span', { class: 'caret' }, '▾'));
+  }
+
+  let modeMenu = null;
+  function openModeMenu(anchorEl) {
+    if (modeMenu) { closeModeMenu(); return; }
+    modeMenu = h('div', { class: 'mode-menu', role: 'menu' }, MODES.map(([id, icon, name, desc]) =>
+      h('button', {
+        role: 'menuitemradio',
+        'aria-checked': String(mode === id),
+        onclick: () => { closeModeMenu(); setMode(id); },
+      },
+        h('span', {}, icon),
+        h('span', {}, name),
+        h('span', { class: 'tick' }, mode === id ? '✓' : ''),
+        h('span', { class: 'desc' }, desc))));
+    document.body.appendChild(modeMenu);
+    anchorEl.setAttribute('aria-expanded', 'true');
+    const r = anchorEl.getBoundingClientRect();
+    const mr = modeMenu.getBoundingClientRect();
+    modeMenu.style.left = `${Math.min(r.left, window.innerWidth - mr.width - 12)}px`;
+    modeMenu.style.top = `${r.bottom + 6}px`;
+  }
+  function closeModeMenu() {
+    if (!modeMenu) return;
+    modeMenu.remove();
+    modeMenu = null;
+    modeSwitchEl.setAttribute('aria-expanded', 'false');
+  }
+  document.addEventListener('click', (e) => {
+    if (modeMenu && !modeMenu.contains(e.target) && !e.target.closest('.mode-switch')) closeModeMenu();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModeMenu(); });
+
+  /* ------------------------------------------------------------ agent chat */
+
+  /* Mocked agent. The surface is real — the marked text and the schema element
+     it belongs to travel with the question — but the replies are canned; no
+     model is called.
+
+     What the user asks for here is applied to the document directly: they
+     initiated it and they are watching the result. Agent work nobody asked for
+     — a new source-code scan, a re-analysis of the model — arrives as a
+     whole-document proposal instead. */
+  /* The chat is always on screen. It rests minimised and expands on demand —
+     with or without marked text. */
+  const chat = {
+    messages: [],
+    contexts: [], // {quote, binding}
+  };
+  document.body.classList.add('chat-min');
+
+  let chatToggleEl = null; // set once the top bar is built
+  const chatPanel = h('div', { class: 'chat-panel' });
+  const chatDock = h('div', { class: 'chat' }, chatPanel);
+  document.body.appendChild(chatDock);
+
+  const chatMinimised = () => document.body.classList.contains('chat-min');
+
+  function renderChat() {
+    if (chatToggleEl) chatToggleEl.setAttribute('aria-pressed', String(!chatMinimised()));
+    clear(chatDock);
+
+    if (chatMinimised()) {
+      chatDock.append(h('button', {
+        class: 'chat-launcher',
+        title: 'Design agent — ask anything, with or without marked text',
+        'aria-label': 'Open the design agent chat',
+        'aria-expanded': 'false',
+        onclick: openChat,
+      },
+        '✦',
+        chat.messages.length ? h('span', { class: 'count-badge' }, String(chat.messages.length)) : null));
+      return;
+    }
+
+    chatDock.append(chatPanel);
+    clear(chatPanel);
+
+    chatPanel.append(
+      h('div', {
+        class: 'chat-head',
+        title: 'Click to minimise or restore',
+        onclick: (e) => { if (!e.target.closest('button')) toggleChatMin(); },
+      },
+        h('span', { class: 'dot' }),
+        h('span', { class: 'title' }, '✦ Design agent'),
+        h('span', { class: 'mock-tag' }, 'mock'),
+        h('span', { class: 'count' },
+          chat.messages.length
+            ? `${chat.messages.length} messages`
+            : 'canned replies — ask anything, or mark text for context'),
+        h('span', { class: 'spacer' }),
+        h('button', {
+          title: 'Minimise the chat',
+          'aria-label': 'Minimise the chat',
+          'aria-expanded': 'true',
+          onclick: toggleChatMin,
+        }, '▾')));
+
+    const body = h('div', { class: 'chat-body' });
+    if (!chat.messages.length) {
+      body.append(h('div', { class: 'threads-empty' },
+        'Mocked for now: the replies are canned. Mark text and choose “Ask agent” to bring it in as context.'));
+    }
+    for (const m of chat.messages) body.append(chatMessage(m));
+    chatPanel.append(body);
+
+    if (chat.contexts.length) {
+      chatPanel.append(h('div', { class: 'chat-context' }, chat.contexts.map((c, i) =>
+        h('span', { class: 'ctx-chip', title: c.binding },
+          h('span', { class: 'quote' }, `“${c.quote}”`),
+          h('span', { class: 'path' }, shortBinding(c.binding)),
+          h('button', {
+            'aria-label': 'Remove this context',
+            onclick: () => { chat.contexts.splice(i, 1); renderChat(); },
+          }, '✕')))));
+    }
+
+    const ta = h('textarea', {
+      placeholder: chat.contexts.length
+        ? 'Ask about the marked text…'
+        : 'Ask the design agent…',
+      'aria-label': 'Message the design agent',
+    });
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    const send = () => {
+      const text = ta.value.trim();
+      if (!text) return;
+      chat.messages.push({
+        role: 'you', author: 'You', body: text, contexts: chat.contexts.slice(),
+      });
+      chat.contexts = [];
+      chat.messages.push(agentReply(text, chat.messages[chat.messages.length - 1].contexts));
+      renderChat();
+      const b = chatPanel.querySelector('.chat-body');
+      if (b) b.scrollTop = b.scrollHeight;
+    };
+    chatPanel.append(h('div', { class: 'chat-foot' },
+      ta,
+      h('button', { class: 'btn-primary', onclick: send }, 'Send')));
+
+    body.scrollTop = body.scrollHeight;
+    if (!chatMinimised() && chat.focusInput) {
+      chat.focusInput = false;
+      ta.focus();
+    }
+  }
+
+  const shortBinding = (b) => b.replace(/^useCase\[[^\]]+\]\./, '').replace(/^designDocument\./, '');
+
+  function chatMessage(m) {
+    const bubble = h('div', { class: 'bubble' });
+    if (m.contexts?.length) {
+      bubble.append(h('div', { class: 'chat-context', style: { padding: '0 0 6px' } },
+        m.contexts.map((c) => h('span', { class: 'ctx-chip' },
+          h('span', { class: 'quote' }, `“${c.quote}”`),
+          h('span', { class: 'path' }, shortBinding(c.binding))))));
+    }
+    bubble.append(h('div', {}, m.body));
+    if (m.apply) {
+      bubble.append(h('div', { class: 'actions' },
+        h('button', {
+          onclick: () => toast('Applied to the document. The change is highlighted, and undoable.'),
+        }, '✓ Apply the change'),
+        h('button', {
+          onclick: () => toast('Nothing changed. The document is untouched.'),
+        }, 'Not now')));
+    }
+    return h('div', { class: `msg ${m.role}` },
+      h('span', { class: 'avatar' }, m.role === 'agent' ? 'AI' : 'Y'),
+      bubble);
+  }
+
+  /* A canned answer: it names the bound schema element, so the reply is about
+     a typed field rather than loose prose. */
+  function agentReply(_question, contexts) {
+    const target = contexts.length ? contexts[0] : null;
+    const where = target
+      ? `${target.binding}${target.quote ? ` — “${target.quote}”` : ''}`
+      : 'this document';
+    return {
+      role: 'agent',
+      author: 'Design agent',
+      apply: true,
+      body:
+        `Looking at ${where}. I can make that change and check it against the rules and ` +
+        'acceptance scenarios that reference the same fields. You asked for it here, so I apply ' +
+        'it to the document and show you what changed — undoable, not a proposal.',
+    };
+  }
+
+  function toggleChatMin() {
+    if (chatMinimised()) { openChat(); return; }
+    document.body.classList.add('chat-min');
+    renderChat();
+  }
+
+  function openChat() {
+    document.body.classList.remove('chat-min');
+    chat.focusInput = true;
+    renderChat();
+  }
+
+  /* Ask the agent about the marked text, as a sibling of the Comment action. */
+  function askAgentFromSelection() {
+    if (!pendingSelection) return;
+    const { text, binding } = pendingSelection;
+    hideSelToolbar();
+    window.getSelection().removeAllRanges();
+    if (!chat.contexts.some((c) => c.quote === text && c.binding === binding)) {
+      chat.contexts.push({ quote: text, binding });
+    }
+    openChat();
+    toast('Added the marked text to the agent chat.');
+  }
+
+  renderChat();
+
+  /* --------------------------------------------------------------- topbar */
+
+  const bindingsToggle = h('button', {
+    class: 'toggle', 'aria-pressed': 'true',
+    title: 'Show which schema element each block is bound to',
+    onclick: (e) => {
+      const on = document.body.classList.toggle('bindings');
+      e.currentTarget.setAttribute('aria-pressed', String(on));
+    },
+  }, 'Schema bindings');
+
+  renderModeSwitch();
+
+  const commentsToggle = h('button', {
+    class: 'toggle', 'aria-pressed': 'true',
+    onclick: (e) => {
+      const off = document.body.classList.toggle('no-comments');
+      e.currentTarget.setAttribute('aria-pressed', String(!off));
+    },
+  }, 'Comments');
+
+  const chatToggle = h('button', {
+    class: 'toggle', 'aria-pressed': 'false',
+    title: 'Open the design agent chat',
+    onclick: toggleChatMin,
+  }, '✦ Ask agent');
+  chatToggleEl = chatToggle;
+
+  document.getElementById('top').append(
+    h('strong', {}, doc.name),
+    h('span', { class: 'chip' }, doc.status),
+    h('span', { class: 'chip' }, `${S.useCases.length} use cases`),
+    h('span', { class: 'spacer' }),
+    modeSwitchEl,
+    bindingsToggle,
+    commentsToggle,
+    chatToggle,
+  );
+})();
+</script>
+</body>
+</html>

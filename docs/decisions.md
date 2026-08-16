@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-08-13_
+_Last updated: 2026-08-16_
 
 ---
 
@@ -700,3 +700,53 @@ a separate feature and decision.
 - The scanner's configuration surface stays minimal: server URL plus
   whatever the ingestion feature defines for authentication; nothing
   project-specific to maintain in repo content or CI variables.
+
+## 49. Design-doc detail panel has a fixed section list; Modified is derived from scanner-comparable fields only
+
+**Context:** The collaborative design-document specification
+(`docs/work/features/design-doc/design-doc.md`) left two questions open that
+blocked the Stage 1 prototype comparison. The use-case detail panel listed
+"likely sections", so three prototypes would each invent their own set and the
+lens comparison would measure section choice rather than interaction model.
+And the Existing / New / Modified / Removed status was said to be derived from
+baseline comparison without saying which field changes count, so a description
+typo could mark an element Modified and the canvas markers would drown the
+element names they are supposed to stay quieter than.
+
+**Decision:**
+
+1. The use-case detail panel has eleven fixed sections in a fixed order:
+   Summary, Actors, Description, Rules, Input, Output, Acceptance scenarios,
+   Quality attributes, Related building blocks, Interaction flow, Comments.
+   Behavior type is a badge beside the name, not a section. A lens hides
+   sections but never reorders or renames them; the Product lens hides only
+   Related building blocks and Interaction flow; an empty section collapses to
+   a quiet add-content prompt rather than disappearing.
+2. An element is Modified when a _baseline-comparable_ field differs from its
+   baseline value — the fields a source-code scanner can populate: name, type,
+   owning application service, actor references, input and output structure,
+   behavior relationships. Design-only fields (summary, description, rules
+   prose, quality attributes, acceptance scenarios, comments) never produce
+   Modified. Codebase-relative state does not propagate upward through
+   containment.
+
+**Rationale:** Both decisions buy quietness without hiding information. Fixing
+the section list makes the single-specification promise observable — Product
+and Technical participants see the same eight of eleven sections, so the lens
+is visibly a filter and not a second document — and it narrows the remaining
+open question to how Input and Output should read in the Product lens. Scoping
+Modified to scanner-comparable fields gives every visible marker one meaning,
+"the source code must change here", and bounds marker count by real code delta
+rather than by editing activity; spec-only additions still surface in proposal
+impact summaries, so review loses nothing. Suppressing upward propagation
+keeps one new use case from lighting up its application service and bounded
+context, which containment in the catalog already communicates.
+
+**Consequences:**
+
+- The design model must distinguish baseline-comparable fields from
+  design-only fields, since only the former participate in comparison.
+- Stage 1 prototypes are comparable on interaction model alone, and share both
+  a sample dataset and a section list.
+- The earlier prototype sketches predate this model and moved to
+  `docs/work/features/design-doc/prior-art/` as reference material.
