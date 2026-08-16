@@ -4,18 +4,14 @@ import { z } from 'zod';
  * The portable design-document specification.
  *
  * Shape follows section 3 of docs/work/features/design-doc/plan.md: a
- * normalised accepted model with stable ids, explicit baseline references and
- * overlays, replacing the previous tree of `added/removed/modified` change
- * sets (specification §14.7).
+ * normalised accepted model with stable ids, replacing the previous tree of
+ * `added/removed/modified` change sets (specification §14.7).
  *
- * Two things are deliberately NOT in this file:
- *
- * - Collaboration objects — comments, suggestions and agent proposals — live
- *   in `design-doc-collaboration.ts`, because they reference the document by
- *   id rather than travelling inside it (specification §14.8).
- * - Codebase-relative state (`existing | new | modified | removed`) is
- *   derived, not stored. Elements carry a baseline snapshot and a removal
- *   intent; `design-doc-baseline.ts` turns those into a state.
+ * Deliberately NOT in this file: collaboration objects — comments,
+ * suggestions and agent proposals — live in `design-doc-collaboration.ts`,
+ * because they reference the document by id rather than travelling inside it
+ * (specification §14.8). Codebase-relative state (the baseline diff) is
+ * deferred to a future iteration (decision 52).
  *
  * Every addressable element carries a stable `id`, unique across the whole
  * document. Ids are what comments, suggestions and agent context point at (see
@@ -40,20 +36,6 @@ export type DesignDocumentStatus = z.infer<typeof DesignDocumentStatusSchema>;
  */
 export const AuthorshipSchema = z.enum(['human', 'agent']);
 export type Authorship = z.infer<typeof AuthorshipSchema>;
-
-/**
- * Codebase-relative state (specification §2.6, decision 49). Derived from
- * baseline-comparable fields only, and never propagated upward through
- * containment. Declared here because it is part of the shared vocabulary;
- * computed in `design-doc-baseline.ts`.
- */
-export const CodebaseStateSchema = z.enum([
-  'existing',
-  'new',
-  'modified',
-  'removed',
-]);
-export type CodebaseState = z.infer<typeof CodebaseStateSchema>;
 
 export const DesignedActorKindSchema = z.enum(['human', 'system']);
 export type DesignedActorKind = z.infer<typeof DesignedActorKindSchema>;
@@ -96,44 +78,12 @@ export type DesignedBuildingBlockType = z.infer<
   typeof DesignedBuildingBlockTypeSchema
 >;
 
-/* ---------------------------------------------------------------- baseline */
-
-/**
- * One source-code scan. The document names the scan it is compared against and
- * whether a newer one is waiting; refreshing to it is an explicit user action,
- * never an automatic rebase (specification §14.9).
- */
-export const BaselineScanSchema = z.object({
-  scanId: z.string(),
-  scannedAt: z.string(),
-  repository: z.string(),
-});
-export type BaselineScan = z.infer<typeof BaselineScanSchema>;
-
-export const BaselineRefSchema = z.object({
-  active: BaselineScanSchema,
-  newer: BaselineScanSchema.nullable().default(null),
-});
-export type BaselineRef = z.infer<typeof BaselineRefSchema>;
-
-/**
- * How an element reconnects to future scans. `sourceRef` is the scanner's own
- * stable handle — a fully qualified name, a symbol id — so a rename in the
- * design document does not read as a new element on the next scan.
- */
-export const ScannerIdentitySchema = z.object({
-  scannerId: z.string(),
-  sourceRef: z.string(),
-});
-export type ScannerIdentity = z.infer<typeof ScannerIdentitySchema>;
-
 /* -------------------------------------------------------- leaf design types */
 
 /**
  * One typed field, in one list per direction (plan §3.4). `label` is the
  * business wording and `name`/`type` the structural truth; both readerships
- * read the same row. Only `name`, `type` and the field set are
- * baseline-comparable — `label` and `note` are design-only (decision 49).
+ * read the same row.
  */
 export const DesignedFieldSchema = z.object({
   id: z.string(),
@@ -269,20 +219,6 @@ export type DesignedScope = z.infer<typeof DesignedScopeSchema>;
 
 /* --------------------------------------------------------------- structure */
 
-export const DesignedActorComparableSchema = z.object({
-  name: z.string(),
-  kind: DesignedActorKindSchema,
-});
-export type DesignedActorComparable = z.infer<
-  typeof DesignedActorComparableSchema
->;
-
-export const DesignedActorBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedActorComparableSchema,
-});
-export type DesignedActorBaseline = z.infer<typeof DesignedActorBaselineSchema>;
-
 /**
  * Actors stay minimal in this iteration (plan §3.2): identity, name, kind and
  * description, listed as a document section. Use cases reference them by id —
@@ -294,53 +230,16 @@ export const DesignedActorSchema = z.object({
   name: z.string(),
   kind: DesignedActorKindSchema,
   description: z.string().default(''),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedActorBaselineSchema.nullable().default(null),
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedActor = z.infer<typeof DesignedActorSchema>;
-
-export const DesignedBoundedContextComparableSchema = z.object({
-  name: z.string(),
-});
-export type DesignedBoundedContextComparable = z.infer<
-  typeof DesignedBoundedContextComparableSchema
->;
-
-export const DesignedBoundedContextBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedBoundedContextComparableSchema,
-});
-export type DesignedBoundedContextBaseline = z.infer<
-  typeof DesignedBoundedContextBaselineSchema
->;
 
 export const DesignedBoundedContextSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().default(''),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedBoundedContextBaselineSchema.nullable().default(null),
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedBoundedContext = z.infer<
   typeof DesignedBoundedContextSchema
->;
-
-export const DesignedDomainModuleComparableSchema = z.object({
-  name: z.string(),
-  boundedContextId: z.string(),
-});
-export type DesignedDomainModuleComparable = z.infer<
-  typeof DesignedDomainModuleComparableSchema
->;
-
-export const DesignedDomainModuleBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedDomainModuleComparableSchema,
-});
-export type DesignedDomainModuleBaseline = z.infer<
-  typeof DesignedDomainModuleBaselineSchema
 >;
 
 /**
@@ -353,32 +252,8 @@ export const DesignedDomainModuleSchema = z.object({
   name: z.string(),
   boundedContextId: z.string(),
   description: z.string().default(''),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedDomainModuleBaselineSchema.nullable().default(null),
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModuleSchema>;
-
-export const DesignedBuildingBlockComparableSchema = z.object({
-  name: z.string(),
-  type: DesignedBuildingBlockTypeSchema.nullable().default(null),
-  boundedContextId: z.string(),
-  domainModuleId: z.string().nullable().default(null),
-  properties: z
-    .array(z.object({ name: z.string(), type: z.string() }))
-    .default([]),
-});
-export type DesignedBuildingBlockComparable = z.infer<
-  typeof DesignedBuildingBlockComparableSchema
->;
-
-export const DesignedBuildingBlockBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedBuildingBlockComparableSchema,
-});
-export type DesignedBuildingBlockBaseline = z.infer<
-  typeof DesignedBuildingBlockBaselineSchema
->;
 
 /**
  * A building block: aggregate, entity, repository, application service and the
@@ -404,28 +279,8 @@ export const DesignedBuildingBlockSchema = z.object({
   description: z.string().default(''),
   implements: z.array(z.string()).default([]),
   properties: z.array(DesignedPropertySchema).default([]),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedBuildingBlockBaselineSchema.nullable().default(null),
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlockSchema>;
-
-export const DesignedBehaviourComparableSchema = z.object({
-  name: z.string(),
-  type: DesignedUseCaseTypeSchema.nullable().default(null),
-  buildingBlockId: z.string(),
-});
-export type DesignedBehaviourComparable = z.infer<
-  typeof DesignedBehaviourComparableSchema
->;
-
-export const DesignedBehaviourBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedBehaviourComparableSchema,
-});
-export type DesignedBehaviourBaseline = z.infer<
-  typeof DesignedBehaviourBaselineSchema
->;
 
 /**
  * One behaviour of one building block — `SlotHold.place()`, `BookAppointment`,
@@ -453,9 +308,6 @@ export const DesignedBehaviourSchema = z.object({
   description: z.string().default(''),
   /** Behavioural scenarios (§11.1). Nothing renders them yet. */
   scenarios: z.array(DesignedScenarioSchema).default([]),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedBehaviourBaselineSchema.nullable().default(null),
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedBehaviour = z.infer<typeof DesignedBehaviourSchema>;
 
@@ -469,37 +321,6 @@ export const DesignedOutputSchema = z.object({
   fields: z.array(DesignedFieldSchema).default([]),
 });
 export type DesignedOutput = z.infer<typeof DesignedOutputSchema>;
-
-/**
- * The baseline-comparable projection of a use case: exactly the fields a
- * source-code scanner can populate (decision 49). Design-only fields — summary,
- * description, rules prose, quality attributes, acceptance scenarios — are
- * absent by construction, so they can never produce a Modified marker.
- */
-export const DesignedUseCaseComparableSchema = z.object({
-  name: z.string(),
-  type: DesignedUseCaseTypeSchema.nullable().default(null),
-  applicationServiceId: z.string().nullable().default(null),
-  actorIds: z.array(z.string()).default([]),
-  input: z.array(z.object({ name: z.string(), type: z.string() })).default([]),
-  output: z.array(z.object({ name: z.string(), type: z.string() })).default([]),
-});
-export type DesignedUseCaseComparable = z.infer<
-  typeof DesignedUseCaseComparableSchema
->;
-
-/**
- * What the last scan saw of an element, kept so Modified can be explained
- * rather than merely asserted (specification §14.9). Absent means the element
- * has no counterpart in the baseline, which is what New means.
- */
-export const DesignedUseCaseBaselineSchema = z.object({
-  scanId: z.string(),
-  comparable: DesignedUseCaseComparableSchema,
-});
-export type DesignedUseCaseBaseline = z.infer<
-  typeof DesignedUseCaseBaselineSchema
->;
 
 /**
  * A first-class use case (specification §14.1): stable identity, one owning
@@ -523,14 +344,6 @@ export const DesignedUseCaseSchema = z.object({
   output: DesignedOutputSchema.default({ summary: '', fields: [] }),
   acceptanceScenarios: z.array(DesignedAcceptanceScenarioSchema).default([]),
   qualityAttributes: z.array(DesignedQualityAttributeSchema).default([]),
-  scanner: ScannerIdentitySchema.nullable().default(null),
-  baseline: DesignedUseCaseBaselineSchema.nullable().default(null),
-  /**
-   * Removed is design intent applied to an element the baseline still contains
-   * (specification §14.9), so the element stays in the document rather than
-   * being deleted from it.
-   */
-  markedForRemoval: z.boolean().default(false),
 });
 export type DesignedUseCase = z.infer<typeof DesignedUseCaseSchema>;
 
@@ -557,6 +370,5 @@ export const DesignDocumentSchema = z.object({
   buildingBlocks: z.array(DesignedBuildingBlockSchema).default([]),
   useCases: z.array(DesignedUseCaseSchema).default([]),
   behaviours: z.array(DesignedBehaviourSchema).default([]),
-  baseline: BaselineRefSchema.nullable().default(null),
 });
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;

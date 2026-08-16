@@ -83,24 +83,12 @@ Human-authored decisions are preserved by default. An agent may challenge them i
 
 ### 2.6 Keep the codebase delta visible
 
-Each design document is created against a source-code baseline supplied by a codebase scanner. Every design element must visibly communicate its relationship to that baseline:
-
-- **Existing:** already present in the scanned codebase and unchanged by this design document.
-- **New:** introduced by this design document and not present in the scanned codebase.
-- **Modified:** present in the scanned codebase but changed by this design document.
-- **Removed:** present in the scanned codebase but marked by this design document for removal.
-
-#### Deriving Modified
-
-An element is Modified when at least one of its **baseline-comparable** fields differs from its baseline value. Baseline-comparable fields are the fields a source-code scanner can populate: name, type, owning application service, actor references, input and output structure, and behavior relationships.
-
-Design-only fields have no baseline counterpart and therefore never produce Modified. These include summary, description, rules prose, quality attributes, acceptance scenarios, and comments. Adding acceptance scenarios to an Existing use case, or rewriting its description, leaves it Existing and unmarked. Such additions still appear in proposal impact summaries, so nothing is hidden from review.
-
-The rule keeps one meaning behind every visible marker: a marker means the source code must change here. It also bounds how many markers a normal document can show, which is what makes a quiet marker treatment affordable.
-
-Codebase-relative state does not propagate upward through containment. A new use case does not make its owning application service Modified; the service is Modified only when its own baseline-comparable fields differ. The new use case carries its own New marker, and the catalog hierarchy already shows where it sits. Without this rule, a single addition would light up its application service and bounded context as well.
-
-This codebase-relative state is independent of document lifecycle, authorship, and proposal state. For example, a human can edit a New element, or an agent proposal can modify an element whose accepted design state is already Modified. A Removed element remains visible in the design document because its planned removal is part of the intended design delta.
+> _Deferred in full to a future iteration (decision 52)._ Comparing the document against a
+> source-code baseline — the Existing / New / Modified / Removed markers, the Deriving-Modified
+> rule, and baseline refresh — is out of this iteration's requirements. The principle to preserve
+> in the meantime: when the feature returns, a visible marker must mean "the source code must
+> change here", derived from scanner-comparable fields only and never propagated upward through
+> containment (decision 49).
 
 ## 3. Users and collaboration model
 
@@ -163,13 +151,10 @@ Blank manual authoring and import workflows are not the primary interaction to o
 
 ### 6.2 Source-code baseline
 
-The source-code scanner supplies building blocks that already exist in the codebase. The design document uses that scan as its comparison baseline and overlays the intended design delta.
-
-The workspace must preserve enough identity to determine whether a design element is Existing, New, Modified, or Removed. This status should remain understandable wherever an element is read, without making the document visually noisy.
-
-The baseline is stable for the duration of normal editing. When a newer source-code scan becomes available, the workspace notifies users but does not automatically change the comparison. A user must explicitly start a baseline refresh. This prevents codebase activity from unexpectedly rewriting the meaning of an in-progress Draft.
-
-Starting a refresh asks an agent to compare the newer scan with both the active baseline and the accepted Draft. If the codebase and Draft changed the same element, the agent prepares a reconciled whole-document proposal. Neither the active baseline nor the accepted Draft changes until a user accepts that proposal.
+> _Deferred in full to a future iteration (decision 52)._ The scan-as-comparison-baseline, the
+> newer-scan notification, and the explicit baseline refresh through a reconciled whole-document
+> proposal all belong to the codebase-delta feature. Until it returns, a document is created and
+> edited without reference to a scan.
 
 ### 6.3 Accepted document and pending proposal
 
@@ -270,9 +255,8 @@ This hybrid ownership enables a use case to:
 ## 8. Main visual canvas
 
 > _Deferred in full._ The first iteration has no canvas: no behaviour map, no selection-based
-> relationship display, no contextual neighbourhood, no layout controls, and no graph editor. The
-> requirement that codebase-relative state stays visible (8.3) still holds and is met in the
-> document. This section describes the later spatial iteration.
+> relationship display, no contextual neighbourhood, no layout controls, and no graph editor.
+> This section describes the later spatial iteration.
 
 ### 8.1 Default content
 
@@ -294,15 +278,9 @@ When a user selects an actor, use case, behavior, or building block, the canvas 
 
 ### 8.3 Codebase-relative visual state
 
-Existing, New, Modified, and Removed elements must be distinguishable wherever model elements are browsed or edited, including:
-
-- the use-case catalog;
-- actor and use-case nodes on the canvas;
-- contextual building-block neighborhoods;
-- the document-style detail panel;
-- proposal impact summaries.
-
-The status treatment should be consistent across Product and Technical lenses. Existing elements form the visually neutral, unmarked baseline. Only New, Modified, and Removed elements receive visible change markers. Those markers must not depend on color alone, and they must remain quieter than the element name and behavior type. The precise combination of label, icon, border, or other treatment will be evaluated in the prototypes.
+> _Deferred with the codebase-delta feature (decision 52)._ When delta markers return, they must
+> be distinguishable wherever model elements are browsed or edited, consistent across lenses,
+> never colour alone, and quieter than the element name and behaviour type.
 
 ### 8.4 Contextual neighborhood
 
@@ -507,7 +485,7 @@ The precise distinction between a use case and a lower-level building-block beha
 
 `DesignedBehaviour.actor: string | null` cannot represent the agreed many-to-many relationship. Use cases should reference actor IDs, and actors should have stable IDs.
 
-> **Settled.** `DesignedUseCase.actorIds: string[]`, against actors with stable IDs. Actor references are baseline-comparable and compare as a set, so reordering them in the document is not mistaken for a code change.
+> **Settled.** `DesignedUseCase.actorIds: string[]`, against actors with stable IDs.
 
 ### 14.3 Replace simple scenario fields with Gherkin structure
 
@@ -549,18 +527,9 @@ The repeated `*_locked` booleans should be reconsidered in favor of provenance m
 
 ### 14.7 Separate current state from proposals
 
-The existing `added`, `removed`, and `modified` change-set shape appears throughout the document tree. The clarified product requirement is that New, Modified, and Removed represent the accepted design's delta from a scanned source-code baseline, rather than merely the contents of a pending agent proposal.
+The existing `added`, `removed`, and `modified` change-set shape appears throughout the document tree. The clarified product requirement is that the accepted specification and the changes contained in a pending agent proposal are distinct: a pending proposal must not change what the accepted document says.
 
-The implementation must represent two distinct dimensions:
-
-1. **Codebase-relative design state:** Existing, New, Modified, or Removed relative to the scanner baseline.
-2. **Proposal state:** accepted specification versus changes contained in a pending proposal.
-
-These dimensions must not be collapsed into one `added` or `modified` flag. Engineering should determine whether the current change-set shape remains the best persisted representation or whether a normalized accepted model plus explicit baseline references and proposal overlays will be easier to query and maintain.
-
-Elements imported from the scanner need stable source identities so the system can distinguish a renamed or edited element from a newly introduced one. An element marked as Removed remains in the design document and should retain its scanner identity and relevant baseline details.
-
-> **Settled as a normalized model with derived state.** Change sets are gone; the document is flat arrays related by ID. Codebase-relative state is computed, not stored: each comparable element holds a snapshot of its baseline-comparable projection plus an explicit `markedForRemoval`, and `design-doc-baseline.ts` derives Existing, New, Modified or Removed from the two. Proposal state is a separate object entirely — a whole-document `DesignDocProposal` held outside the specification.
+> **Settled as a normalized model.** Change sets are gone; the document is flat arrays related by ID. Proposal state is a separate object entirely — a whole-document `DesignDocProposal` held outside the specification. The codebase-relative dimension (Existing / New / Modified / Removed against a scanner baseline) is deferred with the codebase-delta feature (decision 52); when it returns it stays a dimension of its own, never collapsed into a proposal flag.
 
 ### 14.8 Add collaboration metadata outside core domain fields
 
@@ -572,26 +541,12 @@ Comments, mentions, presence, cursors, versions, and provenance are collaborativ
 
 ### 14.9 Track scanner origin and baseline comparison
 
-Elements originating in source code need metadata sufficient to reconnect them to future scans. At minimum, the design model will likely require:
-
-- a stable internal element ID;
-- an optional scanner/source identity;
-- baseline revision or scan identity;
-- codebase-relative state derived as Existing, New, Modified, or Removed;
-- enough accepted baseline data to explain what changed for Modified elements.
-
-The visible Existing, New, and Modified states are derived from baseline comparison rather than manually selected by users, following the derivation rule in section 2.6. The model therefore needs to distinguish baseline-comparable fields from design-only fields, because only the former participate in the comparison. Removed is an explicit design intent applied to an element found in the baseline. Existing remains a queryable state even though it has no marker in the normal interface.
-
-The model must also identify the scan used as the active baseline and whether a newer scan is available. Refreshing to a newer baseline is an explicit user action rather than an automatic background rebase.
-
-A refresh reconciliation should reuse the normal proposal mechanism while retaining enough three-way comparison data to explain:
-
-- what changed between the old and new scans;
-- what the Draft intended to change;
-- how the proposed result reconciles both;
-- which human-authored decisions the agent preserved or challenged.
-
-> **Settled for the model; the reconciliation is phase 7.** Every scannable element carries a `ScannerIdentity` (`scannerId` plus the scanner's own stable `sourceRef`) and a baseline snapshot naming the scan it came from. The document names its active baseline scan and, when there is one, the newer scan available; refreshing is an explicit action. A `DesignDocProposal` carries the whole proposed document, an impact summary with added / changed / removed / specification-only entries, and the human decisions it challenges, each with the agent's reasoning — which is the three-way explanation this section asks for. `checkDesignDocument` warns when an element compares against a scan the document is no longer on, since that quietly produces wrong markers.
+> _Deferred in full to a future iteration (decision 52)._ Scanner identity, baseline snapshots,
+> derived codebase-relative state, newer-scan notification and refresh reconciliation belong to
+> the codebase-delta feature. Element IDs stay stable, so the metadata can be reintroduced
+> without re-anchoring anything. What remains in the model now: a `DesignDocProposal` carries the
+> whole proposed document, an impact summary with added / changed / removed / specification-only
+> entries, and the human decisions it challenges, each with the agent's reasoning.
 
 ## 15. Prototype plan
 
@@ -666,9 +621,7 @@ After comparing the low-fidelity concepts, select or combine the strongest inter
 - The specification is read and edited as one document, in a fixed order, with a table of contents.
 - Every block in the document is bound to exactly one typed schema element. Content cannot be added, moved, or pasted in a way that produces untyped prose.
 - Use cases are the default entry point, grouped bounded context → application service.
-- New, Modified, and Removed elements are visibly marked relative to the scanned codebase; unchanged Existing elements form the neutral baseline.
 - Details are edited in fixed document-like sections. The use-case section list and its order are fixed; a lens may only hide sections.
-- Modified is derived from baseline-comparable fields only, and codebase-relative state does not propagate upward through containment.
 - What a user asks the agent for in chat is applied to the document; agent work nobody asked for arrives as a whole-document proposal. Agents never author suggestions.
 - Suggesting mode is the human review path, with accept and reject per suggestion.
 - Comments address people; agents are asked in the agent chat.
@@ -677,6 +630,7 @@ After comparing the low-fidelity concepts, select or combine the strongest inter
 
 ### Deferred to a later iteration
 
+- The codebase-delta feature: source-code baseline, Existing / New / Modified / Removed markers, scanner identity, and baseline refresh (decision 52).
 - The Product/Technical lens switch, and with it Related building blocks and Interaction flow.
 - The visual canvas: behaviour map, selection-based relationships, contextual neighbourhood, layout controls, graph editing.
 - Sequence diagrams, the behaviour graph they project from, and scenario paths.

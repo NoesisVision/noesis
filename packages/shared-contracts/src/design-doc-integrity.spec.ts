@@ -259,49 +259,6 @@ describe('Gherkin structure', () => {
   });
 });
 
-describe('baseline coherence', () => {
-  it('warns when an element compares against a scan the document is not on', () => {
-    const document = broken((doc) => {
-      const useCase = doc.useCases[0];
-      if (useCase?.baseline) useCase.baseline.scanId = 'scan-2026-05-01';
-    });
-
-    const [issue] = checkDesignDocument(document);
-    expect(issue?.code).toBe('stale-baseline');
-    expect(issue?.message).toContain('scan-2026-07-29');
-    // Wrong delta markers, not a broken document.
-    expect(isConsistentDesignDocument(document)).toBe(true);
-  });
-
-  it('warns when snapshots exist but the document names no baseline', () => {
-    const document = broken((doc) => {
-      doc.baseline = null;
-    });
-
-    expect(new Set(codes(document))).toEqual(new Set(['stale-baseline']));
-  });
-
-  it('warns about removing something the baseline never saw', () => {
-    const document = broken((doc) => {
-      const actor = doc.actors[1];
-      if (actor) actor.markedForRemoval = true;
-    });
-
-    const [issue] = checkDesignDocument(document);
-    expect(issue?.code).toBe('removal-without-baseline');
-    expect(issue?.message).toContain('delete it instead');
-  });
-
-  it('says nothing about an element the baseline does know being removed', () => {
-    const document = broken((doc) => {
-      const actor = doc.actors[0];
-      if (actor) actor.markedForRemoval = true;
-    });
-
-    expect(checkDesignDocument(document)).toEqual([]);
-  });
-});
-
 describe('issue shape', () => {
   it('points every issue at a ref that resolves, and names it in words', () => {
     const document = broken((doc) => {

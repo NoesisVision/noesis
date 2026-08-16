@@ -61,13 +61,6 @@ describe('elementIndex', () => {
     ]);
     expect(index.has('nope')).toBe(false);
   });
-
-  it('does not index the baseline snapshots, which hold no ids', () => {
-    // `baseline.comparable` mirrors a use case's fields but is not an element.
-    for (const path of elementIndex(doc).values()) {
-      expect(path).not.toContain('comparable');
-    }
-  });
 });
 
 describe('refForModelPath', () => {

@@ -1,9 +1,9 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Phase 1 delivered; phases 2–7 ready to break into tasks
+**Status:** Phase 1 delivered; phases 2–6b ready to break into tasks
 **Date:** 2026-08-16
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
-[`design-doc.md`](design-doc.md), and decisions 49, 50 and 51 in `docs/decisions.md`.
+[`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
 **Supersedes:** the Stage 1 three-concept comparison (section 15 of the specification). Those
 prototypes moved to [`prior-art/stage1/`](prior-art/README.md).
 
@@ -30,9 +30,8 @@ Three properties make this work, and they are the ones to protect while building
 1. **Nothing untyped.** Insertion offers only elements the schema allows at that point; reordering
    only moves a block inside its own schema array. A document that cannot hold untyped content stays
    agent-readable by construction.
-2. **Nothing loud.** Codebase-delta markers, provenance and completeness hints stay quieter than the
-   content. Empty sections are named once at the end of a use case rather than printed as empty
-   boxes.
+2. **Nothing loud.** Provenance and completeness hints stay quieter than the content. Empty
+   sections are named once at the end of a use case rather than printed as empty boxes.
 3. **Nothing applied behind the user's back.** What a person asks for is applied and shown; what
    nobody asked for is proposed and reviewed. Suggestions between people are accepted or rejected
    one by one.
@@ -48,7 +47,10 @@ Answers to open questions from section 17 of the specification:
 | 3. Wording of Input and Output for both audiences    | One typed field list per direction carrying **label** (business wording) and **name: Type**; both readerships read the same row.        |
 | 4. Summarising all-or-nothing proposal impact        | Added / changed / removed / specification-only columns plus an explicit "challenges a human decision" block with the agent's reasoning. |
 | 6. Showing human provenance quietly                  | Provenance as a small `person` tag on the element, not a badge on every field.                                                          |
-| 9. Accessible New / Modified / Removed treatment     | `+ new`, `± modified`, `− removed` word-plus-glyph beside the name; Existing unmarked; never colour alone.                              |
+
+The prototype also settled question **9** — an accessible `+ new` / `± modified` / `− removed`
+word-plus-glyph treatment, never colour alone — but the codebase-delta feature it belongs to is now
+deferred whole (decision 52), so the answer is parked with the feature.
 
 Still open for this iteration: **5** (collaboration semantics while a proposal is pending), plus two
 the prototype raised — what happens to a comment or suggestion whose anchor text is edited away, and
@@ -63,30 +65,34 @@ with the Yjs relative positions in phase 4.
 **Out of the first iteration.** The specification carries the whole product direction; this
 iteration deliberately builds less. Not now:
 
-| Deferred                                                                    | Why it can wait                                                                          |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Product/Technical lens (§2.1, §9.2)                                         | One typed field list already serves both audiences; the lens is designed next iteration. |
-| Related building blocks and Interaction flow sections (§9.1 rows 9–10)      | They are the technical half of the lens.                                                 |
-| Behaviour graph, scenario paths, sequence diagrams (§10.2, §12, §14.4–14.5) | Nothing in the document view reads or edits them; they arrive with the Technical lens.   |
-| Visual canvas in every form (§8)                                            | The document replaced it as the primary surface.                                         |
-| Dashboard landing and catalogue filters (§7.1–7.2)                          | The table of contents is the catalogue; a document list belongs to the app shell.        |
-| Building-block behavioural scenarios (§11.1)                                | Acceptance scenarios are what the document shows. The type exists; nothing renders it.   |
-| Agent mentions in comments (§3.2, §13)                                      | Comments are a human conversation; the agent is asked in chat.                           |
+| Deferred                                                                               | Why it can wait                                                                               |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Codebase delta (§2.6, §6.2, §8.3, §14.9): baseline, markers, scanner identity, refresh | Deferred whole (decision 52). Element ids stay stable, so it reattaches without re-anchoring. |
+| Product/Technical lens (§2.1, §9.2)                                                    | One typed field list already serves both audiences; the lens is designed next iteration.      |
+| Related building blocks and Interaction flow sections (§9.1 rows 9–10)                 | They are the technical half of the lens.                                                      |
+| Behaviour graph, scenario paths, sequence diagrams (§10.2, §12, §14.4–14.5)            | Nothing in the document view reads or edits them; they arrive with the Technical lens.        |
+| Visual canvas in every form (§8)                                                       | The document replaced it as the primary surface.                                              |
+| Dashboard landing and catalogue filters (§7.1–7.2)                                     | The table of contents is the catalogue; a document list belongs to the app shell.             |
+| Building-block behavioural scenarios (§11.1)                                           | Acceptance scenarios are what the document shows. The type exists; nothing renders it.        |
+| Agent mentions in comments (§3.2, §13)                                                 | Comments are a human conversation; the agent is asked in chat.                                |
 
 Keep the model lens-ready all the same: a lens must remain a pure presentation filter over the same
 elements, so nothing in the schema or the editor may assume a single audience.
 
 ## 3. Model and schema work
 
-**Delivered in phase 1** (decision 50), across five files in `packages/shared-contracts/src`:
+**Delivered in phase 1** (decision 50), across four files in `packages/shared-contracts/src`:
 
 | File                          | Holds                                                |
 | ----------------------------- | ---------------------------------------------------- |
 | `design-doc.ts`               | The portable specification.                          |
 | `design-doc-ref.ts`           | `ElementRef` and resolution against the document.    |
-| `design-doc-baseline.ts`      | Comparable projections and derived codebase state.   |
 | `design-doc-collaboration.ts` | Comments, suggestions, whole-document proposals.     |
 | `design-doc-integrity.ts`     | Whole-document invariants no element schema can see. |
+
+A fifth file, `design-doc-baseline.ts` (comparable projections and derived codebase state), was
+delivered with phase 1 and then removed when the codebase-delta feature was deferred whole
+(decision 52).
 
 The old tree of `changeSetSchema(...)` wrappers is gone, replaced by flat arrays related by id
 (specification §14.7). Nothing outside the package imported the old schema, so there was no
@@ -133,8 +139,7 @@ UseCase.input  = { fields: Field[] }
 UseCase.output = { summary: string; fields: Field[] }
 ```
 
-`label` is the business wording, `name`/`type` the structural truth, and only `name`, `type` and the
-field set are baseline-comparable (decision 49). The `id` is not in the prototype's shape: without
+`label` is the business wording, `name`/`type` the structural truth. The `id` is not in the prototype's shape: without
 one, a comment on a field row would re-point the moment someone dragged the list, and a field rename
 would orphan it.
 
@@ -196,21 +201,15 @@ about once its mark is gone.
 uniqueness and non-emptiness across the document, every id reference resolving, an
 `applicationServiceId` naming a block of the right type, `useCaseId` and `behaviourId` agreeing, a
 domain module living in its block's bounded context, and examples rows matching their header count.
-Errors mean the document is inconsistent; warnings mean it resolves but will read wrong — a stale
-baseline snapshot quietly produces incorrect delta markers, which is the failure decision 49 exists
-to prevent.
+Errors mean the document is inconsistent; warnings mean it resolves but will read wrong.
 
-### 3.10 Baseline and proposal dimensions (§14.7, §14.9)
+### 3.10 Proposal dimension (§14.7)
 
-Codebase-relative state (`existing | new | modified | removed`) is **derived, not stored**. Each
-comparable element holds a snapshot of its baseline-comparable projection plus an explicit
-`markedForRemoval`, and `design-doc-baseline.ts` turns those into a state and explains the
-difference. The comparable projection has no field for a summary or a rule, so no amount of prose
-editing can produce a Modified marker — decision 49 enforced by construction rather than by
-convention. State never propagates upward through containment.
-
-Alongside it: scanner identity per element, the active baseline scan id plus "newer scan available",
-and proposal state as a separate dimension. Not collapsible into one flag.
+Proposal state lives in its own object — a whole-document `DesignDocProposal` outside the portable
+specification — and a pending proposal never changes what the accepted document says. The
+codebase-relative dimension (baseline snapshots, derived `existing | new | modified | removed`,
+scanner identity, newer-scan tracking) was built in phase 1 and removed when the codebase-delta
+feature was deferred whole (decision 52); decision 49's derivation rule travels with it.
 
 ## 4. Editor
 
@@ -225,7 +224,7 @@ block schema** where each block type maps to one design-doc element:
 | `outcome`          | `designDocument.outcomes[]`                   |
 | `scopeItem`        | `designDocument.scope.{inScope,outOfScope}[]` |
 | `actor`            | `actor[]`                                     |
-| `useCaseHeading`   | `useCase[id]` (name, type badge, delta)       |
+| `useCaseHeading`   | `useCase[id]` (name, type badge)              |
 | `rule`             | `useCase[id].rules[]`                         |
 | `fieldRow`         | `useCase[id].{input,output}.fields[]`         |
 | `scenario`         | `acceptanceScenario[id]`                      |
@@ -237,7 +236,7 @@ code is an `ElementRef` (§3.7); there is no string form of one.
 **Which side holds the truth** (decision 51). BlockNote wraps ProseMirror, which owns its own
 document representation, so a ProseMirror document exists whether or not one is designed. The Yjs
 document holding it is the **stored truth for editing**; `DesignDocument` is the **interchange
-format** — agent output, scanner output, API reads, export, integrity input — derived from the
+format** — agent output, API reads, export, integrity input — derived from the
 Y.Doc on read. It may be cached, invalidated on update, but it is a cache and never a second store.
 
 The custom block schema is therefore the mechanism by which "nothing untyped" is enforced rather
@@ -285,9 +284,8 @@ from the first line rather than retrofitted onto a single-user one.
   anchored text at once.
 
 **Seeding a document.** Every write from outside the editor is whole-document replacement: initial
-creation from the agent, an accepted proposal, a scanner import, a baseline refresh. One
-`toBlocks(document)` function serves all four, and no incremental external change is ever merged
-into live editor state. The pipeline is validate then seed:
+creation from the agent and an accepted proposal. One `toBlocks(document)` function serves both,
+and no incremental external change is ever merged into live editor state. The pipeline is validate then seed:
 
 ```
 DesignDocumentSchema.parse  →  checkDesignDocument  →  toBlocks  →  seed the Y.Doc, persist
@@ -318,12 +316,11 @@ seeding runs headless, block-to-ProseMirror conversion must work outside a brows
 - **What the user asked for is applied; what the user did not ask for is proposed.** A change the
   user requests in chat lands in the document directly — they initiated it, they are reading the
   result, and undo is the remedy. A change nobody asked for arrives as a **whole-document proposal**
-  (specification §6.3–6.4): agent work triggered by an as-is model change — a new source-code scan,
-  a baseline refresh, a re-analysis of the existing model — plus anything else the agent starts on
-  its own. Proposals are reviewed and accepted whole.
+  (specification §6.3–6.4): a re-analysis of the existing model, plus anything else the agent
+  starts on its own. Proposals are reviewed and accepted whole. (Scan-driven triggers arrive with
+  the codebase-delta feature, decision 52.)
 - Consequently the agent never authors **suggestions**. Suggesting mode is the human review path:
   people propose wording to each other and accept or reject it individually.
-- Baseline refresh reuses the proposal mechanism with three-way comparison (§14.9).
 
 ## 7. Delivery phases
 
@@ -331,14 +328,15 @@ Each phase ends with something reviewable in the running app.
 
 **Phase 1 — Model. Done.** The schema from section 3, `design-doc.ts` replaced in place, the
 ref ↔ model-path mapping tested both directions over every addressable position in a fixture
-document, derived codebase state, and the whole-document integrity check. No UI. Beyond what this
-section originally scoped, phase 1 also restored the technical vocabulary (§3.6), folded the
-application-service record into `DesignedBuildingBlock`, and dropped the binding string form
-(§3.7).
+document, and the whole-document integrity check. No UI. Beyond what this section originally
+scoped, phase 1 also restored the technical vocabulary (§3.6), folded the application-service
+record into `DesignedBuildingBlock`, and dropped the binding string form (§3.7). Derived codebase
+state was delivered here and removed again when the codebase-delta feature was deferred
+(decision 52).
 
 **Phase 2 — Read-only document.** Render a stored design document in the reading order, with the
-table of contents, numbering, scroll-spy, delta markers and the "not written yet" line. Viewing mode
-only. This is the first thing to put in front of a product reviewer.
+table of contents, numbering, scroll-spy and the "not written yet" line. Viewing mode only. This is
+the first thing to put in front of a product reviewer.
 
 **Phase 3 — Typed collaborative editing.** BlockNote with the custom block schema on a Yjs document:
 filtered block menu, constrained drag and drop, schema-aware deletion, `toBlocks` seeding, and the
@@ -360,11 +358,12 @@ in.
 **Phase 6b — Real agent.** Replace the canned replies with the model, keeping the proposal contract
 unchanged.
 
-**Phase 7 — Scanner baseline.** Baseline comparison producing the delta markers from real scans,
-newer-scan notification, and explicit refresh through a reconciled proposal.
+The scanner-baseline phase that used to follow (delta markers from real scans, newer-scan
+notification, refresh through a reconciled proposal) moved out of this iteration with the
+codebase-delta feature (decision 52).
 
-Phases 2–3 are the minimum for internal use; 4–5 make it reviewable together; 6–7 close the loop
-with agents and the codebase.
+Phases 2–3 are the minimum for internal use; 4–5 make it reviewable together; 6 closes the loop
+with the agent.
 
 ## 8. Risks
 

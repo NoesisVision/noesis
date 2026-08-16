@@ -944,3 +944,38 @@ document, and Yjs merges both.
   acceptable while undo is within reach.
 - Document-wide unique ids (decision 50) become load-bearing twice over, since
   they are now also the editor's block ids.
+
+## 52. The codebase-delta feature is deferred whole to a future iteration
+
+**Context:** Phase 1 of the design-document workspace delivered the
+codebase-baseline model alongside the portable specification: scanner identity
+per element, baseline snapshots of scanner-comparable projections, derived
+Existing / New / Modified / Removed state (`design-doc-baseline.ts`), the
+active-scan reference with newer-scan tracking, and the integrity warnings
+that kept them coherent. Nothing consumed any of it — no scanner feeds the
+model yet, no UI renders a delta marker, and the scanner-baseline delivery
+phase sat last in the plan behind everything the first iteration actually
+ships.
+
+**Decision:** Remove the codebase-delta feature from this iteration's
+requirements and plan entirely, and reintroduce it in a future iteration.
+Removed from the model: `ScannerIdentity`, per-element `baseline` snapshots
+and `*Comparable` projections, `markedForRemoval`, the document-level
+`BaselineRef`, `CodebaseState`, `design-doc-baseline.ts`, the `stale-baseline`
+and `removal-without-baseline` integrity warnings, and the `source_scan` and
+`baseline_refresh` proposal triggers. Specification sections 2.6, 6.2, 8.3 and
+14.9 are marked deferred; the scanner-baseline phase left the plan.
+
+**Consequences:**
+
+- The first iteration's document carries design intent only; nothing in it
+  claims a relationship to scanned source code.
+- Element ids stay stable and document-wide unique (decision 50), so baseline
+  metadata can be reattached later without re-anchoring comments, suggestions
+  or proposals.
+- Decision 49's derivation rule (Modified from scanner-comparable fields only,
+  no upward propagation) travels with the feature and binds its future
+  reintroduction rather than current code.
+- Proposals keep the impact-summary and challenged-decision shape, which is
+  independent of baseline comparison; scan-driven triggers return with the
+  feature.

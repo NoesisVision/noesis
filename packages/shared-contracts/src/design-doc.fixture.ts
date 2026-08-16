@@ -4,9 +4,8 @@ import { type DesignDocument, DesignDocumentSchema } from './design-doc.js';
  * A small but structurally complete design document, used by the design-doc
  * specs. Trimmed from the appointment-booking sample the prototypes render
  * (docs/work/features/design-doc/prototypes/sample-data.js), keeping one of
- * every shape: a plain scenario and an outline with examples, a use case that
- * is Modified against the baseline and one that is New, and an actor the
- * baseline does not know.
+ * every shape: a plain scenario and an outline with examples, a paired
+ * entry-point behaviour and an interior one, human and agent authorship.
  */
 export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
   id: 'doc-appointments',
@@ -41,29 +40,12 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
     ],
     outOfScope: [{ id: 'sc-out-1', text: 'Clinician rota planning.' }],
   },
-  baseline: {
-    active: {
-      scanId: 'scan-2026-07-29',
-      scannedAt: '2026-07-29',
-      repository: 'clinic-platform',
-    },
-    newer: {
-      scanId: 'scan-2026-08-15',
-      scannedAt: '2026-08-15',
-      repository: 'clinic-platform',
-    },
-  },
   actors: [
     {
       id: 'act-patient',
       name: 'Patient',
       kind: 'human',
       description: 'Books, reschedules and cancels their own appointments.',
-      scanner: { scannerId: 'java', sourceRef: 'clinic.booking.Patient' },
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: { name: 'Patient', kind: 'human' },
-      },
     },
     {
       id: 'act-payments',
@@ -73,26 +55,9 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
         'Authorises and captures the deposit that secures a booking.',
     },
   ],
-  boundedContexts: [
-    {
-      id: 'bc-scheduling',
-      name: 'Scheduling',
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: { name: 'Scheduling' },
-      },
-    },
-  ],
+  boundedContexts: [{ id: 'bc-scheduling', name: 'Scheduling' }],
   domainModules: [
-    {
-      id: 'dm-booking',
-      name: 'Booking',
-      boundedContextId: 'bc-scheduling',
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: { name: 'Booking', boundedContextId: 'bc-scheduling' },
-      },
-    },
+    { id: 'dm-booking', name: 'Booking', boundedContextId: 'bc-scheduling' },
   ],
   buildingBlocks: [
     {
@@ -101,16 +66,6 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
       type: 'application_service',
       boundedContextId: 'bc-scheduling',
       domainModuleId: 'dm-booking',
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: {
-          name: 'BookingService',
-          type: 'application_service',
-          boundedContextId: 'bc-scheduling',
-          domainModuleId: 'dm-booking',
-          properties: [],
-        },
-      },
     },
     {
       id: 'bb-slot-hold',
@@ -256,25 +211,6 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
           type: 'performance',
         },
       ],
-      scanner: {
-        scannerId: 'java',
-        sourceRef: 'clinic.booking.BookAppointment',
-      },
-      // The scan saw this command without the deposit, so it reads as Modified.
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: {
-          name: 'Book appointment',
-          type: 'Command',
-          applicationServiceId: 'svc-booking',
-          actorIds: ['act-patient'],
-          input: [
-            { name: 'patientId', type: 'PatientId' },
-            { name: 'slotId', type: 'TimeSlotId' },
-          ],
-          output: [{ name: 'appointmentId', type: 'AppointmentId' }],
-        },
-      },
     },
     {
       id: 'uc-send-reminder',
@@ -299,14 +235,6 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
       type: 'Command',
       buildingBlockId: 'svc-booking',
       useCaseId: 'uc-book',
-      baseline: {
-        scanId: 'scan-2026-07-29',
-        comparable: {
-          name: 'Book appointment',
-          type: 'Command',
-          buildingBlockId: 'svc-booking',
-        },
-      },
     },
     {
       id: 'b-hold-place',

@@ -84,9 +84,9 @@ describe('DesignDocProposalSchema', () => {
     const proposal = DesignDocProposalSchema.parse({
       id: 'p-1',
       documentId: designDocFixture.id,
-      trigger: 'source_scan',
+      trigger: 're_analysis',
       createdAt: '2026-08-15T07:00:00Z',
-      rationale: 'The 15 August scan adds a deposit ledger.',
+      rationale: 'Re-analysing the model surfaced a missing refund flow.',
       document: designDocFixture,
       impact: {
         added: [{ ref: elementRef('uc-refund'), label: 'Refund deposit' }],
@@ -94,7 +94,7 @@ describe('DesignDocProposalSchema', () => {
           {
             ref: slotRef('uc-book', 'summary'),
             label: 'Summary reworded',
-            note: 'No codebase delta.',
+            note: 'Wording only.',
           },
         ],
       },

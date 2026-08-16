@@ -10,7 +10,6 @@
 export * from './assert-never.js';
 export * from './decision.js';
 export * from './design-doc.js';
-export * from './design-doc-baseline.js';
 export * from './design-doc-collaboration.js';
 export * from './design-doc-integrity.js';
 export * from './design-doc-ref.js';

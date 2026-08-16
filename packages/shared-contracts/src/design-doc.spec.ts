@@ -20,7 +20,6 @@ describe('DesignDocumentSchema', () => {
     expect(result.buildingBlocks).toEqual([]);
     expect(result.useCases).toEqual([]);
     expect(result.behaviours).toEqual([]);
-    expect(result.baseline).toBeNull();
   });
 
   it('round-trips the fixture unchanged', () => {
@@ -47,7 +46,6 @@ describe('DesignDocumentSchema', () => {
       'buildingBlocks',
       'useCases',
       'behaviours',
-      'baseline',
     ]);
   });
 });
@@ -114,14 +112,6 @@ describe('DesignedUseCaseSchema', () => {
     expect(useCase.output).toEqual({ summary: '', fields: [] });
     expect(useCase.acceptanceScenarios).toEqual([]);
     expect(useCase.qualityAttributes).toEqual([]);
-  });
-
-  it('treats an unscanned use case as having no baseline and no removal intent', () => {
-    const useCase = DesignedUseCaseSchema.parse({ id: 'uc-1', name: 'Book' });
-
-    expect(useCase.scanner).toBeNull();
-    expect(useCase.baseline).toBeNull();
-    expect(useCase.markedForRemoval).toBe(false);
   });
 
   it('carries one typed field list per direction, labels and all', () => {

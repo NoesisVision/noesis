@@ -25,9 +25,7 @@ import {
  *   resolves to the wrong kind of thing is worse, because it looks fine.
  *
  * Errors mean the document is inconsistent. Warnings mean it parses and
- * resolves but will read wrong — a stale baseline snapshot quietly produces
- * incorrect delta markers, which is exactly the failure decision 49 exists to
- * prevent.
+ * resolves but will read wrong.
  *
  * Each issue carries a `ref` for a caller to navigate to and a `message` that
  * names the element in words, so neither side needs a rendered path.
@@ -53,8 +51,6 @@ export type DesignDocIssueCode =
   | 'context-mismatch'
   | 'malformed-examples'
   | 'duplicate-actor-reference'
-  | 'stale-baseline'
-  | 'removal-without-baseline'
   | 'outline-without-examples'
   | 'examples-without-outline';
 
@@ -428,56 +424,6 @@ export function checkDesignDocument(
       here,
       `Behaviour ${quoted(behaviour.name)} claims to be the entry point of ${quoted(useCase.name)}, but that use case names ${useCase.behaviourId === null ? 'no behaviour' : quoted(useCase.behaviourId)}.`,
     );
-  }
-
-  /* ------------------------------------------------------------- baseline */
-
-  const activeScanId = document.baseline?.active.scanId ?? null;
-
-  const checkBaseline = (
-    path: ModelPath,
-    element: {
-      readonly name: string;
-      readonly baseline: { readonly scanId: string } | null;
-      readonly markedForRemoval: boolean;
-    },
-  ): void => {
-    const here = at(path);
-    if (element.baseline === null) {
-      if (element.markedForRemoval) {
-        add(
-          'removal-without-baseline',
-          'warning',
-          here,
-          `${quoted(element.name)} is marked for removal but the baseline has never seen it, so there is nothing in the codebase to remove — delete it instead.`,
-        );
-      }
-      return;
-    }
-    if (element.baseline.scanId === activeScanId) return;
-    add(
-      'stale-baseline',
-      'warning',
-      here,
-      activeScanId === null
-        ? `${quoted(element.name)} compares against scan ${quoted(element.baseline.scanId)} but the document names no active baseline.`
-        : `${quoted(element.name)} compares against scan ${quoted(element.baseline.scanId)} while the document's baseline is ${quoted(activeScanId)}, so its delta marker may be wrong.`,
-    );
-  };
-
-  const snapshotted = [
-    ['actors', document.actors],
-    ['boundedContexts', document.boundedContexts],
-    ['domainModules', document.domainModules],
-    ['buildingBlocks', document.buildingBlocks],
-    ['useCases', document.useCases],
-    ['behaviours', document.behaviours],
-  ] as const;
-
-  for (const [collection, elements] of snapshotted) {
-    for (const [index, element] of elements.entries()) {
-      checkBaseline([collection, index], element);
-    }
   }
 
   return issues;

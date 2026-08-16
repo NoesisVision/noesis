@@ -93,13 +93,12 @@ export type DesignDocSuggestion = z.infer<typeof DesignDocSuggestionSchema>;
 /* --------------------------------------------------------------- proposals */
 
 /**
- * What set the agent working. Every trigger is an as-is model change or the
- * agent's own initiative — never a user request, because a user request is
- * applied directly (plan §6).
+ * What set the agent working. Every trigger is the agent's own initiative or a
+ * re-analysis of the existing model — never a user request, because a user
+ * request is applied directly (plan §6). Scan-driven triggers arrive with the
+ * codebase-baseline feature in a future iteration (decision 52).
  */
 export const DesignDocProposalTriggerSchema = z.enum([
-  'source_scan',
-  'baseline_refresh',
   're_analysis',
   'agent_initiated',
 ]);
@@ -125,8 +124,8 @@ export type DesignDocImpactEntry = z.infer<typeof DesignDocImpactEntrySchema>;
 
 /**
  * The four columns of the impact summary. `specificationOnly` holds changes
- * that alter the document without changing what the codebase must do — they
- * produce no delta marker, so review would otherwise never see them.
+ * that alter the document without changing what the codebase must do, so
+ * review would otherwise never see them.
  */
 export const DesignDocProposalImpactSchema = z.object({
   added: z.array(DesignDocImpactEntrySchema).default([]),
@@ -155,11 +154,8 @@ export type DesignDocChallengedDecision = z.infer<
 /**
  * A whole-document proposal (specification §6.3–6.4). Accepted or rejected as
  * a unit — there is no field-by-field acceptance — so it carries the complete
- * proposed document rather than a patch.
- *
- * Proposal state is a separate dimension from codebase-relative state
- * (specification §14.7): a pending proposal does not change what the accepted
- * document says about the codebase.
+ * proposed document rather than a patch. A pending proposal does not change
+ * what the accepted document says (specification §14.7).
  */
 export const DesignDocProposalSchema = z.object({
   id: z.string(),
