@@ -1,6 +1,7 @@
 import type { LinkProps } from '@tanstack/react-router';
 import {
   FileTextIcon,
+  InboxIcon,
   LayoutDashboardIcon,
   type LucideIcon,
   SettingsIcon,
@@ -17,6 +18,9 @@ export interface ShellNavItem {
 // One list, two consumers: the sidebar renders it and the command palette
 // turns it into navigation commands, so a new view is added in one place.
 export const SHELL_NAV_ITEMS: ShellNavItem[] = [
+  // Inbox leads: it is where reaction-worthy signals wait, so it is the first
+  // thing a returning team member checks.
+  { viewId: 'inbox', title: 'Inbox', to: '/inbox', icon: InboxIcon },
   {
     viewId: 'dashboard',
     title: 'Dashboard',
