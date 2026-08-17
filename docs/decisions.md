@@ -1126,3 +1126,58 @@ collaborators' edits instead of only one's own.
   working-looking editor) is invisible to the backend suites; only a
   browser-driven check catches it. Until an e2e harness for the frontend
   exists, changes to the provider lifecycle warrant a manual two-tab test.
+
+## 55. Comments are BlockNote's comments feature over a `YjsThreadStore` in the shared Y.Doc
+
+**Status: draft** (2026-08-17)
+
+**Context:** Phase 4 of the design-doc plan needs threads with replies,
+resolution, filters and people mentions, anchored to substrings that survive
+concurrent editing. The plan already settles the anchor model: an element-id
+`ElementRef` for what a thread is about, plus a mark carried in the shared
+document for the position inside it, with the quoted text as evidence
+(plan sections 3.8 and 4). BlockNote 0.54 — already the editor — ships a
+complete comments feature: a `CommentsExtension` whose comment mark is a
+ProseMirror mark synced through the collaboration fragment, UI components
+(floating composer, floating thread, a threads sidebar with filter and
+position sort), a `resolveUsers` user cache, and pluggable thread stores.
+Three storage options were considered: hand-rolled thread records behind REST
+endpoints with custom marks (rebuilds what the library ships, and polling or
+a second channel for liveness); `RESTYjsThreadStore` (server-authoritative
+writes, live reads from the Y.Doc — new routes plus server-side writes into
+the hosted document); and `YjsThreadStore` (threads in a `Y.Map` of the same
+Y.Doc, client-side writes).
+
+**Decision:**
+
+- **`CommentsExtension` supplies the mark and the UI.** The comment mark
+  travels in the shared fragment, which is exactly the durable substring
+  anchor the plan asks for — no text re-matching, no custom mark schema.
+- **Threads live in a `threads` `Y.Map` inside the design document's own
+  Y.Doc, through `YjsThreadStore`.** Sync arrives over the existing `/collab`
+  surface and persistence over the existing `onStoreDocument` hook
+  (`Y.encodeStateAsUpdate` covers the whole document, map included) — no new
+  transport, storage, or routes. The store is keyed by the account login,
+  with `DefaultThreadStoreAuth` in the `editor` role.
+- **Thread `metadata` carries the plan's anchor pair `{ elementId, quote }`**
+  captured at creation, so an orphaned mark degrades a thread to its element
+  with the quote as evidence rather than to a dangling pointer.
+- **`resolveUsers` reads a new `/ui/accounts` endpoint** serving
+  `{ id, name, avatarUrl }` from `Account` nodes; the same list feeds the
+  mention menu. The instance is invite-gated, so all accounts may comment.
+
+**Consequences:**
+
+- Comment integrity is client-enforced only: `ThreadStoreAuth` gates the UI,
+  but any account that can open the document can technically rewrite other
+  people's threads by writing to the `Y.Map` directly. Acceptable for an
+  invite-gated instance of trusted collaborators — the same trust decision 53
+  already extends to document content. The hardening seam is swapping
+  `YjsThreadStore` for `RESTYjsThreadStore` (writes through the backend,
+  reads unchanged) without touching the UI.
+- Threads stay outside the portable `DesignDocument`: the projection reads
+  only the document fragment, so an export never carries comment state
+  (plan section 3.8 holds).
+- Comment bodies are BlockNote block documents, not plain strings — the
+  plan's `Comment` shape in section 3.8 survives as the anchor/metadata
+  story, not as a literal stored record.

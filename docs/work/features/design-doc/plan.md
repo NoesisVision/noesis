@@ -383,6 +383,38 @@ section — a rendering concern over the model, not undeletable heading blocks.
 **Phase 4 — Comments and presence.** Threads sidebar, anchors as marks, filters, replies, resolve,
 mentions of people, plus live presence and cursors on the awareness channel.
 
+The build rides BlockNote's own comments feature rather than hand-rolling one (decision 55): the
+`CommentsExtension` carries a comment mark in the shared fragment — the durable substring anchor
+section 4 asks for — and threads live in a `threads` Y.Map inside the same Y.Doc through
+`YjsThreadStore`, so sync and persistence come free from the existing `/collab` surface and store
+hook. Four slices, each reviewable in the running app:
+
+1. **Comments core.** `CommentsExtension` on the editor: a `YjsThreadStore` keyed by the account
+   login over `provider.document.getMap('threads')`, with `DefaultThreadStoreAuth` in the `editor`
+   role, and `resolveUsers` backed by a new `/ui/accounts` endpoint serving
+   `{ id, name, avatarUrl }` from the `Account` nodes (the instance is invite-gated, so every
+   account may comment). Add-comment enters through the formatting toolbar over a selection, with
+   the floating composer and floating thread views. At creation the thread's `metadata` records the
+   plan's anchor pair from section 3.8 — `{ elementId, quote }`, the enclosing block's id and the
+   selected text — so a thread still names what it was about after its mark is edited away.
+2. **Threads rail.** The right rail from section 1: `ThreadsSidebar` with the open/resolved/all
+   filter and position sort, docked beside the document pane opposite the table of contents.
+3. **Mentions.** People mentions inside comment bodies: a `mention` inline-content spec in the
+   comment editor schema (the extension's `schema` option) with an `@` menu over the accounts
+   list. Comments address people only — no agent mention (section 6). This slice carries the
+   phase's verification risk: prove the comment composer accepts a custom inline-content schema
+   and a suggestion menu before building the menu; the fallback is plain `@login` text.
+4. **Presence.** Remote carets and selections already render from phase 3's awareness wiring; what
+   is new is the who-is-here facepile in the document header, read from `awareness.getStates()`
+   (name, avatar, cursor colour), updating as clients join and leave.
+
+Acceptance is two browsers again: a comment created in one appears live in the other, resolve and
+the sidebar filter round-trip, a mention renders as a chip, and both faces show in the header. The
+anchor-durability risk (section 8) closes with this phase: element-id anchors were settled by the
+model, and the mark plus the `{ elementId, quote }` metadata is the reanchoring story — an
+orphaned mark degrades the thread to its element with the quote as evidence, never to a dangling
+pointer.
+
 **Phase 5 — Suggestions.** Suggesting mode, tracked marks, accept/reject writing through to the
 model, and word-level narrowing — all under concurrent editing.
 
