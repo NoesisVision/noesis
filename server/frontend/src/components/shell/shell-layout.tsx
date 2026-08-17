@@ -28,10 +28,13 @@ import { meQueryOptions } from '@/lib/auth';
 import { projectsQueryOptions } from '@/lib/projects';
 
 function ContentArea() {
-  const { rightPanel, setRightPanelWidth } = useShell();
+  const { rightPanel, setRightPanelWidth, RightPanelContent } = useShell();
   const isMobile = useIsMobile();
   // No bottom-sheet fallback yet: on a phone the panel simply steps aside.
-  const showRightPanel = !isMobile && rightPanel.open;
+  // A view that registers no panel gets no column at all — the document
+  // editor carries its own comments rail instead.
+  const showRightPanel =
+    !isMobile && rightPanel.open && RightPanelContent !== null;
   const widthRef = React.useRef(rightPanel.width);
 
   return (

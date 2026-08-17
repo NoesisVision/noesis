@@ -1,12 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, useParams } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import * as React from 'react';
-import {
-  PanelBody,
-  PanelFields,
-  PanelHeading,
-} from '@/components/shell/right-panel';
-import { useRightPanel, useShell } from '@/components/shell/use-shell';
+import { useShell } from '@/components/shell/use-shell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { designDocDetailQueryOptions } from '@/lib/design-docs';
 
@@ -22,51 +17,17 @@ export const Route = createFileRoute('/_shell/documents/$documentId')({
   staticData: { breadcrumb: 'Document', viewId: 'document' },
 });
 
-export function DocumentPanel() {
-  // The shell keeps this panel registered until the view's cleanup effect
-  // runs — one render after navigating away, when this route has no active
-  // match and strict `useParams` would throw. Read loosely and go blank for
-  // that render instead.
-  const params = useParams({
-    from: '/_shell/documents/$documentId',
-    shouldThrow: false,
-  });
-  if (params === undefined) return null;
-  return <DocumentPanelContent documentId={params.documentId} />;
-}
-
-function DocumentPanelContent({ documentId }: { documentId: string }) {
-  const detail = useQuery(designDocDetailQueryOptions(documentId));
-  if (detail.data === undefined) return null;
-  const { summary, document } = detail.data;
-  return (
-    <>
-      <PanelHeading>Document</PanelHeading>
-      <PanelBody>
-        <PanelFields
-          fields={{
-            Name: summary.name,
-            Status: summary.status,
-            Date: summary.date,
-            Actors: String(document.actors.length),
-            'Use cases': String(document.useCases.length),
-          }}
-        />
-      </PanelBody>
-    </>
-  );
-}
-
 /**
  * One document, one surface (prototype): always the collaborative editor,
- * with the table of contents rail beside it. The detail query serves the
- * title line and the right panel; the content itself syncs over /collab.
+ * with the table of contents rail beside it and the comments rail on the
+ * right. No shell right panel here — the comments rail is the document's
+ * only side column; the summary fields it used to show live on the
+ * documents list.
  */
 export function DocumentView() {
   const { documentId } = Route.useParams();
   const { account } = useShell();
   const detail = useQuery(designDocDetailQueryOptions(documentId));
-  useRightPanel(DocumentPanel);
 
   if (detail.isPending) {
     return (
