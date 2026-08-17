@@ -73,7 +73,9 @@ function ShellFrame() {
   return (
     <>
       <AppSidebar />
-      <SidebarInset className="min-h-0 overflow-hidden">
+      {/* h-svh caps the inset at the viewport so a long view (the document
+          sheet) scrolls inside ContentArea's panel, never the page body. */}
+      <SidebarInset className="h-svh min-h-0 overflow-hidden">
         <TopBar />
         <ContentArea />
       </SidebarInset>

@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { createApiApp } from './api/api.routes.js';
 import type { AuthModule } from './auth/auth.module.js';
 import { createAuthApp } from './auth/auth.routes.js';
+import type { DesignDocsService } from './design-docs/design-docs.service.js';
 import type { GreetingService } from './greeting/greeting.service.js';
 import { createInternalApp } from './internal/internal.routes.js';
 import type { ProjectsService } from './projects/projects.service.js';
@@ -21,6 +22,7 @@ export interface AppDeps {
   searchService: SearchService;
   authModule: AuthModule;
   projectsService: ProjectsService;
+  designDocsService: DesignDocsService;
   /** Null in disabled auth mode — no App to check access with. */
   repoAccess: RepoAccessService | null;
 }
@@ -38,6 +40,7 @@ export function createApp(deps: AppDeps) {
           searchService: deps.searchService,
           authModule: deps.authModule,
           projectsService: deps.projectsService,
+          designDocsService: deps.designDocsService,
           repoAccess: deps.repoAccess,
         }),
       )

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'bun:test';
+import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
+import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
@@ -14,6 +16,7 @@ describe('ui routes', () => {
     searchService: new SearchService(),
     authModule: { mode: 'disabled' },
     projectsService: new ProjectsService(new ProjectsRepository(db)),
+    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
     repoAccess: null,
   });
 

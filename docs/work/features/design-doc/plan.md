@@ -1,7 +1,7 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Phase 1 delivered; phases 2–6b ready to break into tasks
-**Date:** 2026-08-16
+**Status:** Phases 1–2 delivered; phases 3–6b ready to break into tasks
+**Date:** 2026-08-17
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
 [`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
 **Supersedes:** the Stage 1 three-concept comparison (section 15 of the specification). Those
@@ -334,9 +334,15 @@ record into `DesignedBuildingBlock`, and dropped the binding string form (§3.7)
 state was delivered here and removed again when the codebase-delta feature was deferred
 (decision 52).
 
-**Phase 2 — Read-only document.** Render a stored design document in the reading order, with the
-table of contents, numbering, scroll-spy and the "not written yet" line. Viewing mode only. This is
-the first thing to put in front of a product reviewer.
+**Phase 2 — Read-only document. Done.** Render a stored design document in the reading order, with
+the table of contents, numbering, scroll-spy and the "not written yet" line. Viewing mode only. This
+is the first thing to put in front of a product reviewer. As built: documents persist as validated
+`DesignDocument` JSON on a `DesignDoc` graph node behind `/ui/design-docs` (boundary pipeline
+`DesignDocumentSchema.parse → checkDesignDocument`, server-minted UUID); the documents view lists
+the current project's documents and opens each in the reading view
+(`components/design-doc/`). A "create sample document" endpoint seeds the shared-contracts fixture
+so a reviewer has something to read before the agent exists. In phase 3 the Y.Doc becomes the
+stored editing truth (decision 51) and this JSON column becomes the seed input / projection cache.
 
 **Phase 3 — Typed collaborative editing.** BlockNote with the custom block schema on a Yjs document:
 filtered block menu, constrained drag and drop, schema-aware deletion, `toBlocks` seeding, and the

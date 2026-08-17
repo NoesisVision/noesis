@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import { apiPath } from '@repo/local-contracts';
 import { createApp } from '../../src/app.js';
+import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
+import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
@@ -17,6 +19,7 @@ describe('Route surfaces (e2e)', () => {
     searchService: new SearchService(),
     authModule: { mode: 'disabled' },
     projectsService: new ProjectsService(new ProjectsRepository(db)),
+    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
     repoAccess: null,
   });
 

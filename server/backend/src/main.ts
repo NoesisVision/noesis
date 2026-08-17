@@ -4,6 +4,8 @@ import { createApp } from './app.js';
 import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
+import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
+import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
 import { ProjectsRepository } from './projects/projects.repository.js';
 import { ProjectsService } from './projects/projects.service.js';
@@ -33,6 +35,7 @@ const app = createApp({
   searchService: new SearchService([]),
   authModule,
   projectsService: new ProjectsService(projectsRepository),
+  designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
   // The access check needs the App's own identity; disabled mode has none,
   // and the routes serve stored state flagged unchecked instead.
   repoAccess:

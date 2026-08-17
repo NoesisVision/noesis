@@ -3,9 +3,11 @@ import type { AuthEnv } from '../auth/auth.middleware.js';
 import { requireSession } from '../auth/auth.middleware.js';
 import type { AuthModule } from '../auth/auth.module.js';
 import { toAccountDto } from '../auth/auth.service.js';
+import type { DesignDocsService } from '../design-docs/design-docs.service.js';
 import type { GreetingService } from '../greeting/greeting.service.js';
 import type { ProjectsService } from '../projects/projects.service.js';
 import type { RepoAccessService } from '../projects/repo-access.service.js';
+import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
 import { createInvitesApp } from './invites/invites.routes.js';
 import { createPickerApp } from './projects/picker.routes.js';
 import { createProjectsApp } from './projects/projects.routes.js';
@@ -19,6 +21,7 @@ export interface UiDeps {
   searchService: SearchService;
   authModule: AuthModule;
   projectsService: ProjectsService;
+  designDocsService: DesignDocsService;
   /** Null in disabled auth mode — no App to check access with. */
   repoAccess: RepoAccessService | null;
 }
@@ -58,6 +61,10 @@ export function createUiApp(deps: UiDeps) {
           projectsService: deps.projectsService,
           repoAccess: deps.repoAccess,
         }),
+      )
+      .route(
+        '/design-docs',
+        createDesignDocsApp({ designDocsService: deps.designDocsService }),
       )
       .route(
         '/github',
