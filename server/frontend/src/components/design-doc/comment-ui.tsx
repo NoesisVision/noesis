@@ -1,4 +1,5 @@
-import { filterSuggestionItems } from '@blocknote/core';
+import { type BlockNoteEditor, filterSuggestionItems } from '@blocknote/core';
+import { CommentsExtension } from '@blocknote/core/comments';
 import {
   type ComponentProps,
   ComponentsContext,
@@ -7,6 +8,8 @@ import {
   getFormattingToolbarItems,
   SuggestionMenuController,
   useBlockNoteContext,
+  useCreateBlockNote,
+  useEditorState,
 } from '@blocknote/react';
 import {
   BlockNoteView,
@@ -16,6 +19,8 @@ import {
 } from '@blocknote/shadcn';
 import { useQueryClient } from '@tanstack/react-query';
 import * as React from 'react';
+import { commentEditorSchema } from '@/components/design-doc/comment-schema';
+import { Button } from '@/components/ui/button';
 import { accountsQueryOptions } from '@/lib/accounts';
 import { cn } from '@/lib/utils';
 
@@ -101,6 +106,78 @@ const MentionCommentEditor = React.forwardRef<
     </BlockNoteView>
   );
 });
+
+/**
+ * The new-comment composer, docked at the top of the threads rail (comments
+ * live only in the rail — nothing floats over the text). It appears while a
+ * comment is pending (the toolbar's add-comment button started one over the
+ * current selection) and writes through the same patched `createThread`, so
+ * the anchor metadata is stamped as usual.
+ */
+export function RailComposer({
+  editor,
+  pending,
+}: {
+  editor: BlockNoteEditor<never, never, never>;
+  pending: boolean;
+}) {
+  // A fresh, empty composer per pending comment.
+  const composer = useCreateBlockNote(
+    {
+      schema: commentEditorSchema,
+      trailingBlock: false,
+      dictionary: {
+        ...editor.dictionary,
+        placeholders: {
+          ...editor.dictionary.placeholders,
+          emptyDocument: editor.dictionary.placeholders.new_comment,
+        },
+      } as never,
+    },
+    [pending],
+  );
+  const isEmpty = useEditorState({
+    editor: composer,
+    selector: ({ editor: composerEditor }) => composerEditor.isEmpty,
+  });
+
+  const comments = editor.getExtension(CommentsExtension);
+  if (!pending || comments === undefined) return null;
+
+  const save = async () => {
+    if (composer.isEmpty) return;
+    await comments.createThread({
+      initialComment: { body: composer.document },
+    });
+    comments.stopPendingComment();
+    editor.focus();
+  };
+  const cancel = () => {
+    comments.stopPendingComment();
+    editor.focus();
+  };
+
+  return (
+    <div className="border-b border-border p-2">
+      <MentionCommentEditor
+        autoFocus={true}
+        editable={true}
+        editor={composer as never}
+        className="rounded border border-border"
+        onFocus={() => undefined}
+        onBlur={() => undefined}
+      />
+      <div className="mt-1.5 flex justify-end gap-1.5">
+        <Button variant="ghost" size="sm" className="h-7" onClick={cancel}>
+          Cancel
+        </Button>
+        <Button size="sm" className="h-7" disabled={isEmpty} onClick={save}>
+          Comment
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 /** The shadcn components map with the mention-aware comment editor. */
 const commentComponents = {

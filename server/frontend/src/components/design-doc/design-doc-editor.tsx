@@ -12,7 +12,6 @@ import {
   BlockNoteContext,
   type DefaultReactSuggestionItem,
   DragHandleMenu,
-  FloatingComposerController,
   RemoveBlockItem,
   SideMenu,
   SideMenuController,
@@ -35,7 +34,10 @@ import { MessageSquareTextIcon } from 'lucide-react';
 import * as React from 'react';
 import * as Y from 'yjs';
 import { commentEditorSchema } from '@/components/design-doc/comment-schema';
-import { CommentComponents } from '@/components/design-doc/comment-ui';
+import {
+  CommentComponents,
+  RailComposer,
+} from '@/components/design-doc/comment-ui';
 import {
   buildOutlineFromBlocks,
   type OutlineItem,
@@ -490,15 +492,19 @@ export function DesignDocEditorView({
     };
   }, [provider]);
   const [railOpen, setRailOpen] = React.useState(true);
-  // Threads render only in the rail, so selecting one (clicking a marked
-  // run) must bring the rail back if it was hidden.
+  // All comment UI lives in the rail: selecting a thread (clicking a marked
+  // run) or starting a new comment must bring the rail back if hidden.
   const selectedThreadId = useExtensionState(CommentsExtension, {
     editor,
     selector: (state) => state?.selectedThreadId,
   });
+  const pendingComment = useExtensionState(CommentsExtension, {
+    editor,
+    selector: (state) => state?.pendingComment ?? false,
+  });
   React.useEffect(() => {
-    if (selectedThreadId !== undefined) setRailOpen(true);
-  }, [selectedThreadId]);
+    if (selectedThreadId !== undefined || pendingComment) setRailOpen(true);
+  }, [selectedThreadId, pendingComment]);
   const [threadFilter, setThreadFilter] = React.useState<
     'open' | 'resolved' | 'all'
   >('open');
@@ -609,13 +615,6 @@ export function DesignDocEditorView({
                 <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
               )}
             />
-            {/* Composer floats at the selection to write a new comment;
-                threads themselves live only in the rail — clicking a marked
-                run selects its thread there instead of opening a card over
-                the text. */}
-            <CommentComponents>
-              <FloatingComposerController />
-            </CommentComponents>
           </BlockNoteView>
         </div>
       </div>
@@ -641,15 +640,16 @@ export function DesignDocEditorView({
               </button>
             ))}
           </div>
-          <div className="dd-threads flex-1 overflow-auto p-2">
-            {synced && (
-              <CommentComponents>
-                <BlockNoteContext.Provider value={blockNoteContext}>
+          <CommentComponents>
+            <BlockNoteContext.Provider value={blockNoteContext}>
+              <RailComposer editor={editor as never} pending={pendingComment} />
+              <div className="dd-threads flex-1 overflow-auto p-2">
+                {synced && (
                   <ThreadsSidebar filter={threadFilter} sort="position" />
-                </BlockNoteContext.Provider>
-              </CommentComponents>
-            )}
-          </div>
+                )}
+              </div>
+            </BlockNoteContext.Provider>
+          </CommentComponents>
         </aside>
       )}
     </div>
