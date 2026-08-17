@@ -13,7 +13,6 @@ import {
   type DefaultReactSuggestionItem,
   DragHandleMenu,
   FloatingComposerController,
-  FloatingThreadController,
   RemoveBlockItem,
   SideMenu,
   SideMenuController,
@@ -491,6 +490,15 @@ export function DesignDocEditorView({
     };
   }, [provider]);
   const [railOpen, setRailOpen] = React.useState(true);
+  // Threads render only in the rail, so selecting one (clicking a marked
+  // run) must bring the rail back if it was hidden.
+  const selectedThreadId = useExtensionState(CommentsExtension, {
+    editor,
+    selector: (state) => state?.selectedThreadId,
+  });
+  React.useEffect(() => {
+    if (selectedThreadId !== undefined) setRailOpen(true);
+  }, [selectedThreadId]);
   const [threadFilter, setThreadFilter] = React.useState<
     'open' | 'resolved' | 'all'
   >('open');
@@ -601,9 +609,12 @@ export function DesignDocEditorView({
                 <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
               )}
             />
+            {/* Composer floats at the selection to write a new comment;
+                threads themselves live only in the rail — clicking a marked
+                run selects its thread there instead of opening a card over
+                the text. */}
             <CommentComponents>
               <FloatingComposerController />
-              <FloatingThreadController />
             </CommentComponents>
           </BlockNoteView>
         </div>
