@@ -1129,7 +1129,19 @@ collaborators' edits instead of only one's own.
 
 ## 55. Comments are BlockNote's comments feature over a `YjsThreadStore` in the shared Y.Doc
 
-**Status: draft** (2026-08-17)
+**Status: accepted** (2026-08-17) — implemented and verified in the running
+app: comment over a selection, mention chip from the `@` menu, resolve,
+sidebar filters, an orphaned thread degrading to its quote, and threads
+persisting through the existing store hook. One integration hazard surfaced
+that the decision must record: **the server's headless projection schema has
+to register the comment mark.** y-prosemirror deletes any Y node whose marks
+the reading schema cannot construct, so projecting the live Y.Doc through a
+schema without the mark silently destroyed every commented text run seconds
+after the comment was made. The headless editor now includes
+`CommentsExtension` (with an inert thread store) for its mark alone — and the
+same rule applies to every future mark carried in the shared fragment,
+suggestion marks in phase 5 included: the mark must land in the frontend and
+headless schemas in the same change.
 
 **Context:** Phase 4 of the design-doc plan needs threads with replies,
 resolution, filters and people mentions, anchored to substrings that survive

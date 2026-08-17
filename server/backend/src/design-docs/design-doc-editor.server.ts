@@ -3,6 +3,11 @@ import {
   createBlockSpec,
   defaultBlockSpecs,
 } from '@blocknote/core';
+import {
+  CommentsExtension,
+  DefaultThreadStoreAuth,
+} from '@blocknote/core/comments';
+import { YjsThreadStore } from '@blocknote/core/yjs';
 import { ServerBlockNoteEditor } from '@blocknote/server-util';
 import {
   DESIGN_DOC_BLOCK_SPECS,
@@ -57,6 +62,22 @@ function buildServerSchema() {
 /** One shared headless editor — schema construction is not free. */
 const serverEditor = ServerBlockNoteEditor.create({
   schema: buildServerSchema(),
+  // The comments extension is here for its mark alone: the frontend stores
+  // comment anchors as a `comment` ProseMirror mark in the shared fragment
+  // (phase 4), and y-prosemirror DELETES any Y node whose marks the reading
+  // schema does not know — running the projection over a live Y.Doc without
+  // this mark would destroy every commented text run. The store never
+  // receives a write headless; it exists to satisfy the constructor.
+  extensions: [
+    CommentsExtension({
+      threadStore: new YjsThreadStore(
+        'server',
+        new Y.Doc().getMap('threads'),
+        new DefaultThreadStoreAuth('server', 'editor'),
+      ),
+      resolveUsers: async () => [],
+    }),
+  ],
 });
 
 /**

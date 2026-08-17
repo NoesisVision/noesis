@@ -25,4 +25,14 @@ describe('ui routes', () => {
     expect(res.status).toBe(200);
     expect(await res.text()).toBe('Hello World!');
   });
+
+  it('lists the local account as the whole roster in disabled auth mode', async () => {
+    const res = await app.request('/accounts');
+    expect(res.status).toBe(200);
+    const { accounts } = (await res.json()) as {
+      accounts: { id: string; login: string; name: string }[];
+    };
+    expect(accounts).toHaveLength(1);
+    expect(accounts[0]?.login).toBe('local');
+  });
 });

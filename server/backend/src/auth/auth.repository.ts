@@ -165,6 +165,13 @@ export class AuthRepository {
     return toAccountRow(row);
   }
 
+  async listAccounts(): Promise<AccountRow[]> {
+    const rows = await this.db.query<RawAccountRow>(
+      `MATCH (a:Account) ${RETURN_ACCOUNT} ORDER BY a.login`,
+    );
+    return rows.map(toAccountRow);
+  }
+
   async countAccounts(): Promise<number> {
     const rows = await this.db.query<{ n: number | bigint }>(
       `MATCH (a:Account) RETURN count(a) AS n`,

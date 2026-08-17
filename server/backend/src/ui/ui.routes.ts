@@ -52,6 +52,16 @@ export function createUiApp(deps: UiDeps) {
           authMode: deps.authModule.mode,
         });
       })
+      // Comment authors and mention targets (design-doc phase 4): the
+      // instance is invite-gated, so every account may comment. In disabled
+      // auth mode the fixed local owner is the whole roster.
+      .get('/accounts', async (c) => {
+        const accounts =
+          deps.authModule.mode === 'github'
+            ? await deps.authModule.auth.listAccounts()
+            : [toAccountDto(c.get('account'))];
+        return c.json({ accounts });
+      })
       .route('/search', createSearchApp({ searchService: deps.searchService }))
       .route('/invites', createInvitesApp({ authModule: deps.authModule }))
       .route(

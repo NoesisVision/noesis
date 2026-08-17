@@ -3,14 +3,22 @@ import {
   insertOrUpdateBlockForSlashMenu,
   SideMenuExtension,
 } from '@blocknote/core';
-import { withCollaboration } from '@blocknote/core/yjs';
 import {
+  CommentsExtension,
+  DefaultThreadStoreAuth,
+} from '@blocknote/core/comments';
+import { withCollaboration, YjsThreadStore } from '@blocknote/core/yjs';
+import {
+  BlockNoteContext,
   type DefaultReactSuggestionItem,
   DragHandleMenu,
+  FloatingComposerController,
+  FloatingThreadController,
   RemoveBlockItem,
   SideMenu,
   SideMenuController,
   SuggestionMenuController,
+  ThreadsSidebar,
   useCreateBlockNote,
   useEditorChange,
   useEditorSelectionChange,
@@ -23,8 +31,12 @@ import {
   DESIGN_DOC_BLOCK_SPECS,
   type DesignDocBlockType,
 } from '@repo/design-doc-blocks';
+import { useQueryClient } from '@tanstack/react-query';
+import { MessageSquareTextIcon } from 'lucide-react';
 import * as React from 'react';
 import * as Y from 'yjs';
+import { commentEditorSchema } from '@/components/design-doc/comment-schema';
+import { CommentComponents } from '@/components/design-doc/comment-ui';
 import {
   buildOutlineFromBlocks,
   type OutlineItem,
@@ -35,8 +47,12 @@ import {
   type DesignDocEditor,
   designDocSchema,
 } from '@/components/design-doc/editor-schema';
+import { PresenceFacepile } from '@/components/design-doc/presence';
 import { TableOfContents } from '@/components/design-doc/table-of-contents';
 import { useTheme } from '@/components/shell/use-theme';
+import { Button } from '@/components/ui/button';
+import { accountsQueryOptions } from '@/lib/accounts';
+import { cn } from '@/lib/utils';
 
 import '@blocknote/shadcn/style.css';
 import '@/components/design-doc/design-doc-editor.css';
@@ -243,17 +259,26 @@ function TypedDragHandleMenu() {
   );
 }
 
+/** The signed-in account, as the editor needs it. */
+export interface EditorAccount {
+  id: string;
+  login: string;
+  name: string;
+  avatarUrl: string;
+}
+
 export function DesignDocEditorView({
   documentId,
-  userName,
+  account,
   title,
   subtitle,
 }: {
   documentId: string;
-  userName: string;
+  account: EditorAccount;
   title: string;
   subtitle: string;
 }) {
+  const userName = account.name || account.login;
   // One provider (and Y.Doc) per mounted editor; the server seeded the
   // document, the client only syncs into it.
   const [provider] = React.useState(
@@ -280,6 +305,34 @@ export function DesignDocEditorView({
     };
   }, [provider]);
 
+  // Threads live in a `threads` Y.Map of the same Y.Doc (decision 55): sync
+  // over the existing /collab surface, persistence with the document state.
+  const threadStore = React.useMemo(
+    () =>
+      new YjsThreadStore(
+        account.id,
+        provider.document.getMap('threads'),
+        new DefaultThreadStoreAuth(account.id, 'editor'),
+      ),
+    [provider, account.id],
+  );
+
+  const queryClient = useQueryClient();
+  const resolveUsers = React.useCallback(
+    async (ids: string[]) => {
+      const accounts = await queryClient.fetchQuery(accountsQueryOptions());
+      return ids.map((id) => {
+        const match = accounts.find((candidate) => candidate.id === id);
+        return {
+          id,
+          username: match === undefined ? id : match.name || match.login,
+          avatarUrl: match?.avatarUrl ?? '',
+        };
+      });
+    },
+    [queryClient],
+  );
+
   const editor = useCreateBlockNote(
     // `withCollaboration` (not the bare extension) also disables the local
     // history extension — undo must go through Y.UndoManager, or it can
@@ -288,14 +341,71 @@ export function DesignDocEditorView({
     withCollaboration({
       schema: designDocSchema,
       pasteHandler: typedPasteHandler,
+      extensions: [
+        CommentsExtension({
+          threadStore,
+          resolveUsers,
+          schema: commentEditorSchema,
+        }),
+      ],
       collaboration: {
         fragment: provider.document.getXmlFragment(COLLAB_FRAGMENT),
         user: { name: userName, color: cursorColor(userName) },
         provider: { awareness: provider.awareness ?? undefined },
       },
     }),
-    [provider, userName],
+    [provider, userName, threadStore, resolveUsers],
   );
+
+  // The thread anchor pair from plan §3.8, `{ elementId, quote }`: the
+  // floating composer calls `createThread` without metadata, so the
+  // extension's method is wrapped to stamp the enclosing element's id and
+  // the selected text on every new thread. With it, an orphaned mark
+  // degrades a thread to its element with the quote as evidence.
+  React.useEffect(() => {
+    const comments = editor.getExtension(CommentsExtension);
+    if (comments === undefined) return;
+    const original = comments.createThread;
+    const patchable = comments as { createThread: typeof original };
+    patchable.createThread = (options) => {
+      let anchor: Record<string, string> = {};
+      try {
+        const block = editor.getTextCursorPosition()
+          .block as unknown as BlockLike;
+        anchor = { elementId: block.id, quote: editor.getSelectedText() };
+      } catch {
+        // No selection to anchor to; the mark alone will have to do.
+      }
+      return original({
+        ...options,
+        metadata: { ...(options.metadata ?? {}), ...anchor },
+      });
+    };
+    return () => {
+      patchable.createThread = original;
+    };
+  }, [editor]);
+
+  // Dev-only handle for smoke tests: lets a browser-automation session drive
+  // the editor (selection, comments extension) without fighting the UI.
+  React.useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as { __ddEditor?: unknown }).__ddEditor = editor;
+    return () => {
+      delete (window as { __ddEditor?: unknown }).__ddEditor;
+    };
+  }, [editor]);
+
+  // Enrich the awareness `user` state the cursors already broadcast with the
+  // account id and avatar, so presence can show faces and de-duplicate tabs.
+  React.useEffect(() => {
+    provider.awareness?.setLocalStateField('user', {
+      name: userName,
+      color: cursorColor(userName),
+      id: account.id,
+      avatarUrl: account.avatarUrl,
+    });
+  }, [provider, userName, account.id, account.avatarUrl]);
 
   // The table of contents follows the live block list — the outline is the
   // same numbering the prototype fixes, recomputed on every editor change.
@@ -363,6 +473,32 @@ export function DesignDocEditorView({
   const activeId = useScrollSpy(outline, scrollRef, resolveBlockElement);
   const { theme } = useTheme();
 
+  // The threads rail (plan phase 4, slice 2): ThreadsSidebar rendered
+  // outside the BlockNoteView needs the editor handed over by context. It
+  // mounts only once the provider has synced — the sidebar's thread
+  // subscription caches its first snapshot, so mounting before the initial
+  // sync can leave it stuck on an empty thread list.
+  const [synced, setSynced] = React.useState(false);
+  React.useEffect(() => {
+    if (provider.synced) {
+      setSynced(true);
+      return;
+    }
+    const onSynced = () => setSynced(true);
+    provider.on('synced', onSynced);
+    return () => {
+      provider.off('synced', onSynced);
+    };
+  }, [provider]);
+  const [railOpen, setRailOpen] = React.useState(true);
+  const [threadFilter, setThreadFilter] = React.useState<
+    'open' | 'resolved' | 'all'
+  >('open');
+  const blockNoteContext = React.useMemo(
+    () => ({ editor: editor as never, colorSchemePreference: theme }),
+    [editor, theme],
+  );
+
   // The prototype's one-active-element affordance: the block the caret sits
   // in carries the focus ring (`.dd-active`), cleared when focus leaves the
   // editor. Imperative on purpose — a selection change should not re-render
@@ -423,9 +559,23 @@ export function DesignDocEditorView({
       />
       <div ref={scrollRef} className="flex-1 overflow-auto">
         <div className="mx-auto max-w-[820px] px-6 pt-10 pb-40">
-          <h1 className="mb-1 px-[54px] text-3xl leading-tight font-semibold">
-            {title}
-          </h1>
+          <div className="flex items-start justify-between gap-4 px-[54px]">
+            <h1 className="mb-1 text-3xl leading-tight font-semibold">
+              {title}
+            </h1>
+            <div className="flex shrink-0 items-center gap-3 pt-2">
+              <PresenceFacepile provider={provider} />
+              <Button
+                variant={railOpen ? 'secondary' : 'ghost'}
+                size="icon"
+                className="size-7"
+                aria-label="Toggle comments"
+                onClick={() => setRailOpen((open) => !open)}
+              >
+                <MessageSquareTextIcon className="size-4" />
+              </Button>
+            </div>
+          </div>
           <div className="mb-8 px-[54px] text-[13px] text-muted-foreground">
             {subtitle}
           </div>
@@ -433,6 +583,9 @@ export function DesignDocEditorView({
             editor={editor}
             slashMenu={false}
             sideMenu={false}
+            // The default comments UI is replaced by the mention-aware
+            // controllers below.
+            comments={false}
             // Follow the app's theme toggle, not the OS preference BlockNote
             // would otherwise read.
             theme={theme}
@@ -448,9 +601,46 @@ export function DesignDocEditorView({
                 <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
               )}
             />
+            <CommentComponents>
+              <FloatingComposerController />
+              <FloatingThreadController />
+            </CommentComponents>
           </BlockNoteView>
         </div>
       </div>
+      {railOpen && (
+        <aside className="flex w-80 shrink-0 flex-col border-l border-border">
+          <div className="flex items-center gap-1 border-b border-border px-3 py-2">
+            <span className="mr-auto text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              Comments
+            </span>
+            {(['open', 'resolved', 'all'] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={cn(
+                  'rounded px-1.5 py-0.5 text-xs capitalize',
+                  filter === threadFilter
+                    ? 'bg-secondary text-secondary-foreground'
+                    : 'text-muted-foreground hover:bg-accent',
+                )}
+                onClick={() => setThreadFilter(filter)}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+          <div className="dd-threads flex-1 overflow-auto p-2">
+            {synced && (
+              <CommentComponents>
+                <BlockNoteContext.Provider value={blockNoteContext}>
+                  <ThreadsSidebar filter={threadFilter} sort="position" />
+                </BlockNoteContext.Provider>
+              </CommentComponents>
+            )}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

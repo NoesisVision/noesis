@@ -150,6 +150,12 @@ export class AuthService {
     return toAccountDto(account);
   }
 
+  /** Everyone who can be mentioned or shown as a comment author. */
+  async listAccounts(): Promise<AccountDto[]> {
+    const rows = await this.repo.listAccounts();
+    return rows.map(toAccountDto);
+  }
+
   async listInstallations(accountId: string): Promise<InstallationDto[]> {
     const rows = await this.repo.listInstallations(accountId);
     return rows.map(toInstallationDto);

@@ -380,8 +380,8 @@ the parts it does not hold. The fixed section headings (1 Goal … 5 Actors, wit
 In/Out-of-scope labels) also render: they are drawn above whichever block currently opens each
 section — a rendering concern over the model, not undeletable heading blocks.
 
-**Phase 4 — Comments and presence.** Threads sidebar, anchors as marks, filters, replies, resolve,
-mentions of people, plus live presence and cursors on the awareness channel.
+**Phase 4 — Comments and presence. Done.** Threads sidebar, anchors as marks, filters, replies,
+resolve, mentions of people, plus live presence and cursors on the awareness channel.
 
 The build rides BlockNote's own comments feature rather than hand-rolling one (decision 55): the
 `CommentsExtension` carries a comment mark in the shared fragment — the durable substring anchor
@@ -414,6 +414,21 @@ anchor-durability risk (section 8) closes with this phase: element-id anchors we
 model, and the mark plus the `{ elementId, quote }` metadata is the reanchoring story — an
 orphaned mark degrades the thread to its element with the quote as evidence, never to a dangling
 pointer.
+
+As built, three integration findings beyond the slices. First, the **server's headless schema must
+know the comment mark**: y-prosemirror deletes any Y node whose marks the reading schema cannot
+construct, so running the projection over the live Y.Doc without the mark silently destroyed every
+commented text run a few seconds after the comment was made — the headless editor now registers
+`CommentsExtension` (with an inert thread store) for its mark alone. Second, the comment UI is
+**opted out of BlockNote's default rendering** (`comments={false}`) and re-mounted through
+mention-aware controllers: the shadcn `Comments` components read `ShadCNComponentsContext`, which
+only a shadcn `BlockNoteView` provides, so the threads rail wraps its subtree in that provider
+plus a `ComponentsContext` override whose comment editor adds the `@` suggestion menu. Third, the
+rail mounts only after the provider's first sync — the sidebar's thread subscription caches its
+first snapshot, and mounting before sync left it stuck on an empty list. Verified in the running
+app end to end (create over a selection, mention chip, resolve, filter, orphaned thread showing
+its quote, persistence across reload); the two-browser live pass rides the same channel phase 3
+proved.
 
 **Phase 5 — Suggestions.** Suggesting mode, tracked marks, accept/reject writing through to the
 model, and word-level narrowing — all under concurrent editing.

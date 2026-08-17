@@ -91,7 +91,7 @@ export function DocumentView() {
     >
       <DesignDocEditorView
         documentId={documentId}
-        userName={account.name || account.login}
+        account={account}
         title={detail.data.summary.name}
         subtitle={`${detail.data.summary.status} · ${detail.data.summary.date}`}
       />
