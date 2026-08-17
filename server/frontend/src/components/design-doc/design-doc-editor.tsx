@@ -3,7 +3,7 @@ import {
   insertOrUpdateBlockForSlashMenu,
   SideMenuExtension,
 } from '@blocknote/core';
-import { CollaborationExtension } from '@blocknote/core/yjs';
+import { withCollaboration } from '@blocknote/core/yjs';
 import {
   type DefaultReactSuggestionItem,
   DragHandleMenu,
@@ -185,19 +185,35 @@ export function DesignDocEditorView({
         document: new Y.Doc(),
       }),
   );
-  React.useEffect(() => () => provider.destroy(), [provider]);
+  // StrictMode-safe lifecycle: the dev-mode simulated unmount runs the
+  // cleanup once and re-runs the setup synchronously in the same commit, so
+  // the cleanup must be reversible — `destroy()` here permanently unhooks the
+  // provider from the Y.Doc and silently turns the editor local-only. Detach
+  // instead, and only destroy once a deferred check proves the unmount was
+  // real (a StrictMode remount has reattached by the time the task runs).
+  React.useEffect(() => {
+    provider.attach();
+    return () => {
+      provider.detach();
+      setTimeout(() => {
+        if (!provider.isAttached) provider.destroy();
+      }, 0);
+    };
+  }, [provider]);
 
   const editor = useCreateBlockNote(
-    {
+    // `withCollaboration` (not the bare extension) also disables the local
+    // history extension — undo must go through Y.UndoManager, or it can
+    // revert other collaborators' edits — and seeds the collab-safe
+    // placeholder content the fragment sync then replaces.
+    withCollaboration({
       schema: designDocSchema,
-      extensions: [
-        CollaborationExtension({
-          fragment: provider.document.getXmlFragment(COLLAB_FRAGMENT),
-          user: { name: userName, color: cursorColor(userName) },
-          provider: { awareness: provider.awareness ?? undefined },
-        }),
-      ],
-    },
+      collaboration: {
+        fragment: provider.document.getXmlFragment(COLLAB_FRAGMENT),
+        user: { name: userName, color: cursorColor(userName) },
+        provider: { awareness: provider.awareness ?? undefined },
+      },
+    }),
     [provider, userName],
   );
 

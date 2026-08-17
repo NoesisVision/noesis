@@ -1062,3 +1062,67 @@ server BlockNote's own collaboration documentation pairs with.
 - The `/collab` surface is browser-facing only. The MCP bridge and future
   agents write through whole-document replacement on the API surface, not
   through a Yjs connection.
+
+## 54. The collab provider's client lifecycle is StrictMode-safe: detach on cleanup, destroy only on real unmount, editor built with `withCollaboration`
+
+**Status: accepted** (2026-08-17) — implemented and verified end to end: with
+the fix, two browser tabs on the Vite dev server sync live edits and remote
+cursors in both directions, and the state persists through `onStoreDocument`;
+before the fix, the same test showed edits staying local forever.
+
+**Context:** Phase 3 wired the editor to `HocuspocusProvider` with
+`useState(() => new HocuspocusProvider(...))` and
+`useEffect(() => () => provider.destroy(), [provider])`. Under React
+StrictMode — which the app runs in development — every mount is followed by a
+simulated unmount/remount, so that cleanup ran once against a provider whose
+`useState` instance survived the remount. `destroy()` is not reversible: the
+provider registers its Y.Doc `update` handler at construction and only
+`destroy()` removes it (`attach`/`detach` manage socket listeners alone), so
+the remounted component held a provider that still received server state but
+never sent a document update again. The failure was silent and dangerous: the
+editor kept working against its local Y.Doc, nothing errored, edits simply
+never reached the server or other clients — and a stale duplicate editor
+instance (StrictMode also double-creates the `useCreateBlockNote` result)
+could push a near-empty state and wipe the shared document, which is how the
+sample document was lost during diagnosis. Production builds have no
+StrictMode double-invoke and were unaffected. Separately, passing the bare
+`CollaborationExtension` into `extensions` left BlockNote's local ProseMirror
+`history` extension active alongside `y-undo`, so undo could revert other
+collaborators' edits instead of only one's own.
+
+**Decision:**
+
+- **The provider effect is symmetric: `attach()` on setup, `detach()` on
+  cleanup.** Both are no-ops when already in the target state, so the
+  StrictMode cycle (cleanup, then setup re-run synchronously in the same
+  commit) lands back in a connected state instead of a destroyed one.
+- **`destroy()` runs only on a real unmount, decided by a deferred check.**
+  The cleanup schedules a task that destroys the provider only if it is
+  still detached when the task runs; a StrictMode remount has reattached by
+  then. This is what closes the socket and unhooks the Y.Doc handler when
+  the user actually leaves the document.
+- **Editor options go through `withCollaboration` instead of registering
+  `CollaborationExtension` by hand.** The wrapper adds the same extension
+  but also disables the local `history` extension (undo flows through
+  `Y.UndoManager` only) and sets the collaboration-safe placeholder
+  `initialContent` the fragment sync then replaces.
+- **The backend e2e suite gains a two-live-clients case**
+  (`collab.broadcast.spec.ts`): the existing suite proved sync-down and
+  store-on-disconnect but never that an edit broadcasts to a concurrently
+  connected client — exactly the path this bug broke.
+
+**Consequences:**
+
+- Development now exercises the same collaboration path as production;
+  StrictMode stays on, and this is the pattern for any future component that
+  owns a connection-holding resource: reversible cleanup, destruction only
+  behind a real-unmount check.
+- The deferred destroy leans on React's guarantee that StrictMode's
+  simulated remount re-runs effects synchronously in the same commit, before
+  any scheduled task fires. If that ever changes, the check degrades to
+  destroying a live provider — visible immediately as this same silent
+  no-sync symptom in dev.
+- The browser-level failure mode (a detached provider behind a
+  working-looking editor) is invisible to the backend suites; only a
+  browser-driven check catches it. Until an e2e harness for the frontend
+  exists, changes to the provider lifecycle warrant a manual two-tab test.
