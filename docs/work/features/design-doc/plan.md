@@ -364,12 +364,20 @@ entry as it is typed. The phase-2 static reading view was retired with this; a r
 mode returns as editor-level state when modes land (phase 5). Gherkin steps and example rows live
 in the scenario block's `data` prop (ids included) behind a structured step editor.
 
-Gaps to close in later phases: drag and drop is not yet constrained to same-group siblings (the
-projection keeps a mis-dropped element with its owner, so a bad drop cannot re-home anything, but
-the editor should still refuse it); paste is not yet coerced, so pasted content can produce
-`paragraph` blocks the projection ignores rather than typed elements; and the "not written yet"
-line is not yet rendered inside the editor. The fixed section headings (1 Goal … 5 Actors, with the
-In/Out-of-scope labels) do render: they are drawn above whichever block currently opens each
+The three gaps this phase left open are now closed. Drag and drop is constrained to same-group
+siblings (the prototype's `data-group` rule): a capture-phase drop guard cancels any block drop
+whose target under the pointer is not a block of the same reorder group — `blockGroup` from
+`@repo/design-doc-blocks` on both ends — and also refuses foreign content dropped into the pane.
+Paste is coerced through a `pasteHandler`: clipboard text lands as plain text in the typed block at
+the caret, extra lines becoming sibling blocks of the same type (owner props carried over) where
+the schema keeps a list, so paste can no longer produce `paragraph` blocks; BlockNote's own
+clipboard format still round-trips typed blocks through the default handler. The "not written yet"
+line renders inside the editor in both of the reading view's forms: an empty fixed section shows
+its numbered heading with a quiet "Not written yet." anchored above the next section that has a
+block (the first bounded context catches trailing ones, and the slash menu offers Goal while its
+single block is absent), and each use case prints "Not written yet: …" below its last block for
+the parts it does not hold. The fixed section headings (1 Goal … 5 Actors, with the
+In/Out-of-scope labels) also render: they are drawn above whichever block currently opens each
 section — a rendering concern over the model, not undeletable heading blocks.
 
 **Phase 4 — Comments and presence.** Threads sidebar, anchors as marks, filters, replies, resolve,

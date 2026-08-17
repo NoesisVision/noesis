@@ -18,7 +18,11 @@ import {
 } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/shadcn';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { DESIGN_DOC_BLOCK_SPECS } from '@repo/design-doc-blocks';
+import {
+  blockGroup,
+  DESIGN_DOC_BLOCK_SPECS,
+  type DesignDocBlockType,
+} from '@repo/design-doc-blocks';
 import * as React from 'react';
 import * as Y from 'yjs';
 import {
@@ -65,6 +69,75 @@ type BlockLike = {
   type: string;
   props: Record<string, unknown>;
 };
+
+/** The reorder group of a live block, null for fixed-place or untyped ones. */
+function groupOfBlock(block: BlockLike | undefined): string | null {
+  if (block === undefined || !(block.type in DESIGN_DOC_BLOCK_SPECS)) {
+    return null;
+  }
+  return blockGroup(
+    block.type as DesignDocBlockType,
+    block.props as Record<string, string | number | boolean>,
+  );
+}
+
+/**
+ * Paste coercion (plan §7, phase-3 gap): clipboard text lands as plain text
+ * in the typed block at the caret, never as `paragraph` blocks the
+ * projection would ignore. Extra lines become sibling blocks of the same
+ * type where the schema keeps a list (the block has a reorder group), with
+ * the owner props cloned; elsewhere they fold into one line. BlockNote's own
+ * clipboard format still round-trips through the default handler — it
+ * re-inserts typed blocks of this same schema.
+ */
+function typedPasteHandler({
+  event,
+  editor,
+  defaultPasteHandler,
+}: {
+  event: ClipboardEvent;
+  editor: DesignDocEditor;
+  defaultPasteHandler: () => boolean | undefined;
+}): boolean | undefined {
+  if (event.clipboardData?.types.includes('blocknote/html') === true) {
+    return defaultPasteHandler();
+  }
+  const text = event.clipboardData?.getData('text/plain') ?? '';
+  if (text === '') return false;
+  let current: BlockLike;
+  try {
+    current = editor.getTextCursorPosition().block as unknown as BlockLike;
+  } catch {
+    return false;
+  }
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== '');
+  const [first, ...rest] = lines;
+  if (first === undefined) return true;
+  if (rest.length === 0 || groupOfBlock(current) === null) {
+    editor.insertInlineContent([lines.join(' ')]);
+    return true;
+  }
+  editor.insertInlineContent([first]);
+  // Only the owner/discriminator props carry over — content-ish props
+  // (a field's name, a note) must not be stamped onto every pasted line.
+  const carried: Record<string, unknown> = {};
+  for (const key of ['useCaseId', 'direction', 'scope']) {
+    if (key in current.props) carried[key] = current.props[key];
+  }
+  editor.insertBlocks(
+    rest.map((line) => ({
+      type: current.type,
+      props: { ...carried },
+      content: line,
+    })) as never,
+    current.id,
+    'after',
+  );
+  return true;
+}
 
 /** The use case the caret sits in, from the flat block order. */
 function enclosingUseCaseId(
@@ -115,7 +188,13 @@ function typedSlashItems(
   });
 
   if (useCaseId === null) {
+    // The goal is a single slot — offered only while its block is absent, so
+    // the "not written yet" line has an insert path.
+    const hasGoal = (editor.document as unknown as BlockLike[]).some(
+      (block) => block.type === 'goal',
+    );
     return [
+      ...(hasGoal ? [] : [item('Goal', 'goal', {})]),
       item('Context paragraph', 'contextParagraph', {}),
       item('Target outcome', 'outcome', {}),
       item('Scope item (in scope)', 'scopeItem', { scope: 'in' }),
@@ -208,6 +287,7 @@ export function DesignDocEditorView({
     // placeholder content the fragment sync then replaces.
     withCollaboration({
       schema: designDocSchema,
+      pasteHandler: typedPasteHandler,
       collaboration: {
         fragment: provider.document.getXmlFragment(COLLAB_FRAGMENT),
         user: { name: userName, color: cursorColor(userName) },
@@ -240,6 +320,46 @@ export function DesignDocEditorView({
   }, [provider, recomputeOutline]);
 
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Drag and drop constrained to same-group siblings (plan §4, the
+  // prototype's data-group rule): a block drag may only drop onto a block of
+  // the same reorder group. Capture phase at the document level runs ahead
+  // of BlockNote's own document-level drop handling; anything else is
+  // cancelled — including foreign drops into the pane, which would insert
+  // untyped blocks the projection ignores.
+  React.useEffect(() => {
+    const onDropCapture = (event: DragEvent) => {
+      const cancel = () => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      const over = document.elementFromPoint(event.clientX, event.clientY);
+      const html = event.dataTransfer?.getData('blocknote/html') ?? '';
+      if (html === '') {
+        // Not a block drag: refuse foreign content dropped into the pane.
+        if (over !== null && scrollRef.current?.contains(over) === true) {
+          cancel();
+        }
+        return;
+      }
+      const draggedId = /data-id="([^"]+)"/.exec(html)?.[1];
+      const targetId = over?.closest('[data-id]')?.getAttribute('data-id');
+      const dragged =
+        draggedId === undefined
+          ? undefined
+          : (editor.getBlock(draggedId) as unknown as BlockLike | undefined);
+      const target =
+        targetId == null
+          ? undefined
+          : (editor.getBlock(targetId) as unknown as BlockLike | undefined);
+      const draggedGroup = groupOfBlock(dragged);
+      if (draggedGroup === null || draggedGroup !== groupOfBlock(target)) {
+        cancel();
+      }
+    };
+    document.addEventListener('drop', onDropCapture, true);
+    return () => document.removeEventListener('drop', onDropCapture, true);
+  }, [editor]);
   const activeId = useScrollSpy(outline, scrollRef, resolveBlockElement);
   const { theme } = useTheme();
 

@@ -37,9 +37,44 @@ const FIXED_SECTIONS: Record<string, { num: string; title: string }> = {
   actor: { num: '5', title: 'Actors' },
 };
 
+/**
+ * Anchor order for the "not written yet" line: an empty fixed section has no
+ * block of its own to render from, so its heading and line are drawn above
+ * the first block of the next section that does exist (the first bounded
+ * context catches any trailing empty sections).
+ */
+const SECTION_ANCHOR_ORDER = [
+  'goal',
+  'contextParagraph',
+  'outcome',
+  'scopeItem',
+  'actor',
+  'contextHeading',
+];
+
 interface SectionMarkers {
   heading: boolean;
   scopeLabel: 'In scope' | 'Out of scope' | null;
+  /** Empty fixed sections whose heading this block anchors. */
+  missing: { num: string; title: string }[];
+}
+
+function computeMissingSections(
+  blocks: { id: string; type: string }[],
+  block: RenderProps['block'],
+): SectionMarkers['missing'] {
+  const type = block.type ?? '';
+  const index = SECTION_ANCHOR_ORDER.indexOf(type);
+  if (index === -1) return [];
+  if (blocks.find((b) => b.type === type)?.id !== block.id) return [];
+  const missing: SectionMarkers['missing'] = [];
+  for (let i = index - 1; i >= 0; i--) {
+    const earlier = SECTION_ANCHOR_ORDER[i];
+    if (earlier === undefined || blocks.some((b) => b.type === earlier)) break;
+    const section = FIXED_SECTIONS[earlier];
+    if (section !== undefined) missing.unshift(section);
+  }
+  return missing;
 }
 
 function computeMarkers(
@@ -60,7 +95,34 @@ function computeMarkers(
       scopeLabel = scope === 'out' ? 'Out of scope' : 'In scope';
     }
   }
-  return { heading: firstOfSection?.id === block.id, scopeLabel };
+  return {
+    heading: firstOfSection?.id === block.id,
+    scopeLabel,
+    missing: computeMissingSections(blocks, block),
+  };
+}
+
+/** The reading view's quiet line for detail that holds nothing yet. */
+function NotWrittenLine({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      contentEditable={false}
+      className="select-none text-[13px] text-muted-foreground"
+    >
+      {children}
+    </p>
+  );
+}
+
+function SectionHeadingLine({ num, title }: { num: string; title: string }) {
+  return (
+    <h2 contentEditable={false} className="dd-sec select-none">
+      <span className="mr-2.5 font-normal text-muted-foreground tabular-nums">
+        {num}
+      </span>
+      {title}
+    </h2>
+  );
 }
 
 /** Draws the numbered section heading above the block that opens a section. */
@@ -82,13 +144,14 @@ function SectionFrame({
   const section = FIXED_SECTIONS[block.type ?? ''];
   return (
     <div className="w-full">
+      {markers.missing.map((empty) => (
+        <React.Fragment key={empty.num}>
+          <SectionHeadingLine num={empty.num} title={empty.title} />
+          <NotWrittenLine>Not written yet.</NotWrittenLine>
+        </React.Fragment>
+      ))}
       {markers.heading && section !== undefined && (
-        <h2 contentEditable={false} className="dd-sec select-none">
-          <span className="mr-2.5 font-normal text-muted-foreground tabular-nums">
-            {section.num}
-          </span>
-          {section.title}
-        </h2>
+        <SectionHeadingLine num={section.num} title={section.title} />
       )}
       {markers.scopeLabel !== null && (
         <div contentEditable={false} className="dd-label select-none">
@@ -235,6 +298,99 @@ const withGroup =
     <GroupFrame block={props.block}>{inner(props)}</GroupFrame>
   );
 
+/* ------------------------------------------- use-case "not written" line -- */
+
+type UseCaseBlock = {
+  id: string;
+  type: string;
+  props: Record<string, unknown>;
+};
+
+/** The use case a block belongs to — its own id for the heading. */
+function owningUseCaseId(block: {
+  type?: string;
+  id: string;
+  props: Record<string, unknown>;
+}): string {
+  if (block.type === 'useCaseHeading') return block.id;
+  const useCaseId = block.props.useCaseId;
+  return typeof useCaseId === 'string' ? useCaseId : '';
+}
+
+/**
+ * The parts of a use case that hold nothing yet, in the order the
+ * specification fixes — the retired reading view's `missingSections`, now
+ * computed from the live block list and anchored below the use case's last
+ * block.
+ */
+function computeUseCaseMissing(
+  blocks: UseCaseBlock[],
+  block: RenderProps['block'],
+): string[] {
+  const useCaseId = owningUseCaseId(block);
+  if (useCaseId === '') return [];
+  const mine = blocks.filter((b) => owningUseCaseId(b) === useCaseId);
+  if (mine[mine.length - 1]?.id !== block.id) return [];
+  const has = (predicate: (b: UseCaseBlock) => boolean) => mine.some(predicate);
+  const missing: string[] = [];
+  if (!has((b) => b.type === 'useCaseSummary')) missing.push('summary');
+  if (!has((b) => b.type === 'useCaseDescription')) missing.push('description');
+  if (!has((b) => b.type === 'rule')) missing.push('rules');
+  if (!has((b) => b.type === 'fieldRow' && b.props.direction === 'input')) {
+    missing.push('input');
+  }
+  if (
+    !has(
+      (b) =>
+        b.type === 'outputSummary' ||
+        (b.type === 'fieldRow' && b.props.direction === 'output'),
+    )
+  ) {
+    missing.push('output');
+  }
+  if (!has((b) => b.type === 'scenario')) missing.push('acceptance scenarios');
+  if (!has((b) => b.type === 'qualityAttribute')) {
+    missing.push('quality attributes');
+  }
+  return missing;
+}
+
+/** Prints the use case's "Not written yet: …" line below its last block. */
+function UseCaseTailFrame({
+  block,
+  children,
+}: {
+  block: RenderProps['block'];
+  children: React.ReactNode;
+}) {
+  const editor = useBlockNoteEditor();
+  const compute = React.useCallback(
+    () =>
+      computeUseCaseMissing(
+        editor.document as unknown as UseCaseBlock[],
+        block,
+      ),
+    [editor, block],
+  );
+  const [missing, setMissing] = React.useState<string[]>(compute);
+  useEditorChange(() => setMissing(compute()), editor);
+  return (
+    <div className="w-full">
+      {children}
+      {missing.length > 0 && (
+        <div className="mt-3">
+          <NotWrittenLine>Not written yet: {missing.join(', ')}</NotWrittenLine>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const withUseCaseTail =
+  (inner: (props: RenderProps) => React.ReactNode) => (props: RenderProps) => (
+    <UseCaseTailFrame block={props.block}>{inner(props)}</UseCaseTailFrame>
+  );
+
 /** A rule's `1.` marker — its position in the use case's rule list. */
 function RuleMarker({ block }: { block: RenderProps['block'] }) {
   const { index } = useGroupInfo(block);
@@ -344,81 +500,95 @@ export const RENDERERS: Record<
       </div>
     )),
   ),
-  contextHeading: inlineRender(({ block, children }) => (
-    <h2 className="dd-sec">
-      <HeadingNum blockId={block.id} />
-      {children}
-      <span
-        contentEditable={false}
-        className="ml-2 select-none align-middle text-[10px] font-semibold tracking-wider text-muted-foreground uppercase"
-      >
-        context
-      </span>
-    </h2>
-  )),
+  // withSection so the first context anchors any trailing empty fixed
+  // sections' "not written yet" headings (it draws no heading of its own).
+  contextHeading: withSection(
+    inlineRender(({ block, children }) => (
+      <h2 className="dd-sec">
+        <HeadingNum blockId={block.id} />
+        {children}
+        <span
+          contentEditable={false}
+          className="ml-2 select-none align-middle text-[10px] font-semibold tracking-wider text-muted-foreground uppercase"
+        >
+          context
+        </span>
+      </h2>
+    )),
+  ),
   serviceHeading: inlineRender(({ block, children }) => (
     <h3 className="dd-sec">
       <HeadingNum blockId={block.id} />
       {children}
     </h3>
   )),
-  useCaseHeading: inlineRender(({ block, children }) => (
-    <h4 className="dd-sec">
-      <HeadingNum blockId={block.id} />
-      {children}
-      {typeof block.props.type === 'string' && block.props.type !== '' && (
-        <span
-          contentEditable={false}
-          className="ml-2 inline-block select-none rounded bg-secondary px-1.5 align-middle text-[10.5px] font-semibold tracking-wide text-secondary-foreground uppercase"
-        >
-          {block.props.type}
-        </span>
-      )}
-    </h4>
-  )),
-  useCaseSummary: inlineRender(({ children }) => (
-    <div className="text-[16px] leading-relaxed">{children}</div>
-  )),
-  useCaseDescription: withGroup(
-    inlineRender(({ children }) => (
-      <div className="whitespace-pre-wrap">{children}</div>
-    )),
-  ),
-  rule: withGroup(
+  useCaseHeading: withUseCaseTail(
     inlineRender(({ block, children }) => (
-      <div className="pl-4">
-        <RuleMarker block={block} />
+      <h4 className="dd-sec">
+        <HeadingNum blockId={block.id} />
         {children}
-      </div>
-    )),
-  ),
-  fieldRow: withGroup((props) => <FieldRowBlock {...props} />),
-  outputSummary: withGroup(
-    inlineRender(({ children }) => <div>{children}</div>),
-  ),
-  scenario: withGroup((props) => (
-    <ScenarioBlock {...(props as ScenarioRenderProps)} />
-  )),
-  qualityAttribute: withGroup(
-    inlineRender(({ block, children }) => (
-      <div className="pl-4">
-        <span
-          contentEditable={false}
-          className="mr-2 select-none text-muted-foreground"
-        >
-          •
-        </span>
-        {typeof block.props.name === 'string' && block.props.name !== '' && (
-          <strong
+        {typeof block.props.type === 'string' && block.props.type !== '' && (
+          <span
             contentEditable={false}
-            className="mr-1 select-none font-semibold"
+            className="ml-2 inline-block select-none rounded bg-secondary px-1.5 align-middle text-[10.5px] font-semibold tracking-wide text-secondary-foreground uppercase"
           >
-            {block.props.name}:
-          </strong>
+            {block.props.type}
+          </span>
         )}
-        {children}
-      </div>
+      </h4>
     )),
+  ),
+  useCaseSummary: withUseCaseTail(
+    inlineRender(({ children }) => (
+      <div className="text-[16px] leading-relaxed">{children}</div>
+    )),
+  ),
+  useCaseDescription: withUseCaseTail(
+    withGroup(
+      inlineRender(({ children }) => (
+        <div className="whitespace-pre-wrap">{children}</div>
+      )),
+    ),
+  ),
+  rule: withUseCaseTail(
+    withGroup(
+      inlineRender(({ block, children }) => (
+        <div className="pl-4">
+          <RuleMarker block={block} />
+          {children}
+        </div>
+      )),
+    ),
+  ),
+  fieldRow: withUseCaseTail(withGroup((props) => <FieldRowBlock {...props} />)),
+  outputSummary: withUseCaseTail(
+    withGroup(inlineRender(({ children }) => <div>{children}</div>)),
+  ),
+  scenario: withUseCaseTail(
+    withGroup((props) => <ScenarioBlock {...(props as ScenarioRenderProps)} />),
+  ),
+  qualityAttribute: withUseCaseTail(
+    withGroup(
+      inlineRender(({ block, children }) => (
+        <div className="pl-4">
+          <span
+            contentEditable={false}
+            className="mr-2 select-none text-muted-foreground"
+          >
+            •
+          </span>
+          {typeof block.props.name === 'string' && block.props.name !== '' && (
+            <strong
+              contentEditable={false}
+              className="mr-1 select-none font-semibold"
+            >
+              {block.props.name}:
+            </strong>
+          )}
+          {children}
+        </div>
+      )),
+    ),
   ),
 };
 
