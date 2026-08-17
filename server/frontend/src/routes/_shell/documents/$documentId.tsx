@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useParams } from '@tanstack/react-router';
 import * as React from 'react';
 import {
   PanelBody,
@@ -23,7 +23,19 @@ export const Route = createFileRoute('/_shell/documents/$documentId')({
 });
 
 export function DocumentPanel() {
-  const { documentId } = Route.useParams();
+  // The shell keeps this panel registered until the view's cleanup effect
+  // runs — one render after navigating away, when this route has no active
+  // match and strict `useParams` would throw. Read loosely and go blank for
+  // that render instead.
+  const params = useParams({
+    from: '/_shell/documents/$documentId',
+    shouldThrow: false,
+  });
+  if (params === undefined) return null;
+  return <DocumentPanelContent documentId={params.documentId} />;
+}
+
+function DocumentPanelContent({ documentId }: { documentId: string }) {
   const detail = useQuery(designDocDetailQueryOptions(documentId));
   if (detail.data === undefined) return null;
   const { summary, document } = detail.data;
