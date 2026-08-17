@@ -1,6 +1,6 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Phases 1–2 delivered; phases 3–6b ready to break into tasks
+**Status:** Phases 1–3 delivered (3 with noted gaps); phases 4–6b ready to break into tasks
 **Date:** 2026-08-17
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
 [`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
@@ -344,11 +344,33 @@ the current project's documents and opens each in the reading view
 so a reviewer has something to read before the agent exists. In phase 3 the Y.Doc becomes the
 stored editing truth (decision 51) and this JSON column becomes the seed input / projection cache.
 
-**Phase 3 — Typed collaborative editing.** BlockNote with the custom block schema on a Yjs document:
-filtered block menu, constrained drag and drop, schema-aware deletion, `toBlocks` seeding, and the
-`DesignDocument` projection for reads. Two browsers editing the same document is the acceptance test
-for this phase; running `checkDesignDocument` over the projection is how the projection is kept
-total.
+**Phase 3 — Typed collaborative editing. Done, with noted gaps.** BlockNote with the custom block
+schema on a Yjs document: filtered block menu, constrained drag and drop, schema-aware deletion,
+`toBlocks` seeding, and the `DesignDocument` projection for reads. Two browsers editing the same
+document is the acceptance test for this phase; running `checkDesignDocument` over the projection is
+how the projection is kept total.
+
+As built: block configs, `toBlocks` and the `toDocument` projection live in
+`@repo/design-doc-blocks`, shared by the frontend editor (React renders) and the backend's headless
+schema (`design-doc-editor.server.ts`), so both sides produce the same document structure. Elements
+attach to their owners through explicit props (`useCaseId`, `applicationServiceId`), never position.
+The `/collab` surface embeds Hocuspocus in the backend process (decision 53, now accepted): session
+cookie on the upgrade, Y.Doc state persisted as a `DesignDocState` node, seed-once at creation, and
+the store hook refreshing the `DesignDocument` JSON column — now explicitly the projection cache.
+The document route is one surface, as the prototype has it: always the collaborative editor, with
+the table-of-contents rail permanently beside it — the outline (prototype numbering, scroll-spy,
+click-to-jump) recomputed live from the editor's block list, so a renamed use case renames its TOC
+entry as it is typed. The phase-2 static reading view was retired with this; a read-only Viewing
+mode returns as editor-level state when modes land (phase 5). Gherkin steps and example rows live
+in the scenario block's `data` prop (ids included) behind a structured step editor.
+
+Gaps to close in later phases: drag and drop is not yet constrained to same-group siblings (the
+projection keeps a mis-dropped element with its owner, so a bad drop cannot re-home anything, but
+the editor should still refuse it); paste is not yet coerced, so pasted content can produce
+`paragraph` blocks the projection ignores rather than typed elements; and the "not written yet"
+line is not yet rendered inside the editor. The fixed section headings (1 Goal … 5 Actors, with the
+In/Out-of-scope labels) do render: they are drawn above whichever block currently opens each
+section — a rendering concern over the model, not undeletable heading blocks.
 
 **Phase 4 — Comments and presence.** Threads sidebar, anchors as marks, filters, replies, resolve,
 mentions of people, plus live presence and cursors on the awareness channel.

@@ -7,6 +7,7 @@ import {
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { newUuid } from '@repo/shared-contracts/uuid';
 import { z } from 'zod';
+import { seedYDocState } from './design-doc-editor.server.js';
 import type {
   DesignDocSummaryRow,
   DesignDocsRepository,
@@ -76,6 +77,11 @@ export class DesignDocsService {
 
     const row = await this.designDocs.create(projectId, document);
     if (row === null) throw new DesignDocProjectNotFoundError(projectId);
+
+    // Seed the Y.Doc exactly once, server-side, before any client can
+    // connect (decision 51.6). From here on the Y.Doc is the editing truth
+    // and the JSON column is the projection cache.
+    await this.designDocs.saveState(document.id, seedYDocState(document));
     return toSummary(row);
   }
 

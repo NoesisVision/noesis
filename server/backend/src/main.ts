@@ -4,6 +4,10 @@ import { createApp } from './app.js';
 import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
+import {
+  type CollabSocketData,
+  DesignDocCollabService,
+} from './design-docs/design-doc-collab.service.js';
 import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
@@ -30,12 +34,20 @@ if (authModule.mode === 'disabled') {
 }
 
 const projectsRepository = new ProjectsRepository(db);
+const designDocsRepository = new DesignDocsRepository(db);
+// The `/collab` surface (decision 53): the Yjs collaboration backend,
+// embedded in this process, upgraded below in Bun.serve rather than routed
+// through Hono — its consumer speaks the Yjs binary protocols, not JSON.
+const collabService = new DesignDocCollabService(
+  designDocsRepository,
+  authModule,
+);
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
   authModule,
   projectsService: new ProjectsService(projectsRepository),
-  designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
+  designDocsService: new DesignDocsService(designDocsRepository),
   // The access check needs the App's own identity; disabled mode has none,
   // and the routes serve stored state flagged unchecked instead.
   repoAccess:
@@ -54,7 +66,7 @@ const uiDistPath = process.env.UI_DIST_PATH
 if (uiDistPath !== undefined) {
   // Registered after the routes in createApp, so surface endpoints win and
   // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/api', '/internal', '/auth'];
+  const surfaces = ['/ui', '/api', '/internal', '/auth', '/collab'];
   // `path` must be relative — hono's serveStatic strips a leading slash from
   // it (absolute paths are only honored in `root`).
   const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });
@@ -68,16 +80,24 @@ if (uiDistPath !== undefined) {
   });
 }
 
-const server = Bun.serve({
+const server = Bun.serve<CollabSocketData>({
   port: Number(process.env.PORT ?? 3000),
-  fetch: app.fetch,
+  fetch(request, srv) {
+    const { pathname } = new URL(request.url);
+    if (pathname === '/collab' || pathname.startsWith('/collab/')) {
+      return collabService.upgrade(request, srv);
+    }
+    return app.fetch(request);
+  },
+  websocket: collabService.websocket,
 });
 console.log(`[server] listening on ${server.url}`);
 
-// Explicit shutdown (Nest's lifecycle hooks, made ours): stop accepting
-// requests, then close the database deterministically so on-disk state is
-// flushed (decisions 23/35).
+// Explicit shutdown (Nest's lifecycle hooks, made ours): flush collab state,
+// stop accepting requests, then close the database deterministically so
+// on-disk state is flushed (decisions 23/35).
 async function shutdown(): Promise<void> {
+  await collabService.close();
   await server.stop();
   await db.close();
   process.exit(0);

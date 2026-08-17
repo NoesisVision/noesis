@@ -99,6 +99,9 @@ export class DesignDocsRepository {
   }
 
   async delete(id: string): Promise<boolean> {
+    await this.db.query(`MATCH (s:DesignDocState {id: $id}) DETACH DELETE s`, {
+      id,
+    });
     const rows = await this.db.query<{ id: string }>(
       `MATCH (d:DesignDoc {id: $id})
        WITH d, d.id AS id
@@ -107,6 +110,51 @@ export class DesignDocsRepository {
       { id },
     );
     return rows.length > 0;
+  }
+
+  // --- Yjs editing state (decisions 51/53) ------------------------------
+
+  /** The encoded Y.Doc for a design document, or null while none is seeded. */
+  async findState(id: string): Promise<Uint8Array | null> {
+    const rows = await this.db.query<{ state: string }>(
+      `MATCH (s:DesignDocState {id: $id}) RETURN s.state AS state`,
+      { id },
+    );
+    const row = rows[0];
+    return row ? Uint8Array.from(Buffer.from(row.state, 'base64')) : null;
+  }
+
+  /** Upsert — seeding writes the first state, the debounced store hook the rest. */
+  async saveState(id: string, state: Uint8Array): Promise<void> {
+    const encoded = Buffer.from(state).toString('base64');
+    const now = new Date().toISOString();
+    await this.db.query(
+      `MERGE (s:DesignDocState {id: $id})
+       SET s.state = $encoded, s.updated_at = $now,
+           s.version = coalesce(s.version, -1) + 1`,
+      { id, encoded, now },
+    );
+  }
+
+  /**
+   * Refresh the projection cache after a collab write: the `document` column
+   * is `DesignDocument` derived from the Y.Doc (decision 51 — a cache, never
+   * a second source of truth), plus the denormalised listing fields.
+   */
+  async updateDocument(id: string, document: DesignDocument): Promise<void> {
+    await this.db.query(
+      `MATCH (d:DesignDoc {id: $id})
+       SET d.document = $document, d.name = $name, d.status = $status,
+           d.date = $date, d.updated_at = $now, d.version = d.version + 1`,
+      {
+        id,
+        document: JSON.stringify(document),
+        name: document.name,
+        status: document.status,
+        date: document.date,
+        now: new Date().toISOString(),
+      },
+    );
   }
 }
 

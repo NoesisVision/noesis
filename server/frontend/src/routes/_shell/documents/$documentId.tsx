@@ -1,14 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { DesignDocumentView } from '@/components/design-doc/document-view';
+import * as React from 'react';
 import {
   PanelBody,
   PanelFields,
   PanelHeading,
 } from '@/components/shell/right-panel';
-import { useRightPanel } from '@/components/shell/use-shell';
+import { useRightPanel, useShell } from '@/components/shell/use-shell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { designDocDetailQueryOptions } from '@/lib/design-docs';
+
+// The editor pulls BlockNote and Yjs in; keep them in their own chunk.
+const DesignDocEditorView = React.lazy(() =>
+  import('@/components/design-doc/design-doc-editor').then((module) => ({
+    default: module.DesignDocEditorView,
+  })),
+);
 
 export const Route = createFileRoute('/_shell/documents/$documentId')({
   component: DocumentView,
@@ -38,8 +45,14 @@ export function DocumentPanel() {
   );
 }
 
+/**
+ * One document, one surface (prototype): always the collaborative editor,
+ * with the table of contents rail beside it. The detail query serves the
+ * title line and the right panel; the content itself syncs over /collab.
+ */
 export function DocumentView() {
   const { documentId } = Route.useParams();
+  const { account } = useShell();
   const detail = useQuery(designDocDetailQueryOptions(documentId));
   useRightPanel(DocumentPanel);
 
@@ -56,5 +69,20 @@ export function DocumentView() {
     );
   }
 
-  return <DesignDocumentView document={detail.data.document} />;
+  return (
+    <React.Suspense
+      fallback={
+        <div className="p-6">
+          <Skeleton className="h-40 w-full max-w-2xl rounded-lg" />
+        </div>
+      }
+    >
+      <DesignDocEditorView
+        documentId={documentId}
+        userName={account.name || account.login}
+        title={detail.data.summary.name}
+        subtitle={`${detail.data.summary.status} · ${detail.data.summary.date}`}
+      />
+    </React.Suspense>
+  );
 }

@@ -14,7 +14,7 @@ export type DesignDocDetail = InferResponseType<
   200
 >;
 
-/** The portable specification as served — the document-view's input. */
+/** The portable specification as served. */
 export type DesignDocumentDto = DesignDocDetail['document'];
 
 export const DESIGN_DOCS_KEY = ['ui', 'design-docs'] as const;

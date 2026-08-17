@@ -982,7 +982,16 @@ and `removal-without-baseline` integrity warnings, and the `source_scan` and
 
 ## 53. Hocuspocus is the Yjs collaboration backend, persisted in the graph, behind a `/collab` surface
 
-**Status: proposed** — drafted ahead of phase 3; confirm or amend when that phase starts.
+**Status: accepted** (2026-08-17) — both phase-3 verification items passed before
+implementation: Hocuspocus 4.6 runs on Bun's native WebSocket (its
+`WebSocketLike` interface names Bun's `ServerWebSocket` explicitly, and
+`handleConnection`/`handleMessage`/`handleClose` map onto `Bun.serve`'s
+callbacks), and `@blocknote/server-util` 0.54 covers headless
+block-to-ProseMirror conversion (`blocksToYDoc` / `yDocToBlocks`). Two
+integration notes from the spike: Bun frees a request's headers once the
+WebSocket upgrade succeeds, so the cookie must be snapshotted into a new
+`Request` before upgrading; and the hook payloads' `requestHeaders` is a
+`Headers` object read with `.get()`, not a plain record.
 
 **Context:** Decision 51 makes one Yjs document per design document the stored
 truth for editing, seeded exactly once server-side, with `DesignDocument`
