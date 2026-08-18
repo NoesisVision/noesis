@@ -11,7 +11,8 @@
     "test": "bun test src"
   },
   "dependencies": {
-    "@repo/shared-contracts": "workspace:*"
+    "@repo/shared-contracts": "workspace:*",
+    "@tiptap/core": "^3.29.2"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

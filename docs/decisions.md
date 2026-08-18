@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-08-16_
+_Last updated: 2026-08-18_
 
 ---
 
@@ -1193,3 +1193,90 @@ Y.Doc, client-side writes).
 - Comment bodies are BlockNote block documents, not plain strings — the
   plan's `Comment` shape in section 3.8 survives as the anchor/metadata
   story, not as a literal stored record.
+
+## 56. Suggestions are prosemirror-suggest-changes marks in the shared Y.Doc
+
+**Status: accepted** (2026-08-18) — implemented and verified in the running
+app: suggested insertions and deletions render as marked runs, the rail lists
+them with author attribution, accept/reject round-trips (including from a
+second browser over the live channel), and the server projection keeps
+pending suggestions out of the `DesignDocument` cache until accepted.
+
+**Context:** Phase 5 of the design-doc plan needs Suggesting mode — edits
+captured as reviewable suggestions instead of document mutations — with
+tracked marks, per-suggestion accept/reject writing through to the model, and
+word-level narrowing, all under concurrent editing. The plan's own
+`Suggestion` record shape (section 3.8: anchor plus replacement string)
+re-implements tracked changes and needs its own reconciliation under
+concurrency. Meanwhile `@handlewithcare/prosemirror-suggest-changes` is the
+library BlockNote's own xl-ai package (same 0.54 release train) uses for
+tracked changes: three ProseMirror marks (`insertion`, `deletion`,
+`modification`), a `dispatchTransaction` decorator that transforms edits into
+mark-tracked transactions while enabled, and apply/revert commands per
+suggestion id or document-wide.
+
+**Decision:**
+
+- **The marks are the store.** Suggestions live as suggest-changes marks in
+  the shared fragment — they sync, persist, and rebase under concurrent
+  editing exactly as the text they annotate does, with no second record to
+  reconcile. The rail's list is a scan of the marks, so every client derives
+  the same list. The plan's `Suggestion` contract survives as the
+  anchor-and-authorship story, not as a stored record (the same shift
+  decision 55 made for comments).
+- **Authorship rides in the suggestion id.** Ids are
+  `<accountId>:<nonce>` strings minted by a custom `generateId`, so the rail
+  attributes a suggestion without a side table that could race, and
+  concurrent clients cannot collide the way the library's default
+  max-plus-one numeric ids can.
+- **The mark definitions are shared.** They live in
+  `@repo/design-doc-blocks/suggestion-marks` (the package's one deliberately
+  editor-coupled module, excluded from the structural main entry) and are
+  registered by the frontend editor and the backend's headless schema from
+  the same source — decision 55's rule that a fragment-carried mark must land
+  in both schemas in the same change, made structural.
+- **Suggesting is a local editor mode.** The Editing / Suggesting toggle
+  drives `enableSuggestChanges` per client; the suggest-changes plugin state
+  never syncs, so each person picks their own mode (plan §4). A read-only
+  Viewing mode was tried and dropped — always-editable is simpler and the
+  document is invite-gated anyway.
+- **One rail list, Google-Docs style.** Comment threads and pending
+  suggestions interleave in a single document-order list. The list shell is
+  ours (BlockNote's `ThreadsSidebar` owns its list and cannot interleave
+  foreign items) but each thread still renders through BlockNote's exported
+  `Thread` component, so thread UI does not fork. Suggestion selection syncs
+  both ways — marked text to card, card to marked text — as local UI state.
+- **The projection is the accepted document.** Before `toDocument`, the
+  server reverts all pending suggestions on a throwaway ProseMirror state —
+  suggested insertions drop out, suggested deletions stay — so a pending
+  suggestion never leaks into the `DesignDocument` cache, and accepting one
+  reaches the model through the ordinary store hook.
+
+- **Suggestion mark parse rules must out-rank the strike style.** The
+  marks' `parseDOM` uses attribute selectors (`del[data-id]`,
+  `ins[data-id]`) at priority 100: BlockNote's strike style also claims
+  bare `del`, and if it wins, ProseMirror's DOM reader re-parses a
+  deletion-marked run as struck text, sees a document that differs from
+  the view, and dispatches a self-replacing step — which the suggesting
+  transform turns into a fresh insertion, growing the document without
+  bound (the runaway-duplication incident of 2026-08-18, which also
+  corrupted the dev LadybugDB WAL twice).
+- **Never mutate ProseMirror's DOM from React.** The active-suggestion
+  tint is a dynamic stylesheet in `<head>`, not a class toggled on the
+  marked elements: any mutation inside `view.dom` fires ProseMirror's DOM
+  observer, whose re-parse is what triggered the runaway above.
+
+**Consequences:**
+
+- **Enter is inert while Suggesting.** The library records a block split as
+  zero-width boundary markers, and rejecting a split that opens a block
+  leaves the split behind (verified against 0.1.8). Until that reverts
+  cleanly, structural suggestions are new blocks via the slash menu and
+  removals via the drag-handle menu — both round-trip.
+- Suggestion integrity is client-enforced, like decision 55's threads: any
+  account that can edit the document can accept or reject any suggestion.
+  Acceptable for an invite-gated instance of trusted collaborators.
+- Word-level narrowing comes free: the transform marks exactly the inserted
+  and deleted runs, so a one-word edit suggests one word.
+- The agent never authors suggestions (plan §6); this machinery is the
+  human review path only.

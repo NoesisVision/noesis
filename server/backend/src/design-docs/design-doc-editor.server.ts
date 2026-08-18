@@ -1,7 +1,9 @@
 import {
   BlockNoteSchema,
   createBlockSpec,
+  createExtension,
   defaultBlockSpecs,
+  docToBlocks,
 } from '@blocknote/core';
 import {
   CommentsExtension,
@@ -9,6 +11,7 @@ import {
 } from '@blocknote/core/comments';
 import { YjsThreadStore } from '@blocknote/core/yjs';
 import { ServerBlockNoteEditor } from '@blocknote/server-util';
+import { revertSuggestions } from '@handlewithcare/prosemirror-suggest-changes';
 import {
   DESIGN_DOC_BLOCK_SPECS,
   type DesignDocBlock,
@@ -17,7 +20,11 @@ import {
   toBlocks,
   toDocument,
 } from '@repo/design-doc-blocks';
+import { SUGGESTION_MARK_EXTENSIONS } from '@repo/design-doc-blocks/suggestion-marks';
 import type { DesignDocument } from '@repo/shared-contracts';
+import type { Schema } from 'prosemirror-model';
+import { EditorState } from 'prosemirror-state';
+import { yXmlFragmentToProseMirrorRootNode } from 'y-prosemirror';
 import * as Y from 'yjs';
 
 /*
@@ -77,6 +84,14 @@ const serverEditor = ServerBlockNoteEditor.create({
       ),
       resolveUsers: async () => [],
     }),
+    // The suggestion marks (phase 5), for the same reason as the comment
+    // mark above: without them the projection destroys every suggested run.
+    // The cast bridges two structurally identical @tiptap/core Mark
+    // instantiations tsc treats as unrelated across package boundaries.
+    createExtension({
+      key: 'suggestionMarks',
+      tiptapExtensions: SUGGESTION_MARK_EXTENSIONS as unknown as never[],
+    }),
   ],
 });
 
@@ -92,23 +107,43 @@ export function seedYDocState(document: DesignDocument): Uint8Array {
   return Y.encodeStateAsUpdate(ydoc);
 }
 
+/**
+ * The accepted document as blocks: pending suggestions are reverted on a
+ * throwaway ProseMirror state first — suggested insertions are dropped and
+ * suggested deletions kept — so what nobody has accepted yet never reaches
+ * the `DesignDocument` projection (plan phase 5: what a person asks for is
+ * applied; what is only suggested stays pending).
+ */
+function acceptedBlocks(ydoc: Y.Doc): DesignDocBlock[] {
+  const doc = yXmlFragmentToProseMirrorRootNode(
+    ydoc.getXmlFragment(COLLAB_FRAGMENT),
+    serverEditor.editor.pmSchema,
+  );
+  let accepted = doc;
+  revertSuggestions(EditorState.create({ doc }), (tr) => {
+    accepted = tr.doc;
+  });
+  return docToBlocks(accepted) as unknown as DesignDocBlock[];
+}
+
 export function readBlockDocument(ydoc: Y.Doc): DesignDocBlockDocument {
   const raw = ydoc.getMap(SIDECAR_MAP).get('json');
   if (typeof raw !== 'string') {
     throw new Error('Y.Doc carries no design-doc sidecar; was it seeded?');
   }
   const sidecar = JSON.parse(raw) as DesignDocSidecar;
-  const blocks = serverEditor.yDocToBlocks(
-    ydoc,
-    COLLAB_FRAGMENT,
-  ) as unknown as DesignDocBlock[];
-  return { blocks, sidecar };
+  return { blocks: acceptedBlocks(ydoc), sidecar };
 }
 
 /** The projection: Y.Doc → DesignDocument (decision 51.3). */
 export function projectYDoc(ydoc: Y.Doc): DesignDocument {
   const { blocks, sidecar } = readBlockDocument(ydoc);
   return toDocument(blocks, sidecar);
+}
+
+/** The headless ProseMirror schema — exposed for tests that build states. */
+export function designDocPmSchema(): Schema {
+  return serverEditor.editor.pmSchema;
 }
 
 export function projectState(state: Uint8Array): DesignDocument {

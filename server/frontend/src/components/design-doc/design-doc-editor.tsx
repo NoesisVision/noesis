@@ -16,13 +16,16 @@ import {
   SideMenu,
   SideMenuController,
   SuggestionMenuController,
-  ThreadsSidebar,
   useCreateBlockNote,
   useEditorChange,
   useEditorSelectionChange,
   useExtensionState,
 } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/shadcn';
+import {
+  disableSuggestChanges,
+  enableSuggestChanges,
+} from '@handlewithcare/prosemirror-suggest-changes';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import {
   blockGroup,
@@ -49,6 +52,18 @@ import {
   designDocSchema,
 } from '@/components/design-doc/editor-schema';
 import { PresenceFacepile } from '@/components/design-doc/presence';
+import {
+  collectSuggestions,
+  type SuggestionListItem,
+  SuggestionsExtension,
+} from '@/components/design-doc/suggestions';
+import {
+  type DocumentMode,
+  ModeToggle,
+  RailList,
+  type SuggestionDispatch,
+  SuggestionsBulkActions,
+} from '@/components/design-doc/suggestions-rail';
 import { TableOfContents } from '@/components/design-doc/table-of-contents';
 import { useTheme } from '@/components/shell/use-theme';
 import { Button } from '@/components/ui/button';
@@ -79,6 +94,12 @@ function cursorColor(name: string): string {
   let hash = 0;
   for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) % 360;
   return `hsl(${hash}, 65%, 45%)`;
+}
+
+/** DOM selector matching every rendered mark of one suggestion. */
+function suggestionSelector(id: string): string {
+  const escaped = CSS.escape(id);
+  return `ins[data-id="${escaped}"], del[data-id="${escaped}"], span[data-type="modification"][data-id="${escaped}"]`;
 }
 
 type BlockLike = {
@@ -348,6 +369,7 @@ export function DesignDocEditorView({
           resolveUsers,
           schema: commentEditorSchema,
         }),
+        SuggestionsExtension({ accountId: account.id }),
       ],
       collaboration: {
         fragment: provider.document.getXmlFragment(COLLAB_FRAGMENT),
@@ -355,8 +377,23 @@ export function DesignDocEditorView({
         provider: { awareness: provider.awareness ?? undefined },
       },
     }),
-    [provider, userName, threadStore, resolveUsers],
+    [provider, userName, threadStore, resolveUsers, account.id],
   );
+
+  // The document mode (plan §4): Editing applies edits, Suggesting captures
+  // them as suggestion marks. The flag is editor-level and local — each
+  // person picks their own mode.
+  const [mode, setMode] = React.useState<DocumentMode>('editing');
+  React.useEffect(() => {
+    try {
+      const view = editor.prosemirrorView;
+      if (mode === 'suggesting')
+        enableSuggestChanges(view.state, view.dispatch);
+      else disableSuggestChanges(view.state, view.dispatch);
+    } catch {
+      // Not mounted yet; the default (disabled) matches the initial mode.
+    }
+  }, [mode, editor]);
 
   // The thread anchor pair from plan §3.8, `{ elementId, quote }`: the
   // floating composer calls `createThread` without metadata, so the
@@ -474,11 +511,10 @@ export function DesignDocEditorView({
   const activeId = useScrollSpy(outline, scrollRef, resolveBlockElement);
   const { theme } = useTheme();
 
-  // The threads rail (plan phase 4, slice 2): ThreadsSidebar rendered
-  // outside the BlockNoteView needs the editor handed over by context. It
-  // mounts only once the provider has synced — the sidebar's thread
-  // subscription caches its first snapshot, so mounting before the initial
-  // sync can leave it stuck on an empty thread list.
+  // The rail list rendered outside the BlockNoteView needs the editor
+  // handed over by context. It mounts only once the provider has synced —
+  // the thread subscription caches its first snapshot, so mounting before
+  // the initial sync can leave it stuck on an empty thread list.
   const [synced, setSynced] = React.useState(false);
   React.useEffect(() => {
     if (provider.synced) {
@@ -502,12 +538,153 @@ export function DesignDocEditorView({
     editor,
     selector: (state) => state?.pendingComment ?? false,
   });
+  // The pending comment's anchor: the selection it was started over. Stable
+  // while pending — any selection change stops the pending comment.
+  const pendingCommentFrom = React.useMemo(() => {
+    if (!pendingComment) return null;
+    try {
+      return editor.prosemirrorState.selection.from;
+    } catch {
+      return null;
+    }
+  }, [pendingComment, editor]);
   React.useEffect(() => {
     if (selectedThreadId !== undefined || pendingComment) setRailOpen(true);
+    if (selectedThreadId !== undefined) setActiveSuggestionId(null);
   }, [selectedThreadId, pendingComment]);
   const [threadFilter, setThreadFilter] = React.useState<
     'open' | 'resolved' | 'all'
   >('open');
+
+  // The pending suggestions, rescanned from the marks on every change —
+  // local and remote transactions both fire the editor-change callback.
+  const [suggestions, setSuggestions] = React.useState<SuggestionListItem[]>(
+    [],
+  );
+  const recomputeSuggestions = React.useCallback(() => {
+    try {
+      setSuggestions(collectSuggestions(editor.prosemirrorState));
+    } catch {
+      // Not mounted yet.
+    }
+  }, [editor]);
+  useEditorChange(recomputeSuggestions, editor);
+  React.useEffect(() => {
+    provider.on('synced', recomputeSuggestions);
+    recomputeSuggestions();
+    return () => {
+      provider.off('synced', recomputeSuggestions);
+    };
+  }, [provider, recomputeSuggestions]);
+  // Accepting or rejecting dispatches through the live view so the change
+  // syncs like any other edit. The commands skip the suggesting transform.
+  const suggestionDispatch = React.useMemo<SuggestionDispatch>(
+    () => ({
+      perSuggestion: (command, id) => {
+        const view = editor.prosemirrorView;
+        command(id)(view.state, view.dispatch);
+      },
+      all: (command) => {
+        const view = editor.prosemirrorView;
+        command(view.state, view.dispatch);
+      },
+    }),
+    [editor],
+  );
+  // Entering Suggesting mode surfaces where the suggestions will land.
+  React.useEffect(() => {
+    if (mode === 'suggesting') setRailOpen(true);
+  }, [mode]);
+  // The active suggestion (Google-Docs behaviour): clicking marked text
+  // highlights its card, clicking the card highlights and scrolls to the
+  // text. Local UI state — nothing syncs.
+  const [activeSuggestionId, setActiveSuggestionId] = React.useState<
+    string | null
+  >(null);
+  React.useEffect(() => {
+    if (
+      activeSuggestionId !== null &&
+      !suggestions.some((item) => String(item.id) === activeSuggestionId)
+    ) {
+      setActiveSuggestionId(null);
+    }
+  }, [suggestions, activeSuggestionId]);
+  // Card click: activate and bring the marked text into view. Block-level
+  // marks render display:contents (no box), so fall back to the enclosing
+  // block element.
+  const selectSuggestion = React.useCallback(
+    (item: SuggestionListItem) => {
+      setActiveSuggestionId(String(item.id));
+      // The thread card's blur keeps its selection when focus lands on a
+      // non-focusable target, so activating a suggestion must clear it.
+      editor.getExtension(CommentsExtension)?.selectThread(undefined);
+      try {
+        const marked = editor.prosemirrorView.dom.querySelector(
+          suggestionSelector(String(item.id)),
+        );
+        const target =
+          marked !== null && marked.getClientRects().length > 0
+            ? marked
+            : (marked?.firstElementChild ??
+              (item.blockId === null
+                ? null
+                : resolveBlockElement(item.blockId)));
+        target?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch {
+        // Not mounted yet.
+      }
+    },
+    [editor],
+  );
+  // Text click: activate the card; any other click clears the highlight.
+  const onDocumentClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      const marked = (event.target as HTMLElement).closest(
+        'ins[data-id], del[data-id], span[data-type="modification"][data-id]',
+      );
+      if (marked instanceof HTMLElement && marked.dataset.id !== undefined) {
+        setActiveSuggestionId(marked.dataset.id);
+        setRailOpen(true);
+        editor.getExtension(CommentsExtension)?.selectThread(undefined);
+      } else {
+        setActiveSuggestionId(null);
+      }
+    },
+    [editor],
+  );
+  // Mirror the highlight onto the marks via a dynamic stylesheet. Never
+  // touch the marked elements themselves: any mutation inside ProseMirror's
+  // DOM triggers its DOM observer, whose re-parse dispatches steps.
+  const highlightStyleRef = React.useRef<HTMLStyleElement | null>(null);
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    document.head.appendChild(style);
+    highlightStyleRef.current = style;
+    return () => {
+      style.remove();
+      highlightStyleRef.current = null;
+    };
+  }, []);
+  React.useEffect(() => {
+    const style = highlightStyleRef.current;
+    if (style === null) return;
+    if (activeSuggestionId === null) {
+      style.textContent = '';
+      return;
+    }
+    const escaped = CSS.escape(activeSuggestionId);
+    style.textContent = `
+      .dd-editor ins[data-id="${escaped}"] {
+        background: color-mix(in oklab, #22c55e 35%, transparent);
+      }
+      .dd-editor del[data-id="${escaped}"] {
+        background: color-mix(in oklab, #ef4444 28%, transparent);
+      }
+      .dd-editor span[data-type="modification"][data-id="${escaped}"] {
+        background: color-mix(in oklab, #eab308 32%, transparent);
+      }
+    `;
+  }, [activeSuggestionId]);
   const blockNoteContext = React.useMemo(
     () => ({ editor: editor as never, colorSchemePreference: theme }),
     [editor, theme],
@@ -571,13 +748,20 @@ export function DesignDocEditorView({
         activeId={activeId}
         onNavigate={navigate}
       />
-      <div ref={scrollRef} className="flex-1 overflow-auto">
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: click routing only — keyboard users reach suggestions via the rail. */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: same — the handler only routes clicks on suggestion marks. */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-auto"
+        onClick={onDocumentClick}
+      >
         <div className="mx-auto max-w-[820px] px-6 pt-10 pb-40">
           <div className="flex items-start justify-between gap-4 px-[54px]">
             <h1 className="mb-1 text-3xl leading-tight font-semibold">
               {title}
             </h1>
             <div className="flex shrink-0 items-center gap-3 pt-2">
+              <ModeToggle mode={mode} onChange={setMode} />
               <PresenceFacepile provider={provider} />
               <Button
                 variant={railOpen ? 'secondary' : 'ghost'}
@@ -620,32 +804,56 @@ export function DesignDocEditorView({
       </div>
       {railOpen && (
         <aside className="flex w-80 shrink-0 flex-col border-l border-border">
-          <div className="flex items-center gap-1 border-b border-border px-3 py-2">
-            <span className="mr-auto text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-              Comments
-            </span>
-            {(['open', 'resolved', 'all'] as const).map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className={cn(
-                  'rounded px-1.5 py-0.5 text-xs capitalize',
-                  filter === threadFilter
-                    ? 'bg-secondary text-secondary-foreground'
-                    : 'text-muted-foreground hover:bg-accent',
-                )}
-                onClick={() => setThreadFilter(filter)}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
           <CommentComponents>
             <BlockNoteContext.Provider value={blockNoteContext}>
-              <RailComposer editor={editor as never} pending={pendingComment} />
-              <div className="dd-threads flex-1 overflow-auto p-2">
+              <div className="flex items-center gap-1 border-b border-border px-3 py-2">
+                <span className="mr-auto text-[11px] font-semibold tracking-wider uppercase">
+                  Comments & suggestions
+                </span>
+                {(['open', 'resolved', 'all'] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    className={cn(
+                      'rounded px-1.5 py-0.5 text-xs capitalize',
+                      filter === threadFilter
+                        ? 'bg-secondary text-secondary-foreground'
+                        : 'text-muted-foreground hover:bg-accent',
+                    )}
+                    onClick={() => setThreadFilter(filter)}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+              {suggestions.length > 0 && (
+                <div className="flex items-center gap-1 border-b border-border px-3 py-1.5">
+                  <span className="mr-auto text-xs text-muted-foreground">
+                    {suggestions.length} pending suggestion
+                    {suggestions.length === 1 ? '' : 's'}
+                  </span>
+                  <SuggestionsBulkActions
+                    count={suggestions.length}
+                    dispatch={suggestionDispatch}
+                  />
+                </div>
+              )}
+              <div className="flex-1 overflow-auto">
                 {synced && (
-                  <ThreadsSidebar filter={threadFilter} sort="position" />
+                  <RailList
+                    suggestions={suggestions}
+                    dispatch={suggestionDispatch}
+                    threadFilter={threadFilter}
+                    activeSuggestionId={activeSuggestionId}
+                    onSelectSuggestion={selectSuggestion}
+                    composer={
+                      <RailComposer
+                        editor={editor as never}
+                        pending={pendingComment}
+                      />
+                    }
+                    composerFrom={pendingCommentFrom}
+                  />
                 )}
               </div>
             </BlockNoteContext.Provider>

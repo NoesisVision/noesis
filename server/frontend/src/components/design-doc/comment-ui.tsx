@@ -9,7 +9,9 @@ import {
   SuggestionMenuController,
   useBlockNoteContext,
   useCreateBlockNote,
+  useDictionary,
   useEditorState,
+  useFocusWithin,
 } from '@blocknote/react';
 import {
   BlockNoteView,
@@ -108,11 +110,12 @@ const MentionCommentEditor = React.forwardRef<
 });
 
 /**
- * The new-comment composer, docked at the top of the threads rail (comments
- * live only in the rail — nothing floats over the text). It appears while a
- * comment is pending (the toolbar's add-comment button started one over the
- * current selection) and writes through the same patched `createThread`, so
- * the anchor metadata is stamped as usual.
+ * The new-comment composer, rendered as a card inside the threads rail at
+ * the pending comment's document position (comments live only in the rail —
+ * nothing floats over the text). It appears while a comment is pending (the
+ * toolbar's add-comment button started one over the current selection) and
+ * writes through the same patched `createThread`, so the anchor metadata is
+ * stamped as usual.
  */
 export function RailComposer({
   editor,
@@ -158,7 +161,10 @@ export function RailComposer({
   };
 
   return (
-    <div className="border-b border-border p-2">
+    <div
+      data-rail-composer=""
+      className="rounded-lg border border-primary/50 bg-card p-2 ring-1 ring-primary/40"
+    >
       <MentionCommentEditor
         autoFocus={true}
         editable={true}
@@ -179,10 +185,165 @@ export function RailComposer({
   );
 }
 
-/** The shadcn components map with the mention-aware comment editor. */
+/*
+ * The thread-card look (the rail's Google-Docs pass): the shadcn Comments
+ * Card selects with a background swap and sizes its author row larger than
+ * the rail's suggestion cards. These overrides restyle the card to the
+ * suggestion card's look — border + ring when selected, 24px avatar, 13px
+ * name over an 11px muted line — leaving all behaviour to the library.
+ */
+
+function ThreadAuthorAvatar({
+  authorInfo,
+}: {
+  authorInfo: { username: string; avatarUrl?: string };
+}) {
+  if (authorInfo.avatarUrl !== undefined && authorInfo.avatarUrl !== '') {
+    return (
+      <img
+        src={authorInfo.avatarUrl}
+        alt=""
+        className="size-6 shrink-0 rounded-full"
+      />
+    );
+  }
+  return (
+    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-medium">
+      {authorInfo.username.slice(0, 1).toUpperCase()}
+    </div>
+  );
+}
+
+const ThreadCard = React.forwardRef<
+  HTMLDivElement,
+  ComponentProps['Comments']['Card']
+>((props, ref) => {
+  const {
+    className,
+    children,
+    selected,
+    headerText,
+    onFocus,
+    onBlur,
+    tabIndex,
+  } = props;
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: focus/blur drive the library's thread selection; the card itself is not a control.
+    <div
+      ref={ref}
+      className={cn(
+        className,
+        'rounded-lg border border-border bg-card text-sm',
+        selected && 'border-primary/50 ring-1 ring-primary/40',
+      )}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      tabIndex={tabIndex}
+    >
+      {headerText !== undefined && (
+        <div className="px-3 pt-3 text-xs text-muted-foreground italic">
+          {headerText}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+});
+
+const ThreadCardSection = React.forwardRef<
+  HTMLDivElement,
+  ComponentProps['Comments']['CardSection']
+>((props, ref) => {
+  const { className, children } = props;
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        className,
+        'p-3',
+        className?.includes('thread-comments')
+          ? 'flex flex-col gap-4 border-b border-border last:border-b-0'
+          : '',
+      )}
+    >
+      {children}
+    </div>
+  );
+});
+
+const ThreadComment = React.forwardRef<
+  HTMLDivElement,
+  ComponentProps['Comments']['Comment']
+>((props, ref) => {
+  const {
+    className,
+    showActions,
+    authorInfo,
+    timeString,
+    actions,
+    edited,
+    emojiPickerOpen,
+    children,
+  } = props;
+  const dict = useDictionary();
+  const [hovered, setHovered] = React.useState(false);
+  const { focused, ref: focusRef } = useFocusWithin();
+
+  const doShowActions =
+    actions &&
+    (showActions === true ||
+      showActions === undefined ||
+      (showActions === 'hover' && hovered) ||
+      focused ||
+      emojiPickerOpen);
+
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover only reveals the action toolbar, mirroring the library component this replaces.
+    <div
+      ref={ref}
+      className={cn(className, 'relative flex flex-col gap-2')}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {doShowActions ? (
+        <div className="absolute top-0 right-0 z-10" ref={focusRef}>
+          {actions}
+        </div>
+      ) : null}
+      {authorInfo === 'loading' ? (
+        <div className="flex items-center gap-2">
+          <div className="size-6 animate-pulse rounded-full bg-secondary" />
+          <div className="h-3 w-28 animate-pulse rounded bg-secondary" />
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <ThreadAuthorAvatar authorInfo={authorInfo} />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13px] font-medium">
+              {authorInfo.username}
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              {timeString}
+              {edited && ` (${dict.comments.edited})`}
+            </div>
+          </div>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+});
+
+/** The shadcn components map with the mention-aware editor and restyled cards. */
 const commentComponents = {
   ...components,
-  Comments: { ...components.Comments, Editor: MentionCommentEditor },
+  Comments: {
+    ...components.Comments,
+    Editor: MentionCommentEditor,
+    Card: ThreadCard,
+    CardSection: ThreadCardSection,
+    Comment: ThreadComment,
+  },
 };
 
 /**

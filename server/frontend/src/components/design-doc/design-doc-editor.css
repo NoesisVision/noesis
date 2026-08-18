@@ -70,6 +70,30 @@
   margin-top: 4px;
 }
 
+/*
+ * Suggestion marks (plan phase 5): suggested insertions read as additions,
+ * suggested deletions as struck text — colour-mixed against the theme
+ * palette so both modes stay legible. Block-level marks (data-inline=false)
+ * are display:contents inline-styled by the mark's toDOM; the tint on their
+ * text comes from these same rules.
+ */
+.dd-editor ins[data-id] {
+  text-decoration: none;
+  background: color-mix(in oklab, #22c55e 18%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, #22c55e 55%, transparent);
+}
+
+.dd-editor del[data-id] {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, #ef4444 70%, transparent);
+  background: color-mix(in oklab, #ef4444 12%, transparent);
+  color: var(--muted-foreground);
+}
+
+.dd-editor span[data-type="modification"] {
+  background: color-mix(in oklab, #eab308 15%, transparent);
+}
+
 /* Prototype `.label` (In scope / Out of scope and friends). */
 .dd-editor .dd-label {
   margin: 22px 0 4px;
@@ -78,4 +102,26 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted-foreground);
+}
+
+/*
+ * The active suggestion (clicked in the text or in the rail) reads like
+ * Google Docs: the marked runs deepen their tint. The tint itself comes
+ * from a dynamic stylesheet the editor component maintains — the marked
+ * elements are ProseMirror's DOM and must never be mutated directly.
+ */
+.dd-editor ins[data-id],
+.dd-editor del[data-id],
+.dd-editor span[data-type="modification"] {
+  cursor: pointer;
+}
+
+/*
+ * Rail comment bodies match the suggestion cards' 13px content: BlockNote's
+ * editor default (inherited 16px) would make threads read larger than the
+ * suggestions they sit between.
+ */
+.dd-threads .bn-editor,
+.dd-comment-editor .bn-editor {
+  font-size: 13px;
 }

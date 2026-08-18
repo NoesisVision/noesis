@@ -1,6 +1,6 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Phases 1–3 delivered (3 with noted gaps); phases 4–6b ready to break into tasks
+**Status:** Phases 1–5 delivered; phases 6–6b ready to break into tasks
 **Date:** 2026-08-17
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
 [`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
@@ -262,8 +262,9 @@ Rules to enforce in the editor layer:
   anchor survives editing rather than being re-matched by text search as the prototype does. The
   element an anchor belongs to is already durable — that is the `ElementRef` — so what the mark adds
   is the position inside it.
-- **Modes**: Editing / Suggesting / Viewing, the last two being editor-level (read-only, and
-  edits captured as suggestion objects instead of document mutations).
+- **Modes**: Editing / Suggesting, the latter editor-level (edits captured as suggestion
+  objects instead of document mutations). A read-only Viewing mode was built and later dropped —
+  the editor is always editable per client.
 
 Section order and the "not written yet" line are rendering concerns over the model, not editor state.
 
@@ -361,7 +362,7 @@ The document route is one surface, as the prototype has it: always the collabora
 the table-of-contents rail permanently beside it — the outline (prototype numbering, scroll-spy,
 click-to-jump) recomputed live from the editor's block list, so a renamed use case renames its TOC
 entry as it is typed. The phase-2 static reading view was retired with this; a read-only Viewing
-mode returns as editor-level state when modes land (phase 5). Gherkin steps and example rows live
+mode returned as editor-level state in phase 5 and was later dropped. Gherkin steps and example rows live
 in the scenario block's `data` prop (ids included) behind a structured step editor.
 
 The three gaps this phase left open are now closed. Drag and drop is constrained to same-group
@@ -430,8 +431,28 @@ app end to end (create over a selection, mention chip, resolve, filter, orphaned
 its quote, persistence across reload); the two-browser live pass rides the same channel phase 3
 proved.
 
-**Phase 5 — Suggestions.** Suggesting mode, tracked marks, accept/reject writing through to the
-model, and word-level narrowing — all under concurrent editing.
+**Phase 5 — Suggestions. Done.** Suggesting mode, tracked marks, accept/reject writing through to
+the model, and word-level narrowing — all under concurrent editing.
+
+As built (decision 56): the build rides `@handlewithcare/prosemirror-suggest-changes` — the tracked-
+changes library BlockNote's own xl-ai package uses — rather than the hand-rolled `Suggestion`
+record. The three suggestion marks (`insertion`, `deletion`, `modification`) travel in the shared
+fragment, so sync, persistence and concurrency come free from the `/collab` surface; the mark
+definitions live in `@repo/design-doc-blocks/suggestion-marks` and are registered by the frontend
+editor and the headless server schema from the same source (the phase-4 mark rule, made
+structural). Suggesting is a local mode: the Editing / Suggesting toggle in the document
+header drives `enableSuggestChanges` per client, with the dispatch wrap
+minting `<accountId>:<nonce>` suggestion ids so authorship rides in the mark. The right rail merges
+comments and suggestions into one document-order list, Google-Docs style: threads render through
+BlockNote's own `Thread` component (the list shell replaces `ThreadsSidebar`, which cannot
+interleave foreign items), suggestion cards carry author, Add/Delete text and accept/reject, plus
+accept-all/reject-all; clicking marked text highlights its card and clicking a card scrolls to and
+tints the marked text. The server
+projection reverts pending suggestions before `toDocument`, so the `DesignDocument` cache is always
+the accepted document; accepting writes through via the ordinary store hook. One limitation is
+recorded in decision 56: Enter is inert while Suggesting, because the library's revert of a
+block-opening split leaves the split behind — structural suggestions are slash-menu insertions and
+drag-handle removals, which round-trip.
 
 **Phase 6 — Agent surface, mocked.** Chat with schema-bound context applying its changes directly,
 plus proposal review (impact summary, challenged decisions) and the accept/reject flow for whole
