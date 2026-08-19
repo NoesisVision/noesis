@@ -1,10 +1,15 @@
 import { generateKeyPairSync, randomBytes } from 'node:crypto';
-import type { FetchLike } from '../../src/auth/github.service.js';
-import type { GithubAuthConfig } from '../../src/config/config.js';
+import type { GithubAuthConfig } from '../config/config.js';
+import type { FetchLike } from './github.service.js';
 
 // GitHub is reached through a `fetch`-shaped function injected into
 // GithubService, so the whole sign-in flow is exercised with no network and no
 // mock library — just this hand-written stand-in.
+//
+// It lives in `src/` rather than `test/` because it is also what backs
+// `NOESIS_AUTH_MODE=local` (see auth.module.ts): one stand-in drives both the
+// suites and local development, so a flow that works in dev is a flow the
+// tests reach the same way.
 
 export interface FakeGithubOptions {
   profile?: Partial<FakeProfile>;
@@ -15,6 +20,12 @@ export interface FakeGithubOptions {
   accessTtlSeconds?: number;
   /** Seconds until the refresh token expires; the default matches GitHub's 6 months. */
   refreshTtlSeconds?: number;
+  /**
+   * Multi-account mode: every entry may sign in, and the OAuth `code` *is* the
+   * login. Omit it and the fake serves the single `profile` to any valid code,
+   * which is what the suites want.
+   */
+  accounts?: FakeAccount[];
 }
 
 export interface FakeProfile {
@@ -29,6 +40,13 @@ export interface FakeInstallation {
   id: number;
   account: { login: string; type: string };
   repository_selection: string;
+}
+
+/** One signable identity in multi-account mode. */
+export interface FakeAccount {
+  profile: FakeProfile;
+  /** What this account reaches; repositories stay global, keyed by installation id. */
+  installations: FakeInstallation[];
 }
 
 export interface FakeRepository {
@@ -47,6 +65,8 @@ export interface FakeGithub {
   validRefreshTokens: Set<string>;
   profile: FakeProfile;
   installations: FakeInstallation[];
+  /** Signable identities; empty unless the fake was built in multi-account mode. */
+  accounts: FakeAccount[];
   /** Repositories reachable per installation id — mutate to simulate grants/revocations. */
   repositories: Record<number, FakeRepository[]>;
   /** Installation ids whose repository listing answers 404 (uninstalled/suspended). */
@@ -72,6 +92,7 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
     validRefreshTokens: new Set(['refresh-0']),
     profile: { ...DEFAULT_PROFILE, ...options.profile },
     installations: options.installations ?? [],
+    accounts: options.accounts ?? [],
     repositories: options.repositories ?? {},
     goneInstallations: new Set(),
     issuedAccessTokens: [],
@@ -83,15 +104,24 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
   const accessTtl = options.accessTtlSeconds ?? 8 * 60 * 60;
   const refreshTtl = options.refreshTtlSeconds ?? 6 * 30 * 24 * 60 * 60;
   let counter = 0;
+  // Which identity each token speaks for. Single-account mode never consults
+  // it — every lookup below falls back to the one profile.
+  const tokenOwner = new Map<string, string>();
+  const refreshByLogin = new Map<string, string>();
 
-  function mintPair() {
+  function mintPair(login: string) {
     counter += 1;
     const accessToken = `access-${counter}`;
     const refresh = `refresh-${counter}`;
     state.issuedAccessTokens.push(accessToken);
+    tokenOwner.set(accessToken, login);
+    tokenOwner.set(refresh, login);
     // Single-use refresh tokens, exactly like GitHub's: the pair that minted
     // this one is dead, which is what makes the concurrent-refresh case real.
-    state.validRefreshTokens = new Set([refresh]);
+    // Only *this* login's previous token is retired, so one account signing in
+    // does not log the others out.
+    refreshByLogin.set(login, refresh);
+    state.validRefreshTokens = new Set(refreshByLogin.values());
     return {
       access_token: accessToken,
       token_type: 'bearer',
@@ -102,6 +132,29 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
       refresh_token: refresh,
       refresh_token_expires_in: refreshTtl,
     };
+  }
+
+  function defaultLogin(): string {
+    return state.accounts[0]?.profile.login ?? state.profile.login;
+  }
+
+  /** The identity a bearer token speaks for; single-account mode has only one. */
+  function accountFor(token: string | undefined): FakeAccount | undefined {
+    if (state.accounts.length === 0) return undefined;
+    const login = token === undefined ? undefined : tokenOwner.get(token);
+    return (
+      state.accounts.find((a) => a.profile.login === login) ?? state.accounts[0]
+    );
+  }
+
+  /** The credential on an outbound call, scheme stripped. */
+  function bearer(init?: RequestInit): string | undefined {
+    const raw =
+      init?.headers instanceof Headers
+        ? init.headers.get('authorization')
+        : ((init?.headers as Record<string, string> | undefined)
+            ?.authorization ?? null);
+    return /^\S+\s+(.+)$/.exec(raw ?? '')?.[1];
   }
 
   state.fetch = (async (
@@ -132,32 +185,38 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
         });
       }
       if (body.grant_type === 'refresh_token') {
-        if (!state.validRefreshTokens.has(String(body.refresh_token))) {
+        const refresh = String(body.refresh_token);
+        if (!state.validRefreshTokens.has(refresh)) {
           return json({
             error: 'bad_refresh_token',
             error_description: 'The refresh token is invalid.',
             error_uri: 'https://docs.github.com/',
           });
         }
-        return json(mintPair());
+        return json(mintPair(tokenOwner.get(refresh) ?? defaultLogin()));
       }
-      if (!state.validCodes.has(String(body.code))) {
+      // In multi-account mode the code *is* the login — that is what lets
+      // `/auth/login?as=<login>` choose who signs in with no round trip.
+      const code = String(body.code);
+      const named = state.accounts.find((a) => a.profile.login === code);
+      if (named === undefined && !state.validCodes.has(code)) {
         return json({
           error: 'bad_verification_code',
           error_description: 'The code passed is incorrect or expired.',
           error_uri: 'https://docs.github.com/',
         });
       }
-      return json(mintPair());
+      return json(mintPair(named?.profile.login ?? defaultLogin()));
     }
 
-    if (url.pathname === '/user') return json(state.profile);
+    if (url.pathname === '/user') {
+      return json(accountFor(bearer(init))?.profile ?? state.profile);
+    }
 
     if (url.pathname === '/user/installations') {
-      return json({
-        total_count: state.installations.length,
-        installations: state.installations,
-      });
+      const installations =
+        accountFor(bearer(init))?.installations ?? state.installations;
+      return json({ total_count: installations.length, installations });
     }
 
     // User-side picker source: what the acting user reaches through one
@@ -166,7 +225,10 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
       /^\/user\/installations\/(\d+)\/repositories$/.exec(url.pathname);
     if (userInstallationRepos !== null) {
       const id = Number(userInstallationRepos[1]);
-      if (state.goneInstallations.has(id)) {
+      const acting = accountFor(bearer(init));
+      const reaches =
+        acting === undefined || acting.installations.some((i) => i.id === id);
+      if (state.goneInstallations.has(id) || !reaches) {
         return json({ message: 'Not Found' }, 404);
       }
       return json(repositoriesPage(state.repositories[id] ?? [], url));
@@ -190,12 +252,7 @@ export function createFakeGithub(options: FakeGithubOptions = {}): FakeGithub {
     // Installation-token side: everything the App reaches through the calling
     // installation — the access check's ground truth (projects.md §3).
     if (url.pathname === '/installation/repositories') {
-      const auth =
-        init?.headers instanceof Headers
-          ? init.headers.get('authorization')
-          : ((init?.headers as Record<string, string> | undefined)
-              ?.authorization ?? '');
-      const match = /ghs_(\d+)/.exec(auth ?? '');
+      const match = /ghs_(\d+)/.exec(bearer(init) ?? '');
       const id = match ? Number(match[1]) : Number.NaN;
       if (!match || state.goneInstallations.has(id)) {
         return json({ message: 'Not Found' }, 404);

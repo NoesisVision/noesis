@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { randomBytes } from 'node:crypto';
+import { testPrivateKey } from '../../src/auth/github-fake.js';
 import { parseServerConfig } from '../../src/config/config.js';
-import { testPrivateKey } from './github-fake.js';
 
 const GITHUB_ENV = {
   NOESIS_AUTH_MODE: 'github',
@@ -82,6 +82,27 @@ describe('server configuration', () => {
 
     expect(result.ok).toBe(true);
     expect(result.ok && result.config.auth.mode).toBe('disabled');
+  });
+
+  it('accepts local mode and defaults its public url to the dev server', () => {
+    const result = parseServerConfig({ NOESIS_AUTH_MODE: 'local' });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.config.auth.mode !== 'local') {
+      throw new Error('expected local mode');
+    }
+    expect(result.config.auth.publicUrl).toBe('http://localhost:5173');
+  });
+
+  it('refuses to start in local mode in production', () => {
+    const result = parseServerConfig({
+      NOESIS_AUTH_MODE: 'local',
+      NODE_ENV: 'production',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.message).toContain('NODE_ENV=production');
   });
 
   it('refuses to start with auth disabled in production', () => {

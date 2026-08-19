@@ -8,13 +8,21 @@ import { z } from 'zod';
 //
 // Identity is a GitHub App (decision 46): every deployment registers its own,
 // so the App's coordinates are configuration rather than a shipped constant.
-// The whole GitHub block is conditionally required — `NOESIS_AUTH_MODE=disabled`
-// lets a contributor run `dev:server` and the suites without registering an
-// App — and the production refusal below keeps that escape hatch from becoming
-// a footgun.
+// The whole GitHub block is conditionally required, because two modes exist for
+// working without an App:
+//
+//   - `local`    — the real sign-in, invite and repo flows, driven against an
+//                  in-memory GitHub (`src/auth/github-fake.ts`). What a
+//                  contributor wants day to day.
+//   - `disabled` — no auth slice at all; every request is one fixed owner and
+//                  the GitHub-backed writes answer 503. What the suites that
+//                  spawn the server want.
+//
+// The production refusal below keeps both escape hatches from becoming
+// footguns.
 const envSchema = z.object({
   NOESIS_DATA_DIR: z.string().min(1).default('.data'),
-  NOESIS_AUTH_MODE: z.enum(['github', 'disabled']).default('github'),
+  NOESIS_AUTH_MODE: z.enum(['github', 'local', 'disabled']).default('github'),
   NOESIS_PUBLIC_URL: z.url().optional(),
   NOESIS_GITHUB_APP_ID: z.string().min(1).optional(),
   NOESIS_GITHUB_APP_SLUG: z.string().min(1).optional(),
@@ -42,11 +50,24 @@ export interface GithubAuthConfig {
   tokenKey: Buffer;
 }
 
+/**
+ * `NOESIS_AUTH_MODE=local`. It carries only the browser's origin — every other
+ * App coordinate is synthesized in `createLocalGithub`, because there is no
+ * App and nothing to configure.
+ */
+export interface LocalAuthConfig {
+  mode: 'local';
+  publicUrl: string;
+}
+
 export interface DisabledAuthConfig {
   mode: 'disabled';
 }
 
-export type AuthConfig = GithubAuthConfig | DisabledAuthConfig;
+export type AuthConfig =
+  | GithubAuthConfig
+  | LocalAuthConfig
+  | DisabledAuthConfig;
 
 export interface ServerConfig {
   dataDir: string;
@@ -80,16 +101,34 @@ export function parseServerConfig(env: NodeJS.ProcessEnv): ConfigResult {
   const data = parsed.data;
   const dataDir = data.NOESIS_DATA_DIR;
 
-  if (data.NOESIS_AUTH_MODE === 'disabled') {
+  const mode = data.NOESIS_AUTH_MODE;
+  if (mode !== 'github') {
     if (data.NODE_ENV === 'production') {
       return {
         ok: false,
         message:
-          'NOESIS_AUTH_MODE=disabled refuses to start with NODE_ENV=production. ' +
+          `NOESIS_AUTH_MODE=${mode} refuses to start with NODE_ENV=production. ` +
           'It exists for local development and tests only.',
       };
     }
-    return { ok: true, config: { dataDir, auth: { mode: 'disabled' } } };
+    if (mode === 'disabled') {
+      return { ok: true, config: { dataDir, auth: { mode: 'disabled' } } };
+    }
+    return {
+      ok: true,
+      config: {
+        dataDir,
+        auth: {
+          mode: 'local',
+          // Same meaning as the github mode's: the origin the BROWSER is on.
+          // In dev that is the Vite dev server, which proxies /auth and /ui
+          // through to this process — hence the default.
+          publicUrl: (
+            data.NOESIS_PUBLIC_URL ?? 'http://localhost:5173'
+          ).replace(/\/+$/, ''),
+        },
+      },
+    };
   }
 
   const missing = GITHUB_VARS.filter((name) => data[name] === undefined);

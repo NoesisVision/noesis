@@ -1,6 +1,13 @@
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { LOGIN_HREF, meQueryOptions, UnauthenticatedError } from '@/lib/auth';
+import {
+  authModeQueryOptions,
+  LOGIN_HREF,
+  localLoginHref,
+  meQueryOptions,
+  UnauthenticatedError,
+} from '@/lib/auth';
 
 export interface LoginSearch {
   /** The reason the callback bounced the user back here, if it did. */
@@ -22,7 +29,12 @@ export const Route = createFileRoute('/login')({
     try {
       await context.queryClient.ensureQueryData(meQueryOptions);
     } catch (error) {
-      if (error instanceof UnauthenticatedError) return;
+      if (error instanceof UnauthenticatedError) {
+        // Resolved here so the view below never suspends: the page IS the
+        // sign-in control, and it must not paint the wrong one first.
+        await context.queryClient.ensureQueryData(authModeQueryOptions);
+        return;
+      }
       throw error;
     }
     throw redirect({ to: '/' });
@@ -59,9 +71,13 @@ const MESSAGES: Record<string, string> = {
 
 export function LoginView() {
   const { error, login } = Route.useSearch();
-  // Not offered again after a refusal: the user is already authenticated with
-  // GitHub, so retrying would bounce straight back here.
-  const notInvited = error === 'not_invited';
+  const { data: authMode } = useSuspenseQuery(authModeQueryOptions);
+  const local = authMode.mode === 'local';
+  // A refusal ends the road on a real deployment: the user is already
+  // authenticated with GitHub, so the same button would bounce straight back
+  // here. Locally it does not — switching identity is the way out.
+  const refused = error === 'not_invited';
+  const offerSignIn = local || !refused;
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-background p-6">
@@ -71,38 +87,63 @@ export function LoginView() {
           <div className="flex flex-col gap-1">
             <h1 className="text-lg font-medium">Noesis</h1>
             <p className="text-sm text-muted-foreground">
-              Sign in with the GitHub account that owns the repositories you
-              want to work on.
+              {local
+                ? 'Local development: pick an identity. The first one to sign in claims this instance as its owner; the rest need an invite.'
+                : 'Sign in with the GitHub account that owns the repositories you want to work on.'}
             </p>
           </div>
         </div>
 
-        {notInvited ? (
+        {refused && (
           <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
-            This Noesis instance is invite-only. Ask an owner to invite{' '}
-            <span className="font-medium">@{login ?? 'your account'}</span>.
+            This Noesis instance is invite-only.{' '}
+            {local
+              ? 'Sign in as the owner and invite'
+              : 'Ask an owner to invite'}{' '}
+            <span className="font-medium">@{login ?? 'your account'}</span>
+            {local ? ' from Settings → Members.' : '.'}
           </p>
-        ) : (
+        )}
+        {offerSignIn && (
           <>
-            {error !== undefined && (
+            {!refused && error !== undefined && (
               <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm">
                 {MESSAGES[error] ?? 'Sign-in failed. Start again.'}
               </p>
             )}
-            {/* An anchor, not a fetch: the whole flow is a navigation. */}
-            <Button
-              className="w-full"
-              render={
-                <a href={LOGIN_HREF}>
-                  <GithubMark />
-                  <span>
-                    {error === undefined
-                      ? 'Continue with GitHub'
-                      : 'Try again with GitHub'}
-                  </span>
-                </a>
-              }
-            />
+            {/* Anchors, not fetches: the whole flow is a navigation. */}
+            {local ? (
+              <div className="flex flex-col gap-2">
+                {authMode.accounts.map((account, index) => (
+                  <Button
+                    key={account.login}
+                    className="w-full"
+                    variant={index === 0 ? 'default' : 'outline'}
+                    render={
+                      <a href={localLoginHref(account.login)}>
+                        <span>
+                          {account.name} (@{account.login})
+                        </span>
+                      </a>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <Button
+                className="w-full"
+                render={
+                  <a href={LOGIN_HREF}>
+                    <GithubMark />
+                    <span>
+                      {error === undefined
+                        ? 'Continue with GitHub'
+                        : 'Try again with GitHub'}
+                    </span>
+                  </a>
+                }
+              />
+            )}
           </>
         )}
       </div>

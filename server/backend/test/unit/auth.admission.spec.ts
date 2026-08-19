@@ -2,9 +2,12 @@ import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { AuthRepository } from '../../src/auth/auth.repository.js';
 import { AuthService } from '../../src/auth/auth.service.js';
 import { GithubService } from '../../src/auth/github.service.js';
+import {
+  createFakeGithub,
+  testAuthConfig,
+} from '../../src/auth/github-fake.js';
 import { SessionService } from '../../src/auth/session.service.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
-import { createFakeGithub, testAuthConfig } from './github-fake.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 
 // §6's admission rule is the callback's first branch, so it is tested through

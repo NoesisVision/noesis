@@ -100,6 +100,7 @@ bun install            # install all workspaces
 
 bun run dev            # run all apps in watch mode
 bun run dev:server     # just backend + frontend
+bun run dev:local      # same, with no GitHub App needed (see below)
 
 bun run build          # build everything
 bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
@@ -111,15 +112,48 @@ bun run format         # biome + prettier(md) --write (`format:check` to verify)
 
 Filter to one package: `bun run --filter=backend build`.
 
-By default the server refuses to start without a GitHub App (see below). To run
-and test without registering one:
+### Running without a GitHub App
+
+By default the server refuses to start without a GitHub App (see below). Two
+modes avoid registering one; both refuse to start with `NODE_ENV=production`,
+so neither can leak into a deployment.
+
+**`local` — the real flows against an in-memory GitHub.** Use this for
+day-to-day development:
+
+```sh
+bun run dev:local
+```
+
+That is `dev:server` with `NOESIS_AUTH_MODE=local` and its own
+`NOESIS_DATA_DIR` (`.data-local`), kept apart because a project created here is
+bound to fake installation and repository ids that a `github`-mode server
+cannot make sense of. A `.env` is not needed and, if present, is overridden.
+
+Sign-in, admission, invites, the repo picker and the access check all run their
+production code; only the outbound `fetch` is a stand-in
+(`server/backend/src/auth/github-fake.ts`, the same one the suites drive). The
+sign-in page offers three identities:
+
+| Login     | Reaches                                  |
+| --------- | ---------------------------------------- |
+| `octocat` | `octocat` (2 repos) and `acme` (4 repos) |
+| `alice`   | `acme` only                              |
+| `bob`     | `acme` only                              |
+
+The first one to sign in claims the instance as its owner, exactly as in
+production — the rest need an invite from Settings → Members, which is how you
+exercise the invite flow locally. `/auth/login?as=<login>` picks the identity
+directly if you would rather not use the buttons. Credentials are held in
+memory, so a restart signs everyone out.
+
+**`disabled` — no auth slice at all.** Every request runs as a fixed local owner
+and the GitHub-backed writes (creating a project, connecting a repository,
+inviting) answer 503. This is what the suites that spawn the server use:
 
 ```sh
 NOESIS_AUTH_MODE=disabled bun run dev:server
 ```
-
-Every request then runs as a fixed local owner. The mode refuses to start with
-`NODE_ENV=production`, so it cannot leak into a deployment.
 
 ### Registering the GitHub App
 
@@ -156,7 +190,7 @@ Then generate a private key on the App's page and set:
 | `NOESIS_GITHUB_CLIENT_SECRET` | A generated client secret                                             |
 | `NOESIS_GITHUB_PRIVATE_KEY`   | The downloaded `.pem`, base64-encoded (`base64 -i key.pem`)           |
 | `NOESIS_TOKEN_KEY`            | 32 random bytes, base64 — encrypts GitHub tokens at rest              |
-| `NOESIS_AUTH_MODE`            | `github` (default) or `disabled` (never in production)                |
+| `NOESIS_AUTH_MODE`            | `github` (default), `local` or `disabled` (neither in production)     |
 
 ```sh
 bun -e "console.log(crypto.getRandomValues(new Uint8Array(32)).toBase64())"  # NOESIS_TOKEN_KEY

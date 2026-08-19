@@ -52,8 +52,10 @@ pids
 *.seed
 *.pid.lock
 
-# On-disk LadybugDB data dir (server's NOESIS_DATA_DIR default)
+# On-disk LadybugDB data dirs: the NOESIS_DATA_DIR default, and the one
+# `dev:local` keeps apart from it (decision 61).
 .data/
+.data-local/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

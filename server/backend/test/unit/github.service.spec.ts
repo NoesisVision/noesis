@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import { GithubService } from '../../src/auth/github.service.js';
-import { createFakeGithub, testAuthConfig } from './github-fake.js';
+import {
+  createFakeGithub,
+  testAuthConfig,
+} from '../../src/auth/github-fake.js';
 
 // Only the repository-listing surface gets its own spec here — the OAuth flow
 // is exercised end to end by the auth route/session specs.

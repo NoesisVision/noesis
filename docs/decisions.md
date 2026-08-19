@@ -1434,3 +1434,68 @@ Three places knowingly depart from the site:
   a raw re-export would drop the three deviations above.
 - The status-badge tints in the components (blue/green/orange scales) were
   already cool and needed no change.
+
+## 61. Local development gets a `local` auth mode: the real flows against an in-memory GitHub
+
+**Context:** Decision 46 gave contributors `NOESIS_AUTH_MODE=disabled` so the
+server would start without a registered GitHub App. It starts, but it does not
+get far: the mode has no auth slice at all, so creating a project, connecting a
+repository and inviting anyone answer 503, and `/ui/accounts` is a roster of
+one. A contributor with no App can browse a workspace someone else's data
+directory happens to contain and nothing more, and the project flows — the
+newest and most-changed surface — are unreachable without registering an App
+against a `localhost` callback. Alternatives considered: a seed script writing
+project and repository rows straight into the graph (unblocks browsing, still
+never runs the picker or the connect flow), and a personal-access-token mode
+(real repositories, but a PAT has no installations and no App identity, so
+`RepoAccessService` and the whole picker would need a second code path).
+
+**Decision:**
+
+- **`NOESIS_AUTH_MODE=local` assembles an ordinary `mode: 'github'` module**
+  with a synthesized App and an in-memory GitHub behind it. Nothing downstream
+  branches on it: sign-in, admission, invites, the repo picker and the access
+  check all run their production code, and only the outbound `fetch` is ours.
+  The alternative — a third member of the `AuthModule` union — would have made
+  every existing `mode === 'github'` check fall through to the 503 branch,
+  which is the problem this decision exists to fix.
+- **The stand-in is the test fake**, promoted from `test/unit/github-fake.ts`
+  to `src/auth/github-fake.ts` and extended with an optional multi-account
+  mode. One stand-in serves both, so a flow that works in dev is a flow the
+  suites reach the same way, and neither can drift from GitHub's shapes
+  without the other noticing.
+- **`/auth/login?as=<login>` replaces the trip to github.com** with a redirect
+  to our own callback, carrying the chosen login as the authorization code —
+  which is exactly what the fake's token endpoint accepts. The `state` cookie
+  round-trip is unchanged, so the CSRF check is still exercised. `/auth/install`
+  short-circuits the same way, naming an installation the acting account can
+  reach.
+- **Three identities with different reach** (`octocat` sees a personal and an
+  org installation, `alice` and `bob` see only the org), so the per-account
+  paths — pickers that differ, a 404 on an installation you cannot see,
+  owner-versus-member gating, mentions — are exercisable rather than nominal.
+- **`GET /auth/mode` is unauthenticated**, because the sign-in page has to know
+  what to offer before a session exists. It reveals only what a deployment's
+  login screen already shows.
+- **`disabled` stays** as what it always was: no auth slice, for the suites
+  that spawn the real server. Both modes refuse `NODE_ENV=production`.
+
+**Consequences:**
+
+- The first identity to sign in claims ownership locally exactly as in
+  production, so admitting the second one means using the invite screen. That
+  is friction on purpose — it is the only way the invite flow gets exercised
+  outside a test.
+- Local credentials are minted fresh each boot (a per-process token key, an
+  ephemeral RSA key for the App JWT), so a restart signs everyone out. The
+  graph survives; the session does not.
+- The fake now ships in `src/`. It is dead code in a production image — both
+  modes that reach it refuse to start there — and that is the price of the
+  single stand-in.
+- `/ui/me`'s `authMode` and `/auth/mode` are the only two places that can tell
+  `local` from `github`, via `authModeName`. Everything else is deliberately
+  unable to.
+- A local project is bound to a fake installation and fake repository ids, so a
+  data directory built under `local` is not one a `github`-mode server can make
+  sense of. `bun run dev:local` keeps them apart by pointing `NOESIS_DATA_DIR`
+  at `.data-local`.

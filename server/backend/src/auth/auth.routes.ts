@@ -10,7 +10,11 @@ import {
   setSessionCookie,
   setStateCookie,
 } from './auth.cookies.js';
-import type { AuthModule, GithubAuthModule } from './auth.module.js';
+import {
+  type AuthModule,
+  authModeName,
+  type GithubAuthModule,
+} from './auth.module.js';
 import { randomToken, safeEqual } from './crypto.js';
 import { GithubAuthError } from './github.service.js';
 
@@ -30,10 +34,27 @@ export function createAuthApp(deps: AuthDeps) {
   const module = deps.authModule;
 
   const app = new Hono()
+    // Read by the sign-in page before any session exists, so it knows whether
+    // to offer one GitHub button or one button per local identity. It reveals
+    // nothing a deployment's login screen does not already show.
+    .get('/mode', (c) => {
+      const fake = module.mode === 'disabled' ? undefined : module.fake;
+      return c.json({
+        mode: authModeName(module),
+        accounts: (fake?.accounts ?? []).map((account) => ({
+          login: account.profile.login,
+          name: account.profile.name ?? account.profile.login,
+        })),
+      });
+    })
+
     .get('/login', async (c) => {
       if (module.mode === 'disabled') return c.redirect('/');
       const state = randomToken();
       await setStateCookie(c, state, module.stateSecret, module.secureCookies);
+      if (module.fake !== undefined) {
+        return c.redirect(localAuthorization(c, module, state));
+      }
       return c.redirect(module.github.authorizationUrl(state));
     })
 
@@ -92,6 +113,18 @@ export function createAuthApp(deps: AuthDeps) {
           module.secureCookies,
         );
       }
+      if (module.fake !== undefined) {
+        // There is no install screen to visit, so local mode names an
+        // installation the acting account can see and lets the callback below
+        // run the real link step against it.
+        const id =
+          c.req.query('installation') ?? (await localInstallationId(c, module));
+        const params = new URLSearchParams({ state });
+        // Absent id means the account reaches nothing — the same shape GitHub
+        // sends for `setup_action=request`, and handled as such downstream.
+        if (id !== undefined) params.set('installation_id', id);
+        return c.redirect(`/auth/install/callback?${params.toString()}`);
+      }
       return c.redirect(module.github.installUrl(state));
     })
 
@@ -145,6 +178,37 @@ export function createAuthApp(deps: AuthDeps) {
     });
 
   return app;
+}
+
+/**
+ * Local mode's stand-in for the trip to github.com: straight back to our own
+ * callback, carrying the chosen login as the authorization code — which is
+ * precisely what the in-memory GitHub's token endpoint accepts. Everything
+ * after the redirect (exchange, admission, session) is the real code path.
+ */
+function localAuthorization(
+  c: Context,
+  module: GithubAuthModule,
+  state: string,
+): string {
+  const as = c.req.query('as') ?? module.fake?.accounts[0]?.profile.login ?? '';
+  return `/auth/callback?${new URLSearchParams({ code: as, state }).toString()}`;
+}
+
+/** The first installation the signed-in local account reaches, if any. */
+async function localInstallationId(
+  c: Context,
+  module: GithubAuthModule,
+): Promise<string | undefined> {
+  const token = readSessionCookie(c);
+  const session =
+    token === undefined ? null : await module.sessions.verify(token);
+  if (session === null) return undefined;
+  const account = module.fake?.accounts.find(
+    (candidate) => candidate.profile.id === session.account.gh_user_id,
+  );
+  const installation = account?.installations[0];
+  return installation === undefined ? undefined : String(installation.id);
 }
 
 type StateCheck = { ok: true } | { ok: false; reason: string };
