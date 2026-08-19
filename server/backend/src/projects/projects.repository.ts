@@ -183,6 +183,12 @@ export class ProjectsRepository {
       `MATCH (:Project {id: $id})-[:Tracks]->(r:Repository) DETACH DELETE r`,
       { id },
     );
+    // Inbox items exist only under their project (same exclusivity argument
+    // as Repository nodes), so they go with it.
+    await this.db.query(
+      `MATCH (:Project {id: $id})-[:HasInboxItem]->(i:InboxItem) DETACH DELETE i`,
+      { id },
+    );
     await this.db.query(`MATCH (p:Project {id: $id}) DETACH DELETE p`, { id });
     return true;
   }

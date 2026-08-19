@@ -5,6 +5,7 @@ import type { AuthModule } from './auth/auth.module.js';
 import { createAuthApp } from './auth/auth.routes.js';
 import type { DesignDocsService } from './design-docs/design-docs.service.js';
 import type { GreetingService } from './greeting/greeting.service.js';
+import type { InboxService } from './inbox/inbox.service.js';
 import { createInternalApp } from './internal/internal.routes.js';
 import type { ProjectsService } from './projects/projects.service.js';
 import type { RepoAccessService } from './projects/repo-access.service.js';
@@ -23,6 +24,7 @@ export interface AppDeps {
   authModule: AuthModule;
   projectsService: ProjectsService;
   designDocsService: DesignDocsService;
+  inboxService: InboxService;
   /** Null in disabled auth mode — no App to check access with. */
   repoAccess: RepoAccessService | null;
 }
@@ -41,6 +43,7 @@ export function createApp(deps: AppDeps) {
           authModule: deps.authModule,
           projectsService: deps.projectsService,
           designDocsService: deps.designDocsService,
+          inboxService: deps.inboxService,
           repoAccess: deps.repoAccess,
         }),
       )

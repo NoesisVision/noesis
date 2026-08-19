@@ -5,9 +5,11 @@ import type { AuthModule } from '../auth/auth.module.js';
 import { toAccountDto } from '../auth/auth.service.js';
 import type { DesignDocsService } from '../design-docs/design-docs.service.js';
 import type { GreetingService } from '../greeting/greeting.service.js';
+import type { InboxService } from '../inbox/inbox.service.js';
 import type { ProjectsService } from '../projects/projects.service.js';
 import type { RepoAccessService } from '../projects/repo-access.service.js';
 import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
+import { createInboxApp } from './inbox/inbox.routes.js';
 import { createInvitesApp } from './invites/invites.routes.js';
 import { createPickerApp } from './projects/picker.routes.js';
 import { createProjectsApp } from './projects/projects.routes.js';
@@ -22,6 +24,7 @@ export interface UiDeps {
   authModule: AuthModule;
   projectsService: ProjectsService;
   designDocsService: DesignDocsService;
+  inboxService: InboxService;
   /** Null in disabled auth mode — no App to check access with. */
   repoAccess: RepoAccessService | null;
 }
@@ -70,6 +73,15 @@ export function createUiApp(deps: UiDeps) {
           authModule: deps.authModule,
           projectsService: deps.projectsService,
           repoAccess: deps.repoAccess,
+        }),
+      )
+      // Second mount under the same prefix: the per-project inbox surface
+      // (`/projects/:projectId/inbox/...`) lives in its own module.
+      .route(
+        '/projects',
+        createInboxApp({
+          inboxService: deps.inboxService,
+          projectsService: deps.projectsService,
         }),
       )
       .route(

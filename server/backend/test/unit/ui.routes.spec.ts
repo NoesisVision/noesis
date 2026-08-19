@@ -2,6 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { InboxRepository } from '../../src/inbox/inbox.repository.js';
+import { InboxService } from '../../src/inbox/inbox.service.js';
 import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
@@ -17,6 +19,7 @@ describe('ui routes', () => {
     authModule: { mode: 'disabled' },
     projectsService: new ProjectsService(new ProjectsRepository(db)),
     designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
+    inboxService: new InboxService(new InboxRepository(db)),
     repoAccess: null,
   });
 

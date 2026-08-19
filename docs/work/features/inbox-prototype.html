@@ -1,0 +1,994 @@
+<title>Noesis Inbox</title>
+<style>
+  /* ---- Claude theme tokens (from server/frontend/src/index.css) ---- */
+  :root {
+    --background: oklch(0.9818 0.0054 95.0986);
+    --foreground: oklch(0.3438 0.0269 95.7226);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.1908 0.002 106.5859);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.2671 0.0196 98.939);
+    --primary: oklch(0.6171 0.1375 39.0427);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.9245 0.0138 92.9892);
+    --secondary-foreground: oklch(0.4334 0.0177 98.6048);
+    --muted: oklch(0.9341 0.0153 90.239);
+    --muted-foreground: oklch(0.6059 0.0075 97.4233);
+    --accent: oklch(0.9245 0.0138 92.9892);
+    --accent-foreground: oklch(0.2671 0.0196 98.939);
+    --border: oklch(0.8847 0.0069 97.3627);
+    --input: oklch(0.7621 0.0156 98.3528);
+    --ring: oklch(0.6171 0.1375 39.0427);
+    --sidebar: oklch(0.9663 0.008 98.8792);
+    --sidebar-foreground: oklch(0.359 0.0051 106.6524);
+    --sidebar-accent: oklch(0.9245 0.0138 92.9892);
+    --sidebar-accent-foreground: oklch(0.325 0 0);
+    --sidebar-border: oklch(0.9401 0.0069 97.3627);
+    --ok: oklch(0.6 0.12 150);
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 8px 24px -4px hsl(0 0% 0% / 0.18);
+    --radius: 0.5rem;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background: oklch(0.2679 0.0036 106.6427);
+      --foreground: oklch(0.8074 0.0142 93.0137);
+      --card: oklch(0.3085 0.0035 106.6039);
+      --card-foreground: oklch(0.9818 0.0054 95.0986);
+      --popover: oklch(0.3085 0.0035 106.6039);
+      --popover-foreground: oklch(0.9211 0.004 106.4781);
+      --primary: oklch(0.6724 0.1308 38.7559);
+      --primary-foreground: oklch(1 0 0);
+      --secondary: oklch(0.35 0.006 106);
+      --secondary-foreground: oklch(0.9 0.008 95);
+      --muted: oklch(0.2213 0.0038 106.707);
+      --muted-foreground: oklch(0.7713 0.0169 99.0657);
+      --accent: oklch(0.213 0.0078 95.4245);
+      --accent-foreground: oklch(0.9663 0.008 98.8792);
+      --border: oklch(0.3618 0.0101 106.8928);
+      --input: oklch(0.4336 0.0113 100.2195);
+      --ring: oklch(0.6724 0.1308 38.7559);
+      --sidebar: oklch(0.2357 0.0024 67.7077);
+      --sidebar-foreground: oklch(0.8074 0.0142 93.0137);
+      --sidebar-accent: oklch(0.168 0.002 106.6177);
+      --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
+      --sidebar-border: oklch(0.3618 0.0101 106.8928);
+      --ok: oklch(0.72 0.13 150);
+      --shadow-lg: 0 1px 3px 0 hsl(0 0% 0% / 0.3), 0 8px 24px -4px hsl(0 0% 0% / 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --background: oklch(0.2679 0.0036 106.6427);
+    --foreground: oklch(0.8074 0.0142 93.0137);
+    --card: oklch(0.3085 0.0035 106.6039);
+    --card-foreground: oklch(0.9818 0.0054 95.0986);
+    --popover: oklch(0.3085 0.0035 106.6039);
+    --popover-foreground: oklch(0.9211 0.004 106.4781);
+    --primary: oklch(0.6724 0.1308 38.7559);
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.35 0.006 106);
+    --secondary-foreground: oklch(0.9 0.008 95);
+    --muted: oklch(0.2213 0.0038 106.707);
+    --muted-foreground: oklch(0.7713 0.0169 99.0657);
+    --accent: oklch(0.213 0.0078 95.4245);
+    --accent-foreground: oklch(0.9663 0.008 98.8792);
+    --border: oklch(0.3618 0.0101 106.8928);
+    --input: oklch(0.4336 0.0113 100.2195);
+    --ring: oklch(0.6724 0.1308 38.7559);
+    --sidebar: oklch(0.2357 0.0024 67.7077);
+    --sidebar-foreground: oklch(0.8074 0.0142 93.0137);
+    --sidebar-accent: oklch(0.168 0.002 106.6177);
+    --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
+    --sidebar-border: oklch(0.3618 0.0101 106.8928);
+    --ok: oklch(0.72 0.13 150);
+    --shadow-lg: 0 1px 3px 0 hsl(0 0% 0% / 0.3), 0 8px 24px -4px hsl(0 0% 0% / 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font: 14px/1.5 var(--font-sans);
+    background: var(--background);
+    color: var(--foreground);
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: 0.5; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+    border-radius: calc(var(--radius) * 0.6);
+  }
+  .icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* ---- Shell chrome (subset of ui-shell-prototype.html) ---- */
+  #shell { display: flex; height: 100vh; }
+  #sidebar {
+    width: 220px; flex: none; display: flex; flex-direction: column;
+    background: var(--sidebar); color: var(--sidebar-foreground);
+    border-right: 1px solid var(--sidebar-border); padding: 10px 8px; gap: 2px;
+  }
+  #sidebar .brand { display: flex; align-items: center; gap: 8px; padding: 6px 10px 14px; font-weight: 600; }
+  #sidebar .brand .mark {
+    width: 24px; height: 24px; border-radius: 7px; flex: none;
+    background: var(--primary); color: var(--primary-foreground);
+    display: grid; place-items: center; font-size: 13px; font-weight: 700;
+  }
+  .nav-item {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 7px 10px; border-radius: var(--radius);
+    color: var(--sidebar-foreground); text-align: left; font-size: 13px;
+  }
+  .nav-item:hover { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); }
+  .nav-item[aria-current="page"] { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .nav-item[aria-current="page"]::before {
+    content: ""; position: absolute; left: -8px; top: 6px; bottom: 6px;
+    width: 3px; border-radius: 2px; background: var(--primary);
+  }
+  #sidebar .grow { flex: 1; }
+  #main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  #topbar {
+    height: 48px; flex: none; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border); padding: 0 12px;
+    color: var(--muted-foreground); font-size: 13px;
+  }
+  #topbar .crumb-here { color: var(--foreground); font-weight: 500; }
+  #topbar .spacer { flex: 1; }
+  .proto-badge {
+    font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase;
+    border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px;
+  }
+  .icon-btn {
+    display: grid; place-items: center; width: 28px; height: 28px;
+    border-radius: var(--radius); color: inherit;
+  }
+  .icon-btn:hover { background: var(--accent); }
+  .avatar {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: var(--secondary); color: var(--secondary-foreground);
+    display: grid; place-items: center; font-size: 11px; font-weight: 600;
+    border: 1px solid var(--border);
+  }
+
+  /* ---- Inbox view ---- */
+  #content { flex: 1; min-height: 0; display: flex; }
+  #list-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  #list-head { flex: none; padding: 18px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+  #list-head h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  #list-head .lede { margin: 2px 0 0; color: var(--muted-foreground); font-size: 13px; max-width: 60ch; }
+  #list-toolbar { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 2px; gap: 2px; }
+  .seg button { color: var(--muted-foreground); font-size: 12px; padding: 3px 10px; border-radius: 999px; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-foreground); font-weight: 500; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    height: 30px; padding: 0 12px; border-radius: var(--radius);
+    border: 1px solid transparent; font-weight: 500; font-size: 13px;
+  }
+  .btn.primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.outline { background: var(--card); color: var(--card-foreground); border-color: var(--border); }
+  .btn.outline:hover { background: var(--accent); }
+  #lists { flex: 1; overflow: auto; padding: 12px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .group-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  .group-label.loud { color: var(--primary); }
+  .group { display: flex; flex-direction: column; gap: 6px; }
+  .group.dim { opacity: 0.75; }
+
+  .list-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--card); color: var(--card-foreground); box-shadow: var(--shadow-sm);
+  }
+  .list-item:hover { border-color: var(--input); }
+  .list-item[aria-selected="true"] { border-color: var(--primary); background: var(--accent); }
+  .list-item .src { color: var(--muted-foreground); }
+  .list-item .body { flex: 1; min-width: 0; }
+  .list-item .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-item .meta { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list-item.age-warn { border-left: 3px solid var(--primary); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; flex: none;
+    font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted-foreground); white-space: nowrap;
+  }
+  .chip.count { font-family: var(--font-mono); }
+  .chip.tint { background: color-mix(in oklch, var(--primary) 14%, transparent); border-color: transparent; color: var(--primary); }
+  .chip.loud { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); font-weight: 600; }
+  .chip.ok { color: var(--ok); border-color: color-mix(in oklch, var(--ok) 40%, transparent); }
+
+  .empty {
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--muted-foreground); text-align: center;
+  }
+  .empty .icon { width: 28px; height: 28px; color: var(--ok); }
+  .empty h2 { margin: 0; font-size: 15px; color: var(--foreground); }
+  .empty p { margin: 0; font-size: 13px; }
+
+  /* ---- Detail panel ---- */
+  #detail {
+    width: 340px; flex: none; border-left: 1px solid var(--border);
+    overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+  }
+  #detail .d-head { display: flex; align-items: center; gap: 8px; }
+  #detail .d-head .kind { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted-foreground); }
+  #detail .d-head .spacer { flex: 1; }
+  #detail h2 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.35; }
+  .kv { display: grid; grid-template-columns: 92px 1fr; gap: 4px 10px; font-size: 12.5px; }
+  .kv dt { color: var(--muted-foreground); }
+  .kv dd { margin: 0; }
+  .kv dd.mono { font-family: var(--font-mono); font-size: 11.5px; }
+  .d-block {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;
+  }
+  .d-block .b-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted-foreground); }
+  .d-block .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .occ-list { margin: 0; padding: 0; list-style: none; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); display: flex; flex-direction: column; gap: 2px; }
+  .d-body { font-size: 13px; white-space: pre-wrap; color: var(--card-foreground); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; max-height: 180px; overflow: auto; }
+  #detail .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  #detail .placeholder { color: var(--muted-foreground); font-size: 13px; padding-top: 30px; text-align: center; }
+
+  /* ---- Dialogs ---- */
+  dialog {
+    border: 1px solid var(--border); border-radius: calc(var(--radius) * 1.5);
+    background: var(--popover); color: var(--popover-foreground);
+    box-shadow: var(--shadow-lg); padding: 16px; width: 340px; max-width: 90vw;
+  }
+  dialog::backdrop { background: hsl(0 0% 0% / 0.35); }
+  dialog h2 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  dialog .hint { margin: 0; font-size: 12px; color: var(--muted-foreground); }
+  dialog form { display: flex; flex-direction: column; gap: 10px; margin: 10px 0 0; }
+  dialog input[type="text"], dialog textarea {
+    width: 100%; font: inherit; color: inherit; background: transparent;
+    border: 1px solid var(--input); border-radius: var(--radius); padding: 7px 10px;
+  }
+  dialog textarea { resize: vertical; min-height: 64px; }
+  .file-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .file-row label { cursor: pointer; flex: none; }
+  .file-row input[type="file"] {
+    position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;
+  }
+  #cap-file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-row input[type="file"]:focus-visible + #cap-file-name { outline: 2px solid var(--ring); border-radius: 3px; }
+  dialog .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  .pick { display: flex; flex-direction: column; gap: 6px; }
+  .pick button {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px; text-align: left;
+    border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px;
+  }
+  .pick button:hover:not(:disabled) { background: var(--accent); }
+  .pick button .sub { margin-left: auto; font-size: 11.5px; color: var(--muted-foreground); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none; } }
+</style>
+
+<div id="shell">
+  <nav id="sidebar" aria-label="Main navigation">
+    <div class="brand"><span class="mark" aria-hidden="true">N</span> noesis</div>
+    <button type="button" class="nav-item" title="Not part of this prototype">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button type="button" class="nav-item" title="Not part of this prototype">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2.5"/><path d="m10.2 6.3-3.9 3.9"/><circle cx="4.5" cy="12" r="2.5"/><path d="M7 12h10"/><circle cx="19.5" cy="12" r="2.5"/><path d="m13.8 17.7 3.9-3.9"/><circle cx="12" cy="19.5" r="2.5"/></svg>
+      Graph
+    </button>
+    <button type="button" class="nav-item" title="Not part of this prototype">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+      Documents
+    </button>
+    <button type="button" class="nav-item" aria-current="page">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      Inbox
+    </button>
+    <div class="grow"></div>
+    <button type="button" class="nav-item" title="Not part of this prototype">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4M6 12a6 6 0 0 0 12 0 6 6 0 0 0-12 0"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <div id="main">
+    <div id="topbar">
+      <span>acme-orders</span>
+      <span aria-hidden="true">›</span>
+      <span class="crumb-here">Inbox</span>
+      <div class="spacer"></div>
+      <span class="proto-badge">Prototype</span>
+      <button type="button" class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+        <svg aria-hidden="true" class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <span class="avatar" title="Ada (you)">AD</span>
+    </div>
+
+    <div id="content">
+      <main id="list-pane">
+        <div id="list-head">
+          <div>
+            <h1>Inbox</h1>
+            <p class="lede">Everything the team must react to — alerts, meeting
+              outcomes, upcoming events, notes — until it is promoted, dismissed
+              with a reason, or expires.</p>
+          </div>
+          <div id="list-toolbar">
+            <!-- biome-ignore lint/a11y/useSemanticElements: prototype-only segmented control over plain buttons, matching the shell mock -->
+            <div class="seg" id="tabs" role="group" aria-label="Inbox tabs">
+              <button type="button" data-tab="open" aria-pressed="true">Open</button>
+              <button type="button" data-tab="handled" aria-pressed="false">Handled</button>
+              <button type="button" data-tab="expired" aria-pressed="false">Expired</button>
+            </div>
+            <div class="spacer" style="flex: 1"></div>
+            <button type="button" class="btn primary" id="capture-btn">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Capture
+            </button>
+            <button type="button" class="icon-btn" id="reset-btn" title="Reset sample data" aria-label="Reset sample data">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="lists"></div>
+      </main>
+
+      <aside id="detail" aria-label="Item detail"></aside>
+    </div>
+  </div>
+</div>
+
+<dialog id="capture-dlg" aria-label="Capture a note">
+  <h2>Capture</h2>
+  <p class="hint">Drop it in the team inbox before it is forgotten. Attach a
+    file — a meeting transcript, for example — to land it as one reviewable
+    item.</p>
+  <form method="dialog">
+    <input type="text" id="cap-title" aria-label="Title" placeholder="What needs a reaction?" autocomplete="off">
+    <textarea id="cap-note" aria-label="Note (optional)" placeholder="Context (optional)"></textarea>
+    <div class="file-row">
+      <label class="btn outline" for="cap-file">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        Attach file
+      </label>
+      <input type="file" id="cap-file" aria-label="Attach file">
+      <span id="cap-file-name" class="hint"></span>
+      <button type="button" class="icon-btn" id="cap-file-clear" title="Remove attachment" aria-label="Remove attachment" hidden>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="btn outline" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="cap-submit" disabled>Add to inbox</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dismiss-dlg" aria-label="Dismiss with a reason">
+  <h2>Dismiss</h2>
+  <p class="hint">The reason stays visible to the team, so nobody wonders
+    whether this was simply dropped.</p>
+  <form method="dialog">
+    <textarea id="dis-reason" aria-label="Reason" placeholder="Why is this not worth acting on?"></textarea>
+    <div class="dlg-actions">
+      <button type="button" class="btn outline" data-close>Cancel</button>
+      <button type="submit" class="btn primary" id="dis-submit" disabled>Dismiss</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="defer-dlg" aria-label="Defer until later">
+  <h2>Defer</h2>
+  <p class="hint" id="defer-hint">It leaves the list now and comes back on its
+    own — no one has to remember it.</p>
+  <form method="dialog">
+    <div class="pick" id="defer-pick"></div>
+    <div class="dlg-actions">
+      <button type="button" class="btn outline" data-close>Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = (s) =>
+    String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const MIN = 60000;
+  const HOUR = 3600000;
+  const DAY = 86400000;
+
+  /* ---- Team ---- */
+  const YOU = 'you';
+  const TEAM = {
+    you: { name: 'Ada', label: 'Ada (you)', initials: 'AD' },
+    mira: { name: 'Mira', label: 'Mira', initials: 'MI' },
+    jonas: { name: 'Jonas', label: 'Jonas', initials: 'JO' },
+    priya: { name: 'Priya', label: 'Priya', initials: 'PR' },
+  };
+
+  /* ---- Sample data: fresh per load, timestamps relative to now ---- */
+  function sampleItems() {
+    const now = Date.now();
+    return [
+      {
+        id: 'a1', kind: 'alert', title: 'CPU saturation on billing-service pod',
+        origin: 'Grafana · via webhook', dedupKey: 'grafana:cpu:billing-service',
+        body: 'billing-service-7f9c is above 92% CPU for more than 10 minutes.\nThreshold: 85% over 10m. Cluster: prod-eu1.',
+        createdAt: now - 3 * DAY, lastSeenAt: now - 12 * MIN, count: 37,
+        occurrences: [now - 12 * MIN, now - 43 * MIN, now - 2 * HOUR, now - 5 * HOUR, now - 9 * HOUR],
+        state: 'open',
+      },
+      {
+        id: 'a2', kind: 'alert', title: 'Nightly backup job failed',
+        origin: 'cron monitor · via webhook', dedupKey: 'cron:backup-nightly',
+        body: 'backup-nightly exited 1 after 14m. Last successful run: two nights ago.',
+        createdAt: now - 26 * HOUR, lastSeenAt: now - 2 * HOUR, count: 2,
+        occurrences: [now - 2 * HOUR, now - 26 * HOUR],
+        state: 'open',
+      },
+      {
+        id: 'a3', kind: 'alert', title: 'TLS certificate for api.acme.io expires in 21 days',
+        origin: 'cert-watch · via webhook', dedupKey: 'certwatch:api.acme.io',
+        body: 'Certificate expires soon. Renewal is not automated for this domain.',
+        createdAt: now - 12 * DAY, lastSeenAt: now - 12 * DAY, count: 1,
+        occurrences: [now - 12 * DAY],
+        state: 'open',
+      },
+      {
+        id: 't1', kind: 'transcript', title: 'Weekly architecture sync — transcript',
+        origin: 'pasted by Priya',
+        body: 'Mira: The retry queue keeps growing when the payment provider flaps.\nJonas: We agreed to cap retries at 5 and alert after that.\nPriya: I will draft the runbook change.\nAda: Also — the staging environment drift came up again. Someone should own a fix before the next release cut.',
+        createdAt: now - 4 * HOUR, lastSeenAt: now - 4 * HOUR, count: 1,
+        state: 'open',
+      },
+      {
+        id: 't2', kind: 'transcript', title: 'Incident post-mortem 2026-08-13 — transcript',
+        origin: 'API push',
+        body: 'Root cause: connection pool exhaustion after the pool size was halved during the cost pass.\nAction: restore pool size, add a saturation alert, document the sizing rationale.',
+        createdAt: now - 2 * DAY, lastSeenAt: now - 2 * DAY, count: 1,
+        state: 'open',
+      },
+      {
+        id: 'e1', kind: 'event', title: 'Quarterly security review with acme SOC',
+        origin: 'Google Calendar',
+        body: 'Bring: dependency audit results, open CVE list, access-review status.',
+        createdAt: now - 2 * DAY, lastSeenAt: now - 2 * DAY, count: 1,
+        eventStart: now + 26 * HOUR, state: 'open',
+      },
+      {
+        id: 'e2', kind: 'event', title: 'Stakeholder demo',
+        origin: 'Google Calendar',
+        body: 'Demo the projects flow end to end on staging.',
+        createdAt: now - 5 * DAY, lastSeenAt: now - 5 * DAY, count: 1,
+        eventStart: now + 3 * HOUR, state: 'open',
+      },
+      {
+        id: 'e3', kind: 'event', title: 'Dependency upgrade window',
+        origin: 'Google Calendar',
+        body: 'Agreed maintenance window for the quarterly dependency pass.',
+        createdAt: now - 8 * DAY, lastSeenAt: now - 8 * DAY, count: 1,
+        eventStart: now - DAY, state: 'expired',
+      },
+      {
+        id: 'n1', kind: 'note', title: 'Rate limiter config looks too permissive',
+        origin: 'note by Priya',
+        body: 'Saw 4k requests/min from one key on staging without throttling. Worth checking the prod limits before someone abuses it.',
+        createdAt: now - 30 * MIN, lastSeenAt: now - 30 * MIN, count: 1,
+        state: 'open',
+      },
+      {
+        id: 'n2', kind: 'note', title: 'Review on-call rota proposal',
+        origin: 'note by Ada',
+        body: 'Draft rota is in the shared doc — needs a yes/no from everyone before Friday.',
+        createdAt: now - DAY, lastSeenAt: now - DAY, count: 1,
+        state: 'open', snoozedUntil: tomorrowAt9(now),
+      },
+      {
+        id: 'a4', kind: 'alert', title: 'Disk usage warning on ci-runner-3',
+        origin: 'node-exporter · via webhook', dedupKey: 'node:disk:ci-runner-3',
+        body: '/var is at 91% on ci-runner-3.',
+        createdAt: now - 2 * DAY, lastSeenAt: now - 2 * DAY, count: 1,
+        state: 'dismissed',
+        outcome: { by: 'jonas', at: now - DAY, reason: 'Known — runner images are rebuilt nightly and the disk resets. Tracking a permanent fix in the CI overhaul.' },
+      },
+      {
+        id: 'n3', kind: 'note', title: 'Add missing index on events table',
+        origin: 'note by Mira',
+        body: 'Slow query log shows full scans on events.project_id. Needs a migration.',
+        createdAt: now - 4 * DAY, lastSeenAt: now - 4 * DAY, count: 1,
+        state: 'promoted',
+        outcome: { by: 'mira', at: now - 3 * DAY },
+      },
+    ];
+  }
+
+  function tomorrowAt9(from) {
+    const d = new Date(from + DAY);
+    d.setHours(9, 0, 0, 0);
+    return d.getTime();
+  }
+
+  /* ---- Time formatting ---- */
+  function fmtDur(ms) {
+    if (ms < MIN) return 'moments';
+    if (ms < HOUR) return `${Math.round(ms / MIN)}m`;
+    if (ms < DAY) {
+      const h = Math.floor(ms / HOUR);
+      const m = Math.round((ms % HOUR) / MIN);
+      return m ? `${h}h ${m}m` : `${h}h`;
+    }
+    const d = Math.floor(ms / DAY);
+    const h = Math.round((ms % DAY) / HOUR);
+    return h && d < 3 ? `${d}d ${h}h` : `${d}d`;
+  }
+  const ago = (ts) => (Date.now() - ts < MIN ? 'just now' : `${fmtDur(Date.now() - ts)} ago`);
+  const inDur = (ts) => `in ${fmtDur(ts - Date.now())}`;
+  const stamp = (ts) =>
+    new Date(ts).toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const clock = (ts) =>
+    new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const ageDays = (it) => (Date.now() - it.createdAt) / DAY;
+
+  /* ---- State ---- */
+  let items = sampleItems();
+  let tab = 'open';
+  let selectedId = 'a1';
+  let dialogItemId = null;
+
+  const KIND_META = {
+    alert: { label: 'Alert', icon: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>' },
+    transcript: { label: 'Meeting transcript', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>' },
+    event: { label: 'Upcoming event', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>' },
+    note: { label: 'Note', icon: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>' },
+  };
+  const svg = (paths, cls = 'icon') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+
+  /* ---- Derived views ---- */
+  function expireDueEvents() {
+    for (const it of items) {
+      if (it.state === 'open' && it.eventStart && it.eventStart <= Date.now()) {
+        it.state = 'expired';
+      }
+    }
+  }
+  function wakeDueSnoozes() {
+    for (const it of items) {
+      if (it.snoozedUntil && it.snoozedUntil <= Date.now()) it.snoozedUntil = null;
+    }
+  }
+  const isSnoozed = (it) => it.state === 'open' && it.snoozedUntil && it.snoozedUntil > Date.now();
+  const isAgingLoud = (it) => it.state === 'open' && !isSnoozed(it) && ageDays(it) > 4;
+  const openItems = () => items.filter((it) => it.state === 'open' && !isSnoozed(it));
+  const snoozedItems = () => items.filter(isSnoozed);
+  const handledItems = () => items.filter((it) => it.state === 'dismissed' || it.state === 'promoted');
+  const expiredItems = () => items.filter((it) => it.state === 'expired');
+
+  /* ---- Renderers ---- */
+  function ageChip(it) {
+    if (it.state !== 'open') return '';
+    const days = ageDays(it);
+    if (isAgingLoud(it)) return `<span class="chip loud">Waiting for ${Math.floor(days)} days</span>`;
+    if (days >= 1) return `<span class="chip tint">${Math.floor(days)}d waiting</span>`;
+    return '';
+  }
+  function eventChip(it) {
+    if (!it.eventStart || it.state !== 'open') return '';
+    const soon = it.eventStart - Date.now() < 6 * HOUR;
+    return `<span class="chip${soon ? ' tint' : ''}">${svg('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')} ${inDur(it.eventStart)}</span>`;
+  }
+  function stateChip(it) {
+    if (it.state === 'dismissed') return '<span class="chip">Dismissed</span>';
+    if (it.state === 'promoted') return '<span class="chip ok">Promoted</span>';
+    if (it.state === 'expired') return '<span class="chip">Expired — missed</span>';
+    return '';
+  }
+
+  function metaLine(it) {
+    if (isSnoozed(it)) return `${esc(it.origin)} · returns ${clock(it.snoozedUntil)}`;
+    if (it.state === 'dismissed') return `${esc(it.origin)} · dismissed by ${TEAM[it.outcome.by].name} ${ago(it.outcome.at)}`;
+    if (it.state === 'promoted') return `${esc(it.origin)} · promoted by ${TEAM[it.outcome.by].name} ${ago(it.outcome.at)}`;
+    if (it.state === 'expired') return `${esc(it.origin)} · started ${clock(it.eventStart)} · retired unhandled`;
+    if (it.eventStart) return `${esc(it.origin)} · starts ${clock(it.eventStart)}`;
+    if (it.count > 1) return `${esc(it.origin)} · last seen ${ago(it.lastSeenAt)}`;
+    return `${esc(it.origin)} · ${ago(it.createdAt)}`;
+  }
+
+  function rowHtml(it) {
+    const chips = [
+      it.count > 1 ? `<span class="chip count">×${it.count}</span>` : '',
+      eventChip(it),
+      stateChip(it),
+      ageChip(it),
+    ].join('');
+    const warn = it.state === 'open' && !isSnoozed(it) && ageDays(it) >= 1;
+    return `
+      <button type="button" class="list-item${warn ? ' age-warn' : ''}" role="option"
+        data-id="${it.id}" aria-selected="${String(it.id === selectedId)}">
+        <span class="src">${svg(KIND_META[it.kind].icon)}</span>
+        <span class="body">
+          <span class="title">${esc(it.title)}</span><br>
+          <span class="meta">${metaLine(it)}</span>
+        </span>
+        ${chips}
+      </button>`;
+  }
+
+  function groupHtml(label, list, opts = {}) {
+    if (!list.length) return '';
+    return `
+      <section class="group${opts.dim ? ' dim' : ''}">
+        <h2 class="group-label${opts.loud ? ' loud' : ''}">${label}</h2>
+        <!-- biome-ignore lint/a11y/useSemanticElements: prototype-only listbox over button rows, matching the shell mock -->
+        <div role="listbox" aria-label="${label}">${list.map(rowHtml).join('')}</div>
+      </section>`;
+  }
+
+  function renderTabs() {
+    const counts = { open: openItems().length, handled: handledItems().length, expired: expiredItems().length };
+    for (const b of $$('#tabs button')) {
+      const t = b.dataset.tab;
+      b.setAttribute('aria-pressed', String(t === tab));
+      b.textContent = `${t[0].toUpperCase()}${t.slice(1)} (${counts[t]})`;
+    }
+  }
+
+  function renderList() {
+    const box = $('#lists');
+    if (tab === 'handled') {
+      const list = handledItems().sort((a, b) => b.outcome.at - a.outcome.at);
+      box.innerHTML = list.length
+        ? groupHtml('Dismissed and promoted — nothing here was silently dropped', list)
+        : '<div class="empty"><p>Nothing handled yet.</p></div>';
+    } else if (tab === 'expired') {
+      const list = expiredItems().sort((a, b) => b.eventStart - a.eventStart);
+      box.innerHTML = list.length
+        ? groupHtml('Events that passed with no one handling them', list)
+        : '<div class="empty"><p>No missed events.</p></div>';
+    } else {
+      const aging = openItems().filter(isAgingLoud).sort((a, b) => a.createdAt - b.createdAt);
+      const rest = openItems().filter((it) => !isAgingLoud(it)).sort((a, b) => b.lastSeenAt - a.lastSeenAt);
+      const snoozed = snoozedItems().sort((a, b) => a.snoozedUntil - b.snoozedUntil);
+      if (!aging.length && !rest.length) {
+        const n = snoozed.length;
+        box.innerHTML = `
+          <div class="empty">
+            ${svg('<circle cx="12" cy="12" r="10"/><path d="m8 12.5 2.5 2.5L16 9"/>')}
+            <h2>Inbox zero</h2>
+            <p>Everything here was cleared or is scheduled to return.</p>
+            ${n ? `<p>${n} snoozed item${n > 1 ? 's' : ''} will come back on their own.</p>` : ''}
+            <button type="button" class="btn outline" id="empty-reset">Reset sample data</button>
+          </div>
+          ${groupHtml('Snoozed — will return', snoozed, { dim: true })}`;
+      } else {
+        box.innerHTML =
+          groupHtml('Aging — do not let these sink', aging, { loud: true }) +
+          groupHtml(aging.length ? 'Everything else' : 'Open', rest) +
+          groupHtml('Snoozed — will return', snoozed, { dim: true });
+      }
+    }
+    for (const row of $$('#lists .list-item')) {
+      row.addEventListener('click', () => select(row.dataset.id));
+    }
+    const er = $('#empty-reset');
+    if (er) er.addEventListener('click', reset);
+  }
+
+  function occurrenceBlock(it) {
+    if (!(it.count > 1)) return '';
+    return `
+      <div class="d-block">
+        <span class="b-label">Occurrences — one condition, one item</span>
+        <dl class="kv">
+          <dt>First seen</dt><dd>${stamp(it.createdAt)}</dd>
+          <dt>Last seen</dt><dd>${stamp(it.lastSeenAt)}</dd>
+          <dt>Count</dt><dd>×${it.count}</dd>
+        </dl>
+        <ul class="occ-list">
+          ${it.occurrences.map((ts) => `<li>${stamp(ts)}</li>`).join('')}
+          ${it.count > it.occurrences.length ? `<li>… ${it.count - it.occurrences.length} earlier</li>` : ''}
+        </ul>
+      </div>`;
+  }
+
+  function eventBlock(it) {
+    if (!it.eventStart || it.state === 'expired') return '';
+    return `
+      <div class="d-block">
+        <span class="b-label">Event</span>
+        <dl class="kv">
+          <dt>Starts</dt><dd>${stamp(it.eventStart)}</dd>
+          <dt>Time left</dt><dd>${inDur(it.eventStart)}</dd>
+        </dl>
+      </div>`;
+  }
+
+  function outcomeBlock(it) {
+    if (it.state === 'dismissed') {
+      return `
+        <div class="d-block">
+          <span class="b-label">Dismissed</span>
+          <p style="margin: 0">“${esc(it.outcome.reason)}”</p>
+          <p style="margin: 0; color: var(--muted-foreground)">by ${esc(TEAM[it.outcome.by].name)} · ${ago(it.outcome.at)}</p>
+          <div class="row"><button type="button" class="btn outline" id="act-restore">
+            ${svg('<path d="M9 14 4 9l5-5"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>')} Restore to inbox
+          </button></div>
+        </div>`;
+    }
+    if (it.state === 'promoted') {
+      return `
+        <div class="d-block">
+          <span class="b-label">Promoted to task</span>
+          <p style="margin: 0; color: var(--muted-foreground)">by ${esc(TEAM[it.outcome.by].name)} · ${ago(it.outcome.at)} ·
+            waiting for the task module to pick it up.</p>
+        </div>`;
+    }
+    if (it.state === 'expired') {
+      return `
+        <div class="d-block">
+          <span class="b-label">Expired</span>
+          <p style="margin: 0; color: var(--muted-foreground)">Started ${stamp(it.eventStart)} and passed with the item
+            unhandled — retired, but visible here as missed.</p>
+        </div>`;
+    }
+    return '';
+  }
+
+  function snoozeBlock(it) {
+    if (!isSnoozed(it)) return '';
+    return `
+      <div class="d-block">
+        <span class="b-label">Snoozed</span>
+        <p style="margin: 0; color: var(--muted-foreground)">Returns ${stamp(it.snoozedUntil)}.</p>
+        <div class="row"><button type="button" class="btn outline" id="act-wake">Wake now</button></div>
+      </div>`;
+  }
+
+  function actionsBar(it) {
+    if (it.state !== 'open') return '';
+    return `
+      <div class="actions">
+        <button type="button" class="btn outline" id="act-defer">
+          ${svg('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>')} Defer…
+        </button>
+        <button type="button" class="btn outline" id="act-dismiss">
+          ${svg('<path d="M18 6 6 18M6 6l12 12"/>')} Dismiss…
+        </button>
+        <button type="button" class="btn primary" id="act-promote">
+          ${svg('<path d="M7 7h10v10"/><path d="M7 17 17 7"/>')} Promote to task
+        </button>
+      </div>`;
+  }
+
+  function renderDetail() {
+    const box = $('#detail');
+    const it = items.find((i) => i.id === selectedId);
+    if (!it) {
+      box.innerHTML = '<p class="placeholder">Select an item to triage it.</p>';
+      return;
+    }
+    box.innerHTML = `
+      <div class="d-head">
+        <span class="kind">${KIND_META[it.kind].label}</span>
+        ${stateChip(it)}
+        <span class="spacer"></span>
+        <button type="button" class="icon-btn" id="d-close" title="Clear selection" aria-label="Clear selection">
+          ${svg('<path d="M18 6 6 18M6 6l12 12"/>')}
+        </button>
+      </div>
+      <h2>${esc(it.title)}</h2>
+      <dl class="kv">
+        <dt>Source</dt><dd>${esc(it.origin)}</dd>
+        <dt>Received</dt><dd>${stamp(it.createdAt)}</dd>
+        ${it.dedupKey ? `<dt>Dedup key</dt><dd class="mono">${esc(it.dedupKey)}</dd>` : ''}
+      </dl>
+      ${snoozeBlock(it)}
+      ${occurrenceBlock(it)}
+      ${eventBlock(it)}
+      ${it.body ? `<div class="d-body">${esc(it.body)}</div>` : ''}
+      ${outcomeBlock(it)}
+      ${actionsBar(it)}`;
+
+    const on = (sel, fn) => {
+      const el = $(sel, box);
+      if (el) el.addEventListener('click', fn);
+    };
+    on('#d-close', () => select(null));
+    on('#act-defer', () => openDefer(it));
+    on('#act-dismiss', () => openDismiss(it));
+    on('#act-promote', () => promote(it));
+    on('#act-restore', () => restore(it));
+    on('#act-wake', () => {
+      it.snoozedUntil = null;
+      renderAll();
+    });
+  }
+
+  function renderAll() {
+    wakeDueSnoozes();
+    expireDueEvents();
+    renderTabs();
+    renderList();
+    renderDetail();
+  }
+
+  function select(id) {
+    selectedId = id;
+    renderAll();
+  }
+
+  /* ---- Actions ---- */
+  function promote(it) {
+    it.state = 'promoted';
+    it.outcome = { by: YOU, at: Date.now() };
+    renderAll();
+  }
+
+  function restore(it) {
+    it.state = 'open';
+    it.outcome = null;
+    renderAll();
+  }
+
+  function reset() {
+    items = sampleItems();
+    tab = 'open';
+    select('a1');
+  }
+
+  /* ---- Dialogs ---- */
+  const capDlg = $('#capture-dlg');
+  const dismissDlg = $('#dismiss-dlg');
+  const deferDlg = $('#defer-dlg');
+  for (const b of $$('dialog [data-close]')) {
+    b.addEventListener('click', () => b.closest('dialog').close());
+  }
+
+  function openDismiss(it) {
+    dialogItemId = it.id;
+    $('#dis-reason').value = '';
+    $('#dis-submit').disabled = true;
+    dismissDlg.showModal();
+  }
+  $('#dis-reason').addEventListener('input', () => {
+    $('#dis-submit').disabled = $('#dis-reason').value.trim() === '';
+  });
+  $('#dismiss-dlg form').addEventListener('submit', () => {
+    const it = items.find((i) => i.id === dialogItemId);
+    it.state = 'dismissed';
+    it.outcome = { by: YOU, at: Date.now(), reason: $('#dis-reason').value.trim() };
+    renderAll();
+  });
+
+  function deferPresets(now) {
+    return [
+      { label: 'Later today', sub: '+4 hours', ts: now + 4 * HOUR },
+      { label: 'Tomorrow 09:00', sub: '', ts: tomorrowAt9(now) },
+      { label: 'Next week', sub: 'Monday 09:00', ts: nextMondayAt9(now) },
+    ];
+  }
+  function nextMondayAt9(from) {
+    const d = new Date(from);
+    d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
+    d.setHours(9, 0, 0, 0);
+    return d.getTime();
+  }
+  function openDefer(it) {
+    dialogItemId = it.id;
+    const bounded = Boolean(it.eventStart);
+    $('#defer-hint').textContent = bounded
+      ? 'A snooze can never skip past the event itself — options after its start are off.'
+      : 'It leaves the list now and comes back on its own — no one has to remember it.';
+    $('#defer-pick').innerHTML = deferPresets(Date.now())
+      .map((p) => {
+        const blocked = bounded && p.ts >= it.eventStart;
+        return `
+          <button type="button" data-ts="${p.ts}" ${blocked ? 'disabled' : ''}>
+            ${esc(p.label)}
+            <span class="sub">${blocked ? 'after the event starts' : esc(p.sub) || clock(p.ts)}</span>
+          </button>`;
+      })
+      .join('');
+    for (const b of $$('#defer-pick button:not(:disabled)')) {
+      b.addEventListener('click', () => {
+        const target = items.find((i) => i.id === dialogItemId);
+        target.snoozedUntil = Number(b.dataset.ts);
+        deferDlg.close();
+        renderAll();
+      });
+    }
+    deferDlg.showModal();
+  }
+
+  let capFile = null;
+  function refreshCapture() {
+    $('#cap-submit').disabled = $('#cap-title').value.trim() === '';
+    $('#cap-file-name').textContent = capFile ? capFile.name : '';
+    $('#cap-file-clear').hidden = !capFile;
+  }
+  function openCapture() {
+    $('#cap-title').value = '';
+    $('#cap-note').value = '';
+    $('#cap-file').value = '';
+    capFile = null;
+    refreshCapture();
+    capDlg.showModal();
+    $('#cap-title').focus();
+  }
+  $('#cap-title').addEventListener('input', refreshCapture);
+  $('#cap-file').addEventListener('change', () => {
+    const f = $('#cap-file').files[0];
+    if (!f) return;
+    const text = { name: f.name, body: '' };
+    capFile = text;
+    if ($('#cap-title').value.trim() === '') {
+      $('#cap-title').value = f.name.replace(/\.[^.]+$/, '');
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      text.body = String(reader.result).slice(0, 4000);
+    };
+    reader.readAsText(f);
+    refreshCapture();
+  });
+  $('#cap-file-clear').addEventListener('click', () => {
+    capFile = null;
+    $('#cap-file').value = '';
+    refreshCapture();
+  });
+  $('#capture-dlg form').addEventListener('submit', () => {
+    const now = Date.now();
+    const note = $('#cap-note').value.trim();
+    const it = capFile
+      ? {
+          id: `cap-${now}`, kind: 'transcript', title: $('#cap-title').value.trim(),
+          origin: `uploaded by Ada · ${capFile.name}`,
+          body: [note, capFile.body].filter(Boolean).join('\n\n'),
+          createdAt: now, lastSeenAt: now, count: 1, state: 'open',
+        }
+      : {
+          id: `cap-${now}`, kind: 'note', title: $('#cap-title').value.trim(),
+          origin: 'note by Ada', body: note,
+          createdAt: now, lastSeenAt: now, count: 1, state: 'open',
+        };
+    items.unshift(it);
+    tab = 'open';
+    select(it.id);
+  });
+
+  /* ---- Wiring ---- */
+  for (const b of $$('#tabs button')) {
+    b.addEventListener('click', () => {
+      tab = b.dataset.tab;
+      renderAll();
+    });
+  }
+  $('#capture-btn').addEventListener('click', openCapture);
+  $('#reset-btn').addEventListener('click', reset);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'c' || e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
+    if (document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    openCapture();
+  });
+
+  const root = document.documentElement;
+  $('#theme-toggle').addEventListener('click', () => {
+    const dark = root.dataset.theme === 'dark' ||
+      ((root.dataset.theme === undefined || root.dataset.theme === '') &&
+        matchMedia('(prefers-color-scheme: dark)').matches);
+    root.dataset.theme = dark ? 'light' : 'dark';
+  });
+
+  /* Countdowns tick; an open event whose start passes retires itself as expired. */
+  setInterval(renderAll, 30000);
+  renderAll();
+</script>

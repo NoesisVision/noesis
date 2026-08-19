@@ -1306,3 +1306,47 @@ that work is picked up — but no agent surface is built now, mocked or real.
 - The scanner-baseline work already left with the codebase-delta feature
   (decision 52); agent integration now joins it as future work, to be
   re-planned as its own iteration when it returns.
+
+## 58. Inbox items are graph nodes under their project; lifecycle moves on conditional writes and read-time sweeps
+
+**Context:** The inbox feature (`docs/work/features/inbox.md`, prototyped in
+`inbox-prototype.html`) needs a first implementation: a per-project team
+inbox where alerts, transcripts, events and notes land, fold repeats by a
+sender-provided dedup key, and end as promoted, dismissed-with-reason, or
+expired. The task module the inbox feeds does not exist yet, and the
+webhook/API auth model for external senders is an open question — but the
+triage lifecycle itself is fully specified and should not wait on either.
+
+**Decision:** An `InboxItem` node table plus a `HasInboxItem` edge from
+`Project` — items exist only under their project (the Repository exclusivity
+argument), so project deletion removes its inbox outright. Optional STRING
+columns store `''` for "absent" and the repository maps them to null at its
+edge; occurrence history is a JSON array column capped at the ten most
+recent arrivals (first-seen, last-seen and count survive the cap). State
+transitions are conditional writes (`WHERE i.state = ...`) in
+`InboxRepository`, disambiguated by the service into the 404/409 vocabulary
+the routes answer; dedup folding is the one read-then-write, guarded by the
+row version. There is no background job: every list read sweeps first —
+open events past their start expire, elapsed snoozes wake — so clients
+always see items in their true lifecycle state, and the SPA polls the list
+every 30s. Intake is two endpoints on the `/ui` surface: manual capture
+(note, or transcript when a file's leading text comes along) and a
+source-agnostic `/signals` contract (kind, origin, body, dedup key, event
+start) that future senders — MCP bridge, calendar, monitoring — reuse
+unchanged once the ingest-auth question is answered. Promotion is the
+forward-compatible stub the spec demands: state `promoted` plus who/when,
+nothing else.
+
+**Consequences:**
+
+- The dedup rule "never guess" is structural: folding matches only an open
+  item with the identical key in the same project; a repeat after dismissal
+  starts a new item (the reopen/cool-down question stays open).
+- Defer is bounded by `event_start` in the service, so no client can snooze
+  an event past its moment.
+- External systems cannot push yet — `/signals` rides the ui session. When
+  the ingest-auth model lands, the endpoint moves (or is mirrored) to the
+  `/api` surface with the same schema; nothing in the item model changes.
+- Expiry/wake happen at read time, so a project nobody looks at holds stale
+  `open` states in the graph until the next read — acceptable while the
+  only consumer is the UI that always reads first.

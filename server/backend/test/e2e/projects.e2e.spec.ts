@@ -5,6 +5,8 @@ import type { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { InboxRepository } from '../../src/inbox/inbox.repository.js';
+import { InboxService } from '../../src/inbox/inbox.service.js';
 import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
 import { RepoAccessService } from '../../src/projects/repo-access.service.js';
@@ -51,6 +53,7 @@ function harness() {
     authModule: module,
     projectsService: new ProjectsService(projectsRepository),
     designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
+    inboxService: new InboxService(new InboxRepository(db)),
     repoAccess: new RepoAccessService(projectsRepository, module.ghApp),
   });
   return { github, app };

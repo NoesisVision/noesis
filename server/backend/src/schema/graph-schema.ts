@@ -139,4 +139,35 @@ export const GRAPH_SCHEMA: readonly string[] = [
      updated_at STRING,
      PRIMARY KEY(id)
    )`,
+
+  // --- Inbox (inbox.md) ---
+  //
+  // One node per signal; repeats fold into it (count/last_seen_at) keyed by
+  // the sender-provided dedup_key — never guessed from content. Optional
+  // STRING columns use '' for "absent" so equality filters stay plain (the
+  // repository maps '' to null at its edge). `occurrences` is a JSON array of
+  // the most recent arrival timestamps, capped in the repository. An item
+  // exists only under its project (HasInboxItem), so project deletion removes
+  // its inbox outright.
+  `CREATE NODE TABLE IF NOT EXISTS InboxItem(
+     id STRING,
+     kind STRING,
+     title STRING,
+     origin STRING,
+     body STRING,
+     dedup_key STRING,
+     event_start STRING,
+     snoozed_until STRING,
+     state STRING,
+     count INT64 DEFAULT 1,
+     occurrences STRING,
+     outcome_by STRING,
+     outcome_at STRING,
+     outcome_reason STRING,
+     last_seen_at STRING,
+     version INT64 DEFAULT 0,
+     created_at STRING,
+     PRIMARY KEY(id)
+   )`,
+  `CREATE REL TABLE IF NOT EXISTS HasInboxItem(FROM Project TO InboxItem)`,
 ];
