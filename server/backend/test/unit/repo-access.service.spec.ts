@@ -1,14 +1,14 @@
 import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { GhAppService } from '../../src/auth/gh-app.service.js';
 import type { FetchLike } from '../../src/auth/github.service.js';
-import type { DatabaseService } from '../../src/database/database.service.js';
-import { ProjectsRepository } from '../../src/projects/projects.repository.js';
-import { RepoAccessService } from '../../src/projects/repo-access.service.js';
 import {
   createFakeGithub,
   type FakeGithub,
   testAuthConfig,
-} from './github-fake.js';
+} from '../../src/auth/github-fake.js';
+import type { DatabaseService } from '../../src/database/database.service.js';
+import { ProjectsRepository } from '../../src/projects/projects.repository.js';
+import { RepoAccessService } from '../../src/projects/repo-access.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 
 // The access-check transitions (projects.md §3): connected ↔ disconnected,

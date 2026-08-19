@@ -6,9 +6,12 @@ import {
   GhCredentialExpiredError,
   GithubService,
 } from '../../src/auth/github.service.js';
+import {
+  createFakeGithub,
+  testAuthConfig,
+} from '../../src/auth/github-fake.js';
 import { SessionService } from '../../src/auth/session.service.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
-import { createFakeGithub, testAuthConfig } from './github-fake.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 
 let db: DatabaseService;

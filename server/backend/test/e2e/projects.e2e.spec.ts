@@ -1,6 +1,10 @@
 import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { createApp } from '../../src/app.js';
 import { createAuthModule } from '../../src/auth/auth.module.js';
+import {
+  createFakeGithub,
+  testAuthConfig,
+} from '../../src/auth/github-fake.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
@@ -11,7 +15,6 @@ import { ProjectsRepository } from '../../src/projects/projects.repository.js';
 import { ProjectsService } from '../../src/projects/projects.service.js';
 import { RepoAccessService } from '../../src/projects/repo-access.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
-import { createFakeGithub, testAuthConfig } from '../unit/github-fake.js';
 import { resetGraph, sharedTestDatabase } from '../unit/test-db.js';
 
 // The whole elicited journey in one pass: sign in, create a project with

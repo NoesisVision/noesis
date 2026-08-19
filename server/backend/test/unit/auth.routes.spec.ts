@@ -2,8 +2,11 @@ import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { createAuthModule } from '../../src/auth/auth.module.js';
 import { AuthRepository } from '../../src/auth/auth.repository.js';
 import { createAuthApp } from '../../src/auth/auth.routes.js';
+import {
+  createFakeGithub,
+  testAuthConfig,
+} from '../../src/auth/github-fake.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
-import { createFakeGithub, testAuthConfig } from './github-fake.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 
 // The `/auth` surface trades 302s and cookies, so these assertions are about

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AuthEnv } from '../auth/auth.middleware.js';
 import { requireSession } from '../auth/auth.middleware.js';
-import type { AuthModule } from '../auth/auth.module.js';
+import { type AuthModule, authModeName } from '../auth/auth.module.js';
 import { toAccountDto } from '../auth/auth.service.js';
 import type { DesignDocsService } from '../design-docs/design-docs.service.js';
 import type { GreetingService } from '../greeting/greeting.service.js';
@@ -52,7 +52,7 @@ export function createUiApp(deps: UiDeps) {
         return c.json({
           account: toAccountDto(account),
           installations,
-          authMode: deps.authModule.mode,
+          authMode: authModeName(deps.authModule),
         });
       })
       // Comment authors and mention targets (design-doc phase 4): the
