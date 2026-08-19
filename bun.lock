@@ -120,7 +120,7 @@
         "@blocknote/core": "^0.54.0",
         "@blocknote/react": "^0.54.0",
         "@blocknote/shadcn": "^0.54.0",
-        "@fontsource-variable/geist": "^5.3.0",
+        "@fontsource-variable/raleway": "^5.3.0",
         "@handlewithcare/prosemirror-suggest-changes": "^0.1.8",
         "@hocuspocus/provider": "^4.6.0",
         "@repo/design-doc-blocks": "workspace:*",
@@ -307,7 +307,7 @@
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.12", "", {}, "sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww=="],
 
-    "@fontsource-variable/geist": ["@fontsource-variable/geist@5.3.0", "", {}, "sha512-j0m+vLQuG5XAYoHtGCVu0spvlGreR3EzpECUVzkFmI1mTVnAO38l/NEPDCFgZ177JxzYJCLSmTQibIiYPilGrA=="],
+    "@fontsource-variable/raleway": ["@fontsource-variable/raleway@5.3.0", "", {}, "sha512-aSV2k+V6Zz+od0dHpBOzkVxEzmgEdiXcxDfant39jLOx+T89dielQRrZylukwK3Fp+FY255gPqz67ruOfs1rqA=="],
 
     "@handlewithcare/prosemirror-inputrules": ["@handlewithcare/prosemirror-inputrules@0.1.4", "", { "dependencies": { "prosemirror-history": "^1.4.1", "prosemirror-transform": "^1.0.0" }, "peerDependencies": { "prosemirror-model": "^1.0.0", "prosemirror-state": "^1.0.0", "prosemirror-view": "^1.0.0" } }, "sha512-GMqlBeG2MKM+tXEFd2N+wIv5z4VvJTg8JtfJUrdjvFq2W6v+AW8oTgiWyFw8L3iEQwvtQcVJxU873iB0LXUNNw=="],
 
