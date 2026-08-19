@@ -13,6 +13,7 @@ import { TopBar } from '@/components/shell/top-bar';
 import {
   RIGHT_PANEL_MAX_WIDTH,
   RIGHT_PANEL_MIN_WIDTH,
+  SHELL_HEADER_HEIGHT,
   useShell,
 } from '@/components/shell/use-shell';
 import { useShellHotkeys } from '@/components/shell/use-shell-hotkeys';
@@ -75,13 +76,19 @@ function ShellFrame() {
 
   return (
     <>
-      <AppSidebar />
-      {/* h-svh caps the inset at the viewport so a long view (the document
-          sheet) scrolls inside ContentArea's panel, never the page body. */}
-      <SidebarInset className="h-svh min-h-0 overflow-hidden">
-        <TopBar />
-        <ContentArea />
-      </SidebarInset>
+      {/* The top bar spans the full width and the sidebar hangs below it, so
+          the brand mark sits directly above the project selector: brand for
+          the product, the column under it for the project. The provider is a
+          column for this reason (see `SHELL_HEADER_HEIGHT`). */}
+      <TopBar />
+      <div className="flex min-h-0 flex-1">
+        <AppSidebar />
+        {/* min-h-0 caps the inset at the row so a long view (the document
+            sheet) scrolls inside ContentArea's panel, never the page body. */}
+        <SidebarInset className="min-h-0 overflow-hidden">
+          <ContentArea />
+        </SidebarInset>
+      </div>
       <CommandPalette />
     </>
   );
@@ -129,6 +136,13 @@ export function ShellLayout() {
           setSidebarOpen(open);
           writeShellState('sidebar', open ? 'expanded' : 'collapsed');
         }}
+        // The provider stacks its children instead of laying them out in a
+        // row: the top bar first, then the sidebar/content row. `AppSidebar`
+        // reads --header-height to drop its fixed container below the bar.
+        className="h-svh min-h-0 flex-col overflow-hidden"
+        style={
+          { '--header-height': SHELL_HEADER_HEIGHT } as React.CSSProperties
+        }
       >
         <ShellFrame />
       </SidebarProvider>

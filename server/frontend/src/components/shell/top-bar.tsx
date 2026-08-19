@@ -1,4 +1,4 @@
-import { useMatches } from '@tanstack/react-router';
+import { Link, useMatches } from '@tanstack/react-router';
 import {
   BellIcon,
   MoonIcon,
@@ -26,11 +26,62 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+
+// The brand mark, not the project: the project lives in the sidebar header,
+// where the selector already carries its name and switcher. Repeating it up
+// here would put the two identities side by side and leave neither reading as
+// the primary one.
+//
+// The lockup occupies a column exactly as wide as the sidebar underneath it,
+// border and all, so the two form one continuous edge down the left of the
+// shell. It tracks the sidebar's collapse on the same 200ms linear curve;
+// widths come from the provider's own --sidebar-width variables rather than
+// being restated here.
+function BrandMark() {
+  const { state, isMobile } = useSidebar();
+  // Off-canvas on mobile: there is no sidebar column to line up with, so the
+  // lockup takes only the width it needs.
+  const collapsed = !isMobile && state === 'collapsed';
+
+  return (
+    <div
+      className={cn(
+        'flex h-full shrink-0 items-center border-r transition-[width] duration-200 ease-linear',
+        isMobile && 'w-auto px-4',
+        !isMobile &&
+          (collapsed
+            ? 'w-(--sidebar-width-icon) justify-center'
+            : 'w-(--sidebar-width) px-4'),
+      )}
+    >
+      <Link
+        to="/"
+        aria-label="Noesis Vision home"
+        className="flex items-center gap-2 transition-opacity hover:opacity-80"
+      >
+        <img
+          src="/noesis-mark.webp"
+          // The adjacent wordmark names the link when it is visible, and the
+          // aria-label covers the cases where it is not.
+          alt=""
+          width={24}
+          height={24}
+          className="size-6 shrink-0"
+        />
+        {!collapsed && (
+          <span className="hidden truncate text-sm font-bold sm:inline">
+            Noesis Vision
+          </span>
+        )}
+      </Link>
+    </div>
+  );
+}
 
 function ShellBreadcrumbs() {
-  const { project } = useShell();
   const matches = useMatches();
   // Routes carry their own label in staticData, so adding a view never means
   // touching a central breadcrumb map.
@@ -41,14 +92,9 @@ function ShellBreadcrumbs() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>
-          <span className="truncate text-muted-foreground">
-            {project?.name ?? 'No project'}
-          </span>
-        </BreadcrumbItem>
         {crumbs.map((crumb, index) => (
           <React.Fragment key={crumb}>
-            <BreadcrumbSeparator />
+            {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
               {index === crumbs.length - 1 ? (
                 <BreadcrumbPage>{crumb}</BreadcrumbPage>
@@ -92,8 +138,9 @@ export function TopBar() {
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3">
-      <SidebarTrigger />
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background pr-3">
+      <BrandMark />
+      <SidebarTrigger className="ml-1" />
       <Separator
         orientation="vertical"
         className="mr-1 data-vertical:h-4 data-vertical:self-center"

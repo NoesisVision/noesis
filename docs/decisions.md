@@ -1384,3 +1384,53 @@ the lockfile stays the single source of truth.
 - The runtime image grows by jsdom's ~40-package pure-JS closure (a few MB).
 - A local `bun run build && bun dist/main.js` now exercises the same
   resolution path as production, since jsdom is a direct backend dependency.
+
+## 60. The UI theme is derived from the noesis.vision palette, not a tweakcn preset
+
+**Context:** The shell shipped on tweakcn's "Claude" preset — a warm theme:
+cream page, terracotta primary, warm neutrals — chosen for the prototype
+before any brand constraint existed. The marketing site at noesis.vision is
+the opposite temperature: white and gray-950 surfaces, `blue-700` buttons,
+`blue-950` headings, and a hero gradient running indigo-600 → blue-700 →
+green-600, set in Raleway. Users reaching the app from the site crossed a
+visible seam. Alternatives considered: swapping only the primary and chart
+ramp to brand blue while keeping the warm neutrals (small diff, but the app
+still reads warm beside a cool site), and a hybrid keeping terracotta as a
+secondary accent (deliberately distinct from the site, which is not what we
+want while the app is the site's product).
+
+**Decision:** Replace the whole token set in `server/frontend/src/index.css`
+with values sampled from the live site. Every colour is a named Tailwind
+default converted to oklch, with the source name in a trailing comment, so
+the palette stays legible and re-derivable rather than being an opaque list
+of coordinates. `--font-sans` becomes Raleway
+(`@fontsource-variable/raleway`), replacing a bare system stack; the
+`@fontsource-variable/geist` dependency it supersedes had been imported
+since the prototype but was never referenced by a token, so no rendered text
+changes typeface for a second time. `--radius` stays at `0.5rem` — the
+site's 24px cards and pill buttons are marketing-scale and cost too much
+room in a dense shell.
+
+Three places knowingly depart from the site:
+
+- The page is `gray-50` and cards are white. The site puts white cards on a
+  white page and separates them with a border alone; the app shell needs a
+  real elevation step, so it keeps the page/card relationship the previous
+  theme had between cream and white.
+- `--input` is `gray-300` where `--border` is `gray-200`. An input outline
+  has to hold its own against the card it sits on; a divider does not.
+- Dark `--ring` is `blue-600` where `--primary` stays `blue-700`. A focus
+  ring on a near-black page needs the extra lightness; a filled button does
+  not.
+
+**Consequences:**
+
+- Every text pair in the token set meets WCAG AA or better in both modes
+  (lowest: `muted-foreground` on `background` in light at 4.63:1). Dark
+  `primary` against `background` is 3.0:1 — a fill, not text, so it meets
+  1.4.11's non-text threshold exactly.
+- Theme edits are now hand-maintained against this file. tweakcn can still
+  be used as an editor by importing the current `:root`/`.dark` blocks, but
+  a raw re-export would drop the three deviations above.
+- The status-badge tints in the components (blue/green/orange scales) were
+  already cool and needed no change.

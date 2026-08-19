@@ -18,6 +18,12 @@ export interface RightPanelState {
   width: number;
 }
 
+/**
+ * Height of the top bar. The shell publishes it as `--header-height` so the
+ * sidebar, whose container is fixed, can offset itself below the bar.
+ */
+export const SHELL_HEADER_HEIGHT = '3.5rem';
+
 export const RIGHT_PANEL_MIN_WIDTH = 220;
 export const RIGHT_PANEL_MAX_WIDTH = 480;
 export const RIGHT_PANEL_DEFAULT: RightPanelState = { open: true, width: 300 };
