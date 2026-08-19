@@ -12,25 +12,32 @@ export type QueryParams = Record<string, LbugValue>;
 // resources are released deterministically (decisions 23/35).
 export class DatabaseService {
   private readonly dataDir: string;
+  /** `:memory:` for the ephemeral database, otherwise the on-disk file. */
+  private readonly dbPath: string;
   private database: LbugDatabase | null = null;
   private connection: LbugConnection | null = null;
 
   constructor(dataDir: string) {
     this.dataDir = dataDir;
+    this.dbPath = dataDir === ':memory:' ? ':memory:' : `${dataDir}/ladybug-db`;
+  }
+
+  /**
+   * Where lbug keeps the write-ahead log, or null for the in-memory database.
+   * Exposed because a torn log is recoverable only by deleting this file, and
+   * the composition root is the one that decides to (decision 62).
+   */
+  get walPath(): string | null {
+    return this.dbPath === ':memory:' ? null : `${this.dbPath}.wal`;
   }
 
   init(): void {
-    let dbPath: string;
-    if (this.dataDir === ':memory:') {
-      // Ephemeral in-memory DB (used by tests).
-      dbPath = ':memory:';
-    } else {
-      // On-disk (production default): lbug opens the DB inside dataDir but does
-      // not create dataDir itself, so ensure it exists first.
+    if (this.dbPath !== ':memory:') {
+      // lbug opens the database inside dataDir but does not create dataDir
+      // itself, so ensure it exists first.
       mkdirSync(this.dataDir, { recursive: true });
-      dbPath = `${this.dataDir}/ladybug-db`;
     }
-    this.database = new Database(dbPath);
+    this.database = new Database(this.dbPath);
     this.connection = new Connection(this.database);
     console.log('[DatabaseService] LadybugDB initialized');
   }

@@ -191,6 +191,7 @@ Then generate a private key on the App's page and set:
 | `NOESIS_GITHUB_PRIVATE_KEY`   | The downloaded `.pem`, base64-encoded (`base64 -i key.pem`)           |
 | `NOESIS_TOKEN_KEY`            | 32 random bytes, base64 — encrypts GitHub tokens at rest              |
 | `NOESIS_AUTH_MODE`            | `github` (default), `local` or `disabled` (neither in production)     |
+| `NOESIS_RECOVER_WAL`          | `1` to discard a torn write-ahead log at boot — see below             |
 
 ```sh
 bun -e "console.log(crypto.getRandomValues(new Uint8Array(32)).toBase64())"  # NOESIS_TOKEN_KEY
@@ -203,6 +204,20 @@ the dev server proxies `/auth` and `/ui` through to the backend.
 **Who may sign in:** the first account to reach `/auth/login` claims the
 instance as its owner. Everyone after that needs an owner to invite them by
 GitHub login, from Settings → Members.
+
+### Recovering a torn write-ahead log
+
+If the server dies at boot with
+`Runtime exception: Corrupted wal file. Read out invalid WAL record type.`, a
+previous process was killed mid-write and LadybugDB's log beside the database
+file is unusable. There is no repairing it in place — the process dies on its
+first query, restarts, and dies again.
+
+Set `NOESIS_RECOVER_WAL=1` for one boot. The server deletes
+`<NOESIS_DATA_DIR>/ladybug-db.wal`, retries, and carries on, **losing the
+transactions written since the last checkpoint**. Copy the data directory first
+if you want a forensic record. Unset the variable afterwards, so the next torn
+log is reported rather than discarded (decision 62).
 
 ### Working with contracts
 
