@@ -174,7 +174,7 @@ are pure noise.
 
 ## Solution
 
-Implemented (decision 49): `InboxItem` graph nodes under their project
+Implemented (decision 58): `InboxItem` graph nodes under their project
 (`server/backend/src/inbox/`), conditional-write state transitions, read-time
 expiry/wake sweeps, and two `/ui` intake endpoints — manual capture and a
 source-agnostic `/signals` contract. The Inbox view is the top item in the

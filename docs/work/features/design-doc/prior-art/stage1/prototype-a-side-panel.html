@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype A — Persistent side panel</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Prototype A owns only its three-pane shell. */
+  .main {
+    flex: 1 1 auto; min-height: 0;
+    display: grid; grid-template-columns: 336px minmax(0, 1fr) var(--panel-w, 468px);
+  }
+  .main > * { min-width: 0; min-height: 0; }
+  .pane-catalogue { border-right: 1px solid var(--border); }
+  .pane-panel { border-left: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; }
+  .grip {
+    position: absolute; left: -3px; top: 0; bottom: 0; width: 6px; cursor: col-resize;
+  }
+  .pane-panel { position: relative; }
+
+  .dash { padding: 18px 20px; overflow: auto; }
+  .dash h2 { margin: 0 0 4px; font-size: 17px; }
+  .dash .sub { color: var(--muted-foreground); font-size: 12.5px; margin-bottom: 14px; }
+  .dash .card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 11px 13px; margin-bottom: 10px; background: var(--card);
+  }
+  .dash .card h3 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+  .dash .counts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+  .dash .counts b { font-size: 17px; font-weight: 600; display: block; }
+  .activity { font-size: 12.5px; color: var(--secondary-foreground); }
+  .activity li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="top"></div>
+  <div class="main">
+    <aside class="pane-catalogue" id="cat"></aside>
+    <section id="canvas"></section>
+    <aside class="pane-panel" id="panel"></aside>
+  </div>
+</div>
+
+<script src="sample-data.js"></script>
+<script src="shared.js"></script>
+<script>
+/*
+ * Prototype A — persistent side panel.
+ *
+ * The catalogue and the behaviour map never leave the screen; the selected
+ * element's document lives in a panel on the right. Optimised for continuity
+ * and for comparing neighbouring use cases quickly.
+ */
+(() => {
+  const { h, clear, S, byId, state, select, onChange, marker, typeBadge } = DD;
+
+  DD.renderTopbar(document.getElementById('top'), { protoLabel: 'Prototype A · persistent side panel' });
+  DD.renderCatalogue(document.getElementById('cat'), {});
+  DD.buildCanvas(document.getElementById('canvas'), { fit: true });
+
+  const panel = document.getElementById('panel');
+
+  /* Drag-to-resize keeps the panel useful for long text without a page move. */
+  const grip = h('div', { class: 'grip', title: 'Drag to resize the panel' });
+  grip.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = panel.getBoundingClientRect().width;
+    const move = (ev) => {
+      const w = Math.min(760, Math.max(360, startW - (ev.clientX - startX)));
+      document.querySelector('.main').style.setProperty('--panel-w', `${w}px`);
+    };
+    const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+
+  function paint() {
+    clear(panel);
+    panel.appendChild(grip);
+    const sel = state.selection;
+    if (!sel) return panel.appendChild(dashboard());
+    if (sel.kind === 'useCase') {
+      const host = h('div', { class: 'doc-panel' });
+      panel.appendChild(host);
+      DD.renderUseCaseDoc(host, byId.useCase[sel.id], {
+        headActions: [
+          h('button', { class: 'btn sm ghost', onclick: () => select(null, null), title: 'Back to the document dashboard' }, '✕'),
+        ],
+      });
+      return;
+    }
+    if (sel.kind === 'actor') return panel.appendChild(actorDoc(byId.actor[sel.id]));
+    if (sel.kind === 'block') return panel.appendChild(blockDoc(byId.block[sel.id]));
+  }
+
+  function dashboard() {
+    const counts = { existing: 0, new: 0, modified: 0, removed: 0 };
+    for (const u of S.useCases) counts[u.state]++;
+    return h('div', { class: 'dash' },
+      h('h2', {}, S.doc.name),
+      h('div', { class: 'sub' }, `${S.doc.status} · updated ${S.doc.updated} · baseline scan ${S.doc.baseline.scanId}`),
+      h('div', { class: 'card' },
+        h('h3', {}, 'Use cases'),
+        h('div', { class: 'counts' },
+          h('span', {}, h('b', {}, String(S.useCases.length)), 'total'),
+          h('span', {}, h('b', {}, String(counts.new)), 'new'),
+          h('span', {}, h('b', {}, String(counts.modified)), 'modified'),
+          h('span', {}, h('b', {}, String(counts.removed)), 'removed'))),
+      h('div', { class: 'card' },
+        h('h3', {}, 'Pending proposal'),
+        h('div', {}, S.proposal.title),
+        h('div', { class: 'sub', style: { margin: '4px 0 8px' } }, `${S.proposal.author} · ${S.proposal.createdAt}`),
+        h('button', { class: 'btn sm primary', onclick: DD.openProposal }, 'Review impact')),
+      h('div', { class: 'card' },
+        h('h3', {}, 'Recent activity'),
+        h('ul', { class: 'activity' },
+          h('li', {}, 'Priya Nair asked the agent for a concurrency scenario on Book appointment'),
+          h('li', {}, 'Tomasz Lis edited Rules on Hold slot during payment'),
+          h('li', {}, 'Scanner reported a newer scan of clinic-platform'))),
+      h('div', { class: 'card' },
+        h('h3', {}, 'Hints'),
+        h('ul', { class: 'activity' }, S.doc.hints.map((x) => h('li', {}, x.text)))),
+      h('div', { class: 'hint', style: { padding: '2px 0' } },
+        'Select a use case or an actor in the catalogue or on the map to open it here.'));
+  }
+
+  function actorDoc(a) {
+    const related = S.useCases.filter((u) => u.actors.includes(a.id));
+    const host = h('div', { class: 'doc-panel' },
+      h('div', { class: 'doc-head' },
+        h('div', { class: 'title-row' },
+          h('h2', {}, a.name),
+          h('span', { class: 'kind-chip' }, a.kind === 'human' ? 'human role' : 'external system'),
+          marker(a.state)),
+        h('div', { class: 'path' }, `Actor · participates in ${related.length} use cases`)),
+      h('div', { class: 'doc-body' },
+        h('section', { class: 'section' }, h('h3', {}, 'Description'), h('div', { class: 'editable' }, a.description)),
+        h('section', { class: 'section' },
+          h('h3', {}, 'Use cases'),
+          h('div', {}, related.map((u) => h('button', {
+            class: 'uc-row', onclick: () => select('useCase', u.id),
+          }, h('span', { class: 'nm' }, u.name), marker(u.state), typeBadge(u.type)))))));
+    return host;
+  }
+
+  function blockDoc(b) {
+    const users = S.useCases.filter((u) => (u.blocks || []).includes(b.id));
+    return h('div', { class: 'doc-panel' },
+      h('div', { class: 'doc-head' },
+        h('div', { class: 'title-row' }, h('h2', {}, b.name), h('span', { class: 'kind-chip' }, b.type), marker(b.state)),
+        h('div', { class: 'path' }, byId.context[b.contextId].name,
+          b.baselineDiff ? h('button', { class: 'btn sm ghost', onclick: () => DD.openBaselineDiff(b) }, 'What changed vs the codebase?') : null)),
+      h('div', { class: 'doc-body' },
+        h('section', { class: 'section' },
+          h('h3', {}, 'Used by'),
+          h('div', {}, users.map((u) => h('button', {
+            class: 'uc-row', onclick: () => select('useCase', u.id),
+          }, h('span', { class: 'nm' }, u.name), marker(u.state), typeBadge(u.type)))))));
+  }
+
+  paint();
+  onChange(paint);
+})();
+</script>
+</body>
+</html>

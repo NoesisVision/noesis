@@ -43,3 +43,6 @@ yarn-error.log*
 
 # npm pack artifacts
 *.tgz
+
+# Claude Code worktrees (local agent scratch)
+.claude/worktrees/

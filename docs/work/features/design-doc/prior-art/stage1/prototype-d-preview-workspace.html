@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype D — Preview then focused workspace</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* Prototype D owns two modes: browse (catalogue + map + preview card) and
+     a focused single-use-case workspace reached by an explicit action. */
+  .main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 336px minmax(0, 1fr); }
+  .main > * { min-width: 0; min-height: 0; }
+  .pane-catalogue { border-right: 1px solid var(--border); }
+  .stagearea { position: relative; }
+
+  .preview {
+    position: absolute; right: 18px; bottom: 18px; width: 396px; z-index: 8;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-lg); overflow: hidden;
+    display: flex; flex-direction: column; max-height: calc(100% - 36px);
+  }
+  .preview .pv-head { padding: 12px 14px 10px; border-bottom: 1px solid var(--border); }
+  .preview .pv-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .preview .pv-title h2 { margin: 0; font-size: 15.5px; }
+  .preview .pv-path { font-size: 12px; color: var(--muted-foreground); margin-top: 3px; }
+  .preview .pv-body { padding: 10px 14px; overflow: auto; font-size: 13px; }
+  .preview .pv-body .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); margin: 10px 0 3px; }
+  .preview .pv-foot { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: center; }
+  .preview .pv-foot .note { font-size: 11.5px; color: var(--muted-foreground); }
+
+  /* Focused workspace */
+  .workspace { position: absolute; inset: 0; background: var(--background); display: none; flex-direction: column; z-index: 12; }
+  .workspace.open { display: flex; }
+  .ws-bar {
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    background: var(--card); border-bottom: 1px solid var(--border);
+  }
+  .ws-bar .crumb { font-size: 12.5px; color: var(--muted-foreground); }
+  .ws-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr) 316px; }
+  .ws-grid > * { min-width: 0; min-height: 0; overflow: auto; }
+  .ws-siblings { border-right: 1px solid var(--border); background: var(--sidebar); padding: 10px 8px; }
+  .ws-siblings .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); padding: 4px 8px; }
+  .ws-doc { background: var(--card); }
+  .ws-doc .doc-body { max-width: 780px; }
+  .ws-rail { border-left: 1px solid var(--border); background: var(--sidebar); padding: 12px 14px; }
+  .ws-rail h3 { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+  .ws-rail h3:first-child { margin-top: 0; }
+  .ws-rail .mini { display: flex; flex-direction: column; gap: 5px; }
+  .ws-rail .mini button {
+    display: flex; align-items: center; gap: 7px; text-align: left;
+    border: 1px solid var(--border); background: var(--card); border-radius: 7px;
+    padding: 5px 9px; font-size: 12.5px;
+  }
+  .ws-rail .mini button[data-state="new"] { border-style: dashed; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="top"></div>
+  <div class="main">
+    <aside class="pane-catalogue" id="cat"></aside>
+    <section class="stagearea">
+      <div id="canvas" style="position:absolute;inset:0"></div>
+      <div id="preview"></div>
+      <div class="workspace" id="ws"></div>
+    </section>
+  </div>
+</div>
+
+<script src="sample-data.js"></script>
+<script src="shared.js"></script>
+<script>
+/*
+ * Prototype D — preview, then focused workspace.
+ *
+ * Selecting a use case opens a compact preview only. Deep work happens in a
+ * separate, larger workspace opened by an explicit action, so browsing never
+ * confronts a first-time reader with the whole document.
+ */
+(() => {
+  const { h, clear, S, byId, state, select, onChange, marker, typeBadge } = DD;
+
+  DD.renderTopbar(document.getElementById('top'), { protoLabel: 'Prototype D · preview then workspace' });
+  DD.renderCatalogue(document.getElementById('cat'), { onOpen: openWorkspace });
+  DD.buildCanvas(document.getElementById('canvas'), { onOpen: openWorkspace, fit: true });
+
+  const previewHost = document.getElementById('preview');
+  const ws = document.getElementById('ws');
+  let openUseCaseId = null;
+
+  function paintPreview() {
+    clear(previewHost);
+    if (openUseCaseId) return; // workspace owns the screen
+    const sel = state.selection;
+    if (!sel) return;
+
+    if (sel.kind === 'actor') {
+      const a = byId.actor[sel.id];
+      const related = S.useCases.filter((u) => u.actors.includes(a.id));
+      previewHost.appendChild(h('div', { class: 'preview' },
+        h('div', { class: 'pv-head' },
+          h('div', { class: 'pv-title' }, h('h2', {}, a.name),
+            h('span', { class: 'kind-chip' }, a.kind === 'human' ? 'human role' : 'external system'), marker(a.state)),
+          h('div', { class: 'pv-path' }, a.description)),
+        h('div', { class: 'pv-body' },
+          h('div', { class: 'lbl' }, `Use cases (${related.length})`),
+          related.map((u) => h('button', { class: 'uc-row', onclick: () => select('useCase', u.id) },
+            h('span', { class: 'nm' }, u.name), marker(u.state), typeBadge(u.type)))),
+        h('div', { class: 'pv-foot' },
+          h('button', { class: 'btn sm ghost', onclick: () => select(null, null) }, 'Clear selection'),
+          h('span', { class: 'note' }, 'Related use cases are highlighted on the map'))));
+      return;
+    }
+
+    if (sel.kind === 'block') {
+      const b = byId.block[sel.id];
+      previewHost.appendChild(h('div', { class: 'preview' },
+        h('div', { class: 'pv-head' },
+          h('div', { class: 'pv-title' }, h('h2', {}, b.name), h('span', { class: 'kind-chip' }, b.type), marker(b.state)),
+          h('div', { class: 'pv-path' }, byId.context[b.contextId].name)),
+        h('div', { class: 'pv-body' },
+          h('div', { class: 'lbl' }, 'Used by'),
+          S.useCases.filter((u) => (u.blocks || []).includes(b.id)).map((u) =>
+            h('button', { class: 'uc-row', onclick: () => select('useCase', u.id) },
+              h('span', { class: 'nm' }, u.name), marker(u.state), typeBadge(u.type)))),
+        h('div', { class: 'pv-foot' }, h('button', { class: 'btn sm ghost', onclick: () => select(null, null) }, 'Clear selection'))));
+      return;
+    }
+
+    const u = byId.useCase[sel.id];
+    const actorNames = u.actors.map((id) => byId.actor[id].name).join(', ') || '—';
+    previewHost.appendChild(h('div', { class: 'preview' },
+      h('div', { class: 'pv-head' },
+        h('div', { class: 'pv-title' }, h('h2', {}, u.name), typeBadge(u.type), marker(u.state)),
+        h('div', { class: 'pv-path' }, DD.useCaseCrumb(u))),
+      h('div', { class: 'pv-body' },
+        h('div', {}, u.summary || h('span', { style: { color: 'var(--muted-foreground)' } }, 'No summary yet.')),
+        h('div', { class: 'lbl' }, 'Actors'),
+        h('div', {}, actorNames),
+        h('div', { class: 'lbl' }, 'Acceptance scenarios'),
+        u.scenarios.length
+          ? h('div', {}, u.scenarios.map((sc) => h('div', { style: { padding: '2px 0' } }, `· ${sc.title}`)))
+          : h('div', { style: { color: 'var(--muted-foreground)' } }, 'None yet'),
+        u.state === 'modified' && u.baselineDiff
+          ? h('button', { class: 'btn sm ghost', style: { marginTop: '8px' }, onclick: () => DD.openBaselineDiff(u) }, 'What changed vs the codebase?')
+          : null),
+      h('div', { class: 'pv-foot' },
+        h('button', { class: 'btn primary sm', onclick: () => openWorkspace(u.id) }, 'Open workspace →'),
+        h('span', { class: 'note' }, 'or double-click the use case'))));
+  }
+
+  /* ------------------------------------------------------- the workspace */
+
+  function openWorkspace(id) {
+    openUseCaseId = id;
+    if (!state.selection || state.selection.id !== id) select('useCase', id);
+    paintWorkspace();
+    ws.classList.add('open');
+    paintPreview();
+  }
+  function closeWorkspace() {
+    openUseCaseId = null;
+    ws.classList.remove('open');
+    clear(ws);
+    paintPreview();
+  }
+
+  function paintWorkspace() {
+    if (!openUseCaseId) return;
+    const u = byId.useCase[openUseCaseId];
+    const siblings = DD.useCasesByService[u.serviceId] || [];
+    const i = siblings.indexOf(u);
+    clear(ws);
+
+    const docHost = h('div', { class: 'doc-panel ws-doc' });
+
+    ws.append(
+      h('div', { class: 'ws-bar' },
+        h('button', { class: 'btn sm', onclick: closeWorkspace }, '← Back to map'),
+        h('span', { class: 'crumb' }, DD.useCaseCrumb(u)),
+        h('span', { style: { flex: '1' } }),
+        h('button', { class: 'btn sm ghost', disabled: i <= 0, onclick: () => openWorkspace(siblings[i - 1].id) }, '↑ Previous'),
+        h('button', { class: 'btn sm ghost', disabled: i >= siblings.length - 1, onclick: () => openWorkspace(siblings[i + 1].id) }, '↓ Next')),
+      h('div', { class: 'ws-grid' },
+        h('div', { class: 'ws-siblings' },
+          h('div', { class: 'lbl' }, byId.service[u.serviceId].name),
+          siblings.map((s) => h('button', {
+            class: `uc-row${s.state === 'removed' ? ' removed' : ''}`,
+            'aria-current': String(s.id === u.id),
+            onclick: () => openWorkspace(s.id),
+          }, h('span', { class: 'nm' }, s.name), marker(s.state), typeBadge(s.type)))),
+        docHost,
+        rail(u)));
+
+    DD.renderUseCaseDoc(docHost, u, {});
+  }
+
+  function rail(u) {
+    const el = h('div', { class: 'ws-rail' });
+    el.appendChild(h('h3', {}, 'Actors'));
+    el.appendChild(h('div', { class: 'mini' }, u.actors.length
+      ? u.actors.map((id) => {
+        const a = byId.actor[id];
+        return h('button', { dataset: { state: a.state }, onclick: () => { closeWorkspace(); select('actor', a.id); } },
+          h('span', {}, (a.kind === 'human' ? '☻ ' : '▤ ') + a.name), marker(a.state));
+      })
+      : [h('div', { class: 'hint' }, 'No actors yet')]));
+
+    el.appendChild(h('h3', {}, 'Scenarios'));
+    el.appendChild(h('div', { class: 'mini' }, u.scenarios.length
+      ? u.scenarios.map((sc) => h('button', { onclick: () => DD.openSequence(sc, u) }, `⇉ ${sc.title}`))
+      : [h('div', { class: 'hint' }, 'No scenarios yet')]));
+
+    if (state.lens === 'technical') {
+      const blocks = DD.neighbourhoodBlocks(u);
+      el.appendChild(h('h3', {}, 'Building-block neighbourhood'));
+      el.appendChild(h('div', { class: 'mini' }, blocks.length
+        ? blocks.map((id) => {
+          const b = byId.block[id];
+          return h('button', { dataset: { state: b.state }, onclick: () => { closeWorkspace(); select('block', b.id); } },
+            h('span', {}, b.name), h('span', { class: 'kind-chip' }, b.type), marker(b.state));
+        })
+        : [h('div', { class: 'hint' }, 'None linked yet')]));
+    } else {
+      el.appendChild(h('h3', {}, 'Building blocks'));
+      el.appendChild(h('div', { class: 'hint' }, 'Hidden in the Product lens. Switch lens in the top bar to see them.'));
+    }
+
+    el.appendChild(h('h3', {}, 'Proposal'));
+    el.appendChild(h('div', { class: 'mini' },
+      h('button', { onclick: DD.openProposal }, `◆ ${S.proposal.title}`)));
+    return el;
+  }
+
+  paintPreview();
+  onChange(() => { paintPreview(); if (openUseCaseId) paintWorkspace(); });
+})();
+</script>
+</body>
+</html>

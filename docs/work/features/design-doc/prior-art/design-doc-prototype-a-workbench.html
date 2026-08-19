@@ -1,0 +1,1780 @@
+<title>Design Doc Workbench</title>
+<style>
+/* ---- Claude theme tokens (from server/frontend/src/index.css) ---- */
+:root {
+  --background: oklch(0.9818 0.0054 95.0986);
+  --foreground: oklch(0.3438 0.0269 95.7226);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.1908 0.002 106.5859);
+  --popover: oklch(1 0 0);
+  --primary: oklch(0.6171 0.1375 39.0427);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.9245 0.0138 92.9892);
+  --secondary-foreground: oklch(0.4334 0.0177 98.6048);
+  --muted: oklch(0.9341 0.0153 90.239);
+  --muted-foreground: oklch(0.6059 0.0075 97.4233);
+  --accent: oklch(0.9245 0.0138 92.9892);
+  --accent-foreground: oklch(0.2671 0.0196 98.939);
+  --border: oklch(0.8847 0.0069 97.3627);
+  --input: oklch(0.7621 0.0156 98.3528);
+  --ring: oklch(0.6171 0.1375 39.0427);
+  --sidebar: oklch(0.9663 0.008 98.8792);
+  --sidebar-border: oklch(0.9401 0.0069 97.3627);
+  --add: oklch(0.58 0.12 150);
+  --add-soft: oklch(0.94 0.05 150);
+  --mod: oklch(0.62 0.13 75);
+  --mod-soft: oklch(0.95 0.06 85);
+  --del: oklch(0.58 0.16 25);
+  --del-soft: oklch(0.94 0.045 25);
+  --canvas: oklch(0.9683 0.006 95);
+  --grid: oklch(0.9 0.006 95);
+  --radius: 0.5rem;
+  --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 8px 24px -4px hsl(0 0% 0% / 0.18);
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+::selection { background: color-mix(in oklch, var(--primary) 22%, transparent); }
+
+/* ---- inline editable fields ---- */
+.field { display: inline-flex; align-items: baseline; gap: 4px; max-width: 100%; }
+.ed {
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+  outline: none;
+  transition: background 90ms ease, box-shadow 90ms ease;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.ed:hover:not(.is-locked) { background: color-mix(in oklch, var(--primary) 7%, transparent); }
+.ed:focus {
+  background: var(--card);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 45%, transparent);
+}
+.ed.is-empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+.ed.is-locked { background: color-mix(in oklch, var(--muted) 60%, transparent); cursor: default; }
+.lock {
+  border: 0;
+  background: none;
+  padding: 1px 2px;
+  border-radius: 4px;
+  color: var(--muted-foreground);
+  opacity: 0;
+  cursor: pointer;
+  line-height: 0;
+  transition: opacity 90ms ease;
+}
+.field:hover .lock, .lock.on { opacity: 1; }
+.lock.on { color: var(--primary); }
+.lock:hover { background: var(--accent); }
+.sel {
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: inherit;
+}
+.sel:disabled { background: var(--muted); color: var(--muted-foreground); }
+
+/* ---- change-set badges ---- */
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.badge.add { color: var(--add); background: var(--add-soft); border-color: color-mix(in oklch, var(--add) 25%, transparent); }
+.badge.mod { color: var(--mod); background: var(--mod-soft); border-color: color-mix(in oklch, var(--mod) 25%, transparent); }
+.badge.del { color: var(--del); background: var(--del-soft); border-color: color-mix(in oklch, var(--del) 25%, transparent); }
+
+.mono { font-family: var(--font-mono); font-size: 12px; }
+.muted { color: var(--muted-foreground); }
+
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ---- top bar ---- */
+header.top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  flex: none;
+}
+.doc-title { font-size: 15px; font-weight: 600; }
+.top .spacer { flex: 1; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground);
+  cursor: pointer;
+}
+.pill.on { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ---- three panes ---- */
+main.split { flex: 1; display: grid; grid-template-columns: 268px minmax(0, 1fr) 520px; min-height: 0; }
+aside.nav { border-right: 1px solid var(--border); background: var(--sidebar); overflow: auto; padding: 10px 8px 40px; }
+section.doc { overflow: auto; padding: 24px 32px 80px; min-width: 0; }
+aside.graph { border-left: 1px solid var(--border); background: var(--canvas); display: flex; flex-direction: column; min-width: 0; }
+
+/* ---- nav tree ---- */
+.search { width: 100%; font: inherit; font-size: 13px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); margin-bottom: 10px; }
+.nav-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 6px; border-radius: 6px; cursor: pointer; font-size: 13px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nav-row:hover { background: var(--accent); }
+.nav-row.sel { background: color-mix(in oklch, var(--primary) 15%, transparent); font-weight: 500; }
+.nav-row .name { overflow: hidden; text-overflow: ellipsis; }
+.nav-row.lvl1 { padding-left: 14px; }
+.nav-row.lvl2 { padding-left: 26px; }
+.nav-row.lvl3 { padding-left: 38px; }
+.nav-group { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); margin: 12px 6px 4px; }
+.tw { width: 12px; text-align: center; color: var(--muted-foreground); font-size: 10px; flex: none; }
+.tag {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.03em;
+  padding: 1px 4px; border-radius: 4px; flex: none;
+}
+
+/* ---- document body ---- */
+h1.doc-h { font-size: 26px; margin: 0 0 6px; font-weight: 650; letter-spacing: -0.01em; }
+.crumbs { font-size: 12px; color: var(--muted-foreground); margin-bottom: 14px; display: flex; gap: 6px; flex-wrap: wrap; }
+.lede { font-size: 15px; line-height: 1.65; margin-bottom: 22px; max-width: 68ch; }
+h2.sec {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground);
+  margin: 26px 0 8px; display: flex; align-items: center; gap: 8px;
+}
+h2.sec::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.card {
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.card.added { border-left: 3px solid var(--add); }
+.card.modified { border-left: 3px solid var(--mod); }
+.card.removed { border-left: 3px solid var(--del); opacity: 0.6; }
+.card.removed .name { text-decoration: line-through; }
+.card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card-head .name { font-weight: 550; }
+.card-desc { color: var(--muted-foreground); margin-top: 3px; max-width: 74ch; }
+.kv { display: flex; gap: 8px; align-items: baseline; margin-top: 6px; font-size: 13px; }
+.kv .k { color: var(--muted-foreground); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; min-width: 74px; flex: none; }
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip {
+  font-family: var(--font-mono); font-size: 11px; padding: 1px 7px; border-radius: 999px;
+  background: var(--secondary); border: 1px solid var(--border);
+}
+.chip.link { cursor: pointer; }
+.chip.link:hover { border-color: var(--primary); color: var(--primary); }
+.addbtn {
+  border: 1px dashed var(--border); background: none; color: var(--muted-foreground);
+  border-radius: 6px; font-size: 12px; padding: 3px 9px; cursor: pointer;
+}
+.addbtn:hover { border-color: var(--primary); color: var(--primary); }
+table.props { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.props th {
+  text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--muted-foreground); font-weight: 500; padding: 0 8px 4px 0;
+}
+table.props td { padding: 5px 8px 5px 0; border-top: 1px solid var(--border); vertical-align: top; }
+table.props tr.removed td { opacity: 0.55; text-decoration: line-through; }
+.flagbtn { border: 1px solid var(--border); background: var(--card); border-radius: 999px; font-size: 10px; padding: 0 6px; cursor: pointer; color: var(--muted-foreground); }
+.flagbtn.on { background: var(--secondary); color: var(--foreground); border-color: var(--input); }
+.gwt { display: grid; grid-template-columns: 52px 1fr; gap: 2px 8px; margin-top: 6px; font-size: 13px; }
+.gwt .g { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); padding-top: 2px; }
+details.beh > summary { list-style: none; cursor: pointer; }
+details.beh > summary::-webkit-details-marker { display: none; }
+details.beh[open] > summary { margin-bottom: 8px; }
+.nest { border-left: 2px solid var(--border); padding-left: 12px; margin-top: 8px; }
+
+/* ---- graph pane ---- */
+.graph-head { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--card); }
+.graph-head .t { font-size: 12px; font-weight: 600; }
+.graph-scroll { flex: 1; overflow: auto; padding: 16px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--card); }
+.lg { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted-foreground); }
+.lg i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+svg .node-box { cursor: pointer; }
+svg .node-box:hover rect.bg { filter: brightness(0.97); }
+svg text { font-family: var(--font-sans); }
+svg .nlabel { font-size: 11.5px; font-weight: 550; }
+svg .ntype { font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; }
+svg .edge { fill: none; stroke: var(--border); stroke-width: 1.5; }
+svg .dep { fill: none; stroke-width: 1.2; stroke-dasharray: 4 3; opacity: 0.75; }
+svg .dep.uses { stroke: oklch(0.62 0.13 250); }
+svg .dep.implements { stroke: oklch(0.62 0.12 300); }
+svg .sel rect.bg { stroke-width: 2.5; }
+</style>
+
+<div id="app">
+  <header class="top">
+    <span class="doc-title" id="topTitle"></span>
+    <span class="badge mod" id="topDate"></span>
+    <span class="spacer"></span>
+    <button class="pill" id="tImpl"><span class="dot"></span><span>not implemented</span></button>
+    <button class="pill on" id="tDiff">change sets</button>
+    <button class="pill on" id="tDeps">dependencies</button>
+  </header>
+  <main class="split">
+    <aside class="nav" id="nav"></aside>
+    <section class="doc" id="docPane"></section>
+    <aside class="graph">
+      <div class="graph-head"><span class="t" id="graphTitle"></span><span class="spacer" style="flex:1"></span><span class="muted" style="font-size:11px" id="graphMeta"></span></div>
+      <div class="graph-scroll" id="graphScroll"></div>
+      <div class="legend" id="legend"></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+// Sample DesignDoc, shaped exactly like packages/shared-contracts/src/design-doc.ts.
+// Change sets are kept as-is (added / modified / removed) so the prototypes can
+// show what an in-review design doc looks like.
+const DOC = {
+  id: "dd-product-catalog-001",
+  name: "Product Catalog Platform",
+  name_locked: true,
+  description:
+    "Catalog, storefront resolution and pricing for a multi-region commerce platform. Products are authored once in the catalog context and resolved per storefront (region + language + channel).",
+  description_locked: false,
+  date: "2026-08-14",
+  implemented: false,
+  actors: [
+    { name: "Shopper", name_locked: true, description: "Browses a storefront, sees only regionally available products.", description_locked: false },
+    { name: "Merchandiser", name_locked: false, description: "Curates assortment and localized content per storefront.", description_locked: false },
+    { name: "Catalog Admin", name_locked: false, description: "Authors product types, characteristics and taxonomy.", description_locked: false },
+    { name: "Pricing Manager", name_locked: false, description: "Maintains price lists per market and currency.", description_locked: false },
+  ],
+  boundedContexts: {
+    removed: [],
+    modified: [],
+    added: [
+      {
+        name: "Catalog",
+        name_locked: true,
+        description: "System of record for products, product types, characteristics and taxonomy.",
+        description_locked: false,
+        qualityAttributes: {
+          added: [
+            { name: "Publication latency", name_locked: false, type: "performance", description: "A published product is visible to the storefront service within 5 s at p95.", description_locked: false },
+          ],
+          modified: [], removed: [],
+        },
+        buildingBlocks: {
+          removed: ["LegacyProductImporter"],
+          modified: [],
+          added: [
+            {
+              name: "CatalogPublicationService",
+              name_locked: false,
+              type: "application_service",
+              type_locked: false,
+              description: "Orchestrates validation and publication of a product revision.",
+              description_locked: false,
+              implements: ["Product", "ProductRepository"],
+              behaviours: {
+                removed: [], modified: [],
+                added: [
+                  {
+                    name: "PublishProduct",
+                    name_locked: false,
+                    type: "Command",
+                    type_locked: false,
+                    description: "Publishes the draft revision of a product to all storefronts that carry it.",
+                    description_locked: false,
+                    isPublic: true,
+                    actor: "Merchandiser",
+                    actor_locked: false,
+                    input: { added: ["productId: ProductId", "revision: RevisionNumber"], modified: [], removed: [] },
+                    output: { added: ["ProductPublished"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["Product", "ProductRepository", "ProductPublished"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "All required characteristics present", name_locked: false, ruleType: "Consistency", description: "Publication is rejected unless every characteristic marked required on the product type has a value.", description_locked: false },
+                        { name: "Draft revision only", name_locked: false, ruleType: "State change", description: "Only a draft revision can be published; publishing an already published revision is a no-op.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Publishing a complete draft", name_locked: false, description: "Happy path publication.", description_locked: false, given: "a product with all required characteristics filled in", given_locked: false, when: "the merchandiser publishes the product", when_locked: false, then: "the product becomes visible on every storefront in its assortment", then_locked: false },
+                        { name: "Publishing an incomplete draft", name_locked: false, description: "Guard on required characteristics.", description_locked: false, given: "a product missing the required 'size' characteristic", given_locked: false, when: "the merchandiser publishes the product", when_locked: false, then: "publication is rejected and the missing characteristics are reported", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "ArchiveProduct",
+                    name_locked: false,
+                    type: "Command",
+                    type_locked: false,
+                    description: "Takes a product out of every assortment without deleting its history.",
+                    description_locked: false,
+                    isPublic: true,
+                    actor: "Merchandiser",
+                    actor_locked: false,
+                    input: { added: ["productId: ProductId", "reason: ArchiveReason"], modified: [], removed: [] },
+                    output: { added: ["ProductArchived"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["Product", "ProductRepository"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Archiving is irreversible for a revision", name_locked: false, ruleType: "State change", description: "An archived revision can never return to published; a new revision must be created instead.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Archiving a published product", name_locked: false, description: "Removes the product from live storefronts.", description_locked: false, given: "a product published on the EU and US storefronts", given_locked: false, when: "the merchandiser archives it", when_locked: false, then: "it disappears from both storefronts and past orders keep resolving it", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+              properties: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "ProductPublished",
+              name_locked: false,
+              type: "domain_event",
+              type_locked: true,
+              description: "Emitted when a product revision becomes the live revision.",
+              description_locked: false,
+              implements: [],
+              properties: {
+                added: [
+                  { name: "productId", name_locked: false, type: "ProductId", type_locked: false, description: "Identity of the published product.", description_locked: false, nullable: false, collection: false },
+                  { name: "revision", name_locked: false, type: "RevisionNumber", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                  { name: "storefronts", name_locked: false, type: "StorefrontId", type_locked: false, description: "Storefronts the product is now visible on.", description_locked: false, nullable: false, collection: true },
+                ],
+                modified: [], removed: [],
+              },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+          ],
+        },
+        modules: {
+          removed: [], modified: [],
+          added: [
+            {
+              name: "Product Definition",
+              name_locked: false,
+              description: "Products, their types and the characteristics that describe them.",
+              description_locked: false,
+              qualityAttributes: { added: [], modified: [], removed: [] },
+              buildingBlocks: {
+                removed: [],
+                modified: [
+                  {
+                    name: "Product",
+                    name_locked: true,
+                    type: "aggregate",
+                    type_locked: true,
+                    description: "A sellable item, authored once and resolved per storefront. Owns its revisions.",
+                    description_locked: false,
+                    implements: ["ProductType"],
+                    properties: {
+                      added: [
+                        { name: "id", name_locked: true, type: "ProductId", type_locked: true, description: "Stable identity across revisions.", description_locked: false, nullable: false, collection: false },
+                        { name: "typeId", name_locked: false, type: "ProductTypeId", type_locked: false, description: "Product type that defines applicable characteristics.", description_locked: false, nullable: false, collection: false },
+                        { name: "characteristics", name_locked: false, type: "CharacteristicValue", type_locked: false, description: "Values for the characteristics of the product type.", description_locked: false, nullable: false, collection: true },
+                      ],
+                      modified: [
+                        { name: "status", name_locked: false, type: "ProductStatus", type_locked: false, description: "draft | published | archived. Was a boolean 'isPublished' before.", description_locked: false, nullable: false, collection: false },
+                      ],
+                      removed: ["isPublished"],
+                    },
+                    behaviours: {
+                      removed: [], modified: [],
+                      added: [
+                        {
+                          name: "AssignCategory",
+                          name_locked: false,
+                          type: "Command",
+                          type_locked: false,
+                          description: "Places the product in a taxonomy category.",
+                          description_locked: false,
+                          // Domain behaviour on the aggregate, not a use case: use
+                          // cases are the public behaviours of application services.
+                          isPublic: false,
+                          actor: "Catalog Admin",
+                          actor_locked: false,
+                          input: { added: ["categoryId: CategoryId"], modified: [], removed: [] },
+                          output: { added: [], modified: [], removed: [] },
+                          usedBuildingBlocks: { added: ["Category", "CategoryAssignmentService"], modified: [], removed: [] },
+                          rules: {
+                            added: [
+                              { name: "Leaf categories only", name_locked: false, ruleType: "Structure", description: "A product can only be assigned to a leaf category of the taxonomy.", description_locked: false },
+                            ],
+                            modified: [], removed: [],
+                          },
+                          scenarios: { added: [], modified: [], removed: [] },
+                          qualityAttributes: { added: [], modified: [], removed: [] },
+                        },
+                      ],
+                    },
+                    rules: {
+                      added: [
+                        { name: "Characteristics match the product type", name_locked: false, ruleType: "Consistency", description: "Every characteristic value must reference a characteristic declared on the product's type.", description_locked: false },
+                      ],
+                      modified: [
+                        { name: "Revision numbering", name_locked: false, ruleType: "Computation", description: "Revision numbers are monotonic per product and never reused, even after an archive.", description_locked: false },
+                      ],
+                      removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Characteristic not on type", name_locked: false, description: "Guard on type conformance.", description_locked: false, given: "a product of type 'laptop'", given_locked: false, when: "a 'sleeve length' characteristic value is added", when_locked: false, then: "the change is rejected as not applicable to the type", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+                added: [
+                  {
+                    name: "ProductType",
+                    name_locked: false, type: "aggregate", type_locked: false,
+                    description: "A kind of product (garment, laptop) declaring which characteristics apply.",
+                    description_locked: false,
+                    implements: [],
+                    properties: {
+                      added: [
+                        { name: "id", name_locked: false, type: "ProductTypeId", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                        { name: "characteristics", name_locked: false, type: "Characteristic", type_locked: false, description: "Declared characteristics, each flagged required or optional.", description_locked: false, nullable: false, collection: true },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Characteristic names unique per type", name_locked: false, ruleType: "Structure", description: "Two characteristics on one product type cannot share a name.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "Characteristic",
+                    name_locked: false, type: "value_object", type_locked: false,
+                    description: "A typed attribute of a product type, e.g. size or memory.",
+                    description_locked: false,
+                    implements: [],
+                    properties: {
+                      added: [
+                        { name: "name", name_locked: false, type: "string", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                        { name: "dataType", name_locked: false, type: "CharacteristicDataType", type_locked: false, description: "text | number | enum | boolean", description_locked: false, nullable: false, collection: false },
+                        { name: "required", name_locked: false, type: "boolean", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "CharacteristicValue",
+                    name_locked: false, type: "value_object", type_locked: false,
+                    description: "A characteristic paired with a concrete value on a product.",
+                    description_locked: false,
+                    implements: ["Characteristic"],
+                    properties: { added: [], modified: [], removed: [] },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "ProductRepository",
+                    name_locked: false, type: "repository", type_locked: false,
+                    description: "Loads and stores product aggregates by identity.",
+                    description_locked: false,
+                    implements: ["Product"],
+                    properties: { added: [], modified: [], removed: [] },
+                    behaviours: {
+                      removed: [], modified: [],
+                      added: [
+                        {
+                          name: "FindPublishedByStorefront",
+                          name_locked: false, type: "Query", type_locked: false,
+                          description: "Returns published products carried by a storefront.",
+                          description_locked: false,
+                          isPublic: false, actor: null, actor_locked: false,
+                          input: { added: ["storefrontId: StorefrontId"], modified: [], removed: [] },
+                          output: { added: ["Product"], modified: [], removed: [] },
+                          usedBuildingBlocks: { added: ["Product"], modified: [], removed: [] },
+                          rules: { added: [], modified: [], removed: [] },
+                          scenarios: { added: [], modified: [], removed: [] },
+                          qualityAttributes: {
+                            added: [
+                              { name: "Query latency", name_locked: false, type: "performance", description: "p95 under 80 ms for an assortment of up to 50k products.", description_locked: false },
+                            ],
+                            modified: [], removed: [],
+                          },
+                        },
+                      ],
+                    },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "ProductFactory",
+                    name_locked: false, type: "factory", type_locked: false,
+                    description: "Builds a valid draft product for a given product type.",
+                    description_locked: false,
+                    implements: ["Product", "ProductType"],
+                    properties: { added: [], modified: [], removed: [] },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+            },
+            {
+              name: "Taxonomy",
+              name_locked: false,
+              description: "The category tree products are placed into.",
+              description_locked: false,
+              qualityAttributes: { added: [], modified: [], removed: [] },
+              buildingBlocks: {
+                removed: [], modified: [],
+                added: [
+                  {
+                    name: "Taxonomy",
+                    name_locked: false, type: "aggregate", type_locked: false,
+                    description: "The whole category tree, versioned as one unit.",
+                    description_locked: false,
+                    implements: [],
+                    properties: {
+                      added: [
+                        { name: "root", name_locked: false, type: "Category", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "No cycles", name_locked: false, ruleType: "Structure", description: "A category cannot be its own ancestor.", description_locked: false },
+                        { name: "Max depth 6", name_locked: false, ruleType: "Structure", description: "The taxonomy is at most six levels deep.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "Category",
+                    name_locked: false, type: "entity", type_locked: false,
+                    description: "A node of the taxonomy, with a parent and ordered children.",
+                    description_locked: false,
+                    implements: [],
+                    properties: {
+                      added: [
+                        { name: "id", name_locked: false, type: "CategoryId", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                        { name: "parentId", name_locked: false, type: "CategoryId", type_locked: false, description: "Null for the root category.", description_locked: false, nullable: true, collection: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "CategoryAssignmentService",
+                    name_locked: false, type: "domain_service", type_locked: false,
+                    description: "Decides whether a product may be placed in a category.",
+                    description_locked: false,
+                    implements: ["Taxonomy", "Category"],
+                    properties: { added: [], modified: [], removed: [] },
+                    behaviours: { added: [], modified: [], removed: [] },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "TaxonomyAdministrationService",
+                    name_locked: false, type: "application_service", type_locked: false,
+                    description: "Entry point for taxonomy maintenance by catalog admins.",
+                    description_locked: false,
+                    implements: ["Taxonomy", "CategoryAssignmentService"],
+                    properties: { added: [], modified: [], removed: [] },
+                    behaviours: {
+                      removed: [], modified: [],
+                      added: [
+                        {
+                          name: "ReorganiseTaxonomy",
+                          name_locked: false, type: "Command", type_locked: false,
+                          description: "Moves a category, with everything under it, to a new parent.",
+                          description_locked: false,
+                          isPublic: true,
+                          actor: "Catalog Admin",
+                          actor_locked: false,
+                          input: { added: ["categoryId: CategoryId", "newParentId: CategoryId"], modified: [], removed: [] },
+                          output: { added: ["TaxonomyReorganised"], modified: [], removed: [] },
+                          usedBuildingBlocks: { added: ["Taxonomy", "Category", "CategoryAssignmentService"], modified: [], removed: [] },
+                          rules: {
+                            added: [
+                              { name: "Move keeps the tree valid", name_locked: false, ruleType: "Structure", description: "A category cannot be moved under one of its own descendants, and the move must keep depth within six levels.", description_locked: false },
+                              { name: "Products follow their category", name_locked: false, ruleType: "Consistency", description: "Products assigned to a moved category stay assigned to it at its new position.", description_locked: false },
+                            ],
+                            modified: [], removed: [],
+                          },
+                          scenarios: {
+                            added: [
+                              { name: "Moving a subtree", name_locked: false, description: "Happy path reorganisation.", description_locked: false, given: "the category 'Laptops' with three child categories", given_locked: false, when: "the catalog admin moves 'Laptops' under 'Computers'", when_locked: false, then: "all three children move with it and product assignments are unchanged", then_locked: false },
+                              { name: "Moving a category under its own child", name_locked: false, description: "Cycle guard.", description_locked: false, given: "the category 'Computers' with child 'Laptops'", given_locked: false, when: "the catalog admin moves 'Computers' under 'Laptops'", when_locked: false, then: "the move is rejected because it would create a cycle", then_locked: false },
+                            ],
+                            modified: [], removed: [],
+                          },
+                          qualityAttributes: { added: [], modified: [], removed: [] },
+                        },
+                      ],
+                    },
+                    rules: { added: [], modified: [], removed: [] },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        name: "Storefront",
+        name_locked: false,
+        description: "Shopper-facing resolution: assortment, localized content, regional availability.",
+        description_locked: false,
+        qualityAttributes: {
+          added: [
+            { name: "Browse availability", name_locked: false, type: "availability", description: "Storefront browse stays served from cache when the catalog service is down.", description_locked: false },
+            { name: "Content isolation", name_locked: false, type: "security", description: "A storefront never exposes products outside its assortment, even by direct id.", description_locked: false },
+          ],
+          modified: [], removed: [],
+        },
+        buildingBlocks: {
+          removed: [], modified: [],
+          added: [
+            {
+              name: "Storefront",
+              name_locked: false, type: "aggregate", type_locked: false,
+              description: "A configured sales context: region + language + channel.",
+              description_locked: false,
+              implements: [],
+              properties: {
+                added: [
+                  { name: "id", name_locked: false, type: "StorefrontId", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                  { name: "region", name_locked: false, type: "RegionCode", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                  { name: "locale", name_locked: false, type: "Locale", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                ],
+                modified: [], removed: [],
+              },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "StorefrontBrowsingService",
+              name_locked: false, type: "application_service", type_locked: false,
+              description: "Shopper-facing entry point for browsing and comparing a storefront's assortment.",
+              description_locked: false,
+              implements: ["Storefront", "AssortmentResolver"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: {
+                removed: [], modified: [],
+                added: [
+                  {
+                    name: "BrowseAssortment",
+                    name_locked: false, type: "Query", type_locked: false,
+                    description: "Returns the products a shopper may see on this storefront.",
+                    description_locked: false,
+                    isPublic: true, actor: "Shopper", actor_locked: false,
+                    input: { added: ["storefrontId: StorefrontId", "page: PageRequest"], modified: [], removed: [] },
+                    output: { added: ["Assortment"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["Assortment", "AssortmentResolver", "CatalogFeedClient"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Region filter", name_locked: false, ruleType: "Consistency", description: "Only products whose availability includes the storefront region are returned.", description_locked: false },
+                        { name: "Published revisions only", name_locked: false, ruleType: "State change", description: "Draft and archived revisions are never returned to a shopper.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Product not available in region", name_locked: false, description: "Regional filtering.", description_locked: false, given: "a product available only in the EU region", given_locked: false, when: "a shopper browses the US storefront", when_locked: false, then: "the product is not in the returned assortment", then_locked: false },
+                        { name: "Catalog service unreachable", name_locked: false, description: "Browse degrades to the local projection.", description_locked: false, given: "the catalog service is down", given_locked: false, when: "a shopper browses the storefront", when_locked: false, then: "the last known assortment is served from the local projection", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: {
+                      added: [
+                        { name: "Browse latency", name_locked: false, type: "performance", description: "p95 under 300 ms for the first assortment page.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                  },
+                  {
+                    name: "ViewProductDetail",
+                    name_locked: false, type: "Query", type_locked: false,
+                    description: "Returns one product with localized content for the storefront's locale.",
+                    description_locked: false,
+                    isPublic: true, actor: "Shopper", actor_locked: false,
+                    input: { added: ["storefrontId: StorefrontId", "productId: ProductId"], modified: [], removed: [] },
+                    output: { added: ["LocalizedContent"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["LocalizedContent", "AssortmentResolver"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Assortment guard", name_locked: false, ruleType: "Consistency", description: "A product outside the storefront's assortment is not resolvable, even by direct id.", description_locked: false },
+                        { name: "Locale fallback", name_locked: false, ruleType: "Computation", description: "Missing localized content falls back to the storefront's default locale, never to raw keys.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Direct id outside the assortment", name_locked: false, description: "Content isolation.", description_locked: false, given: "a product not carried by the US storefront", given_locked: false, when: "a shopper opens its detail page by id on the US storefront", when_locked: false, then: "the storefront answers not found", then_locked: false },
+                        { name: "Missing translation", name_locked: false, description: "Locale fallback.", description_locked: false, given: "a product with no fr-FR description", given_locked: false, when: "a shopper browses the French storefront", when_locked: false, then: "the default-locale description is shown", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "Assortment",
+              name_locked: false, type: "entity", type_locked: false,
+              description: "The set of products made available on a storefront.",
+              description_locked: false,
+              implements: ["Storefront"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "LocalizedContent",
+              name_locked: false, type: "value_object", type_locked: false,
+              description: "Title, description and media for one locale.",
+              description_locked: false,
+              implements: [],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "AssortmentResolver",
+              name_locked: false, type: "domain_service", type_locked: false,
+              description: "Resolves the visible assortment from catalog data plus storefront config.",
+              description_locked: false,
+              implements: ["Assortment", "Storefront"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "CatalogFeedClient",
+              name_locked: false, type: "external_integration", type_locked: false,
+              description: "Consumes the catalog publication feed and keeps a local projection.",
+              description_locked: false,
+              implements: ["ProductPublished"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+          ],
+        },
+        modules: { added: [], modified: [], removed: [] },
+      },
+      {
+        name: "Pricing",
+        name_locked: false,
+        description: "Storefront / market / currency scoped prices.",
+        description_locked: false,
+        qualityAttributes: { added: [], modified: [], removed: [] },
+        buildingBlocks: {
+          removed: [], modified: [],
+          added: [
+            {
+              name: "PriceList",
+              name_locked: false, type: "aggregate", type_locked: false,
+              description: "Prices for one market and currency, valid over a period.",
+              description_locked: false,
+              implements: [],
+              properties: {
+                added: [
+                  { name: "currency", name_locked: false, type: "CurrencyCode", type_locked: false, description: null, description_locked: false, nullable: false, collection: false },
+                  { name: "entries", name_locked: false, type: "Price", type_locked: false, description: null, description_locked: false, nullable: false, collection: true },
+                ],
+                modified: [], removed: [],
+              },
+              behaviours: {
+                removed: [], modified: [],
+                added: [
+                  {
+                    name: "ApplyPriceEntry",
+                    name_locked: false, type: "Command", type_locked: false,
+                    description: "Writes one price entry into the list, enforcing the list's invariants.",
+                    description_locked: false,
+                    isPublic: false, actor: null, actor_locked: false,
+                    input: { added: ["productId: ProductId", "amount: Money"], modified: [], removed: [] },
+                    output: { added: ["PriceChanged"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["Price", "Money", "PriceChanged"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Currency matches list", name_locked: false, ruleType: "Consistency", description: "The amount currency must equal the price list currency.", description_locked: false },
+                        { name: "Non-negative amount", name_locked: false, ruleType: "Structure", description: "A price amount is never negative.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: { added: [], modified: [], removed: [] },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "PriceAdministrationService",
+              name_locked: false, type: "application_service", type_locked: false,
+              description: "Entry point for pricing managers maintaining market prices.",
+              description_locked: false,
+              implements: ["PriceList", "PriceRepository"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: {
+                removed: [], modified: [],
+                added: [
+                  {
+                    name: "SetPrice",
+                    name_locked: false, type: "Command", type_locked: false,
+                    description: "Sets the price of a product for one market and currency.",
+                    description_locked: false,
+                    isPublic: true, actor: "Pricing Manager", actor_locked: false,
+                    input: { added: ["priceListId: PriceListId", "productId: ProductId", "amount: Money"], modified: [], removed: [] },
+                    output: { added: ["PriceChanged"], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["PriceList", "PriceRepository", "Money", "PriceChanged"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Known product only", name_locked: false, ruleType: "Consistency", description: "A price can only be set for a product that exists in the catalog.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Setting a price in the wrong currency", name_locked: false, description: "Currency guard surfaces to the caller.", description_locked: false, given: "a EUR price list", given_locked: false, when: "the pricing manager sets a price in USD", when_locked: false, then: "the command is rejected and no PriceChanged is emitted", then_locked: false },
+                        { name: "Repricing a product", name_locked: false, description: "Happy path.", description_locked: false, given: "a product priced at 49.00 EUR", given_locked: false, when: "the pricing manager sets 39.00 EUR", when_locked: false, then: "the new amount applies and PriceChanged is emitted once", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                  {
+                    name: "SchedulePriceChange",
+                    name_locked: false, type: "Command", type_locked: false,
+                    description: "Queues a price change to take effect at a future date.",
+                    description_locked: false,
+                    isPublic: true, actor: "Pricing Manager", actor_locked: false,
+                    input: { added: ["priceListId: PriceListId", "productId: ProductId", "amount: Money", "effectiveFrom: Date"], modified: [], removed: [] },
+                    output: { added: [], modified: [], removed: [] },
+                    usedBuildingBlocks: { added: ["PriceList", "PriceRepository"], modified: [], removed: [] },
+                    rules: {
+                      added: [
+                        { name: "Future dates only", name_locked: false, ruleType: "State change", description: "A scheduled change must start after the current time; past dates are rejected.", description_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    scenarios: {
+                      added: [
+                        { name: "Scheduling a sale", name_locked: false, description: "Deferred activation.", description_locked: false, given: "a product priced at 49.00 EUR", given_locked: false, when: "the pricing manager schedules 29.00 EUR from next Monday", when_locked: false, then: "the price stays 49.00 EUR until Monday and switches automatically after", then_locked: false },
+                      ],
+                      modified: [], removed: [],
+                    },
+                    qualityAttributes: { added: [], modified: [], removed: [] },
+                  },
+                ],
+              },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "Price",
+              name_locked: false, type: "value_object", type_locked: false,
+              description: "A product id paired with an amount.",
+              description_locked: false,
+              implements: ["Money"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "Money",
+              name_locked: false, type: "value_object", type_locked: false,
+              description: "Amount plus currency, no floating point.",
+              description_locked: false,
+              implements: [],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "PriceChanged",
+              name_locked: false, type: "domain_event", type_locked: false,
+              description: "Emitted when an entry of a price list changes.",
+              description_locked: false,
+              implements: [],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+            {
+              name: "PriceRepository",
+              name_locked: false, type: "repository", type_locked: false,
+              description: "Loads price lists by market and currency.",
+              description_locked: false,
+              implements: ["PriceList"],
+              properties: { added: [], modified: [], removed: [] },
+              behaviours: { added: [], modified: [], removed: [] },
+              rules: { added: [], modified: [], removed: [] },
+              scenarios: { added: [], modified: [], removed: [] },
+              qualityAttributes: { added: [], modified: [], removed: [] },
+            },
+          ],
+        },
+        modules: { added: [], modified: [], removed: [] },
+      },
+    ],
+  },
+};
+
+// ---- schema enums, kept in sync with design-doc.ts ----
+const BLOCK_TYPES = [
+  "aggregate", "entity", "value_object", "domain_event", "domain_command",
+  "domain_query", "domain_service", "application_service", "repository",
+  "factory", "external_integration",
+];
+const BEHAVIOUR_TYPES = ["Command", "Event", "Query"];
+const RULE_TYPES = ["Consistency", "Structure", "Computation", "State change"];
+const QA_TYPES = ["performance", "availability", "security", "other"];
+
+// ---- change-set helpers ----------------------------------------------------
+// A change set is { added, modified, removed }. Everywhere the prototypes need a
+// plain list, items get a _change tag and removed names become ghost entries.
+const EMPTY_CS = { added: [], modified: [], removed: [] };
+function items(cs) {
+  const c = cs || EMPTY_CS;
+  // A StringChangeSet holds bare strings (behaviour input / output / used
+  // blocks); everything else holds objects. Both come out as {name, ...}.
+  const tag = (i, change) =>
+    typeof i === "string" ? { name: i, _change: change } : { ...i, _change: change };
+  return [
+    ...(c.added || []).map((i) => tag(i, "added")),
+    ...(c.modified || []).map((i) => tag(i, "modified")),
+    ...(c.removed || []).map((name) => ({ name, _change: "removed" })),
+  ];
+}
+function live(cs) {
+  return items(cs).filter((i) => i._change !== "removed");
+}
+function csCount(cs) {
+  const c = cs || EMPTY_CS;
+  return (c.added || []).length + (c.modified || []).length + (c.removed || []).length;
+}
+
+// ---- flattened index over the doc -----------------------------------------
+// Every building block, with the context/module it lives in. Blocks declared on
+// a context directly have module === null.
+function indexBlocks(doc) {
+  const out = [];
+  for (const ctx of live(doc.boundedContexts)) {
+    for (const b of items(ctx.buildingBlocks)) {
+      out.push({ block: b, context: ctx.name, module: null });
+    }
+    for (const mod of live(ctx.modules)) {
+      for (const b of items(mod.buildingBlocks)) {
+        out.push({ block: b, context: ctx.name, module: mod.name });
+      }
+    }
+  }
+  return out;
+}
+
+// Use cases. A use case is a public behaviour of an application service — the
+// system's entry points. Public behaviours on aggregates or domain services are
+// still behaviours, but they are not use cases.
+function useCases(doc) {
+  const out = [];
+  for (const { block, context, module } of indexBlocks(doc)) {
+    if (block.type !== "application_service" || block._change === "removed") continue;
+    for (const beh of live(block.behaviours)) {
+      if (beh.isPublic) out.push({ behaviour: beh, block, context, module });
+    }
+  }
+  return out;
+}
+function useCaseCount(block) {
+  if (!block || block.type !== "application_service") return 0;
+  return live(block.behaviours).filter((b) => b.isPublic).length;
+}
+// Use cases grouped by actor, unattributed ones last.
+function useCasesByActor(doc) {
+  const groups = new Map();
+  for (const uc of useCases(doc)) {
+    const key = uc.behaviour.actor || "Unassigned";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(uc);
+  }
+  const known = doc.actors.map((a) => a.name).filter((n) => groups.has(n));
+  const rest = [...groups.keys()].filter((k) => !known.includes(k));
+  return [...known, ...rest].map((actor) => ({ actor, cases: groups.get(actor) }));
+}
+
+// Edges between building blocks: `implements` plus every behaviour's
+// usedBuildingBlocks. Only edges whose both ends exist in the doc are kept.
+function blockEdges(doc) {
+  const index = indexBlocks(doc);
+  const known = new Set(index.map((e) => e.block.name));
+  const edges = [];
+  const seen = new Set();
+  const push = (from, to, kind) => {
+    if (!known.has(to) || from === to) return;
+    const key = `${from}|${to}|${kind}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    edges.push({ from, to, kind });
+  };
+  for (const { block } of index) {
+    for (const target of block.implements || []) push(block.name, target, "implements");
+    for (const beh of live(block.behaviours)) {
+      for (const target of live(beh.usedBuildingBlocks).map((i) => i.name || i)) {
+        push(block.name, target, "uses");
+      }
+    }
+  }
+  return edges;
+}
+
+const TYPE_LABEL = {
+  aggregate: "Aggregate", entity: "Entity", value_object: "Value object",
+  domain_event: "Domain event", domain_command: "Domain command",
+  domain_query: "Domain query", domain_service: "Domain service",
+  application_service: "Application service", repository: "Repository",
+  factory: "Factory", external_integration: "External integration",
+};
+const TYPE_SHORT = {
+  aggregate: "AGG", entity: "ENT", value_object: "VO", domain_event: "EVT",
+  domain_command: "CMD", domain_query: "QRY", domain_service: "DS",
+  application_service: "AS", repository: "REPO", factory: "FAC",
+  external_integration: "EXT",
+};
+// Hue per block type. Kept as an oklch triple so light and dark themes can
+// derive fill / border / text from the same anchor.
+const TYPE_HUE = {
+  aggregate: 39, entity: 150, value_object: 250, domain_event: 300,
+  domain_command: 20, domain_query: 200, domain_service: 100,
+  application_service: 70, repository: 330, factory: 175, external_integration: 15,
+};
+function typeColor(type, kind) {
+  const h = TYPE_HUE[type] ?? 90;
+  if (kind === "fill") return `oklch(0.94 0.045 ${h})`;
+  if (kind === "stroke") return `oklch(0.66 0.13 ${h})`;
+  return `oklch(0.42 0.11 ${h})`;
+}
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+}
+
+</script>
+<script>
+// ---- live-object registry --------------------------------------------------
+// Editors bind to the real objects inside DOC, so an edit mutates the document
+// in place and any other view re-reads the new value on its next render.
+const REFS = [];
+function ref(obj) {
+  const i = REFS.indexOf(obj);
+  return i === -1 ? REFS.push(obj) - 1 : i;
+}
+function deref(id) {
+  return REFS[Number(id)];
+}
+
+// ---- editable primitives ---------------------------------------------------
+// `editable` renders one field of one object. `lock` mirrors the *_locked flags
+// from the schema: a locked field is protected from further AI rewrites, so it
+// renders read-only with the lock lit.
+function editable(obj, key, opts = {}) {
+  const lockKey = opts.lockKey === null ? null : opts.lockKey || `${key}_locked`;
+  const locked = lockKey ? !!obj[lockKey] : false;
+  const value = obj[key];
+  const empty = value === null || value === undefined || value === "";
+  const cls = ["ed", opts.class || "", empty ? "is-empty" : "", locked ? "is-locked" : ""].join(" ");
+  const text = empty ? "" : esc(value);
+  const lockBtn = lockKey
+    ? `<button class="lock${locked ? " on" : ""}" data-lock="${ref(obj)}" data-key="${lockKey}" title="${locked ? "Locked — AI will not rewrite this" : "Unlocked — AI may rewrite this"}">${locked ? LOCK_ON : LOCK_OFF}</button>`
+    : "";
+  return `<span class="field"><span class="${cls}" contenteditable="${locked ? "false" : "plaintext-only"}" data-ref="${ref(obj)}" data-key="${key}" data-placeholder="${esc(opts.placeholder || "empty")}">${text}</span>${lockBtn}</span>`;
+}
+
+function enumSelect(obj, key, options, opts = {}) {
+  const lockKey = opts.lockKey === null ? null : opts.lockKey || `${key}_locked`;
+  const locked = lockKey ? !!obj[lockKey] : false;
+  const current = obj[key];
+  const opts_ = [`<option value=""${current ? "" : " selected"}>—</option>`]
+    .concat(options.map((o) => `<option value="${esc(o)}"${o === current ? " selected" : ""}>${esc(opts.label ? opts.label(o) : o)}</option>`))
+    .join("");
+  const lockBtn = lockKey
+    ? `<button class="lock${locked ? " on" : ""}" data-lock="${ref(obj)}" data-key="${lockKey}">${locked ? LOCK_ON : LOCK_OFF}</button>`
+    : "";
+  return `<span class="field"><select class="sel" data-ref="${ref(obj)}" data-key="${key}"${locked ? " disabled" : ""}>${opts_}</select>${lockBtn}</span>`;
+}
+
+const LOCK_ON = `<svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="currentColor" d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/></svg>`;
+const LOCK_OFF = `<svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="currentColor" d="M8 1a3.5 3.5 0 0 1 3.5 3.5.75.75 0 0 1-1.5 0 2 2 0 1 0-4 0V6H12a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h.5V4.5A3.5 3.5 0 0 1 8 1Z"/></svg>`;
+
+// Wires every editor inside `root`. `onChange(kind)` fires after a value lands,
+// so a view can re-render the parts that depend on it (graph labels, counters).
+function bindEditors(root, onChange) {
+  root.addEventListener("input", (e) => {
+    const el = e.target.closest("[data-ref][contenteditable]");
+    if (!el) return;
+    const obj = deref(el.dataset.ref);
+    const text = el.textContent.trim();
+    obj[el.dataset.key] = text === "" ? null : text;
+    el.classList.toggle("is-empty", text === "");
+    onChange && onChange("text", obj, el.dataset.key);
+  });
+  root.addEventListener("change", (e) => {
+    const el = e.target.closest("select[data-ref]");
+    if (!el) return;
+    const obj = deref(el.dataset.ref);
+    obj[el.dataset.key] = el.value === "" ? null : el.value;
+    onChange && onChange("select", obj, el.dataset.key);
+  });
+  root.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-lock]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const obj = deref(btn.dataset.lock);
+    obj[btn.dataset.key] = !obj[btn.dataset.key];
+    onChange && onChange("lock", obj, btn.dataset.key);
+  });
+  // Enter commits instead of inserting a newline in single-line fields.
+  root.addEventListener("keydown", (e) => {
+    const el = e.target.closest('[data-ref][contenteditable]:not(.multiline)');
+    if (el && e.key === "Enter") {
+      e.preventDefault();
+      el.blur();
+    }
+  });
+}
+
+// ---- tidy left-to-right tree layout ---------------------------------------
+// Nodes are {id, label, children}. Leaves take the next free row, a parent is
+// centred on its children. Enough for a design doc's shallow containment tree.
+function layoutTree(root, opts = {}) {
+  const nodeW = opts.nodeW || 168;
+  const nodeH = opts.nodeH || 40;
+  const gapX = opts.gapX || 64;
+  const gapY = opts.gapY || 14;
+  const rowH = nodeH + gapY;
+  const placed = [];
+  let row = 0;
+  function walk(node, depth) {
+    const kids = node.children || [];
+    let y;
+    if (kids.length === 0) {
+      y = row * rowH;
+      row += 1;
+    } else {
+      const ys = kids.map((k) => walk(k, depth + 1));
+      y = (ys[0] + ys[ys.length - 1]) / 2;
+    }
+    placed.push({ node, depth, x: depth * (nodeW + gapX), y, w: nodeW, h: nodeH });
+    return y;
+  }
+  walk(root, 0);
+  const maxDepth = Math.max(...placed.map((p) => p.depth));
+  return {
+    nodes: placed,
+    width: (maxDepth + 1) * nodeW + maxDepth * gapX,
+    height: Math.max(row, 1) * rowH,
+    nodeW, nodeH,
+  };
+}
+
+// Bezier from the right edge of `a` to the left edge of `b`.
+function elbow(a, b) {
+  const x1 = a.x + a.w;
+  const y1 = a.y + a.h / 2;
+  const x2 = b.x;
+  const y2 = b.y + b.h / 2;
+  const mx = (x1 + x2) / 2;
+  return `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+}
+
+// Arc between two arbitrary boxes, used for dependency edges that skip levels.
+function arc(a, b) {
+  const ax = a.x + a.w / 2;
+  const ay = a.y + a.h / 2;
+  const bx = b.x + b.w / 2;
+  const by = b.y + b.h / 2;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const bow = Math.min(120, Math.hypot(dx, dy) * 0.35);
+  const mx = (ax + bx) / 2 - (dy / (Math.hypot(dx, dy) || 1)) * bow;
+  const my = (ay + by) / 2 + (dx / (Math.hypot(dx, dy) || 1)) * bow;
+  return `M ${ax} ${ay} Q ${mx} ${my} ${bx} ${by}`;
+}
+
+function plural(n, word) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+function changeBadge(change) {
+  if (change === "added") return `<span class="badge add">added</span>`;
+  if (change === "modified") return `<span class="badge mod">changed</span>`;
+  if (change === "removed") return `<span class="badge del">removed</span>`;
+  return "";
+}
+
+</script>
+<script>
+// ---------------------------------------------------------------------------
+// Prototype A — split workbench.
+// Left: containment tree. Middle: the editable document for whatever is
+// selected. Right: a graph of the selected context's building blocks.
+// ---------------------------------------------------------------------------
+
+let sel = { kind: "block", ctx: "Catalog", mod: "Product Definition", block: "Product" };
+let showDiff = true;
+let showDeps = true;
+let filter = "";
+
+const $ = (id) => document.getElementById(id);
+
+// ---- lookups ----
+const ctxByName = (n) => live(DOC.boundedContexts).find((c) => c.name === n);
+const modByName = (c, n) => (c ? live(c.modules).find((m) => m.name === n) : null);
+function blockByName(name) {
+  return indexBlocks(DOC).find((e) => e.block.name === name);
+}
+function currentCtx() { return ctxByName(sel.ctx); }
+
+function selectBlock(name) {
+  const e = blockByName(name);
+  if (!e) return;
+  sel = { kind: "block", ctx: e.context, mod: e.module, block: name };
+  render();
+}
+
+// ---- nav -------------------------------------------------------------------
+function typeTag(type) {
+  if (!type) return "";
+  return `<span class="tag" style="background:${typeColor(type, "fill")};color:${typeColor(type, "text")}">${TYPE_SHORT[type] || "?"}</span>`;
+}
+function matches(name) {
+  return !filter || name.toLowerCase().includes(filter);
+}
+function navRow(label, level, isSel, extra, onclickAttr, change) {
+  const gone = change === "removed";
+  return `<div class="nav-row lvl${level}${isSel ? " sel" : ""}" ${onclickAttr}${gone ? ' style="opacity:.5"' : ""}><span class="name"${gone ? ' style="text-decoration:line-through"' : ""}>${esc(label)}</span><span style="flex:1"></span>${extra || ""}</div>`;
+}
+function renderNav() {
+  let h = `<input class="search" id="search" placeholder="Filter building blocks…" value="${esc(filter)}">`;
+  h += navRow(DOC.name, 0, sel.kind === "doc", `<span class="muted" style="font-size:11px">doc</span>`, `data-sel='{"kind":"doc"}'`);
+  // Use cases first: they are the entry points into the system, so they are the
+  // fastest way into the behaviours that carry the scenarios.
+  const ucs = useCases(DOC);
+  h += `<div class="nav-group">Use cases <span style="text-transform:none">(${ucs.length})</span></div>`;
+  h += navRow("All use cases", 1, sel.kind === "usecases", "", `data-sel='{"kind":"usecases"}'`);
+  for (const uc of ucs) {
+    if (!matches(uc.behaviour.name) && !matches(uc.behaviour.actor || "")) continue;
+    h += navRow(uc.behaviour.name, 2, sel.kind === "usecase" && sel.uc === uc.behaviour.name,
+      `<span class="muted" style="font-size:10px">${esc(uc.behaviour.actor || "—")}</span>`,
+      `data-sel='${JSON.stringify({ kind: "usecase", ctx: uc.context, mod: uc.module, block: uc.block.name, uc: uc.behaviour.name })}'`);
+  }
+  h += `<div class="nav-group">Bounded contexts</div>`;
+  for (const ctx of live(DOC.boundedContexts)) {
+    const ctxSel = sel.ctx === ctx.name && sel.kind === "context";
+    h += navRow(ctx.name, 1, ctxSel, showDiff ? changeBadge(ctx._change) : "", `data-sel='${JSON.stringify({ kind: "context", ctx: ctx.name })}'`);
+    for (const b of items(ctx.buildingBlocks)) {
+      if (!matches(b.name)) continue;
+      h += navRow(b.name, 2, sel.kind === "block" && sel.block === b.name, typeTag(b.type), `data-sel='${JSON.stringify({ kind: "block", ctx: ctx.name, mod: null, block: b.name })}'`, b._change);
+    }
+    for (const mod of live(ctx.modules)) {
+      const kids = items(mod.buildingBlocks).filter((b) => matches(b.name));
+      if (filter && kids.length === 0) continue;
+      h += navRow(mod.name, 2, sel.kind === "module" && sel.mod === mod.name, `<span class="muted" style="font-size:10px">${csCount(mod.buildingBlocks)}</span>`, `data-sel='${JSON.stringify({ kind: "module", ctx: ctx.name, mod: mod.name })}'`);
+      for (const b of kids) {
+        h += navRow(b.name, 3, sel.kind === "block" && sel.block === b.name, typeTag(b.type), `data-sel='${JSON.stringify({ kind: "block", ctx: ctx.name, mod: mod.name, block: b.name })}'`, b._change);
+      }
+    }
+  }
+  h += `<div class="nav-group">Actors</div>`;
+  for (const a of DOC.actors) h += navRow(a.name, 1, false, "", `data-sel='{"kind":"doc"}'`);
+  $("nav").innerHTML = h;
+}
+
+// ---- shared section renderers ---------------------------------------------
+function badgeOf(item) {
+  return showDiff ? changeBadge(item._change) : "";
+}
+
+function propertiesSection(host, cs) {
+  const list = items(cs);
+  let h = `<h2 class="sec">Properties <span class="muted" style="text-transform:none;letter-spacing:0">${list.length}</span></h2>`;
+  h += `<table class="props"><tr><th style="width:22%">Name</th><th style="width:22%">Type</th><th>Description</th><th style="width:90px"></th></tr>`;
+  for (const p of list) {
+    if (p._change === "removed") {
+      h += `<tr class="removed"><td>${esc(p.name)}</td><td colspan="2"></td><td>${badgeOf(p)}</td></tr>`;
+      continue;
+    }
+    h += `<tr>
+      <td>${editable(p, "name")}</td>
+      <td class="mono">${editable(p, "type", { placeholder: "type" })}</td>
+      <td class="muted">${editable(p, "description", { placeholder: "describe this property", class: "multiline" })}</td>
+      <td>
+        <button class="flagbtn${p.nullable ? " on" : ""}" data-flag="${ref(p)}" data-key="nullable">null</button>
+        <button class="flagbtn${p.collection ? " on" : ""}" data-flag="${ref(p)}" data-key="collection">list</button>
+        ${badgeOf(p)}
+      </td></tr>`;
+  }
+  h += `</table><div style="margin-top:8px"><button class="addbtn" data-add="property" data-host="${ref(host)}">+ property</button></div>`;
+  return h;
+}
+
+function rulesSection(host, cs, heading = "Rules") {
+  const list = items(cs);
+  let h = `<h2 class="sec">${heading} <span class="muted" style="text-transform:none;letter-spacing:0">${list.length}</span></h2>`;
+  for (const r of list) {
+    if (r._change === "removed") { h += `<div class="card removed"><span class="name">${esc(r.name)}</span> ${badgeOf(r)}</div>`; continue; }
+    h += `<div class="card ${showDiff ? r._change : ""}">
+      <div class="card-head"><span class="name">${editable(r, "name")}</span>
+        ${enumSelect(r, "ruleType", RULE_TYPES, { lockKey: null })}
+        <span style="flex:1"></span>${badgeOf(r)}</div>
+      <div class="card-desc">${editable(r, "description", { placeholder: "state the rule", class: "multiline" })}</div>
+    </div>`;
+  }
+  h += `<button class="addbtn" data-add="rule" data-host="${ref(host)}">+ rule</button>`;
+  return h;
+}
+
+function scenariosSection(host, cs) {
+  const list = items(cs);
+  let h = `<h2 class="sec">Scenarios <span class="muted" style="text-transform:none;letter-spacing:0">${list.length}</span></h2>`;
+  for (const s of list) {
+    if (s._change === "removed") { h += `<div class="card removed"><span class="name">${esc(s.name)}</span> ${badgeOf(s)}</div>`; continue; }
+    h += `<div class="card ${showDiff ? s._change : ""}">
+      <div class="card-head"><span class="name">${editable(s, "name")}</span><span style="flex:1"></span>${badgeOf(s)}</div>
+      <div class="card-desc">${editable(s, "description", { placeholder: "what this scenario shows", class: "multiline" })}</div>
+      <div class="gwt">
+        <span class="g">Given</span><span>${editable(s, "given", { class: "multiline", placeholder: "context" })}</span>
+        <span class="g">When</span><span>${editable(s, "when", { class: "multiline", placeholder: "action" })}</span>
+        <span class="g">Then</span><span>${editable(s, "then", { class: "multiline", placeholder: "outcome" })}</span>
+      </div>
+    </div>`;
+  }
+  h += `<button class="addbtn" data-add="scenario" data-host="${ref(host)}">+ scenario</button>`;
+  return h;
+}
+
+function qaSection(host, cs) {
+  const list = items(cs);
+  let h = `<h2 class="sec">Quality attributes <span class="muted" style="text-transform:none;letter-spacing:0">${list.length}</span></h2>`;
+  for (const q of list) {
+    if (q._change === "removed") { h += `<div class="card removed"><span class="name">${esc(q.name)}</span> ${badgeOf(q)}</div>`; continue; }
+    h += `<div class="card ${showDiff ? q._change : ""}">
+      <div class="card-head"><span class="name">${editable(q, "name")}</span>
+        ${enumSelect(q, "type", QA_TYPES, { lockKey: null })}
+        <span style="flex:1"></span>${badgeOf(q)}</div>
+      <div class="card-desc">${editable(q, "description", { placeholder: "measurable target", class: "multiline" })}</div>
+    </div>`;
+  }
+  h += `<button class="addbtn" data-add="qa" data-host="${ref(host)}">+ quality attribute</button>`;
+  return h;
+}
+
+function chipList(cs, linkable) {
+  const list = items(cs);
+  if (list.length === 0) return `<span class="muted">—</span>`;
+  return `<span class="chips">${list.map((i) => {
+    const name = i.name;
+    const cls = linkable && blockByName(name) ? "chip link" : "chip";
+    const strike = i._change === "removed" ? ' style="text-decoration:line-through;opacity:.6"' : "";
+    return `<span class="${cls}"${strike} ${linkable ? `data-goto="${esc(name)}"` : ""}>${esc(name)}</span>`;
+  }).join("")}</span>`;
+}
+
+function behaviourCard(b, onAppService) {
+  if (b._change === "removed") return `<div class="card removed"><span class="name">${esc(b.name)}</span> ${badgeOf(b)}</div>`;
+  const ruleN = csCount(b.rules), scnN = csCount(b.scenarios), qaN = csCount(b.qualityAttributes);
+  const isUseCase = onAppService && b.isPublic;
+  // Use cases open by default: their scenarios are the reason to read the page.
+  return `<details class="card beh ${showDiff ? b._change : ""}"${isUseCase ? " open" : ""}>
+    <summary>
+      <div class="card-head">
+        <span class="name">${editable(b, "name")}</span>
+        ${isUseCase ? `<span class="badge add" style="color:var(--primary);background:color-mix(in oklch, var(--primary) 12%, transparent);border-color:color-mix(in oklch, var(--primary) 30%, transparent)">use case</span>` : ""}
+        ${enumSelect(b, "type", BEHAVIOUR_TYPES)}
+        <button class="flagbtn${b.isPublic ? " on" : ""}" data-flag="${ref(b)}" data-key="isPublic">public</button>
+        <span style="flex:1"></span>
+        <span class="muted" style="font-size:11px">${plural(ruleN, "rule")} · ${plural(scnN, "scenario")}${qaN ? ` · ${qaN} QA` : ""}</span>
+        ${badgeOf(b)}
+      </div>
+      <div class="card-desc">${editable(b, "description", { placeholder: "what this behaviour does", class: "multiline" })}</div>
+    </summary>
+    <div class="nest">
+      <div class="kv"><span class="k">Actor</span>${editable(b, "actor", { placeholder: "no actor" })}</div>
+      <div class="kv"><span class="k">Input</span>${chipList(b.input)}</div>
+      <div class="kv"><span class="k">Output</span>${chipList(b.output)}</div>
+      <div class="kv"><span class="k">Uses</span>${chipList(b.usedBuildingBlocks, true)}</div>
+      ${rulesSection(b, b.rules)}
+      ${scenariosSection(b, b.scenarios)}
+      ${qaN ? qaSection(b, b.qualityAttributes) : ""}
+    </div>
+  </details>`;
+}
+
+// ---- use cases -------------------------------------------------------------
+// A use case is a public behaviour of an application service. Its rules and
+// Gherkin scenarios are shown expanded — that is the point of the view.
+function useCaseDetail(uc) {
+  const b = uc.behaviour;
+  let h = `<div class="crumbs"><span>${esc(uc.context)}</span>${uc.module ? `›<span>${esc(uc.module)}</span>` : ""}›<span>${esc(uc.block.name)}</span>›<span>use case</span></div>`;
+  h += `<h1 class="doc-h">${editable(b, "name")} ${badgeOf(b)}</h1>`;
+  h += `<div class="kv"><span class="k">Actor</span>${editable(b, "actor", { placeholder: "no actor" })}
+    <span class="k" style="margin-left:12px">Kind</span>${enumSelect(b, "type", BEHAVIOUR_TYPES)}
+    <span class="k" style="margin-left:12px">Service</span><span class="chip link" data-goto="${esc(uc.block.name)}">${esc(uc.block.name)}</span></div>`;
+  h += `<div class="lede">${editable(b, "description", { class: "multiline", placeholder: "what the actor achieves" })}</div>`;
+  h += `<div class="kv"><span class="k">Input</span>${chipList(b.input)}</div>`;
+  h += `<div class="kv"><span class="k">Output</span>${chipList(b.output)}</div>`;
+  h += `<div class="kv"><span class="k">Uses</span>${chipList(b.usedBuildingBlocks, true)}</div>`;
+  h += rulesSection(b, b.rules);
+  h += scenariosSection(b, b.scenarios);
+  h += qaSection(b, b.qualityAttributes);
+  return h;
+}
+
+function useCaseOverview() {
+  const groups = useCasesByActor(DOC);
+  let h = `<h1 class="doc-h">Use cases</h1>
+    <div class="crumbs"><span>${useCases(DOC).length} public behaviours on application services</span></div>
+    <div class="lede">Every way an actor drives this system. Each one carries its own rules and Gherkin scenarios; open one to edit them.</div>`;
+  for (const g of groups) {
+    h += `<h2 class="sec">${esc(g.actor)} <span class="muted" style="text-transform:none;letter-spacing:0">${g.cases.length}</span></h2>`;
+    for (const uc of g.cases) {
+      const b = uc.behaviour;
+      const scn = items(b.scenarios).filter((s) => s._change !== "removed");
+      h += `<div class="card ${showDiff ? b._change : ""}" style="cursor:pointer" data-sel='${JSON.stringify({ kind: "usecase", ctx: uc.context, mod: uc.module, block: uc.block.name, uc: b.name })}'>
+        <div class="card-head"><span class="name">${esc(b.name)}</span><span class="chip">${esc(b.type || "—")}</span>
+          <span class="muted" style="font-size:11px">${esc(uc.block.name)} · ${esc(uc.context)}</span>
+          <span style="flex:1"></span><span class="muted" style="font-size:11px">${plural(csCount(b.rules), "rule")} · ${plural(scn.length, "scenario")}</span>${badgeOf(b)}</div>
+        <div class="card-desc">${esc(b.description || "")}</div>
+        ${scn.length ? `<div class="gwt">${scn.map((s) => `<span class="g">Then</span><span class="muted">${esc(s.then)}</span>`).join("")}</div>` : ""}
+      </div>`;
+    }
+  }
+  return h;
+}
+
+// ---- document pane ---------------------------------------------------------
+function renderDoc() {
+  let h = "";
+  if (sel.kind === "usecases") {
+    $("docPane").innerHTML = useCaseOverview();
+    return;
+  }
+  if (sel.kind === "usecase") {
+    const uc = useCases(DOC).find((u) => u.behaviour.name === sel.uc && u.block.name === sel.block);
+    $("docPane").innerHTML = uc ? useCaseDetail(uc) : `<p class="muted">Use case gone.</p>`;
+    return;
+  }
+  if (sel.kind === "doc") {
+    h += `<h1 class="doc-h">${editable(DOC, "name")}</h1>`;
+    h += `<div class="crumbs"><span>${esc(DOC.id)}</span>·<span>${esc(DOC.date)}</span>·<span>${live(DOC.boundedContexts).length} bounded contexts</span>·<span>${indexBlocks(DOC).length} building blocks</span></div>`;
+    h += `<div class="lede">${editable(DOC, "description", { class: "multiline" })}</div>`;
+    h += `<h2 class="sec">Actors</h2>`;
+    for (const a of DOC.actors) {
+      h += `<div class="card"><div class="card-head"><span class="name">${editable(a, "name")}</span></div>
+        <div class="card-desc">${editable(a, "description", { placeholder: "who they are", class: "multiline" })}</div></div>`;
+    }
+    h += `<button class="addbtn" data-add="actor">+ actor</button>`;
+    h += `<h2 class="sec">Use cases <span class="muted" style="text-transform:none;letter-spacing:0">${useCases(DOC).length}</span></h2>`;
+    for (const g of useCasesByActor(DOC)) {
+      h += `<div class="card" style="cursor:pointer" data-open='{"kind":"usecases"}'>
+        <div class="card-head"><span class="name">${esc(g.actor)}</span><span style="flex:1"></span><span class="muted" style="font-size:11px">${g.cases.length} use cases</span></div>
+        <div class="card-desc">${g.cases.map((uc) => esc(uc.behaviour.name)).join(" · ")}</div></div>`;
+    }
+    h += `<h2 class="sec">Bounded contexts</h2>`;
+    for (const c of live(DOC.boundedContexts)) {
+      h += `<div class="card ${showDiff ? c._change : ""}" data-open='${JSON.stringify({ kind: "context", ctx: c.name })}' style="cursor:pointer">
+        <div class="card-head"><span class="name">${esc(c.name)}</span>${badgeOf(c)}<span style="flex:1"></span>
+          <span class="muted" style="font-size:11px">${live(c.modules).length} modules · ${items(c.buildingBlocks).length + live(c.modules).reduce((n, m) => n + items(m.buildingBlocks).length, 0)} blocks</span></div>
+        <div class="card-desc">${esc(c.description || "")}</div></div>`;
+    }
+  } else if (sel.kind === "context" || sel.kind === "module") {
+    const ctx = currentCtx();
+    const node = sel.kind === "module" ? modByName(ctx, sel.mod) : ctx;
+    if (!node) return;
+    h += `<div class="crumbs"><span>${esc(DOC.name)}</span>›<span>${esc(ctx.name)}</span>${sel.kind === "module" ? `›<span>${esc(node.name)}</span>` : ""}</div>`;
+    h += `<h1 class="doc-h">${editable(node, "name")} ${badgeOf(node)}</h1>`;
+    h += `<div class="lede">${editable(node, "description", { placeholder: "what this owns", class: "multiline" })}</div>`;
+    if (sel.kind === "context" && live(ctx.modules).length) {
+      h += `<h2 class="sec">Modules</h2>`;
+      for (const m of live(ctx.modules)) {
+        h += `<div class="card ${showDiff ? m._change : ""}" data-open='${JSON.stringify({ kind: "module", ctx: ctx.name, mod: m.name })}' style="cursor:pointer">
+          <div class="card-head"><span class="name">${esc(m.name)}</span>${badgeOf(m)}<span style="flex:1"></span><span class="muted" style="font-size:11px">${items(m.buildingBlocks).length} blocks</span></div>
+          <div class="card-desc">${esc(m.description || "")}</div></div>`;
+      }
+    }
+    h += `<h2 class="sec">Building blocks</h2>`;
+    for (const b of items(node.buildingBlocks)) {
+      if (b._change === "removed") { h += `<div class="card removed"><span class="name">${esc(b.name)}</span> ${badgeOf(b)}</div>`; continue; }
+      h += `<div class="card ${showDiff ? b._change : ""}" data-goto="${esc(b.name)}" style="cursor:pointer">
+        <div class="card-head">${typeTag(b.type)}<span class="name">${esc(b.name)}</span>${badgeOf(b)}<span style="flex:1"></span>
+          <span class="muted" style="font-size:11px">${csCount(b.properties)} props · ${csCount(b.behaviours)} behaviours · ${csCount(b.rules)} rules</span></div>
+        <div class="card-desc">${esc(b.description || "")}</div></div>`;
+    }
+    h += `<button class="addbtn" data-add="block" data-host="${ref(node)}">+ building block</button>`;
+    h += qaSection(node, node.qualityAttributes);
+  } else {
+    const entry = blockByName(sel.block);
+    if (!entry) { $("docPane").innerHTML = `<p class="muted">Nothing selected.</p>`; return; }
+    const b = entry.block;
+    h += `<div class="crumbs"><span>${esc(entry.context)}</span>${entry.module ? `›<span>${esc(entry.module)}</span>` : ""}›<span>${esc(b.name)}</span></div>`;
+    h += `<h1 class="doc-h">${editable(b, "name")} ${badgeOf(b)}</h1>`;
+    h += `<div class="kv" style="margin-bottom:10px"><span class="k">Type</span>${enumSelect(b, "type", BLOCK_TYPES, { label: (t) => TYPE_LABEL[t] })}
+      <span class="k" style="margin-left:12px">Implements</span>${chipList({ added: (b.implements || []).map((n) => ({ name: n })) }, true)}</div>`;
+    h += `<div class="lede">${editable(b, "description", { placeholder: "what this block is responsible for", class: "multiline" })}</div>`;
+    h += propertiesSection(b, b.properties);
+    h += `<h2 class="sec">Behaviours <span class="muted" style="text-transform:none;letter-spacing:0">${csCount(b.behaviours)}</span></h2>`;
+    for (const beh of items(b.behaviours)) h += behaviourCard(beh, b.type === "application_service");
+    h += `<button class="addbtn" data-add="behaviour" data-host="${ref(b)}">+ behaviour</button>`;
+    h += rulesSection(b, b.rules, "Invariants");
+    h += scenariosSection(b, b.scenarios);
+    h += qaSection(b, b.qualityAttributes);
+  }
+  $("docPane").innerHTML = h;
+}
+
+// ---- graph pane ------------------------------------------------------------
+// The graph shows containment (context › module › block) as a tidy tree, with
+// implements / uses relations overlaid as dashed arcs.
+function renderGraph() {
+  const ctx = sel.kind === "doc" ? null : currentCtx();
+  const scope = ctx ? [ctx] : live(DOC.boundedContexts);
+  const root = {
+    id: ctx ? `ctx:${ctx.name}` : "doc",
+    label: ctx ? ctx.name : DOC.name,
+    kind: ctx ? "context" : "doc",
+    children: [],
+  };
+  const boxOf = new Map();
+  for (const c of scope) {
+    const cNode = ctx ? root : { id: `ctx:${c.name}`, label: c.name, kind: "context", children: [] };
+    if (!ctx) root.children.push(cNode);
+    for (const b of live(c.buildingBlocks)) cNode.children.push({ id: `b:${b.name}`, label: b.name, kind: "block", block: b, children: [] });
+    for (const m of live(c.modules)) {
+      const mNode = { id: `m:${m.name}`, label: m.name, kind: "module", children: [] };
+      cNode.children.push(mNode);
+      for (const b of live(m.buildingBlocks)) mNode.children.push({ id: `b:${b.name}`, label: b.name, kind: "block", block: b, children: [] });
+    }
+  }
+  const laid = layoutTree(root, { nodeW: 140, nodeH: 38, gapX: 28, gapY: 12 });
+  for (const p of laid.nodes) boxOf.set(p.node.id, p);
+
+  const pad = 12;
+  const W = laid.width + pad * 2;
+  const H = laid.height + pad * 2;
+  let svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L8 4 L0 8 z" fill="context-stroke"/>
+      </marker>
+    </defs><g transform="translate(${pad},${pad})">`;
+
+  // containment edges
+  const walk = (n) => {
+    for (const k of n.children || []) {
+      svg += `<path class="edge" d="${elbow(boxOf.get(n.id), boxOf.get(k.id))}"/>`;
+      walk(k);
+    }
+  };
+  walk(root);
+
+  // dependency arcs between visible blocks
+  if (showDeps) {
+    for (const e of blockEdges(DOC)) {
+      const a = boxOf.get(`b:${e.from}`), b = boxOf.get(`b:${e.to}`);
+      if (!a || !b) continue;
+      svg += `<path class="dep ${e.kind}" marker-end="url(#ar)" d="${arc(a, b)}"/>`;
+    }
+  }
+
+  for (const p of laid.nodes) {
+    const n = p.node;
+    const isSel = (n.kind === "block" && (sel.kind === "block" || sel.kind === "usecase") && sel.block === n.label) ||
+      (n.kind === "context" && sel.kind === "context" && sel.ctx === n.label) ||
+      (n.kind === "module" && sel.kind === "module" && sel.mod === n.label);
+    let fill = "var(--card)", stroke = "var(--border)", text = "var(--foreground)", sub = "";
+    if (n.kind === "block") {
+      fill = typeColor(n.block.type, "fill");
+      stroke = typeColor(n.block.type, "stroke");
+      text = typeColor(n.block.type, "text");
+      sub = TYPE_LABEL[n.block.type] || "";
+    } else if (n.kind === "context") {
+      fill = "var(--secondary)"; stroke = "var(--input)"; sub = "bounded context";
+    } else if (n.kind === "module") {
+      fill = "var(--card)"; stroke = "var(--input)"; sub = "module";
+    }
+    const label = n.label.length > 17 ? n.label.slice(0, 16) + "…" : n.label;
+    svg += `<g class="node-box${isSel ? " sel" : ""}" transform="translate(${p.x},${p.y})" data-node="${esc(n.kind)}:${esc(n.label)}">
+      <rect class="bg" width="${p.w}" height="${p.h}" rx="8" fill="${fill}" stroke="${isSel ? "var(--primary)" : stroke}"/>
+      <text class="nlabel" x="10" y="${sub ? 17 : 24}" fill="${text}">${esc(label)}</text>
+      ${sub ? `<text class="ntype" x="10" y="30" fill="${text}" opacity="0.72">${esc(sub)}</text>` : ""}
+      ${n.kind === "block" && useCaseCount(n.block) ? `<g transform="translate(${p.w - 26},6)">
+        <rect width="20" height="14" rx="7" fill="var(--primary)"/>
+        <text x="10" y="10.5" text-anchor="middle" font-size="9" font-weight="600" fill="var(--primary-foreground)">${useCaseCount(n.block)}</text></g>` : ""}
+    </g>`;
+  }
+  svg += `</g></svg>`;
+  $("graphScroll").innerHTML = svg;
+  $("graphTitle").textContent = ctx ? `${ctx.name} — building blocks` : "All bounded contexts";
+  $("graphMeta").textContent = `${laid.nodes.filter((p) => p.node.kind === "block").length} blocks`;
+
+  const usedTypes = [...new Set(indexBlocks(DOC).map((e) => e.block.type).filter(Boolean))];
+  $("legend").innerHTML = usedTypes.map((t) => `<span class="lg"><i style="background:${typeColor(t, "fill")};outline:1px solid ${typeColor(t, "stroke")}"></i>${TYPE_LABEL[t]}</span>`).join("") +
+    `<span class="lg"><i style="background:oklch(0.62 0.13 250)"></i>uses</span><span class="lg"><i style="background:oklch(0.62 0.12 300)"></i>implements</span>`;
+}
+
+// ---- render + events -------------------------------------------------------
+function render() {
+  $("topTitle").textContent = DOC.name;
+  $("topDate").textContent = DOC.date;
+  $("tImpl").classList.toggle("on", DOC.implemented);
+  $("tImpl").lastElementChild.textContent = DOC.implemented ? "implemented" : "not implemented";
+  $("tDiff").classList.toggle("on", showDiff);
+  $("tDeps").classList.toggle("on", showDeps);
+  renderNav();
+  renderDoc();
+  renderGraph();
+}
+
+const app = $("app");
+bindEditors(app, (kind) => {
+  // Names feed the nav and the graph, so a text edit re-renders everything but
+  // the field being typed in; locks and selects are cheap enough to re-render.
+  if (kind === "text") { renderNav(); renderGraph(); $("topTitle").textContent = DOC.name; }
+  else render();
+});
+
+app.addEventListener("click", (e) => {
+  const navSel = e.target.closest("[data-sel]");
+  if (navSel) { sel = { ...sel, ...JSON.parse(navSel.dataset.sel) }; render(); return; }
+  const open = e.target.closest("[data-open]");
+  if (open) { sel = { ...sel, ...JSON.parse(open.dataset.open) }; render(); return; }
+  const goto = e.target.closest("[data-goto]");
+  if (goto) { selectBlock(goto.dataset.goto); return; }
+  const node = e.target.closest("[data-node]");
+  if (node) {
+    const [kind, name] = node.dataset.node.split(/:(.*)/s);
+    if (kind === "block") selectBlock(name);
+    else if (kind === "context") { sel = { kind: "context", ctx: name, mod: null, block: null }; render(); }
+    else if (kind === "module") { sel = { ...sel, kind: "module", mod: name }; render(); }
+    return;
+  }
+  const flag = e.target.closest("[data-flag]");
+  if (flag) { const o = deref(flag.dataset.flag); o[flag.dataset.key] = !o[flag.dataset.key]; render(); return; }
+  const add = e.target.closest("[data-add]");
+  if (add) { addItem(add.dataset.add, add.dataset.host ? deref(add.dataset.host) : null); return; }
+});
+
+$("tImpl").addEventListener("click", () => { DOC.implemented = !DOC.implemented; render(); });
+$("tDiff").addEventListener("click", () => { showDiff = !showDiff; render(); });
+$("tDeps").addEventListener("click", () => { showDeps = !showDeps; render(); });
+app.addEventListener("input", (e) => {
+  if (e.target.id === "search") { filter = e.target.value.toLowerCase(); renderNav(); $("search").focus(); }
+});
+
+// ---- new items -------------------------------------------------------------
+const EMPTY = () => ({ added: [], modified: [], removed: [] });
+function addItem(kind, host) {
+  if (kind === "actor") {
+    DOC.actors.push({ name: "New actor", name_locked: false, description: null, description_locked: false });
+  } else if (kind === "property") {
+    (host.properties = host.properties || EMPTY()).added.push({ name: "newProperty", name_locked: false, type: null, type_locked: false, description: null, description_locked: false, nullable: false, collection: false });
+  } else if (kind === "rule") {
+    (host.rules = host.rules || EMPTY()).added.push({ name: "New rule", name_locked: false, ruleType: null, description: null, description_locked: false });
+  } else if (kind === "scenario") {
+    (host.scenarios = host.scenarios || EMPTY()).added.push({ name: "New scenario", name_locked: false, description: "", description_locked: false, given: "", given_locked: false, when: "", when_locked: false, then: "", then_locked: false });
+  } else if (kind === "qa") {
+    (host.qualityAttributes = host.qualityAttributes || EMPTY()).added.push({ name: "New quality attribute", name_locked: false, type: null, description: null, description_locked: false });
+  } else if (kind === "behaviour") {
+    (host.behaviours = host.behaviours || EMPTY()).added.push({ name: "NewBehaviour", name_locked: false, type: null, type_locked: false, description: null, description_locked: false, isPublic: false, actor: null, actor_locked: false, input: EMPTY(), output: EMPTY(), usedBuildingBlocks: EMPTY(), rules: EMPTY(), scenarios: EMPTY(), qualityAttributes: EMPTY() });
+  } else if (kind === "block") {
+    (host.buildingBlocks = host.buildingBlocks || EMPTY()).added.push({ name: "NewBlock", name_locked: false, type: null, type_locked: false, description: null, description_locked: false, implements: [], properties: EMPTY(), behaviours: EMPTY(), rules: EMPTY(), scenarios: EMPTY(), qualityAttributes: EMPTY() });
+  }
+  render();
+}
+
+render();
+</script>

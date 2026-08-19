@@ -30,6 +30,9 @@ export default defineConfig({
       // Sign-in is a navigation, so it has to come back to *this* origin:
       // NOESIS_PUBLIC_URL in dev is the dev server, not the backend port.
       '/auth': 'http://localhost:3000',
+      // The design-doc editor's Yjs WebSocket (decision 53) — same-origin in
+      // dev too, so the session cookie rides the upgrade.
+      '/collab': { target: 'http://localhost:3000', ws: true },
     },
   },
 });

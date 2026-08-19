@@ -16,7 +16,8 @@ import { Route as ShellSettingsRouteImport } from './routes/_shell/settings'
 import { Route as ShellProjectRouteImport } from './routes/_shell/project'
 import { Route as ShellInboxRouteImport } from './routes/_shell/inbox'
 import { Route as ShellGraphRouteImport } from './routes/_shell/graph'
-import { Route as ShellDocumentsRouteImport } from './routes/_shell/documents'
+import { Route as ShellDocumentsIndexRouteImport } from './routes/_shell/documents/index'
+import { Route as ShellDocumentsDocumentIdRouteImport } from './routes/_shell/documents/$documentId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -52,70 +53,82 @@ const ShellGraphRoute = ShellGraphRouteImport.update({
   path: '/graph',
   getParentRoute: () => ShellRoute,
 } as any)
-const ShellDocumentsRoute = ShellDocumentsRouteImport.update({
-  id: '/documents',
-  path: '/documents',
+const ShellDocumentsIndexRoute = ShellDocumentsIndexRouteImport.update({
+  id: '/documents/',
+  path: '/documents/',
   getParentRoute: () => ShellRoute,
 } as any)
+const ShellDocumentsDocumentIdRoute =
+  ShellDocumentsDocumentIdRouteImport.update({
+    id: '/documents/$documentId',
+    path: '/documents/$documentId',
+    getParentRoute: () => ShellRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
   '/login': typeof LoginRoute
-  '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
   '/inbox': typeof ShellInboxRoute
   '/project': typeof ShellProjectRoute
   '/settings': typeof ShellSettingsRoute
+  '/documents/$documentId': typeof ShellDocumentsDocumentIdRoute
+  '/documents/': typeof ShellDocumentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/documents': typeof ShellDocumentsRoute
   '/graph': typeof ShellGraphRoute
   '/inbox': typeof ShellInboxRoute
   '/project': typeof ShellProjectRoute
   '/settings': typeof ShellSettingsRoute
   '/': typeof ShellIndexRoute
+  '/documents/$documentId': typeof ShellDocumentsDocumentIdRoute
+  '/documents': typeof ShellDocumentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shell': typeof ShellRouteWithChildren
   '/login': typeof LoginRoute
-  '/_shell/documents': typeof ShellDocumentsRoute
   '/_shell/graph': typeof ShellGraphRoute
   '/_shell/inbox': typeof ShellInboxRoute
   '/_shell/project': typeof ShellProjectRoute
   '/_shell/settings': typeof ShellSettingsRoute
   '/_shell/': typeof ShellIndexRoute
+  '/_shell/documents/$documentId': typeof ShellDocumentsDocumentIdRoute
+  '/_shell/documents/': typeof ShellDocumentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
-    | '/documents'
     | '/graph'
     | '/inbox'
     | '/project'
     | '/settings'
+    | '/documents/$documentId'
+    | '/documents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
-    | '/documents'
     | '/graph'
     | '/inbox'
     | '/project'
     | '/settings'
     | '/'
+    | '/documents/$documentId'
+    | '/documents'
   id:
     | '__root__'
     | '/_shell'
     | '/login'
-    | '/_shell/documents'
     | '/_shell/graph'
     | '/_shell/inbox'
     | '/_shell/project'
     | '/_shell/settings'
     | '/_shell/'
+    | '/_shell/documents/$documentId'
+    | '/_shell/documents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,32 +187,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShellGraphRouteImport
       parentRoute: typeof ShellRoute
     }
-    '/_shell/documents': {
-      id: '/_shell/documents'
+    '/_shell/documents/': {
+      id: '/_shell/documents/'
       path: '/documents'
-      fullPath: '/documents'
-      preLoaderRoute: typeof ShellDocumentsRouteImport
+      fullPath: '/documents/'
+      preLoaderRoute: typeof ShellDocumentsIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/documents/$documentId': {
+      id: '/_shell/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/documents/$documentId'
+      preLoaderRoute: typeof ShellDocumentsDocumentIdRouteImport
       parentRoute: typeof ShellRoute
     }
   }
 }
 
 interface ShellRouteChildren {
-  ShellDocumentsRoute: typeof ShellDocumentsRoute
   ShellGraphRoute: typeof ShellGraphRoute
   ShellInboxRoute: typeof ShellInboxRoute
   ShellProjectRoute: typeof ShellProjectRoute
   ShellSettingsRoute: typeof ShellSettingsRoute
   ShellIndexRoute: typeof ShellIndexRoute
+  ShellDocumentsDocumentIdRoute: typeof ShellDocumentsDocumentIdRoute
+  ShellDocumentsIndexRoute: typeof ShellDocumentsIndexRoute
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
-  ShellDocumentsRoute: ShellDocumentsRoute,
   ShellGraphRoute: ShellGraphRoute,
   ShellInboxRoute: ShellInboxRoute,
   ShellProjectRoute: ShellProjectRoute,
   ShellSettingsRoute: ShellSettingsRoute,
   ShellIndexRoute: ShellIndexRoute,
+  ShellDocumentsDocumentIdRoute: ShellDocumentsDocumentIdRoute,
+  ShellDocumentsIndexRoute: ShellDocumentsIndexRoute,
 }
 
 const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)

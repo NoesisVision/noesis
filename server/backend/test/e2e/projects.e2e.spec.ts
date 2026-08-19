@@ -2,6 +2,8 @@ import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { createApp } from '../../src/app.js';
 import { createAuthModule } from '../../src/auth/auth.module.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
+import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
+import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { InboxRepository } from '../../src/inbox/inbox.repository.js';
 import { InboxService } from '../../src/inbox/inbox.service.js';
@@ -50,6 +52,7 @@ function harness() {
     searchService: new SearchService(),
     authModule: module,
     projectsService: new ProjectsService(projectsRepository),
+    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
     inboxService: new InboxService(new InboxRepository(db)),
     repoAccess: new RepoAccessService(projectsRepository, module.ghApp),
   });

@@ -3,10 +3,12 @@ import type { AuthEnv } from '../auth/auth.middleware.js';
 import { requireSession } from '../auth/auth.middleware.js';
 import type { AuthModule } from '../auth/auth.module.js';
 import { toAccountDto } from '../auth/auth.service.js';
+import type { DesignDocsService } from '../design-docs/design-docs.service.js';
 import type { GreetingService } from '../greeting/greeting.service.js';
 import type { InboxService } from '../inbox/inbox.service.js';
 import type { ProjectsService } from '../projects/projects.service.js';
 import type { RepoAccessService } from '../projects/repo-access.service.js';
+import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
 import { createInboxApp } from './inbox/inbox.routes.js';
 import { createInvitesApp } from './invites/invites.routes.js';
 import { createPickerApp } from './projects/picker.routes.js';
@@ -21,6 +23,7 @@ export interface UiDeps {
   searchService: SearchService;
   authModule: AuthModule;
   projectsService: ProjectsService;
+  designDocsService: DesignDocsService;
   inboxService: InboxService;
   /** Null in disabled auth mode — no App to check access with. */
   repoAccess: RepoAccessService | null;
@@ -52,6 +55,16 @@ export function createUiApp(deps: UiDeps) {
           authMode: deps.authModule.mode,
         });
       })
+      // Comment authors and mention targets (design-doc phase 4): the
+      // instance is invite-gated, so every account may comment. In disabled
+      // auth mode the fixed local owner is the whole roster.
+      .get('/accounts', async (c) => {
+        const accounts =
+          deps.authModule.mode === 'github'
+            ? await deps.authModule.auth.listAccounts()
+            : [toAccountDto(c.get('account'))];
+        return c.json({ accounts });
+      })
       .route('/search', createSearchApp({ searchService: deps.searchService }))
       .route('/invites', createInvitesApp({ authModule: deps.authModule }))
       .route(
@@ -70,6 +83,10 @@ export function createUiApp(deps: UiDeps) {
           inboxService: deps.inboxService,
           projectsService: deps.projectsService,
         }),
+      )
+      .route(
+        '/design-docs',
+        createDesignDocsApp({ designDocsService: deps.designDocsService }),
       )
       .route(
         '/github',

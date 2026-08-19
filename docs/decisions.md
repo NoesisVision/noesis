@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-08-13_
+_Last updated: 2026-08-18_
 
 ---
 
@@ -701,7 +701,613 @@ a separate feature and decision.
   whatever the ingestion feature defines for authentication; nothing
   project-specific to maintain in repo content or CI variables.
 
-## 49. Inbox items are graph nodes under their project; lifecycle moves on conditional writes and read-time sweeps
+## 49. Design-doc detail panel has a fixed section list; Modified is derived from scanner-comparable fields only
+
+**Context:** The collaborative design-document specification
+(`docs/work/features/design-doc/design-doc.md`) left two questions open that
+blocked the Stage 1 prototype comparison. The use-case detail panel listed
+"likely sections", so three prototypes would each invent their own set and the
+lens comparison would measure section choice rather than interaction model.
+And the Existing / New / Modified / Removed status was said to be derived from
+baseline comparison without saying which field changes count, so a description
+typo could mark an element Modified and the canvas markers would drown the
+element names they are supposed to stay quieter than.
+
+**Decision:**
+
+1. The use-case detail panel has eleven fixed sections in a fixed order:
+   Summary, Actors, Description, Rules, Input, Output, Acceptance scenarios,
+   Quality attributes, Related building blocks, Interaction flow, Comments.
+   Behavior type is a badge beside the name, not a section. A lens hides
+   sections but never reorders or renames them; the Product lens hides only
+   Related building blocks and Interaction flow; an empty section collapses to
+   a quiet add-content prompt rather than disappearing.
+2. An element is Modified when a _baseline-comparable_ field differs from its
+   baseline value — the fields a source-code scanner can populate: name, type,
+   owning application service, actor references, input and output structure,
+   behavior relationships. Design-only fields (summary, description, rules
+   prose, quality attributes, acceptance scenarios, comments) never produce
+   Modified. Codebase-relative state does not propagate upward through
+   containment.
+
+**Rationale:** Both decisions buy quietness without hiding information. Fixing
+the section list makes the single-specification promise observable — Product
+and Technical participants see the same eight of eleven sections, so the lens
+is visibly a filter and not a second document — and it narrows the remaining
+open question to how Input and Output should read in the Product lens. Scoping
+Modified to scanner-comparable fields gives every visible marker one meaning,
+"the source code must change here", and bounds marker count by real code delta
+rather than by editing activity; spec-only additions still surface in proposal
+impact summaries, so review loses nothing. Suppressing upward propagation
+keeps one new use case from lighting up its application service and bounded
+context, which containment in the catalog already communicates.
+
+**Consequences:**
+
+- The design model must distinguish baseline-comparable fields from
+  design-only fields, since only the former participate in comparison.
+- Stage 1 prototypes are comparable on interaction model alone, and share both
+  a sample dataset and a section list.
+- The earlier prototype sketches predate this model and moved to
+  `docs/work/features/design-doc/prior-art/` as reference material.
+
+## 50. The design-doc model is normalised, addressed by stable ids, and derives codebase state rather than storing it
+
+**Context:** Phase 1 of the design-document workspace plan
+(`docs/work/features/design-doc/plan.md`) replaces `design-doc.ts`. The old
+schema was a tree of `changeSetSchema(...)` wrappers — every level carried
+`added` / `removed` / `modified` arrays — with behaviours nested inside
+building blocks, an `actor: string | null`, one string each for `given`, `when`
+and `then`, and a `*_locked` boolean beside every field. Three product
+decisions have since made that shape unworkable: New / Modified / Removed
+describe the accepted design's delta from a scanned codebase baseline rather
+than the contents of a pending proposal (specification §14.7), use cases are
+first-class and reference many actors (§14.1–14.2), and comments, suggestions
+and agent chat context all anchor to an individual typed element (§14.8), which
+requires that element to have an address. The schema had no consumers outside
+its own tests, so it could be replaced rather than migrated.
+
+**Decision:**
+
+1. The portable specification is a normalised document: flat arrays of actors,
+   bounded contexts, domain modules, building blocks, use cases and behaviours,
+   related by id. Change-set wrappers are gone.
+2. Every element the document renders as its own block carries a stable `id`,
+   including rules, fields, Gherkin steps and example rows. Ids are unique
+   across the whole document, not per collection. Nothing is addressed by
+   position.
+3. An address is an `ElementRef` (`design-doc-ref.ts`):
+   `{ kind: 'element', id }` for anything carrying an id, resolved through one
+   document-wide index, and `{ kind: 'slot', ownerId, path }` for the few places
+   that hold no element of their own — the goal text, `output.summary`, a list
+   as an insertion point. There is no string form of an address, and nothing
+   parses one.
+4. Codebase-relative state is derived, not stored. Each comparable element
+   holds a snapshot of its baseline-comparable projection plus an explicit
+   `markedForRemoval`; `design-doc-baseline.ts` turns those into Existing, New,
+   Modified or Removed and explains the difference.
+5. Comments, suggestions and whole-document agent proposals live in
+   `design-doc-collaboration.ts`, referencing the document by id and anchoring
+   into it by element ref. They never travel inside the specification.
+6. The `*_locked` booleans are dropped in favour of authorship (§14.6): prose
+   records whether a human or the agent wrote it, and nothing in the model
+   claims a collaborator is prevented from editing.
+7. A use case and a behaviour are separate types that name each other. A
+   `DesignedBehaviour` belongs to a building block and is a node of the
+   invocation graph; a `DesignedUseCase` belongs to an application service,
+   references actors and owns the document's acceptance scenarios. The
+   behaviour that is a use case's entry point carries `useCaseId`, and the use
+   case carries `behaviourId` back.
+8. There is no separate application-service record. An application service is a
+   `DesignedBuildingBlock` whose `type` is `application_service`, so
+   `UseCase.applicationServiceId` and `DesignedBehaviour.buildingBlockId`
+   resolve in one id space.
+
+**Rationale:** Ids-not-positions is what makes the rest safe. The editor lets
+people drag a block within its schema array, so a positional address would
+silently re-point every comment on a list the moment someone reordered it.
+Storing the id rather than the path goes further: a ref survives the element
+being renamed, moved to another parent, and a schema field around it being
+renamed — none of which an embedded path survives. An earlier draft of this
+decision carried a readable path expression, `useCase[uc-book].rules[rule-hold]`,
+as the stored address, with a grammar to parse it back. Once refs became what
+gets stored, nothing produced such a string that anything had to read, and a
+display format that no longer round-trips belongs with the view that renders it,
+not in a contracts package. Deriving state rather than storing it makes
+decision 49 enforceable in code instead of by convention — the comparable
+projection simply has no field for a summary, so no amount of prose editing can
+produce a Modified marker — and the stored snapshot is what lets a Modified
+element say what the source code must change. Keeping collaboration out of the
+specification means exporting or scanning a document does not drag conversation
+along with it.
+
+**Consequences:**
+
+- `DesignDocSchema` is now `DesignDocumentSchema`, and the `Designed*` element
+  schemas changed shape. Nothing outside `packages/shared-contracts` imported
+  them, so there is no migration to write; stored documents do not exist yet.
+- Ids must be non-empty and unique across the whole document, since an element
+  ref is a bare id resolved through one index. There is no restriction on their
+  characters, because nothing parses them.
+- Anything that creates an element must mint an id for it, including the editor
+  and any agent or scanner that writes into the model.
+- A slot ref is the one address that embeds a field name, so renaming `rules` or
+  `summary` invalidates slot refs while leaving every element ref intact.
+- Behaviour relationships and scenario paths (§14.4–14.5) are still absent.
+  Behaviour and scenario ids are stable so they can be added without
+  re-anchoring anything.
+- Building blocks, domain modules, properties and behaviours are modelled but
+  largely unrendered: nothing in the document view reads them this iteration.
+  They are here because the Technical lens and the scanners need the vocabulary,
+  and because a behaviour graph with no behaviour type has no nodes.
+- Referential integrity cannot be enforced by the element schemas, since zod
+  validates one object at a time. `design-doc-integrity.ts` carries it as a
+  separate whole-document pass: `checkDesignDocument` returns coded issues, each
+  anchored to an element ref and naming the element in words, separating errors
+  (a broken document) from warnings (a
+  document that resolves but will read wrong, such as an element compared
+  against a scan the document is no longer on).
+
+## 51. The Yjs document is the editing truth; `DesignDocument` is the interchange format
+
+**Context:** Phase 3 of the design-document plan puts the document view on
+BlockNote with a custom block schema. BlockNote wraps ProseMirror, and
+ProseMirror owns its own document representation — a tree of nodes conforming to
+a schema, with integer positions its transaction system maps through every
+change, and with selection, undo, input rules, decorations and the Yjs binding
+all operating on that tree. A ProseMirror document therefore exists whether or
+not one is designed for it. The two representations are also not isomorphic:
+`rule.text` is a `string` in the model, but the same text in the editor carries
+marks — comment anchors, suggestion tracking — which ProseMirror holds as
+mark-bearing inline nodes.
+
+Plan §4 says each block type maps to one design-doc element but does not say
+which side holds the truth. Phase 1 shipped `DesignDocument` as a zod schema
+with nothing persisting it yet, and the agent produces one as structured
+output, so the question is open while it is still free to answer.
+
+Three shapes were considered. Two stores kept in step — a Y.Doc and a persisted
+`DesignDocument` — is a dual write, where every sync bug is a data-loss bug.
+`DesignDocument` as the truth with the editor rebuilt from it on each change
+cannot carry collaboration: rebuilding the ProseMirror document discards
+cursors, undo history and concurrent merges. A shared CRDT model that is not a
+ProseMirror document, with BlockNote projecting it, fights y-prosemirror, which
+requires the editor's document to be the shared type.
+
+**Decision:**
+
+1. The custom BlockNote block schema is required rather than incidental. What
+   may be inserted at a point, what may nest in what, what a paste coerces to
+   and what a drag may reparent all come from the ProseMirror schema, so it is
+   the mechanism by which "nothing untyped" is enforced rather than merely
+   intended.
+2. One Yjs document per design document is the stored truth for editing. Marks
+   and Yjs relative positions live there and nowhere else.
+3. `DesignDocument` is the interchange format, not a store: agent output,
+   scanner output, API reads, export, and the input to
+   `checkDesignDocument`. It is derived from the Y.Doc on read and may be
+   cached, invalidated on Y.Doc update — a cache, never a second source of
+   truth.
+4. Every write from outside the editor is whole-document replacement: initial
+   creation, an accepted proposal, a scanner import, a baseline refresh. One
+   `toBlocks(document)` function serves all four. No incremental external
+   change is ever merged into live editor state.
+5. An incoming document is validated at the boundary — `DesignDocumentSchema`
+   then `checkDesignDocument` — before it is seeded. A document that fails is a
+   retry, not a seeded Y.Doc.
+6. Seeding happens exactly once, server-side, when the document is created.
+   Clients sync into an already-populated document and never initialise an
+   empty one.
+7. Design-doc ids are the BlockNote block ids. Elements below block granularity
+   — Gherkin steps, example rows — keep their ids in block attributes.
+
+**Rationale:** The editor needs its own _schema_; it does not need its own
+_store_, and the distinction is where the sync bugs live. Making the Y.Doc the
+single stored representation removes the dual write outright: a projection
+recomputed from the truth cannot drift from it. The direction that would be
+hard — merging an external incremental change into a live collaborative state —
+never has to exist, because every external write is already whole-document by
+product decision (specification §6.3–6.4). And the direction that remains,
+`DesignDocument` to blocks, is needed under every option anyway, since an
+agent-generated document has to reach the editor somehow.
+
+Keeping `DesignDocument` as the interchange format also keeps the agent
+interface unchanged and correct: a model emits a typed JSON object it can be
+constrained to, never a ProseMirror node tree or a CRDT update. Validating at
+the boundary turns the agent's normal failure mode — inventing an
+`applicationServiceId` that names nothing — into a retry prompt instead of a
+corrupted document.
+
+Seeding once and server-side is not a preference. Two clients that each
+initialise the same empty Y.Doc produce two concurrent inserts of the whole
+document, and Yjs merges both.
+
+**Consequences:**
+
+- The projection must be total. If the Y.Doc can reach a state that does not
+  project to a valid `DesignDocument`, the typed guarantee has already failed
+  and `checkDesignDocument` is catching it rather than the schema preventing
+  it. Running the integrity check over the projection during phase 3 is how
+  that stays honest.
+- Seeding runs headless, so block-to-ProseMirror conversion must work outside a
+  browser. BlockNote ships `@blocknote/server-util` for this; the frontend
+  currently depends only on `core`, `react` and `shadcn`, so confirm it exists
+  at 0.53 before planning around it rather than driving `prosemirror-model`
+  directly.
+- A stale projection cache is indistinguishable from drift at the point it is
+  read. Invalidate on update and keep the cache visibly a cache.
+- The portable specification carries plain text, because marks stay in the
+  Y.Doc. That is what §14.8 asks for, and it means an export never leaks
+  comment or suggestion state.
+- Undo and version history belong to the Y.Doc, which is what makes a
+  chat-applied change reversible (plan §8): "applied directly" is only
+  acceptable while undo is within reach.
+- Document-wide unique ids (decision 50) become load-bearing twice over, since
+  they are now also the editor's block ids.
+
+## 52. The codebase-delta feature is deferred whole to a future iteration
+
+**Context:** Phase 1 of the design-document workspace delivered the
+codebase-baseline model alongside the portable specification: scanner identity
+per element, baseline snapshots of scanner-comparable projections, derived
+Existing / New / Modified / Removed state (`design-doc-baseline.ts`), the
+active-scan reference with newer-scan tracking, and the integrity warnings
+that kept them coherent. Nothing consumed any of it — no scanner feeds the
+model yet, no UI renders a delta marker, and the scanner-baseline delivery
+phase sat last in the plan behind everything the first iteration actually
+ships.
+
+**Decision:** Remove the codebase-delta feature from this iteration's
+requirements and plan entirely, and reintroduce it in a future iteration.
+Removed from the model: `ScannerIdentity`, per-element `baseline` snapshots
+and `*Comparable` projections, `markedForRemoval`, the document-level
+`BaselineRef`, `CodebaseState`, `design-doc-baseline.ts`, the `stale-baseline`
+and `removal-without-baseline` integrity warnings, and the `source_scan` and
+`baseline_refresh` proposal triggers. Specification sections 2.6, 6.2, 8.3 and
+14.9 are marked deferred; the scanner-baseline phase left the plan.
+
+**Consequences:**
+
+- The first iteration's document carries design intent only; nothing in it
+  claims a relationship to scanned source code.
+- Element ids stay stable and document-wide unique (decision 50), so baseline
+  metadata can be reattached later without re-anchoring comments, suggestions
+  or proposals.
+- Decision 49's derivation rule (Modified from scanner-comparable fields only,
+  no upward propagation) travels with the feature and binds its future
+  reintroduction rather than current code.
+- Proposals keep the impact-summary and challenged-decision shape, which is
+  independent of baseline comparison; scan-driven triggers return with the
+  feature.
+
+## 53. Hocuspocus is the Yjs collaboration backend, persisted in the graph, behind a `/collab` surface
+
+**Status: accepted** (2026-08-17) — both phase-3 verification items passed before
+implementation: Hocuspocus 4.6 runs on Bun's native WebSocket (its
+`WebSocketLike` interface names Bun's `ServerWebSocket` explicitly, and
+`handleConnection`/`handleMessage`/`handleClose` map onto `Bun.serve`'s
+callbacks), and `@blocknote/server-util` 0.54 covers headless
+block-to-ProseMirror conversion (`blocksToYDoc` / `yDocToBlocks`). Two
+integration notes from the spike: Bun frees a request's headers once the
+WebSocket upgrade succeeds, so the cookie must be snapshotted into a new
+`Request` before upgrading; and the hook payloads' `requestHeaders` is a
+`Headers` object read with `.get()`, not a plain record.
+
+**Context:** Decision 51 makes one Yjs document per design document the stored
+truth for editing, seeded exactly once server-side, with `DesignDocument`
+derived on read. That leaves the transport and persistence unnamed: the
+frontend holds only `yjs` itself (no `y-websocket`, no `@hocuspocus/*`, no
+`@blocknote/xl-*` collaboration packages), and the backend — Hono on Bun with
+LadybugDB as its single datastore (decision 46) — has no WebSocket surface at
+all. Phase 3 needs a server that speaks the Yjs sync and awareness protocols,
+authenticates the connection, persists updates, and hosts the seed-once hook.
+
+Three options were considered. A bare `y-websocket` server is minimal but
+leaves auth, persistence, debouncing and awareness plumbing hand-rolled — the
+Better Auth trade from decision 46 in reverse. A hosted service (Liveblocks,
+y-sweet) removes the backend work but moves document content to a third
+party, sits poorly beside the self-registered GitHub App model where every
+deployment owns its data, and adds a paid external dependency to
+self-hosting. Hocuspocus is the de-facto self-hosted Yjs server: maintained
+by the Tiptap team, protocol-complete (sync, awareness, auth hook,
+debounced persistence), storage-agnostic through fetch/store hooks, and the
+server BlockNote's own collaboration documentation pairs with.
+
+**Decision:**
+
+- **`@hocuspocus/server` provides the collaboration protocol**, embedded in
+  the existing backend process rather than run as a second service, so one
+  deployment stays one process and one configuration.
+- **`/collab` is a fifth top-level surface** beside `/ui`, `/api`,
+  `/internal` and `/auth`, joining the SPA-fallback exclusion list. It
+  qualifies under decision 18's criterion the same way `/auth` did: its
+  consumer is a WebSocket speaking the Yjs binary protocols, not the typed
+  JSON RPC contract `/ui` owes `hc<AppType>`.
+- **The session cookie authenticates the upgrade.** The browser sends the
+  existing `HttpOnly` session cookie with the WebSocket upgrade request;
+  `onAuthenticate` verifies its SHA-256 against the graph exactly as
+  `requireSession` does, and rejects the connection otherwise. No second
+  token scheme.
+- **Documents persist in the graph, as Yjs binary state.** An
+  `onStoreDocument` hook (debounced) writes the encoded Y.Doc state into a
+  node owned by the design document; `onLoadDocument` reads it back. This
+  keeps decision 46's single-datastore principle — no second store appears
+  because collaboration arrived.
+- **Seeding stays decision 51's:** creation runs
+  `DesignDocumentSchema.parse → checkDesignDocument → toBlocks → seed`,
+  server-side, once, before any client connects. `onLoadDocument` only ever
+  loads existing state; it never initialises an empty document.
+- **The frontend connects with `@hocuspocus/provider`**, handed to
+  BlockNote's collaboration option, carrying presence and cursors on the
+  same awareness channel (plan §5).
+
+**Consequences:**
+
+- Two verification items block the phase-3 start: whether Hocuspocus's
+  WebSocket stack runs on Bun's Node-compat layer (it builds on the Node
+  `ws` ecosystem), and whether `@blocknote/server-util` at 0.53 covers
+  headless block-to-ProseMirror conversion for seeding. Either failing
+  revisits this decision before code is written — the fallbacks are running
+  the collab server as a Node sidecar, or driving `prosemirror-model`
+  directly.
+- The Yjs binary state in the graph is opaque to queries. Anything that
+  needs to read a document server-side goes through the projection to
+  `DesignDocument` (decision 51), never through the stored bytes.
+- Undo, version history and the durable substring anchors (marks) all live
+  in the Y.Doc and therefore in this persistence path; losing the stored
+  state loses them, so the graph's backup story now covers editor history
+  too.
+- Comments and suggestions remain their own records (specification §14.8);
+  the awareness channel carries their live updates but never their truth.
+- The `/collab` surface is browser-facing only. The MCP bridge and future
+  agents write through whole-document replacement on the API surface, not
+  through a Yjs connection.
+
+## 54. The collab provider's client lifecycle is StrictMode-safe: detach on cleanup, destroy only on real unmount, editor built with `withCollaboration`
+
+**Status: accepted** (2026-08-17) — implemented and verified end to end: with
+the fix, two browser tabs on the Vite dev server sync live edits and remote
+cursors in both directions, and the state persists through `onStoreDocument`;
+before the fix, the same test showed edits staying local forever.
+
+**Context:** Phase 3 wired the editor to `HocuspocusProvider` with
+`useState(() => new HocuspocusProvider(...))` and
+`useEffect(() => () => provider.destroy(), [provider])`. Under React
+StrictMode — which the app runs in development — every mount is followed by a
+simulated unmount/remount, so that cleanup ran once against a provider whose
+`useState` instance survived the remount. `destroy()` is not reversible: the
+provider registers its Y.Doc `update` handler at construction and only
+`destroy()` removes it (`attach`/`detach` manage socket listeners alone), so
+the remounted component held a provider that still received server state but
+never sent a document update again. The failure was silent and dangerous: the
+editor kept working against its local Y.Doc, nothing errored, edits simply
+never reached the server or other clients — and a stale duplicate editor
+instance (StrictMode also double-creates the `useCreateBlockNote` result)
+could push a near-empty state and wipe the shared document, which is how the
+sample document was lost during diagnosis. Production builds have no
+StrictMode double-invoke and were unaffected. Separately, passing the bare
+`CollaborationExtension` into `extensions` left BlockNote's local ProseMirror
+`history` extension active alongside `y-undo`, so undo could revert other
+collaborators' edits instead of only one's own.
+
+**Decision:**
+
+- **The provider effect is symmetric: `attach()` on setup, `detach()` on
+  cleanup.** Both are no-ops when already in the target state, so the
+  StrictMode cycle (cleanup, then setup re-run synchronously in the same
+  commit) lands back in a connected state instead of a destroyed one.
+- **`destroy()` runs only on a real unmount, decided by a deferred check.**
+  The cleanup schedules a task that destroys the provider only if it is
+  still detached when the task runs; a StrictMode remount has reattached by
+  then. This is what closes the socket and unhooks the Y.Doc handler when
+  the user actually leaves the document.
+- **Editor options go through `withCollaboration` instead of registering
+  `CollaborationExtension` by hand.** The wrapper adds the same extension
+  but also disables the local `history` extension (undo flows through
+  `Y.UndoManager` only) and sets the collaboration-safe placeholder
+  `initialContent` the fragment sync then replaces.
+- **The backend e2e suite gains a two-live-clients case**
+  (`collab.broadcast.spec.ts`): the existing suite proved sync-down and
+  store-on-disconnect but never that an edit broadcasts to a concurrently
+  connected client — exactly the path this bug broke.
+
+**Consequences:**
+
+- Development now exercises the same collaboration path as production;
+  StrictMode stays on, and this is the pattern for any future component that
+  owns a connection-holding resource: reversible cleanup, destruction only
+  behind a real-unmount check.
+- The deferred destroy leans on React's guarantee that StrictMode's
+  simulated remount re-runs effects synchronously in the same commit, before
+  any scheduled task fires. If that ever changes, the check degrades to
+  destroying a live provider — visible immediately as this same silent
+  no-sync symptom in dev.
+- The browser-level failure mode (a detached provider behind a
+  working-looking editor) is invisible to the backend suites; only a
+  browser-driven check catches it. Until an e2e harness for the frontend
+  exists, changes to the provider lifecycle warrant a manual two-tab test.
+
+## 55. Comments are BlockNote's comments feature over a `YjsThreadStore` in the shared Y.Doc
+
+**Status: accepted** (2026-08-17) — implemented and verified in the running
+app: comment over a selection, mention chip from the `@` menu, resolve,
+sidebar filters, an orphaned thread degrading to its quote, and threads
+persisting through the existing store hook. One integration hazard surfaced
+that the decision must record: **the server's headless projection schema has
+to register the comment mark.** y-prosemirror deletes any Y node whose marks
+the reading schema cannot construct, so projecting the live Y.Doc through a
+schema without the mark silently destroyed every commented text run seconds
+after the comment was made. The headless editor now includes
+`CommentsExtension` (with an inert thread store) for its mark alone — and the
+same rule applies to every future mark carried in the shared fragment,
+suggestion marks in phase 5 included: the mark must land in the frontend and
+headless schemas in the same change.
+
+**Context:** Phase 4 of the design-doc plan needs threads with replies,
+resolution, filters and people mentions, anchored to substrings that survive
+concurrent editing. The plan already settles the anchor model: an element-id
+`ElementRef` for what a thread is about, plus a mark carried in the shared
+document for the position inside it, with the quoted text as evidence
+(plan sections 3.8 and 4). BlockNote 0.54 — already the editor — ships a
+complete comments feature: a `CommentsExtension` whose comment mark is a
+ProseMirror mark synced through the collaboration fragment, UI components
+(floating composer, floating thread, a threads sidebar with filter and
+position sort), a `resolveUsers` user cache, and pluggable thread stores.
+Three storage options were considered: hand-rolled thread records behind REST
+endpoints with custom marks (rebuilds what the library ships, and polling or
+a second channel for liveness); `RESTYjsThreadStore` (server-authoritative
+writes, live reads from the Y.Doc — new routes plus server-side writes into
+the hosted document); and `YjsThreadStore` (threads in a `Y.Map` of the same
+Y.Doc, client-side writes).
+
+**Decision:**
+
+- **`CommentsExtension` supplies the mark and the UI.** The comment mark
+  travels in the shared fragment, which is exactly the durable substring
+  anchor the plan asks for — no text re-matching, no custom mark schema.
+- **Threads live in a `threads` `Y.Map` inside the design document's own
+  Y.Doc, through `YjsThreadStore`.** Sync arrives over the existing `/collab`
+  surface and persistence over the existing `onStoreDocument` hook
+  (`Y.encodeStateAsUpdate` covers the whole document, map included) — no new
+  transport, storage, or routes. The store is keyed by the account login,
+  with `DefaultThreadStoreAuth` in the `editor` role.
+- **Thread `metadata` carries the plan's anchor pair `{ elementId, quote }`**
+  captured at creation, so an orphaned mark degrades a thread to its element
+  with the quote as evidence rather than to a dangling pointer.
+- **`resolveUsers` reads a new `/ui/accounts` endpoint** serving
+  `{ id, name, avatarUrl }` from `Account` nodes; the same list feeds the
+  mention menu. The instance is invite-gated, so all accounts may comment.
+
+**Consequences:**
+
+- Comment integrity is client-enforced only: `ThreadStoreAuth` gates the UI,
+  but any account that can open the document can technically rewrite other
+  people's threads by writing to the `Y.Map` directly. Acceptable for an
+  invite-gated instance of trusted collaborators — the same trust decision 53
+  already extends to document content. The hardening seam is swapping
+  `YjsThreadStore` for `RESTYjsThreadStore` (writes through the backend,
+  reads unchanged) without touching the UI.
+- Threads stay outside the portable `DesignDocument`: the projection reads
+  only the document fragment, so an export never carries comment state
+  (plan section 3.8 holds).
+- Comment bodies are BlockNote block documents, not plain strings — the
+  plan's `Comment` shape in section 3.8 survives as the anchor/metadata
+  story, not as a literal stored record.
+
+## 56. Suggestions are prosemirror-suggest-changes marks in the shared Y.Doc
+
+**Status: accepted** (2026-08-18) — implemented and verified in the running
+app: suggested insertions and deletions render as marked runs, the rail lists
+them with author attribution, accept/reject round-trips (including from a
+second browser over the live channel), and the server projection keeps
+pending suggestions out of the `DesignDocument` cache until accepted.
+
+**Context:** Phase 5 of the design-doc plan needs Suggesting mode — edits
+captured as reviewable suggestions instead of document mutations — with
+tracked marks, per-suggestion accept/reject writing through to the model, and
+word-level narrowing, all under concurrent editing. The plan's own
+`Suggestion` record shape (section 3.8: anchor plus replacement string)
+re-implements tracked changes and needs its own reconciliation under
+concurrency. Meanwhile `@handlewithcare/prosemirror-suggest-changes` is the
+library BlockNote's own xl-ai package (same 0.54 release train) uses for
+tracked changes: three ProseMirror marks (`insertion`, `deletion`,
+`modification`), a `dispatchTransaction` decorator that transforms edits into
+mark-tracked transactions while enabled, and apply/revert commands per
+suggestion id or document-wide.
+
+**Decision:**
+
+- **The marks are the store.** Suggestions live as suggest-changes marks in
+  the shared fragment — they sync, persist, and rebase under concurrent
+  editing exactly as the text they annotate does, with no second record to
+  reconcile. The rail's list is a scan of the marks, so every client derives
+  the same list. The plan's `Suggestion` contract survives as the
+  anchor-and-authorship story, not as a stored record (the same shift
+  decision 55 made for comments).
+- **Authorship rides in the suggestion id.** Ids are
+  `<accountId>:<nonce>` strings minted by a custom `generateId`, so the rail
+  attributes a suggestion without a side table that could race, and
+  concurrent clients cannot collide the way the library's default
+  max-plus-one numeric ids can.
+- **The mark definitions are shared.** They live in
+  `@repo/design-doc-blocks/suggestion-marks` (the package's one deliberately
+  editor-coupled module, excluded from the structural main entry) and are
+  registered by the frontend editor and the backend's headless schema from
+  the same source — decision 55's rule that a fragment-carried mark must land
+  in both schemas in the same change, made structural.
+- **Suggesting is a local editor mode.** The Editing / Suggesting toggle
+  drives `enableSuggestChanges` per client; the suggest-changes plugin state
+  never syncs, so each person picks their own mode (plan §4). A read-only
+  Viewing mode was tried and dropped — always-editable is simpler and the
+  document is invite-gated anyway.
+- **One rail list, Google-Docs style.** Comment threads and pending
+  suggestions interleave in a single document-order list. The list shell is
+  ours (BlockNote's `ThreadsSidebar` owns its list and cannot interleave
+  foreign items) but each thread still renders through BlockNote's exported
+  `Thread` component, so thread UI does not fork. Suggestion selection syncs
+  both ways — marked text to card, card to marked text — as local UI state.
+- **The projection is the accepted document.** Before `toDocument`, the
+  server reverts all pending suggestions on a throwaway ProseMirror state —
+  suggested insertions drop out, suggested deletions stay — so a pending
+  suggestion never leaks into the `DesignDocument` cache, and accepting one
+  reaches the model through the ordinary store hook.
+
+- **Suggestion mark parse rules must out-rank the strike style.** The
+  marks' `parseDOM` uses attribute selectors (`del[data-id]`,
+  `ins[data-id]`) at priority 100: BlockNote's strike style also claims
+  bare `del`, and if it wins, ProseMirror's DOM reader re-parses a
+  deletion-marked run as struck text, sees a document that differs from
+  the view, and dispatches a self-replacing step — which the suggesting
+  transform turns into a fresh insertion, growing the document without
+  bound (the runaway-duplication incident of 2026-08-18, which also
+  corrupted the dev LadybugDB WAL twice).
+- **Never mutate ProseMirror's DOM from React.** The active-suggestion
+  tint is a dynamic stylesheet in `<head>`, not a class toggled on the
+  marked elements: any mutation inside `view.dom` fires ProseMirror's DOM
+  observer, whose re-parse is what triggered the runaway above.
+
+**Consequences:**
+
+- **Enter is inert while Suggesting.** The library records a block split as
+  zero-width boundary markers, and rejecting a split that opens a block
+  leaves the split behind (verified against 0.1.8). Until that reverts
+  cleanly, structural suggestions are new blocks via the slash menu and
+  removals via the drag-handle menu — both round-trip.
+- Suggestion integrity is client-enforced, like decision 55's threads: any
+  account that can edit the document can accept or reject any suggestion.
+  Acceptable for an invite-gated instance of trusted collaborators.
+- Word-level narrowing comes free: the transform marks exactly the inserted
+  and deleted runs, so a one-word edit suggests one word.
+- The agent never authors suggestions (plan §6); this machinery is the
+  human review path only.
+
+## 57. The agent phases (6 and 6b) are dropped from the design-doc iteration
+
+**Status: accepted** (2026-08-19)
+
+**Context:** The design-doc plan closed phases 1–5: model, reading view,
+typed collaborative editing, comments with mentions and presence, and
+suggestions with the merged review rail. What remained was the agent
+surface — phase 6 (chat with schema-bound context, direct application of
+requested changes, whole-document proposal review, all mocked) and phase 6b
+(the real model behind the same contract).
+
+**Decision:** Phases 6 and 6b are dropped from this iteration. The
+workspace ships as a human collaboration tool: typed editing, comments and
+suggestions. Section 6 of the plan stays as the design record for agent
+integration — the `DesignDocument`-emitting contract, the applied-vs-
+proposed rule and the no-agent-suggestions rule all still hold whenever
+that work is picked up — but no agent surface is built now, mocked or real.
+
+**Consequences:**
+
+- The iteration is complete; the feature branch can merge without an agent
+  panel or any canned-reply plumbing to maintain.
+- The scanner-baseline work already left with the codebase-delta feature
+  (decision 52); agent integration now joins it as future work, to be
+  re-planned as its own iteration when it returns.
+
+## 58. Inbox items are graph nodes under their project; lifecycle moves on conditional writes and read-time sweeps
 
 **Context:** The inbox feature (`docs/work/features/inbox.md`, prototyped in
 `inbox-prototype.html`) needs a first implementation: a per-project team
