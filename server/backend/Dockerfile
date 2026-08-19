@@ -2,7 +2,8 @@
 # ^ labs frontend for `COPY --parents` (decision 36). Must stay line 1.
 
 # Builds the single production image: the Hono server (bundled, self-contained)
-# serving the built ui app (decisions 17/28). Built by Railway via `railway up`
+# serving the built ui app (decisions 17/28). Built by Railway's GitHub
+# integration on every push to main (GitHub Actions only verify, never deploy)
 # with the repo root as build context (railway.json's dockerfilePath points here).
 # Bun version must match `packageManager` in package.json (and CI).
 
