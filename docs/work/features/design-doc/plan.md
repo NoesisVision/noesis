@@ -1,6 +1,7 @@
 # Collaborative Design Document Workspace — implementation plan
 
-**Status:** Phases 1–5 delivered; phases 6–6b ready to break into tasks
+**Status:** Phases 1–5 delivered; phases 6–6b (agent surface) dropped from this iteration
+(decision 57) — the iteration is complete
 **Date:** 2026-08-17
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
 [`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
@@ -454,20 +455,21 @@ recorded in decision 56: Enter is inert while Suggesting, because the library's 
 block-opening split leaves the split behind — structural suggestions are slash-menu insertions and
 drag-handle removals, which round-trip.
 
-**Phase 6 — Agent surface, mocked.** Chat with schema-bound context applying its changes directly,
-plus proposal review (impact summary, challenged decisions) and the accept/reject flow for whole
-proposals — all against canned agent output, so both paths can be exercised before a model is wired
-in.
+**Phase 6 — Agent surface, mocked. Dropped** (decision 57). Chat with schema-bound context applying
+its changes directly, plus proposal review (impact summary, challenged decisions) and the
+accept/reject flow for whole proposals — all against canned agent output, so both paths can be
+exercised before a model is wired in.
 
-**Phase 6b — Real agent.** Replace the canned replies with the model, keeping the proposal contract
-unchanged.
+**Phase 6b — Real agent. Dropped** (decision 57). Replace the canned replies with the model, keeping
+the proposal contract unchanged.
 
 The scanner-baseline phase that used to follow (delta markers from real scans, newer-scan
 notification, refresh through a reconciled proposal) moved out of this iteration with the
-codebase-delta feature (decision 52).
+codebase-delta feature (decision 52). The agent phases followed it out (decision 57): section 6
+remains the design for when agent integration returns.
 
-Phases 2–3 are the minimum for internal use; 4–5 make it reviewable together; 6 closes the loop
-with the agent.
+Phases 2–3 are the minimum for internal use; 4–5 make it reviewable together — and close this
+iteration.
 
 ## 8. Risks
 

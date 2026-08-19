@@ -1280,3 +1280,29 @@ suggestion id or document-wide.
   and deleted runs, so a one-word edit suggests one word.
 - The agent never authors suggestions (plan §6); this machinery is the
   human review path only.
+
+## 57. The agent phases (6 and 6b) are dropped from the design-doc iteration
+
+**Status: accepted** (2026-08-19)
+
+**Context:** The design-doc plan closed phases 1–5: model, reading view,
+typed collaborative editing, comments with mentions and presence, and
+suggestions with the merged review rail. What remained was the agent
+surface — phase 6 (chat with schema-bound context, direct application of
+requested changes, whole-document proposal review, all mocked) and phase 6b
+(the real model behind the same contract).
+
+**Decision:** Phases 6 and 6b are dropped from this iteration. The
+workspace ships as a human collaboration tool: typed editing, comments and
+suggestions. Section 6 of the plan stays as the design record for agent
+integration — the `DesignDocument`-emitting contract, the applied-vs-
+proposed rule and the no-agent-suggestions rule all still hold whenever
+that work is picked up — but no agent surface is built now, mocked or real.
+
+**Consequences:**
+
+- The iteration is complete; the feature branch can merge without an agent
+  panel or any canned-reply plumbing to maintain.
+- The scanner-baseline work already left with the codebase-delta feature
+  (decision 52); agent integration now joins it as future work, to be
+  re-planned as its own iteration when it returns.
