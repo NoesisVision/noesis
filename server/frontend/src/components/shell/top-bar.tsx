@@ -111,7 +111,10 @@ export function TopBar() {
   const isMobile = useIsMobile();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3">
+    <header // pl-4 lines the mark up with the project selector's tile directly
+      // below it: the sidebar header's p-2 plus its menu button's px-2.
+      className="flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background pr-3 pl-4"
+    >
       <BrandMark />
       <Separator
         orientation="vertical"

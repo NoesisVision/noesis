@@ -55,7 +55,12 @@ function NavMenuItem({ item }: { item: ShellNavItem }) {
 
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="icon">
+    // The container is `fixed inset-y-0 h-svh`, which would slide it under
+    // the top bar; both overrides need `!` to beat those base utilities.
+    <Sidebar
+      collapsible="icon"
+      className="top-(--header-height)! h-[calc(100svh-var(--header-height))]!"
+    >
       <SidebarHeader>
         <ProjectSelector />
       </SidebarHeader>
