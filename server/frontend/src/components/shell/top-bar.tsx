@@ -1,4 +1,4 @@
-import { useMatches } from '@tanstack/react-router';
+import { Link, useMatches } from '@tanstack/react-router';
 import {
   BellIcon,
   MoonIcon,
@@ -29,8 +29,32 @@ import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// The brand mark, not the project: the project lives in the sidebar header,
+// where the selector already carries its name and switcher. Repeating it up
+// here would put the two identities side by side and leave neither reading as
+// the primary one.
+function BrandMark() {
+  return (
+    <Link
+      to="/"
+      aria-label="Noesis Vision home"
+      className="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
+    >
+      <img
+        src="/noesis-mark.webp"
+        // The adjacent wordmark names the link when it is visible, and the
+        // aria-label covers the breakpoint where it is not.
+        alt=""
+        width={24}
+        height={24}
+        className="size-6"
+      />
+      <span className="hidden text-sm font-bold sm:inline">Noesis Vision</span>
+    </Link>
+  );
+}
+
 function ShellBreadcrumbs() {
-  const { project } = useShell();
   const matches = useMatches();
   // Routes carry their own label in staticData, so adding a view never means
   // touching a central breadcrumb map.
@@ -41,14 +65,9 @@ function ShellBreadcrumbs() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>
-          <span className="truncate text-muted-foreground">
-            {project?.name ?? 'No project'}
-          </span>
-        </BreadcrumbItem>
         {crumbs.map((crumb, index) => (
           <React.Fragment key={crumb}>
-            <BreadcrumbSeparator />
+            {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
               {index === crumbs.length - 1 ? (
                 <BreadcrumbPage>{crumb}</BreadcrumbPage>
@@ -93,6 +112,11 @@ export function TopBar() {
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-3">
+      <BrandMark />
+      <Separator
+        orientation="vertical"
+        className="mx-1 data-vertical:h-4 data-vertical:self-center"
+      />
       <SidebarTrigger />
       <Separator
         orientation="vertical"

@@ -32,7 +32,7 @@ function NavMenuItem({ item }: { item: ShellNavItem }) {
       <SidebarMenuButton
         isActive={item.viewId === viewId}
         tooltip={item.title}
-        // Terracotta rail on the active view — the shell's one accent, and the
+        // Brand-blue rail on the active view — the shell's one accent, and the
         // only cue that survives icon-collapsed mode.
         className="relative data-active:before:absolute data-active:before:inset-y-1 data-active:before:left-0 data-active:before:w-[3px] data-active:before:rounded-r-full data-active:before:bg-primary"
         render={
