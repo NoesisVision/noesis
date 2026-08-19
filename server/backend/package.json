@@ -10,7 +10,7 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core",
+    "build": "bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core --external jsdom",
     "start": "bun run src/main.ts",
     "dev": "bun --watch src/main.ts",
     "start:debug": "bun --inspect --watch src/main.ts",
@@ -35,6 +35,7 @@
     "@repo/local-contracts": "workspace:*",
     "@repo/shared-contracts": "workspace:*",
     "hono": "catalog:",
+    "jsdom": "^29.1.1",
     "octokit": "^5.0.5",
     "prosemirror-model": "^1.25.11",
     "prosemirror-state": "^1.4.4",

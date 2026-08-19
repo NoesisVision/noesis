@@ -27,6 +27,18 @@ RUN mkdir -p /runtime/node_modules/@ladybugdb \
   && cp -RL /repo/server/backend/node_modules/@ladybugdb/core \
     /runtime/node_modules/@ladybugdb/core
 
+# jsdom (required at runtime by @blocknote/server-util's headless editor) reads
+# its default stylesheet from disk at import time, so bundling it bakes the
+# build-stage path into main.js — a path that does not exist in this image
+# (decision 59). The server bundle marks it external; stage its full dependency
+# closure via a minimal install pinned to the workspace's resolved version.
+RUN mkdir /runtime-jsdom && cd /runtime-jsdom \
+  && printf '{"dependencies":{"jsdom":"%s"}}' \
+    "$(bun -e 'console.log(require("/repo/server/backend/node_modules/jsdom/package.json").version)')" \
+    > package.json \
+  && bun install --production \
+  && cp -R /runtime-jsdom/node_modules/. /runtime/node_modules/
+
 # --- runtime stage --------------------------------------------------------
 FROM oven/bun:1.3.14-slim
 WORKDIR /app

@@ -1350,3 +1350,37 @@ nothing else.
 - Expiry/wake happen at read time, so a project nobody looks at holds stale
   `open` states in the graph until the next read — acceptable while the
   only consumer is the UI that always reads first.
+
+## 59. jsdom stays external to the server bundle and is staged into the runtime image by a minimal install
+
+**Context:** The first Railway deploy after the design-doc phases failed at
+the healthcheck: the server crashed on boot with `ENOENT` for
+`/repo/node_modules/.bun/jsdom@29.1.1/.../browser/default-stylesheet.css`.
+`@blocknote/server-util` (decision 51's headless editor) depends on jsdom,
+and jsdom loads its default stylesheet from disk with `fs.readFileSync`
+relative to `__dirname` at import time. `bun build` inlines jsdom into
+`dist/main.js` and bakes `__dirname` as the build-stage path, which does not
+exist in the runtime image — the bundle is only self-contained for code, not
+for runtime file reads. Alternatives considered: seeding client-side (breaks
+decision 51.6 and still leaves the projection needing the schema),
+hand-rolling blocks→Y.Doc over BlockNote internals (drops jsdom entirely but
+leans on non-public API), and precomputing seeds at build time (impossible —
+`create()` takes arbitrary documents).
+
+**Decision:** Keep `ServerBlockNoteEditor` and fix the packaging. The build
+script marks jsdom external (alongside `@ladybugdb/core`), jsdom becomes an
+explicit backend dependency, and the Dockerfile stages jsdom's full
+dependency closure into `/runtime/node_modules` via a minimal
+`bun install --production` of just `{"dependencies":{"jsdom":"<resolved
+version>"}}` — the version read from the build stage's installed tree, so
+the lockfile stays the single source of truth.
+
+**Consequences:**
+
+- The pattern generalises: any future dependency that reads package files at
+  runtime gets the same treatment — external in the build script, staged in
+  the Dockerfile. The `@ladybugdb/core` precedent (native binding) and jsdom
+  (runtime asset read) are the two instances so far.
+- The runtime image grows by jsdom's ~40-package pure-JS closure (a few MB).
+- A local `bun run build && bun dist/main.js` now exercises the same
+  resolution path as production, since jsdom is a direct backend dependency.

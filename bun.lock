@@ -97,6 +97,7 @@
         "@repo/local-contracts": "workspace:*",
         "@repo/shared-contracts": "workspace:*",
         "hono": "catalog:",
+        "jsdom": "^29.1.1",
         "octokit": "^5.0.5",
         "prosemirror-model": "^1.25.11",
         "prosemirror-state": "^1.4.4",
