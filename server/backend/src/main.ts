@@ -134,7 +134,11 @@ async function ensureSchema(): Promise<void> {
     console.warn(
       `[server] NOESIS_RECOVER_WAL=1 — deleting ${wal} and retrying.`,
     );
-    await db.close();
+    // Best-effort, and it must not be awaited into the failure path: closing
+    // tries to checkpoint the very log that is torn, so it throws the same
+    // error the recovery is here to get past. The handle is unusable either
+    // way; unlinking the file out from under it is the point.
+    await db.close().catch(() => undefined);
     rmSync(wal, { force: true });
     db.init();
     await new SchemaService(db).ensureSchema();
