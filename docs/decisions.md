@@ -1554,6 +1554,11 @@ service, so that path runs on every idle cycle rather than only on deploys.
   trigger.
 - `NOESIS_RECOVER_WAL` should be unset once a recovery is done. Left on, it
   turns the next torn log into silent data loss instead of a loud failure.
+- The recovery must not `await db.close()` on the failure path. Closing tries
+  to checkpoint the very log that is torn and throws the same error, so the
+  first version of this recovery deleted nothing and crash-looped exactly like
+  the boot it was meant to fix. The close is best-effort; unlinking the file
+  out from under an unusable handle is the point.
 - None of this makes an embedded single-writer database safe under arbitrary
   kills — it narrows the window to writes actually in flight when SIGKILL
   lands. If that stops being good enough, the answer is a server-based store,
