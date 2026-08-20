@@ -1499,3 +1499,62 @@ never runs the picker or the connect flow), and a personal-access-token mode
   data directory built under `local` is not one a `github`-mode server can make
   sense of. `bun run dev:local` keeps them apart by pointing `NOESIS_DATA_DIR`
   at `.data-local`.
+
+## 62. Shutdown flushes collab stores before closing the database; a torn WAL is reported, and discarded only on request
+
+**Context:** The deployed server crash-looped for a day on
+`Runtime exception: Corrupted wal file. Read out invalid WAL record type.` The
+image built and pushed fine; the container died on the first query of every
+boot, so the healthcheck never passed and the platform restarted it into the
+same failure. LadybugDB keeps a write-ahead log beside the database file on the
+mounted volume, and a process killed mid-write leaves it torn.
+
+The mechanism was ours. `DesignDocCollabService.close()` called Hocuspocus's
+`closeConnections()`, whose name and our comment both promised a flush it does
+not perform: it drops the sockets and leaves the debounced `onStoreDocument`
+timers pending. The composition root then closed the database and called
+`process.exit(0)` immediately, so a debounced store could fire against a
+database that was closing or already closed. `sleepApplication` is on for the
+service, so that path runs on every idle cycle rather than only on deploys.
+
+**Decision:**
+
+- **Collab shutdown drains rather than disconnects.** `close()` registers an
+  `afterUnloadDocument` hook, closes connections, calls `flushPendingStores()`,
+  and waits for the document count to reach zero — the sequence Hocuspocus's
+  own `Server.runDestroy` uses. We cannot call that method: we embed the
+  `Hocuspocus` instance in `Bun.serve` rather than running its HTTP server.
+- **The drain is bounded (5 s), unlike upstream's.** The platform sends SIGKILL
+  after its grace period, and exiting with the database closed beats being
+  killed with a store half-written. A timeout logs how many documents were
+  still unloading.
+- **`shutdown()` is idempotent and closes the database in a `finally`.** A
+  second signal must not start a second teardown — two `db.close()` calls
+  racing on one native handle is the very thing that tears the log — and a
+  failure in the collab flush must not skip closing the database.
+- **A torn log is reported, not silently repaired.** The boot path recognises
+  the error and says what it means and what to do. `NOESIS_RECOVER_WAL=1`
+  deletes the log and retries once. Opt-in, because it loses the transactions
+  written since the last checkpoint and that is an operator's call.
+- **Collab order stays first in shutdown**, before `server.stop()`: `stop()`
+  waits for open connections, and the `/collab` WebSockets are open until the
+  collab service closes them.
+
+**Consequences:**
+
+- The e2e suite gains the case that actually failed: edit, leave the client
+  attached, call `close()` inside the debounce window, and assert the edit
+  reached the graph. It fails against the old `closeConnections()` body.
+- `DatabaseService` now exposes `walPath`, because the composition root is what
+  decides to delete it and should not be rebuilding the file naming by hand.
+- Recovery needed a code path rather than a one-off platform command: Railway's
+  `redeploy` reuses the previous deployment's config snapshot, so a start
+  command set on the service does not run until something triggers a genuinely
+  new deployment. An env-gated recovery ships with the image and needs no such
+  trigger.
+- `NOESIS_RECOVER_WAL` should be unset once a recovery is done. Left on, it
+  turns the next torn log into silent data loss instead of a loud failure.
+- None of this makes an embedded single-writer database safe under arbitrary
+  kills — it narrows the window to writes actually in flight when SIGKILL
+  lands. If that stops being good enough, the answer is a server-based store,
+  not more shutdown hardening.

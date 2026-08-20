@@ -145,6 +145,33 @@ describe('design-doc collab (e2e)', () => {
     expect(projectState(state).name).toBe('Appointment booking v2');
   });
 
+  it('flushes a pending store on shutdown, with the client still attached', async () => {
+    const id = await seededDocumentId();
+    const { doc, provider, synced } = connect(id);
+    await timeout(synced, 5000);
+
+    const sidecarMap = doc.getMap('design-doc-sidecar');
+    const sidecar = JSON.parse(sidecarMap.get('json') as string) as {
+      name: string;
+    };
+    sidecar.name = 'Flushed on shutdown';
+    sidecarMap.set('json', JSON.stringify(sidecar));
+
+    // Long enough for the edit to reach the server and start its debounce,
+    // far short of the debounce firing on its own. Nothing disconnects here:
+    // the shutdown path is the only thing that can persist this edit, which
+    // is exactly the case a container stop lands on.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    await collab.close();
+
+    const state = await repository.findState(id);
+    expect(state).not.toBeNull();
+    if (state === null) throw new Error('unreachable');
+    expect(projectState(state).name).toBe('Flushed on shutdown');
+
+    provider.destroy();
+  });
+
   it('refuses a document that does not exist', async () => {
     const { provider, refused } = connect('no-such-document');
     expect(await timeout(refused, 5000)).toBe('permission-denied');

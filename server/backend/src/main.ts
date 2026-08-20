@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
@@ -24,7 +25,7 @@ import { SearchService } from './ui/search/search.service.js';
 const config = loadServerConfig();
 const db = new DatabaseService(config.dataDir);
 db.init();
-await new SchemaService(db).ensureSchema();
+await ensureSchema();
 
 // No search providers yet — no entity is searchable. Providers register here
 // as their entities land (documents, graph nodes, projects).
@@ -96,13 +97,79 @@ const server = Bun.serve<CollabSocketData>({
 });
 console.log(`[server] listening on ${server.url}`);
 
+/**
+ * The schema pass is the first query of the process, and so the first thing a
+ * damaged on-disk database fails — LadybugDB reports a torn write-ahead log as
+ * a bare `Runtime exception` that says nothing about what to do next.
+ *
+ * There is no repairing it in place: the process dies on that first query,
+ * restarts, and dies again, which on a platform that restarts containers is a
+ * loop with no way out. `NOESIS_RECOVER_WAL=1` is the way out — it deletes the
+ * log and retries once, losing the transactions written since the last
+ * checkpoint. Opt-in on purpose: that loss is an operator's decision, not
+ * something a server should quietly decide for itself (decision 62).
+ */
+async function ensureSchema(): Promise<void> {
+  try {
+    await new SchemaService(db).ensureSchema();
+    return;
+  } catch (error) {
+    const wal = db.walPath;
+    if (!String(error).includes('Corrupted wal file') || wal === null)
+      throw error;
+
+    console.error(
+      `[server] The database in ${config.dataDir} has a torn write-ahead log: ` +
+        'a previous process was killed mid-write.',
+    );
+    if (process.env.NOESIS_RECOVER_WAL !== '1') {
+      console.error(
+        `[server] Set NOESIS_RECOVER_WAL=1 to delete ${wal} on the next boot ` +
+          'and carry on, losing the transactions written since the last ' +
+          'checkpoint. Take a copy of the data directory first if you want one.',
+      );
+      throw error;
+    }
+
+    console.warn(
+      `[server] NOESIS_RECOVER_WAL=1 — deleting ${wal} and retrying.`,
+    );
+    await db.close();
+    rmSync(wal, { force: true });
+    db.init();
+    await new SchemaService(db).ensureSchema();
+    console.warn(
+      '[server] Recovered. Unset NOESIS_RECOVER_WAL so the next torn log is ' +
+        'reported rather than discarded.',
+    );
+  }
+}
+
 // Explicit shutdown (Nest's lifecycle hooks, made ours): flush collab state,
 // stop accepting requests, then close the database deterministically so
 // on-disk state is flushed (decisions 23/35).
+//
+// Collab goes first even though it is the higher layer: `server.stop()` waits
+// for open connections, and the /collab WebSockets stay open until the collab
+// service closes them.
+let shuttingDown = false;
 async function shutdown(): Promise<void> {
-  await collabService.close();
-  await server.stop();
-  await db.close();
+  // A second signal must not start a second teardown. Two `db.close()` calls
+  // racing on one native handle is exactly what leaves a torn write-ahead log
+  // for the next boot to die on (decision 62).
+  if (shuttingDown) return;
+  shuttingDown = true;
+  try {
+    await collabService.close();
+    await server.stop();
+  } catch (error) {
+    console.error(
+      `[server] shutdown failed before the database closed: ${String(error)}`,
+    );
+  } finally {
+    // Reached on every path: an unclosed database is a corrupt one next boot.
+    await db.close();
+  }
   process.exit(0);
 }
 process.on('SIGINT', shutdown);
