@@ -30,8 +30,10 @@ import { cn } from '@/lib/utils';
  * The comment composer pieces (plan phase 4, slice 3): the mention-aware
  * comment editor — a copy of the shadcn comments Editor that adds the `@`
  * menu over the accounts roster. The schema itself (with the `mention`
- * inline content) lives in comment-schema.tsx. Comments address people only
- * — no agent mention (plan §6).
+ * inline content) lives in comment-schema.tsx, and the thread-anchor patch
+ * hook lives in comment-thread-anchor.ts — both kept out of this file so it
+ * exports only components (Fast Refresh). Comments address people only —
+ * no agent mention (plan §6).
  */
 
 type CommentEditorProps = ComponentProps['Comments']['Editor'];

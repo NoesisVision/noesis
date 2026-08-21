@@ -33,7 +33,7 @@
  * margins inside the editor with higher specificity.
  */
 .dd-editor h2.dd-sec {
-  margin: 46px 0 10px;
+  margin: 0 0 10px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
   font-size: 21px;

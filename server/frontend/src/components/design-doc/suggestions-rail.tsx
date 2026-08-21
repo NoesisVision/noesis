@@ -28,7 +28,9 @@ import { cn } from '@/lib/utils';
  * ThreadsSidebar because that component owns its list and cannot interleave
  * foreign items. Accepting or rejecting a suggestion dispatches through the
  * shared view, so the write lands in the Y.Doc and every collaborator (and
- * the server projection) sees the same outcome.
+ * the server projection) sees the same outcome. The rail's state lives in
+ * review-rail.ts, kept out of this file so it exports only components (Fast
+ * Refresh).
  */
 
 /** The document modes (plan §4). Both are editor-level. */

@@ -1,4 +1,7 @@
+import { useEditorChange } from '@blocknote/react';
+import type { HocuspocusProvider } from '@hocuspocus/provider';
 import * as React from 'react';
+import type { DesignDocEditor } from '@/components/design-doc/editor-schema';
 /*
  * The table-of-contents model over the editor's block list — the same
  * numbering the prototype fixes: five document sections, then bounded
@@ -142,4 +145,57 @@ export function useScrollSpy(
   }, [outline, scrollRef, resolve]);
 
   return activeId;
+}
+
+/**
+ * The table of contents follows the live block list — the outline is the
+ * same numbering the prototype fixes, recomputed on every editor change —
+ * plus the scroll-spied active entry and a navigate-to-block helper. Scrolls
+ * the document pane itself so the jump never bubbles to an ancestor; the
+ * offset keeps the block clear of the pane's top edge.
+ */
+export function useDocumentOutline(
+  editor: DesignDocEditor,
+  provider: HocuspocusProvider,
+  scrollRef: React.RefObject<HTMLDivElement | null>,
+): {
+  outline: OutlineItem[];
+  activeId: string | null;
+  navigate: (id: string) => void;
+} {
+  const [outline, setOutline] = React.useState<OutlineItem[]>([]);
+  const recomputeOutline = React.useCallback(() => {
+    setOutline(
+      buildOutlineFromBlocks(
+        editor.document as unknown as Parameters<
+          typeof buildOutlineFromBlocks
+        >[0],
+      ),
+    );
+  }, [editor]);
+  useEditorChange(recomputeOutline, editor);
+  React.useEffect(() => {
+    // The first sync arrives outside the editor-change callback's lifetime.
+    provider.on('synced', recomputeOutline);
+    recomputeOutline();
+    return () => {
+      provider.off('synced', recomputeOutline);
+    };
+  }, [provider, recomputeOutline]);
+
+  const activeId = useScrollSpy(outline, scrollRef, resolveBlockElement);
+
+  const navigate = (id: string) => {
+    const scroller = scrollRef.current;
+    const element = resolveBlockElement(id);
+    if (scroller === null || element === null) return;
+    const top =
+      element.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      12;
+    scroller.scrollTo({ top });
+  };
+
+  return { outline, activeId, navigate };
 }

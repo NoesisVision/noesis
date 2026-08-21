@@ -65,6 +65,12 @@ export const SuggestionsExtension = createExtension(
   }),
 );
 
+/** DOM selector matching every rendered mark of one suggestion. */
+export function suggestionSelector(id: string): string {
+  const escaped = CSS.escape(id);
+  return `ins[data-id="${escaped}"], del[data-id="${escaped}"], span[data-type="modification"][data-id="${escaped}"]`;
+}
+
 /** One pending suggestion, as the rail lists it. */
 export interface SuggestionListItem {
   id: string | number;
