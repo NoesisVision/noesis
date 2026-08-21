@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import {
   authModeQueryOptions,
   LOGIN_HREF,
@@ -44,7 +44,7 @@ export const Route = createFileRoute('/login')({
 
 // lucide dropped brand marks, and the button is the whole page — it earns the
 // twelve lines of path data.
-function GithubMark() {
+export function GithubMark() {
   return (
     <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
@@ -52,7 +52,7 @@ function GithubMark() {
   );
 }
 
-function ProductMark() {
+export function ProductMark() {
   return (
     <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-medium text-primary-foreground">
       N
@@ -69,7 +69,7 @@ const MESSAGES: Record<string, string> = {
     'This deployment’s GitHub App must have expiring user tokens enabled. Ask whoever registered it.',
 };
 
-export function LoginView() {
+function LoginView() {
   const { error, login } = Route.useSearch();
   const { data: authMode } = useSuspenseQuery(authModeQueryOptions);
   const local = authMode.mode === 'local';
@@ -115,34 +115,32 @@ export function LoginView() {
             {local ? (
               <div className="flex flex-col gap-2">
                 {authMode.accounts.map((account, index) => (
-                  <Button
+                  <a
                     key={account.login}
-                    className="w-full"
-                    variant={index === 0 ? 'default' : 'outline'}
-                    render={
-                      <a href={localLoginHref(account.login)}>
-                        <span>
-                          {account.name} (@{account.login})
-                        </span>
-                      </a>
-                    }
-                  />
+                    href={localLoginHref(account.login)}
+                    className={buttonVariants({
+                      className: 'w-full',
+                      variant: index === 0 ? 'default' : 'outline',
+                    })}
+                  >
+                    <span>
+                      {account.name} (@{account.login})
+                    </span>
+                  </a>
                 ))}
               </div>
             ) : (
-              <Button
-                className="w-full"
-                render={
-                  <a href={LOGIN_HREF}>
-                    <GithubMark />
-                    <span>
-                      {error === undefined
-                        ? 'Continue with GitHub'
-                        : 'Try again with GitHub'}
-                    </span>
-                  </a>
-                }
-              />
+              <a
+                href={LOGIN_HREF}
+                className={buttonVariants({ className: 'w-full' })}
+              >
+                <GithubMark />
+                <span>
+                  {error === undefined
+                    ? 'Continue with GitHub'
+                    : 'Try again with GitHub'}
+                </span>
+              </a>
             )}
           </>
         )}

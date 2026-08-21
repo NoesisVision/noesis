@@ -45,8 +45,8 @@ export function TableOfContents({
             onNavigate(item.id);
           }}
           className={cn(
-            'flex items-baseline gap-2 rounded-md px-2 py-0.5 text-[13px] leading-normal text-secondary-foreground no-underline hover:bg-accent',
-            item.level === 1 && 'mt-2.5 text-[13.5px] font-medium',
+            'flex items-center gap-2 rounded-md px-2 py-0.5 text-[13px] leading-normal text-secondary-foreground no-underline hover:bg-accent min-h-10',
+            item.level === 1 && 'text-[13.5px] font-medium',
             item.level === 2 && 'pl-4',
             item.level === 3 && 'pl-7 text-muted-foreground',
             item.id === activeId &&

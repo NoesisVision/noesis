@@ -5,7 +5,7 @@ import {
   LockIcon,
   PuzzleIcon,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { INSTALL_HREF, type Installation } from '@/lib/auth';
 import { pickerQueryOptions } from '@/lib/projects';
@@ -99,27 +99,23 @@ export function GrantAccessLinks({
   return (
     <div className="flex flex-wrap gap-2">
       {installation !== undefined && (
-        <Button
-          variant="outline"
-          size="sm"
-          render={
-            <a href={installation.manageUrl} target="_blank" rel="noreferrer">
-              <ExternalLinkIcon />
-              <span>Manage repository access on GitHub</span>
-            </a>
-          }
-        />
+        <a
+          href={installation.manageUrl}
+          target="_blank"
+          rel="noreferrer"
+          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+        >
+          <ExternalLinkIcon />
+          <span>Manage repository access on GitHub</span>
+        </a>
       )}
-      <Button
-        variant="outline"
-        size="sm"
-        render={
-          <a href={installHref}>
-            <PuzzleIcon />
-            <span>Install on another account</span>
-          </a>
-        }
-      />
+      <a
+        href={installHref}
+        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+      >
+        <PuzzleIcon />
+        <span>Install on another account</span>
+      </a>
     </div>
   );
 }

@@ -26,7 +26,7 @@ export function GraphPanel() {
   );
 }
 
-export function GraphView() {
+function GraphView() {
   useRightPanel(GraphPanel);
 
   return (

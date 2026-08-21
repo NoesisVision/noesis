@@ -3,7 +3,7 @@ import { ExternalLinkIcon, PlusIcon } from 'lucide-react';
 import * as React from 'react';
 import { client } from '@/client';
 import { RepoPicker } from '@/components/shell/repo-picker';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Installation } from '@/lib/auth';
 import { PROJECTS_KEY, projectErrorMessage } from '@/lib/projects';
@@ -148,17 +148,19 @@ export function CreateProjectForm({
           <span>{create.isPending ? 'Creating…' : 'Create project'}</span>
         </Button>
         {installation !== undefined && (
-          <Button
-            variant="outline"
-            className="ml-auto"
+          <a
+            href={installation.manageUrl}
+            target="_blank"
+            rel="noreferrer"
             title="Manage repository access on GitHub"
-            render={
-              <a href={installation.manageUrl} target="_blank" rel="noreferrer">
-                <ExternalLinkIcon />
-                <span>Manage repositories</span>
-              </a>
-            }
-          />
+            className={buttonVariants({
+              variant: 'outline',
+              className: 'ml-auto',
+            })}
+          >
+            <ExternalLinkIcon />
+            <span>Manage repositories</span>
+          </a>
         )}
       </div>
     </form>

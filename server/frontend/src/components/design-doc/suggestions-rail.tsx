@@ -50,17 +50,17 @@ export function ModeToggle({
   onChange: (mode: DocumentMode) => void;
 }) {
   return (
-    <div className="flex items-center rounded-md border border-border p-0.5">
-      {MODES.map((entry) => (
+    <div className="flex items-center rounded-md border border-border p-0.5 bg-sidebar">
+      {MODES.map((entry, i) => (
         <button
           key={entry.mode}
           type="button"
           aria-pressed={entry.mode === mode}
           className={cn(
-            'rounded px-2 py-0.5 text-xs',
+            `${i === 0 ? `rounded-l-sm` : i === MODES.length - 1 ? `rounded-r-sm` : ''} px-4 py-2 text-xs cursor-pointer`,
             entry.mode === mode
-              ? 'bg-secondary text-secondary-foreground'
-              : 'text-muted-foreground hover:bg-accent',
+              ? 'bg-sidebar-primary-foreground text-secondary-foreground'
+              : 'text-foreground hover:bg-background',
           )}
           onClick={() => onChange(entry.mode)}
         >

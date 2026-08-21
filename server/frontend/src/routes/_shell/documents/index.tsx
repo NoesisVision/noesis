@@ -94,31 +94,41 @@ export function DocumentsList({ projectId }: { projectId: string }) {
       ) : (
         <ul className="flex flex-col gap-1">
           {list.data.map((doc) => (
-            <li
+            <Link
+              to="/documents/$documentId"
+              params={{ documentId: doc.id }}
               key={doc.id}
-              className="flex items-center gap-3 rounded-lg border bg-card px-3 py-2 text-card-foreground shadow-xs"
             >
-              <Link
-                to="/documents/$documentId"
-                params={{ documentId: doc.id }}
-                className="flex min-w-0 flex-1 items-center gap-2"
+              <li
+                key={doc.id}
+                className="flex flex-1 min-w-0 items-center gap-3 rounded-lg border bg-card px-3 py-2 text-card-foreground shadow-xs hover:bg-accent"
               >
-                <span className="truncate text-sm font-medium">{doc.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {doc.date}
-                </span>
-              </Link>
-              <Badge variant="outline">{doc.status}</Badge>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Delete ${doc.name}`}
-                disabled={remove.isPending}
-                onClick={() => remove.mutate(doc.id)}
-              >
-                <Trash2Icon />
-              </Button>
-            </li>
+                <div className="flex flex-1 items-center gap-3">
+                  <span className="truncate text-sm font-medium">
+                    {doc.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {doc.date}
+                  </span>
+                </div>
+                <div className="flex flex-1 items-center text-right gap-3 justify-end">
+                  <Badge variant="outline">{doc.status}</Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Delete ${doc.name}`}
+                    disabled={remove.isPending}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      remove.mutate(doc.id);
+                    }}
+                  >
+                    <Trash2Icon />
+                  </Button>
+                </div>
+              </li>
+            </Link>
           ))}
         </ul>
       )}
@@ -133,7 +143,7 @@ export function DocumentsList({ projectId }: { projectId: string }) {
   );
 }
 
-export function DocumentsView() {
+function DocumentsView() {
   const { project } = useShell();
   useRightPanel(DocumentsPanel);
 

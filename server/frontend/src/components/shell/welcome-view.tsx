@@ -5,7 +5,7 @@ import { CreateProjectForm } from '@/components/shell/create-project-form';
 import { writeShellState } from '@/components/shell/shell-store';
 import { useTheme } from '@/components/shell/use-theme';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -132,13 +132,12 @@ export function WelcomeView({
                 account or organisation — you'll be brought straight back here.
               </p>
               <div>
-                <Button
-                  render={
-                    <a href={`${INSTALL_HREF}?returnTo=/`}>
-                      Install the GitHub App
-                    </a>
-                  }
-                />
+                <a
+                  href={`${INSTALL_HREF}?returnTo=/`}
+                  className={buttonVariants()}
+                >
+                  Install the GitHub App
+                </a>
               </div>
             </section>
           ) : (

@@ -59,7 +59,7 @@ export function AccountMenu() {
             render={
               <SidebarMenuButton
                 size="lg"
-                className="data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground"
+                className="data-popup-open:bg-sidebar-primary-foreground data-popup-open:text-sidebar-accent-foreground"
               >
                 <Avatar>
                   <AvatarImage src={account.avatarUrl} alt="" />

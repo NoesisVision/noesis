@@ -203,6 +203,7 @@ export function useReviewRail(
   // Text click: activate the card; any other click clears the highlight.
   const onDocumentClick = React.useCallback(
     (event: React.MouseEvent) => {
+      console.info('here', event);
       const marked = (event.target as HTMLElement).closest(
         'ins[data-id], del[data-id], span[data-type="modification"][data-id]',
       );

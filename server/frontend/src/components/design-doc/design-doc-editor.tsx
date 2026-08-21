@@ -115,58 +115,65 @@ export function DesignDocEditorView({
         activeId={activeId}
         onNavigate={navigate}
       />
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: click routing only — keyboard users reach suggestions via the rail. */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: same — the handler only routes clicks on suggestion marks. */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-auto"
-        onClick={onDocumentClick}
-      >
-        <div className="mx-auto max-w-[820px] px-6 pt-10 pb-40">
-          <div className="flex items-start justify-between gap-4 px-[54px]">
-            <h1 className="mb-1 text-3xl leading-tight font-semibold">
-              {title}
-            </h1>
-            <div className="flex shrink-0 items-center gap-3 pt-2">
-              <ModeToggle mode={mode} onChange={setMode} />
-              <PresenceFacepile provider={provider} />
-              <Button
-                variant={railOpen ? 'secondary' : 'ghost'}
-                size="icon"
-                className="size-7"
-                aria-label="Toggle comments"
-                onClick={() => setRailOpen((open) => !open)}
-              >
-                <MessageSquareTextIcon className="size-4" />
-              </Button>
+
+      <div className="flex-1 overflow-hidden">
+        <div className="grid h-full grid-rows-[auto_1fr]">
+          <div className="px-6 pt-3 border-b pointer-events-auto">
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="mb-1 text-3xl leading-tight font-semibold">
+                {title}
+              </h1>
+              <div className="flex shrink-0 items-center gap-3 pt-2">
+                <ModeToggle mode={mode} onChange={setMode} />
+                <PresenceFacepile provider={provider} />
+                <Button
+                  variant={railOpen ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="size-7"
+                  aria-label="Toggle comments"
+                  onClick={() => setRailOpen((open) => !open)}
+                >
+                  <MessageSquareTextIcon className="size-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-[13px] text-muted-foreground pb-4">
+              {subtitle}
             </div>
           </div>
-          <div className="mb-8 px-[54px] text-[13px] text-muted-foreground">
-            {subtitle}
-          </div>
-          <BlockNoteView
-            editor={editor}
-            slashMenu={false}
-            sideMenu={false}
-            // The default comments UI is replaced by the mention-aware
-            // controllers below.
-            comments={false}
-            // Follow the app's theme toggle, not the OS preference BlockNote
-            // would otherwise read.
-            theme={theme}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: click routing only — keyboard users reach suggestions via the rail. */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: same — the handler only routes clicks on suggestion marks. */}
+          <div
+            className="flex-1 overflow-auto  px-6 pb-40"
+            ref={scrollRef}
+            onClick={onDocumentClick}
           >
-            <SuggestionMenuController
-              triggerCharacter="/"
-              getItems={async (query) =>
-                filterSuggestionItems(typedSlashItems(editor), query)
-              }
-            />
-            <SideMenuController
-              sideMenu={(props) => (
-                <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
-              )}
-            />
-          </BlockNoteView>
+            <div className="flex-1 overflow-auto mx-auto max-w-[820px] pt-10 px-6 pb-40">
+              <BlockNoteView
+                editor={editor}
+                slashMenu={false}
+                sideMenu={false}
+                // The default comments UI is replaced by the mention-aware
+                // controllers below.
+                comments={false}
+                // Follow the app's theme toggle, not the OS preference BlockNote
+                // would otherwise read.
+                theme={theme}
+              >
+                <SuggestionMenuController
+                  triggerCharacter="/"
+                  getItems={async (query) =>
+                    filterSuggestionItems(typedSlashItems(editor), query)
+                  }
+                />
+                <SideMenuController
+                  sideMenu={(props) => (
+                    <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
+                  )}
+                />
+              </BlockNoteView>
+            </div>
+          </div>
         </div>
       </div>
       {railOpen && (

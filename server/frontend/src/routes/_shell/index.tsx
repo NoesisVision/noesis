@@ -84,7 +84,7 @@ export function SelectionPanelBinding() {
   return null;
 }
 
-export function DashboardView() {
+function DashboardView() {
   const { selection, setSelection } = useShell();
   useRightPanel(DashboardPanel);
 

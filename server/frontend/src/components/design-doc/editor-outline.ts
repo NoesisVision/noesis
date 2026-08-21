@@ -188,13 +188,13 @@ export function useDocumentOutline(
   const navigate = (id: string) => {
     const scroller = scrollRef.current;
     const element = resolveBlockElement(id);
+
     if (scroller === null || element === null) return;
-    const top =
-      element.getBoundingClientRect().top -
-      scroller.getBoundingClientRect().top +
-      scroller.scrollTop -
-      12;
-    scroller.scrollTo({ top });
+    element.scrollIntoView({
+      block: 'start',
+      inline: 'nearest',
+      behavior: 'smooth',
+    });
   };
 
   return { outline, activeId, navigate };

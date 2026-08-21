@@ -1,9 +1,6 @@
 import { SideMenuExtension } from '@blocknote/core';
-import {
-  DragHandleMenu,
-  RemoveBlockItem,
-  useExtensionState,
-} from '@blocknote/react';
+import { RemoveBlockItem, useExtensionState } from '@blocknote/react';
+import { Trash2 } from 'lucide-react';
 import {
   type BlockLike,
   removable,
@@ -20,15 +17,14 @@ export function TypedDragHandleMenu() {
     selector: (state: { block?: BlockLike } | undefined) => state?.block,
   }) as BlockLike | undefined;
 
-  return (
-    <DragHandleMenu>
-      {hovered !== undefined && removable(hovered.type) ? (
-        <RemoveBlockItem>Delete</RemoveBlockItem>
-      ) : (
-        <div className="px-3 py-1.5 text-xs text-muted-foreground">
-          Required by the schema
-        </div>
-      )}
-    </DragHandleMenu>
-  );
+  if (hovered !== undefined && removable(hovered.type)) {
+    return (
+      <RemoveBlockItem>
+        <span className="cursor-pointer inline-block hover:bg-muted">
+          <Trash2 size={20} />
+        </span>
+      </RemoveBlockItem>
+    );
+  }
+  return null;
 }

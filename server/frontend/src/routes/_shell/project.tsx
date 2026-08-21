@@ -44,7 +44,7 @@ export const Route = createFileRoute('/_shell/project')({
   staticData: { breadcrumb: 'Project', viewId: 'project' },
 });
 
-function ProjectPanel() {
+export function ProjectPanel() {
   const { project } = useShell();
   if (project === null) return null;
   return (
@@ -304,7 +304,7 @@ const INSTALL_MESSAGES: Record<string, string> = {
     'The install was requested. An organisation admin has to approve it before those repositories appear here.',
 };
 
-export function ProjectView() {
+function ProjectView() {
   const { project } = useShell();
   const { install } = Route.useSearch();
   useRightPanel(ProjectPanel);

@@ -9,7 +9,7 @@ import {
 } from '@/components/shell/right-panel';
 import { useRightPanel, useShell } from '@/components/shell/use-shell';
 import { useTheme } from '@/components/shell/use-theme';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { INSTALL_HREF } from '@/lib/auth';
 
 export interface SettingsSearch {
@@ -111,46 +111,42 @@ function InstallationsSection() {
               </span>
               {/* The only move available to us: deep-link to the screen that
                   actually decides the grant. */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto"
-                render={
-                  <a
-                    href={installation.manageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <span>Manage on GitHub</span>
-                    <ExternalLinkIcon />
-                  </a>
-                }
-              />
+              <a
+                href={installation.manageUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({
+                  variant: 'ghost',
+                  size: 'sm',
+                  className: 'ml-auto',
+                })}
+              >
+                <span>Manage on GitHub</span>
+                <ExternalLinkIcon />
+              </a>
             </li>
           ))}
         </ul>
       )}
 
       <div>
-        <Button
-          variant="outline"
-          render={
-            <a href={INSTALL_HREF}>
-              <PuzzleIcon />
-              <span>
-                {installations.length === 0
-                  ? 'Connect repositories'
-                  : 'Connect another account'}
-              </span>
-            </a>
-          }
-        />
+        <a
+          href={INSTALL_HREF}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          <PuzzleIcon />
+          <span>
+            {installations.length === 0
+              ? 'Connect repositories'
+              : 'Connect another account'}
+          </span>
+        </a>
       </div>
     </section>
   );
 }
 
-export function SettingsView() {
+function SettingsView() {
   const { account } = useShell();
   useRightPanel(SettingsPanel);
 
