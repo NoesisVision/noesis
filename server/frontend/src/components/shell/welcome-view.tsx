@@ -142,10 +142,8 @@ export function WelcomeView({
             </section>
           ) : (
             <section className="flex flex-col gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-xs">
-              <h2 className="text-sm font-semibold">
-                Create your first project
-              </h2>
               <CreateProjectForm
+                title="Create your first project"
                 installations={installations}
                 onCreated={async (project) => {
                   // No shell context exists yet; the provider reads this when

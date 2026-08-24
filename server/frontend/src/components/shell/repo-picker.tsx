@@ -59,7 +59,8 @@ export function RepoPicker({
               className={cn(
                 'flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm',
                 picked ? 'border-primary bg-accent' : 'bg-card',
-                owned && 'opacity-60',
+                owned && 'opacity-60 cursor-not-allowed',
+                !owned && 'cursor-pointer hover:bg-accent',
               )}
             >
               <span className="flex min-w-0 flex-1 items-center gap-2">

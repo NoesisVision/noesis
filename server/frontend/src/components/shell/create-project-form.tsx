@@ -1,5 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ExternalLinkIcon, PlusIcon } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLinkIcon,
+  PlusIcon,
+} from 'lucide-react';
 import * as React from 'react';
 import { client } from '@/client';
 import { RepoPicker } from '@/components/shell/repo-picker';
@@ -23,12 +28,16 @@ export interface CreatedProject {
 export function CreateProjectForm({
   installations,
   onCreated,
+  title,
 }: {
   installations: Installation[];
   onCreated: (project: CreatedProject) => void | Promise<void>;
+  title?: string;
 }) {
   const queryClient = useQueryClient();
   const [name, setName] = React.useState('');
+  const [nameSubmitted, setNameSubmitted] = React.useState(false);
+
   const [installationId, setInstallationId] = React.useState<string | null>(
     installations[0]?.id ?? null,
   );
@@ -91,78 +100,115 @@ export function CreateProjectForm({
         if (submittable) create.mutate();
       }}
     >
-      <Input
-        autoFocus
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder="Project name"
-        aria-label="Project name"
-      />
-
-      {installations.length > 1 && (
-        <div className="flex flex-wrap gap-1">
-          {installations.map((candidate) => (
-            <button
-              key={candidate.id}
-              type="button"
-              onClick={() => {
-                setInstallationId(candidate.id);
-                // A project binds to one installation (decision 46); picks do
-                // not carry across.
-                setSelected(new Set());
-              }}
-              className={cn(
-                'rounded-lg border px-3 py-1 text-sm',
-                candidate.id === installationId
-                  ? 'border-primary bg-accent'
-                  : 'bg-card',
-              )}
-            >
-              {candidate.accountLogin}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {installationId !== null && (
-        <RepoPicker
-          installationId={installationId}
-          selected={selected}
-          onToggle={toggle}
-        />
-      )}
-
-      <p className="text-xs text-muted-foreground">
-        Repositories the App can reach on{' '}
-        <strong>{installation?.accountLogin ?? 'this installation'}</strong> —
-        pick at least one.
-      </p>
-
-      {create.error && (
-        <p className="text-sm text-destructive">{create.error.message}</p>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit" disabled={!submittable}>
-          <PlusIcon />
-          <span>{create.isPending ? 'Creating…' : 'Create project'}</span>
-        </Button>
-        {installation !== undefined && (
-          <a
-            href={installation.manageUrl}
-            target="_blank"
-            rel="noreferrer"
-            title="Manage repository access on GitHub"
-            className={buttonVariants({
-              variant: 'outline',
-              className: 'ml-auto',
-            })}
+      {!nameSubmitted ? (
+        <>
+          {!!title && <h2 className="text-sm font-semibold">{title}</h2>}
+          <Input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && name.trim() !== '') {
+                setNameSubmitted(true);
+              }
+            }}
+            placeholder="Project name"
+            aria-label="Project name"
+          />
+          <Button
+            disabled={name.trim() === ''}
+            onClick={() => setNameSubmitted(true)}
           >
-            <ExternalLinkIcon />
-            <span>Manage repositories</span>
-          </a>
-        )}
-      </div>
+            <span>Next</span>
+            <ChevronRight />
+          </Button>
+        </>
+      ) : (
+        <>
+          <div>
+            <Button
+              disabled={create.isPending}
+              onClick={() => setNameSubmitted(false)}
+              variant="ghost"
+              className="flex"
+            >
+              <ChevronLeft />
+              <span>Back</span>
+            </Button>
+          </div>
+          {installations.length > 1 && (
+            <>
+              <h2 className="text-sm font-semibold">Select an installation</h2>
+              <div className="flex flex-wrap gap-1">
+                {installations.map((candidate) => (
+                  <button
+                    key={candidate.id}
+                    type="button"
+                    onClick={() => {
+                      setInstallationId(candidate.id);
+                      // A project binds to one installation (decision 46); picks do
+                      // not carry across.
+                      setSelected(new Set());
+                    }}
+                    className={cn(
+                      'rounded-lg border px-3 py-1 text-sm cursor-pointer hover:bg-accent',
+                      candidate.id === installationId
+                        ? 'border-primary bg-accent'
+                        : 'bg-card',
+                    )}
+                  >
+                    {candidate.accountLogin}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {installationId !== null && (
+            <>
+              <h2 className="text-sm font-semibold">Select repository</h2>
+              <RepoPicker
+                installationId={installationId}
+                selected={selected}
+                onToggle={toggle}
+              />
+              <p className="text-xs text-muted-foreground">
+                Repositories the App can reach on{' '}
+                <strong>
+                  {installation?.accountLogin ?? 'this installation'}
+                </strong>{' '}
+                — pick at least one.
+              </p>
+            </>
+          )}
+
+          {create.error && (
+            <p className="text-sm text-destructive">{create.error.message}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {installation !== undefined && (
+              <a
+                href={installation.manageUrl}
+                target="_blank"
+                rel="noreferrer"
+                title="Manage repository access on GitHub"
+                className={buttonVariants({
+                  variant: 'outline',
+                  className: 'ml-auto',
+                })}
+              >
+                <ExternalLinkIcon />
+                <span>Manage repositories</span>
+              </a>
+            )}
+          </div>
+
+          <Button type="submit" disabled={!submittable}>
+            <PlusIcon />
+            <span>{create.isPending ? 'Creating…' : 'Create project'}</span>
+          </Button>
+        </>
+      )}
     </form>
   );
 }
