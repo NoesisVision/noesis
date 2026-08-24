@@ -118,12 +118,15 @@ export function DesignDocEditorView({
 
       <div className="flex-1 overflow-hidden">
         <div className="grid h-full grid-rows-[auto_1fr]">
-          <div className="px-6 pt-3 border-b pointer-events-auto">
+          <div className="px-6 py-3 border-b pointer-events-auto">
             <div className="flex items-start justify-between gap-4">
-              <h1 className="mb-1 text-3xl leading-tight font-semibold">
+              <h1 className="text-3xl leading-tight font-semibold inline-block vertical-align-middle">
                 {title}
               </h1>
-              <div className="flex shrink-0 items-center gap-3 pt-2">
+              <div className="flex shrink-0 items-center gap-3">
+                <h6 className="text-[13px] text-muted-foreground relative vertical-align-middle inline-block">
+                  {subtitle}
+                </h6>
                 <ModeToggle mode={mode} onChange={setMode} />
                 <PresenceFacepile provider={provider} />
                 <Button
@@ -136,9 +139,6 @@ export function DesignDocEditorView({
                   <MessageSquareTextIcon className="size-4" />
                 </Button>
               </div>
-            </div>
-            <div className="text-[13px] text-muted-foreground pb-4">
-              {subtitle}
             </div>
           </div>
           {/* biome-ignore lint/a11y/noStaticElementInteractions: click routing only — keyboard users reach suggestions via the rail. */}

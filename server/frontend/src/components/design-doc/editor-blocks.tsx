@@ -619,7 +619,7 @@ function PropInput({
   return (
     <input
       className={cn(
-        'rounded border border-transparent bg-transparent px-1 py-0 hover:border-border focus:border-border focus:outline-none',
+        'rounded border bg-transparent px-1 py-0 hover:border-border focus:border-primary focus:outline-none',
         className,
       )}
       size={Math.max(value.length, placeholder.length, 4)}
@@ -733,7 +733,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
   ) => (
     <div key={step.id} className="flex items-center gap-2">
       <select
-        className="w-20 rounded border border-border bg-card px-1 py-0.5 text-right font-semibold text-primary"
+        className="w-20 rounded border border-border bg-card px-1 py-0.5 text-right font-semibold text-primary cursor-pointer hover:bg-accent hover:text-sidebar-accent-foreground hover:border-accent focus:outline-none"
         value={step.keyword}
         onChange={(event) =>
           save({
@@ -751,7 +751,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
         ))}
       </select>
       <input
-        className="flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 hover:border-border focus:border-border focus:outline-none"
+        className="flex-1 rounded border bg-transparent px-1 py-0.5 hover:border-border focus:border-primary focus:outline-none"
         value={step.text}
         onChange={(event) =>
           save({
@@ -799,7 +799,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
             : 'Scenario'}
         </span>
         <input
-          className="flex-1 rounded border border-transparent bg-transparent px-1 py-0.5 font-medium hover:border-border focus:border-border focus:outline-none"
+          className="flex-1 rounded border bg-transparent px-1 py-0.5 font-medium hover:border-border focus:border-primary focus:outline-none"
           placeholder="Scenario title"
           value={scenario.title}
           onChange={(event) => save({ ...scenario, title: event.target.value })}
@@ -818,7 +818,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
       </div>
       <button
         type="button"
-        className="mt-1 flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-accent"
+        className="mt-1 flex items-center gap-1 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-accent cursor-pointer"
         onClick={() => addStep('steps')}
       >
         <PlusIcon className="size-3" /> step
@@ -843,7 +843,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
                 {row.cells.map((cell, cellIndex) => (
                   <td
                     key={`${row.id}-${scenario.examples?.headers[cellIndex] ?? cellIndex}`}
-                    className="border border-border px-1 py-0.5"
+                    className="border px-1 py-0.5 focus-within:border-b-primary"
                   >
                     <input
                       className="w-24 bg-transparent focus:outline-none"

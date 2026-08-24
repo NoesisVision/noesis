@@ -5,13 +5,18 @@
  * at a time, though technically a single BlockNote instance edits them all.
  */
 
-.dd-editor .dd-editable {
+.dd-editor .dd-editable:not([contenteditable="false"]) {
   border-radius: 0.5rem;
-  margin: 0 -8px;
-}
+  padding: 4px;
+  margin: 0 -4px;
 
-.dd-editor .dd-editable:hover:not([contenteditable="false"]) {
-  background: var(--secondary);
+  &:hover {
+    outline: 2px dashed var(--accent);
+
+    &.dd-active {
+      outline: 2px solid var(--ring);
+    }
+  }
 }
 
 .dd-editor .bn-suggestion-menu-item {
@@ -46,11 +51,29 @@
   line-height: 1.3;
 }
 
-.bn-side-menu button {
-  cursor: pointer;
+.bn-side-menu {
+  background: var(--card);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 0 1px var(--border);
+  padding: 4px;
+  animation: fade 0.3s ease-in-out forwards;
+  /*opacity: 0;*/
 
-  &:has([data-test="dragHandle"]) {
-    cursor: grab;
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  button {
+    cursor: pointer;
+
+    &:has([data-test="dragHandle"]) {
+      cursor: grab;
+    }
   }
 }
 
