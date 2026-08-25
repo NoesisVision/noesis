@@ -1,4 +1,8 @@
-import { insertOrUpdateBlockForSlashMenu } from '@blocknote/core';
+import type { ComputeDropPositionContext } from '@blocknote/core';
+import {
+  insertOrUpdateBlockForSlashMenu,
+  SideMenuExtension,
+} from '@blocknote/core';
 import type { DefaultReactSuggestionItem } from '@blocknote/react';
 import {
   blockGroup,
@@ -33,6 +37,43 @@ export function groupOfBlock(block: BlockLike | undefined): string | null {
     block.type as DesignDocBlockType,
     block.props as Record<string, string | number | boolean>,
   );
+}
+
+/** Whether `dragged` is allowed to drop onto `target` (same reorder group). */
+function sameDropGroup(
+  dragged: BlockLike | undefined,
+  target: BlockLike | undefined,
+): boolean {
+  const draggedGroup = groupOfBlock(dragged);
+  return draggedGroup !== null && draggedGroup === groupOfBlock(target);
+}
+
+/** The block, if any, whose DOM the point under (x, y) belongs to. */
+function blockAtPoint(
+  editor: DesignDocEditor,
+  x: number,
+  y: number,
+): BlockLike | undefined {
+  const id = document
+    .elementFromPoint(x, y)
+    ?.closest('[data-id]')
+    ?.getAttribute('data-id');
+  return id == null
+    ? undefined
+    : (editor.getBlock(id) as unknown as BlockLike | undefined);
+}
+
+/**
+ * The id of the block a BlockNote drag payload carries, if any (its root
+ * element carries `data-id`, same as a live block's DOM). The only reliable
+ * way to identify the dragged block: the drag handle lives in the floating
+ * side menu, never inside the dragged block's own DOM subtree, so DOM
+ * traversal from `event.target`/`currentTarget` on any drag event can never
+ * find it (BlockNote's own `dragStart` doesn't try — it already has the
+ * block from side-menu state and stamps this payload itself).
+ */
+function draggedBlockIdFromHtml(html: string): string | undefined {
+  return /data-id="([^"]+)"/.exec(html)?.[1];
 }
 
 /**
@@ -202,22 +243,94 @@ export function useConstrainedDrop(
         }
         return;
       }
-      const draggedId = /data-id="([^"]+)"/.exec(html)?.[1];
-      const targetId = over?.closest('[data-id]')?.getAttribute('data-id');
+      const draggedId = draggedBlockIdFromHtml(html);
       const dragged =
         draggedId === undefined
           ? undefined
           : (editor.getBlock(draggedId) as unknown as BlockLike | undefined);
-      const target =
-        targetId == null
-          ? undefined
-          : (editor.getBlock(targetId) as unknown as BlockLike | undefined);
-      const draggedGroup = groupOfBlock(dragged);
-      if (draggedGroup === null || draggedGroup !== groupOfBlock(target)) {
+      const target = blockAtPoint(editor, event.clientX, event.clientY);
+
+      if (!sameDropGroup(dragged, target)) {
         cancel();
+      } else {
+        editor.getExtension(SideMenuExtension)?.unfreezeMenu();
       }
     };
     document.addEventListener('drop', onDropCapture, true);
-    return () => document.removeEventListener('drop', onDropCapture, true);
+
+    // The drag handle button is both the drag source and a Base UI
+    // Menu.Trigger (for the delete dropdown) that opens on `mousedown`, not
+    // `click` (it supports press-and-hold-to-select) — so starting a block
+    // drag always freezes the side menu first. A native drag then suppresses
+    // the rest of the mouse sequence, so the trigger's own mouseup-based
+    // close logic either never fires (successful drop) or fires with the
+    // pointer still over the trigger and gets swallowed by its own bounds
+    // check (cancelled drop). Either way `menuFrozen` is left stuck true —
+    // unconditionally clear it once the drag ends; a freeze at that point is
+    // this mousedown side effect, never a legitimately open delete menu.
+    const onDragEnd = () => {
+      editor.getExtension(SideMenuExtension)?.unfreezeMenu();
+    };
+    document.addEventListener('dragend', onDragEnd);
+
+    return () => {
+      document.removeEventListener('drop', onDropCapture, true);
+      document.removeEventListener('dragend', onDragEnd);
+    };
   }, [editor, scrollRef]);
+}
+
+/**
+ * The dragged block's id, tracked from `dragstart` since `dataTransfer` is
+ * unreadable during `dragover` (browsers only expose it on `dragstart` and
+ * `drop`) — `computeDropPosition` below needs it on every `dragover` to
+ * decide whether to show the drop-cursor highlight at all.
+ */
+function useDraggedBlockId(): React.RefObject<string | null> {
+  const draggedBlockId = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const onDragStart = (event: DragEvent) => {
+      const html = event.dataTransfer?.getData('blocknote/html') ?? '';
+      draggedBlockId.current = draggedBlockIdFromHtml(html) ?? null;
+    };
+    // Bubble phase, not capture: BlockNote's own `dragstart` handler on the
+    // drag-handle button (bubble phase, per React) calls
+    // `dataTransfer.setData('blocknote/html', ...)` synchronously
+    // (dragging.ts `dragStart()`) — a capture-phase listener on `document`
+    // would run before that and see an empty transfer.
+    document.addEventListener('dragstart', onDragStart);
+    return () => document.removeEventListener('dragstart', onDragStart);
+  }, []);
+  return draggedBlockId;
+}
+
+/**
+ * The drop-cursor highlight, restricted to same-group targets (plan §4):
+ * BlockNote's default `DropCursorExtension` shows the highlight at whatever
+ * position the pointer is near, with no notion of the schema's reorder
+ * groups. Returning `null` from `computeDropPosition` suppresses the
+ * highlight for that position, so only valid drop targets ever light up —
+ * the actual drop is still vetoed independently by `useConstrainedDrop`.
+ */
+export function useDragGroupDropCursor(): (
+  context: ComputeDropPositionContext,
+) => ComputeDropPositionContext['defaultPosition'] {
+  const draggedBlockId = useDraggedBlockId();
+  return React.useCallback(
+    (context: ComputeDropPositionContext) => {
+      const dragged =
+        draggedBlockId.current == null
+          ? undefined
+          : (context.editor.getBlock(draggedBlockId.current) as unknown as
+              | BlockLike
+              | undefined);
+      const target = blockAtPoint(
+        context.editor as unknown as DesignDocEditor,
+        context.event.clientX,
+        context.event.clientY,
+      );
+      return sameDropGroup(dragged, target) ? context.defaultPosition : null;
+    },
+    [draggedBlockId],
+  );
 }

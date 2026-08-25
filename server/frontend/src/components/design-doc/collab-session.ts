@@ -14,7 +14,10 @@ import {
   designDocSchema,
 } from '@/components/design-doc/editor-schema';
 import { SuggestionsExtension } from '@/components/design-doc/suggestions';
-import { typedPasteHandler } from '@/components/design-doc/typed-editing';
+import {
+  typedPasteHandler,
+  useDragGroupDropCursor,
+} from '@/components/design-doc/typed-editing';
 import { accountsQueryOptions } from '@/lib/accounts';
 
 /*
@@ -108,6 +111,11 @@ export function useCollabEditor(
     [queryClient],
   );
 
+  // Only same-reorder-group targets ever light up while dragging a block
+  // (typed-editing.ts) — the drop itself is separately vetoed by
+  // useConstrainedDrop in design-doc-editor.tsx.
+  const computeDropPosition = useDragGroupDropCursor();
+
   const editor = useCreateBlockNote(
     // `withCollaboration` (not the bare extension) also disables the local
     // history extension — undo must go through Y.UndoManager, or it can
@@ -116,6 +124,7 @@ export function useCollabEditor(
     withCollaboration({
       schema: designDocSchema,
       pasteHandler: typedPasteHandler,
+      dropCursor: { hooks: { computeDropPosition } },
       extensions: [
         CommentsExtension({
           threadStore,
@@ -130,7 +139,14 @@ export function useCollabEditor(
         provider: { awareness: provider.awareness ?? undefined },
       },
     }),
-    [provider, userName, threadStore, resolveUsers, account.id],
+    [
+      provider,
+      userName,
+      threadStore,
+      resolveUsers,
+      account.id,
+      computeDropPosition,
+    ],
   );
 
   // Enrich the awareness `user` state the cursors already broadcast with the

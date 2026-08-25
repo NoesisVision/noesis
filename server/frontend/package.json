@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bunx vite",
+    "start:debug": "bunx vite",
     "build": "bunx --bun vite build",
     "check-types": "tsc --noEmit",
     "preview": "vite preview"

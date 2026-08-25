@@ -41,7 +41,7 @@
  * margins inside the editor with higher specificity.
  */
 .dd-editor .bn-block-outer:has(h2.dd-sec, h3.dd-sec, h4.dd-sec) {
-  margin-top: 1.5em;
+  /*margin-top: 1.5em;*/
 }
 .dd-editor h2.dd-sec {
   margin: 0 0 16px;
@@ -127,7 +127,7 @@
 
 /* Prototype `.label` (In scope / Out of scope and friends). */
 .dd-editor .dd-label {
-  margin: 22px 0 4px;
+  margin: 0 0 4px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.07em;
