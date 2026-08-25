@@ -43,7 +43,7 @@ export function FieldRowBlock({ block, contentRef }: RenderProps) {
     editor.updateBlock(block as never, { props: patch } as never);
   };
   return (
-    <div className="dd-editable flex items-baseline gap-3 border-b border-border py-1 text-sm">
+    <div className="dd-editable flex items-baseline gap-3 border border-border py-1 text-sm">
       <span className="min-w-44 font-medium" ref={contentRef} />
       <span
         contentEditable={false}

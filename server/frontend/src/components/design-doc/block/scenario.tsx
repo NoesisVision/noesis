@@ -120,7 +120,7 @@ export function ScenarioBlock({ block, editor }: ScenarioRenderProps) {
   return (
     <div
       contentEditable={false}
-      className="dd-editable my-1 w-full border border-border p-3 text-sm"
+      className="dd-editable my-1 w-full border border-border p-3 rounded text-sm"
     >
       <div className="flex items-center gap-2">
         <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">

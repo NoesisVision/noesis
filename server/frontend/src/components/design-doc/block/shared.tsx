@@ -140,7 +140,10 @@ function SectionFrame({
         <SectionHeadingLine num={section.num} title={section.title} />
       )}
       {markers.scopeLabel !== null && (
-        <div contentEditable={false} className="dd-label select-none">
+        <div
+          contentEditable={false}
+          className="dd-label select-none block-title bn-drag-exclude"
+        >
           {markers.scopeLabel}
         </div>
       )}
@@ -272,7 +275,10 @@ function GroupFrame({
   return (
     <div className="w-full">
       {label !== null && (
-        <div contentEditable={false} className="dd-label select-none">
+        <div
+          contentEditable={false}
+          className="dd-label select-none block-title bn-drag-exclude"
+        >
           {label}
         </div>
       )}

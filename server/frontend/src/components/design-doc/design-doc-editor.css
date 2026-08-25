@@ -40,11 +40,9 @@
  * here rather than as utilities because BlockNote's stylesheet resets
  * margins inside the editor with higher specificity.
  */
-.dd-editor .bn-block-outer:has(h2.dd-sec, h3.dd-sec, h4.dd-sec) {
-  /*margin-top: 1.5em;*/
-}
+
 .dd-editor h2.dd-sec {
-  margin: 0 0 16px;
+  margin-bottom: 16px;
   padding-top: 0;
   font-size: 21px;
   font-weight: 600;
@@ -159,4 +157,31 @@
 .dd-threads .bn-editor,
 .dd-comment-editor .bn-editor {
   font-size: 13px;
+}
+
+.bn-block-content.ProseMirror-selectednode > :after,
+.ProseMirror-selectednode > .bn-block-content > :after,
+.bn-block-content .ProseMirror-selectednode:after,
+.bn-inline-content .ProseMirror-selectednode:after {
+  display: none;
+}
+
+*:has(> .block-title) {
+  position: relative;
+}
+
+.block-title {
+  pointer-events: none;
+}
+
+.dd-editor {
+  h2.dd-sec {
+    margin-left: -24px;
+  }
+  h3.dd-sec {
+    margin-left: 0;
+  }
+  h4.dd-sec {
+    margin-left: 8px;
+  }
 }
