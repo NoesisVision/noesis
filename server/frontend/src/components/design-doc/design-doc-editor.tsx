@@ -1,6 +1,8 @@
 import { filterSuggestionItems } from '@blocknote/core';
 import {
+  AddBlockButton,
   BlockNoteContext,
+  DragHandleButton,
   SideMenu,
   SideMenuController,
   SuggestionMenuController,
@@ -34,7 +36,10 @@ import {
   typedSlashItems,
   useConstrainedDrop,
 } from '@/components/design-doc/typed-editing';
-import { TypedDragHandleMenu } from '@/components/design-doc/typed-editing-menu';
+import {
+  NoDragHandleMenu,
+  TypedDeleteButton,
+} from '@/components/design-doc/typed-editing-menu';
 import { useTheme } from '@/components/shell/use-theme';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -167,8 +172,12 @@ export function DesignDocEditorView({
                   }
                 />
                 <SideMenuController
-                  sideMenu={(props) => (
-                    <SideMenu {...props} dragHandleMenu={TypedDragHandleMenu} />
+                  sideMenu={() => (
+                    <SideMenu>
+                      <AddBlockButton />
+                      <TypedDeleteButton />
+                      <DragHandleButton dragHandleMenu={NoDragHandleMenu} />
+                    </SideMenu>
                   )}
                 />
               </BlockNoteView>

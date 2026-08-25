@@ -1,43 +1,56 @@
 import { SideMenuExtension } from '@blocknote/core';
 import {
-  RemoveBlockItem,
+  useBlockNoteEditor,
   useComponentsContext,
   useExtensionState,
 } from '@blocknote/react';
+import { Trash2 } from 'lucide-react';
 import {
   type BlockLike,
   removable,
 } from '@/components/design-doc/typed-editing';
 
 /**
- * Schema-aware deletion (plan §4): list members can be deleted, elements the
- * schema requires cannot. The hovered block comes from the side-menu
- * extension's state, the same source the default menu items read. Kept out
- * of typed-editing.ts so this module exports only components (Fast Refresh).
- *
- * Content must sit inside `Menu.Dropdown` (the library's own DragHandleMenu
- * does the same) — without it, the drag-handle's Menu.Root has no Popup to
- * host Base UI's dismiss-on-outside-click handling, so a stray click (as
- * opposed to a drag) on the handle freezes the side menu via
- * DragHandleButton's onOpenChange→freezeMenu with nothing left to unfreeze
- * it, permanently hiding .bn-side-menu for the rest of the session.
+ * Disables the drag handle's own built-in dropdown (colors/table headers/
+ * delete — none of it schema-aware): deletion is handled by
+ * `TypedDeleteButton` instead, gated on the schema's `removable` check. Also
+ * sidesteps that dropdown's Menu.Trigger, which opens on mousedown (Base UI,
+ * to support press-and-hold-to-select) and collides with dragging the same
+ * handle — see `useConstrainedDrop`'s dragend fix in typed-editing.ts.
  */
-export function TypedDragHandleMenu() {
+export function NoDragHandleMenu(): null {
+  return null;
+}
+
+/**
+ * Schema-aware deletion (plan §4): list members can be deleted, elements the
+ * schema requires cannot. Rendered as a plain icon button next to Add/Drag in
+ * the side menu, not behind a dropdown. The hovered block comes from the
+ * side-menu extension's state, the same source the default menu items read.
+ * Kept out of typed-editing.ts so this module exports only components (Fast
+ * Refresh).
+ */
+export function TypedDeleteButton() {
   const Components = useComponentsContext();
+  const editor = useBlockNoteEditor();
   const hovered = useExtensionState(SideMenuExtension, {
     selector: (state: { block?: BlockLike } | undefined) => state?.block,
   }) as BlockLike | undefined;
 
   if (
-    Components !== undefined &&
-    hovered !== undefined &&
-    removable(hovered.type)
+    Components === undefined ||
+    hovered === undefined ||
+    !removable(hovered.type)
   ) {
-    return (
-      <Components.Generic.Menu.Dropdown className="bn-menu-dropdown bn-drag-handle-menu">
-        <RemoveBlockItem>Delete</RemoveBlockItem>
-      </Components.Generic.Menu.Dropdown>
-    );
+    return null;
   }
-  return null;
+
+  return (
+    <Components.SideMenu.Button
+      className="bn-button"
+      label="Delete"
+      icon={<Trash2 size={20} />}
+      onClick={() => editor.removeBlocks([hovered.id])}
+    />
+  );
 }
