@@ -8,7 +8,7 @@
 # Bun version must match `packageManager` in package.json (and CI).
 
 # --- build stage ----------------------------------------------------------
-FROM oven/bun:1.3.14 AS build
+FROM oven/bun:1.4.0 AS build
 WORKDIR /repo
 
 # Workspace manifests first so the install layer caches across source changes.
@@ -41,7 +41,7 @@ RUN mkdir /runtime-jsdom && cd /runtime-jsdom \
   && cp -R /runtime-jsdom/node_modules/. /runtime/node_modules/
 
 # --- runtime stage --------------------------------------------------------
-FROM oven/bun:1.3.14-slim
+FROM oven/bun:1.4.0-slim
 WORKDIR /app
 
 COPY --from=build /repo/server/backend/dist ./server
