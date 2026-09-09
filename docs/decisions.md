@@ -1680,3 +1680,6 @@ gone. Closes the "until parity" clauses of 63.
 - The server bundle shrinks (about 1 MB from several) and the runtime image
   loses jsdom's package closure.
 - Root `--filter '*'` scripts and CI run one frontend again.
+- With the old app gone, `server/frontend2` is renamed back to
+  `server/frontend` (package name `frontend`); decision 63's paths read as
+  that directory from here on.

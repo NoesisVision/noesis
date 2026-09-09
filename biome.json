@@ -9,8 +9,8 @@
     "includes": [
       "**",
       "!plugins/claude-code/skills/**/references",
-      "!server/frontend2/public",
-      "!server/frontend2/src/routeTree.gen.ts",
+      "!server/frontend/public",
+      "!server/frontend/src/routeTree.gen.ts",
       "!docs/**/prior-art"
     ]
   },
@@ -46,7 +46,7 @@
       }
     },
     {
-      "includes": ["server/frontend2/**"],
+      "includes": ["server/frontend/**"],
       "linter": {
         "rules": {
           "style": {
@@ -56,7 +56,7 @@
       }
     },
     {
-      "includes": ["server/frontend2/src/routes/**"],
+      "includes": ["server/frontend/src/routes/**"],
       "linter": {
         "rules": {
           "style": {

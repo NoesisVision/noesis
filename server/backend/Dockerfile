@@ -18,7 +18,7 @@ COPY --parents server/*/package.json packages/*/package.json plugins/*/package.j
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bun run --filter=backend --filter=frontend2 build
+RUN bun run --filter=backend --filter=frontend build
 
 # @ladybugdb/core is a native module (dlopen'd .node binding), so the server
 # bundle marks it external. After install its package dir is self-contained
@@ -33,7 +33,7 @@ FROM oven/bun:1.3.14-slim
 WORKDIR /app
 
 COPY --from=build /repo/server/backend/dist ./server
-COPY --from=build /repo/server/frontend2/dist/client ./ui
+COPY --from=build /repo/server/frontend/dist/client ./ui
 # require("@ladybugdb/core") from server/main.js resolves up to /app/node_modules.
 COPY --from=build /runtime/node_modules ./node_modules
 
