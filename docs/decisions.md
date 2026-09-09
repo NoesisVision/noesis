@@ -1583,7 +1583,10 @@ carries the same proxy table as before, so `bun run dev:server` and the auth
 redirect setup work unchanged. `frontend2` joins the workspace conventions:
 root Biome config (its scaffolded `biome.json` is removed), catalog versions
 for TypeScript, Biome and `@types/node`, a `check-types` script, and route
-components exported so `useComponentExportOnlyModules` holds.
+components moved out of route files (`src/components/`) so a route module
+exports only `Route`: exporting the component from the route file satisfied
+`useComponentExportOnlyModules` but TanStack Router warned that any extra
+export defeats the route's code-splitting.
 
 **Alternatives considered:**
 
