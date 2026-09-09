@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-08-18_
+_Last updated: 2026-09-09_
 
 ---
 
@@ -1563,3 +1563,123 @@ service, so that path runs on every idle cycle rather than only on deploys.
   kills — it narrows the window to writes actually in flight when SIGKILL
   lands. If that stops being good enough, the answer is a server-based store,
   not more shutdown hardening.
+
+## 63. The UI is rebuilt on TanStack Start in `server/frontend2`, built in SPA mode so the Hono server keeps serving it
+
+**Context:** The UI was started over as a TanStack Start app (`server/frontend2`,
+scaffolded with `create-tsrouter-app`: file-based routing, TanStack Query,
+React Compiler, Tailwind). Start is a full-stack framework: its default build
+emits a server bundle that renders routes on the server, and its dev server
+listens on port 3000 — the same port as the backend. The old `server/frontend`
+was a plain Vite SPA that the Hono server served from `UI_DIST_PATH`
+(decisions 17/28/36), with the dev server proxying `/ui`, `/auth` and
+`/collab` to the backend.
+
+**Decision:** Start runs in SPA mode. The build prerenders one shell to
+`dist/client/index.html` (`spa.prerender.outputPath`), and the Dockerfile
+copies `server/frontend2/dist/client` to `/app/ui` where the unchanged
+`serveStatic` fallback in `main.ts` picks it up. The dev server binds 5173 and
+carries the same proxy table as before, so `bun run dev:server` and the auth
+redirect setup work unchanged. `frontend2` joins the workspace conventions:
+root Biome config (its scaffolded `biome.json` is removed), catalog versions
+for TypeScript, Biome and `@types/node`, a `check-types` script, and route
+components moved out of route files (`src/components/`) so a route module
+exports only `Route`: exporting the component from the route file satisfied
+`useComponentExportOnlyModules` but TanStack Router warned that any extra
+export defeats the route's code-splitting.
+
+**Alternatives considered:**
+
+- **Full SSR: run the Start server as the web tier and proxy the API to Hono.**
+  Two processes (or a Start server hosting Hono), a second port in the
+  container, and the auth cookie and `/collab` WebSocket upgrade would have to
+  cross a proxy in production. Nothing in the UI needs server rendering today;
+  server functions and SSR can be switched on later by dropping `spa`, and the
+  hosting question is then decided on its own.
+- **Keep the plain Vite + TanStack Router setup and port the new UI into it.**
+  Loses Start's file-route conventions and server-function path the rebuild
+  was started on.
+
+**Consequences:**
+
+- One production image and one process, as before. `UI_DIST_PATH` semantics are
+  unchanged.
+- The shell is prerendered at build time, so the root route must render without
+  browser globals; client-only code goes behind effects or `ClientOnly`.
+- `server/frontend` stays in the workspace until the new UI reaches parity;
+  `bun run dev:server` and the Dockerfile no longer touch it. Root
+  `--filter '*'` scripts (`build`, `check-types`) still run it.
+- Renovate and Biome overrides list both directories until the old one is
+  removed.
+
+## 64. Collaborative editing is removed from the backend; the old `server/frontend` and `@repo/design-doc-blocks` go with it
+
+**Status: accepted** (2026-09-09).
+
+**Context:** Decisions 51, 53, 54, 55, 56 and 59 built design-doc editing on a
+Yjs document per design document: Hocuspocus embedded in `Bun.serve` behind
+a `/collab` WebSocket surface, the encoded Y.Doc persisted as a
+`DesignDocState` node, a headless `ServerBlockNoteEditor` seeding the Y.Doc
+on create and projecting it back to `DesignDocument` on every store, comment
+and suggestion marks carried in the shared fragment, and jsdom staged into
+the runtime image for the headless editor. The only consumer was the
+BlockNote editor in `server/frontend`, which decision 63 replaced with the
+TanStack Start app in `server/frontend2`. The new UI does not use the
+`/collab` surface, and the editing model it will get is not decided yet.
+Meanwhile the backend carried eleven dependencies (BlockNote, Hocuspocus,
+Yjs, y-prosemirror, ProseMirror, prosemirror-suggest-changes, jsdom, the
+shared block package) and a Dockerfile staging step for code nothing calls.
+
+**Decision:** Remove collaborative editing from the backend whole, and remove
+its two remaining consumers with it:
+
+- `design-doc-collab.service.ts`, `design-doc-editor.server.ts`, the
+  suggestion-mark unit test and both `/collab` e2e specs are deleted.
+  `main.ts` serves Hono alone — no WebSocket branch, no `/collab` in the
+  SPA-fallback surface list, and shutdown is `server.stop()` then
+  `db.close()`.
+- `DesignDocsRepository` loses `findState`, `saveState` and
+  `updateDocument`; `DesignDocsService.create` no longer seeds a Y.Doc. The
+  `DesignDocState` table leaves the schema. The `document` column is the
+  stored design document again, as in phase 2.
+- The backend drops `@blocknote/core`, `@blocknote/server-util`,
+  `@handlewithcare/prosemirror-suggest-changes`, `@hocuspocus/provider`,
+  `@hocuspocus/server`, `@repo/design-doc-blocks`, `jsdom`,
+  `prosemirror-model`, `prosemirror-state`, `y-prosemirror` and `yjs`. The
+  build script no longer marks jsdom external and the Dockerfile no longer
+  stages it.
+- `server/frontend` (the Vite SPA) and `packages/design-doc-blocks` (the
+  block schema shared between that editor and the backend) are deleted.
+  Biome, Renovate, `.gitignore`, `.prettierignore`, `docs/stack.md` and the
+  README drop their references; `server/frontend2`'s dev proxy drops
+  `/collab`.
+
+**Supersedes 53, 54, 55, 56 and 59.** Amends 51: `DesignDocument` stays the
+interchange format and the validated write boundary, but there is no
+editing truth beside it any more. Amends 62: the torn-WAL reporting and the
+single-teardown guard stay; the collab flush they were ordered around is
+gone. Closes the "until parity" clauses of 63.
+
+**Alternatives considered:**
+
+- **Keep the backend collab surface until the new UI needs an editor.** Keeps
+  eleven dependencies, a runtime-image staging step and a WebSocket code path
+  alive with no caller and no test that exercises them from a real client.
+  When editing returns, the transport and model should be chosen for the new
+  UI rather than inherited.
+- **Keep `packages/design-doc-blocks` as a seed for the next editor.** Its
+  block specs are BlockNote-specific and typed against `@tiptap/core`; with
+  neither consumer left it is dead code that git history preserves anyway.
+
+**Consequences:**
+
+- Design documents are create/read/list/delete only. There is no server-side
+  edit path; one is a new decision when the new UI grows an editor.
+- Existing data directories keep an empty `DesignDocState` table (the schema
+  pass only creates). It is inert and can be dropped by hand.
+- The server bundle shrinks (about 1 MB from several) and the runtime image
+  loses jsdom's package closure.
+- Root `--filter '*'` scripts and CI run one frontend again.
+- With the old app gone, `server/frontend2` is renamed back to
+  `server/frontend` (package name `frontend`); decision 63's paths read as
+  that directory from here on.

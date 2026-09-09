@@ -1,31 +1,64 @@
+import { TanStackDevtools } from '@tanstack/react-devtools';
 import type { QueryClient } from '@tanstack/react-query';
-import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { ThemeProvider } from '@/components/shell/theme-provider';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import {
+  createRootRouteWithContext,
+  HeadContent,
+  Scripts,
+} from '@tanstack/react-router';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
+import appCss from '../styles.css?url';
 
-// The query client reaches routes through the router's context, so `_shell`'s
-// guard can read /ui/me in `beforeLoad` — before any component renders.
-export interface RouterContext {
+interface MyRouterContext {
   queryClient: QueryClient;
 }
 
-export const Route = createRootRouteWithContext<RouterContext>()({
-  component: RootComponent,
+export const Route = createRootRouteWithContext<MyRouterContext>()({
+  head: () => ({
+    meta: [
+      {
+        charSet: 'utf-8',
+      },
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1',
+      },
+      {
+        title: 'TanStack Start Starter',
+      },
+    ],
+    links: [
+      {
+        rel: 'stylesheet',
+        href: appCss,
+      },
+    ],
+  }),
+  shellComponent: RootDocument,
 });
 
-// The root route carries providers only. Everything visible lives under the
-// `_shell` layout route, so a chrome-less route (the login page, and later a
-// print view or embed) can sit next to it without unpicking the shell.
-export function RootComponent() {
+export function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
-      <TooltipProvider>
-        <Outlet />
-        {import.meta.env.DEV && (
-          <TanStackRouterDevtools position="bottom-right" />
-        )}
-      </TooltipProvider>
-    </ThemeProvider>
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <TanStackDevtools
+          config={{
+            position: 'bottom-right',
+          }}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+            TanStackQueryDevtools,
+          ]}
+        />
+        <Scripts />
+      </body>
+    </html>
   );
 }

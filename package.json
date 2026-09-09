@@ -6,6 +6,7 @@
     "dev": "bun run --filter '*' dev",
     "dev:server": "./scripts/dev-server.sh",
     "dev:local": "NOESIS_AUTH_MODE=local NOESIS_DATA_DIR=.data-local ./scripts/dev-server.sh",
+    "start:debug": "bun run --filter '*' start:debug",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "lint:md": "prettier --check \"**/*.md\"",

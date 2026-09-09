@@ -7,7 +7,7 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 ```
 ┌─────────────────┐   REST    ┌────────────────┐   REST    ┌─────────────────────┐
 │ server/frontend │ ────────► │ server/backend │ ◄──────── │ plugins/mcp-bridge  │
-│   React/Vite    │           │   Hono (bun)   │           │  MCP bridge (stdio) │
+│ TanStack Start  │           │   Hono (bun)   │           │  MCP bridge (stdio) │
 │     :5173       │           │      :3000     │           │  npm: @noesis-vision│
 └─────────────────┘           └────────────────┘           │     /mcp-bridge     │
                                                            └─────────────────────┘
@@ -22,10 +22,10 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ### Apps
 
-| App               | Stack               | Purpose                                              |
-| ----------------- | ------------------- | ---------------------------------------------------- |
-| `server/frontend` | React 19 + Vite     | Web frontend; typed RPC (`hc<AppType>`) to `backend` |
-| `server/backend`  | Hono on `Bun.serve` | Backend API (port `3000`)                            |
+| App               | Stack                     | Purpose                   |
+| ----------------- | ------------------------- | ------------------------- |
+| `server/frontend` | TanStack Start (React 19) | Web frontend (SPA mode)   |
+| `server/backend`  | Hono on `Bun.serve`       | Backend API (port `3000`) |
 
 ### The MCP bridge (`plugins/mcp-bridge`)
 
