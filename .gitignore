@@ -25,7 +25,6 @@ build/
 dist/
 
 # Vendored React Flow Pro examples — licensed reference material, never committed
-server/frontend/docs/react-flow-examples/
 
 
 # Debug

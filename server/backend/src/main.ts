@@ -5,10 +5,6 @@ import { createApp } from './app.js';
 import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
-import {
-  type CollabSocketData,
-  DesignDocCollabService,
-} from './design-docs/design-doc-collab.service.js';
 import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
@@ -38,13 +34,6 @@ if (authModule.mode === 'disabled') {
 
 const projectsRepository = new ProjectsRepository(db);
 const designDocsRepository = new DesignDocsRepository(db);
-// The `/collab` surface (decision 53): the Yjs collaboration backend,
-// embedded in this process, upgraded below in Bun.serve rather than routed
-// through Hono — its consumer speaks the Yjs binary protocols, not JSON.
-const collabService = new DesignDocCollabService(
-  designDocsRepository,
-  authModule,
-);
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
@@ -70,7 +59,7 @@ const uiDistPath = process.env.UI_DIST_PATH
 if (uiDistPath !== undefined) {
   // Registered after the routes in createApp, so surface endpoints win and
   // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/api', '/internal', '/auth', '/collab'];
+  const surfaces = ['/ui', '/api', '/internal', '/auth'];
   // `path` must be relative — hono's serveStatic strips a leading slash from
   // it (absolute paths are only honored in `root`).
   const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });
@@ -84,16 +73,9 @@ if (uiDistPath !== undefined) {
   });
 }
 
-const server = Bun.serve<CollabSocketData>({
+const server = Bun.serve({
   port: Number(process.env.PORT ?? 3000),
-  fetch(request, srv) {
-    const { pathname } = new URL(request.url);
-    if (pathname === '/collab' || pathname.startsWith('/collab/')) {
-      return collabService.upgrade(request, srv);
-    }
-    return app.fetch(request);
-  },
-  websocket: collabService.websocket,
+  fetch: app.fetch,
 });
 console.log(`[server] listening on ${server.url}`);
 
@@ -149,13 +131,9 @@ async function ensureSchema(): Promise<void> {
   }
 }
 
-// Explicit shutdown (Nest's lifecycle hooks, made ours): flush collab state,
-// stop accepting requests, then close the database deterministically so
-// on-disk state is flushed (decisions 23/35).
-//
-// Collab goes first even though it is the higher layer: `server.stop()` waits
-// for open connections, and the /collab WebSockets stay open until the collab
-// service closes them.
+// Explicit shutdown (Nest's lifecycle hooks, made ours): stop accepting
+// requests, then close the database deterministically so on-disk state is
+// flushed (decisions 23/35).
 let shuttingDown = false;
 async function shutdown(): Promise<void> {
   // A second signal must not start a second teardown. Two `db.close()` calls
@@ -164,7 +142,6 @@ async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
   try {
-    await collabService.close();
     await server.stop();
   } catch (error) {
     console.error(

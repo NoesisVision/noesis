@@ -112,8 +112,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
   // validated at the write boundary (schema parse + integrity check) so a
   // stored document always parses back. `name`, `status` and `date` are
   // denormalised copies of document fields so listing does not parse every
-  // document. In phase 3 the Yjs document becomes the editing truth (decision
-  // 51) and this column becomes the seed input / projection cache.
+  // document.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
      id STRING,
      project_id STRING,
@@ -127,18 +126,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      PRIMARY KEY(id)
    )`,
   `CREATE REL TABLE IF NOT EXISTS HasDesignDoc(FROM Project TO DesignDoc)`,
-  // The Yjs document per design document — the stored truth for editing
-  // (decisions 51/53). `state` is the encoded Y.Doc update, base64. Kept as
-  // its own node rather than a DesignDoc column so the frequent debounced
-  // collab writes never touch the row the listing reads. Opaque to queries:
-  // server-side reads go through the projection to DesignDocument.
-  `CREATE NODE TABLE IF NOT EXISTS DesignDocState(
-     id STRING,
-     state STRING,
-     version INT64 DEFAULT 0,
-     updated_at STRING,
-     PRIMARY KEY(id)
-   )`,
 
   // --- Inbox (inbox.md) ---
   //

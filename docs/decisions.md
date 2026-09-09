@@ -1608,3 +1608,72 @@ components exported so `useComponentExportOnlyModules` holds.
   `--filter '*'` scripts (`build`, `check-types`) still run it.
 - Renovate and Biome overrides list both directories until the old one is
   removed.
+
+## 64. Collaborative editing is removed from the backend; the old `server/frontend` and `@repo/design-doc-blocks` go with it
+
+**Status: accepted** (2026-09-09).
+
+**Context:** Decisions 51, 53, 54, 55, 56 and 59 built design-doc editing on a
+Yjs document per design document: Hocuspocus embedded in `Bun.serve` behind
+a `/collab` WebSocket surface, the encoded Y.Doc persisted as a
+`DesignDocState` node, a headless `ServerBlockNoteEditor` seeding the Y.Doc
+on create and projecting it back to `DesignDocument` on every store, comment
+and suggestion marks carried in the shared fragment, and jsdom staged into
+the runtime image for the headless editor. The only consumer was the
+BlockNote editor in `server/frontend`, which decision 63 replaced with the
+TanStack Start app in `server/frontend2`. The new UI does not use the
+`/collab` surface, and the editing model it will get is not decided yet.
+Meanwhile the backend carried eleven dependencies (BlockNote, Hocuspocus,
+Yjs, y-prosemirror, ProseMirror, prosemirror-suggest-changes, jsdom, the
+shared block package) and a Dockerfile staging step for code nothing calls.
+
+**Decision:** Remove collaborative editing from the backend whole, and remove
+its two remaining consumers with it:
+
+- `design-doc-collab.service.ts`, `design-doc-editor.server.ts`, the
+  suggestion-mark unit test and both `/collab` e2e specs are deleted.
+  `main.ts` serves Hono alone — no WebSocket branch, no `/collab` in the
+  SPA-fallback surface list, and shutdown is `server.stop()` then
+  `db.close()`.
+- `DesignDocsRepository` loses `findState`, `saveState` and
+  `updateDocument`; `DesignDocsService.create` no longer seeds a Y.Doc. The
+  `DesignDocState` table leaves the schema. The `document` column is the
+  stored design document again, as in phase 2.
+- The backend drops `@blocknote/core`, `@blocknote/server-util`,
+  `@handlewithcare/prosemirror-suggest-changes`, `@hocuspocus/provider`,
+  `@hocuspocus/server`, `@repo/design-doc-blocks`, `jsdom`,
+  `prosemirror-model`, `prosemirror-state`, `y-prosemirror` and `yjs`. The
+  build script no longer marks jsdom external and the Dockerfile no longer
+  stages it.
+- `server/frontend` (the Vite SPA) and `packages/design-doc-blocks` (the
+  block schema shared between that editor and the backend) are deleted.
+  Biome, Renovate, `.gitignore`, `.prettierignore`, `docs/stack.md` and the
+  README drop their references; `server/frontend2`'s dev proxy drops
+  `/collab`.
+
+**Supersedes 53, 54, 55, 56 and 59.** Amends 51: `DesignDocument` stays the
+interchange format and the validated write boundary, but there is no
+editing truth beside it any more. Amends 62: the torn-WAL reporting and the
+single-teardown guard stay; the collab flush they were ordered around is
+gone. Closes the "until parity" clauses of 63.
+
+**Alternatives considered:**
+
+- **Keep the backend collab surface until the new UI needs an editor.** Keeps
+  eleven dependencies, a runtime-image staging step and a WebSocket code path
+  alive with no caller and no test that exercises them from a real client.
+  When editing returns, the transport and model should be chosen for the new
+  UI rather than inherited.
+- **Keep `packages/design-doc-blocks` as a seed for the next editor.** Its
+  block specs are BlockNote-specific and typed against `@tiptap/core`; with
+  neither consumer left it is dead code that git history preserves anyway.
+
+**Consequences:**
+
+- Design documents are create/read/list/delete only. There is no server-side
+  edit path; one is a new decision when the new UI grows an editor.
+- Existing data directories keep an empty `DesignDocState` table (the schema
+  pass only creates). It is inert and can be dropped by hand.
+- The server bundle shrinks (about 1 MB from several) and the runtime image
+  loses jsdom's package closure.
+- Root `--filter '*'` scripts and CI run one frontend again.

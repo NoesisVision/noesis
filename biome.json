@@ -9,9 +9,7 @@
     "includes": [
       "**",
       "!plugins/claude-code/skills/**/references",
-      "!server/frontend/public",
       "!server/frontend2/public",
-      "!server/frontend/src/routeTree.gen.ts",
       "!server/frontend2/src/routeTree.gen.ts",
       "!docs/**/prior-art"
     ]
@@ -48,7 +46,7 @@
       }
     },
     {
-      "includes": ["server/frontend/**", "server/frontend2/**"],
+      "includes": ["server/frontend2/**"],
       "linter": {
         "rules": {
           "style": {
@@ -58,10 +56,7 @@
       }
     },
     {
-      "includes": [
-        "server/frontend/src/routes/**",
-        "server/frontend2/src/routes/**"
-      ],
+      "includes": ["server/frontend2/src/routes/**"],
       "linter": {
         "rules": {
           "style": {
@@ -71,27 +66,6 @@
                 "allowExportNames": ["Route"]
               }
             }
-          }
-        }
-      }
-    },
-    {
-      "includes": ["server/frontend/src/components/ui/**"],
-      "linter": {
-        "rules": {
-          "a11y": {
-            "useFocusableInteractive": "off",
-            "useKeyWithClickEvents": "off",
-            "useSemanticElements": "off"
-          },
-          "correctness": {
-            "useExhaustiveDependencies": "off"
-          },
-          "style": {
-            "useComponentExportOnlyModules": "off"
-          },
-          "suspicious": {
-            "noDocumentCookie": "off"
           }
         }
       }

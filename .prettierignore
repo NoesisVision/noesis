@@ -1,4 +1,3 @@
 # React Flow Pro example projects — vendored reference material, not our code.
-server/frontend/docs/react-flow-examples/
 # Vendored agent skills — hash-locked via skills-lock.json, must not be reformatted.
 .agents/

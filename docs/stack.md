@@ -13,5 +13,3 @@
 - **TanStack Table** — headless data tables, used via the shadcn data-table pattern (Base UI variant)
 - **TanStack Store** — framework-agnostic reactive client state store
 - **React Flow** — node-based canvas / flow editor
-- **Y.js** — CRDT for realtime collaboration
-- **BlockNote** — Notion-style rich text editor with Yjs collaboration support
