@@ -6,24 +6,19 @@ import { DesignDocsService } from '../../src/design-docs/design-docs.service.js'
 import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { InboxRepository } from '../../src/inbox/inbox.repository.js';
 import { InboxService } from '../../src/inbox/inbox.service.js';
-import { ProjectsRepository } from '../../src/projects/projects.repository.js';
-import { ProjectsService } from '../../src/projects/projects.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { sharedTestDatabase } from '../unit/test-db.js';
 
 // Route-surface assertions over the composed app. The shared in-memory DB
-// backs the projects service; everything else is the deps the surfaces need.
+// backs the stateful services; everything else is the deps the surfaces need.
 const db = await sharedTestDatabase();
 
 describe('Route surfaces (e2e)', () => {
   const app = createApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
-    authModule: { mode: 'disabled' },
-    projectsService: new ProjectsService(new ProjectsRepository(db)),
     designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
     inboxService: new InboxService(new InboxRepository(db)),
-    repoAccess: null,
   });
 
   it('/ui/hello (GET) — ui surface', async () => {

@@ -8,8 +8,7 @@ export interface ApiDeps {
 
 // The `api` surface is called by the local app (MCP server), which stays on
 // the @repo/local-contracts route constants — so this factory defines its
-// paths from the same constants and the two sides cannot drift. Endpoints
-// here will carry token auth (separate from the `ui` surface).
+// paths from the same constants and the two sides cannot drift.
 export function createApiApp(deps: ApiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono().get(`/${apiRoutes.hello}`, (c) =>

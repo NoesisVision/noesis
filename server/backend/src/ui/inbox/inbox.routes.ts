@@ -1,19 +1,15 @@
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
-import type { AuthEnv } from '../../auth/auth.middleware.js';
 import type { InboxItemRow } from '../../inbox/inbox.repository.js';
 import {
   DeferPastEventStartError,
   InboxItemNotFoundError,
   type InboxService,
   InvalidInboxStateError,
-  ProjectNotFoundForInboxError,
 } from '../../inbox/inbox.service.js';
-import type { ProjectsService } from '../../projects/projects.service.js';
 
 export interface InboxDeps {
   inboxService: InboxService;
-  projectsService: ProjectsService;
 }
 
 const titleSchema = z.string().trim().min(1).max(200);
@@ -66,105 +62,72 @@ function toItemDto(row: InboxItemRow) {
     outcome:
       row.outcome_at === null
         ? null
-        : {
-            by: row.outcome_by,
-            at: row.outcome_at,
-            reason: row.outcome_reason,
-          },
+        : { at: row.outcome_at, reason: row.outcome_reason },
     firstSeenAt: row.created_at,
     lastSeenAt: row.last_seen_at,
   };
 }
 
 /**
- * Mounted at `/ui/projects` behind `requireSession` — the per-project team
- * inbox (inbox.md). Reads sweep lifecycle state first (expiry, wake) so the
- * client always sees items in their true state; refusals mirror the projects
- * routes' vocabulary (404 `not_found`, 409 `invalid_state`).
+ * Mounted at `/ui/inbox` — the inbox of the checkout this server was started
+ * in (inbox.md). Reads sweep lifecycle state first (expiry, wake) so the
+ * client always sees items in their true state; refusals keep the shared
+ * vocabulary (404 `not_found`, 409 `invalid_state`).
  */
 export function createInboxApp(deps: InboxDeps) {
-  const { inboxService, projectsService } = deps;
+  const { inboxService } = deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return (
-    new Hono<AuthEnv>()
-      .get('/:projectId/inbox', async (c) => {
-        const projectId = c.req.param('projectId');
-        if ((await projectsService.findById(projectId)) === null) {
-          return c.json({ error: 'not_found' }, 404);
-        }
-        const items = await inboxService.list(projectId);
+    new Hono()
+      .get('/', async (c) => {
+        const items = await inboxService.list();
         return c.json({ items: items.map(toItemDto) });
       })
 
       // Manual capture — the "drop it in before it is forgotten" story. A
       // capture with an attached file's content arrives as kind `transcript`.
-      .post('/:projectId/inbox', async (c) => {
+      .post('/', async (c) => {
         const parsed = captureSchema.safeParse(await c.req.json());
         if (!parsed.success) {
           return c.json({ error: z.prettifyError(parsed.error) }, 400);
         }
-        const account = c.get('account');
-        const by = account.name.trim() !== '' ? account.name : account.login;
-        try {
-          const item = await inboxService.capture(c.req.param('projectId'), {
-            ...parsed.data,
-            origin: parsed.data.origin !== '' ? parsed.data.origin : `by ${by}`,
-          });
-          return c.json({ item: toItemDto(item) }, 201);
-        } catch (error) {
-          const refused = refusalResponse(c, error);
-          if (refused !== null) return refused;
-          throw error;
-        }
+        const item = await inboxService.capture(parsed.data);
+        return c.json({ item: toItemDto(item) }, 201);
       })
 
-      // Signal intake for external sources. v1 rides the ui session (the
-      // webhook/API auth model is an open question in inbox.md); the contract
-      // itself is source-agnostic so future senders plug in unchanged.
-      .post('/:projectId/inbox/signals', async (c) => {
+      // Signal intake for external sources. The contract is source-agnostic so
+      // future senders plug in unchanged.
+      .post('/signals', async (c) => {
         const parsed = signalSchema.safeParse(await c.req.json());
         if (!parsed.success) {
           return c.json({ error: z.prettifyError(parsed.error) }, 400);
         }
-        try {
-          const item = await inboxService.ingest(
-            c.req.param('projectId'),
-            parsed.data,
-          );
-          return c.json({ item: toItemDto(item) }, 201);
-        } catch (error) {
-          const refused = refusalResponse(c, error);
-          if (refused !== null) return refused;
-          throw error;
-        }
+        const item = await inboxService.ingest(parsed.data);
+        return c.json({ item: toItemDto(item) }, 201);
       })
 
-      .post('/:projectId/inbox/:itemId/dismiss', async (c) => {
+      .post('/:itemId/dismiss', async (c) => {
         const parsed = dismissSchema.safeParse(await c.req.json());
         if (!parsed.success) {
           return c.json({ error: z.prettifyError(parsed.error) }, 400);
         }
         return withRefusals(c, async () => {
-          const account = c.get('account');
           const item = await inboxService.dismiss(
-            c.req.param('projectId'),
             c.req.param('itemId'),
-            account.name.trim() !== '' ? account.name : account.login,
             parsed.data.reason,
           );
           return c.json({ item: toItemDto(item) });
         });
       })
 
-      .post('/:projectId/inbox/:itemId/defer', async (c) => {
+      .post('/:itemId/defer', async (c) => {
         const parsed = deferSchema.safeParse(await c.req.json());
         if (!parsed.success) {
           return c.json({ error: z.prettifyError(parsed.error) }, 400);
         }
         return withRefusals(c, async () => {
           const item = await inboxService.defer(
-            c.req.param('projectId'),
             c.req.param('itemId'),
             parsed.data.until,
           );
@@ -172,34 +135,23 @@ export function createInboxApp(deps: InboxDeps) {
         });
       })
 
-      .post('/:projectId/inbox/:itemId/wake', async (c) => {
+      .post('/:itemId/wake', async (c) => {
         return withRefusals(c, async () => {
-          const item = await inboxService.wake(
-            c.req.param('projectId'),
-            c.req.param('itemId'),
-          );
+          const item = await inboxService.wake(c.req.param('itemId'));
           return c.json({ item: toItemDto(item) });
         });
       })
 
-      .post('/:projectId/inbox/:itemId/promote', async (c) => {
+      .post('/:itemId/promote', async (c) => {
         return withRefusals(c, async () => {
-          const account = c.get('account');
-          const item = await inboxService.promote(
-            c.req.param('projectId'),
-            c.req.param('itemId'),
-            account.name.trim() !== '' ? account.name : account.login,
-          );
+          const item = await inboxService.promote(c.req.param('itemId'));
           return c.json({ item: toItemDto(item) });
         });
       })
 
-      .post('/:projectId/inbox/:itemId/restore', async (c) => {
+      .post('/:itemId/restore', async (c) => {
         return withRefusals(c, async () => {
-          const item = await inboxService.restore(
-            c.req.param('projectId'),
-            c.req.param('itemId'),
-          );
+          const item = await inboxService.restore(c.req.param('itemId'));
           return c.json({ item: toItemDto(item) });
         });
       })
@@ -207,7 +159,7 @@ export function createInboxApp(deps: InboxDeps) {
 }
 
 async function withRefusals(
-  c: Context<AuthEnv>,
+  c: Context,
   handler: () => Promise<Response>,
 ): Promise<Response> {
   try {
@@ -220,11 +172,8 @@ async function withRefusals(
 }
 
 /** The refusal vocabulary shared by every inbox write. */
-function refusalResponse(c: Context<AuthEnv>, error: unknown): Response | null {
-  if (
-    error instanceof InboxItemNotFoundError ||
-    error instanceof ProjectNotFoundForInboxError
-  ) {
+function refusalResponse(c: Context, error: unknown): Response | null {
+  if (error instanceof InboxItemNotFoundError) {
     return c.json({ error: 'not_found' }, 404);
   }
   if (error instanceof InvalidInboxStateError) {

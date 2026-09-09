@@ -100,7 +100,6 @@ bun install            # install all workspaces
 
 bun run dev            # run all apps in watch mode
 bun run dev:server     # just backend + frontend
-bun run dev:local      # same, with no GitHub App needed (see below)
 
 bun run build          # build everything
 bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
@@ -112,98 +111,18 @@ bun run format         # biome + prettier(md) --write (`format:check` to verify)
 
 Filter to one package: `bun run --filter=backend build`.
 
-### Running without a GitHub App
+### Configuration
 
-By default the server refuses to start without a GitHub App (see below). Two
-modes avoid registering one; both refuse to start with `NODE_ENV=production`,
-so neither can leak into a deployment.
+The server runs locally inside a single checkout, as part of the Claude plugin.
+It has no identity provider and no tenant scoping, so there is nothing to
+register and nothing to authenticate against (decision 65).
 
-**`local` — the real flows against an in-memory GitHub.** Use this for
-day-to-day development:
-
-```sh
-bun run dev:local
-```
-
-That is `dev:server` with `NOESIS_AUTH_MODE=local` and its own
-`NOESIS_DATA_DIR` (`.data-local`), kept apart because a project created here is
-bound to fake installation and repository ids that a `github`-mode server
-cannot make sense of. A `.env` is not needed and, if present, is overridden.
-
-Sign-in, admission, invites, the repo picker and the access check all run their
-production code; only the outbound `fetch` is a stand-in
-(`server/backend/src/auth/github-fake.ts`, the same one the suites drive). The
-sign-in page offers three identities:
-
-| Login     | Reaches                                  |
-| --------- | ---------------------------------------- |
-| `octocat` | `octocat` (2 repos) and `acme` (4 repos) |
-| `alice`   | `acme` only                              |
-| `bob`     | `acme` only                              |
-
-The first one to sign in claims the instance as its owner, exactly as in
-production — the rest need an invite from Settings → Members, which is how you
-exercise the invite flow locally. `/auth/login?as=<login>` picks the identity
-directly if you would rather not use the buttons. Credentials are held in
-memory, so a restart signs everyone out.
-
-**`disabled` — no auth slice at all.** Every request runs as a fixed local owner
-and the GitHub-backed writes (creating a project, connecting a repository,
-inviting) answer 503. This is what the suites that spawn the server use:
-
-```sh
-NOESIS_AUTH_MODE=disabled bun run dev:server
-```
-
-### Registering the GitHub App
-
-Identity is a GitHub App, which is also how Noesis reads repositories
-(decision 46). **Every deployment registers its own** — there is no central
-Noesis App and no secret custody. Register one at
-`https://github.com/settings/apps/new` (or under an organisation's settings):
-
-| Field                                             | Value                                                                      |
-| ------------------------------------------------- | -------------------------------------------------------------------------- |
-| Homepage URL                                      | your `NOESIS_PUBLIC_URL`                                                   |
-| Redirect URI (older docs call it "Callback URL")  | `<NOESIS_PUBLIC_URL>/auth/callback`; leave wildcard matching off           |
-| Expire user authorization tokens                  | **checked** — Noesis refuses tokens that never expire                      |
-| Request user authorization (OAuth) during install | unchecked (sign-in is its own step)                                        |
-| Enable Device Flow                                | unchecked — it belongs to the `/api` bridge's own flow, which is not built |
-| Setup URL                                         | `<NOESIS_PUBLIC_URL>/auth/install/callback`, with "Redirect on update"     |
-| Webhook → Active                                  | **uncheck it** — it defaults on, and the receiver arrives with ingestion   |
-| Repository permissions                            | Contents: read-only (Metadata: read-only follows automatically)            |
-| Account permissions                               | Email addresses: read-only (optional)                                      |
-| Where can this App be installed                   | "Any account" if you need organisation repositories                        |
-
-Without a Setup URL the install screen still works, but GitHub has nowhere to
-send the browser afterwards — the installation exists on GitHub and never
-registers in Noesis.
-
-Then generate a private key on the App's page and set:
-
-| Variable                      | Where it comes from                                                   |
-| ----------------------------- | --------------------------------------------------------------------- |
-| `NOESIS_PUBLIC_URL`           | The origin the browser reaches Noesis on; must match the redirect URI |
-| `NOESIS_GITHUB_APP_ID`        | The App's numeric id                                                  |
-| `NOESIS_GITHUB_APP_SLUG`      | The App's URL slug (`https://github.com/apps/<slug>`)                 |
-| `NOESIS_GITHUB_CLIENT_ID`     | The App's client id                                                   |
-| `NOESIS_GITHUB_CLIENT_SECRET` | A generated client secret                                             |
-| `NOESIS_GITHUB_PRIVATE_KEY`   | The downloaded `.pem`, base64-encoded (`base64 -i key.pem`)           |
-| `NOESIS_TOKEN_KEY`            | 32 random bytes, base64 — encrypts GitHub tokens at rest              |
-| `NOESIS_AUTH_MODE`            | `github` (default), `local` or `disabled` (neither in production)     |
-| `NOESIS_RECOVER_WAL`          | `1` to discard a torn write-ahead log at boot — see below             |
-
-```sh
-bun -e "console.log(crypto.getRandomValues(new Uint8Array(32)).toBase64())"  # NOESIS_TOKEN_KEY
-```
-
-In local development, `NOESIS_PUBLIC_URL` is the **Vite dev server's** origin
-(`http://localhost:5173`), not the backend port: sign-in is a navigation, and
-the dev server proxies `/auth` and `/ui` through to the backend.
-
-**Who may sign in:** the first account to reach `/auth/login` claims the
-instance as its owner. Everyone after that needs an owner to invite them by
-GitHub login, from Settings → Members.
+| Variable             | Meaning                                                    |
+| -------------------- | ---------------------------------------------------------- |
+| `NOESIS_DATA_DIR`    | On-disk data directory; defaults to `.data`                |
+| `NOESIS_RECOVER_WAL` | `1` to discard a torn write-ahead log at boot — see below  |
+| `PORT`               | Listen port; defaults to `3000`                            |
+| `UI_DIST_PATH`       | Serve a built SPA from this directory (unset in dev/tests) |
 
 ### Recovering a torn write-ahead log
 
@@ -273,8 +192,9 @@ Payload validation happens in the MCP bridge itself (decision 34): every `tools/
 
 `backend` + `frontend` deploy as **one Railway service**: the Hono backend
 serves the built SPA (decisions 17/18/28). Routes are segregated by consumer — `/ui/*` for
-the SPA (session-guarded), `/api/*` for the MCP bridge, `/internal/*` for health
-and other technical endpoints, `/auth/*` for the GitHub sign-in flow.
+the SPA, `/api/*` for the MCP bridge, `/internal/*` for health and other
+technical endpoints. No surface is guarded: the server runs on the developer's
+own machine, inside one checkout (decision 65).
 
 - **How it ships:** every green push to `main` triggers the `deploy` job in
   `ci.yml`, which runs `railway up --ci`. Railway builds
@@ -284,10 +204,7 @@ and other technical endpoints, `/auth/*` for the GitHub sign-in flow.
 - **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
   token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway
   service name). Railway injects `PORT`; `UI_DIST_PATH` and `NOESIS_DATA_DIR`
-  are baked into the image. The seven `NOESIS_*` GitHub App variables above are
-  Railway **service variables** — set them before the first deploy, since the
-  server fails fast without them (`NOESIS_PUBLIC_URL` is the service's public
-  domain, which must also be the App's registered callback host).
+  are baked into the image. There is nothing else to configure.
 - **Run the production image locally:**
 
 ```sh

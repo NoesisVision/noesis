@@ -24,13 +24,9 @@ const config = defineConfig({
   ],
   server: {
     proxy: {
-      // The ui app calls the server's /ui surface and navigates to /auth for
-      // sign-in; /api belongs to the local app and /internal to ops tooling.
-      // Same-origin in dev and prod — no CORS.
+      // The ui app calls the server's /ui surface; /api belongs to the local
+      // app and /internal to ops tooling. Same-origin in dev and prod — no CORS.
       '/ui': 'http://localhost:3000',
-      // Sign-in is a navigation, so it has to come back to *this* origin:
-      // NOESIS_PUBLIC_URL in dev is the dev server, not the backend port.
-      '/auth': 'http://localhost:3000',
     },
   },
 });

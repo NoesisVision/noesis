@@ -15,7 +15,6 @@ import type {
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {
   id: string;
-  projectId: string;
   name: string;
   status: string;
   date: string;
@@ -25,13 +24,6 @@ export interface DesignDocSummary {
 export interface DesignDocDetail {
   summary: DesignDocSummary;
   document: DesignDocument;
-}
-
-export class DesignDocProjectNotFoundError extends Error {
-  constructor(projectId: string) {
-    super(`Project ${projectId} not found`);
-    this.name = 'DesignDocProjectNotFoundError';
-  }
 }
 
 /**
@@ -53,8 +45,8 @@ export class InvalidDesignDocumentError extends Error {
  * Every write runs decision 51's boundary pipeline —
  * `DesignDocumentSchema.parse → checkDesignDocument` — so a document that
  * fails is a retry, never a stored inconsistency. The server mints the
- * document id (UUIDv7), like projects: whatever id the input carries is
- * replaced, so an agent inventing a colliding id cannot overwrite anything.
+ * document id (UUIDv7): whatever id the input carries is replaced, so an agent
+ * inventing a colliding id cannot overwrite anything.
  */
 export class DesignDocsService {
   private readonly designDocs: DesignDocsRepository;
@@ -63,7 +55,7 @@ export class DesignDocsService {
     this.designDocs = designDocs;
   }
 
-  async create(projectId: string, input: unknown): Promise<DesignDocSummary> {
+  async create(input: unknown): Promise<DesignDocSummary> {
     const parsed = DesignDocumentSchema.safeParse(input);
     if (!parsed.success) {
       throw new InvalidDesignDocumentError([z.prettifyError(parsed.error)]);
@@ -74,9 +66,7 @@ export class DesignDocsService {
       throw new InvalidDesignDocumentError(errors.map((i) => i.message));
     }
 
-    const row = await this.designDocs.create(projectId, document);
-    if (row === null) throw new DesignDocProjectNotFoundError(projectId);
-    return toSummary(row);
+    return toSummary(await this.designDocs.create(document));
   }
 
   /**
@@ -84,15 +74,15 @@ export class DesignDocsService {
    * put in front of a reviewer before the agent writes real ones (phase 2 has
    * no other author). Stamped with today's date; the id is minted in `create`.
    */
-  async createSample(projectId: string): Promise<DesignDocSummary> {
-    return this.create(projectId, {
+  async createSample(): Promise<DesignDocSummary> {
+    return this.create({
       ...designDocFixture,
       date: new Date().toISOString().slice(0, 10),
     });
   }
 
-  async listByProject(projectId: string): Promise<DesignDocSummary[]> {
-    return (await this.designDocs.listByProject(projectId)).map(toSummary);
+  async list(): Promise<DesignDocSummary[]> {
+    return (await this.designDocs.list()).map(toSummary);
   }
 
   async findById(id: string): Promise<DesignDocDetail | null> {
@@ -116,7 +106,6 @@ const isError = (issue: DesignDocIssue): boolean => issue.severity === 'error';
 function toSummary(row: DesignDocSummaryRow): DesignDocSummary {
   return {
     id: row.id,
-    projectId: row.project_id,
     name: row.name,
     status: row.status,
     date: row.date,

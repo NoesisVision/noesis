@@ -2,7 +2,6 @@ import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
-import { createAuthModule } from './auth/auth.module.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
 import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
@@ -10,9 +9,6 @@ import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { GreetingService } from './greeting/greeting.service.js';
 import { InboxRepository } from './inbox/inbox.repository.js';
 import { InboxService } from './inbox/inbox.service.js';
-import { ProjectsRepository } from './projects/projects.repository.js';
-import { ProjectsService } from './projects/projects.service.js';
-import { RepoAccessService } from './projects/repo-access.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { SearchService } from './ui/search/search.service.js';
 
@@ -24,29 +20,12 @@ db.init();
 await ensureSchema();
 
 // No search providers yet — no entity is searchable. Providers register here
-// as their entities land (documents, graph nodes, projects).
-const authModule = createAuthModule(config.auth, db);
-if (authModule.mode === 'disabled') {
-  console.warn(
-    '[server] NOESIS_AUTH_MODE=disabled — every request runs as a fixed local owner.',
-  );
-}
-
-const projectsRepository = new ProjectsRepository(db);
-const designDocsRepository = new DesignDocsRepository(db);
+// as their entities land (documents, graph nodes).
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
-  authModule,
-  projectsService: new ProjectsService(projectsRepository),
-  designDocsService: new DesignDocsService(designDocsRepository),
+  designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
   inboxService: new InboxService(new InboxRepository(db)),
-  // The access check needs the App's own identity; disabled mode has none,
-  // and the routes serve stored state flagged unchecked instead.
-  repoAccess:
-    authModule.mode === 'github'
-      ? new RepoAccessService(projectsRepository, authModule.ghApp)
-      : null,
 });
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)
@@ -59,7 +38,7 @@ const uiDistPath = process.env.UI_DIST_PATH
 if (uiDistPath !== undefined) {
   // Registered after the routes in createApp, so surface endpoints win and
   // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/api', '/internal', '/auth'];
+  const surfaces = ['/ui', '/api', '/internal'];
   // `path` must be relative — hono's serveStatic strips a leading slash from
   // it (absolute paths are only honored in `root`).
   const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });

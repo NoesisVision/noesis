@@ -7,105 +7,10 @@
 // The DB is authoritative (no rebuild-from-files), so schema changes are
 // explicit migrations, not "recreate + re-index" (OQ-2.3).
 //
-// Every mutable row carries a `version` (INT64) for optimistic concurrency
-// (OQ-2.3), and — once artifacts land in Parts 3–6 — a `project_id` (STRING)
-// for tenant scoping (OQ-2.2).
+// The server runs locally against one checkout, so there is no tenant scoping
+// and no `version` column: entities are top-level and the single writer needs
+// no optimistic concurrency (decision 65, superseding OQ-2.2/2.3's clauses).
 export const GRAPH_SCHEMA: readonly string[] = [
-  // --- Projects (Part 2) ---
-  `CREATE NODE TABLE IF NOT EXISTS Project(
-     id STRING,
-     name STRING,
-     version INT64 DEFAULT 0,
-     created_at STRING,
-     PRIMARY KEY(id)
-   )`,
-
-  // --- Identity: GitHub App sign-in (decision 46) ---
-  //
-  // `Account` rather than `User`: this is a login identity, leaving the name
-  // `User` free for a future domain notion of a person. `role` is a string
-  // rather than an `is_owner` boolean so a third role costs no migration.
-  `CREATE NODE TABLE IF NOT EXISTS Account(
-     id STRING,
-     gh_user_id INT64,
-     login STRING,
-     name STRING,
-     avatar_url STRING,
-     email STRING,
-     role STRING,
-     version INT64 DEFAULT 0,
-     created_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  // `id` is the SHA-256 of the cookie token, never the token itself, so a
-  // database read cannot impersonate anyone.
-  `CREATE NODE TABLE IF NOT EXISTS Session(
-     id STRING,
-     created_at STRING,
-     expires_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  // Tokens sit on their own node rather than as Account properties, so no
-  // query that reads a user can accidentally select a credential and rotation
-  // touches one row. Both token columns are AES-256-GCM ciphertext.
-  `CREATE NODE TABLE IF NOT EXISTS GhCredential(
-     id STRING,
-     access_token_enc STRING,
-     access_expires_at STRING,
-     refresh_token_enc STRING,
-     refresh_expires_at STRING,
-     version INT64 DEFAULT 0,
-     created_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  // `id` is GitHub's own installation_id. A Project reaches these by a second
-  // relationship once project CRUD exists; today they hang off Account only.
-  `CREATE NODE TABLE IF NOT EXISTS GhInstallation(
-     id STRING,
-     account_login STRING,
-     account_type STRING,
-     repository_selection STRING,
-     created_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  // Invites are by GitHub login, not email: the login is what the OAuth
-  // callback can verify, while /user's email may be private or unverified.
-  `CREATE NODE TABLE IF NOT EXISTS Invite(
-     id STRING,
-     gh_login STRING,
-     invited_by STRING,
-     created_at STRING,
-     accepted_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  `CREATE REL TABLE IF NOT EXISTS HasSession(FROM Account TO Session)`,
-  `CREATE REL TABLE IF NOT EXISTS HasCredential(FROM Account TO GhCredential)`,
-  `CREATE REL TABLE IF NOT EXISTS HasInstallation(FROM Account TO GhInstallation)`,
-
-  // --- Projects × repositories (decision 48) ---
-  //
-  // `id` is GitHub's immutable numeric repository id (as STRING, like
-  // GhInstallation.id), so renames and transfers keep the key; `full_name`
-  // (`owner/name`) is display metadata refreshed on access checks. A
-  // Repository node exists only while a project tracks it — exclusivity means
-  // at most one — so project deletion removes its Repository nodes outright.
-  `CREATE NODE TABLE IF NOT EXISTS Repository(
-     id STRING,
-     full_name STRING,
-     private BOOLEAN,
-     status STRING,
-     status_changed_at STRING,
-     version INT64 DEFAULT 0,
-     created_at STRING,
-     PRIMARY KEY(id)
-   )`,
-  // The decision-46 shape: a project binds to exactly one installation and
-  // tracks ≥1 of its repositories. Cardinality is enforced in the repository
-  // layer (conditional writes), not by the DDL.
-  `CREATE REL TABLE IF NOT EXISTS UsesInstallation(FROM Project TO GhInstallation)`,
-  `CREATE REL TABLE IF NOT EXISTS Tracks(FROM Project TO Repository)`,
-  `CREATE REL TABLE IF NOT EXISTS InInstallation(FROM Repository TO GhInstallation)`,
-
   // --- Design documents (design-doc phase 2) ---
   //
   // `document` is the whole portable specification (`DesignDocument`) as JSON,
@@ -115,17 +20,14 @@ export const GRAPH_SCHEMA: readonly string[] = [
   // document.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
      id STRING,
-     project_id STRING,
      name STRING,
      status STRING,
      date STRING,
      document STRING,
-     version INT64 DEFAULT 0,
      created_at STRING,
      updated_at STRING,
      PRIMARY KEY(id)
    )`,
-  `CREATE REL TABLE IF NOT EXISTS HasDesignDoc(FROM Project TO DesignDoc)`,
 
   // --- Inbox (inbox.md) ---
   //
@@ -133,9 +35,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
   // the sender-provided dedup_key — never guessed from content. Optional
   // STRING columns use '' for "absent" so equality filters stay plain (the
   // repository maps '' to null at its edge). `occurrences` is a JSON array of
-  // the most recent arrival timestamps, capped in the repository. An item
-  // exists only under its project (HasInboxItem), so project deletion removes
-  // its inbox outright.
+  // the most recent arrival timestamps, capped in the repository.
   `CREATE NODE TABLE IF NOT EXISTS InboxItem(
      id STRING,
      kind STRING,
@@ -148,13 +48,10 @@ export const GRAPH_SCHEMA: readonly string[] = [
      state STRING,
      count INT64 DEFAULT 1,
      occurrences STRING,
-     outcome_by STRING,
      outcome_at STRING,
      outcome_reason STRING,
      last_seen_at STRING,
-     version INT64 DEFAULT 0,
      created_at STRING,
      PRIMARY KEY(id)
    )`,
-  `CREATE REL TABLE IF NOT EXISTS HasInboxItem(FROM Project TO InboxItem)`,
 ];

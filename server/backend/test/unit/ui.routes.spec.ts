@@ -4,8 +4,6 @@ import { DesignDocsService } from '../../src/design-docs/design-docs.service.js'
 import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { InboxRepository } from '../../src/inbox/inbox.repository.js';
 import { InboxService } from '../../src/inbox/inbox.service.js';
-import { ProjectsRepository } from '../../src/projects/projects.repository.js';
-import { ProjectsService } from '../../src/projects/projects.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { createUiApp } from '../../src/ui/ui.routes.js';
 import { sharedTestDatabase } from './test-db.js';
@@ -16,11 +14,8 @@ describe('ui routes', () => {
   const app = createUiApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
-    authModule: { mode: 'disabled' },
-    projectsService: new ProjectsService(new ProjectsRepository(db)),
     designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
     inboxService: new InboxService(new InboxRepository(db)),
-    repoAccess: null,
   });
 
   it('returns the greeting', async () => {
@@ -29,13 +24,8 @@ describe('ui routes', () => {
     expect(await res.text()).toBe('Hello World!');
   });
 
-  it('lists the local account as the whole roster in disabled auth mode', async () => {
-    const res = await app.request('/accounts');
+  it('serves the surface unguarded — no session, no 401', async () => {
+    const res = await app.request('/inbox');
     expect(res.status).toBe(200);
-    const { accounts } = (await res.json()) as {
-      accounts: { id: string; login: string; name: string }[];
-    };
-    expect(accounts).toHaveLength(1);
-    expect(accounts[0]?.login).toBe('local');
   });
 });

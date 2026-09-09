@@ -11,7 +11,9 @@
       "!plugins/claude-code/skills/**/references",
       "!server/frontend/public",
       "!server/frontend/src/routeTree.gen.ts",
-      "!docs/**/prior-art"
+      "!docs/**/prior-art",
+      "!docs/**/prototypes",
+      "!docs/**/*-prototype.html"
     ]
   },
   "formatter": {

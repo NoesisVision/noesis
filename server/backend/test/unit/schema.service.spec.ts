@@ -15,7 +15,7 @@ describe('SchemaService', () => {
 
   it('has created the declared tables (a MATCH would error otherwise)', async () => {
     const rows = await db.query<{ n: number | bigint }>(
-      'MATCH (p:Project) RETURN count(p) AS n',
+      'MATCH (d:DesignDoc) RETURN count(d) AS n',
     );
     expect(rows.map((r) => Number(r.n)).length).toBe(1);
   });
@@ -28,7 +28,7 @@ describe('SchemaService', () => {
   it('is idempotent — ensureSchema can run again without error', async () => {
     await schema.ensureSchema();
     const rows = await db.query<{ n: number | bigint }>(
-      'MATCH (p:Project) RETURN count(p) AS n',
+      'MATCH (d:DesignDoc) RETURN count(d) AS n',
     );
     expect(rows.length).toBe(1);
   });

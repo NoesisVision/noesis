@@ -21,5 +21,4 @@ export * from './information-sources/document.js';
 // skill-output schemas alike). Per OQ-1.1 these live in shared-contracts.
 export * from './information-sources/information-category.js';
 export * from './information-sources/information-fragment.js';
-export * from './project.js';
 export * from './topic.js';

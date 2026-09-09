@@ -1683,3 +1683,82 @@ gone. Closes the "until parity" clauses of 63.
 - With the old app gone, `server/frontend2` is renamed back to
   `server/frontend` (package name `frontend`); decision 63's paths read as
   that directory from here on.
+
+## 65. Auth, projects and optimistic concurrency are removed: the server runs locally inside one checkout
+
+**Context:** Decision 46 made identity a GitHub App — sessions, an invite-gated
+roster, encrypted GitHub credentials, and `/auth` as a fourth route surface.
+Decision 48 built on it: a project binds to an App installation and tracks one
+or more of its repositories, with a picker and an on-demand access check.
+Decision 61 added a `local` auth mode so contributors could exercise all of it
+against an in-memory GitHub, and OQ-2.3 gave every mutable row a `version`
+column for optimistic concurrency.
+
+That whole edifice assumes a hosted, multi-user, multi-project deployment.
+Noesis is not one. It runs on the developer's own machine as part of the Claude
+plugin, against the repository that is already checked out — one user, one
+project, one writer, no network boundary to defend.
+
+**Decision:** Remove all three concerns.
+
+- **No authentication or authorization.** `src/auth/` is gone: the GitHub App
+  web flow, sessions, cookies, credential encryption, the invite roster, the
+  admission rules, and the in-memory GitHub fake. The `/auth` surface is
+  unmounted, so the app is three surfaces again: `/ui`, `/api`, `/internal`.
+  Nothing is guarded, because there is no second principal to guard against.
+- **No project concept.** `Project`, `Repository`, `GhInstallation` and their
+  relationships leave the schema along with `src/projects/` and the repo
+  picker. Design documents and inbox items become top-level: `/ui/inbox/...`
+  instead of `/ui/projects/:projectId/inbox/...`, and `/ui/design-docs` with no
+  `projectId` on the query or the body. The server serves the checkout it was
+  started in; a second project means a second server.
+- **No GitHub repository access.** The code is already on disk. Reading it is a
+  filesystem concern, so the installation binding, the reachability check and
+  the exclusivity invariants that guarded it have nothing left to guard.
+- **No optimistic concurrency.** The `version` column is dropped from every
+  table, `ConcurrencyConflictError` is deleted, and the rename endpoint no
+  longer takes a client-supplied version. The inbox's read-then-write fold
+  loses its retry loop: a single local writer cannot lose a race with itself.
+- **Attribution is dropped.** `InboxItem.outcome_by` recorded which account
+  dismissed or promoted an item. With one user it carries no information, so
+  the column, the DTO field and the parameters that fed it are gone; `outcome`
+  keeps `at` and `reason`.
+- **Configuration shrinks to one variable.** `NOESIS_DATA_DIR`. The auth mode,
+  the public URL and the six GitHub App variables are gone, as are the four
+  `@octokit/*` dependencies.
+
+**Rationale:** Auth that protects nothing is not free. It was the largest
+subsystem in the backend (~2,850 lines across twelve files, plus eleven test
+files), it forced every route to reason about three auth modes, and it made the
+project the mandatory scoping key for entities that have no second scope to
+distinguish. Optimistic concurrency has the same shape of cost: a version
+column on every table and a conflict path in every caller, guarding against a
+concurrent writer that cannot exist in a single-process local server.
+
+**Alternatives considered:**
+
+- **Keep `disabled` mode and delete only the GitHub paths.** The mode already
+  existed and ran every request as a fixed local owner. But it left the
+  `AuthModule` union, the `AuthEnv` context, the `requireSession` middleware
+  and the 503-in-disabled-mode branches in place across every route — the cost
+  of the abstraction without a second mode to justify it.
+- **Keep projects as a single implicit "default project".** A row that always
+  has exactly one instance is a constant, and every query would still carry the
+  join. If multi-project returns it should be designed for the shape it has
+  then, not inherited from the hosted design.
+- **Keep the `version` columns, drop only the enforcement.** Cheaper to
+  re-enable, but a column nothing reads is a claim the schema makes and the
+  code does not honour.
+
+**Consequences:**
+
+- Supersedes decisions 46, 48 and 61 entirely, and drops the optimistic-
+  concurrency clause of OQ-2.3 and the tenant-scoping clause of OQ-2.2. Those
+  entries keep their text; this log is append-only history.
+- Existing data directories keep the dropped tables and columns (the schema
+  pass only creates). They are inert, and can be dropped by hand.
+- The `/ui` surface no longer answers `/me`, `/accounts`, `/invites/*`,
+  `/projects/*` or `/github/*`. Any client is rewritten against the flat
+  routes; `server/frontend` had not yet been built against the old ones.
+- Making the server reachable by anyone other than its local user is a new
+  decision, and would have to reintroduce a trust boundary from scratch.

@@ -42,13 +42,6 @@ export class DeferPastEventStartError extends Error {
   }
 }
 
-export class ProjectNotFoundForInboxError extends Error {
-  constructor(projectId: string) {
-    super(`Project ${projectId} not found.`);
-    this.name = 'ProjectNotFoundForInboxError';
-  }
-}
-
 /**
  * The inbox lifecycle over the repository's conditional writes. Reads sweep
  * first — events past their start expire, elapsed snoozes wake — so what a
@@ -61,87 +54,64 @@ export class InboxService {
     this.repository = repository;
   }
 
-  async list(projectId: string): Promise<InboxItemRow[]> {
+  async list(): Promise<InboxItemRow[]> {
     const now = new Date().toISOString();
-    await this.repository.expireDue(projectId, now);
-    await this.repository.wakeDue(projectId, now);
-    return this.repository.listByProject(projectId);
+    await this.repository.expireDue(now);
+    await this.repository.wakeDue(now);
+    return this.repository.list();
   }
 
   /** Manual capture: a note, or a transcript when a file's content came along. */
-  async capture(projectId: string, input: CaptureInput): Promise<InboxItemRow> {
-    const item = await this.repository.ingest(projectId, {
+  async capture(input: CaptureInput): Promise<InboxItemRow> {
+    return this.repository.ingest({
       kind: input.kind,
       title: input.title,
       origin: input.origin,
       body: input.body,
     });
-    if (item === null) throw new ProjectNotFoundForInboxError(projectId);
-    return item;
   }
 
   /**
    * Source-agnostic intake (alerts, events, pushed transcripts): repeats fold
    * by the sender's dedup key, everything else lands as a new item.
    */
-  async ingest(
-    projectId: string,
-    input: InboxSignalInput,
-  ): Promise<InboxItemRow> {
-    const item = await this.repository.ingest(projectId, input);
-    if (item === null) throw new ProjectNotFoundForInboxError(projectId);
-    return item;
+  async ingest(input: InboxSignalInput): Promise<InboxItemRow> {
+    return this.repository.ingest(input);
   }
 
-  async dismiss(
-    projectId: string,
-    id: string,
-    by: string,
-    reason: string,
-  ): Promise<InboxItemRow> {
-    const item = await this.repository.dismiss(projectId, id, by, reason);
-    return item ?? this.refuse(projectId, id);
+  async dismiss(id: string, reason: string): Promise<InboxItemRow> {
+    const item = await this.repository.dismiss(id, reason);
+    return item ?? this.refuse(id);
   }
 
-  async promote(
-    projectId: string,
-    id: string,
-    by: string,
-  ): Promise<InboxItemRow> {
-    const item = await this.repository.promote(projectId, id, by);
-    return item ?? this.refuse(projectId, id);
+  async promote(id: string): Promise<InboxItemRow> {
+    const item = await this.repository.promote(id);
+    return item ?? this.refuse(id);
   }
 
-  async restore(projectId: string, id: string): Promise<InboxItemRow> {
-    const item = await this.repository.restore(projectId, id);
-    if (item !== null) return item;
-    const current = await this.repository.findById(projectId, id);
-    if (current === null) throw new InboxItemNotFoundError(id);
-    throw new InvalidInboxStateError(id, current.state);
+  async restore(id: string): Promise<InboxItemRow> {
+    const item = await this.repository.restore(id);
+    return item ?? this.refuse(id);
   }
 
-  async defer(
-    projectId: string,
-    id: string,
-    until: string,
-  ): Promise<InboxItemRow> {
-    const current = await this.repository.findById(projectId, id);
+  async defer(id: string, until: string): Promise<InboxItemRow> {
+    const current = await this.repository.findById(id);
     if (current === null) throw new InboxItemNotFoundError(id);
     if (current.event_start !== null && until >= current.event_start) {
       throw new DeferPastEventStartError(id, current.event_start);
     }
-    const item = await this.repository.defer(projectId, id, until);
-    return item ?? this.refuse(projectId, id);
+    const item = await this.repository.defer(id, until);
+    return item ?? this.refuse(id);
   }
 
-  async wake(projectId: string, id: string): Promise<InboxItemRow> {
-    const item = await this.repository.wake(projectId, id);
-    return item ?? this.refuse(projectId, id);
+  async wake(id: string): Promise<InboxItemRow> {
+    const item = await this.repository.wake(id);
+    return item ?? this.refuse(id);
   }
 
   /** Zero rows from a conditional write, told apart: missing item or wrong state. */
-  private async refuse(projectId: string, id: string): Promise<never> {
-    const current = await this.repository.findById(projectId, id);
+  private async refuse(id: string): Promise<never> {
+    const current = await this.repository.findById(id);
     if (current === null) throw new InboxItemNotFoundError(id);
     throw new InvalidInboxStateError(id, current.state);
   }
