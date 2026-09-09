@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-08-18_
+_Last updated: 2026-09-09_
 
 ---
 
@@ -1563,3 +1563,48 @@ service, so that path runs on every idle cycle rather than only on deploys.
   kills — it narrows the window to writes actually in flight when SIGKILL
   lands. If that stops being good enough, the answer is a server-based store,
   not more shutdown hardening.
+
+## 63. The UI is rebuilt on TanStack Start in `server/frontend2`, built in SPA mode so the Hono server keeps serving it
+
+**Context:** The UI was started over as a TanStack Start app (`server/frontend2`,
+scaffolded with `create-tsrouter-app`: file-based routing, TanStack Query,
+React Compiler, Tailwind). Start is a full-stack framework: its default build
+emits a server bundle that renders routes on the server, and its dev server
+listens on port 3000 — the same port as the backend. The old `server/frontend`
+was a plain Vite SPA that the Hono server served from `UI_DIST_PATH`
+(decisions 17/28/36), with the dev server proxying `/ui`, `/auth` and
+`/collab` to the backend.
+
+**Decision:** Start runs in SPA mode. The build prerenders one shell to
+`dist/client/index.html` (`spa.prerender.outputPath`), and the Dockerfile
+copies `server/frontend2/dist/client` to `/app/ui` where the unchanged
+`serveStatic` fallback in `main.ts` picks it up. The dev server binds 5173 and
+carries the same proxy table as before, so `bun run dev:server` and the auth
+redirect setup work unchanged. `frontend2` joins the workspace conventions:
+root Biome config (its scaffolded `biome.json` is removed), catalog versions
+for TypeScript, Biome and `@types/node`, a `check-types` script, and route
+components exported so `useComponentExportOnlyModules` holds.
+
+**Alternatives considered:**
+
+- **Full SSR: run the Start server as the web tier and proxy the API to Hono.**
+  Two processes (or a Start server hosting Hono), a second port in the
+  container, and the auth cookie and `/collab` WebSocket upgrade would have to
+  cross a proxy in production. Nothing in the UI needs server rendering today;
+  server functions and SSR can be switched on later by dropping `spa`, and the
+  hosting question is then decided on its own.
+- **Keep the plain Vite + TanStack Router setup and port the new UI into it.**
+  Loses Start's file-route conventions and server-function path the rebuild
+  was started on.
+
+**Consequences:**
+
+- One production image and one process, as before. `UI_DIST_PATH` semantics are
+  unchanged.
+- The shell is prerendered at build time, so the root route must render without
+  browser globals; client-only code goes behind effects or `ClientOnly`.
+- `server/frontend` stays in the workspace until the new UI reaches parity;
+  `bun run dev:server` and the Dockerfile no longer touch it. Root
+  `--filter '*'` scripts (`build`, `check-types`) still run it.
+- Renovate and Biome overrides list both directories until the old one is
+  removed.

@@ -16,7 +16,7 @@
 set -euo pipefail
 set -m
 
-bun run --filter=backend --filter=frontend dev &
+bun run --filter=backend --filter=frontend2 dev &
 child=$!
 
 shutdown() {
