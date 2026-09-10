@@ -1,7 +1,7 @@
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
-import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -10,19 +10,14 @@ const config = defineConfig({
   plugins: [
     devtools(),
     tailwindcss(),
-    tanstackStart({
-      // SPA mode: the build emits a static shell instead of a Start server,
-      // so the Hono backend keeps serving the UI from UI_DIST_PATH (decision
-      // 36) exactly as it served the previous SPA — no second server process.
-      spa: {
-        enabled: true,
-        prerender: { outputPath: '/index.html' },
-      },
-    }),
+    // Generates `routeTree.gen.ts` from `src/routes/**` and splits route
+    // components out of the initial bundle. Must run before the React plugin.
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),
   ],
   server: {
+    port: 5173,
     proxy: {
       // The ui app calls the server's /ui surface; /api belongs to the local
       // app and /internal to ops tooling. Same-origin in dev and prod — no CORS.

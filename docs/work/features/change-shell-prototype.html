@@ -1,0 +1,508 @@
+<title>Noesis Sidebar Options</title>
+<style>
+:root{
+  --bg:#f1f3f5; --body:#f8f9fa; --surface:#ffffff; --border:#dee2e6; --border-soft:#e9ecef;
+  --text:#212529; --text-2:#495057; --dimmed:#868e96; --hover:#f1f3f5; --active:#e7f5ff;
+  --primary:#228be6; --primary-text:#1971c2; --primary-strong:#1c7ed6;
+  --rail:#f8f9fa; --shadow:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.1);
+  --green-bg:#ebfbee; --green:#2b8a3e; --yellow-bg:#fff9db; --yellow:#e67700; --gray-bg:#f1f3f5; --gray:#495057;
+  --violet-bg:#f3f0ff; --violet:#6741d9; --teal-bg:#e6fcf5; --teal:#087f5b; --orange-bg:#fff4e6; --orange:#d9480f;
+  --code:#f1f3f5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101113; --body:#141517; --surface:#1a1b1e; --border:#2c2e33; --border-soft:#25262b;
+    --text:#c1c2c5; --text-2:#a6a7ab; --dimmed:#909296; --hover:#25262b; --active:rgba(34,139,230,.18);
+    --primary:#339af0; --primary-text:#74c0fc; --primary-strong:#228be6;
+    --rail:#141517; --shadow:none;
+    --green-bg:rgba(64,192,87,.16); --green:#8ce99a; --yellow-bg:rgba(250,176,5,.16); --yellow:#ffd43b; --gray-bg:#2c2e33; --gray:#c1c2c5;
+    --violet-bg:rgba(121,80,242,.18); --violet:#b197fc; --teal-bg:rgba(18,184,134,.16); --teal:#63e6be; --orange-bg:rgba(253,126,20,.16); --orange:#ffc078;
+    --code:#25262b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101113; --body:#141517; --surface:#1a1b1e; --border:#2c2e33; --border-soft:#25262b;
+  --text:#c1c2c5; --text-2:#a6a7ab; --dimmed:#909296; --hover:#25262b; --active:rgba(34,139,230,.18);
+  --primary:#339af0; --primary-text:#74c0fc; --primary-strong:#228be6;
+  --rail:#141517; --shadow:none;
+  --green-bg:rgba(64,192,87,.16); --green:#8ce99a; --yellow-bg:rgba(250,176,5,.16); --yellow:#ffd43b; --gray-bg:#2c2e33; --gray:#c1c2c5;
+  --violet-bg:rgba(121,80,242,.18); --violet:#b197fc; --teal-bg:rgba(18,184,134,.16); --teal:#63e6be; --orange-bg:rgba(253,126,20,.16); --orange:#ffc078;
+  --code:#25262b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+svg{display:block}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.page{max-width:1280px;margin:0 auto;padding:28px 24px 48px;display:flex;flex-direction:column;gap:18px}
+
+/* Option switcher */
+.intro{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.intro h1{font-size:22px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+.intro p{margin:0;color:var(--dimmed);max-width:60ch}
+.seg{display:inline-flex;background:var(--hover);border:1px solid var(--border-soft);border-radius:6px;padding:4px;gap:2px}
+.seg button{padding:6px 14px;border-radius:4px;font-weight:500;color:var(--text-2);transition:background .12s,color .12s}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+:root[data-theme="dark"] .seg button[aria-pressed="true"],:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{box-shadow:none}
+
+.rationale{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px}
+.rationale > div{min-width:0}
+.rationale .lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dimmed);margin-bottom:4px}
+.rationale .v{color:var(--text)}
+.rationale .v.title{font-weight:600;font-size:15px}
+@media (max-width:820px){.rationale{grid-template-columns:1fr}}
+
+/* Prototype frame */
+.frame{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--body);box-shadow:var(--shadow)}
+.shell{display:grid;grid-template-columns:auto 1fr;grid-template-rows:56px 1fr;height:720px}
+.header{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.logo i{width:24px;height:24px;border-radius:6px;background:var(--primary);display:grid;place-items:center;color:#fff}
+.hsearch{flex:1;max-width:360px;display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:1px solid var(--border);border-radius:4px;background:var(--body);color:var(--dimmed)}
+.hsearch kbd{margin-left:auto;font:11px/1 inherit;padding:3px 5px;border:1px solid var(--border);border-bottom-width:2px;border-radius:3px;background:var(--surface);color:var(--dimmed)}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--violet-bg);color:var(--violet);display:grid;place-items:center;font-size:12px;font-weight:600}
+.icon-btn{width:34px;height:34px;border-radius:4px;display:grid;place-items:center;color:var(--text-2)}
+.icon-btn:hover{background:var(--hover)}
+
+/* Navbar */
+.navbar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.navbar.with-rail{width:auto;flex-direction:row}
+.nav-scroll{flex:1;overflow:auto;padding:8px 12px;display:flex;flex-direction:column;gap:2px;min-height:0}
+.nav-foot{border-top:1px solid var(--border);padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.nav-sec{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dimmed);padding:14px 10px 6px;display:flex;align-items:center;gap:8px}
+.nav-sec .line{flex:1;height:1px;background:var(--border-soft)}
+.nav-sec:first-child{padding-top:6px}
+.divider{height:1px;background:var(--border);margin:10px 0}
+
+/* NavLink (Mantine-like) */
+.nl{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:4px;color:var(--text);text-align:left;position:relative;line-height:1.3}
+.nl:hover{background:var(--hover)}
+.nl[aria-current="page"]{background:var(--active);color:var(--primary-text);font-weight:500}
+.nl .ic{width:20px;height:20px;display:grid;place-items:center;color:var(--dimmed);flex:none}
+.nl[aria-current="page"] .ic{color:var(--primary-text)}
+.nl .lab{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nl .desc{display:block;font-size:12px;color:var(--dimmed);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nl .cnt{font-size:12px;color:var(--dimmed);font-variant-numeric:tabular-nums}
+.nl .chev{color:var(--dimmed);transition:transform .15s}
+.nl[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.nl.lvl2{padding-left:24px}
+.nl.lvl2::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:1px;background:var(--border)}
+.nl.lvl3{padding-left:40px;font-size:13px}
+.nl.lvl3::before{content:"";position:absolute;left:19px;top:0;bottom:0;width:1px;background:var(--border)}
+.nl .dot{width:6px;height:6px;border-radius:50%;flex:none}
+.nl .ext{color:var(--dimmed)}
+.children{display:flex;flex-direction:column;gap:2px}
+.children[hidden]{display:none}
+.badge{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:9px;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;line-height:1;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.b-gray{background:var(--gray-bg);color:var(--gray)}
+.b-blue{background:var(--active);color:var(--primary-text)}
+.b-violet{background:var(--violet-bg);color:var(--violet)}
+.b-teal{background:var(--teal-bg);color:var(--teal)}
+.b-orange{background:var(--orange-bg);color:var(--orange)}
+
+/* Task picker (Select-like) */
+.picker{position:relative;padding:12px 12px 6px}
+.picker-lbl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dimmed);margin:0 0 6px 2px}
+.pick{display:flex;align-items:center;gap:10px;width:100%;height:auto;min-height:40px;padding:6px 10px;border:1px solid var(--border);border-radius:4px;background:var(--surface);text-align:left}
+.pick:hover{border-color:var(--dimmed)}
+.pick[aria-expanded="true"]{border-color:var(--primary);box-shadow:0 0 0 2px var(--active)}
+.pick .sw{width:8px;height:24px;border-radius:2px;flex:none}
+.pick .pt{flex:1;min-width:0}
+.pick .pt b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pick .pt small{display:block;font-size:12px;color:var(--dimmed)}
+.pick .chevd{color:var(--dimmed)}
+.pick.card{padding:10px;min-height:56px}
+.pick.card .sw{width:32px;height:32px;border-radius:6px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.menu{position:absolute;left:12px;right:12px;top:calc(100% - 2px);z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;display:flex;flex-direction:column;gap:2px}
+.menu[hidden]{display:none}
+.menu .mh{font-size:11px;color:var(--dimmed);padding:6px 8px 2px}
+.mi{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:4px;text-align:left}
+.mi:hover{background:var(--hover)}
+.mi[aria-selected="true"]{background:var(--active)}
+.mi .sw{width:8px;height:22px;border-radius:2px;flex:none}
+.mi .mt{flex:1;min-width:0}
+.mi .mt b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mi .mt small{display:block;font-size:12px;color:var(--dimmed)}
+.mi.new{color:var(--primary-text);border-top:1px solid var(--border-soft);margin-top:2px;border-radius:0 0 4px 4px}
+
+/* Rail (option B) */
+.rail{width:60px;background:var(--rail);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px}
+.rail .rb{width:44px;height:44px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-2);font-size:9px;font-weight:600;letter-spacing:.02em}
+.rail .rb:hover{background:var(--hover)}
+.rail .rb[aria-current="page"]{background:var(--active);color:var(--primary-text)}
+.rail .rail-div{width:28px;height:1px;background:var(--border);margin:8px 0}
+.rail .grow{flex:1}
+.panel{width:260px;display:flex;flex-direction:column;min-height:0}
+.panel-title{padding:14px 16px 4px;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
+.panel-title .badge{margin-left:auto}
+.panel-sub{padding:0 16px 8px;font-size:12px;color:var(--dimmed)}
+.flt{margin:4px 12px 6px;display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:4px;color:var(--dimmed);font-size:13px}
+
+/* Option C bottom zone */
+.zone{margin-top:auto;background:var(--body);border-top:1px solid var(--border);padding:8px 12px 10px}
+.zone .nav-sec{padding-top:8px}
+.nl.big{padding:10px 10px}
+.nl.big .lab{font-weight:500}
+.nl.big[aria-current="page"] .desc{color:var(--primary-text);opacity:.8}
+
+/* Main */
+.main{overflow:auto;padding:20px 24px 28px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dimmed)}
+.crumbs b{color:var(--text);font-weight:500}
+.crumbs .sep{color:var(--border)}
+.title-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.title-row h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em}
+.title-row p{margin:4px 0 0;color:var(--dimmed);max-width:70ch}
+.title-row .acts{margin-left:auto;display:flex;gap:8px}
+.btn{height:34px;padding:0 14px;border-radius:4px;border:1px solid var(--border);font-weight:500;display:inline-flex;align-items:center;gap:6px;background:var(--surface);color:var(--text)}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{background:var(--primary-strong)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.stat .k{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dimmed);display:flex;align-items:center;gap:6px}
+.stat .n{font-size:26px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .d{font-size:12px;color:var(--dimmed)}
+.grid2{display:grid;grid-template-columns:3fr 2fr;gap:14px;align-items:start}
+.paper{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.paper .ph{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border-soft);font-weight:600}
+.paper .ph .link{margin-left:auto;font-size:13px;font-weight:500;color:var(--primary-text)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-weight:600;font-size:12px;color:var(--dimmed);text-align:left;padding:8px 16px;border-bottom:1px solid var(--border-soft)}
+.tbl td{padding:10px 16px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .name{display:flex;align-items:center;gap:8px;font-weight:500}
+.tbl .name .ic{color:var(--dimmed)}
+.tbl .num{font-variant-numeric:tabular-nums;color:var(--text-2)}
+.tbl .who{color:var(--dimmed)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border-soft);font-size:13px}
+.li:last-child{border-bottom:0}
+.li .ic{color:var(--dimmed);flex:none;margin-top:1px}
+.li .t{flex:1;min-width:0}
+.li .t b{font-weight:500}
+.li .t small{display:block;color:var(--dimmed);font-size:12px;margin-top:1px}
+.li time{font-size:12px;color:var(--dimmed);white-space:nowrap;font-variant-numeric:tabular-nums}
+.empty{padding:28px 16px;text-align:center;color:var(--dimmed)}
+.q{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--code);padding:1px 5px;border-radius:3px}
+@media (max-width:960px){.stats{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h6"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9h8M8 13h6"/><path d="M4 18V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8l-4 4z"/></symbol>
+    <symbol id="i-design" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></symbol>
+    <symbol id="i-model" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M6.5 17.5 11 7M17.5 17.5 13 7M7 19h10"/></symbol>
+    <symbol id="i-wiki" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0"/><path d="M3 6v13M12 6v13M21 6v13"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6v8H4zM4 16h6v4H4zM14 12h6v8h-6zM14 4h6v4h-6z"/></symbol>
+    <symbol id="i-source" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-chevd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-sel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-5"/><path d="M10 14 20 4M15 4h5v5"/></symbol>
+    <symbol id="i-question" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5 2.6 2.6 0 1 0-3-4"/></symbol>
+    <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19V5l12 14V5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+  <div class="intro">
+    <div>
+      <h1>Left sidebar for the Noesis dashboard</h1>
+      <p>Three menu structures. Each keeps the task picker at the top and separates task-bound content (sources, design docs) from workspace-wide links (system model, wiki). Click around: picker, nav, expanders all work.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Sidebar option">
+      <button type="button" data-opt="A" aria-pressed="true">A · Grouped tree</button>
+      <button type="button" data-opt="B" aria-pressed="false">B · Rail + panel</button>
+      <button type="button" data-opt="C" aria-pressed="false">C · Flat + pinned</button>
+    </div>
+  </div>
+
+  <div class="rationale" id="rationale"></div>
+
+  <div class="frame">
+    <div class="shell">
+      <div class="header">
+        <div class="logo"><i><svg width="14" height="14"><use href="#i-logo"/></svg></i>Noesis</div>
+        <div class="hsearch"><svg width="16" height="16"><use href="#i-search"/></svg><span>Search sources, docs, wiki…</span><kbd>⌘K</kbd></div>
+        <div class="hright">
+          <button type="button" class="icon-btn" aria-label="Notifications"><svg width="18" height="18"><use href="#i-bell"/></svg></button>
+          <div class="avatar" title="Łukasz">ŁS</div>
+        </div>
+      </div>
+      <nav class="navbar" id="navbar" aria-label="Sidebar"></nav>
+      <main class="main" id="main"></main>
+    </div>
+  </div>
+</div>
+
+<script>
+const TASKS = [
+  { id:'retry', name:'Payment retry policy', key:'NOE-142', status:'In progress', badge:'b-blue', color:'#228be6',
+    docs:[
+      ['PRD – Retry policy v2','PDF','M. Nowak','2d ago'],
+      ['Stripe webhook reference','Web page','import','4d ago'],
+      ['Incident 2026-08-21 postmortem','Markdown','K. Wiśniewska','1w ago'],
+      ['Retry backoff spreadsheet','Sheet','M. Nowak','1w ago'],
+    ],
+    convs:[
+      ['#payments · retries thread','Slack · 38 messages','3d ago'],
+      ['Ops sync 2026-09-02','Meeting transcript · 41 min','1w ago'],
+      ['Email: PSP escalation','Email · 6 messages','2w ago'],
+    ],
+    designs:[
+      ['Retry state machine','Draft','b-yellow','v3','Ł. Szydło','1h ago'],
+      ['Webhook event schema','In review','b-blue','v2','M. Nowak','yesterday'],
+      ['Dead-letter handling','Approved','b-green','v1','K. Wiśniewska','1w ago'],
+    ],
+    questions:5, updated:'Updated 1h ago',
+    activity:[
+      ['i-design','Retry state machine → v3','Ł. Szydło changed the timeout branch','1h ago'],
+      ['i-chat','#payments · retries thread','12 new messages since yesterday','3h ago'],
+      ['i-question','Open question answered','"Max attempts per PSP?" → 5, per Ops sync','yesterday'],
+      ['i-doc','PRD – Retry policy v2','New version uploaded by M. Nowak','2d ago'],
+    ]},
+  { id:'onboard', name:'Tenant onboarding redesign', key:'NOE-137', status:'Discovery', badge:'b-violet', color:'#7950f2',
+    docs:[['Onboarding funnel analysis','Sheet','A. Zielińska','1d ago'],['Competitor teardown','Notion','A. Zielińska','5d ago']],
+    convs:[['Customer interviews · batch 3','Transcripts · 5 calls','2d ago'],['#growth · onboarding','Slack · 120 messages','today']],
+    designs:[['Onboarding flow v1','Draft','b-yellow','v1','A. Zielińska','2d ago']],
+    questions:9, updated:'Updated today',
+    activity:[['i-chat','#growth · onboarding','New thread: self-serve vs. assisted','today'],['i-doc','Onboarding funnel analysis','Uploaded by A. Zielińska','1d ago']]},
+  { id:'audit', name:'Audit log export', key:'NOE-129', status:'Done', badge:'b-green', color:'#12b886',
+    docs:[['SOC 2 evidence checklist','PDF','Compliance','3w ago'],['Export format spec','Markdown','Ł. Szydło','3w ago']],
+    convs:[['Compliance review call','Meeting transcript · 28 min','3w ago']],
+    designs:[['Export pipeline','Approved','b-green','v4','Ł. Szydło','2w ago'],['Retention policy','Approved','b-green','v2','Compliance','3w ago']],
+    questions:0, updated:'Closed 2 weeks ago',
+    activity:[['i-design','Export pipeline → v4','Approved by Compliance','2w ago']]},
+];
+
+const RATIONALE = {
+  A: { title:'Grouped tree', idea:'One scrollable list. Task-bound items live under the picker as an expandable tree (Information sources → Documents / Conversations; Design docs → each doc). A labelled "Workspace" section below the divider holds System model and Wiki.',
+       pro:'Most familiar Mantine pattern (nested NavLink). Everything discoverable without extra clicks; counts visible at every level.',
+       con:'Gets long with many design docs; the global section scrolls out of view when the tree is expanded.' },
+  B: { title:'Rail + panel', idea:'Narrow icon rail chooses the area (Overview, Sources, Design docs | System model, Wiki). The panel shows the picker and the contents of the chosen area. Global areas sit in the rail below a divider, so it is obvious they are not part of the task.',
+       pro:'Scales to many items per area; panel gets a filter box. Strongest visual separation between task and workspace scope.',
+       con:'Two-column navbar costs width and one extra click to reach a document; less conventional for a first-time user.' },
+  C: { title:'Flat + pinned', idea:'Picker is labelled "Change" (a unit of work). Under it, only four change-level entries (Overview, Documents, Conversations, Design docs), each with a count and one-line description. Drill-down happens in the main area. System model and Wiki are pinned in a tinted "Documentation" zone at the bottom of the sidebar.',
+       pro:'Shortest scan; sidebar never grows. Pinned zone stays visible regardless of task content. Easiest to keep clean on mobile.',
+       con:'No direct jump to a specific document from the sidebar; users rely on the main list or ⌘K search.' },
+};
+
+const T = ()=> state.opt==='C' ? {unit:'Change',units:'Changes',group:'Documentation'} : {unit:'Task',units:'Tasks',group:'Workspace'};
+const state = { opt:'A', task:'retry', nav:'overview', exp:{ sources:true, designs:true }, pickerOpen:false, area:'overview', sub:'all' };
+const $ = (s,r=document)=>r.querySelector(s);
+const ic = (id,s=18)=>`<svg width="${s}" height="${s}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const task = ()=>TASKS.find(t=>t.id===state.task);
+const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* ---------- picker ---------- */
+function picker(variant){
+  const t = task();
+  const menu = `<div class="menu" id="menu" ${state.pickerOpen?'':'hidden'} role="listbox">
+    <div class="mh">Your ${T().units.toLowerCase()}</div>
+    ${TASKS.map(x=>`<button type="button" class="mi" role="option" aria-selected="${x.id===state.task}" data-task="${x.id}">
+      <span class="sw" style="background:${x.color}"></span>
+      <span class="mt"><b>${esc(x.name)}</b><small>${x.key} · ${x.status}</small></span>
+      <span class="badge ${x.badge}">${x.status}</span></button>`).join('')}
+    <button type="button" class="mi new">${ic('i-plus',16)} New ${T().unit.toLowerCase()}</button>
+  </div>`;
+  if (variant==='card') return `<div class="picker">
+    <button type="button" class="pick card" id="pick" aria-haspopup="listbox" aria-expanded="${state.pickerOpen}">
+      <span class="sw" style="background:${t.color}">${t.key.slice(-3)}</span>
+      <span class="pt"><b>${esc(t.name)}</b><small>${t.key} · ${t.status}</small></span>
+      ${ic('i-sel',16).replace('<svg','<svg class="chevd"')}
+    </button>${menu}</div>`;
+  return `<div class="picker">
+    <div class="picker-lbl">${T().unit}</div>
+    <button type="button" class="pick" id="pick" aria-haspopup="listbox" aria-expanded="${state.pickerOpen}">
+      <span class="sw" style="background:${t.color}"></span>
+      <span class="pt"><b>${esc(t.name)}</b><small>${t.key} · ${t.status}</small></span>
+      ${ic('i-sel',16).replace('<svg','<svg class="chevd"')}
+    </button>${menu}</div>`;
+}
+const nl = (key,label,icon,opts={})=>`<button type="button" class="nl ${opts.cls||''}" data-nav="${key}" aria-current="${state.nav===key?'page':'false'}" ${opts.exp!==undefined?`aria-expanded="${opts.exp}" data-exp="${opts.expKey}"`:''}>
+  ${icon?`<span class="ic">${ic(icon)}</span>`:''}${opts.dot?`<span class="dot" style="background:${opts.dot}"></span>`:''}
+  <span class="lab">${esc(label)}${opts.desc?`<span class="desc">${esc(opts.desc)}</span>`:''}</span>
+  ${opts.badge?`<span class="badge ${opts.badge[1]}">${opts.badge[0]}</span>`:''}
+  ${opts.cnt!==undefined?`<span class="cnt">${opts.cnt}</span>`:''}
+  ${opts.ext?`<span class="ext">${ic('i-ext',14)}</span>`:''}
+  ${opts.exp!==undefined?`<span class="chev">${ic('i-chev',14)}</span>`:''}
+</button>`;
+
+/* ---------- Option A ---------- */
+function navA(){
+  const t = task();
+  return picker() + `<div class="nav-scroll">
+    ${nl('overview','Overview','i-home')}
+    ${nl('sources','Information sources','i-source',{exp:state.exp.sources,expKey:'sources',cnt:t.docs.length+t.convs.length})}
+    <div class="children" ${state.exp.sources?'':'hidden'}>
+      ${nl('docs','Documents','i-doc',{cls:'lvl2',cnt:t.docs.length})}
+      ${nl('convs','Conversations','i-chat',{cls:'lvl2',cnt:t.convs.length})}
+    </div>
+    ${nl('designs','Design docs','i-design',{exp:state.exp.designs,expKey:'designs',cnt:t.designs.length})}
+    <div class="children" ${state.exp.designs?'':'hidden'}>
+      ${t.designs.map((d,i)=>nl('design-'+i,d[0],null,{cls:'lvl2',badge:[d[1],d[2]]})).join('')}
+      ${nl('design-new','New design doc','i-plus',{cls:'lvl2'})}
+    </div>
+    ${nl('questions','Open questions','i-question',{cnt:t.questions})}
+    <div class="nav-sec"><span>Workspace</span><span class="line"></span></div>
+    ${nl('model','System model','i-model',{ext:true})}
+    ${nl('wiki','Wiki','i-wiki',{ext:true})}
+  </div>`;
+}
+
+/* ---------- Option B ---------- */
+function navB(){
+  const t = task();
+  const rb = (key,label,icon)=>`<button type="button" class="rb" data-area="${key}" aria-current="${state.area===key?'page':'false'}" title="${label}">${ic(icon,20)}<span>${label}</span></button>`;
+  const rail = `<div class="rail">
+    ${rb('overview','Task','i-home')}${rb('sources','Sources','i-source')}${rb('designs','Design','i-design')}
+    <div class="rail-div"></div>
+    ${rb('model','Model','i-model')}${rb('wiki','Wiki','i-wiki')}
+    <div class="grow"></div>
+  </div>`;
+  let panel = '';
+  const isTaskArea = ['overview','sources','designs'].includes(state.area);
+  if (isTaskArea) panel += picker('card');
+  if (state.area==='overview') panel += `<div class="nav-scroll">
+      ${nl('overview','Overview','i-home')}
+      ${nl('questions','Open questions','i-question',{cnt:t.questions})}
+      ${nl('activity','Activity','i-clock')}
+      <div class="nav-sec"><span>Members</span><span class="line"></span></div>
+      ${['Ł. Szydło','M. Nowak','K. Wiśniewska'].map(m=>nl('m-'+m,m,null,{dot:'#868e96'})).join('')}
+    </div>`;
+  else if (state.area==='sources') panel += `<div class="nav-scroll">
+      <div class="flt">${ic('i-search',14)} Filter sources…</div>
+      <div class="nav-sec"><span>Documents</span><span class="line"></span><span>${t.docs.length}</span></div>
+      ${t.docs.map((d,i)=>nl('doc-'+i,d[0],'i-doc',{desc:d[1]+' · '+d[3]})).join('')}
+      <div class="nav-sec"><span>Conversations</span><span class="line"></span><span>${t.convs.length}</span></div>
+      ${t.convs.map((c,i)=>nl('conv-'+i,c[0],'i-chat',{desc:c[1]})).join('')}
+    </div><div class="nav-foot">${nl('add-source','Add source','i-plus')}</div>`;
+  else if (state.area==='designs') panel += `<div class="nav-scroll">
+      <div class="flt">${ic('i-search',14)} Filter design docs…</div>
+      ${t.designs.map((d,i)=>nl('design-'+i,d[0],'i-design',{desc:d[3]+' · '+d[5],badge:[d[1],d[2]]})).join('')}
+    </div><div class="nav-foot">${nl('design-new','New design doc','i-plus')}</div>`;
+  else if (state.area==='model') panel += `<div class="panel-title">${ic('i-model')} System model <span class="badge b-gray">Workspace</span></div>
+    <div class="panel-sub">Shared across all tasks</div>
+    <div class="nav-scroll">
+      ${nl('model','Overview','i-home')}
+      <div class="nav-sec"><span>Domains</span><span class="line"></span></div>
+      ${['Payments','Tenants','Identity','Audit'].map(d=>nl('dom-'+d,d,null,{dot:'#228be6'})).join('')}
+      <div class="nav-sec"><span>Views</span><span class="line"></span></div>
+      ${nl('v-ctx','Context map',null,{dot:'#868e96'})}${nl('v-evt','Event catalogue',null,{dot:'#868e96'})}
+    </div>`;
+  else panel += `<div class="panel-title">${ic('i-wiki')} Wiki <span class="badge b-gray">Workspace</span></div>
+    <div class="panel-sub">Shared across all tasks</div>
+    <div class="nav-scroll">
+      <div class="flt">${ic('i-search',14)} Search wiki…</div>
+      ${['Glossary','Architecture decisions','Runbooks','Onboarding guide','Team conventions'].map(p=>nl('w-'+p,p,'i-doc')).join('')}
+    </div>`;
+  return rail + `<div class="panel">${panel}</div>`;
+}
+
+/* ---------- Option C ---------- */
+function navC(){
+  const t = task();
+  return picker() + `<div class="nav-scroll">
+    ${nl('overview','Overview','i-home',{cls:'big',desc:t.updated})}
+    ${nl('docs','Documents','i-doc',{cls:'big',cnt:t.docs.length,desc:'Specs, PDFs, imported pages'})}
+    ${nl('convs','Conversations','i-chat',{cls:'big',cnt:t.convs.length,desc:'Slack, meetings, email'})}
+    ${nl('designs','Design docs','i-design',{cls:'big',cnt:t.designs.length,desc:t.designs.filter(d=>d[1]!=='Approved').length+' awaiting review'})}
+  </div>
+  <div class="zone">
+    <div class="nav-sec"><span>${T().group}</span><span class="line"></span></div>
+    ${nl('model','System model','i-model',{desc:'Domains, events, context map'})}
+    ${nl('wiki','Wiki','i-wiki',{desc:'Glossary, ADRs, runbooks'})}
+  </div>`;
+}
+
+/* ---------- main ---------- */
+function mainHTML(){
+  const t = task();
+  const key = state.opt==='B' ? state.area : state.nav;
+  const docRow = d=>`<tr><td><span class="name"><span class="ic">${ic('i-doc',16)}</span>${esc(d[0])}</span></td><td class="who">${d[1]}</td><td class="who">${d[2]}</td><td class="num">${d[3]}</td></tr>`;
+  const convRow = c=>`<tr><td><span class="name"><span class="ic">${ic('i-chat',16)}</span>${esc(c[0])}</span></td><td class="who" colspan="2">${c[1]}</td><td class="num">${c[2]}</td></tr>`;
+  const desRow = d=>`<tr><td><span class="name"><span class="ic">${ic('i-design',16)}</span>${esc(d[0])}</span></td><td><span class="badge ${d[2]}">${d[1]}</span></td><td class="who">${d[3]} · ${d[4]}</td><td class="num">${d[5]}</td></tr>`;
+  const crumb = (...p)=>`<div class="crumbs">${p.map((x,i)=>i<p.length-1?`<span>${x}</span><span class="sep">/</span>`:`<b>${x}</b>`).join('')}</div>`;
+
+  if (key==='model') return crumb(T().group,'System model') + `<div class="title-row"><div><h2>System model</h2><p>Domains, events and context map shared by every ${T().unit.toLowerCase()}. Independent of the selected ${T().unit.toLowerCase()}.</p></div><div class="acts"><button class="btn">Export</button><button class="btn primary">${ic('i-plus',14)} Add domain</button></div></div>
+    <div class="stats"><div class="stat"><span class="k">Domains</span><span class="n">4</span><span class="d">Payments, Tenants, Identity, Audit</span></div><div class="stat"><span class="k">Events</span><span class="n">37</span><span class="d">6 added this month</span></div><div class="stat"><span class="k">Aggregates</span><span class="n">12</span></div><div class="stat"><span class="k">Referenced by</span><span class="n">3</span><span class="d">tasks</span></div></div>
+    <div class="paper"><div class="ph">Recently changed elements</div><div class="list">
+      <div class="li"><span class="ic">${ic('i-model',16)}</span><span class="t"><b>PaymentRetried</b> event<small>Added from design doc "Retry state machine" · Payments</small></span><time>1h ago</time></div>
+      <div class="li"><span class="ic">${ic('i-model',16)}</span><span class="t"><b>Tenant</b> aggregate<small>New attribute: onboardingMode · Tenants</small></span><time>today</time></div>
+      <div class="li"><span class="ic">${ic('i-model',16)}</span><span class="t"><b>AuditEntryExported</b> event<small>Marked stable · Audit</small></span><time>2w ago</time></div>
+    </div></div>`;
+  if (key==='wiki') return crumb(T().group,'Wiki') + `<div class="title-row"><div><h2>Wiki</h2><p>Team knowledge that outlives any single ${T().unit.toLowerCase()}: glossary, architecture decisions, runbooks.</p></div><div class="acts"><button class="btn primary">${ic('i-plus',14)} New page</button></div></div>
+    <div class="paper"><div class="ph">Pages</div><table class="tbl"><thead><tr><th>Page</th><th>Section</th><th>Owner</th><th>Edited</th></tr></thead><tbody>
+      ${[['Glossary','Reference','Ł. Szydło','3d ago'],['ADR-014 Retry strategy per PSP','Decisions','M. Nowak','1h ago'],['Runbook: webhook backlog','Runbooks','Ops','1w ago'],['Onboarding guide','Team','A. Zielińska','2w ago']].map(r=>`<tr><td><span class="name"><span class="ic">${ic('i-doc',16)}</span>${r[0]}</span></td><td class="who">${r[1]}</td><td class="who">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('')}
+    </tbody></table></div>`;
+
+  const head = (sub)=>crumb(T().units, esc(t.name), sub);
+  if (key==='docs') return head('Documents') + `<div class="title-row"><div><h2>Documents</h2><p>Files and imported pages attached to ${esc(t.name)}.</p></div><div class="acts"><button class="btn primary">${ic('i-plus',14)} Add document</button></div></div>
+    <div class="paper"><table class="tbl"><thead><tr><th>Name</th><th>Type</th><th>Added by</th><th>Updated</th></tr></thead><tbody>${t.docs.map(docRow).join('')}</tbody></table></div>`;
+  if (key==='convs') return head('Conversations') + `<div class="title-row"><div><h2>Conversations</h2><p>Slack threads, meeting transcripts and email captured for ${esc(t.name)}.</p></div><div class="acts"><button class="btn primary">${ic('i-plus',14)} Import conversation</button></div></div>
+    <div class="paper"><table class="tbl"><thead><tr><th>Name</th><th colspan="2">Channel</th><th>Updated</th></tr></thead><tbody>${t.convs.map(convRow).join('')}</tbody></table></div>`;
+  if (key==='sources') return head('Information sources') + `<div class="title-row"><div><h2>Information sources</h2><p>Everything the task's knowledge is derived from: documents and conversations.</p></div><div class="acts"><button class="btn primary">${ic('i-plus',14)} Add source</button></div></div>
+    <div class="paper"><div class="ph">Documents <span class="link">${t.docs.length}</span></div><table class="tbl"><tbody>${t.docs.map(docRow).join('')}</tbody></table></div>
+    <div class="paper"><div class="ph">Conversations <span class="link">${t.convs.length}</span></div><table class="tbl"><tbody>${t.convs.map(convRow).join('')}</tbody></table></div>`;
+  if (key==='designs' || key.startsWith('design-')) return head('Design docs') + `<div class="title-row"><div><h2>Design docs</h2><p>Solution designs for ${esc(t.name)}. Approved docs feed the system model.</p></div><div class="acts"><button class="btn primary">${ic('i-plus',14)} New design doc</button></div></div>
+    <div class="paper"><table class="tbl"><thead><tr><th>Title</th><th>Status</th><th>Version · Owner</th><th>Updated</th></tr></thead><tbody>${t.designs.map(desRow).join('')}</tbody></table></div>`;
+  if (key==='questions') return head('Open questions') + `<div class="title-row"><div><h2>Open questions</h2><p>Unresolved questions raised while reading sources or drafting designs.</p></div></div>
+    ${t.questions? `<div class="paper"><div class="list">${['Max retry attempts per PSP?','Should retries respect tenant quiet hours?','Who owns dead-letter triage?','Backoff jitter: fixed or proportional?','Alert threshold for retry storms?'].slice(0,t.questions).map((q,i)=>`<div class="li"><span class="ic">${ic('i-question',16)}</span><span class="t"><b>${q}</b><small>From ${i%2?'#payments · retries thread':'Retry state machine v3'}</small></span><time>${i+1}d ago</time></div>`).join('')}</div></div>` : `<div class="paper"><div class="empty">No open questions. Nice.</div></div>`}`;
+
+  /* overview */
+  return head('Overview') + `<div class="title-row"><div><h2>${esc(t.name)} <span class="badge ${t.badge}" style="vertical-align:middle;margin-left:6px">${t.status}</span></h2><p>${t.key} · ${t.updated}. Sources feed design docs; approved design docs update the system model.</p></div><div class="acts"><button class="btn">${ic('i-plus',14)} Add source</button><button class="btn primary">${ic('i-plus',14)} New design doc</button></div></div>
+    <div class="stats">
+      <div class="stat"><span class="k">${ic('i-doc',13)} Documents</span><span class="n">${t.docs.length}</span><span class="d">Last added ${t.docs[0][3]}</span></div>
+      <div class="stat"><span class="k">${ic('i-chat',13)} Conversations</span><span class="n">${t.convs.length}</span><span class="d">Last activity ${t.convs[0][2]}</span></div>
+      <div class="stat"><span class="k">${ic('i-design',13)} Design docs</span><span class="n">${t.designs.length}</span><span class="d">${t.designs.filter(d=>d[1]==='Approved').length} approved</span></div>
+      <div class="stat"><span class="k">${ic('i-question',13)} Open questions</span><span class="n">${t.questions}</span><span class="d">${t.questions?'Needs answers':'All resolved'}</span></div>
+    </div>
+    <div class="grid2">
+      <div class="paper"><div class="ph">Design docs <span class="link">View all</span></div><table class="tbl"><thead><tr><th>Title</th><th>Status</th><th>Version · Owner</th><th>Updated</th></tr></thead><tbody>${t.designs.map(desRow).join('')}</tbody></table></div>
+      <div class="paper"><div class="ph">Recent activity</div><div class="list">${t.activity.map(a=>`<div class="li"><span class="ic">${ic(a[0],16)}</span><span class="t"><b>${esc(a[1])}</b><small>${esc(a[2])}</small></span><time>${a[3]}</time></div>`).join('')}</div></div>
+    </div>`;
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  const nb = $('#navbar');
+  nb.className = 'navbar' + (state.opt==='B' ? ' with-rail' : '');
+  nb.innerHTML = state.opt==='A' ? navA() : state.opt==='B' ? navB() : navC();
+  $('#main').innerHTML = mainHTML();
+  const r = RATIONALE[state.opt];
+  $('#rationale').innerHTML = `<div><div class="lbl">Option ${state.opt}</div><div class="v title">${r.title}</div><div class="v" style="margin-top:4px;color:var(--text-2)">${r.idea}</div></div>
+    <div><div class="lbl">Works well when</div><div class="v">${r.pro}</div></div>
+    <div><div class="lbl">Trade-off</div><div class="v">${r.con}</div></div>`;
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.opt===state.opt));
+}
+document.addEventListener('click', e=>{
+  const seg = e.target.closest('.seg button');
+  if (seg){ state.opt = seg.dataset.opt; state.pickerOpen=false; state.nav='overview'; state.area='overview'; render(); return; }
+  const pick = e.target.closest('#pick');
+  if (pick){ state.pickerOpen = !state.pickerOpen; render(); return; }
+  const mi = e.target.closest('.mi[data-task]');
+  if (mi){ state.task = mi.dataset.task; state.pickerOpen=false; state.nav='overview'; state.area='overview'; render(); return; }
+  const rb = e.target.closest('.rb');
+  if (rb){ state.area = rb.dataset.area; state.nav = rb.dataset.area; state.pickerOpen=false; render(); return; }
+  const n = e.target.closest('.nl');
+  if (n){
+    if (n.dataset.exp){ state.exp[n.dataset.exp] = !state.exp[n.dataset.exp]; }
+    state.nav = n.dataset.nav; state.pickerOpen=false;
+    if (state.opt==='B' && (n.dataset.nav==='model'||n.dataset.nav==='wiki')) state.area = n.dataset.nav;
+    render(); return;
+  }
+  if (state.pickerOpen && !e.target.closest('.picker')){ state.pickerOpen=false; render(); }
+});
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && state.pickerOpen){ state.pickerOpen=false; render(); } });
+render();
+</script>

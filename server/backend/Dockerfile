@@ -33,7 +33,7 @@ FROM oven/bun:1.3.14-slim
 WORKDIR /app
 
 COPY --from=build /repo/server/backend/dist ./server
-COPY --from=build /repo/server/frontend/dist/client ./ui
+COPY --from=build /repo/server/frontend/dist ./ui
 # require("@ladybugdb/core") from server/main.js resolves up to /app/node_modules.
 COPY --from=build /runtime/node_modules ./node_modules
 

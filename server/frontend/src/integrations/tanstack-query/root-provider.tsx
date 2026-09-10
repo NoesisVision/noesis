@@ -1,9 +1,9 @@
 import { QueryClient } from '@tanstack/react-query';
 
-export function getContext() {
-  const queryClient = new QueryClient();
+export interface RouterContext {
+  queryClient: QueryClient;
+}
 
-  return {
-    queryClient,
-  };
+export function getContext(): RouterContext {
+  return { queryClient: new QueryClient() };
 }

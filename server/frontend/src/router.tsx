@@ -1,22 +1,17 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
-import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
-import { getContext } from './integrations/tanstack-query/root-provider';
-import { routeTree } from './routeTree.gen';
+import type { RouterContext } from '#/integrations/tanstack-query/root-provider';
+import { routeTree } from '#/routeTree.gen';
 
-export function getRouter() {
-  const context = getContext();
-
-  const router = createTanStackRouter({
+// The context is built by the caller and shared with the QueryClientProvider
+// in `main.tsx`, so route loaders and components read one QueryClient.
+export function getRouter(context: RouterContext) {
+  return createTanStackRouter({
     routeTree,
     context,
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
   });
-
-  setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });
-
-  return router;
 }
 
 declare module '@tanstack/react-router' {

@@ -1762,3 +1762,162 @@ concurrent writer that cannot exist in a single-process local server.
   routes; `server/frontend` had not yet been built against the old ones.
 - Making the server reachable by anyone other than its local user is a new
   decision, and would have to reintroduce a trust boundary from scratch.
+
+## 66. The old SPA's frontend-stack decisions are retired; the frontend is a bare Start scaffold with no component library
+
+**Status: accepted** (2026-09-09).
+
+**Context:** Decision 63 rebuilt the UI as a TanStack Start app and decision 64
+deleted the Vite SPA it replaced, renaming the new app into `server/frontend`.
+What is actually in the tree now is the `create-tsrouter-app` scaffold and
+nothing else: `__root.tsx`, `index.tsx`, `components/home.tsx`,
+`integrations/tanstack-query/`, a `styles.css` that is one `@import
+"tailwindcss"` plus a box-sizing reset, and dependencies limited to React 19,
+Tailwind v4, TanStack Start/Router/Query, the React Compiler babel plugin and
+Vite 8.
+
+Three documents still describe a frontend that no longer exists. Decision 45
+specifies a shell — pathless `_shell` layout route, `ShellProvider` with a
+`useRightPanel` registration stack, a project switcher, a Cmd+K palette,
+shadcn (Base UI) components under `src/components/ui/**`, and a
+`noesis.shell.*` localStorage namespace — every file of which went with the
+old app; its project switcher also lost its subject when decision 65 removed
+projects. Decision 60 replaces the token set in
+`server/frontend/src/index.css`, a file that does not exist, and adds
+`@fontsource-variable/raleway`, which is no longer a dependency anywhere.
+`docs/stack.md` lists shadcn/ui, Shadcnblocks, tweakcn's Claude preset,
+TanStack Form, TanStack Table, TanStack Store and React Flow — none of them
+dependencies of the current frontend, and the tweakcn preset is the very
+theme decision 60 already replaced.
+
+**Decision:**
+
+- **Retire the frontend clauses of 45.** The shell mechanisms (layout route,
+  right-panel registration stack, palette, project switcher, shell state
+  namespace) and the shadcn component vendoring describe deleted code and
+  bind nothing. Two parts of 45 stand and are not retired: `GET /ui/search`
+  with the `SearchProvider[]` registry in `SearchService` is still mounted on
+  the `/ui` surface with an empty registry, and the precedent that a response
+  schema reaches the frontend through `AppType` rather than a contracts
+  package remains how this repo types the boundary.
+- **Retire 60's implementation, keep its palette.** The token set, the three
+  documented deviations and the Raleway binding described one CSS file that no
+  longer exists. The finding stands as brand guidance — the app is cool-toned
+  after noesis.vision (white / `gray-950` surfaces, `blue-700` primary,
+  Raleway), with the contrast pairs already checked — and is re-expressed in
+  whatever theme format the next component library uses, not in `index.css`.
+- **`docs/stack.md` is trimmed to what the frontend depends on**: React 19,
+  Tailwind CSS v4, TanStack Start (SPA mode), TanStack Router, TanStack Query,
+  the React Compiler and Vite 8. shadcn/ui, Shadcnblocks, tweakcn, TanStack
+  Form/Table/Store and React Flow are removed. They were a wish list written
+  before the rebuild, not a stack; each returns to the file when something
+  actually depends on it.
+- **No component library is chosen here.** The current frontend has none, and
+  picking one is its own decision with its own rationale.
+
+**Alternatives considered:**
+
+- **Edit 45 and 60 in place.** The log is append-only history (decision 65's
+  own note), and 45 in particular records why the shell was shaped that way —
+  the registration-stack reasoning, the component-type-not-node trap, the Base
+  UI mechanics — which the next shell will want to read even though its code
+  is gone.
+- **Leave them and let readers infer from 64 that the app was deleted.**
+  They were being read as current: the task-shell elicitation of the same day
+  notes `docs/stack.md` "still lists shadcn + Tailwind" as a live fact about
+  the stack.
+
+**Consequences:**
+
+- **Amends 45 and 60**; both keep their text, and neither now describes a file
+  in the tree.
+- The `hc<AppType>` boundary of decisions 28/29/30 is intact on the backend
+  (`backend/client.ts` is still the type-only exports entry) but has no
+  consumer: `server/frontend` does not depend on `backend` and calls no
+  endpoint. That is unfinished, not reversed — the first real view wires it
+  back up.
+- Biome's `server/frontend` overrides are already down to
+  `useComponentExportOnlyModules` plus the `Route` allowance in `routes/**`;
+  the `src/components/ui/**` exemption that shadcn's vendored source needed
+  went with the old app and is not restored.
+- `docs/work/features/ui-shell.md` stays as the record of what the retired
+  shell was for; it is a requirements document, not a description of the tree.
+
+## 67. TanStack Start is dropped: the frontend is a plain Vite SPA on TanStack Router
+
+**Status: accepted** (2026-09-10).
+
+**Context:** Decision 63 rebuilt the UI on TanStack Start and immediately put
+it in SPA mode — `spa.prerender` emitting one shell to `dist/client/index.html`
+for the Hono backend to serve, no server bundle, no server functions. The
+framework was kept for the door it left open: drop the `spa` flag later and SSR
+plus server functions switch on without rewriting routes. That door is now
+closed by choice — the UI is a local tool served by the backend it talks to,
+with no SEO surface, no first-paint budget that hydration would win back, and
+no server-side work that is not already a Hono route behind `hc<AppType>`.
+
+What Start was actually providing in SPA mode was small: a document-level root
+route (`shellComponent` with `HeadContent`/`Scripts` in place of an
+`index.html`), the build-time prerender of that shell, and the upgrade path.
+File-based routing, type-safe params, loaders and preloading are TanStack
+Router, which stays. Against that it added `@tanstack/react-start`,
+`@tanstack/react-router-ssr-query` and a Nitro-shaped build whose output lands
+under `dist/client`, plus the standing rule that the root route must render at
+build time without browser globals.
+
+**Decision:** Remove TanStack Start. `server/frontend` is a plain Vite SPA:
+
+- `index.html` at the app root is the entry again, with `<div id="app">` and a
+  module script; `src/main.tsx` creates the router, wraps `RouterProvider` in
+  `QueryClientProvider`, and mounts into `#app`. Providers live there, not in
+  the root route.
+- `routes/__root.tsx` is `createRootRouteWithContext` with a `component` only.
+  Its layout (outlet plus the devtools panel) moved to
+  `components/root-layout.tsx`, because biome's `useComponentExportOnlyModules`
+  rejects an _unexported_ component in a route file as well as an extra export
+  — the same rule that put view components under `components/` in decision 63.
+- Route-tree generation moves from Start's plugin to
+  `@tanstack/router-plugin/vite` (`tanstackRouter({ target: 'react',
+autoCodeSplitting: true })`, ordered before the React plugin).
+  `@tanstack/router-cli` and the `generate-routes` script stay for generating
+  the tree without a dev server.
+- `@tanstack/react-start`, `@tanstack/react-router-ssr-query` and
+  `@tanstack/intent` (a scaffold dependency nothing imported) are removed. The
+  SSR-query integration goes with them: one `QueryClient` is created in
+  `main.tsx` and shared between the provider and the router context, with no
+  dehydrate/hydrate cycle to bridge.
+- The build output is `dist/` instead of `dist/client/`, so the Dockerfile
+  copies `server/frontend/dist` to `/app/ui`. `UI_DIST_PATH` and the backend's
+  `serveStatic` fallback are untouched.
+
+**Amends 63.** Its SPA-mode decision stands in substance — one process, one
+image, the backend serves the UI — but the mechanism is now Vite's own SPA
+build rather than Start's prerender, and the "root route must render without
+browser globals" constraint is gone. Decision 29's Vite toolchain for the UI is
+in force again, this time as the whole story rather than as a layer under a
+framework.
+
+**Alternatives considered:**
+
+- **Keep Start in SPA mode for the option value.** The option is only worth its
+  carrying cost if SSR is plausible, and it is not for a locally-served tool.
+  Re-adding Start later is roughly this diff reversed — an `index.html` and a
+  `main.tsx` traded for a shell route — so the door is cheap to reopen.
+- **Keep Start and turn SSR on.** Would put a second server in front of Hono,
+  or Hono inside Start, for a UI whose first paint nobody is waiting on.
+
+**Consequences:**
+
+- The frontend has no server-side execution of any kind. Anything that needs a
+  server is a Hono route on `/ui`, reached through `hc<AppType>` — one way in,
+  which is the boundary decisions 28/29/30 already describe.
+- `localStorage` and other browser globals may be read anywhere in the tree,
+  including at module scope. Any plan written against the prerender constraint
+  (the task-shell feature doc) is simplified accordingly.
+- Head management is `index.html` again. A route-level `head`/`HeadContent`
+  setup is available from Router if per-view titles are wanted later; nothing
+  needs it today.
+- `.gitignore` drops the Nitro/Vinxi/Wrangler/output entries the Start
+  scaffold carried.
+- The frontend's scaffold `README.md` (Start's boilerplate, documenting
+  `createServerFn` and server routes) no longer describes this app.
