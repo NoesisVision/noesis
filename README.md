@@ -117,27 +117,11 @@ The server runs locally inside a single checkout, as part of the Claude plugin.
 It has no identity provider and no tenant scoping, so there is nothing to
 register and nothing to authenticate against (decision 65).
 
-| Variable             | Meaning                                                                                        |
-| -------------------- | ---------------------------------------------------------------------------------------------- |
-| `NOESIS_ROOT`        | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
-| `NOESIS_DATA_DIR`    | On-disk data directory; defaults to `.data`                                                    |
-| `NOESIS_RECOVER_WAL` | `1` to discard a torn write-ahead log at boot — see below                                      |
-| `PORT`               | Listen port; defaults to `3000`                                                                |
-| `UI_DIST_PATH`       | Serve a built SPA from this directory (unset in dev/tests)                                     |
-
-### Recovering a torn write-ahead log
-
-If the server dies at boot with
-`Runtime exception: Corrupted wal file. Read out invalid WAL record type.`, a
-previous process was killed mid-write and LadybugDB's log beside the database
-file is unusable. There is no repairing it in place — the process dies on its
-first query, restarts, and dies again.
-
-Set `NOESIS_RECOVER_WAL=1` for one boot. The server deletes
-`<NOESIS_DATA_DIR>/ladybug-db.wal`, retries, and carries on, **losing the
-transactions written since the last checkpoint**. Copy the data directory first
-if you want a forensic record. Unset the variable afterwards, so the next torn
-log is reported rather than discarded (decision 62).
+| Variable       | Meaning                                                                                        |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| `NOESIS_ROOT`  | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
+| `PORT`         | Listen port; defaults to `3000`                                                                |
+| `UI_DIST_PATH` | Serve a built SPA from this directory (unset in dev/tests)                                     |
 
 ### Working with contracts
 
@@ -204,8 +188,8 @@ own machine, inside one checkout (decision 65).
   health-checks `/internal/health` (`railway.json`).
 - **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
   token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway
-  service name). Railway injects `PORT`; `UI_DIST_PATH` and `NOESIS_DATA_DIR`
-  are baked into the image. There is nothing else to configure.
+  service name). Railway injects `PORT`; `UI_DIST_PATH` is baked into the
+  image. There is nothing else to configure.
 - **Run the production image locally:**
 
 ```sh

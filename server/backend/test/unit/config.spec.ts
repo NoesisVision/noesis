@@ -2,35 +2,25 @@ import { describe, expect, it } from 'bun:test';
 import { parseServerConfig } from '../../src/config/config.js';
 
 describe('server configuration', () => {
-  it('defaults the data dir, so a bare environment starts', () => {
+  it('starts on a bare environment, leaving the root to the .git walk', () => {
     const result = parseServerConfig({});
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.config.dataDir).toBe('.data');
+    expect(result.config.root).toBe(undefined);
   });
 
-  it('takes the data dir from the environment', () => {
-    const result = parseServerConfig({ NOESIS_DATA_DIR: '/srv/noesis' });
+  it('takes the repository root from the environment', () => {
+    const result = parseServerConfig({ NOESIS_ROOT: '/work/repo' });
 
-    expect(result.ok && result.config.dataDir).toBe('/srv/noesis');
+    expect(result.ok && result.config.root).toBe('/work/repo');
   });
 
-  it('takes the repository root from the environment, else leaves it to the walk', () => {
-    expect(parseServerConfig({})).toMatchObject({
-      config: { root: undefined },
-    });
-    expect(parseServerConfig({ NOESIS_ROOT: '/work/repo' })).toMatchObject({
-      config: { root: '/work/repo' },
-    });
-    expect(parseServerConfig({ NOESIS_ROOT: '' }).ok).toBe(false);
-  });
-
-  it('rejects an empty data dir rather than silently defaulting it', () => {
-    const result = parseServerConfig({ NOESIS_DATA_DIR: '' });
+  it('rejects an empty root rather than silently ignoring it', () => {
+    const result = parseServerConfig({ NOESIS_ROOT: '' });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.message).toContain('NOESIS_DATA_DIR');
+    expect(result.message).toContain('NOESIS_ROOT');
   });
 });

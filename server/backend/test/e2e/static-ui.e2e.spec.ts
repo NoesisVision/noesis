@@ -48,8 +48,6 @@ beforeAll(async () => {
       ...process.env,
       PORT: String(PORT),
       UI_DIST_PATH: uiDist,
-      // Ephemeral in-memory DB so the e2e run touches no on-disk data dir.
-      NOESIS_DATA_DIR: ':memory:',
       // A throwaway repository root so the run writes no `.noesis/` here.
       NOESIS_ROOT: repoRoot,
     },

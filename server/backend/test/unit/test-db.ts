@@ -1,5 +1,5 @@
 import { DatabaseService } from '../../src/database/database.service.js';
-import { GRAPH_SCHEMA } from '../../src/schema/graph-schema.js';
+import { nodeTableNames } from '../../src/schema/graph-schema.js';
 import { SchemaService } from '../../src/schema/schema.service.js';
 
 // Why this exists: `bun test` loads every `*.spec.ts` into ONE process, and a
@@ -19,7 +19,7 @@ let shared: DatabaseService | undefined;
 
 export async function sharedTestDatabase(): Promise<DatabaseService> {
   if (shared === undefined) {
-    const db = new DatabaseService(':memory:');
+    const db = new DatabaseService();
     db.init();
     await new SchemaService(db).ensureSchema();
     shared = db;
@@ -34,15 +34,4 @@ export async function resetGraph(): Promise<void> {
   for (const table of nodeTableNames()) {
     await shared.query(`MATCH (n:${table}) DETACH DELETE n`);
   }
-}
-
-// Parses the node-table names out of the central DDL so this fixture stays in
-// sync with the schema as later parts add tables.
-function nodeTableNames(): string[] {
-  const names: string[] = [];
-  for (const ddl of GRAPH_SCHEMA) {
-    const match = /CREATE NODE TABLE IF NOT EXISTS\s+(\w+)/i.exec(ddl);
-    if (match?.[1]) names.push(match[1]);
-  }
-  return names;
 }

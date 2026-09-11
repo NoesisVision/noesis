@@ -6,7 +6,7 @@
 # `bun run --filter` does not forward signals to the workspace scripts it
 # spawns: signalling it directly leaves `bun --watch src/main.ts` and vite
 # orphaned to PID 1, still holding :3000 and :5173, and the next start then
-# fails on the LadybugDB lock. A plain Ctrl+C happens to work, because the
+# fails on the ports. A plain Ctrl+C happens to work, because the
 # terminal signals the whole foreground process group rather than the parent
 # — but anything that signals only the parent (an IDE stop button, a kill in
 # a script) leaks both servers.

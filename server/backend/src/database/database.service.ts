@@ -1,4 +1,3 @@
-import { mkdirSync } from 'node:fs';
 import lbug, { type LbugValue } from '@ladybugdb/core';
 
 const { Database, Connection } = lbug;
@@ -7,39 +6,20 @@ type LbugDatabase = InstanceType<typeof Database>;
 type LbugConnection = InstanceType<typeof Connection>;
 export type QueryParams = Record<string, LbugValue>;
 
-// Owns the LadybugDB database handle. Constructed and initialized by the
+// Owns the LadybugDB database handle. The database is in-memory only: the
+// graph is a cache over the files in `.noesis/`, rebuilt by the indexer at
+// boot and on every change, so nothing of it touches the disk and there is
+// nothing to recover (decision 68). Constructed and initialized by the
 // composition root (main.ts), which also closes it on shutdown so native
 // resources are released deterministically (decisions 23/35).
 export class DatabaseService {
-  private readonly dataDir: string;
-  /** `:memory:` for the ephemeral database, otherwise the on-disk file. */
-  private readonly dbPath: string;
   private database: LbugDatabase | null = null;
   private connection: LbugConnection | null = null;
 
-  constructor(dataDir: string) {
-    this.dataDir = dataDir;
-    this.dbPath = dataDir === ':memory:' ? ':memory:' : `${dataDir}/ladybug-db`;
-  }
-
-  /**
-   * Where lbug keeps the write-ahead log, or null for the in-memory database.
-   * Exposed because a torn log is recoverable only by deleting this file, and
-   * the composition root is the one that decides to (decision 62).
-   */
-  get walPath(): string | null {
-    return this.dbPath === ':memory:' ? null : `${this.dbPath}.wal`;
-  }
-
   init(): void {
-    if (this.dbPath !== ':memory:') {
-      // lbug opens the database inside dataDir but does not create dataDir
-      // itself, so ensure it exists first.
-      mkdirSync(this.dataDir, { recursive: true });
-    }
-    this.database = new Database(this.dbPath);
+    this.database = new Database(':memory:');
     this.connection = new Connection(this.database);
-    console.log('[DatabaseService] LadybugDB initialized');
+    console.log('[DatabaseService] LadybugDB initialized (in-memory)');
   }
 
   async close(): Promise<void> {

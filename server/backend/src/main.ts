@@ -1,4 +1,3 @@
-import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
@@ -11,6 +10,8 @@ import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { NoesisDir } from './files/noesis-dir.js';
 import { resolveRepositoryRoot } from './files/repository-root.js';
 import { GreetingService } from './greeting/greeting.service.js';
+import { GraphIndexer } from './index/indexer.js';
+import { NoesisWatcher } from './index/watcher.js';
 import { SchemaService } from './schema/schema.service.js';
 import { SearchService } from './ui/search/search.service.js';
 
@@ -19,26 +20,35 @@ import { SearchService } from './ui/search/search.service.js';
 const config = loadServerConfig();
 
 // The knowledge graph files are the source of truth, under `.noesis/` at the
-// root of the repository this process serves (decision 68). The graph below
-// is a cache over them; wiring it up from the files is the indexer's job.
+// root of the repository this process serves; the graph is an in-memory cache
+// over them, built by the indexer at boot and kept current by the watcher
+// (decision 68). Services write files only — never the graph.
 const noesis = new NoesisDir(loadRepositoryRoot());
 await noesis.ensure();
 console.log(`[server] knowledge graph files in ${noesis.path}`);
 
-const db = new DatabaseService(config.dataDir);
+const db = new DatabaseService();
 db.init();
-await ensureSchema();
+await new SchemaService(db).ensureSchema();
+
+const changesRepository = new ChangesRepository(noesis);
+const designDocsRepository = new DesignDocsRepository(changesRepository);
+const indexer = new GraphIndexer(db, changesRepository, designDocsRepository);
+// Watching before the first build: a file that changes during the build then
+// queues a second one, instead of slipping through the gap.
+const watcher = new NoesisWatcher(noesis, () => indexer.rebuild());
+watcher.start();
+await indexer.rebuild();
 
 // No search providers yet — no entity is searchable. Providers register here
 // as their entities land (documents, graph nodes).
-const changesRepository = new ChangesRepository(noesis);
 const changesService = new ChangesService(changesRepository);
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
   changesService,
   designDocsService: new DesignDocsService(
-    new DesignDocsRepository(changesRepository),
+    designDocsRepository,
     changesService,
   ),
 });
@@ -85,68 +95,17 @@ function loadRepositoryRoot(): string {
   return result.root;
 }
 
-/**
- * The schema pass is the first query of the process, and so the first thing a
- * damaged on-disk database fails — LadybugDB reports a torn write-ahead log as
- * a bare `Runtime exception` that says nothing about what to do next.
- *
- * There is no repairing it in place: the process dies on that first query,
- * restarts, and dies again, which on a platform that restarts containers is a
- * loop with no way out. `NOESIS_RECOVER_WAL=1` is the way out — it deletes the
- * log and retries once, losing the transactions written since the last
- * checkpoint. Opt-in on purpose: that loss is an operator's decision, not
- * something a server should quietly decide for itself (decision 62).
- */
-async function ensureSchema(): Promise<void> {
-  try {
-    await new SchemaService(db).ensureSchema();
-    return;
-  } catch (error) {
-    const wal = db.walPath;
-    if (!String(error).includes('Corrupted wal file') || wal === null)
-      throw error;
-
-    console.error(
-      `[server] The database in ${config.dataDir} has a torn write-ahead log: ` +
-        'a previous process was killed mid-write.',
-    );
-    if (process.env.NOESIS_RECOVER_WAL !== '1') {
-      console.error(
-        `[server] Set NOESIS_RECOVER_WAL=1 to delete ${wal} on the next boot ` +
-          'and carry on, losing the transactions written since the last ' +
-          'checkpoint. Take a copy of the data directory first if you want one.',
-      );
-      throw error;
-    }
-
-    console.warn(
-      `[server] NOESIS_RECOVER_WAL=1 — deleting ${wal} and retrying.`,
-    );
-    // Best-effort, and it must not be awaited into the failure path: closing
-    // tries to checkpoint the very log that is torn, so it throws the same
-    // error the recovery is here to get past. The handle is unusable either
-    // way; unlinking the file out from under it is the point.
-    await db.close().catch(() => undefined);
-    rmSync(wal, { force: true });
-    db.init();
-    await new SchemaService(db).ensureSchema();
-    console.warn(
-      '[server] Recovered. Unset NOESIS_RECOVER_WAL so the next torn log is ' +
-        'reported rather than discarded.',
-    );
-  }
-}
-
-// Explicit shutdown (Nest's lifecycle hooks, made ours): stop accepting
-// requests, then close the database deterministically so on-disk state is
-// flushed (decisions 23/35).
+// Explicit shutdown (Nest's lifecycle hooks, made ours): stop watching and
+// accepting requests, then close the database deterministically so its native
+// handles are released (decisions 23/35).
 let shuttingDown = false;
 async function shutdown(): Promise<void> {
-  // A second signal must not start a second teardown. Two `db.close()` calls
-  // racing on one native handle is exactly what leaves a torn write-ahead log
-  // for the next boot to die on (decision 62).
+  // A second signal must not start a second teardown: two `db.close()` calls
+  // racing on one native handle is undefined behaviour (decision 62's guard,
+  // kept by 68).
   if (shuttingDown) return;
   shuttingDown = true;
+  watcher.close();
   try {
     await server.stop();
   } catch (error) {
@@ -154,7 +113,6 @@ async function shutdown(): Promise<void> {
       `[server] shutdown failed before the database closed: ${String(error)}`,
     );
   } finally {
-    // Reached on every path: an unclosed database is a corrupt one next boot.
     await db.close();
   }
   process.exit(0);

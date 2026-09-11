@@ -38,12 +38,11 @@ beforeAll(async () => {
   repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
-    // In-memory DB and a throwaway repository root, so the e2e run touches
-    // no on-disk data dir and writes no `.noesis/` into this checkout.
+    // A throwaway repository root, so the e2e run writes no `.noesis/` into
+    // this checkout.
     env: {
       ...process.env,
       PORT: String(PORT),
-      NOESIS_DATA_DIR: ':memory:',
       NOESIS_ROOT: repoRoot,
     },
     stdio: 'ignore',

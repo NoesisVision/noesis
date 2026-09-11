@@ -19,7 +19,8 @@
     "test": "bun test test/unit",
     "test:watch": "bun test test/unit --watch",
     "test:cov": "bun test test/unit --coverage",
-    "test:e2e": "bun test test/e2e"
+    "test:e2e": "bun test test/e2e",
+    "test:bench": "bun test test/bench"
   },
   "dependencies": {
     "@ladybugdb/core": "^0.19.0",

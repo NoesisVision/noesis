@@ -1,21 +1,19 @@
 import { z } from 'zod';
 
 // Server configuration is read from the environment and zod-validated at
-// bootstrap, failing fast on garbage (decision 10's pattern). The server keeps
-// exactly ONE data dir for its on-disk DB, and serves the one repository
-// `NOESIS_ROOT` names — or, when unset, the checkout it was started in (the
-// walk to `.git` lives in `files/repository-root.ts`).
+// bootstrap, failing fast on garbage (decision 10's pattern). The server
+// serves the one repository `NOESIS_ROOT` names — or, when unset, the checkout
+// it was started in (the walk to `.git` lives in `files/repository-root.ts`).
 //
 // There is nothing else to configure: the server runs locally inside a single
 // checkout as part of the Claude plugin, so it has no identity provider, no
-// tenant scoping and no public URL (decision 65).
+// tenant scoping and no public URL (decision 65), and its graph is an
+// in-memory cache with no data directory (decision 68).
 const envSchema = z.object({
-  NOESIS_DATA_DIR: z.string().min(1).default('.data'),
   NOESIS_ROOT: z.string().min(1).optional(),
 });
 
 export interface ServerConfig {
-  dataDir: string;
   /** The repository root, when set explicitly; otherwise found from cwd. */
   root: string | undefined;
 }
@@ -33,13 +31,7 @@ export function parseServerConfig(env: NodeJS.ProcessEnv): ConfigResult {
       message: `Invalid server configuration:\n${z.prettifyError(parsed.error)}`,
     };
   }
-  return {
-    ok: true,
-    config: {
-      dataDir: parsed.data.NOESIS_DATA_DIR,
-      root: parsed.data.NOESIS_ROOT,
-    },
-  };
+  return { ok: true, config: { root: parsed.data.NOESIS_ROOT } };
 }
 
 export function loadServerConfig(

@@ -3,9 +3,12 @@
 // read it as the single source of truth. Each later part appends its own tables
 // under its heading rather than scattering `CREATE … TABLE` across repositories.
 //
-// All statements are idempotent (`IF NOT EXISTS`) so they run on every boot.
-// The files under `.noesis/` are authoritative and the graph is a cache over
-// them (decision 68): nothing here is migrated, it is rebuilt from the files.
+// The graph is an in-memory cache over the files in `.noesis/` (decision 68):
+// the indexer rebuilds every table from the files at boot and whenever the
+// watcher sees a change, and nothing writes a table any other way. So there
+// are no migrations — a schema change here is picked up by the next boot —
+// and the statements only need to be valid on an empty database. `IF NOT
+// EXISTS` is kept so ensureSchema stays idempotent within a process.
 //
 // The server runs locally against one checkout, so there is no tenant scoping
 // and no `version` column: the single writer needs no optimistic concurrency
@@ -13,19 +16,29 @@
 export const GRAPH_SCHEMA: readonly string[] = [
   // --- Design documents (design-doc phase 2) ---
   //
-  // The projection of `.noesis/changes/<change>/design-docs/*.json`, to be
-  // fed by the indexer; the design-docs repository itself reads and writes
-  // the files only. `document` is the whole portable specification
+  // The projection of `.noesis/changes/<change>/design-docs/*.json`, one node
+  // per file. `document` is the whole portable specification
   // (`DesignDocument`) as JSON; `name`, `status` and `date` are denormalised
-  // copies of document fields so listing does not parse every document.
+  // copies of document fields so listing does not parse every document, and
+  // `updated_at` is the file's modification time.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
      id STRING,
+     change STRING,
      name STRING,
      status STRING,
      date STRING,
      document STRING,
-     created_at STRING,
      updated_at STRING,
      PRIMARY KEY(id)
    )`,
 ];
+
+/** The node tables the DDL declares, in declaration order. */
+export function nodeTableNames(): string[] {
+  const names: string[] = [];
+  for (const ddl of GRAPH_SCHEMA) {
+    const match = /CREATE NODE TABLE IF NOT EXISTS\s+(\w+)/i.exec(ddl);
+    if (match?.[1]) names.push(match[1]);
+  }
+  return names;
+}

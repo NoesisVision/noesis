@@ -5,7 +5,7 @@ import { DatabaseService } from '../../src/database/database.service.js';
 // exercise the init/destroy lifecycle — it cannot use the shared fixture
 // (see test-db.ts).
 function newService(): DatabaseService {
-  return new DatabaseService(':memory:');
+  return new DatabaseService();
 }
 
 describe('DatabaseService', () => {
