@@ -1,21 +1,18 @@
-import { describe, expect, it } from 'bun:test';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
-import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
+import { afterAll, describe, expect, it } from 'bun:test';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
-import { InboxRepository } from '../../src/inbox/inbox.repository.js';
-import { InboxService } from '../../src/inbox/inbox.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { createUiApp } from '../../src/ui/ui.routes.js';
-import { sharedTestDatabase } from './test-db.js';
+import { testNoesis } from './test-noesis.js';
 
-const db = await sharedTestDatabase();
+const t = await testNoesis();
+afterAll(() => t.cleanup());
 
 describe('ui routes', () => {
   const app = createUiApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
-    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
-    inboxService: new InboxService(new InboxRepository(db)),
+    changesService: t.changesService,
+    designDocsService: t.designDocsService,
   });
 
   it('returns the greeting', async () => {
@@ -25,7 +22,7 @@ describe('ui routes', () => {
   });
 
   it('serves the surface unguarded — no session, no 401', async () => {
-    const res = await app.request('/inbox');
+    const res = await app.request('/changes');
     expect(res.status).toBe(200);
   });
 });

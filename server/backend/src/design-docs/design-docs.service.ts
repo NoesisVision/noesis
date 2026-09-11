@@ -7,9 +7,10 @@ import {
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { newUuid } from '@repo/shared-contracts/uuid';
 import { z } from 'zod';
+import type { ChangesService } from '../changes/changes.service.js';
 import type {
-  DesignDocSummaryRow,
   DesignDocsRepository,
+  StoredDesignDoc,
 } from './design-docs.repository.js';
 
 /** What a design document looks like in a list, without its content. */
@@ -45,17 +46,24 @@ export class InvalidDesignDocumentError extends Error {
  * Every write runs decision 51's boundary pipeline —
  * `DesignDocumentSchema.parse → checkDesignDocument` — so a document that
  * fails is a retry, never a stored inconsistency. The server mints the
- * document id (UUIDv7): whatever id the input carries is replaced, so an agent
- * inventing a colliding id cannot overwrite anything.
+ * document id (UUIDv7 — design docs are authored, not imported): whatever id
+ * the input carries is replaced, so an agent inventing a colliding id cannot
+ * overwrite anything.
+ *
+ * Documents are scoped to a change; every method throws
+ * `ChangeNotFoundError` for a change that has no directory.
  */
 export class DesignDocsService {
   private readonly designDocs: DesignDocsRepository;
+  private readonly changes: ChangesService;
 
-  constructor(designDocs: DesignDocsRepository) {
+  constructor(designDocs: DesignDocsRepository, changes: ChangesService) {
     this.designDocs = designDocs;
+    this.changes = changes;
   }
 
-  async create(input: unknown): Promise<DesignDocSummary> {
+  async create(change: string, input: unknown): Promise<DesignDocSummary> {
+    await this.changes.assertExists(change);
     const parsed = DesignDocumentSchema.safeParse(input);
     if (!parsed.success) {
       throw new InvalidDesignDocumentError([z.prettifyError(parsed.error)]);
@@ -66,7 +74,7 @@ export class DesignDocsService {
       throw new InvalidDesignDocumentError(errors.map((i) => i.message));
     }
 
-    return toSummary(await this.designDocs.create(document));
+    return toSummary(await this.designDocs.create(change, document));
   }
 
   /**
@@ -74,41 +82,34 @@ export class DesignDocsService {
    * put in front of a reviewer before the agent writes real ones (phase 2 has
    * no other author). Stamped with today's date; the id is minted in `create`.
    */
-  async createSample(): Promise<DesignDocSummary> {
-    return this.create({
+  async createSample(change: string): Promise<DesignDocSummary> {
+    return this.create(change, {
       ...designDocFixture,
       date: new Date().toISOString().slice(0, 10),
     });
   }
 
-  async list(): Promise<DesignDocSummary[]> {
-    return (await this.designDocs.list()).map(toSummary);
+  async list(change: string): Promise<DesignDocSummary[]> {
+    await this.changes.assertExists(change);
+    return (await this.designDocs.list(change)).map(toSummary);
   }
 
-  async findById(id: string): Promise<DesignDocDetail | null> {
-    const row = await this.designDocs.findById(id);
-    if (row === null) return null;
-    return {
-      summary: toSummary(row),
-      // Stored documents passed the boundary pipeline, so this parse is a
-      // decode, not a validation — a failure here is data corruption.
-      document: DesignDocumentSchema.parse(JSON.parse(row.document)),
-    };
+  async findById(change: string, id: string): Promise<DesignDocDetail | null> {
+    await this.changes.assertExists(change);
+    const stored = await this.designDocs.findById(change, id);
+    if (stored === null) return null;
+    return { summary: toSummary(stored), document: stored.entity };
   }
 
-  async delete(id: string): Promise<boolean> {
-    return this.designDocs.delete(id);
+  async delete(change: string, id: string): Promise<boolean> {
+    await this.changes.assertExists(change);
+    return this.designDocs.delete(change, id);
   }
 }
 
 const isError = (issue: DesignDocIssue): boolean => issue.severity === 'error';
 
-function toSummary(row: DesignDocSummaryRow): DesignDocSummary {
-  return {
-    id: row.id,
-    name: row.name,
-    status: row.status,
-    date: row.date,
-    updatedAt: row.updated_at,
-  };
+function toSummary(stored: StoredDesignDoc): DesignDocSummary {
+  const { id, name, status, date } = stored.entity;
+  return { id, name, status, date, updatedAt: stored.updatedAt };
 }

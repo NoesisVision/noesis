@@ -2,30 +2,45 @@ import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
+import { ChangesRepository } from './changes/changes.repository.js';
+import { ChangesService } from './changes/changes.service.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
 import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
+import { NoesisDir } from './files/noesis-dir.js';
+import { resolveRepositoryRoot } from './files/repository-root.js';
 import { GreetingService } from './greeting/greeting.service.js';
-import { InboxRepository } from './inbox/inbox.repository.js';
-import { InboxService } from './inbox/inbox.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { SearchService } from './ui/search/search.service.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
 const config = loadServerConfig();
+
+// The knowledge graph files are the source of truth, under `.noesis/` at the
+// root of the repository this process serves (decision 68). The graph below
+// is a cache over them; wiring it up from the files is the indexer's job.
+const noesis = new NoesisDir(loadRepositoryRoot());
+await noesis.ensure();
+console.log(`[server] knowledge graph files in ${noesis.path}`);
+
 const db = new DatabaseService(config.dataDir);
 db.init();
 await ensureSchema();
 
 // No search providers yet — no entity is searchable. Providers register here
 // as their entities land (documents, graph nodes).
+const changesRepository = new ChangesRepository(noesis);
+const changesService = new ChangesService(changesRepository);
 const app = createApp({
   greetingService: new GreetingService(),
   searchService: new SearchService([]),
-  designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
-  inboxService: new InboxService(new InboxRepository(db)),
+  changesService,
+  designDocsService: new DesignDocsService(
+    new DesignDocsRepository(changesRepository),
+    changesService,
+  ),
 });
 
 // Serving the built ui app (SPA at /, index.html fallback for client routes)
@@ -57,6 +72,18 @@ const server = Bun.serve({
   fetch: app.fetch,
 });
 console.log(`[server] listening on ${server.url}`);
+
+function loadRepositoryRoot(): string {
+  const result = resolveRepositoryRoot({
+    root: config.root,
+    cwd: process.cwd(),
+  });
+  if (!result.ok) {
+    console.error(`[server] ${result.message}`);
+    process.exit(1);
+  }
+  return result.root;
+}
 
 /**
  * The schema pass is the first query of the process, and so the first thing a

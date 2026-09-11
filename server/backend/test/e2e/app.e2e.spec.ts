@@ -1,24 +1,21 @@
-import { describe, expect, it } from 'bun:test';
+import { afterAll, describe, expect, it } from 'bun:test';
 import { apiPath } from '@repo/local-contracts';
 import { createApp } from '../../src/app.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
-import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { GreetingService } from '../../src/greeting/greeting.service.js';
-import { InboxRepository } from '../../src/inbox/inbox.repository.js';
-import { InboxService } from '../../src/inbox/inbox.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
-import { sharedTestDatabase } from '../unit/test-db.js';
+import { testNoesis } from '../unit/test-noesis.js';
 
-// Route-surface assertions over the composed app. The shared in-memory DB
+// Route-surface assertions over the composed app. A throwaway `.noesis/`
 // backs the stateful services; everything else is the deps the surfaces need.
-const db = await sharedTestDatabase();
+const t = await testNoesis();
+afterAll(() => t.cleanup());
 
 describe('Route surfaces (e2e)', () => {
   const app = createApp({
     greetingService: new GreetingService(),
     searchService: new SearchService(),
-    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
-    inboxService: new InboxService(new InboxRepository(db)),
+    changesService: t.changesService,
+    designDocsService: t.designDocsService,
   });
 
   it('/ui/hello (GET) — ui surface', async () => {

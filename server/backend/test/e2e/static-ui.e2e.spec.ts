@@ -17,6 +17,7 @@ const INDEX_MARKER = '<title>noesis-spa-fixture</title>';
 
 let serverProcess: ChildProcess;
 let uiDist: string;
+let repoRoot: string;
 
 async function waitForHealth(timeoutMs: number): Promise<void> {
   const deadline = Date.now() + timeoutMs;
@@ -39,6 +40,8 @@ beforeAll(async () => {
     `<!doctype html><html><head>${INDEX_MARKER}</head><body></body></html>`,
   );
 
+  repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
+
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
     env: {
@@ -47,6 +50,8 @@ beforeAll(async () => {
       UI_DIST_PATH: uiDist,
       // Ephemeral in-memory DB so the e2e run touches no on-disk data dir.
       NOESIS_DATA_DIR: ':memory:',
+      // A throwaway repository root so the run writes no `.noesis/` here.
+      NOESIS_ROOT: repoRoot,
     },
     stdio: 'ignore',
   });
@@ -56,6 +61,7 @@ beforeAll(async () => {
 afterAll(async () => {
   serverProcess?.kill();
   if (uiDist) await rm(uiDist, { recursive: true, force: true });
+  if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
 });
 
 describe('SPA serving via UI_DIST_PATH (e2e)', () => {

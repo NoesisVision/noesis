@@ -1,89 +1,55 @@
-import type { DesignDocument } from '@repo/shared-contracts';
-import type { DatabaseService } from '../database/database.service.js';
+import {
+  type DesignDocument,
+  DesignDocumentSchema,
+} from '@repo/shared-contracts';
+import type { ChangesRepository } from '../changes/changes.repository.js';
+import { FileRepository, type StoredFile } from '../files/file-repository.js';
 
-// Internal row shape. `document` is the serialized `DesignDocument`; the
-// summary row leaves it out so listing never deserializes every document.
-export interface DesignDocRow {
-  id: string;
-  name: string;
-  status: string;
-  date: string;
-  document: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type DesignDocSummaryRow = Omit<DesignDocRow, 'document'>;
-
-const RETURN_SUMMARY = `RETURN d.id AS id, d.name AS name,
-         d.status AS status, d.date AS date,
-         d.created_at AS created_at, d.updated_at AS updated_at`;
-
-const RETURN_DOC = `${RETURN_SUMMARY}, d.document AS document`;
+export type StoredDesignDoc = StoredFile<DesignDocument>;
 
 /**
- * Graph reads and writes behind design documents. The document arrives here
- * already validated (schema parse + integrity check in the service); documents
- * are top-level, since the server serves the one checkout it was started in
- * (decision 65).
+ * The design documents of one change, as files under
+ * `.noesis/changes/<change>/design-docs/`, one `<slug>-<id-suffix>.json` per
+ * document. A document arrives here already validated (schema parse +
+ * integrity check in the service), so reading one back is a decode.
  */
 export class DesignDocsRepository {
-  private readonly db: DatabaseService;
+  private readonly changes: ChangesRepository;
 
-  constructor(db: DatabaseService) {
-    this.db = db;
+  constructor(changes: ChangesRepository) {
+    this.changes = changes;
   }
 
-  async create(document: DesignDocument): Promise<DesignDocRow> {
-    const now = new Date().toISOString();
-    const rows = await this.db.query<DesignDocRow>(
-      `CREATE (d:DesignDoc {
-         id: $id, name: $name, status: $status,
-         date: $date, document: $document,
-         created_at: $now, updated_at: $now
-       })
-       ${RETURN_DOC}`,
-      {
-        id: document.id,
-        name: document.name,
-        status: document.status,
-        date: document.date,
-        document: JSON.stringify(document),
-        now,
-      },
-    );
-    const row = rows[0];
-    if (row === undefined) {
-      throw new Error('Design document creation returned no row.');
-    }
-    return row;
+  async create(
+    change: string,
+    document: DesignDocument,
+  ): Promise<StoredDesignDoc> {
+    return this.files(change).write(document);
   }
 
-  async findById(id: string): Promise<DesignDocRow | null> {
-    const rows = await this.db.query<DesignDocRow>(
-      `MATCH (d:DesignDoc {id: $id}) ${RETURN_DOC}`,
-      { id },
-    );
-    return rows[0] ?? null;
+  async findById(change: string, id: string): Promise<StoredDesignDoc | null> {
+    return this.files(change).read(id);
   }
 
   /** Newest first — `date` drives ordering on the documents page (design-doc.ts). */
-  async list(): Promise<DesignDocSummaryRow[]> {
-    return this.db.query<DesignDocSummaryRow>(
-      `MATCH (d:DesignDoc)
-       ${RETURN_SUMMARY}
-       ORDER BY d.date DESC, d.name`,
+  async list(change: string): Promise<StoredDesignDoc[]> {
+    const stored = await this.files(change).list();
+    return stored.sort(
+      (a, b) =>
+        b.entity.date.localeCompare(a.entity.date) ||
+        a.entity.name.localeCompare(b.entity.name),
     );
   }
 
-  async delete(id: string): Promise<boolean> {
-    const rows = await this.db.query<{ id: string }>(
-      `MATCH (d:DesignDoc {id: $id})
-       WITH d, d.id AS id
-       DETACH DELETE d
-       RETURN id`,
-      { id },
-    );
-    return rows.length > 0;
+  async delete(change: string, id: string): Promise<boolean> {
+    return this.files(change).remove(id);
+  }
+
+  private files(change: string): FileRepository<DesignDocument> {
+    return new FileRepository<DesignDocument>({
+      dir: this.changes.dirOf(change, 'design-docs'),
+      slugOf: (document) => document.name,
+      decode: (raw) => DesignDocumentSchema.parse(raw),
+    });
   }
 }

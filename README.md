@@ -117,12 +117,13 @@ The server runs locally inside a single checkout, as part of the Claude plugin.
 It has no identity provider and no tenant scoping, so there is nothing to
 register and nothing to authenticate against (decision 65).
 
-| Variable             | Meaning                                                    |
-| -------------------- | ---------------------------------------------------------- |
-| `NOESIS_DATA_DIR`    | On-disk data directory; defaults to `.data`                |
-| `NOESIS_RECOVER_WAL` | `1` to discard a torn write-ahead log at boot — see below  |
-| `PORT`               | Listen port; defaults to `3000`                            |
-| `UI_DIST_PATH`       | Serve a built SPA from this directory (unset in dev/tests) |
+| Variable             | Meaning                                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| `NOESIS_ROOT`        | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
+| `NOESIS_DATA_DIR`    | On-disk data directory; defaults to `.data`                                                    |
+| `NOESIS_RECOVER_WAL` | `1` to discard a torn write-ahead log at boot — see below                                      |
+| `PORT`               | Listen port; defaults to `3000`                                                                |
+| `UI_DIST_PATH`       | Serve a built SPA from this directory (unset in dev/tests)                                     |
 
 ### Recovering a torn write-ahead log
 

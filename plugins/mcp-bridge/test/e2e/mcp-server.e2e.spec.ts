@@ -4,7 +4,9 @@
 // exercise that hop (a broken path slipped through before).
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
-import { resolve } from 'node:path';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
@@ -15,6 +17,7 @@ const PORT = 3917;
 const SERVER_URL = `http://localhost:${PORT}`;
 
 let serverProcess: ChildProcess;
+let repoRoot: string;
 let client: Client;
 
 async function waitForHealth(timeoutMs: number): Promise<void> {
@@ -32,13 +35,16 @@ async function waitForHealth(timeoutMs: number): Promise<void> {
 }
 
 beforeAll(async () => {
+  repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serverRoot,
-    // In-memory DB so the e2e run touches no on-disk data dir.
+    // In-memory DB and a throwaway repository root, so the e2e run touches
+    // no on-disk data dir and writes no `.noesis/` into this checkout.
     env: {
       ...process.env,
       PORT: String(PORT),
       NOESIS_DATA_DIR: ':memory:',
+      NOESIS_ROOT: repoRoot,
     },
     stdio: 'ignore',
   });
@@ -59,6 +65,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await client?.close();
   serverProcess?.kill();
+  if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
 });
 
 describe('MCP server against the running server app (e2e)', () => {

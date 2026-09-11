@@ -1,25 +1,31 @@
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import type { DatabaseService } from '../../src/database/database.service.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
-import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
-import { createDesignDocsApp } from '../../src/ui/design-docs/design-docs.routes.js';
-import { resetGraph, sharedTestDatabase } from './test-db.js';
+import { GreetingService } from '../../src/greeting/greeting.service.js';
+import { SearchService } from '../../src/ui/search/search.service.js';
+import { createUiApp } from '../../src/ui/ui.routes.js';
+import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-// The sub-app in isolation: the boundary validation and the explainable
-// refusals. Documents are top-level — the server serves one checkout.
+// Through the ui app rather than the sub-app alone: the change comes from the
+// mount path (`/changes/:change/design-docs`), which is what is under test.
 
-let db: DatabaseService;
-let app: ReturnType<typeof createDesignDocsApp>;
+const CHANGE = 'booking';
+const BASE = `/changes/${CHANGE}/design-docs`;
 
-beforeAll(async () => {
-  db = await sharedTestDatabase();
-  app = createDesignDocsApp({
-    designDocsService: new DesignDocsService(new DesignDocsRepository(db)),
+let t: TestNoesis;
+let app: ReturnType<typeof createUiApp>;
+
+beforeEach(async () => {
+  t = await testNoesis();
+  await t.changesRepository.create(CHANGE);
+  app = createUiApp({
+    greetingService: new GreetingService(),
+    searchService: new SearchService(),
+    changesService: t.changesService,
+    designDocsService: t.designDocsService,
   });
 });
 
-afterEach(resetGraph);
+afterEach(() => t.cleanup());
 
 const post = (path: string, body: unknown) =>
   app.request(path, {
@@ -29,11 +35,11 @@ const post = (path: string, body: unknown) =>
   });
 
 describe('ui design-docs routes', () => {
-  it('lists the stored documents', async () => {
-    const created = await post('/', { document: designDocFixture });
+  it('lists the stored documents of the change', async () => {
+    const created = await post(BASE, { document: designDocFixture });
     expect(created.status).toBe(201);
 
-    const listed = await app.request('/');
+    const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
     const { designDocs } = (await listed.json()) as {
       designDocs: { name: string }[];
@@ -42,12 +48,12 @@ describe('ui design-docs routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    const created = await post('/', { document: designDocFixture });
+    const created = await post(BASE, { document: designDocFixture });
     const { designDoc } = (await created.json()) as {
       designDoc: { id: string };
     };
 
-    const res = await app.request(`/${designDoc.id}`);
+    const res = await app.request(`${BASE}/${designDoc.id}`);
     expect(res.status).toBe(200);
     const detail = (await res.json()) as {
       summary: { id: string };
@@ -57,11 +63,11 @@ describe('ui design-docs routes', () => {
     expect(detail.document.goal).toBe(designDocFixture.goal);
     expect(detail.document.useCases).toHaveLength(2);
 
-    expect((await app.request('/missing')).status).toBe(404);
+    expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
   it('rejects an invalid document with its issues', async () => {
-    const invalid = await post('/', {
+    const invalid = await post(BASE, {
       document: { ...designDocFixture, useCases: 'not-a-list' },
     });
     expect(invalid.status).toBe(400);
@@ -71,7 +77,7 @@ describe('ui design-docs routes', () => {
   });
 
   it('creates the sample document', async () => {
-    const res = await post('/sample', {});
+    const res = await post(`${BASE}/sample`, {});
 
     expect(res.status).toBe(201);
     const { designDoc } = (await res.json()) as {
@@ -81,14 +87,32 @@ describe('ui design-docs routes', () => {
   });
 
   it('deletes a document, 404s the second attempt', async () => {
-    const created = await post('/sample', {});
+    const created = await post(`${BASE}/sample`, {});
     const { designDoc } = (await created.json()) as {
       designDoc: { id: string };
     };
 
-    const first = await app.request(`/${designDoc.id}`, { method: 'DELETE' });
+    const first = await app.request(`${BASE}/${designDoc.id}`, {
+      method: 'DELETE',
+    });
     expect(first.status).toBe(204);
-    const second = await app.request(`/${designDoc.id}`, { method: 'DELETE' });
+    const second = await app.request(`${BASE}/${designDoc.id}`, {
+      method: 'DELETE',
+    });
     expect(second.status).toBe(404);
+  });
+
+  it('404s every route of a change that does not exist', async () => {
+    const missing = '/changes/nope/design-docs';
+    for (const res of [
+      await app.request(missing),
+      await post(missing, { document: designDocFixture }),
+      await post(`${missing}/sample`, {}),
+      await app.request(`${missing}/x`),
+      await app.request(`${missing}/x`, { method: 'DELETE' }),
+    ]) {
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'change_not_found' });
+    }
   });
 });

@@ -1,5 +1,6 @@
-import { Hono } from 'hono';
+import { type Context, Hono } from 'hono';
 import { z } from 'zod';
+import { ChangeNotFoundError } from '../../changes/changes.service.js';
 import {
   type DesignDocsService,
   InvalidDesignDocumentError,
@@ -16,9 +17,10 @@ export const createDesignDocSchema = z.object({
 });
 
 /**
- * Mounted at `/ui/design-docs`. Reads serve the documents page; the writes are
- * the whole-document boundary of decision 51 — a rejected document is a 400
- * naming its issues, never a stored one.
+ * Mounted at `/ui/changes/:change/design-docs` — the documents of one change.
+ * Reads serve the documents page; the writes are the whole-document boundary
+ * of decision 51 — a rejected document is a 400 naming its issues, never a
+ * stored one. A change without a directory is a 404 on every route.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
@@ -27,7 +29,9 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
   return (
     new Hono()
       .get('/', async (c) => {
-        return c.json({ designDocs: await designDocsService.list() });
+        return inChange(c, async (change) =>
+          c.json({ designDocs: await designDocsService.list(change) }),
+        );
       })
 
       .post('/', async (c) => {
@@ -35,41 +39,72 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         if (!parsed.success) {
           return c.json({ error: z.prettifyError(parsed.error) }, 400);
         }
-        try {
-          const designDoc = await designDocsService.create(
-            parsed.data.document,
-          );
-          return c.json({ designDoc }, 201);
-        } catch (error) {
-          if (error instanceof InvalidDesignDocumentError) {
-            return c.json(
-              { error: 'invalid_document', issues: error.issues },
-              400,
+        return inChange(c, async (change) => {
+          try {
+            const designDoc = await designDocsService.create(
+              change,
+              parsed.data.document,
             );
+            return c.json({ designDoc }, 201);
+          } catch (error) {
+            if (error instanceof InvalidDesignDocumentError) {
+              return c.json(
+                { error: 'invalid_document', issues: error.issues },
+                400,
+              );
+            }
+            throw error;
           }
-          throw error;
-        }
+        });
       })
 
       // The demo seed: phase 2 has no editor and no agent, so this is how a
       // reviewable document gets in at all.
       .post('/sample', async (c) => {
-        return c.json(
-          { designDoc: await designDocsService.createSample() },
-          201,
+        return inChange(c, async (change) =>
+          c.json(
+            { designDoc: await designDocsService.createSample(change) },
+            201,
+          ),
         );
       })
 
       .get('/:id', async (c) => {
-        const detail = await designDocsService.findById(c.req.param('id'));
-        if (detail === null) return c.json({ error: 'not_found' }, 404);
-        return c.json(detail);
+        return inChange(c, async (change) => {
+          const detail = await designDocsService.findById(
+            change,
+            c.req.param('id'),
+          );
+          if (detail === null) return c.json({ error: 'not_found' }, 404);
+          return c.json(detail);
+        });
       })
 
       .delete('/:id', async (c) => {
-        const deleted = await designDocsService.delete(c.req.param('id'));
-        if (!deleted) return c.json({ error: 'not_found' }, 404);
-        return c.body(null, 204);
+        return inChange(c, async (change) => {
+          const deleted = await designDocsService.delete(
+            change,
+            c.req.param('id'),
+          );
+          if (!deleted) return c.json({ error: 'not_found' }, 404);
+          return c.body(null, 204);
+        });
       })
   );
+}
+
+/** Runs the handler for the change in the path; a missing change is a 404. */
+async function inChange(
+  c: Context,
+  handler: (change: string) => Promise<Response>,
+): Promise<Response> {
+  const change = c.req.param('change') ?? '';
+  try {
+    return await handler(change);
+  } catch (error) {
+    if (error instanceof ChangeNotFoundError) {
+      return c.json({ error: 'change_not_found' }, 404);
+    }
+    throw error;
+  }
 }

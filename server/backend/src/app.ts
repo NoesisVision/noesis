@@ -1,9 +1,9 @@
 import { apiRoutes } from '@repo/local-contracts';
 import { Hono } from 'hono';
 import { createApiApp } from './api/api.routes.js';
+import type { ChangesService } from './changes/changes.service.js';
 import type { DesignDocsService } from './design-docs/design-docs.service.js';
 import type { GreetingService } from './greeting/greeting.service.js';
-import type { InboxService } from './inbox/inbox.service.js';
 import { createInternalApp } from './internal/internal.routes.js';
 import type { SearchService } from './ui/search/search.service.js';
 import { createUiApp } from './ui/ui.routes.js';
@@ -17,8 +17,8 @@ import { createUiApp } from './ui/ui.routes.js';
 export interface AppDeps {
   greetingService: GreetingService;
   searchService: SearchService;
+  changesService: ChangesService;
   designDocsService: DesignDocsService;
-  inboxService: InboxService;
 }
 
 // No global prefix — each surface carries its own. Keep the .route() chain
@@ -31,8 +31,8 @@ export function createApp(deps: AppDeps) {
       createUiApp({
         greetingService: deps.greetingService,
         searchService: deps.searchService,
+        changesService: deps.changesService,
         designDocsService: deps.designDocsService,
-        inboxService: deps.inboxService,
       }),
     )
     .route(

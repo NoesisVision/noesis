@@ -82,39 +82,37 @@ Change id lives in the path; all three content kinds hang under the change:
 
 ### Change backend
 
-- New `Change` node in the LadybugDB graph, top-level and unscoped — there is
-  no `Project` to hang it off any more (decision 65 removed the concept), and
-  the server serves the one checkout it was started in.
-- Fields: `id` (server-generated UUIDv7), `name`, `key` (e.g. `NOE-142`),
-  `type` (`feature | fix | improvement | chore` — the commit-type vocabulary
-  of decision 42, same meanings: new behaviour, wrong behaviour made correct,
-  one-time betterment, recurring upkeep; `feature` is the long form of `feat`.
-  One source of truth `CHANGE_TYPES` in the contract; a later commit-message
-  integration maps `feature` → `feat`),
-  `status` (`discovery | design | implementation | done` — a lifecycle in
-  that order; the contract keeps the enum in lifecycle order so later
-  sorting and "advance" actions need no second list), plus the
-  system-managed `created_at`. No `version` column: decision 65 dropped
-  optimistic concurrency, since a single local writer cannot race itself.
+- A change is the directory `.noesis/changes/<change>/` in the checkout the
+  server serves (decision 68): listing is a directory read, creation is a
+  directory write, and there is no seed — a first run starts with no changes
+  and the empty state below. Nothing about a change lives in the LadybugDB
+  graph; the graph is a cache over the files.
+- The directory name is the change's slug: lower-case kebab-case
+  (`^[a-z0-9]+(-[a-z0-9]+)*$`, at most 64 characters), so it is safe as a path
+  and reads in a diff. It is the `$changeId` of the routes above.
+- Landed with the migration's R1 (`ChangesRepository`, `ChangesService`,
+  `ui/changes/changes.routes.ts`): `GET /ui/changes` lists
+  `{ changes: [{ slug }] }` sorted by slug, `POST /ui/changes` with
+  `{ slug }` creates the directory and answers 201; a slug that already exists
+  is 409 `{ error: 'duplicate_change' }`, an invalid body 400. Design docs hang
+  under the change at `/ui/changes/:change/design-docs`, and a change with no
+  directory is 404 `{ error: 'change_not_found' }` there.
+- Still to do for this feature: the change metadata — `name`, `key` (e.g.
+  `NOE-142`), `type` (`feature | fix | improvement | chore`, the commit-type
+  vocabulary of decision 42 with `feature` as the long form of `feat`; one
+  `CHANGE_TYPES` tuple in the contract) and `status` (`discovery | design |
+implementation | done`, kept in lifecycle order in the contract so later
+  sorting and "advance" actions need no second list). It is a file in the
+  change directory whose shape is the `change` contract of the migration's R5;
+  the create endpoint then takes `{ name, key, type }`, derives the slug from
+  the name, starts the status at `discovery`, and keeps 409 for a slug or key
+  that is taken. Newest-first listing orders by the file's creation stamp.
 - Status badge colours (picker and future lists): `discovery` gray,
   `design` violet, `implementation` brand blue, `done` green. One
   `CHANGE_STATUS_META` map in the frontend owns label + colour per status.
 - Type shown as a small outline badge next to the key: `feature` green, `fix`
   red, `improvement` teal, `chore` gray. `CHANGE_TYPE_META` map beside the
   status one.
-- Endpoints on the `/ui` surface (unguarded, like every route since decision
-  65): `GET /ui/changes` (list, newest first), `GET /ui/changes/:id`,
-  `POST /ui/changes` (`{ name, key, type }`, status starts as `discovery`).
-  Duplicate `key` → 409 `{ error: 'duplicate_key' }`; invalid body → 400.
-- **Seed:** on boot, when the `Change` table is empty, insert three example
-  changes. There is no deployment mode left to gate on — one local server per
-  checkout (decision 65) — so the empty table is the whole condition.
-
-| key     | name                       | type        | status         |
-| ------- | -------------------------- | ----------- | -------------- |
-| NOE-142 | Payment retry policy       | fix         | implementation |
-| NOE-137 | Tenant onboarding redesign | improvement | design         |
-| NOE-129 | Audit log export           | feature     | done           |
 
 ### Styling
 
@@ -146,10 +144,14 @@ Change id lives in the path; all three content kinds hang under the change:
   there, not in the root route.
 - Backend: one Hono sub-app per surface (`app.ts`); `/ui` routes are typed
   through `hc<AppType>` from `backend/client`. The `.route()` chain must stay
-  unbroken. Repositories run Cypher through `DatabaseService`; schema is the
-  single `GRAPH_SCHEMA` list; ids come from `@repo/shared-contracts/uuid`.
-- Existing entities (design docs and inbox, both top-level since decision 65)
-  are untouched. Configuration is one variable, `NOESIS_DATA_DIR`.
+  unbroken. The knowledge graph files under `.noesis/` are the source of
+  truth (decision 68): a `FileRepository` per kind owns its directory, and
+  the `GRAPH_SCHEMA` graph is a cache to be rebuilt from them. Ids come from
+  `@repo/shared-contracts/uuid`.
+- Changes and design docs already follow the directory layout
+  (`ChangesRepository`, `DesignDocsRepository` over
+  `changes/<change>/design-docs/`). The inbox is gone. The repository root is
+  `NOESIS_ROOT` or the nearest `.git` above the working directory.
 - `docs/decisions.md` numbering ends at 66; decision 66 retired the old
   frontend stack, so `docs/stack.md` lists only React, TanStack
   Start/Router/Query, Tailwind and Vite — no component library.
@@ -162,15 +164,13 @@ packages/shared-contracts/src/
   index.ts                         # + export
 
 server/backend/src/
-  schema/graph-schema.ts           # + Change node table
   changes/
-    changes.repository.ts            # list / findById / create (guarded on key) / count
-    changes.service.ts               # DuplicateChangeKeyError, seedIfEmpty(examples)
-    example-changes.ts               # the three seed rows
-  ui/changes/changes.routes.ts         # GET /, GET /:id, POST /
-  ui/ui.routes.ts                  # + .route('/changes', …), UiDeps.changesService
-  app.ts                           # + changesService in AppDeps
-  main.ts                          # wire ChangesService; seed after ensureSchema when the table is empty
+    changes.repository.ts            # exists: list (readdir) / exists / create (mkdir); + metadata file read/write
+    changes.service.ts               # exists: DuplicateChangeError, ChangeNotFoundError; + metadata on create
+  ui/changes/changes.routes.ts         # exists: GET /, POST /; + GET /:id, metadata in the body
+  ui/ui.routes.ts                  # exists: .route('/changes', …), UiDeps.changesService
+  app.ts                           # exists: changesService in AppDeps
+  main.ts                          # exists: ChangesService wired over `.noesis/`; no seed
 
 server/frontend/
   postcss.config.cjs               # postcss-preset-mantine + simple-vars
@@ -220,14 +220,12 @@ server/frontend/
 - **Data.** TanStack Query `queryOptions` keyed `['changes']` and
   `['changes', id]`; route loaders `ensureQueryData` so the picker never
   flashes empty. Create → invalidate `['changes']` → navigate to the new change.
-- **Guarded create.** `MERGE`-free conditional write, the pattern
-  `InboxRepository` uses for its state transitions: `CREATE` only when no
-  `Change` with that `key` exists, in one statement;
-  a null result means duplicate → service throws `DuplicateChangeKeyError` →
-  route returns 409.
-- **Seed.** `ChangesService.seedIfEmpty(EXAMPLE_CHANGES)` is called from
-  `main.ts` after `ensureSchema()`; idempotent because it checks `count()`
-  first. Tests exercise it directly against the shared in-memory DB.
+- **Guarded create.** A change exists when its directory does: the
+  repository lists `changes/` and refuses a slug that is taken, and the service
+  throws `DuplicateChangeError` → route returns 409. With metadata the same
+  check covers the key.
+- **No seed.** A checkout with no `changes/` directory has no changes; the
+  index route's empty state is the first-run experience.
 - **Providers.** `MantineProvider` and the colour-scheme manager wrap
   `RouterProvider` in `main.tsx`, beside the existing `QueryClientProvider`;
   `ColorSchemeScript` is a `<script>` in `index.html`. Route files export only
@@ -241,13 +239,11 @@ server/frontend/
    `z.enum(CHANGE_STATUSES)`; `CHANGE_TYPES` tuple `feature, fix, improvement,
 chore` and `ChangeTypeSchema`; `ChangeSchema`; `CreateChangeSchema` with
    `type` required and key regex `^[A-Z]{2,8}-\d+$`), export from the package index, unit spec.
-2. **Backend.** Schema table; `ChangesRepository` (list newest-first,
-   findById, guarded create, count, insertMany for seed); `ChangesService`
-   with `DuplicateChangeKeyError` and `seedIfEmpty`; `example-changes.ts`;
-   `ui/changes/changes.routes.ts`; wire into `ui.routes.ts`, `app.ts`, `main.ts`.
-   Unit specs: repository (duplicate key, ordering), routes (200/201/400/404/
-   409), seed idempotency. Extend `test/e2e/app.e2e.spec.ts` deps with the
-   new service.
+2. **Backend.** Extend the existing `ChangesRepository` with the metadata
+   file (read on list and findById, written on create), `ChangesService.create`
+   with `{ name, key, type }`, `GET /ui/changes/:id`. Unit specs: repository
+   (duplicate slug and key, newest-first ordering), routes (200/201/400/404/
+   409). No seed, no schema table.
 3. **Frontend styling switch.** Remove `tailwindcss`, `@tailwindcss/vite`;
    add Mantine packages, PostCSS config, `theme.ts`, Raleway; rewrite
    `styles.css`; `ColorSchemeScript` as a `<script>` in `index.html`,
@@ -264,8 +260,8 @@ chore` and `ChangeTypeSchema`; `ChangeSchema`; `CreateChangeSchema` with
    Tailwind removed. `docs/decisions.md` entry 67: Mantine as the component
    library and Tailwind's removal, re-expressing decision 60's palette as a
    Mantine theme (decision 66 already retired the shadcn/tweakcn stack, so
-   there is nothing left to supersede); entry 68: `Change` as a top-level
-   entity with its seed policy. This file's status → implemented.
+   there is nothing left to supersede). Decision 68 already records a change
+   as a directory under `.noesis/changes/`. This file's status → implemented.
 8. **Verify.** `bun run lint && bun run check-types && bun run test`, then
    `bun run dev:server` and the manual checklist.
 
@@ -281,10 +277,6 @@ chore` and `ChangeTypeSchema`; `ChangeSchema`; `CreateChangeSchema` with
 - **Change key**: entered by the user in the create modal and validated
   unique. Alternative: server-generated `NOE-<n>` counter. Default: user
   entered.
-- **Seed trigger**: boot-time whenever the table is empty. This does mean a
-  real first run starts with three example changes. Alternatives: an explicit
-  `POST /internal/seed`, a CLI script, or a new env variable — the last one
-  reintroduces configuration decision 65 just removed. Default: boot-time.
 - **Change colour** in the picker swatch: derived from the key hash on the
   client, not stored. Default: derived.
 
@@ -296,5 +288,5 @@ chore` and `ChangeTypeSchema`; `ChangeSchema`; `CreateChangeSchema` with
   picker populated; create a change → appears first in the picker and is
   selected; duplicate key shows the 409 message inline; narrow viewport shows
   burger + drawer; dark/light toggle persists.
-- Automated: contract spec, repository spec, routes spec, seed spec; `lint`,
+- Automated: contract spec, repository spec, routes spec; `lint`,
   `check-types`, `test` green.

@@ -1,53 +1,65 @@
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { readdir } from 'node:fs/promises';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import type { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
-import { resetGraph, sharedTestDatabase } from './test-db.js';
+import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-let db: DatabaseService;
+const CHANGE = 'booking';
+
+let t: TestNoesis;
 let designDocs: DesignDocsRepository;
 
-beforeAll(async () => {
-  db = await sharedTestDatabase();
-  designDocs = new DesignDocsRepository(db);
+beforeEach(async () => {
+  t = await testNoesis();
+  await t.changesRepository.create(CHANGE);
+  designDocs = new DesignDocsRepository(t.changesRepository);
 });
 
-afterEach(resetGraph);
+afterEach(() => t.cleanup());
 
 describe('DesignDocsRepository', () => {
-  it('creates a design document and reads it back', async () => {
-    const created = await designDocs.create(designDocFixture);
+  it('writes a design document under the change and reads it back', async () => {
+    const created = await designDocs.create(CHANGE, designDocFixture);
 
-    expect(created.name).toBe('Appointment booking');
+    expect(created.entity.name).toBe('Appointment booking');
+    expect(
+      await readdir(t.noesis.resolve('changes', CHANGE, 'design-docs')),
+    ).toEqual([`appointment-booking-${designDocFixture.id.slice(-12)}.json`]);
 
-    const found = await designDocs.findById(designDocFixture.id);
-    expect(found?.status).toBe('draft');
-    expect(JSON.parse(found?.document ?? '')).toEqual(designDocFixture);
+    const found = await designDocs.findById(CHANGE, designDocFixture.id);
+    expect(found?.entity).toEqual(designDocFixture);
   });
 
-  it('lists documents newest date first', async () => {
-    await designDocs.create({
-      ...designDocFixture,
-      id: 'doc-old',
-      name: 'Older',
-      date: '2026-01-01',
-    });
-    await designDocs.create({
-      ...designDocFixture,
-      id: 'doc-new',
-      name: 'Newer',
-      date: '2026-08-01',
-    });
+  it('lists documents newest date first, then by name', async () => {
+    for (const [id, name, date] of [
+      ['doc-old', 'Older', '2026-01-01'],
+      ['doc-b', 'Beta', '2026-08-01'],
+      ['doc-a', 'Alpha', '2026-08-01'],
+    ] as const) {
+      await designDocs.create(CHANGE, { ...designDocFixture, id, name, date });
+    }
 
-    const listed = await designDocs.list();
-    expect(listed.map((d) => d.id)).toEqual(['doc-new', 'doc-old']);
+    const listed = await designDocs.list(CHANGE);
+    expect(listed.map((d) => d.entity.id)).toEqual([
+      'doc-a',
+      'doc-b',
+      'doc-old',
+    ]);
+  });
+
+  it('keeps the changes apart', async () => {
+    await t.changesRepository.create('other');
+    await designDocs.create(CHANGE, designDocFixture);
+
+    expect(await designDocs.list('other')).toEqual([]);
+    expect(await designDocs.findById('other', designDocFixture.id)).toBe(null);
   });
 
   it('deletes a document and reports a missing one', async () => {
-    await designDocs.create(designDocFixture);
+    await designDocs.create(CHANGE, designDocFixture);
 
-    expect(await designDocs.delete(designDocFixture.id)).toBe(true);
-    expect(await designDocs.findById(designDocFixture.id)).toBe(null);
-    expect(await designDocs.delete(designDocFixture.id)).toBe(false);
+    expect(await designDocs.delete(CHANGE, designDocFixture.id)).toBe(true);
+    expect(await designDocs.findById(CHANGE, designDocFixture.id)).toBe(null);
+    expect(await designDocs.delete(CHANGE, designDocFixture.id)).toBe(false);
   });
 });

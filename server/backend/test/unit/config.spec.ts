@@ -16,6 +16,16 @@ describe('server configuration', () => {
     expect(result.ok && result.config.dataDir).toBe('/srv/noesis');
   });
 
+  it('takes the repository root from the environment, else leaves it to the walk', () => {
+    expect(parseServerConfig({})).toMatchObject({
+      config: { root: undefined },
+    });
+    expect(parseServerConfig({ NOESIS_ROOT: '/work/repo' })).toMatchObject({
+      config: { root: '/work/repo' },
+    });
+    expect(parseServerConfig({ NOESIS_ROOT: '' }).ok).toBe(false);
+  });
+
   it('rejects an empty data dir rather than silently defaulting it', () => {
     const result = parseServerConfig({ NOESIS_DATA_DIR: '' });
 

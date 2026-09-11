@@ -1,32 +1,34 @@
-import { afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import type { DatabaseService } from '../../src/database/database.service.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
+import { ChangeNotFoundError } from '../../src/changes/changes.service.js';
 import {
-  DesignDocsService,
+  type DesignDocsService,
   InvalidDesignDocumentError,
 } from '../../src/design-docs/design-docs.service.js';
-import { resetGraph, sharedTestDatabase } from './test-db.js';
+import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-let db: DatabaseService;
+const CHANGE = 'booking';
+
+let t: TestNoesis;
 let service: DesignDocsService;
 
-beforeAll(async () => {
-  db = await sharedTestDatabase();
-  service = new DesignDocsService(new DesignDocsRepository(db));
+beforeEach(async () => {
+  t = await testNoesis();
+  await t.changesRepository.create(CHANGE);
+  service = t.designDocsService;
 });
 
-afterEach(resetGraph);
+afterEach(() => t.cleanup());
 
 describe('DesignDocsService', () => {
   it('stores a valid document under a server-minted id and reads it back whole', async () => {
-    const summary = await service.create(designDocFixture);
+    const summary = await service.create(CHANGE, designDocFixture);
 
     // The server mints the id — whatever the input carried is replaced.
     expect(summary.id).not.toBe(designDocFixture.id);
     expect(summary.name).toBe('Appointment booking');
 
-    const detail = await service.findById(summary.id);
+    const detail = await service.findById(CHANGE, summary.id);
     expect(detail?.document).toEqual({
       ...designDocFixture,
       id: summary.id,
@@ -34,7 +36,7 @@ describe('DesignDocsService', () => {
   });
 
   it('rejects a document that does not parse', async () => {
-    expect(service.create({ name: 42 })).rejects.toBeInstanceOf(
+    expect(service.create(CHANGE, { name: 42 })).rejects.toBeInstanceOf(
       InvalidDesignDocumentError,
     );
   });
@@ -48,22 +50,35 @@ describe('DesignDocsService', () => {
       ),
     };
 
-    expect(service.create(broken)).rejects.toBeInstanceOf(
+    expect(service.create(CHANGE, broken)).rejects.toBeInstanceOf(
       InvalidDesignDocumentError,
     );
-    expect(await service.list()).toEqual([]);
+    expect(await service.list(CHANGE)).toEqual([]);
   });
 
   it('creates the sample document dated today', async () => {
-    const summary = await service.createSample();
+    const summary = await service.createSample(CHANGE);
 
     expect(summary.name).toBe('Appointment booking');
     expect(summary.date).toBe(new Date().toISOString().slice(0, 10));
-    const listed = await service.list();
+    const listed = await service.list(CHANGE);
     expect(listed.map((d) => d.id)).toEqual([summary.id]);
   });
 
   it('answers null for a document that does not exist', async () => {
-    expect(await service.findById('missing')).toBe(null);
+    expect(await service.findById(CHANGE, 'missing')).toBe(null);
+  });
+
+  it('refuses every operation on a change that has no directory', async () => {
+    expect(service.list('nope')).rejects.toBeInstanceOf(ChangeNotFoundError);
+    expect(service.create('nope', designDocFixture)).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
+    expect(service.findById('nope', 'x')).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
+    expect(service.delete('../x', 'x')).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
   });
 });
