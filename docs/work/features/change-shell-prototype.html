@@ -247,7 +247,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--primary);o
 
 <script>
 const TASKS = [
-  { id:'retry', name:'Payment retry policy', key:'NOE-142', status:'In progress', badge:'b-blue', color:'#228be6',
+  { id:'retry', name:'Payment retry policy', key:'NOE-142', type:'fix', status:'In progress', badge:'b-blue', color:'#228be6',
     docs:[
       ['PRD – Retry policy v2','PDF','M. Nowak','2d ago'],
       ['Stripe webhook reference','Web page','import','4d ago'],
@@ -271,13 +271,13 @@ const TASKS = [
       ['i-question','Open question answered','"Max attempts per PSP?" → 5, per Ops sync','yesterday'],
       ['i-doc','PRD – Retry policy v2','New version uploaded by M. Nowak','2d ago'],
     ]},
-  { id:'onboard', name:'Tenant onboarding redesign', key:'NOE-137', status:'Discovery', badge:'b-violet', color:'#7950f2',
+  { id:'onboard', name:'Tenant onboarding redesign', key:'NOE-137', type:'improvement', status:'Discovery', badge:'b-violet', color:'#7950f2',
     docs:[['Onboarding funnel analysis','Sheet','A. Zielińska','1d ago'],['Competitor teardown','Notion','A. Zielińska','5d ago']],
     convs:[['Customer interviews · batch 3','Transcripts · 5 calls','2d ago'],['#growth · onboarding','Slack · 120 messages','today']],
     designs:[['Onboarding flow v1','Draft','b-yellow','v1','A. Zielińska','2d ago']],
     questions:9, updated:'Updated today',
     activity:[['i-chat','#growth · onboarding','New thread: self-serve vs. assisted','today'],['i-doc','Onboarding funnel analysis','Uploaded by A. Zielińska','1d ago']]},
-  { id:'audit', name:'Audit log export', key:'NOE-129', status:'Done', badge:'b-green', color:'#12b886',
+  { id:'audit', name:'Audit log export', key:'NOE-129', type:'feature', status:'Done', badge:'b-green', color:'#12b886',
     docs:[['SOC 2 evidence checklist','PDF','Compliance','3w ago'],['Export format spec','Markdown','Ł. Szydło','3w ago']],
     convs:[['Compliance review call','Meeting transcript · 28 min','3w ago']],
     designs:[['Export pipeline','Approved','b-green','v4','Ł. Szydło','2w ago'],['Retention policy','Approved','b-green','v2','Compliance','3w ago']],
@@ -311,21 +311,21 @@ function picker(variant){
     <div class="mh">Your ${T().units.toLowerCase()}</div>
     ${TASKS.map(x=>`<button type="button" class="mi" role="option" aria-selected="${x.id===state.task}" data-task="${x.id}">
       <span class="sw" style="background:${x.color}"></span>
-      <span class="mt"><b>${esc(x.name)}</b><small>${x.key} · ${x.status}</small></span>
+      <span class="mt"><b>${esc(x.name)}</b><small>${x.key}${state.opt==='C'?' · '+x.type:''} · ${x.status}</small></span>
       <span class="badge ${x.badge}">${x.status}</span></button>`).join('')}
     <button type="button" class="mi new">${ic('i-plus',16)} New ${T().unit.toLowerCase()}</button>
   </div>`;
   if (variant==='card') return `<div class="picker">
     <button type="button" class="pick card" id="pick" aria-haspopup="listbox" aria-expanded="${state.pickerOpen}">
       <span class="sw" style="background:${t.color}">${t.key.slice(-3)}</span>
-      <span class="pt"><b>${esc(t.name)}</b><small>${t.key} · ${t.status}</small></span>
+      <span class="pt"><b>${esc(t.name)}</b><small>${t.key}${state.opt==='C'?' · '+t.type:''} · ${t.status}</small></span>
       ${ic('i-sel',16).replace('<svg','<svg class="chevd"')}
     </button>${menu}</div>`;
   return `<div class="picker">
     <div class="picker-lbl">${T().unit}</div>
     <button type="button" class="pick" id="pick" aria-haspopup="listbox" aria-expanded="${state.pickerOpen}">
       <span class="sw" style="background:${t.color}"></span>
-      <span class="pt"><b>${esc(t.name)}</b><small>${t.key} · ${t.status}</small></span>
+      <span class="pt"><b>${esc(t.name)}</b><small>${t.key}${state.opt==='C'?' · '+t.type:''} · ${t.status}</small></span>
       ${ic('i-sel',16).replace('<svg','<svg class="chevd"')}
     </button>${menu}</div>`;
 }

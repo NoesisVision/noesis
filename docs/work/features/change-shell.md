@@ -25,6 +25,10 @@ and the view name; real content is later work.
   first mockup). Users see "Change", "Changes", "New change".
 - **Documentation** — the change-independent area: System model and Wiki
   (was "Workspace"). Used as sidebar section label and breadcrumb root.
+- **Change type** — `feature | fix | improvement | chore`, the commit-message
+  vocabulary of decision 42 with `feat` spelled out as `feature` (a stored
+  value read by people, not a 72-char subject prefix). A change is the work
+  behind one or more commits of the matching type; `feature` ↔ `feat`.
 
 ### Left sidebar (option C)
 
@@ -82,6 +86,11 @@ Change id lives in the path; all three content kinds hang under the change:
   no `Project` to hang it off any more (decision 65 removed the concept), and
   the server serves the one checkout it was started in.
 - Fields: `id` (server-generated UUIDv7), `name`, `key` (e.g. `NOE-142`),
+  `type` (`feature | fix | improvement | chore` — the commit-type vocabulary
+  of decision 42, same meanings: new behaviour, wrong behaviour made correct,
+  one-time betterment, recurring upkeep; `feature` is the long form of `feat`.
+  One source of truth `CHANGE_TYPES` in the contract; a later commit-message
+  integration maps `feature` → `feat`),
   `status` (`discovery | design | implementation | done` — a lifecycle in
   that order; the contract keeps the enum in lifecycle order so later
   sorting and "advance" actions need no second list), plus the
@@ -90,19 +99,22 @@ Change id lives in the path; all three content kinds hang under the change:
 - Status badge colours (picker and future lists): `discovery` gray,
   `design` violet, `implementation` brand blue, `done` green. One
   `CHANGE_STATUS_META` map in the frontend owns label + colour per status.
+- Type shown as a small outline badge next to the key: `feature` green, `fix`
+  red, `improvement` teal, `chore` gray. `CHANGE_TYPE_META` map beside the
+  status one.
 - Endpoints on the `/ui` surface (unguarded, like every route since decision
   65): `GET /ui/changes` (list, newest first), `GET /ui/changes/:id`,
-  `POST /ui/changes` (`{ name, key }`, status starts as `discovery`).
+  `POST /ui/changes` (`{ name, key, type }`, status starts as `discovery`).
   Duplicate `key` → 409 `{ error: 'duplicate_key' }`; invalid body → 400.
 - **Seed:** on boot, when the `Change` table is empty, insert three example
   changes. There is no deployment mode left to gate on — one local server per
   checkout (decision 65) — so the empty table is the whole condition.
 
-| key     | name                       | status         |
-| ------- | -------------------------- | -------------- |
-| NOE-142 | Payment retry policy       | implementation |
-| NOE-137 | Tenant onboarding redesign | design         |
-| NOE-129 | Audit log export           | done           |
+| key     | name                       | type        | status         |
+| ------- | -------------------------- | ----------- | -------------- |
+| NOE-142 | Payment retry policy       | fix         | implementation |
+| NOE-137 | Tenant onboarding redesign | improvement | design         |
+| NOE-129 | Audit log export           | feature     | done           |
 
 ### Styling
 
@@ -146,7 +158,7 @@ Change id lives in the path; all three content kinds hang under the change:
 
 ```
 packages/shared-contracts/src/
-  change.ts                          # ChangeSchema, ChangeStatusSchema, CreateChangeSchema
+  change.ts                          # ChangeSchema, ChangeStatusSchema, ChangeTypeSchema, CreateChangeSchema
   index.ts                         # + export
 
 server/backend/src/
@@ -175,8 +187,8 @@ server/frontend/
         shell-header.tsx           # burger, mark, color-scheme toggle
         sidebar.tsx                # picker + 4 NavLinks + pinned zone
         change-picker.tsx            # Menu over a Button: changes list + "New change"
-        change-status.ts             # CHANGE_STATUS_META: label + badge colour per status
-        new-change-modal.tsx         # Modal with name + key, POST, invalidate, navigate
+        change-status.ts             # CHANGE_STATUS_META + CHANGE_TYPE_META: label + badge colour
+        new-change-modal.tsx         # Modal: name, key, type (SegmentedControl); POST, invalidate, navigate
         view-header.tsx            # Breadcrumbs + Title
         last-change.ts               # read/write noesis.shell.lastChangeId
       views/                       # one tiny component per route (route files export only Route)
@@ -226,8 +238,9 @@ server/frontend/
 
 1. **Contracts.** Add `packages/shared-contracts/src/change.ts`
    (`CHANGE_STATUSES` tuple in lifecycle order, `ChangeStatusSchema` =
-   `z.enum(CHANGE_STATUSES)`, `ChangeSchema`, `CreateChangeSchema` with key regex
-   `^[A-Z]{2,8}-\d+$`), export from the package index, unit spec.
+   `z.enum(CHANGE_STATUSES)`; `CHANGE_TYPES` tuple `feature, fix, improvement,
+chore` and `ChangeTypeSchema`; `ChangeSchema`; `CreateChangeSchema` with
+   `type` required and key regex `^[A-Z]{2,8}-\d+$`), export from the package index, unit spec.
 2. **Backend.** Schema table; `ChangesRepository` (list newest-first,
    findById, guarded create, count, insertMany for seed); `ChangesService`
    with `DuplicateChangeKeyError` and `seedIfEmpty`; `example-changes.ts`;
@@ -246,7 +259,7 @@ server/frontend/
    no-changes states. Delete `components/home.tsx`. Regenerate `routeTree.gen.ts`.
 6. **Shell components.** `ShellLayout` (AppShell), `ShellHeader`, `Sidebar`
    (NavLink ×4, pinned zone), `ChangePicker` (Menu), `NewChangeModal`
-   (Mantine form primitives, no TanStack Form yet), `ViewHeader`.
+   (name, key, type; Mantine form primitives, no TanStack Form yet), `ViewHeader`.
 7. **Docs.** `docs/stack.md`: Mantine and `@tabler/icons-react` added,
    Tailwind removed. `docs/decisions.md` entry 67: Mantine as the component
    library and Tailwind's removal, re-expressing decision 60's palette as a
