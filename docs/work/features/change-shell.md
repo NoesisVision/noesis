@@ -11,12 +11,11 @@ created: 2026-09-09
 static mock of three sidebar structures; **option C ("Flat + pinned")** is the
 one being built. Options A and B stay in the file for reference.
 **Goal:** Give `server/frontend` (React + Vite SPA on TanStack Router —
-decisions 63 and 67) a
-real application shell: a left sidebar with a **change picker** on top, four
-flat change-scoped entries below it, and a pinned bottom zone with the
-change-independent **System model** and **Wiki** links. A small change backend
-supplies the picker. Every content view renders only breadcrumbs and the
-view name; real content is later work.
+decisions 63 and 67) a real application shell: a left sidebar with a **change
+picker** on top, four flat change-scoped entries below it, and a pinned bottom
+zone with the change-independent **System model** and **Wiki** links. A small
+change backend supplies the picker. Every content view renders only breadcrumbs
+and the view name; real content is later work.
 
 ## Requirements (agreed 2026-09-09)
 
