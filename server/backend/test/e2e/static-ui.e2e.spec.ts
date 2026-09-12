@@ -1,20 +1,20 @@
-// Black-box e2e for SPA serving: spawns the real service with UI_DIST_PATH
-// pointing at a fixture dist, then asserts the SPA is served at /, client
-// routes fall back to index.html, and the /ui and /internal surfaces are not
-// swallowed by the fallback. The port is ephemeral, so the URL is read from
-// the service's own log line on stderr — the way a person finds it too.
+// Black-box e2e for SPA serving: spawns the real service from source (bun
+// bundles the imported index.html on the fly), then asserts the page is served
+// at /, client routes get the same page, its assets resolve, and the /ui and
+// /internal surfaces are not swallowed by the page route. The port is
+// ephemeral, so the URL is read from the service's own log line on stderr —
+// the way a person finds it too.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 const serviceRoot = resolve(__dirname, '../..');
 
-const INDEX_MARKER = '<title>noesis-spa-fixture</title>';
+const INDEX_MARKER = '<title>Noesis</title>';
 
 let serverProcess: ChildProcess;
-let uiDist: string;
 let repoRoot: string;
 let BASE: string;
 
@@ -44,18 +44,12 @@ function listeningUrl(child: ChildProcess, timeoutMs: number): Promise<string> {
 }
 
 beforeAll(async () => {
-  uiDist = await mkdtemp(join(tmpdir(), 'noesis-ui-dist-'));
-  await writeFile(
-    join(uiDist, 'index.html'),
-    `<!doctype html><html><head>${INDEX_MARKER}</head><body></body></html>`,
-  );
   repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
 
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serviceRoot,
     env: {
       ...process.env,
-      UI_DIST_PATH: uiDist,
       // A throwaway repository root so the run writes no `.noesis/` here,
       // and no browser popping up in a test run.
       NOESIS_ROOT: repoRoot,
@@ -70,7 +64,6 @@ beforeAll(async () => {
 
 afterAll(async () => {
   serverProcess?.kill();
-  if (uiDist) await rm(uiDist, { recursive: true, force: true });
   if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
 });
 
@@ -81,10 +74,24 @@ describe('SPA serving (e2e)', () => {
     expect(await res.text()).toContain(INDEX_MARKER);
   });
 
-  it('falls back to index.html for client-side routes', async () => {
+  it('serves the same page for client-side routes', async () => {
     const res = await fetch(`${BASE}/some/client/route`);
     expect(res.status).toBe(200);
     expect(await res.text()).toContain(INDEX_MARKER);
+  });
+
+  it('links its bundled script and stylesheet by absolute paths that resolve', async () => {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1];
+    const style = /<link[^>]+href="([^"]+\.css)"/.exec(html)?.[1];
+    expect(script?.startsWith('/')).toBe(true);
+    expect(style?.startsWith('/')).toBe(true);
+    const js = await fetch(`${BASE}${script}`);
+    expect(js.status).toBe(200);
+    expect(js.headers.get('content-type')).toContain('javascript');
+    const css = await fetch(`${BASE}${style}`);
+    expect(css.status).toBe(200);
+    expect(css.headers.get('content-type')).toContain('text/css');
   });
 
   it('keeps the ui surface working', async () => {

@@ -1,10 +1,12 @@
+import { Code, Container, Text, Title } from '@mantine/core';
+
 export function Home() {
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started.
-      </p>
-    </div>
+    <Container py="xl">
+      <Title order={1}>Noesis</Title>
+      <Text mt="md">
+        Edit <Code>src/routes/index.tsx</Code> to get started.
+      </Text>
+    </Container>
   );
 }

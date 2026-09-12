@@ -1,0 +1,74 @@
+---
+type: chore
+scope: server
+status: spike
+created: 2026-09-12
+---
+
+# Spike: serve the SPA through bun's fullstack bundling
+
+## Question
+
+Can the service drop Vite and the `ui/` copy step by importing the frontend's
+`index.html` and letting `bun build` bundle the browser app into `dist/`
+(bun's fullstack production mode)? Tailwind is retired at the same time;
+Mantine is the component library from here on.
+
+## Result: yes, with two workarounds
+
+Branch `spike/bun-fullstack`. `bun run ci` green: backend 170 unit and 15
+e2e, plugin 8, lint, types.
+
+What the branch does:
+
+- `server/backend/src/main.ts` imports `../../frontend/index.html` and hands
+  it to `Bun.serve` as the `/*` route, with `/ui/*` and `/internal/*` routed
+  to the Hono app first (bun matches by specificity, so a surface 404 is
+  never swallowed by the page). `development` is on from source (HMR, page
+  bundled on first request in ~35 ms) and off in the built bin.
+- `bun run build` in the backend is one command:
+  `bun build src/main.ts --outdir dist --target bun --production ...` emits
+  `main.js`, `index.html`, one hashed JS and one hashed CSS asset. `files` is
+  `dist`. No `build:ui`, no `ui/`, no `UI_DIST_PATH`, no `serveStatic`.
+- The frontend package has no build, no `vite.config.ts`, no Vite, Tailwind,
+  Babel or React Compiler dependency. `tsr generate` writes the route tree.
+  Mantine is wired in (`MantineProvider`, `@mantine/core/styles.css`).
+- `scripts/dev-server.sh` is gone; `bun run dev` is the service on `:3000`
+  serving the SPA with HMR. `PORT` stays as a stable dev URL, nothing else
+  needs it.
+- Tests: the SPA e2e boots from source and checks the page, client routes,
+  absolute asset links and the surfaces; the pack spec boots the built bin
+  from another directory and fetches the page and a script.
+
+## Findings the plan did not foresee
+
+1. **Output layout.** With entry points in two packages, `bun build` places
+   the HTML output relative to the common root, which put it at
+   `../../frontend/index.html` from `dist/` — on top of the source file.
+   `--entry-naming '[name].[ext]'` flattens every entry into `dist/`.
+2. **Asset URLs.** By default the page links assets as `./index-<hash>.js`,
+   which a deep client route (`/changes/x`) resolves under its own path and
+   gets the page back. `--public-path /` makes the links absolute.
+3. **Working directory.** The built bin resolves its bundle manifest against
+   the process working directory, not against `main.js`, and dies at
+   `Bun.serve` when launched from anywhere but `dist/` — and `bunx` launches
+   it from the user's project. `src/bundle-cwd.ts` records the launch
+   directory (repository-root discovery uses it) and `chdir`s to the bundle
+   before the server starts; it is `main.ts`'s first import.
+4. **`--production` under `bun test`.** `--production` sets
+   `NODE_ENV=production` only when the environment has none; the test runner
+   exports `NODE_ENV=test`, which then leaks into the bundle (`development`
+   true, the `chdir` compiled out). The build script sets
+   `NODE_ENV=production` explicitly.
+5. **TanStack Router code splitting** was the Vite plugin's; `tsr generate`
+   keeps the route tree, routes are no longer split. At the current size
+   (one 0.6 MB JS asset with Mantine and devtools) this is not a concern;
+   `lazyRouteComponent` is the manual path if it becomes one.
+6. **React Compiler** is gone with Babel. Nothing in the tree relied on it.
+
+## Decision to take
+
+Adopt or drop. If adopted: decision entry (supersedes the Vite half of 67
+and the `ui/` copy in 68/R3; retires Tailwind; adopts Mantine), then merge.
+If dropped: the `outDir` tweak from the package.json review remains the
+small alternative.

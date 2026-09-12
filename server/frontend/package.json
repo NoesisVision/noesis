@@ -6,35 +6,24 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "bun --bun vite",
     "generate-routes": "tsr generate",
-    "build": "bun --bun vite build",
-    "check-types": "tsc --noEmit",
-    "preview": "bun --bun vite preview"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.18",
+    "@mantine/core": "^9.6.1",
+    "@mantine/hooks": "^9.6.1",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "latest",
     "@tanstack/react-query-devtools": "latest",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.18"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "catalog:",
-    "@rolldown/plugin-babel": "^0.2.3",
-    "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.132.0",
-    "@tanstack/router-plugin": "^1.168.37",
-    "@types/node": "catalog:",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@vitejs/plugin-react": "^6.0.1",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "typescript": "catalog:",
-    "vite": "^8.0.0"
+    "typescript": "catalog:"
   }
 }

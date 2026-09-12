@@ -1,8 +1,9 @@
 // The Noesis service: one process per agent session, started by the agent
 // host as a stdio MCP server. The same process serves the browser UI over HTTP
 // on an ephemeral port (decision 68). Published to npm as @noesis-vision/noesis
-// (self-contained dist/main.js bin, built by `bun run build`); agent plugins
-// launch it via bunx.
+// (self-contained dist/ built by `bun run build`: the server bundle plus the
+// browser assets it imports through index.html); agent plugins launch it via
+// bunx.
 //
 // stdout belongs to the MCP protocol — every log line goes to stderr. Our own
 // code logs with console.error/warn; the redirect below catches anything a
@@ -10,13 +11,14 @@
 // stream.
 console.log = (...args: unknown[]) => console.error(...args);
 
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Must stay the first import: it moves the working directory to the bundle
+// before the HTML import below resolves its assets.
+import './bundle-cwd.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { serveStatic } from 'hono/bun';
+import index from '../../frontend/index.html';
 import { createApp } from './app.js';
 import { openBrowser } from './browser.js';
+import { launchCwd } from './bundle-cwd.js';
 import { ChangesRepository } from './changes/changes.repository.js';
 import { ChangesService } from './changes/changes.service.js';
 import { loadServerConfig } from './config/config.js';
@@ -113,36 +115,24 @@ const app = createApp({
   designDocsService,
 });
 
-// The built ui app ships inside the package (`ui/` beside `dist/`, copied
-// there by `bun run build`); `UI_DIST_PATH` overrides it for development. The
-// SPA is served at / with an index.html fallback for client routes; the route
-// surfaces are excluded from the fallback so their 404s are not swallowed.
-const uiDistPath = process.env.UI_DIST_PATH
-  ? resolve(process.env.UI_DIST_PATH)
-  : fileURLToPath(new URL('../ui/', import.meta.url));
-if (existsSync(uiDistPath)) {
-  // Registered after the routes in createApp, so surface endpoints win and
-  // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/internal'];
-  // `path` must be relative — hono's serveStatic strips a leading slash from
-  // it (absolute paths are only honored in `root`).
-  const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });
-  app.use('*', serveStatic({ root: uiDistPath }));
-  app.get('*', (c, next) => {
-    const path = c.req.path;
-    if (surfaces.some((s) => path === s || path.startsWith(`${s}/`))) {
-      return next(); // fall through to the surface's own 404
-    }
-    return spaIndex(c, next);
-  });
-} else {
-  console.error(`[server] no ui build at ${uiDistPath} — serving routes only`);
-}
-
+// The browser app is the imported `index.html`: bun bundles its scripts and
+// styles — on the fly when run from source, ahead of time into dist/ by
+// `bun run build` — and serves them from the catch-all route, with the page
+// itself answering every client-side path. The route surfaces are listed
+// first; bun matches routes by specificity, so `/ui/*` beats `/*` and a
+// surface 404 is never swallowed by the page.
 const server = Bun.serve({
   port: config.port,
   hostname: '127.0.0.1',
+  routes: {
+    '/ui/*': app.fetch,
+    '/internal/*': app.fetch,
+    '/*': index,
+  },
   fetch: app.fetch,
+  // Hot reload for the browser app when running from source; the built bin
+  // is compiled with NODE_ENV=production and serves the prebuilt assets.
+  development: process.env.NODE_ENV !== 'production',
 });
 const url = `http://localhost:${server.port}/`;
 console.error(`[server] listening on ${url}`);
@@ -172,7 +162,7 @@ console.error('[server] MCP server connected on stdio');
 function loadRepositoryRoot(): string {
   const result = resolveRepositoryRoot({
     root: config.root,
-    cwd: process.cwd(),
+    cwd: launchCwd,
   });
   if (!result.ok) {
     console.error(`[server] ${result.message}`);

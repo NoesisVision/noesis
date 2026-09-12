@@ -4,7 +4,7 @@
   "scripts": {
     "build": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
-    "dev:server": "./scripts/dev-server.sh",
+    "dev:server": "bun run --filter=@noesis-vision/noesis dev",
     "start:debug": "bun run --filter '*' start:debug",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

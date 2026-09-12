@@ -23,7 +23,7 @@ agent host (Claude Code) ──stdio/MCP──► @noesis-vision/noesis ◄─�
 
 | App               | Stack                      | Purpose                  |
 | ----------------- | -------------------------- | ------------------------ |
-| `server/frontend` | React 19 + TanStack Router | Web frontend (Vite SPA)  |
+| `server/frontend` | React 19 + TanStack Router | Web frontend (SPA)       |
 | `server/backend`  | Hono on `Bun.serve`        | The service: MCP + `/ui` |
 
 ### The service (`server/backend`)
@@ -67,7 +67,7 @@ The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugi
 
 ### Config packages
 
-- `@repo/typescript-config` — shared tsconfig presets: `base.json`, `vite.json`
+- `@repo/typescript-config` — the shared tsconfig preset `base.json`
 
 Linting and formatting need no config package: a single root `biome.json` covers the whole workspace (per-area rule tweaks live in its `overrides`).
 
@@ -79,16 +79,16 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 
 ## 2. Tools
 
-| Tool                                                                                | Role                                                                                                |
-| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (apps run TS directly), server bundler, test runner, task orchestration |
-| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                      |
-| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
-| [Hono](https://hono.dev/) 4                                                         | `backend` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `frontend` app              |
-| [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `frontend` app (Vite dev server proxies `/ui` to the backend; `vite build` emits the SPA it ships)  |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `server/backend/src/mcp`                                                              |
-| [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |
-| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing     |
+| Tool                                                                                | Role                                                                                                  |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                              | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner  |
+| [TypeScript](https://www.typescriptlang.org/)                                       | Everything is TS; internal packages export `src/*.ts` directly                                        |
+| [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                              |
+| [Hono](https://hono.dev/) 4                                                         | `backend` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `frontend` app                |
+| [React](https://react.dev/) 19 + [Mantine](https://mantine.dev/)                    | `frontend` app; the backend imports its `index.html`, so bun bundles and serves it (dev HMR included) |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `server/backend/src/mcp`                                                                |
+| [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                               |
+| GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing       |
 
 ## 3. Getting started
 
@@ -101,8 +101,8 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 ```sh
 bun install            # install all workspaces
 
-bun run dev            # run all apps in watch mode
-bun run dev:server     # just backend + frontend
+bun run dev            # the service in watch mode on :3000, serving the SPA with HMR
+bun run dev:server     # the same, by name
 
 bun run build          # build everything
 bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
@@ -120,12 +120,11 @@ The server runs locally inside a single checkout, as part of the Claude plugin.
 It has no identity provider and no tenant scoping, so there is nothing to
 register and nothing to authenticate against (decision 65).
 
-| Variable              | Meaning                                                                                        |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `NOESIS_ROOT`         | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
-| `NOESIS_OPEN_BROWSER` | `0` keeps the browser closed at boot (headless runs, tests)                                    |
-| `PORT`                | Pins the HTTP port for the Vite dev proxy (`bun run dev`); defaults to an ephemeral one        |
-| `UI_DIST_PATH`        | Serve the SPA from this directory instead of the packaged `ui/` (development only)             |
+| Variable              | Meaning                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| `NOESIS_ROOT`         | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory   |
+| `NOESIS_OPEN_BROWSER` | `0` keeps the browser closed at boot (headless runs, tests)                                      |
+| `PORT`                | Pins the HTTP port for a stable URL in development (`bun run dev`); defaults to an ephemeral one |
 
 ### Working with contracts
 
@@ -172,8 +171,8 @@ per agent session (decision 68). What ships is two npm packages, released in
 lockstep by the `v*` tag workflow (`.github/workflows/release.yml`, trusted
 publishing):
 
-- **`@noesis-vision/noesis`** — the service: `dist/main.js` bin, the built
-  frontend in `ui/`, the contract sources in `contracts/`.
+- **`@noesis-vision/noesis`** — the service: `dist/` with the `main.js` bin
+  and the SPA's page and assets beside it.
 - **`@noesis-vision/claude-code-plugin`** — the plugin: skills, the
   `contracts/` copy, and `.mcp.json` pinning the service version.
 

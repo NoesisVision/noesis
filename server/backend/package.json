@@ -13,15 +13,13 @@
     "noesis": "dist/main.js"
   },
   "files": [
-    "dist/main.js",
-    "ui"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun run build:ui && bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core --banner '#!/usr/bin/env bun'",
-    "build:ui": "bun run --cwd ../frontend build && rm -rf ui && cp -R ../frontend/dist ui",
+    "build": "NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --external @ladybugdb/core --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' --public-path /",
     "start": "bun dist/main.js",
     "dev": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",

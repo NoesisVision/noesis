@@ -14,8 +14,8 @@ at boot and on every change. `src/main.ts` is the composition root: config →
 stdout belongs to the MCP protocol; all logging goes to stderr.
 
 ```sh
-bun run dev        # watch mode on a fixed port (3000) for the Vite dev proxy, no browser
-bun run build      # builds the ui (../frontend) into ui/ and bundles src/main.ts -> dist/main.js
+bun run dev        # watch mode on a fixed port (3000), SPA with HMR, no browser
+bun run build      # bundles src/main.ts and the SPA it imports into dist/
 bun run test       # unit tests (test/unit)
 bun run test:e2e   # boots the real service over stdio and HTTP
 bun run test:bench # boot re-index cost at 1k and 10k files
@@ -26,10 +26,10 @@ bun run test:bench # boot re-index cost at 1k and 10k files
 | `NOESIS_ROOT`         | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working dir |
 | `NOESIS_OPEN_BROWSER` | `0` keeps the browser closed (headless runs, tests)                                      |
 | `PORT`                | Pins the HTTP port; defaults to an ephemeral one                                         |
-| `UI_DIST_PATH`        | Serve the SPA from this directory instead of the packaged `ui/` (development only)       |
 
-The package ships `dist/main.js` (a self-contained bundle built at pack
-time by `prepack`) and the built ui in `ui/`. Its only dependency is the
+The package ships `dist/`: the self-contained `main.js` bin plus the SPA's
+`index.html` and hashed assets, all built at pack time by `prepack` from the
+`index.html` the service imports (`../frontend/index.html`). Its only dependency is the
 native `@ladybugdb/core`; workspace deps (`@repo/*`) never leak into the
 published manifest. Its version is bumped in lockstep with the Claude Code
 plugin by `plugins/claude-code/tools/bump-version.ts`, and the plugin's

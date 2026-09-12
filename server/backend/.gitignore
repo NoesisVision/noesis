@@ -1,3 +1,0 @@
-# The built ui app, copied in by `bun run build:ui` and shipped in the package.
-# dist/, coverage and the rest are ignored at the repository root.
-/ui
