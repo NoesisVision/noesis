@@ -2216,3 +2216,70 @@ beside the plugin's other tools, reads the source from
 Plugin and service are one version train (33, 68), so the number is the
 same. The plugin's build, test and tarball no longer depend on the service
 package's tree; `server/backend/tools/` is gone.
+
+## 72. The service bundles and serves the SPA through bun's fullstack mode; Vite and Tailwind go, Mantine is the component library
+
+**Status: accepted** (2026-09-12)
+
+**Supersedes the Vite half of 67** (the SPA stays a plain client-only app on
+TanStack Router; what builds and serves it changes) **and the `ui/` copy of
+68's R3** ("the frontend build is served from the package", `UI_DIST_PATH`).
+**Amends 66**: the component library the scaffold left open is Mantine.
+
+**Context:** After 68 the frontend was a Vite SPA built to `dist/`, copied
+by the backend into `ui/`, served by hono's `serveStatic` with an SPA
+fallback, and proxied in development from Vite's dev server on `:5173` to
+the service on a pinned `:3000`. That was two bundlers (Vite for the page,
+bun for the service), a copy step, a `UI_DIST_PATH` override, a dev-server
+shell script that had to manage two processes, and the only reason `PORT`
+survived R8. Tailwind was installed by the scaffold and used by one
+placeholder component. Bun's fullstack mode — import an HTML file, hand it
+to `Bun.serve` as a route, let `bun build --target=bun` bundle its scripts
+and styles beside the server bundle — covers the same ground with one tool.
+A spike (`docs/work/chores/bun-fullstack-spike.md`) confirmed it works,
+with four workarounds recorded there.
+
+**Decision:**
+
+- `server/backend/src/main.ts` imports `../../frontend/index.html` and
+  serves it from `Bun.serve`'s `/*` route; `/ui/*` and `/internal/*` route
+  to the Hono app first (bun matches by specificity), so a surface 404 is
+  never swallowed by the page. `development` is on from source (HMR, page
+  bundled on first request) and off in the built bin.
+- `bun run build` in the backend is one `bun build` invocation emitting
+  `dist/main.js`, `dist/index.html` and the hashed assets; the package's
+  `files` is `dist`. `build:ui`, `ui/`, `UI_DIST_PATH` and `serveStatic`
+  are gone. The build flags the spike found necessary — `--entry-naming
+'[name].[ext]'`, `--public-path /`, an explicit `NODE_ENV=production` —
+  are part of the script, and `src/bundle-cwd.ts` moves the working
+  directory to the bundle before the server starts, because the built bin
+  resolves its asset manifest against the working directory and `bunx`
+  launches it from the user's project.
+- The frontend package has no build of its own: no `vite.config.ts`, no
+  Vite, `@vitejs/plugin-react`, Babel, React Compiler, `@tanstack/router-plugin`
+  or `@tanstack/devtools-vite`. `tsr generate` (`bun run generate-routes`)
+  writes the route tree. Routes are not code-split; `lazyRouteComponent` is
+  the manual path if the bundle grows.
+- Tailwind is removed. `@mantine/core` and `@mantine/hooks` are the UI
+  toolkit: `MantineProvider` at the root, `@mantine/core/styles.css`
+  imported from `main.tsx`, `styles.css` keeps only what Mantine does not
+  set.
+- `scripts/dev-server.sh` is deleted; `bun run dev` is the service on
+  `:3000` serving the SPA with HMR. `PORT` stays as a stable development
+  URL and nothing else.
+- Tests: the SPA e2e boots from source and asserts the page, client routes,
+  absolute asset links and the surfaces; the pack spec boots the built bin
+  from another directory and fetches the page and a script.
+
+**Consequences:**
+
+- One bundler, one build, one process in development as in production.
+  The service tarball is `dist/` alone.
+- The frontend is source the backend imports, not a package that builds.
+  Its dependencies are resolved from the workspace at bundle time.
+- Dropping React Compiler and route splitting is accepted at the current
+  size (one 0.6 MB JS asset); either can return through a bun bundler
+  plugin or manual lazy routes.
+- The four bun behaviours in the spike doc are the things to re-check on
+  a bun upgrade: entry naming across packages, relative asset links, the
+  manifest's cwd resolution, and `--production` deferring to `NODE_ENV`.

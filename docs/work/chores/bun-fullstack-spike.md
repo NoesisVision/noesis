@@ -1,7 +1,7 @@
 ---
 type: chore
 scope: server
-status: spike
+status: adopted
 created: 2026-09-12
 ---
 
@@ -66,9 +66,7 @@ What the branch does:
    `lazyRouteComponent` is the manual path if it becomes one.
 6. **React Compiler** is gone with Babel. Nothing in the tree relied on it.
 
-## Decision to take
+## Outcome
 
-Adopt or drop. If adopted: decision entry (supersedes the Vite half of 67
-and the `ui/` copy in 68/R3; retires Tailwind; adopts Mantine), then merge.
-If dropped: the `outDir` tweak from the package.json review remains the
-small alternative.
+Adopted on 2026-09-12 as decision 72 and merged into the architecture
+branch.
