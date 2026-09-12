@@ -1,12 +1,12 @@
 # frontend
 
 The Noesis web UI: a client-only React SPA on TanStack Router with Mantine
-(decisions 63 and 67). There is no SSR and no server-side execution of any
+(decisions 67 and 72). There is no SSR and no server-side execution of any
 kind — anything that needs a server is a Hono route on the backend's `/ui`
 surface.
 
-This package has no build of its own. The backend imports `index.html`, and
-bun bundles what the page references: on the fly when the service runs from
+This package has no build of its own (decision 72). The backend imports
+`index.html`, and bun bundles what the page references: on the fly when the service runs from
 source (refresh the browser after an edit — hot module reload is off, see
 `main.ts` in the backend), ahead of time into the service's `dist/` when it
 is built. Run it from the repo root with `bun run dev` (the service on `:3000`).
