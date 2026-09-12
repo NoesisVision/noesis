@@ -2,12 +2,19 @@ import {
   ActionIcon,
   Burger,
   Group,
+  type MantineColorScheme,
+  Menu,
   Text,
   ThemeIcon,
-  Tooltip,
+  useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
-import { IconDeviceDesktop, IconMoon, IconSun } from '@tabler/icons-react';
+import {
+  IconCheck,
+  IconDeviceDesktop,
+  IconMoon,
+  IconSun,
+} from '@tabler/icons-react';
 
 interface ShellHeaderProps {
   navbarOpened: boolean;
@@ -40,27 +47,48 @@ export function ShellHeader({
   );
 }
 
-const SCHEMES = ['light', 'dark', 'auto'] as const;
+const SCHEMES: {
+  value: MantineColorScheme;
+  label: string;
+  icon: typeof IconSun;
+}[] = [
+  { value: 'light', label: 'Light', icon: IconSun },
+  { value: 'dark', label: 'Dark', icon: IconMoon },
+  { value: 'auto', label: 'System', icon: IconDeviceDesktop },
+];
 
+/** A menu of the three schemes; the trigger shows the one in effect. */
 function ColorSchemeToggle() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  const next = SCHEMES[(SCHEMES.indexOf(colorScheme) + 1) % SCHEMES.length];
-  const Icon =
-    colorScheme === 'light'
-      ? IconSun
-      : colorScheme === 'dark'
-        ? IconMoon
-        : IconDeviceDesktop;
+  const computed = useComputedColorScheme('light');
+  const Current = computed === 'dark' ? IconMoon : IconSun;
   return (
-    <Tooltip label={`Colour scheme: ${colorScheme} (switch to ${next})`}>
-      <ActionIcon
-        variant="default"
-        size="lg"
-        aria-label={`Colour scheme: ${colorScheme}`}
-        onClick={() => setColorScheme(next)}
-      >
-        <Icon size={18} />
-      </ActionIcon>
-    </Tooltip>
+    <Menu position="bottom-end" shadow="md" width={160}>
+      <Menu.Target>
+        <ActionIcon
+          variant="default"
+          size="lg"
+          aria-label="Colour scheme"
+          title="Colour scheme"
+        >
+          <Current size={18} />
+        </ActionIcon>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>Colour scheme</Menu.Label>
+        {SCHEMES.map((scheme) => (
+          <Menu.Item
+            key={scheme.value}
+            leftSection={<scheme.icon size={16} />}
+            rightSection={
+              scheme.value === colorScheme ? <IconCheck size={14} /> : null
+            }
+            onClick={() => setColorScheme(scheme.value)}
+          >
+            {scheme.label}
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
   );
 }
