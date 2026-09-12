@@ -1,4 +1,4 @@
-import { Box, Group, Menu, Text, UnstyledButton } from '@mantine/core';
+import { Badge, Box, Group, Menu, Text, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import type { Change } from '@repo/shared-contracts';
 import { IconPlus, IconSelector } from '@tabler/icons-react';
@@ -75,9 +75,33 @@ export function ChangePicker({
                 <Text size="sm" fw={600} truncate lh={1.3}>
                   {current ? current.name : 'No change yet'}
                 </Text>
-                <Text size="xs" c="dimmed" truncate lh={1.3}>
-                  {current ? detailLine(current) : 'Create one to begin'}
-                </Text>
+                {current ? (
+                  <Group gap={6} mt={3} wrap="nowrap">
+                    {current.key ? (
+                      <Text size="xs" c="dimmed" ff="monospace" lh={1}>
+                        {current.key}
+                      </Text>
+                    ) : null}
+                    <Badge
+                      size="xs"
+                      variant="outline"
+                      color={CHANGE_TYPE_META[current.type].color}
+                    >
+                      {CHANGE_TYPE_META[current.type].label}
+                    </Badge>
+                    <Badge
+                      size="xs"
+                      variant="light"
+                      color={CHANGE_STATUS_META[current.status].color}
+                    >
+                      {CHANGE_STATUS_META[current.status].label}
+                    </Badge>
+                  </Group>
+                ) : (
+                  <Text size="xs" c="dimmed" truncate lh={1.3}>
+                    Create one to begin
+                  </Text>
+                )}
               </Box>
               <IconSelector
                 size={16}

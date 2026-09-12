@@ -4,15 +4,19 @@
   display: block;
   width: 100%;
   min-height: 40px;
-  padding: 6px 10px;
-  border: 1px solid var(--mantine-color-default-border);
+  padding: 8px 10px;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-color-body);
   text-align: left;
 }
 
 .pick:hover {
-  border-color: var(--mantine-color-dimmed);
+  border-color: light-dark(
+    var(--mantine-color-gray-6),
+    var(--mantine-color-dark-2)
+  );
 }
 
 .pick[data-expanded] {
