@@ -100,7 +100,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
 
   return (
     <>
-      <AppShell.Section p="md" pb="xs">
+      <AppShell.Section px="md" pt="md" pb="md">
         <ChangePicker
           changes={changes}
           current={activeChange}

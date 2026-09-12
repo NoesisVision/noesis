@@ -4,7 +4,7 @@
   display: block;
   width: 100%;
   min-height: 40px;
-  padding: 8px 10px;
+  padding: 10px;
   border: 1px solid var(--mantine-color-gray-4);
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-color-white);
