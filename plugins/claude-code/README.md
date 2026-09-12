@@ -24,16 +24,23 @@ Channels:
 
 ## How it runs
 
-Every Claude Code session starts its own Noesis service process over stdio.
-The service serves the project Claude Code runs in (`NOESIS_ROOT` is set to
-the project directory by `.mcp.json`), keeps the knowledge graph in
-`.noesis/` at its root, and opens the browser UI once at start. Set
-`NOESIS_OPEN_BROWSER=0` in the environment to keep it closed.
+Every Claude Code session starts its own Noesis service process over stdio
+(decision 68). The service serves the project Claude Code runs in
+(`NOESIS_ROOT` is set to the project directory by `.mcp.json`), keeps the
+knowledge graph as JSON files in `.noesis/` at its root, and opens the
+browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
+in the environment to keep it closed. The UI lives as long as the session:
+when Claude Code exits, the service exits with it.
 
-Tools never take content inline. The agent writes a working file to the
-session's scratch directory (`.noesis/tmp/<session>/`, named in the server's
-instructions), runs the `validate` tool against it until clean, and calls the
-tool that consumes it by path.
+The service exposes these MCP tools: `validate`, `list-changes`,
+`import-conversation`, `import-document`, `list-design-docs`,
+`create-design-doc`, `update-design-doc`, `scan-system-model` and
+`search-knowledge-graph`. Tools never take content inline. The agent writes
+a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
+named in the server's instructions), runs the `validate` tool against it
+until clean, and calls the tool that consumes it by path. The service runs
+the same contract check again on write, so what `validate` accepts is what
+a write accepts.
 
 ## What's inside
 
@@ -42,8 +49,9 @@ tool that consumes it by path.
   companion `.md` per family for what the shapes cannot say. A build output:
   copied from `packages/shared-contracts/src` by `bun run build` (which
   `bun pm pack` runs as `prepack`), stamped with the plugin version, and
-  asserted byte-identical by the plugin's tests. Only `contracts/README.md`
-  is committed; the published plugin carries the full copy.
+  asserted byte-identical by the plugin's tests (decisions 69 and 71). Only
+  `contracts/README.md` is committed; the published plugin carries the full
+  copy.
 - `skills/` — the knowledge-management skills (`import-conversation`,
   `import-document`, `create-design-doc`, `update-design-doc`,
   `search-knowledge-graph`) and the implementation skill
@@ -53,9 +61,33 @@ tool that consumes it by path.
   the tool that consumes it. Skills preserve locked and human-authored fields
   and ask before changing one.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
-  `bunx @noesis-vision/noesis@<version>` (same repo, released in lockstep
-  with the plugin). `NOESIS_SERVICE_COMMAND` and `NOESIS_SERVICE_ENTRY`
-  replace the command and its one argument; unset, the defaults apply.
+  `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
+  (same repo, released in lockstep with the plugin). The two variables
+  replace the command and its one argument; unset, the defaults apply
+  (decision 73). The pin is stamped by `bun run generate`.
+- `.claude-plugin/plugin.json` — the plugin manifest, its version stamped by
+  `bun run generate`; `marketplace.json` beside it is the catalog users add
+  by URL, with one entry per channel pinned to a published npm version.
+- `tools/` — `copy-contracts.ts`, `stamp-plugin-version.ts`,
+  `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
+  shipped.
+- `test/` — asserts the contracts copy is byte-identical to the source and
+  that a packed tarball carries exactly the shipped files.
+
+Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/`
+are published (the `files` field in `package.json`).
+
+## Scripts
+
+| Script                 | What it does                                                       |
+| ---------------------- | ------------------------------------------------------------------ |
+| `bun run build`        | Copy the contracts into `contracts/` (also runs as `prepack`)      |
+| `bun run generate`     | Stamp the version into `plugin.json` and the `.mcp.json` pin       |
+| `bun test`             | Contracts byte-identity + tarball contents                         |
+| `bun run check-types`  | `tsc --noEmit`                                                     |
+| `bun run bump <v>`     | Bump plugin + service versions and the matching marketplace pin    |
+| `bun run release:beta` | Bump, generate, smoke-test the tarball, commit, tag, push          |
+| `bun run publish:beta` | Local fallback: `bun publish --tag beta` (never raw `npm publish`) |
 
 ## Developing against the checkout
 
@@ -79,7 +111,7 @@ claude --plugin-dir /path/to/noesis/plugins/claude-code
 ```
 
 The service runs from `src/main.ts` with no build (the page is bundled on
-request) and serves the repository Claude Code started in. The local plugin
+request, decision 72) and serves the repository Claude Code started in. The local plugin
 takes precedence over an installed `noesis` for that session. After editing
 a skill or the service, run `/reload-plugins`. Set the two variables in the
 sample app's `.claude/settings.local.json` under `env` to skip typing them.
@@ -98,8 +130,11 @@ The script verifies a clean, up-to-date `main`, bumps the plugin +
 version train — decisions 33 and 68), regenerates stamped artifacts (the
 `.mcp.json` service pin), smoke-tests the packed tarball (whose `prepack`
 copies `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
-workflow, which publishes both packages to npm via trusted publishing (service
-first; prereleases go to the `beta` dist-tag, stable releases to `latest`).
+workflow (`.github/workflows/release.yml`), which re-runs the verify steps,
+checks the stamped pins are committed, verifies the tag against both package
+versions, packs with `bun pm pack` and publishes both packages to npm via
+trusted publishing (service first, so the plugin's pin always resolves;
+prereleases go to the `beta` dist-tag, stable releases to `latest`).
 
 Stable releases follow the same steps by hand — versions are single-sourced
 from the plugin's `package.json`:
