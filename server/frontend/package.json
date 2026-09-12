@@ -6,11 +6,11 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "bunx vite",
+    "dev": "bun --bun vite",
     "generate-routes": "tsr generate",
-    "build": "bunx --bun vite build",
+    "build": "bun --bun vite build",
     "check-types": "tsc --noEmit",
-    "preview": "vite preview"
+    "preview": "bun --bun vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
