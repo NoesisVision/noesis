@@ -43,8 +43,8 @@ All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consum
 ```
 packages/shared-contracts/src      every knowledge graph file shape + import payloads,
      │                             with a companion .md per family
-     ├─▶ plugins/claude-code/contracts   committed copy (bun run generate), read by skills;
-     │                                   a test asserts byte-identity with the source
+     ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
+     │                                   the plugin, read by skills; a test asserts byte-identity
      └─▶ server/backend/contracts        build-time copy shipped in the service package
 server/backend/src/mcp/contracts   the file-contract registry: schema + the whole-document
                                    check the service runs on write; backs the validate tool
@@ -58,7 +58,7 @@ request and response types from the backend's route tree via Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`contracts/`** — the contract sources and companion docs, **copied** from `packages/shared-contracts/src` by `bun run generate` with a version header; skills name a contract by this path (decision 68)
+- **`contracts/`** — the contract sources and companion docs, **copied** from `packages/shared-contracts/src` by `bun run build` with a version header and shipped in the tarball; gitignored except its README; skills name a contract by this path (decisions 68, 69)
 - **`tools/`** — dev/build tooling (generate, bump, release); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `bunx @noesis-vision/noesis@<version>` (pin stamped by `bun run generate`) with `NOESIS_ROOT` set to the project directory
 
@@ -130,13 +130,7 @@ register and nothing to authenticate against (decision 65).
 
 1. Add/edit a zod schema in `packages/shared-contracts/src`: describe every field, keep it declarative, and update the family's companion `.md` for anything the shape cannot say.
 2. For a file the `validate` tool should accept, register it in `server/backend/src/mcp/contracts/registry.ts` (with the service's whole-document check, if it has one).
-3. Regenerate plugin artifacts:
-
-```sh
-bun run generate       # copies the contract sources into the plugin, stamps plugin.json version + .mcp.json pin
-```
-
-4. **Commit the generated output** — CI (`.github/workflows/ci.yml`) regenerates and fails on any diff.
+3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 
 ### Using the Claude Code plugin
 

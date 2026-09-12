@@ -39,9 +39,11 @@ tool that consumes it by path.
 
 - `contracts/` — the contract sources every knowledge graph file and import
   payload must satisfy, as zod `.ts` the model reads directly, with a
-  companion `.md` per family for what the shapes cannot say. Copied from
-  `packages/shared-contracts/src` by `bun run generate`, stamped with the
-  service version, and asserted byte-identical by the plugin's tests.
+  companion `.md` per family for what the shapes cannot say. A build output:
+  copied from `packages/shared-contracts/src` by `bun run build` (which
+  `bun pm pack` runs as `prepack`), stamped with the service version, and
+  asserted byte-identical by the plugin's tests. Only `contracts/README.md`
+  is committed; the published plugin carries the full copy.
 - `skills/` — the knowledge-management skills (`import-conversation`,
   `import-document`, `create-design-doc`, `update-design-doc`,
   `search-knowledge-graph`) and the implementation skill
@@ -65,9 +67,9 @@ bun run release:beta 0.2.0-beta.1   # explicit target prerelease
 
 The script verifies a clean, up-to-date `main`, bumps the plugin +
 `@noesis-vision/noesis` `package.json`s and the beta marketplace pin (one
-version train — decisions 33 and 68), regenerates stamped artifacts (including
-the `.mcp.json` service pin and the `contracts/` copy), smoke-tests the packed
-tarball, then commits, tags, and pushes. The `v*` tag triggers the `Release`
+version train — decisions 33 and 68), regenerates stamped artifacts (the
+`.mcp.json` service pin), smoke-tests the packed tarball (whose `prepack`
+copies `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
 workflow, which publishes both packages to npm via trusted publishing (service
 first; prereleases go to the `beta` dist-tag, stable releases to `latest`).
 
@@ -76,7 +78,7 @@ from the plugin's `package.json`:
 
 ```
 bun run bump 0.2.0   # plugin + service package.json + matching marketplace channel pin
-bun run generate     # stamps .claude-plugin/plugin.json + .mcp.json pin, recopies contracts/
+bun run generate     # stamps .claude-plugin/plugin.json + .mcp.json pin
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```

@@ -19,7 +19,6 @@ bun run build      # builds the ui (../frontend) into ui/ and bundles src/main.t
 bun run test       # unit tests (test/unit)
 bun run test:e2e   # boots the real service over stdio and HTTP
 bun run test:bench # boot re-index cost at 1k and 10k files
-bun run generate   # copies the contract sources into the plugin (plugins/claude-code/contracts)
 ```
 
 | Variable              | Meaning                                                                                  |

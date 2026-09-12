@@ -2,9 +2,10 @@
 // into a destination directory, each file stamped with a header naming the
 // service version it came from. Two callers:
 //
-// - `bun run generate` copies into plugins/claude-code/contracts/, which is
-//   committed: skills name contracts by a plugin-relative path, and CI's
-//   drift check fails when the copy is stale.
+// - the plugin's `bun run build` (also its `prepack`) copies into
+//   plugins/claude-code/contracts/, gitignored except for its README: skills
+//   name contracts by a plugin-relative path, and the packed tarball carries
+//   the copy.
 // - `bun run build:contracts` copies into ./contracts/, which ships in the
 //   service package (gitignored — a build output like ui/).
 //
@@ -23,11 +24,14 @@ const serviceRoot = fileURLToPath(new URL('../', import.meta.url));
 
 /** The header a copied file starts with; the rest is the source, byte for byte. */
 export function contractHeader(relativePath: string, version: string): string {
-  const text = `Copied from packages/shared-contracts/src/${relativePath} by @noesis-vision/noesis ${version}. Do not edit: run \`bun run generate\`.`;
+  const text = `Copied from packages/shared-contracts/src/${relativePath} by @noesis-vision/noesis ${version}. Do not edit: run \`bun run build\`.`;
   return relativePath.endsWith('.md')
     ? `<!-- ${text} -->\n\n`
     : `// ${text}\n\n`;
 }
+
+/** The one file a destination may hold that is not a copy. */
+export const DESTINATION_README = 'README.md';
 
 export function isContractFile(relativePath: string): boolean {
   return (
@@ -55,7 +59,12 @@ export async function copyContracts(destination: string): Promise<string[]> {
   ) as { version: string };
 
   // Start clean so a contract deleted at the source disappears from the copy.
-  await rm(destination, { recursive: true, force: true });
+  // The destination's own README (the plugin commits one) stays.
+  await mkdir(destination, { recursive: true });
+  for (const entry of await readdir(destination)) {
+    if (entry === DESTINATION_README) continue;
+    await rm(join(destination, entry), { recursive: true, force: true });
+  }
   const files = await listContractFiles();
   for (const file of files) {
     const source = await readFile(join(CONTRACTS_SOURCE, file), 'utf8');

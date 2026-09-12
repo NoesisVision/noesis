@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-09-11_
+_Last updated: 2026-09-12_
 
 ---
 
@@ -2129,3 +2129,40 @@ mechanics are in the migration chore.
 - `server/backend/.env` still carries the GitHub App credentials from the
   auth era (ignored, never committed). It is deleted and the App's secret
   rotated as part of the migration's cleanup step.
+
+## 69. The plugin's `contracts/` copy is a build output, not a committed artifact
+
+**Status: accepted** (2026-09-12)
+
+**Amends 16** (its "small readable generated artifacts stay committed and
+drift-checked" line, for the contracts copy) **and the R5 landing of 68**.
+
+**Context:** After decision 68 the plugin shipped the contract sources as a
+copy of `packages/shared-contracts/src` under `plugins/claude-code/contracts/`,
+made by `bun run generate`, committed and drift-checked, while the service
+package got the same copy under `server/backend/contracts/` as a gitignored
+build output. Two rules for one artifact: the tree carried every contract
+twice, byte-identical, and each contract change produced a second,
+unreviewable diff in the plugin.
+
+**Decision:** The plugin copy is made the same way as the service copy. The
+plugin gains `bun run build` (the existing `tools/copy-contracts.ts`, pointed
+at its own `contracts/`) and runs it as `prepack`, so `bun pm pack` — in the
+tarball test and in the release workflow — always packs a fresh copy.
+`contracts/` is gitignored except for a committed `README.md` that says what
+the directory is and that the published plugin carries the files; the copy
+tool preserves that README when it cleans the directory. The backend's
+`generate` script goes; `bun run generate` is version stamps only again. The
+plugin's contracts test builds the copy itself before asserting byte-identity
+and declarativeness, and the tarball test asserts the README and the copied
+contracts are in the package.
+
+**Consequences:**
+
+- The tree holds the contract sources once; a contract change is one diff in
+  `packages/shared-contracts/src`.
+- A checkout's `plugins/claude-code/contracts/` holds only the README until
+  `bun run build` (or any test or pack) runs; skills' `${CLAUDE_PLUGIN_ROOT}/contracts/...`
+  paths resolve in the installed plugin, which is what they are written for.
+- CI's `generate-check` no longer guards the contracts copy; the plugin's
+  `bun test` (built copy versus source) and the tarball test do.

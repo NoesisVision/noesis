@@ -1,15 +1,18 @@
-// The plugin's contracts/ directory is a copy of packages/shared-contracts/src
-// made by `bun run generate` (decision 68): skills name a contract by this
-// plugin-relative path, so the copy must exist, carry the service version in
-// its header, and be byte-identical to the source below it. CI's drift check
-// catches a stale copy in the diff; this catches it in `bun test`.
-import { describe, expect, test } from 'bun:test';
+// The plugin's contracts/ directory is a build output: a copy of
+// packages/shared-contracts/src made by `bun run build` (decisions 68, 69).
+// Skills name a contract by this plugin-relative path, so the copy must hold
+// exactly the source files, carry the service version in its header, and be
+// byte-identical to the source below it. The copy is gitignored, so the test
+// builds it first and asserts on the result.
+import { beforeAll, describe, expect, test } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   CONTRACTS_SOURCE,
   contractHeader,
+  copyContracts,
+  DESTINATION_README,
   isContractFile,
   listContractFiles,
 } from '../../../server/backend/tools/copy-contracts.js';
@@ -26,13 +29,19 @@ const serviceVersion = (
 ).version;
 
 describe('plugins/claude-code/contracts', () => {
-  test('holds exactly the contract files of packages/shared-contracts/src', async () => {
-    const copied = (
+  beforeAll(async () => {
+    await copyContracts(copyDir);
+  });
+
+  test('holds the README and exactly the contract files of packages/shared-contracts/src', async () => {
+    const entries = (
       await readdir(copyDir, { recursive: true, withFileTypes: true })
     )
       .filter((e) => e.isFile())
       .map((e) => relative(copyDir, join(e.parentPath, e.name)))
       .sort();
+    expect(entries).toContain(DESTINATION_README);
+    const copied = entries.filter((f) => f !== DESTINATION_README);
     expect(copied).toEqual(await listContractFiles());
     expect(copied.every(isContractFile)).toBe(true);
   });

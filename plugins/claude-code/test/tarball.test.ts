@@ -53,6 +53,7 @@ test('ships exactly the expected plugin files', async () => {
     '.mcp.json',
     'LICENSE',
     'README.md',
+    'contracts/README.md',
     'contracts/design-doc.ts',
     'contracts/design-doc.md',
     'contracts/conventions.md',

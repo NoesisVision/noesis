@@ -20,6 +20,8 @@
   },
   "scripts": {
     "generate": "bun run tools/stamp-plugin-version.ts",
+    "build": "bun run ../../server/backend/tools/copy-contracts.ts contracts",
+    "prepack": "bun run build",
     "test": "bun test",
     "check-types": "tsc --noEmit",
     "bump": "bun run tools/bump-version.ts",

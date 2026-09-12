@@ -223,7 +223,10 @@ one reviewable pull request unless noted.
   `plugins/claude-code/contracts/` (committed, drift-checked, byte-identity
   and declarativeness asserted by `plugins/claude-code/test/contracts.test.ts`)
   and `build:contracts` fills the gitignored `server/backend/contracts/` that
-  ships in the service package. The `validate` tool now accepts every
+  ships in the service package. Revised the same day (decision 69): the
+  plugin copy is a build output too — gitignored except for a README, made
+  by the plugin's `bun run build` and on `prepack`, so both packages get
+  their copy the same way and the tree holds the sources once. The `validate` tool now accepts every
   registered contract, not only `design-document`. The plugin has no skills
   until R6.
 
