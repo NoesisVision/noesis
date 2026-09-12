@@ -14,6 +14,14 @@ import { fileNameFor } from '../../src/files/file-repository.js';
 import { NoesisDir } from '../../src/files/noesis-dir.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { SchemaService } from '../../src/schema/schema.service.js';
+import {
+  ConversationsRepository,
+  DocumentsRepository,
+} from '../../src/sources/sources.repository.js';
+import {
+  DecisionsRepository,
+  TopicsRepository,
+} from '../../src/wiki/wiki.repository.js';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;
@@ -57,11 +65,14 @@ async function measure(files: number): Promise<number> {
   const noesis = await syntheticNoesis(files);
   try {
     const changes = new ChangesRepository(noesis);
-    const indexer = new GraphIndexer(
-      db,
+    const indexer = new GraphIndexer(db, {
       changes,
-      new DesignDocsRepository(changes),
-    );
+      designDocs: new DesignDocsRepository(changes),
+      conversations: new ConversationsRepository(changes),
+      documents: new DocumentsRepository(changes),
+      topics: new TopicsRepository(noesis),
+      decisions: new DecisionsRepository(noesis),
+    });
     const report = await indexer.rebuild();
     expect(report.files).toBe(files);
     return report.durationMs;

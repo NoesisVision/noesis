@@ -16,6 +16,19 @@ export interface DesignDocSummary {
   status: string;
   date: string;
   updatedAt: string;
+  /** The file under `.noesis/`, absolute — the agent reads the document from there. */
+  path: string;
+}
+
+/** `update` for an id the change has no document for. */
+export class DesignDocNotFoundError extends Error {
+  readonly id: string;
+
+  constructor(change: string, id: string) {
+    super(`No design document ${JSON.stringify(id)} in change ${change}.`);
+    this.name = 'DesignDocNotFoundError';
+    this.id = id;
+  }
 }
 
 export interface DesignDocDetail {
@@ -66,7 +79,7 @@ export class DesignDocsService {
 
   async create(change: string, input: unknown): Promise<DesignDocSummary> {
     await this.changes.assertExists(change);
-    const report = validate(designDocumentContract, withMintedId(input));
+    const report = validate(designDocumentContract, withId(input, newUuid()));
     if (!report.ok) {
       throw new InvalidDesignDocumentError(report.issues, report.suppressed);
     }
@@ -83,6 +96,27 @@ export class DesignDocsService {
       ...designDocFixture,
       date: new Date().toISOString().slice(0, 10),
     });
+  }
+
+  /**
+   * Whole-document replacement (decision 51): the incoming document is
+   * validated like a new one and replaces the stored file under the same id;
+   * whatever id the input carries is ignored.
+   */
+  async update(
+    change: string,
+    id: string,
+    input: unknown,
+  ): Promise<DesignDocSummary> {
+    await this.changes.assertExists(change);
+    if ((await this.designDocs.findById(change, id)) === null) {
+      throw new DesignDocNotFoundError(change, id);
+    }
+    const report = validate(designDocumentContract, withId(input, id));
+    if (!report.ok) {
+      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
+    }
+    return toSummary(await this.designDocs.create(change, report.value));
   }
 
   async list(change: string): Promise<DesignDocSummary[]> {
@@ -104,13 +138,20 @@ export class DesignDocsService {
 }
 
 /** The server's id replaces whatever came in; a non-object is left for the schema to reject. */
-function withMintedId(input: unknown): unknown {
+function withId(input: unknown, id: string): unknown {
   return input !== null && typeof input === 'object' && !Array.isArray(input)
-    ? { ...input, id: newUuid() }
+    ? { ...input, id }
     : input;
 }
 
 function toSummary(stored: StoredDesignDoc): DesignDocSummary {
   const { id, name, status, date } = stored.entity;
-  return { id, name, status, date, updatedAt: stored.updatedAt };
+  return {
+    id,
+    name,
+    status,
+    date,
+    updatedAt: stored.updatedAt,
+    path: stored.path,
+  };
 }

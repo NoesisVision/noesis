@@ -26,12 +26,22 @@ import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { NoesisDir } from './files/noesis-dir.js';
 import { resolveRepositoryRoot } from './files/repository-root.js';
 import { SessionDir } from './files/session-dir.js';
+import { ImportService } from './imports/import.service.js';
 import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
 import { createMcpServer } from './mcp/mcp-server.js';
 import { ensureLadybugBinary } from './native/ensure-ladybug.js';
 import { SchemaService } from './schema/schema.service.js';
+import { createGraphSearch } from './search/graph-search.js';
+import {
+  ConversationsRepository,
+  DocumentsRepository,
+} from './sources/sources.repository.js';
 import { SearchService } from './ui/search/search.service.js';
+import {
+  DecisionsRepository,
+  TopicsRepository,
+} from './wiki/wiki.repository.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
@@ -58,22 +68,40 @@ await new SchemaService(db).ensureSchema();
 
 const changesRepository = new ChangesRepository(noesis);
 const designDocsRepository = new DesignDocsRepository(changesRepository);
-const indexer = new GraphIndexer(db, changesRepository, designDocsRepository);
+const conversationsRepository = new ConversationsRepository(changesRepository);
+const documentsRepository = new DocumentsRepository(changesRepository);
+const topicsRepository = new TopicsRepository(noesis);
+const decisionsRepository = new DecisionsRepository(noesis);
+const indexer = new GraphIndexer(db, {
+  changes: changesRepository,
+  designDocs: designDocsRepository,
+  conversations: conversationsRepository,
+  documents: documentsRepository,
+  topics: topicsRepository,
+  decisions: decisionsRepository,
+});
 // Watching before the first build: a file that changes during the build then
 // queues a second one, instead of slipping through the gap.
 const watcher = new NoesisWatcher(noesis, () => indexer.rebuild());
 watcher.start();
 await indexer.rebuild();
 
-// No search providers yet — no entity is searchable. Providers register here
-// as their entities land (documents, graph nodes).
 const changesService = new ChangesService(changesRepository);
 const designDocsService = new DesignDocsService(
   designDocsRepository,
   changesService,
 );
+const importService = new ImportService({
+  changes: changesService,
+  conversations: conversationsRepository,
+  documents: documentsRepository,
+  topics: topicsRepository,
+  decisions: decisionsRepository,
+});
+// One provider, over every node table the indexer fills.
+const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
-  searchService: new SearchService([]),
+  searchService,
   changesService,
   designDocsService,
 });
@@ -121,6 +149,8 @@ const mcp = createMcpServer({
   session,
   changesService,
   designDocsService,
+  importService,
+  searchService,
 });
 await mcp.connect(new StdioServerTransport());
 // The SDK's transport reads stdin but does not report its end; the host

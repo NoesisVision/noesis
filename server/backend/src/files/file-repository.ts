@@ -32,9 +32,14 @@ export interface FileRef {
 
 export type FileRefStatus = 'fresh' | 'stale' | 'missing';
 
-export interface FileRepositoryOptions<T extends { id: string }> {
+export interface FileRepositoryOptions<T extends object> {
   /** The kind directory; created on the first write. */
   dir: string;
+  /**
+   * The field holding the entity id (`id` unless the contract names it
+   * otherwise — `conversation_id`, `document_id`). Its value is a string.
+   */
+  idKey?: keyof T & string;
   /** The human part of the file name, kebab-cased and capped by `slugify`. */
   slugOf: (entity: T) => string;
   /**
@@ -60,26 +65,38 @@ const ID_SUFFIX_LENGTH = 12;
  * - Renaming an entity moves its file: the new slug is written, the old path
  *   removed.
  */
-export class FileRepository<T extends { id: string }> {
+export class FileRepository<T extends object> {
   readonly dir: string;
+  private readonly idKey: string;
   private readonly slugOf: (entity: T) => string;
   private readonly decode: (raw: unknown) => T;
 
   constructor(options: FileRepositoryOptions<T>) {
     this.dir = options.dir;
+    this.idKey = options.idKey ?? 'id';
     this.slugOf = options.slugOf;
     this.decode = options.decode;
   }
 
+  /** The entity's id, read through `idKey`. */
+  idOf(entity: T): string {
+    const id = idOf(entity, this.idKey);
+    if (id === null) {
+      throw new Error(`Entity has no string "${this.idKey}" field.`);
+    }
+    return id;
+  }
+
   async write(entity: T): Promise<StoredFile<T>> {
     await mkdir(this.dir, { recursive: true });
-    const previous = await this.locate(entity.id);
-    const target = join(this.dir, fileNameFor(entity.id, this.slugOf(entity)));
+    const id = this.idOf(entity);
+    const previous = await this.locate(id);
+    const target = join(this.dir, fileNameFor(id, this.slugOf(entity)));
     await writeAtomically(target, `${JSON.stringify(entity, null, 2)}\n`);
     if (previous !== null && previous.path !== target) {
       await rm(previous.path, { force: true });
     }
-    const stored = await this.read(entity.id);
+    const stored = await this.read(id);
     if (stored === null) {
       throw new Error(`Wrote ${target} but could not read it back.`);
     }
@@ -141,7 +158,9 @@ export class FileRepository<T extends { id: string }> {
     for (const path of await this.jsonFiles()) {
       if (!path.endsWith(suffix)) continue;
       const raw = await readRaw(path);
-      if (raw !== null && idOf(raw.json) === id) return { path, raw };
+      if (raw !== null && idOf(raw.json, this.idKey) === id) {
+        return { path, raw };
+      }
     }
     return null;
   }
@@ -176,9 +195,9 @@ async function readRaw(path: string): Promise<RawFile | null> {
   }
 }
 
-function idOf(json: unknown): string | null {
+function idOf(json: unknown, idKey: string): string | null {
   if (typeof json !== 'object' || json === null) return null;
-  const id = (json as { id?: unknown }).id;
+  const id = (json as Record<string, unknown>)[idKey];
   return typeof id === 'string' ? id : null;
 }
 

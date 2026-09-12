@@ -16,7 +16,7 @@ beforeEach(async () => {
   db = await sharedTestDatabase();
   t = await testNoesis();
   designDocs = new DesignDocsRepository(t.changesRepository);
-  indexer = new GraphIndexer(db, t.changesRepository, designDocs);
+  indexer = new GraphIndexer(db, t.sources);
 });
 
 afterEach(async () => {
@@ -109,6 +109,70 @@ describe('GraphIndexer', () => {
 
     expect((await indexer.rebuild()).files).toBe(1);
     expect((await graphRows()).map((r) => r.id)).toEqual([designDocFixture.id]);
+  });
+
+  it('projects sources and the wiki into their own tables', async () => {
+    await t.changesRepository.create('alpha');
+    await t.conversationsRepository.write('alpha', {
+      conversation_id: 'c-1',
+      time: '2026-09-12T10:00:00Z',
+      main_topic: 'Slots',
+      turns: [],
+    });
+    await t.documentsRepository.write('alpha', {
+      document_id: 'doc-1',
+      title: 'Rules',
+      date: '2026-09-01',
+      fragments: [],
+      section_tree: [],
+    });
+    await t.topicsRepository.write({
+      id: 't-1',
+      parent_id: null,
+      title: 'Slots',
+      title_locked: false,
+      short_summary: 's',
+      short_summary_locked: false,
+      long_summary: 'l',
+      long_summary_locked: false,
+      items: [],
+    });
+    await t.decisionsRepository.write({
+      id: 'd-1',
+      topic_id: 't-1',
+      title: 'Ten minutes',
+      title_locked: false,
+      status: 'accepted',
+      status_locked: false,
+      context: { text: '', text_locked: false, supporting_info: [] },
+      decision: {
+        text: '',
+        text_locked: false,
+        rationale: '',
+        rationale_locked: false,
+        supporting_info: [],
+      },
+      alternative_options: [],
+    });
+
+    const report = await indexer.rebuild();
+
+    expect(report.files).toBe(4);
+    const count = async (table: string) =>
+      (
+        await db.query<{ n: number | bigint }>(
+          `MATCH (x:${table}) RETURN count(x) AS n`,
+        )
+      ).map((r) => Number(r.n))[0];
+    expect(await count('Conversation')).toBe(1);
+    expect(await count('Document')).toBe(1);
+    expect(await count('Topic')).toBe(1);
+    expect(await count('Decision')).toBe(1);
+    const [decision] = await db.query<{ topic_id: string; json: string }>(
+      'MATCH (d:Decision) RETURN d.topic_id AS topic_id, d.json AS json',
+    );
+    expect(decision?.topic_id).toBe('t-1');
+    expect(JSON.parse(decision?.json ?? '').title).toBe('Ten minutes');
   });
 
   it('stores the whole document beside its denormalised columns', async () => {

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeNotFoundError } from '../../src/changes/changes.service.js';
 import {
+  DesignDocNotFoundError,
   type DesignDocsService,
   InvalidDesignDocumentError,
 } from '../../src/design-docs/design-docs.service.js';
@@ -54,6 +55,29 @@ describe('DesignDocsService', () => {
       InvalidDesignDocumentError,
     );
     expect(await service.list(CHANGE)).toEqual([]);
+  });
+
+  it('replaces a document whole under its id, ignoring the id in the input', async () => {
+    const created = await service.createSample(CHANGE);
+
+    const updated = await service.update(CHANGE, created.id, {
+      ...designDocFixture,
+      id: 'ignored',
+      name: 'Renamed',
+    });
+
+    expect(updated.id).toBe(created.id);
+    expect(updated.name).toBe('Renamed');
+    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
+    expect((await service.findById(CHANGE, created.id))?.document.name).toBe(
+      'Renamed',
+    );
+  });
+
+  it('refuses to update a document the change does not have', async () => {
+    expect(
+      service.update(CHANGE, 'nope', designDocFixture),
+    ).rejects.toBeInstanceOf(DesignDocNotFoundError);
   });
 
   it('creates the sample document dated today', async () => {

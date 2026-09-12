@@ -238,6 +238,20 @@ one reviewable pull request unless noted.
 - Implementation skill: implement design doc.
 - Skills preserve locked fields and ask before changing one.
 - Nothing is copied into the user's project; skills are plugin content.
+- Landed 2026-09-12, with the backend the skills need, which R1 had left for
+  later: `sources/sources.repository.ts` (conversations, documents; the file
+  repository learned an `idKey` for `conversation_id`/`document_id`),
+  `wiki/wiki.repository.ts` (topics, decisions), `imports/import.service.ts`
+  (content-hash source ids, duplicate detection across changes, placeholder
+  topic ids, locked-field merge, refs rewritten to the stored id and pinned
+  to the file hash), `DesignDocsService.update`, graph tables and indexing
+  for the four new kinds, and `search/graph-search.ts` as the first (and
+  only) search provider, also behind the ui palette. Tools: `list-changes`,
+  `import-conversation`, `import-document`, `list-design-docs`,
+  `create-design-doc`, `update-design-doc`, `search-knowledge-graph`,
+  `validate`. Not in the plan: no `create-change` tool — a change is created
+  in the ui, and the change contract's `change.json` is still the
+  change-shell feature's work.
 
 ### R7 — Scanner
 

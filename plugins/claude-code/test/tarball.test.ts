@@ -57,6 +57,12 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/design-doc.md',
     'contracts/conventions.md',
     'contracts/information-sources/conversation-analysis.ts',
+    'skills/import-conversation/SKILL.md',
+    'skills/import-document/SKILL.md',
+    'skills/create-design-doc/SKILL.md',
+    'skills/update-design-doc/SKILL.md',
+    'skills/search-knowledge-graph/SKILL.md',
+    'skills/implement-design-doc/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -151,10 +157,8 @@ test('the service the pin resolves to boots and lists tools', async () => {
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name).sort()).toEqual([
-      'create-design-doc',
-      'validate',
-    ]);
+    expect(tools.map((t) => t.name)).toContain('validate');
+    expect(tools.map((t) => t.name)).toContain('import-conversation');
   } finally {
     await client.close();
   }

@@ -88,7 +88,7 @@ describe('NoesisWatcher', () => {
   it('keeps the graph a function of the files across a checkout-like swap', async () => {
     const db: DatabaseService = await sharedTestDatabase();
     const designDocs = new DesignDocsRepository(t.changesRepository);
-    const indexer = new GraphIndexer(db, t.changesRepository, designDocs);
+    const indexer = new GraphIndexer(db, t.sources);
     await t.changesRepository.create('alpha');
     await designDocs.create('alpha', {
       ...designDocFixture,

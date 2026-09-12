@@ -42,9 +42,14 @@ tool that consumes it by path.
   companion `.md` per family for what the shapes cannot say. Copied from
   `packages/shared-contracts/src` by `bun run generate`, stamped with the
   service version, and asserted byte-identical by the plugin's tests.
-- `skills/` — the knowledge-management and implementation skills (arriving
-  with the migration's R6); each names the contract it needs by a path under
-  `contracts/`.
+- `skills/` — the knowledge-management skills (`import-conversation`,
+  `import-document`, `create-design-doc`, `update-design-doc`,
+  `search-knowledge-graph`) and the implementation skill
+  (`implement-design-doc`). Each names the contract it needs by a path under
+  `contracts/`, writes its working file to the session's scratch directory,
+  validates it with the `validate` tool until clean, and hands the path to
+  the tool that consumes it. Skills preserve locked and human-authored fields
+  and ask before changing one.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `bunx @noesis-vision/noesis@<version>` (same repo, released in lockstep
   with the plugin)

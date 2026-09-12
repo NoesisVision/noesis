@@ -10,6 +10,11 @@
 // and the statements only need to be valid on an empty database. `IF NOT
 // EXISTS` is kept so ensureSchema stays idempotent within a process.
 //
+// Every node table follows one pattern: the id, the denormalised columns a
+// list or a search reads without parsing, the whole entity as JSON in `json`,
+// and the file's modification time in `updated_at`. `change` is set on the
+// kinds that live under `.noesis/changes/<change>/` and empty on the wiki.
+//
 // The server runs locally against one checkout, so there is no tenant scoping
 // and no `version` column: the single writer needs no optimistic concurrency
 // (decision 65, superseding OQ-2.2/2.3's clauses).
@@ -19,8 +24,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
   // The projection of `.noesis/changes/<change>/design-docs/*.json`, one node
   // per file. `document` is the whole portable specification
   // (`DesignDocument`) as JSON; `name`, `status` and `date` are denormalised
-  // copies of document fields so listing does not parse every document, and
-  // `updated_at` is the file's modification time.
+  // copies of document fields so listing does not parse every document.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
      id STRING,
      change STRING,
@@ -28,6 +32,46 @@ export const GRAPH_SCHEMA: readonly string[] = [
      status STRING,
      date STRING,
      document STRING,
+     updated_at STRING,
+     PRIMARY KEY(id)
+   )`,
+
+  // --- Imported sources (`changes/<change>/conversations/`, `documents/`) ---
+  `CREATE NODE TABLE IF NOT EXISTS Conversation(
+     id STRING,
+     change STRING,
+     title STRING,
+     time STRING,
+     json STRING,
+     updated_at STRING,
+     PRIMARY KEY(id)
+   )`,
+  `CREATE NODE TABLE IF NOT EXISTS Document(
+     id STRING,
+     change STRING,
+     title STRING,
+     date STRING,
+     json STRING,
+     updated_at STRING,
+     PRIMARY KEY(id)
+   )`,
+
+  // --- The wiki (`wiki/topics/`, `wiki/decisions/`) ---
+  `CREATE NODE TABLE IF NOT EXISTS Topic(
+     id STRING,
+     parent_id STRING,
+     title STRING,
+     short_summary STRING,
+     json STRING,
+     updated_at STRING,
+     PRIMARY KEY(id)
+   )`,
+  `CREATE NODE TABLE IF NOT EXISTS Decision(
+     id STRING,
+     topic_id STRING,
+     title STRING,
+     status STRING,
+     json STRING,
      updated_at STRING,
      PRIMARY KEY(id)
    )`,

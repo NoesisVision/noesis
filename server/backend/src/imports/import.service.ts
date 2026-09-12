@@ -1,0 +1,359 @@
+import {
+  type AnalyzedTopic,
+  ConversationAnalysisSchema,
+  type Decision,
+  DocumentAnalysisSchema,
+  type InformationFragmentRef,
+  type Topic,
+} from '@repo/shared-contracts';
+import type { ChangesService } from '../changes/changes.service.js';
+import { contentHashAsUuid, newUuid } from '../ids/uuid.js';
+import type {
+  ConversationsRepository,
+  DocumentsRepository,
+} from '../sources/sources.repository.js';
+import {
+  type FileContract,
+  type ValidationIssue,
+  validate,
+} from '../validation/validator.js';
+import type {
+  DecisionsRepository,
+  TopicsRepository,
+} from '../wiki/wiki.repository.js';
+
+export interface ImportDeps {
+  changes: ChangesService;
+  conversations: ConversationsRepository;
+  documents: DocumentsRepository;
+  topics: TopicsRepository;
+  decisions: DecisionsRepository;
+}
+
+/** What an import did, for the tool to report. */
+export interface ImportReport {
+  source: { kind: 'conversation' | 'document'; id: string; path: string };
+  topics: { created: string[]; updated: string[] };
+  decisions: { created: string[]; updated: string[] };
+}
+
+/** The same source was imported before; nothing was written. */
+export class DuplicateSourceError extends Error {
+  readonly id: string;
+  readonly path: string;
+
+  constructor(kind: string, id: string, path: string) {
+    super(`This ${kind} was imported before as ${path}.`);
+    this.name = 'DuplicateSourceError';
+    this.id = id;
+    this.path = path;
+  }
+}
+
+/** The payload failed the contract; carries the validator's issue list. */
+export class InvalidImportError extends Error {
+  readonly contract: string;
+  readonly issues: readonly ValidationIssue[];
+  readonly suppressed: number;
+
+  constructor(
+    contract: string,
+    issues: readonly ValidationIssue[],
+    suppressed: number,
+  ) {
+    super(`${contract} rejected: ${issues.map((i) => i.path).join(', ')}`);
+    this.name = 'InvalidImportError';
+    this.contract = contract;
+    this.issues = issues;
+    this.suppressed = suppressed;
+  }
+}
+
+/**
+ * The service side of a knowledge import (architecture, "Flow of a knowledge
+ * import", steps 5–6): validate the payload, write the source file, then
+ * create or update the wiki topics and decisions the analysis names. The
+ * watcher does the rest.
+ *
+ * Ids: the source id is a hash of its content, so the same source imported
+ * twice is a duplicate, reported and not rewritten. Topics and decisions the
+ * analysis creates get time-ordered ids; placeholders in the payload are
+ * mapped to them, so an analysis can wire new topics to each other before the
+ * ids exist. Locked fields of an existing topic or decision are kept.
+ */
+export class ImportService {
+  private readonly deps: ImportDeps;
+
+  constructor(deps: ImportDeps) {
+    this.deps = deps;
+  }
+
+  async importConversation(
+    change: string,
+    payload: unknown,
+  ): Promise<ImportReport> {
+    await this.deps.changes.assertExists(change);
+    const { conversation, topics } = parse(
+      'conversation-analysis',
+      { description: '', schema: ConversationAnalysisSchema },
+      payload,
+    );
+    const placeholderId = conversation.conversation_id;
+    const id = contentHashAsUuid(JSON.stringify(conversation.turns));
+    await this.assertNew('conversation', id, (c) =>
+      this.deps.conversations.findById(c, id),
+    );
+    await this.assertTopicsResolve('conversation-analysis', topics);
+    const stored = await this.deps.conversations.write(change, {
+      ...conversation,
+      conversation_id: id,
+    });
+    const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
+      ref.type === 'conversation_fragment_ref' &&
+      ref.conversation_id === placeholderId
+        ? { ...ref, conversation_id: id, source_sha: stored.hash }
+        : ref;
+    return {
+      source: { kind: 'conversation', id, path: stored.path },
+      ...(await this.applyTopics(topics, refs)),
+    };
+  }
+
+  async importDocument(
+    change: string,
+    payload: unknown,
+  ): Promise<ImportReport> {
+    await this.deps.changes.assertExists(change);
+    const { document, topics } = parse(
+      'document-analysis',
+      { description: '', schema: DocumentAnalysisSchema },
+      payload,
+    );
+    const placeholderId = document.document_id;
+    const id = contentHashAsUuid(JSON.stringify(document.fragments));
+    await this.assertNew('document', id, (c) =>
+      this.deps.documents.findById(c, id),
+    );
+    await this.assertTopicsResolve('document-analysis', topics);
+    const stored = await this.deps.documents.write(change, {
+      ...document,
+      document_id: id,
+    });
+    const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
+      ref.type === 'document_fragment_ref' && ref.document_id === placeholderId
+        ? { ...ref, document_id: id, source_sha: stored.hash }
+        : ref;
+    return {
+      source: { kind: 'document', id, path: stored.path },
+      ...(await this.applyTopics(topics, refs)),
+    };
+  }
+
+  /** A source id is global: the same content in any change is the same source. */
+  private async assertNew(
+    kind: 'conversation' | 'document',
+    id: string,
+    find: (change: string) => Promise<{ path: string } | null>,
+  ): Promise<void> {
+    for (const { slug } of await this.deps.changes.list()) {
+      const existing = await find(slug);
+      if (existing !== null) {
+        throw new DuplicateSourceError(kind, id, existing.path);
+      }
+    }
+  }
+
+  /**
+   * Every topic the analysis calls existing must exist — checked before the
+   * source file is written, so a rejected payload leaves nothing behind.
+   */
+  private async assertTopicsResolve(
+    contract: string,
+    analyzed: AnalyzedTopic[],
+  ): Promise<void> {
+    for (const [index, topic] of analyzed.entries()) {
+      if (topic.is_new) continue;
+      if ((await this.deps.topics.findById(topic.id)) !== null) continue;
+      throw new InvalidImportError(
+        contract,
+        [
+          {
+            path: `$.topics[${index}].id`,
+            expected: 'the id of an existing wiki topic, or is_new: true',
+            found: JSON.stringify(topic.id),
+            fix: 'Set is_new to true for a new topic, or use the id of a topic that exists',
+          },
+        ],
+        0,
+      );
+    }
+  }
+
+  private async applyTopics(
+    analyzed: AnalyzedTopic[],
+    refs: (ref: InformationFragmentRef) => InformationFragmentRef,
+  ): Promise<Pick<ImportReport, 'topics' | 'decisions'>> {
+    const report = {
+      topics: { created: [] as string[], updated: [] as string[] },
+      decisions: { created: [] as string[], updated: [] as string[] },
+    };
+
+    // Placeholders first, so a new topic can be another's parent.
+    const ids = new Map<string, string>();
+    for (const topic of analyzed) {
+      ids.set(topic.id, topic.is_new ? newUuid() : topic.id);
+    }
+    const resolve = (id: string | null): string | null =>
+      id === null ? null : (ids.get(id) ?? id);
+
+    for (const topic of analyzed) {
+      const id = resolve(topic.id) ?? topic.id;
+      const incoming: Topic = {
+        id,
+        parent_id: resolve(topic.parent_id),
+        title: topic.title,
+        title_locked: false,
+        short_summary: topic.short_summary,
+        short_summary_locked: false,
+        long_summary: topic.long_summary,
+        long_summary_locked: false,
+        items: topic.items.map(refs),
+      };
+      const existing = topic.is_new
+        ? null
+        : await this.deps.topics.findById(id);
+      await this.deps.topics.write(
+        existing === null ? incoming : mergeTopic(existing.entity, incoming),
+      );
+      (existing === null ? report.topics.created : report.topics.updated).push(
+        id,
+      );
+
+      for (const analyzedDecision of topic.decisions) {
+        const decisionId = analyzedDecision.id ?? newUuid();
+        const incomingDecision: Decision = {
+          id: decisionId,
+          topic_id: id,
+          title: analyzedDecision.title,
+          title_locked: false,
+          status: analyzedDecision.status,
+          status_locked: false,
+          context: {
+            ...analyzedDecision.context,
+            supporting_info: analyzedDecision.context.supporting_info.map(refs),
+          },
+          decision: {
+            ...analyzedDecision.decision,
+            supporting_info:
+              analyzedDecision.decision.supporting_info.map(refs),
+          },
+          alternative_options: analyzedDecision.alternative_options.map(
+            (o) => ({ ...o, supporting_info: o.supporting_info.map(refs) }),
+          ),
+        };
+        const existingDecision =
+          analyzedDecision.id === undefined
+            ? null
+            : await this.deps.decisions.findById(decisionId);
+        await this.deps.decisions.write(
+          existingDecision === null
+            ? incomingDecision
+            : mergeDecision(existingDecision.entity, incomingDecision),
+        );
+        (existingDecision === null
+          ? report.decisions.created
+          : report.decisions.updated
+        ).push(decisionId);
+      }
+    }
+    return report;
+  }
+}
+
+function parse<T>(
+  name: string,
+  contract: FileContract<T>,
+  payload: unknown,
+): T {
+  const report = validate(contract, payload);
+  if (!report.ok) {
+    throw new InvalidImportError(name, report.issues, report.suppressed);
+  }
+  return report.value;
+}
+
+/** A locked field keeps the stored value; items are the union, in stored-then-new order. */
+export function mergeTopic(stored: Topic, incoming: Topic): Topic {
+  return {
+    id: stored.id,
+    parent_id: incoming.parent_id,
+    title: stored.title_locked ? stored.title : incoming.title,
+    title_locked: stored.title_locked,
+    short_summary: stored.short_summary_locked
+      ? stored.short_summary
+      : incoming.short_summary,
+    short_summary_locked: stored.short_summary_locked,
+    long_summary: stored.long_summary_locked
+      ? stored.long_summary
+      : incoming.long_summary,
+    long_summary_locked: stored.long_summary_locked,
+    items: unionRefs(stored.items, incoming.items),
+  };
+}
+
+export function mergeDecision(stored: Decision, incoming: Decision): Decision {
+  return {
+    id: stored.id,
+    topic_id: incoming.topic_id,
+    title: stored.title_locked ? stored.title : incoming.title,
+    title_locked: stored.title_locked,
+    status: stored.status_locked ? stored.status : incoming.status,
+    status_locked: stored.status_locked,
+    context: {
+      text: stored.context.text_locked
+        ? stored.context.text
+        : incoming.context.text,
+      text_locked: stored.context.text_locked,
+      supporting_info: unionRefs(
+        stored.context.supporting_info,
+        incoming.context.supporting_info,
+      ),
+    },
+    decision: mergeOption(stored.decision, incoming.decision),
+    // Alternatives are replaced as a list; a person's edits to one would need
+    // a per-option identity to survive, which the contract does not have.
+    alternative_options: incoming.alternative_options,
+  };
+}
+
+function mergeOption(
+  stored: Decision['decision'],
+  incoming: Decision['decision'],
+): Decision['decision'] {
+  return {
+    text: stored.text_locked ? stored.text : incoming.text,
+    text_locked: stored.text_locked,
+    rationale: stored.rationale_locked ? stored.rationale : incoming.rationale,
+    rationale_locked: stored.rationale_locked,
+    supporting_info: unionRefs(
+      stored.supporting_info,
+      incoming.supporting_info,
+    ),
+  };
+}
+
+function unionRefs(
+  a: InformationFragmentRef[],
+  b: InformationFragmentRef[],
+): InformationFragmentRef[] {
+  const seen = new Set<string>();
+  const out: InformationFragmentRef[] = [];
+  for (const ref of [...a, ...b]) {
+    const { source_sha: _sha, ...identity } = ref;
+    const key = JSON.stringify(identity);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(ref);
+  }
+  return out;
+}

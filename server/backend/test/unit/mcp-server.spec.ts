@@ -12,6 +12,7 @@ import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { SessionDir } from '../../src/files/session-dir.js';
 import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
+import { SearchService } from '../../src/ui/search/search.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = 'booking';
@@ -33,6 +34,10 @@ beforeEach(async () => {
     session,
     changesService: t.changesService,
     designDocsService: t.designDocsService,
+    importService: t.importService,
+    searchService: new SearchService([
+      async (q) => [{ type: 'topic', id: 't-1', title: `Hit for ${q}` }],
+    ]),
   });
   await server.connect(serverTransport);
   client = new Client({ name: 'mcp-server-spec', version: '0.0.0' });
@@ -74,10 +79,16 @@ describe('createMcpServer', () => {
     expect(instructions).toContain(session.path);
   });
 
-  it('advertises validate and create-design-doc with schemas from their argument contracts', async () => {
+  it('advertises the tool set with schemas from their argument contracts', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create-design-doc',
+      'import-conversation',
+      'import-document',
+      'list-changes',
+      'list-design-docs',
+      'search-knowledge-graph',
+      'update-design-doc',
       'validate',
     ]);
     const validate = tools.find((tool) => tool.name === 'validate');
@@ -230,9 +241,165 @@ describe('createMcpServer', () => {
       arguments: {},
     });
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain(
-      'Available tools: validate, create-design-doc',
-    );
+    expect(textOf(result)).toContain('Available tools: validate, list-changes');
+  });
+
+  describe('list-changes / list-design-docs', () => {
+    it('lists the change slugs', async () => {
+      const result = await client.callTool({
+        name: 'list-changes',
+        arguments: {},
+      });
+      expect(textOf(result)).toBe(`Changes: ${CHANGE}.`);
+    });
+
+    it('lists design documents with id and relative path', async () => {
+      await t.designDocsService.createSample(CHANGE);
+      const result = await client.callTool({
+        name: 'list-design-docs',
+        arguments: { change: CHANGE },
+      });
+      const line = textOf(result);
+      expect(line).toContain('Appointment booking');
+      expect(line).toContain(`.noesis/changes/${CHANGE}/design-docs/`);
+    });
+  });
+
+  describe('update-design-doc', () => {
+    it('replaces the document under its id', async () => {
+      const created = await t.designDocsService.createSample(CHANGE);
+      const path = await working('doc.json', {
+        ...designDocFixture,
+        name: 'Renamed booking',
+      });
+      const result = await client.callTool({
+        name: 'update-design-doc',
+        arguments: { change: CHANGE, id: created.id, path },
+      });
+      expect(result.isError).toBeFalsy();
+      expect(textOf(result)).toContain('"Renamed booking"');
+      const listed = await t.designDocsService.list(CHANGE);
+      expect(listed.map((d) => [d.id, d.name])).toEqual([
+        [created.id, 'Renamed booking'],
+      ]);
+    });
+
+    it('refuses an unknown id in-band', async () => {
+      const path = await working('doc.json', designDocFixture);
+      const result = await client.callTool({
+        name: 'update-design-doc',
+        arguments: { change: CHANGE, id: 'nope', path },
+      });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain('No design document "nope"');
+    });
+  });
+
+  describe('import-conversation', () => {
+    const payload = {
+      conversation: {
+        conversation_id: 'placeholder',
+        time: '2026-09-12T10:00:00Z',
+        main_topic: 'Slot holds',
+        turns: [
+          {
+            index: 0,
+            speaker: 'Ada',
+            time: '10:00',
+            fragments: [
+              {
+                index: 0,
+                sentences: ['Hold a slot for ten minutes.'],
+                categories: ['Decision'],
+              },
+            ],
+          },
+        ],
+      },
+      topics: [
+        {
+          id: 'new-1',
+          is_new: true,
+          title: 'Slot holds',
+          short_summary: 'How slots are held.',
+          long_summary: 'Slots are held for ten minutes.',
+          items: [
+            {
+              type: 'conversation_fragment_ref',
+              conversation_id: 'placeholder',
+              turn_index: 0,
+              fragment_index: 0,
+            },
+          ],
+          decisions: [
+            {
+              title: 'Hold slots for ten minutes',
+              status: 'accepted',
+              context: { text: 'Double bookings.', supporting_info: [] },
+              decision: {
+                text: 'Ten minutes.',
+                rationale: 'Long enough.',
+                supporting_info: [],
+              },
+              alternative_options: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    it('writes the source and the wiki, and reports what it did', async () => {
+      const path = await working('analysis.json', payload);
+      const result = await client.callTool({
+        name: 'import-conversation',
+        arguments: { change: CHANGE, path },
+      });
+      expect(result.isError).toBeFalsy();
+      const report = textOf(result);
+      expect(report).toContain(
+        `Imported the conversation as .noesis/changes/${CHANGE}/conversations/slot-holds-`,
+      );
+      expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
+      expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);
+      expect(await t.topicsRepository.list()).toHaveLength(1);
+      expect(await t.decisionsRepository.list()).toHaveLength(1);
+    });
+
+    it('reports a duplicate source in-band and writes nothing', async () => {
+      const path = await working('analysis.json', payload);
+      await client.callTool({
+        name: 'import-conversation',
+        arguments: { change: CHANGE, path },
+      });
+      const again = await client.callTool({
+        name: 'import-conversation',
+        arguments: { change: CHANGE, path },
+      });
+      expect(again.isError).toBe(true);
+      expect(textOf(again)).toContain('was imported before as .noesis/');
+      expect(await t.topicsRepository.list()).toHaveLength(1);
+    });
+
+    it('rejects a payload that fails the contract with the issue list', async () => {
+      const path = await working('analysis.json', { topics: [] });
+      const result = await client.callTool({
+        name: 'import-conversation',
+        arguments: { change: CHANGE, path },
+      });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain('Invalid conversation-analysis');
+      expect(textOf(result)).toContain('$.conversation');
+    });
+  });
+
+  describe('search-knowledge-graph', () => {
+    it('lists hits as type, id and title', async () => {
+      const result = await client.callTool({
+        name: 'search-knowledge-graph',
+        arguments: { query: 'slots' },
+      });
+      expect(textOf(result)).toBe('topic  t-1  Hit for slots');
+    });
   });
 
   it('returns a descriptive in-band error for missing arguments', async () => {
