@@ -13,6 +13,12 @@
       "skillPath": "skills/mantine-custom-components/SKILL.md",
       "computedHash": "16f771d471da17b76a803ace40211177283ad3adcf319e8e3b4bd1a1ddeb74c1"
     },
+    "mantine-form": {
+      "source": "mantinedev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mantine-form/SKILL.md",
+      "computedHash": "1bf98bd02676810bf420019b501ffaaba61774869b2b758dd5518620311ef518"
+    },
     "tanstack-query": {
       "source": "tanstack-skills/tanstack-skills",
       "sourceType": "github",
