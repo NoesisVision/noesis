@@ -14,7 +14,7 @@ at boot and on every change. `src/main.ts` is the composition root: config →
 stdout belongs to the MCP protocol; all logging goes to stderr.
 
 ```sh
-bun run dev        # watch mode on a fixed port (3000), SPA with HMR, no browser
+bun run dev        # watch mode on a fixed port (3000), SPA rebundled on refresh, no browser
 bun run build      # bundles src/main.ts and the SPA it imports into dist/
 bun run test       # unit tests (test/unit)
 bun run test:e2e   # boots the real service over stdio and HTTP

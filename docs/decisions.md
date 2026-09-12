@@ -2244,8 +2244,9 @@ with four workarounds recorded there.
 - `server/backend/src/main.ts` imports `../../frontend/index.html` and
   serves it from `Bun.serve`'s `/*` route; `/ui/*` and `/internal/*` route
   to the Hono app first (bun matches by specificity), so a surface 404 is
-  never swallowed by the page. `development` is on from source (HMR, page
-  bundled on first request) and off in the built bin.
+  never swallowed by the page. `development` is on from source (page
+  bundled on request; hot module reload off, see the spike doc's finding 7)
+  and off in the built bin.
 - `bun run build` in the backend is one `bun build` invocation emitting
   `dist/main.js`, `dist/index.html` and the hashed assets; the package's
   `files` is `dist`. `build:ui`, `ui/`, `UI_DIST_PATH` and `serveStatic`

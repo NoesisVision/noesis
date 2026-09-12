@@ -101,7 +101,7 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 ```sh
 bun install            # install all workspaces
 
-bun run dev            # the service in watch mode on :3000, serving the SPA with HMR
+bun run dev            # the service in watch mode on :3000, serving the SPA (refresh after edits)
                        # (runs it directly, not through --filter: --filter closes the
                        #  child's stdin, which the service reads as the MCP session ending)
 

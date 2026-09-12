@@ -130,9 +130,18 @@ const server = Bun.serve({
     '/*': index,
   },
   fetch: app.fetch,
-  // Hot reload for the browser app when running from source; the built bin
-  // is compiled with NODE_ENV=production and serves the prebuilt assets.
-  development: process.env.NODE_ENV !== 'production',
+  // From source, bun's dev bundler rebuilds the page on the next request
+  // after a change; the built bin is compiled with NODE_ENV=production and
+  // serves the prebuilt assets. Hot module reload stays off: its client
+  // runtime mishandles the circular import between router.js and
+  // load-client.js inside @tanstack/router-core and the page dies at load
+  // with "Cannot read properties of null (reading 'replaceRouteChunk')"
+  // (bun 1.3.14 and 1.4.2 alike; the plain dev and production bundles are
+  // fine). Refresh the browser after an edit.
+  development: process.env.NODE_ENV !== 'production' && {
+    hmr: false,
+    console: true,
+  },
 });
 const url = `http://localhost:${server.port}/`;
 console.error(`[server] listening on ${url}`);

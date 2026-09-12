@@ -65,6 +65,16 @@ What the branch does:
    (one 0.6 MB JS asset with Mantine and devtools) this is not a concern;
    `lazyRouteComponent` is the manual path if it becomes one.
 6. **React Compiler** is gone with Babel. Nothing in the tree relied on it.
+7. **Hot module reload breaks the page** (found after adoption, when the
+   page was first opened in a browser rather than curled). Bun's HMR client
+   runtime evaluates the circular import between `router.js` and
+   `load-client.js` in `@tanstack/router-core` to a null namespace and the
+   page dies at load with "Cannot read properties of null (reading
+   'replaceRouteChunk')", on bun 1.3.14 and 1.4.2 alike. The dev bundler
+   without HMR (`development: { hmr: false }`) and the production bundle
+   evaluate the same cycle correctly, so the service runs from source with
+   `hmr: false`: the page is rebundled on the next request after an edit,
+   at the cost of a manual refresh.
 
 ## Outcome
 
