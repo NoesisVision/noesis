@@ -1,0 +1,77 @@
+// Copies the contract sources (packages/shared-contracts/src, minus specs)
+// into a destination directory, each file stamped with a header naming the
+// service version it came from. Two callers:
+//
+// - `bun run generate` copies into plugins/claude-code/contracts/, which is
+//   committed: skills name contracts by a plugin-relative path, and CI's
+//   drift check fails when the copy is stale.
+// - `bun run build:contracts` copies into ./contracts/, which ships in the
+//   service package (gitignored — a build output like ui/).
+//
+// The copy is byte-identical to the source below the header; the plugin's
+// test asserts that. `.ts` sources are shipped deliberately: compiled output
+// would keep the types and lose the `.describe()` text (decision 68).
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+export const CONTRACTS_SOURCE = fileURLToPath(
+  new URL('../../../packages/shared-contracts/src/', import.meta.url),
+);
+
+const serviceRoot = fileURLToPath(new URL('../', import.meta.url));
+
+/** The header a copied file starts with; the rest is the source, byte for byte. */
+export function contractHeader(relativePath: string, version: string): string {
+  const text = `Copied from packages/shared-contracts/src/${relativePath} by @noesis-vision/noesis ${version}. Do not edit: run \`bun run generate\`.`;
+  return relativePath.endsWith('.md')
+    ? `<!-- ${text} -->\n\n`
+    : `// ${text}\n\n`;
+}
+
+export function isContractFile(relativePath: string): boolean {
+  return (
+    (relativePath.endsWith('.ts') || relativePath.endsWith('.md')) &&
+    !relativePath.endsWith('.spec.ts')
+  );
+}
+
+/** Every contract file, as paths relative to the source directory, sorted. */
+export async function listContractFiles(): Promise<string[]> {
+  const entries = await readdir(CONTRACTS_SOURCE, {
+    recursive: true,
+    withFileTypes: true,
+  });
+  return entries
+    .filter((e) => e.isFile())
+    .map((e) => relative(CONTRACTS_SOURCE, join(e.parentPath, e.name)))
+    .filter(isContractFile)
+    .sort();
+}
+
+export async function copyContracts(destination: string): Promise<string[]> {
+  const { version } = JSON.parse(
+    await readFile(join(serviceRoot, 'package.json'), 'utf8'),
+  ) as { version: string };
+
+  // Start clean so a contract deleted at the source disappears from the copy.
+  await rm(destination, { recursive: true, force: true });
+  const files = await listContractFiles();
+  for (const file of files) {
+    const source = await readFile(join(CONTRACTS_SOURCE, file), 'utf8');
+    const target = join(destination, file);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, `${contractHeader(file, version)}${source}`);
+  }
+  return files;
+}
+
+if (import.meta.main) {
+  const destination = process.argv[2];
+  if (!destination) {
+    console.error('usage: bun run tools/copy-contracts.ts <destination-dir>');
+    process.exit(2);
+  }
+  const files = await copyContracts(destination);
+  console.log(`copied ${files.length} contract files to ${destination}`);
+}

@@ -10,6 +10,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { SessionDir } from '../../src/files/session-dir.js';
+import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
@@ -86,7 +87,7 @@ describe('createMcpServer', () => {
       string,
       { enum?: string[] }
     >;
-    expect(properties.contract?.enum).toEqual(['design-document']);
+    expect(properties.contract?.enum).toEqual(contractNames);
   });
 
   describe('validate', () => {

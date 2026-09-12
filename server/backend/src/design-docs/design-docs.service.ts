@@ -1,7 +1,7 @@
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { newUuid } from '@repo/shared-contracts/uuid';
 import type { ChangesService } from '../changes/changes.service.js';
+import { newUuid } from '../ids/uuid.js';
 import { designDocumentContract } from '../mcp/contracts/design-document.js';
 import { type ValidationIssue, validate } from '../validation/validator.js';
 import type {

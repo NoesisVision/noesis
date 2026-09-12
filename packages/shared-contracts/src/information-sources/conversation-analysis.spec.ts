@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import {
   AnalyzedDecisionSchema,
   AnalyzedTopicSchema,
-} from '../../src/mcp/contracts/skills/analyzed-topic.js';
+} from './conversation-analysis.js';
 
 describe('AnalyzedDecisionSchema', () => {
   const conversationRef = {
@@ -12,7 +12,7 @@ describe('AnalyzedDecisionSchema', () => {
     fragment_index: 0,
   };
 
-  it('fills id with a uuid when omitted', () => {
+  it('leaves the id out when omitted — the service mints it', () => {
     const result = AnalyzedDecisionSchema.parse({
       title: 't',
       status: 'accepted',
@@ -20,9 +20,7 @@ describe('AnalyzedDecisionSchema', () => {
       decision: { text: '', rationale: '', supporting_info: [] },
       alternative_options: [],
     });
-    expect(result.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    );
+    expect(result.id).toBeUndefined();
   });
 
   it('accepts supporting_info references attached to every slot', () => {

@@ -1,10 +1,13 @@
-import type { DesignDocument, DesignedScenario } from './design-doc.js';
+import type {
+  DesignDocument,
+  DesignedScenario,
+  ElementRef,
+} from '@repo/shared-contracts';
 import {
-  type ElementRef,
   elementRef,
   type ModelPath,
   refForModelPath,
-} from './design-doc-ref.js';
+} from './design-doc-paths.js';
 
 /*
  * Whole-document invariants.

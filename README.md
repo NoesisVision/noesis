@@ -37,15 +37,18 @@ port. Published to npm as **`@noesis-vision/noesis`** — a self-contained
 `bunx @noesis-vision/noesis@<version>` (decision 68). Versioned in lockstep
 with the Claude Code plugin.
 
-### Contract packages — single source of truth for DTOs
+### Contracts — the shapes the agent reads and the service enforces
 
-All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consumed directly as TypeScript source (no build step):
+All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and sibling files), so the agent reads the source directly; what a schema cannot say lives in a companion `.md` beside it (decision 68):
 
 ```
-@repo/shared-contracts            the domain model, shared by the service and the ui
-     ▲
-server/backend/src/mcp/contracts  MCP tool payloads + registry, owned by the
-                                  service; feeds skill schemas & tool validation
+packages/shared-contracts/src      every knowledge graph file shape + import payloads,
+     │                             with a companion .md per family
+     ├─▶ plugins/claude-code/contracts   committed copy (bun run generate), read by skills;
+     │                                   a test asserts byte-identity with the source
+     └─▶ server/backend/contracts        build-time copy shipped in the service package
+server/backend/src/mcp/contracts   the file-contract registry: schema + the whole-document
+                                   check the service runs on write; backs the validate tool
 ```
 
 The backend↔frontend boundary needs no contracts package: the frontend infers
@@ -56,11 +59,11 @@ request and response types from the backend's route tree via Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** by the service from its contracts (decision 38)
+- **`contracts/`** — the contract sources and companion docs, **copied** from `packages/shared-contracts/src` by `bun run generate` with a version header; skills name a contract by this path (decision 68)
 - **`tools/`** — dev/build tooling (generate, bump, release); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `bunx @noesis-vision/noesis@<version>` (pin stamped by `bun run generate`) with `NOESIS_ROOT` set to the project directory
 
-The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts` and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Config packages
 
@@ -125,12 +128,12 @@ register and nothing to authenticate against (decision 65).
 
 ### Working with contracts
 
-1. Add/edit a zod schema in the right place (`@repo/shared-contracts` or `server/backend/src/mcp/contracts`).
-2. For MCP payloads, register it in `server/backend/src/mcp/contracts/registry.ts`.
+1. Add/edit a zod schema in `packages/shared-contracts/src`: describe every field, keep it declarative, and update the family's companion `.md` for anything the shape cannot say.
+2. For a file the `validate` tool should accept, register it in `server/backend/src/mcp/contracts/registry.ts` (with the service's whole-document check, if it has one).
 3. Regenerate plugin artifacts:
 
 ```sh
-bun run generate       # refreshes skill schemas/examples, plugin.json version, .mcp.json pin
+bun run generate       # copies the contract sources into the plugin, stamps plugin.json version + .mcp.json pin
 ```
 
 4. **Commit the generated output** — CI (`.github/workflows/ci.yml`) regenerates and fails on any diff.

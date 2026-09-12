@@ -2,7 +2,7 @@
   "name": "@noesis-vision/claude-code-plugin",
   "version": "0.1.0-beta.4",
   "private": false,
-  "description": "Noesis Claude Code plugin — skills for preparing and validating MCP tool payloads",
+  "description": "Noesis Claude Code plugin — knowledge-management skills and the contract sources they read",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,6 +12,7 @@
   "files": [
     ".claude-plugin/plugin.json",
     ".mcp.json",
+    "contracts",
     "skills"
   ],
   "publishConfig": {

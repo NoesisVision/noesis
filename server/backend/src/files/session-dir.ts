@@ -8,7 +8,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
-import { newUuid } from '@repo/shared-contracts/uuid';
+import { newUuid } from '../ids/uuid.js';
 import type { NoesisDir } from './noesis-dir.js';
 
 export const TMP_DIR_NAME = 'tmp';

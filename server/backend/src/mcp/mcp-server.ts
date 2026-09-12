@@ -15,6 +15,7 @@ import {
 } from '../design-docs/design-docs.service.js';
 import type { SessionDir } from '../files/session-dir.js';
 import {
+  type FileContract,
   formatReport,
   singleIssue,
   validate,
@@ -118,7 +119,9 @@ export function createMcpServer(deps: McpDeps): Server {
         if (!file.ok) {
           return file.report ? text(file.text) : errorResult(file.text);
         }
-        const report = validate(contracts[contract], file.raw);
+        // The registry is a union of typed contracts; the tool only reports.
+        const fileContract: FileContract = contracts[contract];
+        const report = validate(fileContract, file.raw);
         return text(await session.deliver(formatReport(contract, report)));
       },
     }),

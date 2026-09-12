@@ -57,3 +57,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # The built ui app, copied in by `bun run build:ui` and shipped in the package.
 /ui
+# The contract sources, copied in by `bun run build:contracts` and shipped too.
+/contracts

@@ -3,13 +3,13 @@ import { designDocFixture } from './design-doc.fixture.js';
 import { DesignDocumentSchema, DesignedUseCaseSchema } from './design-doc.js';
 
 describe('DesignDocumentSchema', () => {
-  const minimal = { id: 'dd-1', name: 'Ordering' };
+  const minimal = { id: 'dd-1', name: 'Ordering', date: '2026-09-12' };
 
   it('defaults an empty document to a Draft with every section present', () => {
     const result = DesignDocumentSchema.parse(minimal);
 
     expect(result.status).toBe('draft');
-    expect(result.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(result.date).toBe('2026-09-12');
     expect(result.goal).toBe('');
     expect(result.businessContext).toEqual([]);
     expect(result.outcomes).toEqual([]);

@@ -14,7 +14,8 @@
   },
   "files": [
     "dist/main.js",
-    "ui"
+    "ui",
+    "contracts"
   ],
   "publishConfig": {
     "access": "public"
@@ -23,13 +24,14 @@
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "build": "bun run build:ui && bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core --banner '#!/usr/bin/env bun'",
+    "build": "bun run build:ui && bun run build:contracts && bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core --banner '#!/usr/bin/env bun'",
     "build:ui": "bun run --cwd ../frontend build && rm -rf ui && cp -R ../frontend/dist ui",
+    "build:contracts": "bun run tools/copy-contracts.ts contracts",
     "start": "bun run src/main.ts",
     "dev": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "start:prod": "bun run dist/main.js",
-    "generate": "bun run tools/generate-references.ts",
+    "generate": "bun run tools/copy-contracts.ts ../../plugins/claude-code/contracts",
     "check-types": "tsc --noEmit",
     "test": "bun test test/unit",
     "test:watch": "bun test test/unit --watch",

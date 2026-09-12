@@ -1,15 +1,58 @@
-import { z } from 'zod';
+import {
+  ChangeSchema,
+  ConversationAnalysisSchema,
+  ConversationSchema,
+  DecisionSchema,
+  DocumentAnalysisSchema,
+  DocumentSchema,
+  SystemModelSchema,
+  TopicSchema,
+} from '@repo/shared-contracts';
 import type { FileContract } from '../../validation/validator.js';
 import { designDocumentContract } from './design-document.js';
 
 /**
  * Every file contract the agent can validate against, keyed by the name the
- * `validate` tool takes. tools/generate-references.ts iterates this to emit
- * each plugin's `<key>.schema.json` / `<key>.example.json` (interim, until the
- * migration's R5 ships the `.ts` sources instead).
+ * `validate` tool takes. A contract is the zod schema from the contracts
+ * package plus, where the service has one, the whole-document check it runs
+ * on write — so what `validate` says and what a write rejects are the same.
  */
 export const contracts = {
   'design-document': designDocumentContract,
+  change: {
+    description: 'The change.json metadata file of a change directory.',
+    schema: ChangeSchema,
+  },
+  conversation: {
+    description: 'An imported conversation file.',
+    schema: ConversationSchema,
+  },
+  document: {
+    description: 'An imported document file.',
+    schema: DocumentSchema,
+  },
+  'conversation-analysis': {
+    description:
+      'The payload of a conversation import: the conversation plus its topics and decisions.',
+    schema: ConversationAnalysisSchema,
+  },
+  'document-analysis': {
+    description:
+      'The payload of a document import: the document plus its topics and decisions.',
+    schema: DocumentAnalysisSchema,
+  },
+  topic: {
+    description: 'A wiki topic file.',
+    schema: TopicSchema,
+  },
+  decision: {
+    description: 'A wiki decision file.',
+    schema: DecisionSchema,
+  },
+  'system-model': {
+    description: 'A system-model file written by the scanner.',
+    schema: SystemModelSchema,
+  },
 } satisfies Record<string, FileContract>;
 
 export type ContractName = keyof typeof contracts;
@@ -18,8 +61,3 @@ export const contractNames = Object.keys(contracts) as [
   ContractName,
   ...ContractName[],
 ];
-
-/** JSON Schema for a contract — single-sourced here so consumers don't import zod directly. */
-export function toJsonSchema(entry: FileContract): Record<string, unknown> {
-  return z.toJSONSchema(entry.schema) as Record<string, unknown>;
-}

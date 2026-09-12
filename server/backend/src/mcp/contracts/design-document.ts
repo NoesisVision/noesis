@@ -1,11 +1,12 @@
 import {
-  checkDesignDocument,
-  type DesignDocIssue,
   type DesignDocument,
   DesignDocumentSchema,
   type ElementRef,
 } from '@repo/shared-contracts';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import {
+  checkDesignDocument,
+  type DesignDocIssue,
+} from '../../design-docs/design-doc-integrity.js';
 import type {
   FileContract,
   ValidationIssue,
@@ -25,7 +26,6 @@ export const designDocumentContract: FileContract<DesignDocument> = {
     checkDesignDocument(document)
       .filter((issue) => issue.severity === 'error')
       .map(fromIntegrityIssue),
-  example: designDocFixture,
 };
 
 const FIXES: Record<DesignDocIssue['code'], string> = {

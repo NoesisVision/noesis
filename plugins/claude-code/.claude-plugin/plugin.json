@@ -1,6 +1,6 @@
 {
   "name": "noesis",
-  "description": "Noesis skills for preparing and validating MCP tool payloads",
+  "description": "Noesis knowledge-management skills and the contract sources they read",
   "version": "0.1.0-beta.4",
   "author": {
     "name": "NoesisVision"

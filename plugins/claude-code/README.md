@@ -30,11 +30,21 @@ the project directory by `.mcp.json`), keeps the knowledge graph in
 `.noesis/` at its root, and opens the browser UI once at start. Set
 `NOESIS_OPEN_BROWSER=0` in the environment to keep it closed.
 
+Tools never take content inline. The agent writes a working file to the
+session's scratch directory (`.noesis/tmp/<session>/`, named in the server's
+instructions), runs the `validate` tool against it until clean, and calls the
+tool that consumes it by path.
+
 ## What's inside
 
-- `skills/prepare-mcp-data` — JSON Schema + canonical example for every MCP
-  payload contract; the service validates every call against its contract
-  and returns descriptive errors the model can act on
+- `contracts/` — the contract sources every knowledge graph file and import
+  payload must satisfy, as zod `.ts` the model reads directly, with a
+  companion `.md` per family for what the shapes cannot say. Copied from
+  `packages/shared-contracts/src` by `bun run generate`, stamped with the
+  service version, and asserted byte-identical by the plugin's tests.
+- `skills/` — the knowledge-management and implementation skills (arriving
+  with the migration's R6); each names the contract it needs by a path under
+  `contracts/`.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `bunx @noesis-vision/noesis@<version>` (same repo, released in lockstep
   with the plugin)
@@ -51,17 +61,17 @@ bun run release:beta 0.2.0-beta.1   # explicit target prerelease
 The script verifies a clean, up-to-date `main`, bumps the plugin +
 `@noesis-vision/noesis` `package.json`s and the beta marketplace pin (one
 version train — decisions 33 and 68), regenerates stamped artifacts (including
-the `.mcp.json` service pin), smoke-tests the packed tarball, then commits,
-tags, and pushes. The `v*` tag triggers the `Release` workflow, which publishes
-both packages to npm via trusted publishing (service first; prereleases go to
-the `beta` dist-tag, stable releases to `latest`).
+the `.mcp.json` service pin and the `contracts/` copy), smoke-tests the packed
+tarball, then commits, tags, and pushes. The `v*` tag triggers the `Release`
+workflow, which publishes both packages to npm via trusted publishing (service
+first; prereleases go to the `beta` dist-tag, stable releases to `latest`).
 
 Stable releases follow the same steps by hand — versions are single-sourced
 from the plugin's `package.json`:
 
 ```
 bun run bump 0.2.0   # plugin + service package.json + matching marketplace channel pin
-bun run generate     # stamps .claude-plugin/plugin.json + .mcp.json pin, regenerates references
+bun run generate     # stamps .claude-plugin/plugin.json + .mcp.json pin, recopies contracts/
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```

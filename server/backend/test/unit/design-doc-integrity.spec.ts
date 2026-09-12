@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'bun:test';
-import { designDocFixture } from './design-doc.fixture.js';
-import type { DesignDocument } from './design-doc.js';
+import type { DesignDocument } from '@repo/shared-contracts';
+import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import {
   checkDesignDocument,
   type DesignDocIssueCode,
   isConsistentDesignDocument,
-} from './design-doc-integrity.js';
-import { elementRef, resolveRef, slotRef } from './design-doc-ref.js';
+} from '../../src/design-docs/design-doc-integrity.js';
+import {
+  elementRef,
+  resolveRef,
+  slotRef,
+} from '../../src/design-docs/design-doc-paths.js';
 
 /**
  * Structured-clone the fixture so a mutation in one case cannot leak into the

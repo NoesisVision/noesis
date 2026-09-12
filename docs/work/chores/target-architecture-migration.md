@@ -207,6 +207,25 @@ one reviewable pull request unless noted.
   copy step; the CI `generate-check` job keeps its role.
 - `plugins/mcp-bridge/tools/generate-references.ts`,
   `skills/prepare-mcp-data/`, and the `toJsonSchema` helper are deleted.
+- Landed 2026-09-12. `packages/shared-contracts/src` is now zod plus sibling
+  imports only, every field described, no function defaults (`date` on a
+  design document is required; the service sets it for the sample). Moved to
+  the backend: `ids/uuid.ts`, `design-docs/design-doc-integrity.ts` and the
+  ref-resolving functions as `design-docs/design-doc-paths.ts` (the
+  `ElementRefSchema` stays a contract). Deleted: `design-doc-collaboration.ts`
+  (no consumer since decision 64) and `assert-never.ts`. New contracts:
+  `change`, `file-ref`, `locked`, `system-model`, `conversation-analysis` and
+  `document-analysis` (the former `analyzed-topic` skill payload, with the id
+  left to the service); companion docs `conventions.md`, `change.md`,
+  `design-doc.md`, `wiki.md`, `system-model.md`,
+  `information-sources/information-sources.md`. The copy step is
+  `server/backend/tools/copy-contracts.ts`: `bun run generate` fills
+  `plugins/claude-code/contracts/` (committed, drift-checked, byte-identity
+  and declarativeness asserted by `plugins/claude-code/test/contracts.test.ts`)
+  and `build:contracts` fills the gitignored `server/backend/contracts/` that
+  ships in the service package. The `validate` tool now accepts every
+  registered contract, not only `design-document`. The plugin has no skills
+  until R6.
 
 ### R6 — Skills
 

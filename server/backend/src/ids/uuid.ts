@@ -1,8 +1,8 @@
-/// <reference types="bun" />
-// The reference is not redundant: this module is reachable from the ui app's
-// type graph (through `backend/client` → the auth repository), and that
-// compilation does not carry Bun's ambient types.
 import { createHash } from 'node:crypto';
+
+// Ids the service mints (decision 68): time-ordered for what the graph
+// authors itself, a content hash for imported sources so a re-import of the
+// same content yields the same id and is detected as a duplicate.
 
 export function newUuid(): string {
   return Bun.randomUUIDv7();

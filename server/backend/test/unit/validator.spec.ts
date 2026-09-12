@@ -19,7 +19,6 @@ const schema = z.strictObject({
 const contract: FileContract<z.infer<typeof schema>> = {
   description: 'a test contract',
   schema,
-  example: { name: 'x', kind: 'note', tags: ['a'] },
 };
 
 const valid = { name: 'x', kind: 'note' as const, tags: ['a'] };

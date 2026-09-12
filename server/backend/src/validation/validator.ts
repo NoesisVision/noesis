@@ -28,8 +28,6 @@ export interface FileContract<T = unknown> {
   // Method syntax on purpose: it is bivariant, so a `FileContract<Doc>` fits a
   // `Record<string, FileContract>` registry (a property would not).
   check?(value: T): ValidationIssue[];
-  /** A canonical valid document, for the generated reference JSON. */
-  example: unknown;
 }
 
 /** One structural mistake must not bury the first real cause. */

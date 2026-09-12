@@ -2,7 +2,8 @@
 // invariants bunx depends on: the self-contained dist/main.js bin with a bun
 // shebang, the built ui beside it, and a manifest whose only dependency is the
 // native @ladybugdb/core (the @repo/* workspace deps are private — leaking
-// them would break every `bunx @noesis-vision/noesis` install).
+// them would break every `bunx @noesis-vision/noesis` install), and the
+// contract sources beside them (decision 68: the service ships them).
 import { afterAll, expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
@@ -53,6 +54,9 @@ test('the packed tarball is bunx-installable: one bin, the ui, one native dep', 
   expect(shipped).toContain('README.md');
   expect(shipped).toContain('dist/main.js');
   expect(shipped).toContain('ui/index.html');
+  expect(shipped).toContain('contracts/design-doc.ts');
+  expect(shipped).toContain('contracts/design-doc.md');
+  expect(shipped.filter((f) => f.endsWith('.spec.ts'))).toEqual([]);
   expect(shipped.filter((f) => f.startsWith('src/'))).toEqual([]);
   expect(shipped.filter((f) => f.startsWith('test/'))).toEqual([]);
 

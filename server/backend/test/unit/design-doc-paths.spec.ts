@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
-import { designDocFixture } from './design-doc.fixture.js';
+import { ElementRefSchema } from '@repo/shared-contracts';
+import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import {
-  ElementRefSchema,
   elementIndex,
   elementRef,
   type ModelPath,
@@ -10,7 +10,7 @@ import {
   resolveRef,
   slotRef,
   valueAtModelPath,
-} from './design-doc-ref.js';
+} from '../../src/design-docs/design-doc-paths.js';
 
 const doc = designDocFixture;
 
