@@ -1,16 +1,9 @@
-import {
-  Badge,
-  Box,
-  ColorSwatch,
-  Group,
-  Menu,
-  Text,
-  UnstyledButton,
-} from '@mantine/core';
+import { Box, Group, Menu, Text, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import type { Change } from '@repo/shared-contracts';
-import { IconCheck, IconPlus, IconSelector } from '@tabler/icons-react';
+import { IconPlus, IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
+import classes from './change-picker.module.css';
 import {
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,
@@ -22,6 +15,17 @@ interface ChangePickerProps {
   changes: Change[];
   current: Change | null;
   onNavigate?: () => void;
+}
+
+/** `KEY · type · status`, the one dimmed line under a change's name. */
+function detailLine(change: Change): string {
+  return [
+    change.key,
+    CHANGE_TYPE_META[change.type].label,
+    CHANGE_STATUS_META[change.status].label.toLowerCase(),
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
 
 /** The sidebar's head: the current change, a menu of all of them, and the way to a new one. */
@@ -42,95 +46,82 @@ export function ChangePicker({
   };
 
   return (
-    <>
-      <Menu width="target" position="bottom-start" shadow="md">
+    <Box>
+      <Text
+        size="xs"
+        fw={600}
+        tt="uppercase"
+        c="dimmed"
+        mb={6}
+        ml={2}
+        style={{ letterSpacing: '0.06em' }}
+      >
+        Change
+      </Text>
+      <Menu width="target" position="bottom-start" shadow="md" offset={4}>
         <Menu.Target>
-          <UnstyledButton
-            w="100%"
-            p="sm"
-            aria-label="Switch change"
-            style={{
-              border: '1px solid var(--mantine-color-default-border)',
-              borderRadius: 'var(--mantine-radius-sm)',
-            }}
-          >
-            <Group gap="sm" wrap="nowrap">
-              {current ? (
-                <ColorSwatch size={14} color={changeSwatch(current.slug)} />
-              ) : (
-                <ColorSwatch size={14} color="var(--mantine-color-gray-4)" />
-              )}
+          <UnstyledButton className={classes.pick} aria-label="Switch change">
+            <Group gap={10} wrap="nowrap">
+              <Box
+                className={classes.bar}
+                h={24}
+                bg={
+                  current
+                    ? changeSwatch(current.slug)
+                    : 'var(--mantine-color-gray-4)'
+                }
+              />
               <Box style={{ flex: 1, minWidth: 0 }}>
-                <Text size="xs" c="dimmed" lh={1.2}>
-                  Change
-                </Text>
                 <Text size="sm" fw={600} truncate lh={1.3}>
                   {current ? current.name : 'No change yet'}
                 </Text>
-                {current ? (
-                  <Group gap={6} mt={4} wrap="nowrap">
-                    {current.key ? (
-                      <Text size="xs" c="dimmed" ff="monospace">
-                        {current.key}
-                      </Text>
-                    ) : null}
-                    <Badge
-                      size="xs"
-                      variant="outline"
-                      color={CHANGE_TYPE_META[current.type].color}
-                    >
-                      {CHANGE_TYPE_META[current.type].label}
-                    </Badge>
-                    <Badge
-                      size="xs"
-                      variant="light"
-                      color={CHANGE_STATUS_META[current.status].color}
-                    >
-                      {CHANGE_STATUS_META[current.status].label}
-                    </Badge>
-                  </Group>
-                ) : null}
+                <Text size="xs" c="dimmed" truncate lh={1.3}>
+                  {current ? detailLine(current) : 'Create one to begin'}
+                </Text>
               </Box>
-              <IconSelector size={16} style={{ opacity: 0.6 }} />
+              <IconSelector
+                size={16}
+                style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
+              />
             </Group>
           </UnstyledButton>
         </Menu.Target>
         <Menu.Dropdown>
-          {changes.length > 0 ? (
-            <Menu.Label>Changes</Menu.Label>
-          ) : (
-            <Menu.Label>No changes yet</Menu.Label>
-          )}
+          <Menu.Label>
+            {changes.length > 0 ? 'Your changes' : 'No changes yet'}
+          </Menu.Label>
           {changes.map((change) => (
             <Menu.Item
               key={change.slug}
+              className={classes.item}
+              data-current={change.slug === current?.slug || undefined}
               leftSection={
-                <ColorSwatch size={12} color={changeSwatch(change.slug)} />
-              }
-              rightSection={
-                change.slug === current?.slug ? <IconCheck size={14} /> : null
+                <Box
+                  className={classes.bar}
+                  h={22}
+                  bg={changeSwatch(change.slug)}
+                />
               }
               onClick={() => choose(change)}
             >
-              <Group gap="xs" wrap="nowrap">
-                <Text size="sm" truncate>
-                  {change.name}
-                </Text>
-                {change.key ? (
-                  <Text size="xs" c="dimmed" ff="monospace">
-                    {change.key}
-                  </Text>
-                ) : null}
-              </Group>
+              <Text size="sm" fw={500} truncate lh={1.3}>
+                {change.name}
+              </Text>
+              <Text size="xs" c="dimmed" truncate lh={1.3}>
+                {detailLine(change)}
+              </Text>
             </Menu.Item>
           ))}
-          <Menu.Divider />
-          <Menu.Item leftSection={<IconPlus size={14} />} onClick={modal.open}>
+          <Menu.Item
+            className={classes.new}
+            leftSection={<IconPlus size={16} />}
+            onClick={modal.open}
+          >
             New change
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
       <NewChangeModal opened={modalOpened} onClose={modal.close} />
-    </>
+    </Box>
   );
 }
