@@ -5,7 +5,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getContext } from '#/integrations/tanstack-query/root-provider';
 import { getRouter } from '#/router';
+import { colorSchemeManager, theme } from '#/theme';
 import '@mantine/core/styles.css';
+import '@fontsource-variable/raleway';
 import '#/styles.css';
 
 // The single browser entry point: this app is a plain SPA, so nothing here
@@ -21,7 +23,11 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MantineProvider>
+    <MantineProvider
+      theme={theme}
+      defaultColorScheme="auto"
+      colorSchemeManager={colorSchemeManager}
+    >
       <QueryClientProvider client={context.queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>

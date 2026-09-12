@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Noesis</title>
+    <!--
+      What Mantine's ColorSchemeScript renders, inlined: the page is static
+      HTML, so the scheme is applied before the bundle loads and a dark-mode
+      reload does not flash light. The key and default match main.tsx.
+    -->
+    <script data-mantine-script>
+      try {
+        const stored = window.localStorage.getItem('noesis.shell.colorScheme');
+        const scheme =
+          stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
+        const computed =
+          scheme !== 'auto'
+            ? scheme
+            : window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        document.documentElement.setAttribute('data-mantine-color-scheme', computed);
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -2343,3 +2343,87 @@ shape.
   there. Nothing in the monorepo runs or changes.
 - The variables select the launch, not the version: nothing checks that the
   source and the plugin agree, which is the point of running from source.
+
+## 74. The application shell is change-scoped: a picker over `.noesis/changes/`, four change views, pinned documentation, and `change.json` as the change's metadata
+
+**Status: accepted** (2026-09-13)
+
+**Amends 68** (a change directory gains a metadata file) and **finishes what
+66 left open** (the first real view wires the frontend to the service).
+
+**Context:** Decision 66 retired the old shell and decision 72 chose Mantine
+as the component library, leaving `server/frontend` a bare scaffold with no
+navigation and no call to the service. Decision 68 made a change the
+directory `.noesis/changes/<slug>/` and R1 of the migration shipped the bare
+directory endpoints; the `change` contract (R5) described a `change.json`
+that nothing wrote. `docs/work/features/change-shell.md` records the
+requirements and the prototype's option C sidebar.
+
+**Decision:**
+
+- **The sidebar is scoped to one change.** A picker at its top names the
+  current change (swatch, name, key, type and status badges) and lists the
+  others plus "New change"; under it are exactly four change views —
+  Overview, Documents, Conversations, Design docs — and a tinted, pinned
+  "Documentation" zone holds System model and Wiki, which do not depend on
+  the change. Desktop shows the 280 px sidebar always; below `md` it is
+  Mantine's `AppShell` drawer behind a burger.
+- **Routes carry the change slug.** `/changes/$changeId[/documents|
+/conversations|/design-docs]`, `/system-model` and `/wiki` live under a
+  pathless `_shell` layout route. `/` redirects to the last-opened change
+  (`localStorage` `noesis.shell.lastChangeId`) when it still exists, else
+  the first in the list, else renders the empty state. The change layout
+  route loads the change once for every view under it, records it as last
+  opened, and turns an unknown slug into a not-found view inside the shell.
+  The active change in the sidebar is the URL's, else the last opened, else
+  the first — so the four entries work from `/wiki` too.
+- **Breadcrumbs come off the matches.** Leaf routes declare
+  `staticData.breadcrumb`; the change layout route contributes `Changes /
+<name>` from its loader data. `ViewHeader` renders the list and the last
+  crumb as the title. There is no breadcrumb map.
+- **`change.json` is the change's metadata**, written whole and atomically
+  on create: `slug`, `name`, `key`, `type`, `status`, `created_at`,
+  `description` (the `change` contract). The service derives the slug from
+  the name, starts the status at `discovery`, refuses a slug or key that is
+  taken (409 naming the field), and lists newest first. A directory without
+  the file is still a change — it reads as a chore in discovery named after
+  its slug, stamped with the directory's birth time — so hand-made or older
+  directories keep working and nothing under them is orphaned.
+- **The frontend calls `/ui` over plain `fetch`, typed by the shared
+  contracts.** `hc<AppType>` was the plan, and the backend's route chain is
+  still kept inferable for it, but importing the service's route type pulls
+  its module graph — `node:fs`, `Bun` — into the frontend's type program,
+  which has no server types by design (a client-only SPA, decision 67).
+  `@repo/shared-contracts` is what both sides actually share; a typed RPC
+  client returns when the service emits declarations for it.
+- **Theme:** `createTheme` with a `brand` ramp whose primary shade is the
+  site's `blue-700` (decision 60's palette, kept as guidance by 66), Raleway
+  through `@fontsource-variable/raleway`, `defaultRadius: 'sm'`. The colour
+  scheme is `auto` by default, persisted by Mantine's `localStorage` manager
+  under `noesis.shell.colorScheme`; `index.html` carries the inlined
+  equivalent of `ColorSchemeScript` so a dark reload does not flash light.
+  Icons are `@tabler/icons-react`.
+
+**Alternatives considered:**
+
+- **Options A and B of the prototype** (a per-change tree; a workspace
+  section above the changes). Rejected in the feature doc for the flatter
+  option C: drill-down happens in the content area, not the sidebar.
+- **A server-generated `NOE-<n>` key.** The key is the team's tracker key,
+  not Noesis's; it is entered, optional, and validated unique.
+- **Storing the swatch colour.** Derived from the slug on the client; a
+  stored colour is one more field nobody would edit.
+
+**Consequences:**
+
+- Every content view is `ViewHeader` alone; the views are later features,
+  as are counts in the sidebar, status changes, delete and rename, a
+  command palette, search, and a right panel.
+- The MCP `list-changes` tool now answers newest first rather than by slug.
+- Raleway's variable font is inlined into the page's CSS as data URLs by
+  bun's bundler (about 0.4 MB of base64 across the subsets). Acceptable for
+  a local-first page; a bundler plugin or a hand-picked subset is the fix if
+  it starts to matter.
+- The mobile drawer and the `md` collapse are Mantine's own behaviour and
+  were not exercised in a browser during the build; the desktop flows in
+  the feature doc's checklist were.

@@ -21,16 +21,28 @@ is built. Run it from the repo root with `bun run dev` (the service on `:3000`).
 ## Layout
 
 ```
-index.html                  # the page the backend imports; mounts #app
+index.html                  # the page the backend imports; mounts #app, sets the colour scheme before load
 src/
   main.tsx                  # providers (Mantine, Query), router, mount
-  router.tsx                # createRouter over the generated route tree
+  router.tsx                # createRouter over the generated route tree; staticData.breadcrumb type
+  theme.ts                  # createTheme: brand ramp, Raleway, radius; colour-scheme manager
+  api/                      # fetch wrapper and TanStack Query options per resource (changes)
   routes/                   # file-based routes; each file exports only `Route`
-  components/               # route components and shared UI
+    _shell.tsx              # pathless layout: loads the change list, renders ShellLayout
+    _shell/                 # index redirect, system-model, wiki, changes/$changeId/*
+  components/
+    shell/                  # AppShell layout, header, sidebar, change picker, new-change modal, view header
+    views/                  # one component per route, each just a ViewHeader today
   integrations/tanstack-query/
   styles.css                # the few global rules Mantine does not set
   env.d.ts                  # module declarations for side-effect CSS imports
 ```
+
+The shell is change-scoped (decision 74): the sidebar's picker names the
+current change, the four entries under it are that change's views, and the
+pinned documentation zone holds the change-independent ones. `/` lands on
+the last-opened change (`localStorage` `noesis.shell.lastChangeId`), the
+first one, or the empty state.
 
 Route files export `Route` and nothing else — biome's
 `useComponentExportOnlyModules` rejects both extra exports and unexported

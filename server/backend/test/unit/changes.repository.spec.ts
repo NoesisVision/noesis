@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { isChangeSlug } from '../../src/changes/changes.repository.js';
+import {
+  isChangeSlug,
+  slugForChange,
+} from '../../src/changes/changes.repository.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;
@@ -52,5 +55,49 @@ describe('ChangesRepository', () => {
     for (const bad of ['', 'Upper', 'a--b', '-lead', 'trail-', 'a/b', 'a b']) {
       expect(isChangeSlug(bad)).toBe(false);
     }
+  });
+
+  it('derives a slug from a name', () => {
+    expect(slugForChange('Payment retry (v2)')).toBe('payment-retry-v2');
+    expect(slugForChange('Été à Paris')).toBe('ete-a-paris');
+    expect(slugForChange('!!!')).toBe('untitled');
+    expect(slugForChange('x'.repeat(80))).toHaveLength(64);
+  });
+
+  it('round-trips change.json and reads a bare directory as a chore', async () => {
+    await t.changesRepository.create('with-file');
+    const change = {
+      slug: 'with-file',
+      name: 'With file',
+      key: 'NOE-1',
+      type: 'feature' as const,
+      status: 'design' as const,
+      created_at: '2026-09-13T10:00:00.000Z',
+      description: 'notes',
+    };
+    await t.changesRepository.writeMetadata(change);
+    expect(await t.changesRepository.readMetadata('with-file')).toEqual(change);
+    expect(
+      JSON.parse(
+        await readFile(
+          t.noesis.resolve('changes', 'with-file', 'change.json'),
+          'utf8',
+        ),
+      ),
+    ).toEqual(change);
+
+    await t.changesRepository.create('bare');
+    const bare = await t.changesRepository.readMetadata('bare');
+    expect(bare).toMatchObject({
+      slug: 'bare',
+      name: 'bare',
+      key: '',
+      type: 'chore',
+      status: 'discovery',
+      description: '',
+    });
+    expect(Date.parse(bare?.created_at ?? '')).not.toBeNaN();
+
+    expect(await t.changesRepository.readMetadata('missing')).toBeNull();
   });
 });

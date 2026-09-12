@@ -1,12 +1,19 @@
 ---
 type: feat
 scope: server
-status: planned
+status: implemented
 created: 2026-09-09
+implemented: 2026-09-13
 ---
 
 # Feature Plan: Change-scoped app shell (Mantine, option C sidebar)
 
+**Status:** implemented (2026-09-13) — architecture recorded as decision 74 in
+[`docs/decisions.md`](../../decisions.md). Two things landed differently from
+the plan below: the frontend calls `/ui` over plain `fetch` typed by
+`@repo/shared-contracts` rather than `hc<AppType>` (importing the route type
+drags the service's module graph into the frontend's type program), and the
+key is optional (the contract's "empty when there is none").
 **Prototype:** [`change-shell-prototype.html`](./change-shell-prototype.html) —
 static mock of three sidebar structures; **option C ("Flat + pinned")** is the
 one being built. Options A and B stay in the file for reference.

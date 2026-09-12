@@ -26,7 +26,7 @@ beforeEach(async () => {
   t = await testNoesis();
   session = new SessionDir(t.noesis);
   await session.open();
-  await t.changesService.create(CHANGE);
+  await t.changesService.create({ name: CHANGE, key: '', type: 'chore' });
 
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();

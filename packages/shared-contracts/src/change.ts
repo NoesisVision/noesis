@@ -62,3 +62,25 @@ export const ChangeSchema = z
     'Metadata of one change: the change.json file inside its directory.',
   );
 export type Change = z.infer<typeof ChangeSchema>;
+
+/** A tracker key: an upper-case project prefix, a dash, a number — `NOE-142`. */
+export const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
+
+/**
+ * What creating a change takes. The slug is derived from the name, the status
+ * starts at `discovery` and the creation stamp is the server's, so none of
+ * them is part of the request.
+ */
+export const CreateChangeSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    key: z
+      .string()
+      .trim()
+      .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
+      .or(z.literal(''))
+      .default(''),
+    type: ChangeTypeSchema,
+  })
+  .describe('The request body for creating a change.');
+export type CreateChange = z.infer<typeof CreateChangeSchema>;
