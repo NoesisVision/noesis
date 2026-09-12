@@ -2,7 +2,7 @@
 
 Decisions made while shaping this monorepo, in chronological order. Format: context → decision → rationale/consequences.
 
-_Last updated: 2026-09-09_
+_Last updated: 2026-09-11_
 
 ---
 
@@ -1921,3 +1921,211 @@ framework.
   scaffold carried.
 - The frontend's scaffold `README.md` (Start's boilerplate, documenting
   `createServerFn` and server routes) no longer describes this app.
+
+## 68. The target architecture: files under `.noesis/` are the source of truth, one stdio process per agent session holds services, graph cache and the UI
+
+**Status: proposed** (2026-09-11) — drafted from
+[`docs/arch/ARCHITECTURE.md`](./arch/ARCHITECTURE.md); the open points the
+document left were resolved the same day and are recorded under "Resolved
+points" below. The migration itself is planned in
+[`docs/work/chores/target-architecture-migration.md`](./work/chores/target-architecture-migration.md).
+
+**Context:** The code and the decision log describe a system that no longer
+matches the target architecture written on 2026-09-11. Three assumptions run
+through most of the log since the SDLC migration plan (§2 there, and decisions
+17, 18, 33, 34, 38, 47, 58, 62):
+
+- The LadybugDB graph is the single source of truth. Repositories persist to
+  the graph only, there is no file I/O for any knowledge artifact, and a torn
+  write-ahead log is an operator-level data-loss decision (62).
+- The backend is a hosted, long-running service (Railway, Dockerfile, one
+  image), and the agent reaches it through a separate stdio MCP bridge
+  published as its own npm package, launched via `bunx`, talking REST to an
+  `/api` surface whose paths live in `@repo/local-contracts` (8, 9, 10, 18,
+  31, 33, 38, 39).
+- The agent learns contract shapes from JSON Schema and example files
+  generated into the plugin, and the only validation is the bridge's in-band
+  rejection at call time (6, 11, 13, 34).
+
+Decision 65 already moved the system to one local, single-user process per
+checkout, which removed the reason for the hosted topology without replacing
+it. The architecture document replaces it:
+
+- **The files in the repository are the source of truth; the graph is a
+  cache.** Knowledge graph files live under `.noesis/` in the user's git
+  repository, one directory per kind, JSON only, `<slug>-<id-suffix>.json`,
+  hash-stable ids for imports and time-ordered ids for authored entities,
+  references that carry the referenced file's hash, and user-edited fields
+  flagged as locked in the file. The graph is an embedded database rebuilt
+  from the files by a watcher, and is never authoritative.
+- **One Noesis service process** holds the HTTP API for the browser, the MCP
+  endpoint for the agent, the services, the file repositories, the graph
+  cache, the watcher and the source code scanner. Both entry points land on
+  the same service layer; MCP tools are thin and call one service method
+  in-process. There is no network beyond the loopback interface and no server
+  component.
+- **Large payloads move through a temp dir.** The agent writes its working
+  file there and passes a path; MCP messages carry coordinates, not content.
+- **Contracts are zod sources the agent reads.** A build step copies the
+  contract `.ts` files into the plugin, byte-identity is asserted by a test,
+  each copy carries the package version, and a skill names the contract it
+  needs by a path relative to the plugin root. Contracts are declarative
+  (object shapes, enums, change-set combinators, `.describe()` text, no
+  refinements, transforms or imports beyond zod). What a schema cannot say
+  lives in a companion document beside it.
+- **Validation is its own MCP tool** against the working file, and the
+  service validates again on write. Errors are actionable — path, expected
+  versus found, one-line correction — and the list is capped.
+- **No LLM in the service.** Semantic work happens in the agent driving a
+  skill; the service is deterministic data access.
+
+**Decision:** Adopt the architecture document as the target and migrate the
+repository to it. This entry records what the adoption does to the log; the
+mechanics are in the migration chore.
+
+- The graph becomes a cache. Repositories write JSON files under `.noesis/`
+  and nothing else; a watcher re-indexes the graph from those files, including
+  changes Noesis did not make (a `git checkout`, a branch switch, a hand
+  edit). The graph is in-memory and rebuilt at boot, so there is nothing on
+  disk to recover.
+- **The service is a stdio MCP process, one per agent session, started by the
+  agent host.** The MCP server moves into the backend and calls services
+  directly. The same process binds the HTTP API for the browser on an
+  ephemeral port and opens the default browser on it once at boot. There is no
+  long-running daemon and no browser-only mode: the UI exists while an agent
+  session does. The `/api` surface, `@repo/local-contracts`,
+  `NOESIS_SERVER_URL` and the `@noesis-vision/mcp-bridge` package are removed.
+  What ships to npm is the service package (backend, built frontend, contract
+  sources, one `bin`) and the plugin, whose `.mcp.json` launches that bin.
+- Two agent sessions on one checkout are two processes over the same
+  `.noesis/`. Writes are whole-file and atomic (write to a sibling temp name,
+  rename); the last write wins, and each process's watcher picks up the
+  other's files. A lost update on the same entity within the same seconds is
+  accepted for a single user and shows up in `git diff`.
+- The plugin ships contract sources copied at build time, plus companion
+  documents and the knowledge-management and implementation skills. Skills
+  live in the plugin, versioned in this repository; nothing is copied into
+  the user's project. The generated `references/*.schema.json` and
+  `*.example.json` files and the `prepare-mcp-data` skill go.
+- Hosting is gone: the Dockerfile, `railway.json`, the Railway deploy path
+  and the CI guard that keeps the Dockerfile's bun tag in step with
+  `packageManager` are deleted. The frontend build ships inside the service
+  package and is served from there; `UI_DIST_PATH` stays only as a
+  development override.
+- The source code scanner is a service component: it reads the checkout's
+  source and writes `system-model/` files plus the graph projection. The
+  TypeScript scanner lands in-process. The Java scanner (decisions 19, 20)
+  and the .NET stub are not integrated by this migration; how they feed
+  `system-model/` is a later decision, once the file format exists.
+
+**Alternatives considered:**
+
+- **Keep the graph authoritative and add an export to files.** Files would be
+  a projection nobody edits, so a branch switch or a hand edit could not flow
+  back, and the review-in-a-pull-request property the architecture wants
+  would be an export artifact rather than the record itself. The architecture
+  document's invariant is the opposite on purpose.
+- **Keep the bridge as a separate process talking REST to the service.** Two
+  processes, two lifecycles and a REST contract between them for two
+  components that always run on the same machine, in the same version, from
+  the same package. Decision 33's reason for the split — several agent hosts
+  sharing one bridge — is served equally by several hosts launching one
+  service binary.
+- **One long-running HTTP process, MCP over Streamable HTTP, user-started.**
+  One stable UI URL and one graph per checkout, but a daemon the person has
+  to start and stop by hand beside the agent host, and a second lifecycle to
+  explain. Rejected: the agent host already owns process lifecycles for
+  stdio servers, and a per-session process costs only a re-index at boot.
+- **A stdio launcher that starts or attaches to a shared HTTP process.**
+  Agent-host-owned lifecycle _and_ one shared process, at the price of a
+  second binary, attach logic and stale-process detection (decision 9's
+  option C). Rejected for now as the most machinery for the same outcome.
+- **Keep generated JSON Schema for the agent and add the `.ts` copies beside
+  them.** Two representations of every contract again (decision 34's own
+  objection), and JSON Schema loses the `.describe()` text and the change-set
+  combinators that make the zod source readable in the first place.
+
+**Consequences:**
+
+- **Supersedes** 8, 9, 10, 31, 33, 38 and 39 (the bridge as a separate
+  process and package, its launch and configuration); 6, 13 and 34 (generated
+  references and validation-only-in-the-bridge — 11's "generated output is
+  committed and drift-checked" survives as the byte-identity test on the
+  copied contracts); 17, 24, 27, 36 and the `/api` clauses of 18 (hosting,
+  the image, native-module staging; `/ui` and `/internal` stay); 47 (the
+  scanner is a service component reading local source — the data-locality
+  property holds because the service is local); 58 (the inbox is removed);
+  62 (an in-memory graph has no write-ahead log — the single-teardown guard
+  in `shutdown()` stays). In the SDLC migration plan it supersedes §2 whole
+  and OQ-2.1, OQ-2.3 and OQ-3.1, and resolves OQ-7.1 (tool output travels
+  as a temp-dir path) and OQ-7.2 (validation is a tool plus the write
+  boundary).
+- **Amends** 3 and 4 (zod contracts stay, but `local-contracts` is deleted,
+  `toJsonSchema` loses its consumer, and the sources are published rather
+  than workspace-internal); 12, 14, 15 and 16 (npm distribution and the
+  release train stay, the artifact set changes, and 14's copied-contracts
+  step returns in build-time form); 23 and 35 (the access conventions stand,
+  the database they guard is now an in-memory cache); 32 (the SHA pins stay,
+  the Dockerfile guard goes); 40 and 41 (`server/` now names the Noesis
+  service, not a deployed one); 51 (`DesignDocument` remains the interchange
+  format and validated write boundary, and whole-document replacement is now
+  a file write); 65 (confirmed; `NOESIS_DATA_DIR` is retired, see below).
+  Decisions 19 and 20 are untouched: they describe the Java scanner tool,
+  whose integration with the service is deferred.
+- **Conflicts with the design-doc model** that get their own decision, not
+  this one: the architecture describes design docs as "a diff against the
+  implemented system" with change-set combinators in the contract, which
+  decision 50.1 removed and decision 52 deferred; and it requires user edits
+  to be marked as locked in the file, which decision 50.6 dropped for
+  authorship. Topic and Decision still carry `*_locked` fields today;
+  DesignDocument does not. The migration keeps the current normalised
+  design-doc shape as the file format; change sets and locks are re-decided
+  together after files-as-truth and the system model exist.
+- **Resolved points** (the architecture document is amended to match):
+  1. _Process model:_ stdio per agent session, HTTP on an ephemeral port,
+     browser opened once at boot. `NOESIS_OPEN_BROWSER=0` suppresses the
+     open for headless runs and tests. The URL is also logged to stderr.
+  2. _Skills:_ in the plugin, versioned in this repository. The diagram's
+     "skills live in the repository" reads as _this_ repository.
+  3. _Directory name:_ `.noesis/`; the document's tree listing said
+     `noesis/` and is corrected.
+  4. _Graph storage:_ in-memory, rebuilt from the files at boot. Boot cost is
+     a full index of `.noesis/`; an on-disk cache is a measured follow-up,
+     not a first step.
+  5. _Inbox:_ removed. The feature doc stays as the record.
+  6. _Repository root:_ `NOESIS_ROOT` (the plugin's `.mcp.json` sets it to
+     `${CLAUDE_PROJECT_DIR}`), falling back to walking up from the working
+     directory to the nearest `.git`; the service refuses to start if
+     neither yields a repository. `NOESIS_DATA_DIR` is gone.
+  7. _Temp dir:_ `.noesis/tmp/<session-id>/`, inside the repository so the
+     agent finds it by a relative path, ignored from version control by a
+     `.noesis/.gitignore` the service writes on first run. It is not a kind
+     directory, so the "every `.json` under a kind directory is graph
+     content" rule is unaffected. Each process owns its subdirectory: it
+     creates it at boot, deletes it on clean shutdown, and sweeps
+     subdirectories older than seven days left by crashed sessions. Skills
+     write there by convention; the MCP server's `instructions` field names
+     the root and the session's directory, so no tool call is needed to find
+     it.
+  8. _Version control:_ every knowledge file is committed; `tmp/` is the only
+     ignored path under `.noesis/`.
+  9. _Concurrent writers:_ last write wins over atomic whole-file writes;
+     no locks, no hash preconditions.
+  10. _JVM scanners:_ deferred whole; the TypeScript scanner is the only one
+      this migration integrates.
+  11. _Picture:_ the Mermaid flowchart is the diagram; the `arch.png`
+      reference is dropped and `high_level.png` (pre-65) is deleted.
+  12. _Boot re-index cost:_ accepted as-is and measured. The indexer logs its
+      duration and file count, a benchmark spec covers 1k and 10k files, and
+      an on-disk cache is a follow-up only if boot exceeds a stated budget
+      (2 s at 10k files as the working figure).
+- The change-shell feature doc's backend section (a `Change` node table with
+  a boot-time seed) is rewritten: a change is the directory
+  `.noesis/changes/<change>/`, listing is a directory read, creation is a
+  directory write, and there is no seed. Its sidebar and routes stand.
+- Existing `.data` directories are cache remnants with nothing to migrate:
+  the design documents and inbox items in them predate any file format and
+  were sample data.
+- `server/backend/.env` still carries the GitHub App credentials from the
+  auth era (ignored, never committed). It is deleted and the App's secret
+  rotated as part of the migration's cleanup step.

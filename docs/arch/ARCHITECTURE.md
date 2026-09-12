@@ -1,6 +1,8 @@
 # Noesis — architecture
 
-Target architecture. The reference picture is `arch.png`.
+Target architecture. The flowchart below is the diagram. Decision 68 in
+`docs/decisions.md` records the adoption and the points settled after this
+document was written.
 
 Noesis turns conversations and design drafts into a queryable knowledge graph, and drives
 design and implementation work from it. Everything runs on the user's machine — there is no
@@ -29,7 +31,7 @@ flowchart TB
         end
 
         subgraph filesystem["File system"]
-            tmp["Temp dir<br/>for files"]
+            tmp["Temp dir<br/>.noesis/tmp — ignored"]
 
             subgraph repo["Git repository"]
                 src["Source code"]
@@ -62,13 +64,17 @@ flowchart TB
 ## Zones
 
 **Processes** — the Noesis service, the agent, and the browser. Three separate processes on one
-machine, sharing the filesystem.
+machine, sharing the filesystem. The service is a stdio MCP process started by the agent host,
+one per agent session; it binds the HTTP API on an ephemeral port and opens the browser on it
+once at boot. There is no long-running daemon: the UI exists while an agent session does, and
+two sessions on one checkout are two processes over the same files.
 
 **File system** — the shared medium the three processes communicate through. It holds the
 **git repository** — the user's project, carrying the source code, the knowledge graph files
-and the skills, so that everything Noesis knows is versioned alongside the code it describes —
-and, outside version control, the **temp dir** used as scratch space between the agent and the
-service.
+so that everything Noesis knows is versioned alongside the code it describes — and, ignored
+from version control, the **temp dir** `.noesis/tmp/` used as scratch space between the agent
+and the service. Skills are plugin content, versioned in the Noesis repository, not copied into
+the user's project.
 
 ## Entry points
 
@@ -87,8 +93,9 @@ Both land on the same service layer. Neither bypasses it.
   repositories, and the only component both entry points can see.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
   kind, each responsible for its own canonical paths and file format.
-- **Knowledge graph** is an embedded database used as an in-memory cache over the JSON files in
-  the repository. It is never authoritative: delete it and it rebuilds from the files.
+- **Knowledge graph** is an embedded in-memory database used as a cache over the JSON files in
+  the repository. It is never authoritative: it is rebuilt from the files at every boot and
+  nothing of it touches the disk.
 - **File watcher** observes the knowledge graph files and re-indexes into the graph when they
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
@@ -107,14 +114,21 @@ This is the invariant the rest of the design follows from:
   validates, splits, and writes.
 - Large payloads move through the **temp dir**, not through MCP. The agent writes its working
   file there and passes a path; results too large to inline are written there and the agent reads
-  them back. MCP messages carry coordinates, not content.
+  them back. MCP messages carry coordinates, not content. The MCP server's `instructions` name
+  the repository root and the session's scratch directory, so no tool call is needed to find them.
+- Writes are whole-file and atomic (write beside, then rename). When two agent sessions write the
+  same entity, the last write wins and each process's watcher picks up the other's file; there
+  are no locks and no hash preconditions.
 
 ## Knowledge graph files
 
 All knowledge graph files live under `.noesis/` at the repository root, one directory per kind:
 
 ```
-<project>/noesis/
+<project>/.noesis/
+├── .gitignore            written by the service on first run; contains `tmp/`
+├── tmp/<session>/        scratch space between the agent and the service — never versioned;
+│                         one subdirectory per service process, removed when it exits
 ├── changes/              one directory per change tracked across the graph
 │   └── <change>/         the change set itself, plus everything produced while working on it
 │       ├── conversations/  imported conversation transcripts — turns and idea units
@@ -139,8 +153,9 @@ tracks the code as it is, the latter accumulates across every change.
 
 Rules that hold across every kind:
 
-- **JSON only.** A file is part of the graph if and only if it is `.json` under one of these
-  directories. Anything else is ignored, which makes it safe to keep notes alongside.
+- **JSON only.** A file is part of the graph if and only if it is `.json` under one of the kind
+  directories. Anything else — including everything under `tmp/` — is ignored, which makes it
+  safe to keep notes alongside.
 - **Directories group by kind, never by entity hierarchy.** The only nesting is by change —
   `changes/<change>/` — and below it every leaf directory is flat. The topic tree lives in the
   data — a topic names its parent by id, a decision names its topic — so reparenting a topic is
@@ -221,5 +236,5 @@ so one structural mistake does not bury the first real cause.
 - **No LLM in the service.** All semantic reasoning — topic search, summarisation, extraction —
   happens in the agent driving the skill. The service provides deterministic data access only.
 - **No network.** Service, agent, browser, and repository are all local.
-- **Skills live in the repository**, next to the work they describe, so they are versioned and
-  reviewable like any other project asset.
+- **Skills live in the plugin**, versioned in the Noesis repository and shipped with the
+  contracts they reference, so every project runs the same skills at the same version.
