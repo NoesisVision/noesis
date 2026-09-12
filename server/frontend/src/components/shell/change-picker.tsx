@@ -61,10 +61,10 @@ export function ChangePicker({
       <Menu width="target" position="bottom-start" shadow="md" offset={4}>
         <Menu.Target>
           <UnstyledButton className={classes.pick} aria-label="Switch change">
-            <Group gap={10} wrap="nowrap">
+            <Group gap={10} wrap="nowrap" align="stretch">
               <Box
                 className={classes.bar}
-                h={24}
+                mih={24}
                 bg={
                   current
                     ? changeSwatch(current.slug)
@@ -76,27 +76,29 @@ export function ChangePicker({
                   {current ? current.name : 'No change yet'}
                 </Text>
                 {current ? (
-                  <Group gap={6} mt={3} wrap="nowrap">
+                  <>
                     {current.key ? (
-                      <Text size="xs" c="dimmed" ff="monospace" lh={1}>
+                      <Text size="xs" c="dimmed" ff="monospace" lh={1.4}>
                         {current.key}
                       </Text>
                     ) : null}
-                    <Badge
-                      size="xs"
-                      variant="outline"
-                      color={CHANGE_TYPE_META[current.type].color}
-                    >
-                      {CHANGE_TYPE_META[current.type].label}
-                    </Badge>
-                    <Badge
-                      size="xs"
-                      variant="light"
-                      color={CHANGE_STATUS_META[current.status].color}
-                    >
-                      {CHANGE_STATUS_META[current.status].label}
-                    </Badge>
-                  </Group>
+                    <Group gap={6} mt={4} wrap="nowrap">
+                      <Badge
+                        size="xs"
+                        variant="outline"
+                        color={CHANGE_TYPE_META[current.type].color}
+                      >
+                        {CHANGE_TYPE_META[current.type].label}
+                      </Badge>
+                      <Badge
+                        size="xs"
+                        variant="light"
+                        color={CHANGE_STATUS_META[current.status].color}
+                      >
+                        {CHANGE_STATUS_META[current.status].label}
+                      </Badge>
+                    </Group>
+                  </>
                 ) : (
                   <Text size="xs" c="dimmed" truncate lh={1.3}>
                     Create one to begin
