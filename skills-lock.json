@@ -7,6 +7,12 @@
       "skillPath": "skills/hono/SKILL.md",
       "computedHash": "220e5e1b12bbaeec49ec362b6e2262d77632d0536e9758bba9acbbc323fef990"
     },
+    "mantine-combobox": {
+      "source": "mantinedev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mantine-combobox/SKILL.md",
+      "computedHash": "fb3002c7bb704a111b1f4c596573aa9905e1b8dd728ad15dbba8cdf7a53ed98a"
+    },
     "mantine-custom-components": {
       "source": "mantinedev/skills",
       "sourceType": "github",
