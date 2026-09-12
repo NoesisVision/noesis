@@ -19,8 +19,8 @@ export interface AppDeps {
 }
 
 // No global prefix — each surface carries its own. Keep the .route() chain
-// unbroken: the ui's typed RPC client (`hc<AppType>`, see client.ts) infers
-// the route tree from this expression.
+// unbroken: Hono infers the route tree from this expression, which is what a
+// typed RPC client (`hc`) in the frontend would consume.
 export function createApp(deps: AppDeps) {
   return new Hono()
     .route(

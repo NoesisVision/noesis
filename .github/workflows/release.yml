@@ -76,9 +76,7 @@ jobs:
 
       - name: Pack service
         working-directory: server/backend
-        run: |
-          bun run build
-          bun pm pack
+        run: bun pm pack
 
       - name: Pack plugin
         working-directory: plugins/claude-code

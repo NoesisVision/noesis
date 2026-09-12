@@ -28,8 +28,8 @@ bun run test:bench # boot re-index cost at 1k and 10k files
 | `PORT`                | Pins the HTTP port; defaults to an ephemeral one                                         |
 | `UI_DIST_PATH`        | Serve the SPA from this directory instead of the packaged `ui/` (development only)       |
 
-The package ships `dist/main.js` (a self-contained bundle built at publish
-time by `prepublishOnly`) and the built ui in `ui/`. Its only dependency is the
+The package ships `dist/main.js` (a self-contained bundle built at pack
+time by `prepack`) and the built ui in `ui/`. Its only dependency is the
 native `@ladybugdb/core`; workspace deps (`@repo/*`) never leak into the
 published manifest. Its version is bumped in lockstep with the Claude Code
 plugin by `plugins/claude-code/tools/bump-version.ts`, and the plugin's

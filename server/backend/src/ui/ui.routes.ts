@@ -14,9 +14,9 @@ export interface UiDeps {
   designDocsService: DesignDocsService;
 }
 
-// Endpoints under the `ui` prefix (mounted in app.ts). The ui app reaches them
-// through the typed RPC client (`hc<AppType>`), so paths need no shared
-// constants — rename a route and the ui stops compiling. The server serves the
+// Endpoints under the `ui` prefix (mounted in app.ts). The route tree stays
+// inferable so the frontend can reach them through Hono's typed RPC client
+// without shared path constants. The server serves the
 // one checkout it was started in, so nothing is scoped by project or account
 // (decision 65); imports and design docs are scoped to a change, mirroring
 // `.noesis/changes/<change>/` (decision 68).

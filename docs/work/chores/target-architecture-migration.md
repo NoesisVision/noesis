@@ -340,7 +340,7 @@ one reviewable pull request unless noted.
   record of what changed.
 - Every pull request leaves `bun run ci` green. Groups that delete (inbox,
   bridge, hosting) must remove their tests in the same change, not skip them.
-- The `/ui` surface keeps its `hc<AppType>` typing and the unbroken `.route()`
+- The `/ui` surface keeps its inferable route tree and the unbroken `.route()`
   chain; the frontend is untouched except for the change-shell backend section
   when that feature lands.
 - stdout of the service process belongs to MCP; every log line goes to stderr.

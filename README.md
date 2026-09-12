@@ -50,9 +50,10 @@ server/backend/src/mcp/contracts   the file-contract registry: schema + the whol
                                    check the service runs on write; backs the validate tool
 ```
 
-The backend↔frontend boundary needs no contracts package: the frontend infers
-request and response types from the backend's route tree via Hono's
-`hc<AppType>` client.
+The backend↔frontend boundary needs no contracts package: the backend keeps
+its Hono route tree inferable, so the frontend can type its calls with Hono's
+`hc` client. The type-only export for it returns with the first frontend
+consumer; the bare SPA (decision 67) has none yet.
 
 ### Plugins (`plugins/`)
 
