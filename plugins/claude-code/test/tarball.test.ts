@@ -54,8 +54,8 @@ test('ships exactly the expected plugin files', async () => {
     'LICENSE',
     'README.md',
     'skills/prepare-mcp-data/SKILL.md',
-    'skills/prepare-mcp-data/references/hello-request.schema.json',
-    'skills/prepare-mcp-data/references/hello-request.example.json',
+    'skills/prepare-mcp-data/references/design-document.schema.json',
+    'skills/prepare-mcp-data/references/design-document.example.json',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -152,7 +152,10 @@ test('the service the pin resolves to boots and lists tools', async () => {
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toContain('hello');
+    expect(tools.map((t) => t.name).sort()).toEqual([
+      'create-design-doc',
+      'validate',
+    ]);
   } finally {
     await client.close();
   }

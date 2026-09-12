@@ -1,13 +1,9 @@
-import {
-  checkDesignDocument,
-  type DesignDocIssue,
-  type DesignDocument,
-  DesignDocumentSchema,
-} from '@repo/shared-contracts';
+import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { newUuid } from '@repo/shared-contracts/uuid';
-import { z } from 'zod';
 import type { ChangesService } from '../changes/changes.service.js';
+import { designDocumentContract } from '../mcp/contracts/design-document.js';
+import { type ValidationIssue, validate } from '../validation/validator.js';
 import type {
   DesignDocsRepository,
   StoredDesignDoc,
@@ -29,22 +25,28 @@ export interface DesignDocDetail {
 
 /**
  * The incoming document failed the boundary validation — a malformed shape or
- * an integrity error. Carries what failed so the caller (a person retrying, or
- * later the agent's retry prompt) can see why.
+ * an integrity error. Carries the validator's issue list so the caller (the
+ * `create-design-doc` tool, or a 400 on the ui surface) can hand it on as is.
  */
 export class InvalidDesignDocumentError extends Error {
-  readonly issues: readonly string[];
+  readonly issues: readonly ValidationIssue[];
+  /** Issues beyond the validator's cap, counted but not listed. */
+  readonly suppressed: number;
 
-  constructor(issues: readonly string[]) {
-    super(`Design document rejected: ${issues.join('; ')}`);
+  constructor(issues: readonly ValidationIssue[], suppressed = 0) {
+    super(
+      `Design document rejected: ${issues.map((i) => `${i.path}: ${i.fix}`).join('; ')}`,
+    );
     this.name = 'InvalidDesignDocumentError';
     this.issues = issues;
+    this.suppressed = suppressed;
   }
 }
 
 /**
  * Every write runs decision 51's boundary pipeline —
- * `DesignDocumentSchema.parse → checkDesignDocument` — so a document that
+ * `DesignDocumentSchema.parse → checkDesignDocument`, packaged as the
+ * design-document contract the `validate` tool runs too — so a document that
  * fails is a retry, never a stored inconsistency. The server mints the
  * document id (UUIDv7 — design docs are authored, not imported): whatever id
  * the input carries is replaced, so an agent inventing a colliding id cannot
@@ -64,17 +66,11 @@ export class DesignDocsService {
 
   async create(change: string, input: unknown): Promise<DesignDocSummary> {
     await this.changes.assertExists(change);
-    const parsed = DesignDocumentSchema.safeParse(input);
-    if (!parsed.success) {
-      throw new InvalidDesignDocumentError([z.prettifyError(parsed.error)]);
+    const report = validate(designDocumentContract, withMintedId(input));
+    if (!report.ok) {
+      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
     }
-    const document: DesignDocument = { ...parsed.data, id: newUuid() };
-    const errors = checkDesignDocument(document).filter(isError);
-    if (errors.length > 0) {
-      throw new InvalidDesignDocumentError(errors.map((i) => i.message));
-    }
-
-    return toSummary(await this.designDocs.create(change, document));
+    return toSummary(await this.designDocs.create(change, report.value));
   }
 
   /**
@@ -107,7 +103,12 @@ export class DesignDocsService {
   }
 }
 
-const isError = (issue: DesignDocIssue): boolean => issue.severity === 'error';
+/** The server's id replaces whatever came in; a non-object is left for the schema to reject. */
+function withMintedId(input: unknown): unknown {
+  return input !== null && typeof input === 'object' && !Array.isArray(input)
+    ? { ...input, id: newUuid() }
+    : input;
+}
 
 function toSummary(stored: StoredDesignDoc): DesignDocSummary {
   const { id, name, status, date } = stored.entity;

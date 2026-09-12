@@ -25,6 +25,7 @@ import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { NoesisDir } from './files/noesis-dir.js';
 import { resolveRepositoryRoot } from './files/repository-root.js';
+import { SessionDir } from './files/session-dir.js';
 import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
 import { createMcpServer } from './mcp/mcp-server.js';
@@ -43,6 +44,12 @@ const config = loadServerConfig();
 const noesis = new NoesisDir(loadRepositoryRoot());
 await noesis.ensure();
 console.error(`[server] knowledge graph files in ${noesis.path}`);
+// This process's scratch directory under `.noesis/tmp/`: working files pass
+// between the agent and the tools through it, and it goes when the session
+// does. Stale directories left by crashed sessions are swept while opening.
+const session = new SessionDir(noesis);
+await session.open();
+console.error(`[server] session scratch directory ${session.path}`);
 
 ensureLadybugBinary();
 const db = new DatabaseService();
@@ -61,13 +68,14 @@ await indexer.rebuild();
 // No search providers yet — no entity is searchable. Providers register here
 // as their entities land (documents, graph nodes).
 const changesService = new ChangesService(changesRepository);
+const designDocsService = new DesignDocsService(
+  designDocsRepository,
+  changesService,
+);
 const app = createApp({
   searchService: new SearchService([]),
   changesService,
-  designDocsService: new DesignDocsService(
-    designDocsRepository,
-    changesService,
-  ),
+  designDocsService,
 });
 
 // The built ui app ships inside the package (`ui/` beside `dist/`, copied
@@ -108,7 +116,12 @@ if (config.openBrowser) openBrowser(url);
 // The agent's entry point: MCP over stdio, calling the same services
 // in-process. When the host closes the stream the session is over, and so is
 // this process — the UI lives exactly as long as the agent session.
-const mcp = createMcpServer({ repositoryRoot: noesis.root });
+const mcp = createMcpServer({
+  repositoryRoot: noesis.root,
+  session,
+  changesService,
+  designDocsService,
+});
 await mcp.connect(new StdioServerTransport());
 // The SDK's transport reads stdin but does not report its end; the host
 // closing the stream is what ends the session, so watch for it here.
@@ -144,6 +157,7 @@ async function shutdown(): Promise<void> {
   try {
     await mcp.close();
     await server.stop();
+    await session.dispose();
   } catch (error) {
     console.error(
       `[server] shutdown failed before the database closed: ${String(error)}`,

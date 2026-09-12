@@ -1,11 +1,11 @@
-// Zod contracts for MCP tool payloads — the MCP server validates against them
-// and generates the reference JSONs shipped by harness plugins (Claude Code,
-// Codex, OpenCode, pi, ...) via tools/generate-references.ts. Interim home
-// until the migration's R5 moves them beside the domain contracts.
+// Zod contracts the agent works against — the file contracts the `validate`
+// tool and the service writes share, and the model-facing skill payloads.
+// Interim home until the migration's R5 moves them beside the domain
+// contracts and ships the `.ts` sources in the plugin.
 // DTOs shared with the ui live in @repo/shared-contracts.
 
 export * from '@repo/shared-contracts';
-export * from './hello.js';
+export * from './design-document.js';
 export * from './registry.js';
 
 // Skill-output schemas (the model-facing payloads each skill produces).

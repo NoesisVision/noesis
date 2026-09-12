@@ -1,11 +1,14 @@
 // Full-stack MCP e2e: boots the real service (src/main.ts) as a stdio MCP
-// server the way an agent host does, and drives an actual `tools/call`.
+// server the way an agent host does, walks the import flow of decision 68
+// (write a working file to the session's scratch directory, validate, create)
+// and checks the scratch directory goes when the session does.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 
 const serviceRoot = resolve(__dirname, '../..');
 
@@ -28,25 +31,65 @@ beforeAll(async () => {
 }, 30_000);
 
 afterAll(async () => {
-  await client?.close();
   if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
 });
 
+const exists = (path: string) =>
+  stat(path).then(
+    () => true,
+    () => false,
+  );
+
+/** The session scratch directory, as the instructions announce it. */
+function sessionDir(): string {
+  const match = (client.getInstructions() ?? '').match(
+    /scratch directory is (\S+) /,
+  );
+  if (!match?.[1]) throw new Error('instructions name no scratch directory');
+  return match[1];
+}
+
+function textOf(result: Awaited<ReturnType<Client['callTool']>>): string {
+  const [content] = result.content as { type: string; text: string }[];
+  return content?.text ?? '';
+}
+
 describe('MCP over stdio against the real service (e2e)', () => {
-  it('names the repository root in the instructions', () => {
+  it('names the repository root and a scratch directory under .noesis/tmp/', async () => {
     expect(client.getInstructions()).toContain(repoRoot);
+    const dir = sessionDir();
+    expect(dir.startsWith(join(repoRoot, '.noesis', 'tmp'))).toBe(true);
+    expect(await exists(dir)).toBe(true);
   });
 
-  it('lists the tools and answers a call in-process', async () => {
-    const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toContain('hello');
+  it('validates and imports a working file in-process', async () => {
+    const path = join(sessionDir(), 'design-doc.json');
+    await writeFile(path, JSON.stringify(designDocFixture));
 
-    const result = await client.callTool({
-      name: 'hello',
-      arguments: { name: 'Ada' },
+    const validated = await client.callTool({
+      name: 'validate',
+      arguments: { contract: 'design-document', path },
     });
-    expect(result.isError).toBeFalsy();
-    const [content] = result.content as { type: string; text: string }[];
-    expect(content?.text).toBe('Greetings, Ada!');
+    expect(textOf(validated)).toBe('Valid design-document: no issues.');
+
+    const missing = await client.callTool({
+      name: 'create-design-doc',
+      arguments: { change: 'booking', path },
+    });
+    // No change directory yet: the tool says so instead of writing anywhere.
+    expect(missing.isError).toBe(true);
+    expect(textOf(missing)).toContain('No change "booking"');
   });
+
+  it('deletes the scratch directory when the session ends', async () => {
+    const dir = sessionDir();
+    await client.close();
+
+    // The service shuts down when stdin ends; give it a moment to do so.
+    const deadline = Date.now() + 5_000;
+    while ((await exists(dir)) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    expect(await exists(dir)).toBe(false);
+  }, 10_000);
 });
