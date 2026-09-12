@@ -227,7 +227,8 @@ one reviewable pull request unless noted.
   plugin copy is a build output too — gitignored except for a README, made
   by the plugin's `bun run build` and on `prepack` — and the service ships
   no copy at all, since nothing read it; the tree holds the sources once
-  and one package carries the readable copy. The `validate` tool now accepts every
+  and one package carries the readable copy, with the copy tool moved into
+  the plugin (decision 71). The `validate` tool now accepts every
   registered contract, not only `design-document`. The plugin has no skills
   until R6.
 

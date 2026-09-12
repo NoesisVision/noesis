@@ -41,7 +41,7 @@ tool that consumes it by path.
   payload must satisfy, as zod `.ts` the model reads directly, with a
   companion `.md` per family for what the shapes cannot say. A build output:
   copied from `packages/shared-contracts/src` by `bun run build` (which
-  `bun pm pack` runs as `prepack`), stamped with the service version, and
+  `bun pm pack` runs as `prepack`), stamped with the plugin version, and
   asserted byte-identical by the plugin's tests. Only `contracts/README.md`
   is committed; the published plugin carries the full copy.
 - `skills/` — the knowledge-management skills (`import-conversation`,

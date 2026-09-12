@@ -2195,3 +2195,24 @@ byte-identical.
 - The service tarball is `dist/main.js` plus `ui/`.
 - Skills remain the only reader of the contracts by path; the service
   validates with the same schemas from inside the bundle.
+
+## 71. `copy-contracts.ts` lives in the plugin, stamped with the plugin version
+
+**Status: accepted** (2026-09-12)
+
+**Amends 70** (its "`tools/copy-contracts.ts` stays in the service package"
+line).
+
+**Context:** With the service's own copy gone (70), the plugin's `bun run
+build` was the copy tool's only caller, yet the tool sat in
+`server/backend/tools/` and the plugin's build script and test reached
+across packages for it. The one tie to the service was the header, which
+named the service version read from the service's `package.json`.
+
+**Decision:** The tool moves to `plugins/claude-code/tools/copy-contracts.ts`
+beside the plugin's other tools, reads the source from
+`packages/shared-contracts/src` and the version from the plugin's own
+`package.json`, and the header names `@noesis-vision/claude-code-plugin`.
+Plugin and service are one version train (33, 68), so the number is the
+same. The plugin's build, test and tarball no longer depend on the service
+package's tree; `server/backend/tools/` is gone.
