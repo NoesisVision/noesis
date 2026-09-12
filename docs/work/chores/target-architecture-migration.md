@@ -261,6 +261,21 @@ one reviewable pull request unless noted.
   language coverage.
 - `scanners/java` and `scanners/dotnet` are untouched; their integration is a
   later task once the `system-model/` format is stable.
+- Landed 2026-09-12. `scanner/typescript-scanner.ts` finds units (directories
+  with a `package.json`, skipping `node_modules`, build output and dot
+  directories), projects each into one `system-model/` file — the unit as the
+  bounded context, the first directory under `src/` as the module, exported
+  classes as building blocks (type by name suffix: Repository, Service,
+  Factory, Client/Gateway/Adapter, Event, Command, Query) and their public
+  methods as behaviours, every element with `source: { path, line }` — and
+  derives ids from names and paths so an unchanged unit re-scans to the same
+  file. Extraction is line-based on purpose: the pipeline is the deliverable,
+  a parser can replace `exportedClasses` in place. `scanner/scanner.service.ts`
+  writes the files and removes those of vanished units; the watcher indexes
+  them into the new `SystemModel` table, which search also covers. Invocation
+  is the `scan-system-model` tool, on demand — not at boot, since a scan
+  touches versioned files. The `system-model.repository.ts` is the kind's
+  file repository.
 
 ### R8 — Configuration, hosting and CI
 

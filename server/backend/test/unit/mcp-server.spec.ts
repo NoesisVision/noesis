@@ -4,7 +4,7 @@
 // tool whose output the agent can act on, and failures come back in-band
 // (isError) — never as protocol-level errors the model cannot read.
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -12,6 +12,7 @@ import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { SessionDir } from '../../src/files/session-dir.js';
 import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
+import { ScannerService } from '../../src/scanner/scanner.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
@@ -38,6 +39,7 @@ beforeEach(async () => {
     searchService: new SearchService([
       async (q) => [{ type: 'topic', id: 't-1', title: `Hit for ${q}` }],
     ]),
+    scannerService: new ScannerService(t.root, t.systemModelRepository),
   });
   await server.connect(serverTransport);
   client = new Client({ name: 'mcp-server-spec', version: '0.0.0' });
@@ -87,6 +89,7 @@ describe('createMcpServer', () => {
       'import-document',
       'list-changes',
       'list-design-docs',
+      'scan-system-model',
       'search-knowledge-graph',
       'update-design-doc',
       'validate',
@@ -389,6 +392,31 @@ describe('createMcpServer', () => {
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('Invalid conversation-analysis');
       expect(textOf(result)).toContain('$.conversation');
+    });
+  });
+
+  describe('scan-system-model', () => {
+    it('writes a system-model file per unit and names it', async () => {
+      await mkdir(join(t.root, 'pkg', 'src'), { recursive: true });
+      await writeFile(
+        join(t.root, 'pkg', 'package.json'),
+        JSON.stringify({ name: '@acme/pkg' }),
+      );
+      await writeFile(
+        join(t.root, 'pkg', 'src', 'booking.service.ts'),
+        'export class BookingService {\n  book(): void {}\n}\n',
+      );
+
+      const result = await client.callTool({
+        name: 'scan-system-model',
+        arguments: {},
+      });
+
+      expect(result.isError).toBeFalsy();
+      expect(textOf(result)).toContain(
+        '@acme/pkg  1 building block(s)  .noesis/system-model/',
+      );
+      expect(await t.systemModelRepository.list()).toHaveLength(1);
     });
   });
 

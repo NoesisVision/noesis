@@ -25,9 +25,10 @@ mints its id, and stores it under the change.
    exists, use the `update-design-doc` skill instead.
 2. **Ground the design.** Call `search-knowledge-graph` for the subjects
    involved and read the matching wiki topics and decisions under
-   `.noesis/wiki/`; read the relevant `.noesis/system-model/` files when they
-   exist, so building blocks that already exist in the code are named as they
-   are, not reinvented. Ask the user what the wiki does not answer.
+   `.noesis/wiki/`. Call `scan-system-model` when `.noesis/system-model/` is
+   missing or older than the code, then read the relevant system-model files,
+   so building blocks that already exist in the code are named as they are,
+   not reinvented. Ask the user what the wiki does not answer.
 3. **Write the document** in the order the schema lists its fields. Every
    element gets a short, readable id unique across the document
    (`uc-book-appointment`, `svc-booking`, `rule-hold-ten-minutes`). Every

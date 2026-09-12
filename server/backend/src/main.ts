@@ -31,12 +31,14 @@ import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
 import { createMcpServer } from './mcp/mcp-server.js';
 import { ensureLadybugBinary } from './native/ensure-ladybug.js';
+import { ScannerService } from './scanner/scanner.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { createGraphSearch } from './search/graph-search.js';
 import {
   ConversationsRepository,
   DocumentsRepository,
 } from './sources/sources.repository.js';
+import { SystemModelRepository } from './system-model/system-model.repository.js';
 import { SearchService } from './ui/search/search.service.js';
 import {
   DecisionsRepository,
@@ -72,6 +74,7 @@ const conversationsRepository = new ConversationsRepository(changesRepository);
 const documentsRepository = new DocumentsRepository(changesRepository);
 const topicsRepository = new TopicsRepository(noesis);
 const decisionsRepository = new DecisionsRepository(noesis);
+const systemModelRepository = new SystemModelRepository(noesis);
 const indexer = new GraphIndexer(db, {
   changes: changesRepository,
   designDocs: designDocsRepository,
@@ -79,6 +82,7 @@ const indexer = new GraphIndexer(db, {
   documents: documentsRepository,
   topics: topicsRepository,
   decisions: decisionsRepository,
+  systemModels: systemModelRepository,
 });
 // Watching before the first build: a file that changes during the build then
 // queues a second one, instead of slipping through the gap.
@@ -98,6 +102,9 @@ const importService = new ImportService({
   topics: topicsRepository,
   decisions: decisionsRepository,
 });
+// The scanner writes system-model files; the watcher indexes them like any
+// other kind. It runs on demand (the scan-system-model tool), not at boot.
+const scannerService = new ScannerService(noesis.root, systemModelRepository);
 // One provider, over every node table the indexer fills.
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
@@ -151,6 +158,7 @@ const mcp = createMcpServer({
   designDocsService,
   importService,
   searchService,
+  scannerService,
 });
 await mcp.connect(new StdioServerTransport());
 // The SDK's transport reads stdin but does not report its end; the host

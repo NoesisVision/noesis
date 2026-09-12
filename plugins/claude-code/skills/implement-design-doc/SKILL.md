@@ -15,9 +15,10 @@ names — is the vocabulary of the code.
    the change, and read the document from its path. Read
    `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.md` for what each section
    means if it is not obvious.
-2. **Map the design onto the code.** For each building block, find where it
-   lives or should live (the `.noesis/system-model/` files say what the
-   scanner found, when they exist). Each `boundedContextId` and
+2. **Map the design onto the code.** Call `scan-system-model`, then for each
+   building block find where it lives or should live: the
+   `.noesis/system-model/` files list the exported classes and their methods
+   with file and line. Each `boundedContextId` and
    `domainModuleId` says where a block belongs; `implements` says what it
    must satisfy.
 3. **Implement in the order the document reads.** For each use case: the

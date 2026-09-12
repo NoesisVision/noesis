@@ -1,0 +1,67 @@
+import type { SystemModelRepository } from '../system-model/system-model.repository.js';
+import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
+
+export interface ScanReport {
+  /** Units (directories with a package.json) that had source files. */
+  units: { name: string; path: string; buildingBlocks: number }[];
+  /** System-model files removed because their unit is gone. */
+  removed: string[];
+  durationMs: number;
+}
+
+/**
+ * The scanner as a service component: reads the checkout, writes one
+ * system-model file per unit and drops the files of units that no longer
+ * exist. The graph projection is not written here — the watcher sees the
+ * files and re-indexes, the same path every other kind takes (decision 68).
+ */
+export class ScannerService {
+  private readonly root: string;
+  private readonly systemModels: SystemModelRepository;
+  private readonly now: () => string;
+
+  constructor(
+    root: string,
+    systemModels: SystemModelRepository,
+    now: () => string = () => new Date().toISOString(),
+  ) {
+    this.root = root;
+    this.systemModels = systemModels;
+    this.now = now;
+  }
+
+  async scan(): Promise<ScanReport> {
+    const started = performance.now();
+    const units = await findUnits(this.root);
+    const written = new Set<string>();
+    const report: ScanReport = { units: [], removed: [], durationMs: 0 };
+
+    for (const unit of units) {
+      const sources = await findSources(unit, units);
+      if (sources.length === 0) continue;
+      const model = await scanUnit(unit, sources, {
+        root: this.root,
+        now: this.now,
+      });
+      const stored = await this.systemModels.write(model);
+      written.add(model.id);
+      report.units.push({
+        name: model.name,
+        path: stored.path,
+        buildingBlocks: model.buildingBlocks.length,
+      });
+    }
+
+    for (const stale of await this.systemModels.list()) {
+      if (written.has(stale.entity.id)) continue;
+      await this.systemModels.remove(stale.entity.id);
+      report.removed.push(stale.entity.name);
+    }
+
+    report.durationMs = Math.round(performance.now() - started);
+    console.error(
+      `[scanner] ${report.units.length} unit(s) in ${report.durationMs} ms`,
+    );
+    return report;
+  }
+}

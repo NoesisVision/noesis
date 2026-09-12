@@ -72,6 +72,14 @@ const KINDS: Kind[] = [
     href: (hit) => `/changes/${hit.change}/design-docs/${hit.id}`,
   },
   {
+    type: 'system-model',
+    cypher: `MATCH (n:SystemModel)
+      WHERE lower(n.name) CONTAINS $q
+      RETURN n.id AS id, n.name AS title, n.scanned_at AS subtitle, '' AS change
+      ORDER BY n.name LIMIT $limit`,
+    href: () => undefined,
+  },
+  {
     type: 'conversation',
     cypher: `MATCH (n:Conversation)
       WHERE lower(n.title) CONTAINS $q

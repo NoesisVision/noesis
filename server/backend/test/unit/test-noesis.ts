@@ -12,6 +12,7 @@ import {
   ConversationsRepository,
   DocumentsRepository,
 } from '../../src/sources/sources.repository.js';
+import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
 import {
   DecisionsRepository,
   TopicsRepository,
@@ -32,6 +33,7 @@ export interface TestNoesis {
   documentsRepository: DocumentsRepository;
   topicsRepository: TopicsRepository;
   decisionsRepository: DecisionsRepository;
+  systemModelRepository: SystemModelRepository;
   /** The repositories as the indexer takes them. */
   sources: IndexerSources;
   changesService: ChangesService;
@@ -52,6 +54,7 @@ export async function testNoesis(): Promise<TestNoesis> {
   const documentsRepository = new DocumentsRepository(changesRepository);
   const topicsRepository = new TopicsRepository(noesis);
   const decisionsRepository = new DecisionsRepository(noesis);
+  const systemModelRepository = new SystemModelRepository(noesis);
   const changesService = new ChangesService(changesRepository);
   return {
     root,
@@ -62,6 +65,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     documentsRepository,
     topicsRepository,
     decisionsRepository,
+    systemModelRepository,
     sources: {
       changes: changesRepository,
       designDocs: designDocsRepository,
@@ -69,6 +73,7 @@ export async function testNoesis(): Promise<TestNoesis> {
       documents: documentsRepository,
       topics: topicsRepository,
       decisions: decisionsRepository,
+      systemModels: systemModelRepository,
     },
     changesService,
     designDocsService: new DesignDocsService(

@@ -18,6 +18,7 @@ import {
   ConversationsRepository,
   DocumentsRepository,
 } from '../../src/sources/sources.repository.js';
+import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
 import {
   DecisionsRepository,
   TopicsRepository,
@@ -72,6 +73,7 @@ async function measure(files: number): Promise<number> {
       documents: new DocumentsRepository(changes),
       topics: new TopicsRepository(noesis),
       decisions: new DecisionsRepository(noesis),
+      systemModels: new SystemModelRepository(noesis),
     });
     const report = await indexer.rebuild();
     expect(report.files).toBe(files);

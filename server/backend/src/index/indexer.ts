@@ -6,6 +6,7 @@ import type {
   ConversationsRepository,
   DocumentsRepository,
 } from '../sources/sources.repository.js';
+import type { SystemModelRepository } from '../system-model/system-model.repository.js';
 import type {
   DecisionsRepository,
   TopicsRepository,
@@ -24,6 +25,7 @@ export interface IndexerSources {
   documents: DocumentsRepository;
   topics: TopicsRepository;
   decisions: DecisionsRepository;
+  systemModels: SystemModelRepository;
 }
 
 /** Rows per `UNWIND` statement; one statement per file would be 5× slower. */
@@ -72,14 +74,22 @@ export class GraphIndexer {
   }
 
   private async collect(): Promise<Map<string, Row[]>> {
-    const { changes, designDocs, conversations, documents, topics, decisions } =
-      this.sources;
+    const {
+      changes,
+      designDocs,
+      conversations,
+      documents,
+      topics,
+      decisions,
+      systemModels,
+    } = this.sources;
     const rows = new Map<string, Row[]>([
       ['DesignDoc', []],
       ['Conversation', []],
       ['Document', []],
       ['Topic', []],
       ['Decision', []],
+      ['SystemModel', []],
     ]);
     const push = (table: string, row: Row) => rows.get(table)?.push(row);
 
@@ -123,6 +133,15 @@ export class GraphIndexer {
         parent_id: s.entity.parent_id ?? '',
         title: s.entity.title,
         short_summary: s.entity.short_summary,
+        json: JSON.stringify(s.entity),
+        updated_at: s.updatedAt,
+      });
+    }
+    for (const s of await systemModels.list()) {
+      push('SystemModel', {
+        id: s.entity.id,
+        name: s.entity.name,
+        scanned_at: s.entity.scanned_at,
         json: JSON.stringify(s.entity),
         updated_at: s.updatedAt,
       });

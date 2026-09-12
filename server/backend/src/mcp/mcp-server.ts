@@ -22,6 +22,7 @@ import {
   type ImportService,
   InvalidImportError,
 } from '../imports/import.service.js';
+import type { ScannerService } from '../scanner/scanner.service.js';
 import type { SearchService } from '../ui/search/search.service.js';
 import {
   type FileContract,
@@ -46,6 +47,7 @@ export interface McpDeps {
   designDocsService: DesignDocsService;
   importService: ImportService;
   searchService: SearchService;
+  scannerService: ScannerService;
 }
 
 interface ToolDefinition<A> {
@@ -309,6 +311,27 @@ export function createMcpServer(deps: McpDeps): Server {
             `Updated design document "${summary.name}" (${summary.id}) at ${rel(summary.path)}.`,
           );
         });
+      },
+    }),
+
+    'scan-system-model': define({
+      description:
+        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
+      args: z.object({}),
+      handler: async () => {
+        const report = await deps.scannerService.scan();
+        const lines = report.units.map(
+          (u) =>
+            `${u.name}  ${u.buildingBlocks} building block(s)  ${rel(u.path)}`,
+        );
+        if (report.removed.length > 0) {
+          lines.push(`Removed stale: ${report.removed.join(', ')}.`);
+        }
+        return text(
+          lines.length === 0
+            ? 'No TypeScript units found (no package.json with .ts sources under the repository root).'
+            : `Scanned ${report.units.length} unit(s) in ${report.durationMs} ms.\n${lines.join('\n')}`,
+        );
       },
     }),
 
