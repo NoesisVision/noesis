@@ -8,9 +8,15 @@ import {
   IconTopologyStar3,
 } from '@tabler/icons-react';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { Link, useMatchRoute, useParams } from '@tanstack/react-router';
+import {
+  Link,
+  type RouteIds,
+  useMatches,
+  useParams,
+} from '@tanstack/react-router';
 import type { ComponentType } from 'react';
 import { changesList } from '#/api/changes';
+import type { routeTree } from '#/routeTree.gen';
 import { ChangePicker } from './change-picker';
 import { readLastChange } from './last-change';
 
@@ -30,30 +36,36 @@ const CHANGE_ENTRIES: {
     | '/changes/$changeId/documents'
     | '/changes/$changeId/conversations'
     | '/changes/$changeId/design-docs';
+  /** The leaf route's id: present in the matches only while that view is on. */
+  routeId: RouteIds<typeof routeTree>;
   label: string;
   description: string;
   icon: ComponentType<IconProps>;
 }[] = [
   {
     to: '/changes/$changeId',
+    routeId: '/_shell/changes/$changeId/',
     label: 'Overview',
     description: 'Status, scope and what happened last',
     icon: IconLayoutDashboard,
   },
   {
     to: '/changes/$changeId/documents',
+    routeId: '/_shell/changes/$changeId/documents',
     label: 'Documents',
     description: 'Imported material that informs the change',
     icon: IconFiles,
   },
   {
     to: '/changes/$changeId/conversations',
+    routeId: '/_shell/changes/$changeId/conversations',
     label: 'Conversations',
     description: 'Imported discussions with the agent',
     icon: IconMessages,
   },
   {
     to: '/changes/$changeId/design-docs',
+    routeId: '/_shell/changes/$changeId/design-docs',
     label: 'Design docs',
     description: 'The design documents of this change',
     icon: IconPencilBolt,
@@ -62,18 +74,21 @@ const CHANGE_ENTRIES: {
 
 const DOCUMENTATION_ENTRIES: {
   to: '/system-model' | '/wiki';
+  routeId: RouteIds<typeof routeTree>;
   label: string;
   description: string;
   icon: ComponentType<IconProps>;
 }[] = [
   {
     to: '/system-model',
+    routeId: '/_shell/system-model',
     label: 'System model',
     description: 'What the code is made of',
     icon: IconTopologyStar3,
   },
   {
     to: '/wiki',
+    routeId: '/_shell/wiki',
     label: 'Wiki',
     description: 'Topics and decisions',
     icon: IconBook,
@@ -89,7 +104,13 @@ const DOCUMENTATION_ENTRIES: {
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { data: changes } = useSuspenseQuery(changesList);
   const { changeId } = useParams({ strict: false });
-  const matchRoute = useMatchRoute();
+  // Active by leaf route id, not by pathname: `matchRoute` reports the change
+  // layout as matching under every view beneath it, so Overview would stay
+  // lit. The Link is told the same (`exact`), because Mantine's NavLink also
+  // styles the `aria-current` the Link sets on a fuzzy match.
+  const activeIds = new Set<RouteIds<typeof routeTree>>(
+    useMatches().map((match) => match.routeId),
+  );
 
   const lastChangeId = readLastChange();
   const activeChange =
@@ -117,10 +138,15 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               description={entry.description}
               leftSection={<entry.icon size={18} stroke={1.6} />}
               disabled={activeChange === null}
-              active={Boolean(matchRoute({ to: entry.to, params }))}
+              active={activeIds.has(entry.routeId)}
               onClick={onNavigate}
               renderRoot={(props) => (
-                <Link {...props} to={entry.to} params={params} />
+                <Link
+                  {...props}
+                  to={entry.to}
+                  params={params}
+                  activeOptions={{ exact: true }}
+                />
               )}
             />
           );
@@ -146,9 +172,11 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             label={entry.label}
             description={entry.description}
             leftSection={<entry.icon size={18} stroke={1.6} />}
-            active={Boolean(matchRoute({ to: entry.to }))}
+            active={activeIds.has(entry.routeId)}
             onClick={onNavigate}
-            renderRoot={(props) => <Link {...props} to={entry.to} />}
+            renderRoot={(props) => (
+              <Link {...props} to={entry.to} activeOptions={{ exact: true }} />
+            )}
           />
         ))}
       </AppShell.Section>
