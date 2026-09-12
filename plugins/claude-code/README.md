@@ -54,7 +54,35 @@ tool that consumes it by path.
   and ask before changing one.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `bunx @noesis-vision/noesis@<version>` (same repo, released in lockstep
-  with the plugin)
+  with the plugin). `NOESIS_SERVICE_COMMAND` and `NOESIS_SERVICE_ENTRY`
+  replace the command and its one argument; unset, the defaults apply.
+
+## Developing against the checkout
+
+Load the plugin from the source folder into a session in another repository
+(the sample app you exercise it on), with the service running from the
+checkout's source instead of the published bin.
+
+Once in the checkout, and again after every contract change, copy the
+contracts into the plugin:
+
+```
+bun run build:plugin
+```
+
+Then, in the sample app repository:
+
+```
+NOESIS_SERVICE_COMMAND=bun \
+NOESIS_SERVICE_ENTRY=/path/to/noesis/server/backend/src/main.ts \
+claude --plugin-dir /path/to/noesis/plugins/claude-code
+```
+
+The service runs from `src/main.ts` with no build (the page is bundled on
+request) and serves the repository Claude Code started in. The local plugin
+takes precedence over an installed `noesis` for that session. After editing
+a skill or the service, run `/reload-plugins`. Set the two variables in the
+sample app's `.claude/settings.local.json` under `env` to skip typing them.
 
 ## Releasing (maintainers)
 

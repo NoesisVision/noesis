@@ -2284,3 +2284,62 @@ with four workarounds recorded there.
 - The four bun behaviours in the spike doc are the things to re-check on
   a bun upgrade: entry naming across packages, relative asset links, the
   manifest's cwd resolution, and `--production` deferring to `NODE_ENV`.
+
+## 73. The plugin's `.mcp.json` takes the service command from the environment, defaulting to the published bin
+
+**Status: accepted** (2026-09-12)
+
+**Amends 68** (its "the plugin's `.mcp.json` launches that bin" line: the
+bin stays the default, no longer the only launch).
+
+**Context:** Developing the plugin against a checkout means loading it with
+`claude --plugin-dir plugins/claude-code`, which Claude Code supports for
+skills and plugin MCP servers alike (`/reload-plugins` restarts both). Two
+things stood in the way. `.mcp.json` hardwired
+`bunx @noesis-vision/noesis@<pin>`, so a local plugin always ran the
+published service, never the source under `server/backend`. And
+`contracts/` is a build output (decision 69) that is empty in a fresh
+checkout until `bun run build` runs in the plugin. Three options were
+weighed: (A) `${VAR:-default}` expansion in `.mcp.json`, which Claude Code
+applies to `command` and `args`; (B) a generated, ignored dev plugin
+directory with its own `.mcp.json` pointing at the source; (C) a second
+`noesis` MCP server registered at project level beside the plugin's.
+
+**Decision:** Option A, the same mechanism decision 10 used for
+`NOESIS_SERVER_URL`. `.mcp.json` reads
+`"command": "${NOESIS_SERVICE_COMMAND:-bunx}"` and
+`"args": ["${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}"]`;
+with neither variable set an installed plugin behaves exactly as before.
+A checkout sets `NOESIS_SERVICE_COMMAND=bun` and
+`NOESIS_SERVICE_ENTRY=<repo>/server/backend/src/main.ts`, which runs the
+service from source with no build (the page is bundled on request,
+decision 72). The session runs in a sample repository, not in the monorepo:
+the developer copies the contracts into the plugin with the root script
+`bun run build:plugin`, then starts Claude Code there with `--plugin-dir`
+pointing at the checkout and the two variables set (the READMEs carry the
+commands).
+`stamp-plugin-version.ts` stamps the pin inside the default (the match
+stops at the closing brace) and the tarball test asserts the expanded
+shape.
+
+**Alternatives considered:**
+
+- **B, a generated dev plugin directory.** Keeps the published `.mcp.json`
+  literal, at the cost of a second `.mcp.json` shape to keep in step, a
+  generator, and symlinked `skills/` and `contracts/` whose handling by
+  Claude Code is undocumented.
+- **C, a project-level `noesis` server.** Two servers under one name, two
+  processes over the same `.noesis/` in one session. Rejected.
+
+**Consequences:**
+
+- The published plugin gains two documented override variables and no new
+  behaviour. Claude Code warns on unset variables only when there is no
+  default, so `claude mcp list` stays clean for installed plugins.
+- A locally loaded plugin named `noesis` takes precedence over an installed
+  `noesis` for that session, so testers can keep the marketplace install.
+- `NOESIS_ROOT` is still `${CLAUDE_PROJECT_DIR}`: the service serves the
+  sample repository Claude Code is started in, and writes its `.noesis/`
+  there. Nothing in the monorepo runs or changes.
+- The variables select the launch, not the version: nothing checks that the
+  source and the plugin agree, which is the point of running from source.

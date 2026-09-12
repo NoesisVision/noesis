@@ -61,7 +61,7 @@ One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https
 
 - **`contracts/`** — the contract sources and companion docs, **copied** from `packages/shared-contracts/src` by `bun run build` with a version header and shipped in the tarball; gitignored except its README; skills name a contract by this path (decisions 68, 69)
 - **`tools/`** — dev/build tooling (generate, bump, release); not shipped
-- **`.mcp.json`** — launches the service as a stdio MCP server via `bunx @noesis-vision/noesis@<version>` (pin stamped by `bun run generate`) with `NOESIS_ROOT` set to the project directory
+- **`.mcp.json`** — launches the service as a stdio MCP server via `bunx @noesis-vision/noesis@<version>` (pin stamped by `bun run generate`; `NOESIS_SERVICE_COMMAND`/`NOESIS_SERVICE_ENTRY` override the launch for local development, decision 73) with `NOESIS_ROOT` set to the project directory
 
 The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts` and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
@@ -144,7 +144,21 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 /plugin install noesis-beta@noesis   # beta channel (prerelease builds)
 ```
 
-> Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry is pinned to the latest published prerelease. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
+> Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry is pinned to the latest published prerelease.
+
+Developing the plugin against this checkout, from another repository (decision 73):
+
+```sh
+# in the noesis checkout, once and after every contract change
+bun run build:plugin                         # copies the contracts into the plugin
+
+# in the sample app repository
+NOESIS_SERVICE_COMMAND=bun \
+NOESIS_SERVICE_ENTRY=/path/to/noesis/server/backend/src/main.ts \
+claude --plugin-dir /path/to/noesis/plugins/claude-code
+```
+
+`.mcp.json` launches `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`; the two variables point it at the service source, which runs without a build. The service serves the repository Claude Code starts in. The local plugin overrides an installed `noesis` for that session; `/reload-plugins` picks up skill edits and restarts the service.
 
 Releasing a new version (from `plugins/claude-code`; the plugin and `@noesis-vision/noesis` release in lockstep — one version train, decisions 33 and 68):
 

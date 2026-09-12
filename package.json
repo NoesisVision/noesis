@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "bun run --filter '*' build",
+    "build:plugin": "bun run --cwd plugins/claude-code build",
     "dev": "bun run --cwd server/backend dev",
     "start:debug": "bun run --cwd server/backend start:debug",
     "lint": "biome check .",

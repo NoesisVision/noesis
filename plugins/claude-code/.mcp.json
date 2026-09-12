@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "noesis": {
-      "command": "bunx",
-      "args": ["@noesis-vision/noesis@0.1.0-beta.4"],
+      "command": "${NOESIS_SERVICE_COMMAND:-bunx}",
+      "args": ["${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@0.1.0-beta.4}"],
       "env": {
         "NOESIS_ROOT": "${CLAUDE_PROJECT_DIR}"
       }
