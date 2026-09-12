@@ -200,7 +200,7 @@ tool, at the step that produces the file and not before. Contracts do not travel
 they are static reference material with a known location, so a tool call to discover them would
 buy nothing and add a round trip to every authoring step.
 
-The service ships as an npm package with the contracts bundled inside it, while the skills ship in
+The service imports the contracts and bundles them into its executable, while the skills ship in
 the plugin. A **build step copies the contract sources into the plugin**, which is what keeps the
 path the skills reference stable regardless of how the package is installed or hoisted. The copy is
 safe precisely because it is made at build time: it is deterministic, it ships in the same version

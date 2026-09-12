@@ -2166,3 +2166,32 @@ contracts are in the package.
   paths resolve in the installed plugin, which is what they are written for.
 - CI's `generate-check` no longer guards the contracts copy; the plugin's
   `bun test` (built copy versus source) and the tarball test do.
+
+## 70. The service package ships no readable contracts copy
+
+**Status: accepted** (2026-09-12)
+
+**Amends 68** (its "service ships as an npm package with the contracts
+bundled inside it" line) **and 69**.
+
+**Context:** Decision 68 had the service package carry a copy of the contract
+sources under `server/backend/contracts/`, made by `bun run build:contracts`,
+beside the plugin's copy. The service does not read it: it imports
+`@repo/shared-contracts` and `bun build` inlines the schemas into
+`dist/main.js`. The copy was reading material for a consumer that does not
+exist — a non-Claude-Code plugin, or a person, reading contracts out of the
+installed service — and cost a build step and a second `files` entry.
+
+**Decision:** Drop it. `build:contracts` and the `contracts` entry in the
+service's `files` go; `tools/copy-contracts.ts` stays in the service package
+(it holds the version the header names) with the plugin as its only caller.
+The plugin's `contracts/` is the one readable copy. A future consumer that
+needs the contracts without the plugin gets them the same way the plugin
+does: a build-time copy from `packages/shared-contracts/src`, asserted
+byte-identical.
+
+**Consequences:**
+
+- The service tarball is `dist/main.js` plus `ui/`.
+- Skills remain the only reader of the contracts by path; the service
+  validates with the same schemas from inside the bundle.

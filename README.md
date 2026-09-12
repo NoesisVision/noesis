@@ -45,7 +45,7 @@ packages/shared-contracts/src      every knowledge graph file shape + import pay
      │                             with a companion .md per family
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
-     └─▶ server/backend/contracts        build-time copy shipped in the service package
+     └─▶ server/backend/dist/main.js     imported by the service and bundled into it
 server/backend/src/mcp/contracts   the file-contract registry: schema + the whole-document
                                    check the service runs on write; backs the validate tool
 ```

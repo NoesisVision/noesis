@@ -1,13 +1,11 @@
 // Copies the contract sources (packages/shared-contracts/src, minus specs)
 // into a destination directory, each file stamped with a header naming the
-// service version it came from. Two callers:
-//
-// - the plugin's `bun run build` (also its `prepack`) copies into
-//   plugins/claude-code/contracts/, gitignored except for its README: skills
-//   name contracts by a plugin-relative path, and the packed tarball carries
-//   the copy.
-// - `bun run build:contracts` copies into ./contracts/, which ships in the
-//   service package (gitignored — a build output like ui/).
+// service version it came from. The one caller is the plugin's `bun run
+// build` (also its `prepack`), copying into plugins/claude-code/contracts/,
+// gitignored except for its README: skills name contracts by a
+// plugin-relative path, and the packed tarball carries the copy. The service
+// itself imports the contracts and bundles them into dist/main.js; it ships
+// no readable copy (decision 70).
 //
 // The copy is byte-identical to the source below the header; the plugin's
 // test asserts that. `.ts` sources are shipped deliberately: compiled output
