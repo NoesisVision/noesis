@@ -16,7 +16,7 @@
 set -euo pipefail
 set -m
 
-bun run --filter=backend --filter=frontend dev &
+bun run --filter=@noesis-vision/noesis --filter=frontend dev &
 child=$!
 
 shutdown() {

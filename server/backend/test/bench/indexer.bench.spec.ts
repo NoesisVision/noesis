@@ -22,7 +22,7 @@ let db: DatabaseService;
 
 beforeAll(async () => {
   db = new DatabaseService();
-  db.init();
+  await db.init();
   await new SchemaService(db).ensureSchema();
 });
 

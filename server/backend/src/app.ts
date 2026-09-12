@@ -1,21 +1,18 @@
-import { apiRoutes } from '@repo/local-contracts';
 import { Hono } from 'hono';
-import { createApiApp } from './api/api.routes.js';
 import type { ChangesService } from './changes/changes.service.js';
 import type { DesignDocsService } from './design-docs/design-docs.service.js';
-import type { GreetingService } from './greeting/greeting.service.js';
 import { createInternalApp } from './internal/internal.routes.js';
 import type { SearchService } from './ui/search/search.service.js';
 import { createUiApp } from './ui/ui.routes.js';
 
 // The composition surface: routes are segregated by consumer, one sub-app per
-// surface: /ui (ui app), /api (local app / MCP), /internal (health and other
-// technical endpoints). No surface is guarded — the server runs on the
-// developer's own machine inside one checkout (decision 65).
+// surface: /ui (ui app), /internal (health and other technical endpoints).
+// The agent does not come through HTTP at all — it reaches the same services
+// over MCP on stdio (src/mcp, decision 68). No surface is guarded — the server
+// runs on the developer's own machine inside one checkout (decision 65).
 // Deps are wired by the composition root (main.ts for prod, tests otherwise);
 // each surface factory receives only the slice it is allowed to touch.
 export interface AppDeps {
-  greetingService: GreetingService;
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
@@ -29,15 +26,10 @@ export function createApp(deps: AppDeps) {
     .route(
       '/ui',
       createUiApp({
-        greetingService: deps.greetingService,
         searchService: deps.searchService,
         changesService: deps.changesService,
         designDocsService: deps.designDocsService,
       }),
-    )
-    .route(
-      `/${apiRoutes.prefix}`,
-      createApiApp({ greetingService: deps.greetingService }),
     )
     .route('/internal', createInternalApp());
 }

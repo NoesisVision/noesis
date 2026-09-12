@@ -1,9 +1,8 @@
-import lbug, { type LbugValue } from '@ladybugdb/core';
+import type lbug from '@ladybugdb/core';
+import type { LbugValue } from '@ladybugdb/core';
 
-const { Database, Connection } = lbug;
-
-type LbugDatabase = InstanceType<typeof Database>;
-type LbugConnection = InstanceType<typeof Connection>;
+type LbugDatabase = InstanceType<typeof lbug.Database>;
+type LbugConnection = InstanceType<typeof lbug.Connection>;
 export type QueryParams = Record<string, LbugValue>;
 
 // Owns the LadybugDB database handle. The database is in-memory only: the
@@ -12,14 +11,19 @@ export type QueryParams = Record<string, LbugValue>;
 // nothing to recover (decision 68). Constructed and initialized by the
 // composition root (main.ts), which also closes it on shutdown so native
 // resources are released deterministically (decisions 23/35).
+//
+// `@ladybugdb/core` is imported lazily, in `init()`: loading it dlopen's the
+// native binary, which `native/ensure-ladybug.ts` may first have to put in
+// place — and a static import would run before any of that.
 export class DatabaseService {
   private database: LbugDatabase | null = null;
   private connection: LbugConnection | null = null;
 
-  init(): void {
+  async init(): Promise<void> {
+    const { Database, Connection } = (await import('@ladybugdb/core')).default;
     this.database = new Database(':memory:');
     this.connection = new Connection(this.database);
-    console.log('[DatabaseService] LadybugDB initialized (in-memory)');
+    console.error('[DatabaseService] LadybugDB initialized (in-memory)');
   }
 
   async close(): Promise<void> {

@@ -1,7 +1,5 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { apiPath } from '@repo/local-contracts';
 import { createApp } from '../../src/app.js';
-import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { testNoesis } from '../unit/test-noesis.js';
 
@@ -12,16 +10,15 @@ afterAll(() => t.cleanup());
 
 describe('Route surfaces (e2e)', () => {
   const app = createApp({
-    greetingService: new GreetingService(),
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
   });
 
-  it('/ui/hello (GET) — ui surface', async () => {
-    const res = await app.request('/ui/hello');
+  it('/ui/changes (GET) — ui surface', async () => {
+    const res = await app.request('/ui/changes');
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe('Hello World!');
+    expect(await res.json()).toEqual({ changes: [] });
   });
 
   it('/ui/search (GET) — ui surface', async () => {
@@ -30,10 +27,9 @@ describe('Route surfaces (e2e)', () => {
     expect(await res.json()).toEqual({ results: [] });
   });
 
-  it(`/${apiPath('hello')} (GET) — api surface`, async () => {
-    const res = await app.request(`/${apiPath('hello')}`);
-    expect(res.status).toBe(200);
-    expect(await res.text()).toBe('Hello World!');
+  it('/api (GET) — no api surface any more, the agent comes over MCP', async () => {
+    const res = await app.request('/api/hello');
+    expect(res.status).toBe(404);
   });
 
   it('/internal/health (GET) — internal surface', async () => {

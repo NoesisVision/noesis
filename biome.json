@@ -38,7 +38,7 @@
   },
   "overrides": [
     {
-      "includes": ["server/backend/**", "plugins/mcp-bridge/**"],
+      "includes": ["server/backend/**"],
       "linter": {
         "rules": {
           "nursery": {

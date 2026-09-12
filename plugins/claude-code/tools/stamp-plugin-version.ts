@@ -1,8 +1,8 @@
 // Stamps version pins from package.json, the single source of truth for the
 // plugin version: .claude-plugin/plugin.json's version and .mcp.json's
-// @noesis-vision/mcp-bridge pin (the bridge is released in lockstep with the
-// plugin — decision 33). Run via `bun run generate`; CI's drift check enforces
-// they stay in sync.
+// @noesis-vision/noesis pin (the service is released in lockstep with the
+// plugin — one version train, decisions 33 and 68). Run via `bun run
+// generate`; CI's drift check enforces they stay in sync.
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -26,11 +26,11 @@ console.log(`stamped .claude-plugin/plugin.json -> ${version}`);
 const mcpPath = `${root}.mcp.json`;
 const mcp = await readFile(mcpPath, 'utf8');
 const stamped = mcp.replace(
-  /@noesis-vision\/mcp-bridge@[^"]+/g,
-  `@noesis-vision/mcp-bridge@${version}`,
+  /@noesis-vision\/noesis@[^"]+/g,
+  `@noesis-vision/noesis@${version}`,
 );
-if (!stamped.includes(`@noesis-vision/mcp-bridge@${version}`)) {
-  throw new Error('.mcp.json has no @noesis-vision/mcp-bridge pin to stamp');
+if (!stamped.includes(`@noesis-vision/noesis@${version}`)) {
+  throw new Error('.mcp.json has no @noesis-vision/noesis pin to stamp');
 }
 await writeFile(mcpPath, stamped);
-console.log(`stamped .mcp.json bridge pin -> ${version}`);
+console.log(`stamped .mcp.json service pin -> ${version}`);

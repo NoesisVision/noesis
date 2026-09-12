@@ -1,41 +1,57 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "name": "@noesis-vision/noesis",
+  "version": "0.1.0-beta.4",
+  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NoesisVision/noesis.git",
+    "directory": "server/backend"
+  },
   "type": "module",
+  "bin": {
+    "noesis": "dist/main.js"
+  },
+  "files": [
+    "dist/main.js",
+    "ui"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./client": "./src/client.ts"
   },
   "scripts": {
-    "build": "bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core",
+    "build": "bun run build:ui && bun build src/main.ts --outdir dist --target bun --external @ladybugdb/core --banner '#!/usr/bin/env bun'",
+    "build:ui": "bun run --cwd ../frontend build && rm -rf ui && cp -R ../frontend/dist ui",
     "start": "bun run src/main.ts",
-    "dev": "bun --watch src/main.ts",
-    "start:debug": "bun --inspect --watch src/main.ts",
+    "dev": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
+    "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "start:prod": "bun run dist/main.js",
+    "generate": "bun run tools/generate-references.ts",
     "check-types": "tsc --noEmit",
     "test": "bun test test/unit",
     "test:watch": "bun test test/unit --watch",
     "test:cov": "bun test test/unit --coverage",
     "test:e2e": "bun test test/e2e",
-    "test:bench": "bun test test/bench"
+    "test:bench": "bun test test/bench",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@ladybugdb/core": "^0.19.0",
-    "@repo/local-contracts": "workspace:*",
-    "@repo/shared-contracts": "workspace:*",
-    "hono": "catalog:",
-    "zod": "catalog:"
+    "@ladybugdb/core": "^0.19.0"
   },
   "trustedDependencies": [
     "@ladybugdb/core"
   ],
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@repo/shared-contracts": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
   }
 }

@@ -1,7 +1,7 @@
 // Packs the real npm tarball and verifies what ships: file whitelist,
-// rewritten manifest, and the .mcp.json bridge pin staying in lockstep with
-// the plugin version (decision 33 — plugin and @noesis-vision/mcp-bridge
-// release as one version train). The MCP boot smoke test builds the bridge
+// rewritten manifest, and the .mcp.json service pin staying in lockstep with
+// the plugin version (decisions 33 and 68 — plugin and @noesis-vision/noesis
+// release as one version train). The MCP boot smoke test builds the service
 // from the workspace sources the pinned version will be published from.
 // Tests run in file order; the pack test seeds the state the rest assert on.
 import { afterAll, expect, test } from 'bun:test';
@@ -15,7 +15,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
-const bridgeRoot = fileURLToPath(new URL('../../mcp-bridge/', import.meta.url));
+const serviceRoot = fileURLToPath(
+  new URL('../../../server/backend/', import.meta.url),
+);
 
 let workDir: string;
 let packageDir: string;
@@ -95,41 +97,55 @@ test('publishes a self-contained, version-consistent manifest', async () => {
   expect(raw).not.toContain('catalog:');
 });
 
-test('.mcp.json pins the bridge to the plugin version (one version train)', async () => {
+test('.mcp.json launches the service bin pinned to the plugin version', async () => {
   const { version } = JSON.parse(
     await readFile(join(pluginRoot, 'package.json'), 'utf8'),
   ) as { version: string };
   const mcp = JSON.parse(
     await readFile(join(packageDir, '.mcp.json'), 'utf8'),
-  ) as { mcpServers: Record<string, { command: string; args: string[] }> };
+  ) as {
+    mcpServers: Record<
+      string,
+      { command: string; args: string[]; env: Record<string, string> }
+    >;
+  };
 
-  const bridge = mcp.mcpServers['noesis-local'];
-  if (!bridge) throw new Error('.mcp.json has no noesis-local server entry');
-  expect(bridge.command).toBe('bunx');
-  expect(bridge.args).toContain(`@noesis-vision/mcp-bridge@${version}`);
+  const service = mcp.mcpServers.noesis;
+  if (!service) throw new Error('.mcp.json has no noesis server entry');
+  expect(service.command).toBe('bunx');
+  expect(service.args).toContain(`@noesis-vision/noesis@${version}`);
+  // The service serves the project the plugin runs in, not its own cwd.
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal placeholder is what Claude Code expands
+  expect(service.env.NOESIS_ROOT).toBe('${CLAUDE_PROJECT_DIR}');
 
-  const bridgeManifest = JSON.parse(
-    await readFile(join(bridgeRoot, 'package.json'), 'utf8'),
-  ) as { version: string };
-  expect(bridgeManifest.version).toBe(version);
+  const serviceManifest = JSON.parse(
+    await readFile(join(serviceRoot, 'package.json'), 'utf8'),
+  ) as { version: string; bin: Record<string, string> };
+  expect(serviceManifest.version).toBe(version);
+  expect(serviceManifest.bin).toEqual({ noesis: 'dist/main.js' });
 });
 
-test('the bridge the pin resolves to boots and lists tools', async () => {
+test('the service the pin resolves to boots and lists tools', async () => {
   // Build from the workspace sources — the same sources the pinned version is
   // published from (the pin-consistency test above ties the versions together).
   const build = spawnSync('bun', ['run', 'build'], {
-    cwd: bridgeRoot,
+    cwd: serviceRoot,
     encoding: 'utf8',
   });
   expect(build.status).toBe(0);
 
-  const emptyDir = join(workDir, 'empty-cwd');
-  await mkdir(emptyDir, { recursive: true });
+  const projectDir = join(workDir, 'project');
+  await mkdir(projectDir, { recursive: true });
 
   const transport = new StdioClientTransport({
     command: 'bun',
-    args: [join(bridgeRoot, 'dist', 'main.js')],
-    cwd: emptyDir,
+    args: [join(serviceRoot, 'dist', 'main.js')],
+    cwd: projectDir,
+    env: {
+      ...process.env,
+      NOESIS_ROOT: projectDir,
+      NOESIS_OPEN_BROWSER: '0',
+    },
     stderr: 'ignore',
   });
   const client = new Client({ name: 'tarball-smoke-test', version: '0.0.0' });
@@ -140,4 +156,4 @@ test('the bridge the pin resolves to boots and lists tools', async () => {
   } finally {
     await client.close();
   }
-}, 30_000);
+}, 120_000);

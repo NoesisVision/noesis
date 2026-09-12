@@ -16,6 +16,16 @@ describe('server configuration', () => {
     expect(result.ok && result.config.root).toBe('/work/repo');
   });
 
+  it('opens the browser unless NOESIS_OPEN_BROWSER=0, on an ephemeral port unless PORT is set', () => {
+    expect(parseServerConfig({})).toMatchObject({
+      config: { openBrowser: true, port: 0 },
+    });
+    expect(
+      parseServerConfig({ NOESIS_OPEN_BROWSER: '0', PORT: '3000' }),
+    ).toMatchObject({ config: { openBrowser: false, port: 3000 } });
+    expect(parseServerConfig({ PORT: 'many' }).ok).toBe(false);
+  });
+
   it('rejects an empty root rather than silently ignoring it', () => {
     const result = parseServerConfig({ NOESIS_ROOT: '' });
 

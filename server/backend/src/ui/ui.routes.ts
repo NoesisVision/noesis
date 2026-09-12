@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import type { ChangesService } from '../changes/changes.service.js';
 import type { DesignDocsService } from '../design-docs/design-docs.service.js';
-import type { GreetingService } from '../greeting/greeting.service.js';
 import { createChangesApp } from './changes/changes.routes.js';
 import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
 import { createSearchApp } from './search/search.routes.js';
@@ -10,7 +9,6 @@ import type { SearchService } from './search/search.service.js';
 // The module's dependency contract — the explicit allow-list of what these
 // routes may touch. Nothing outside this interface is in scope for the handlers.
 export interface UiDeps {
-  greetingService: GreetingService;
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
@@ -25,7 +23,6 @@ export interface UiDeps {
 export function createUiApp(deps: UiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/hello', (c) => c.text(deps.greetingService.getHello()))
     .route('/search', createSearchApp({ searchService: deps.searchService }))
     .route(
       '/changes',

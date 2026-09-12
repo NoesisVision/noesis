@@ -13,8 +13,6 @@ export * from './design-doc.js';
 export * from './design-doc-collaboration.js';
 export * from './design-doc-integrity.js';
 export * from './design-doc-ref.js';
-// Placeholder transport DTO from the hello flow.
-export * from './hello.js';
 export * from './information-sources/conversation.js';
 export * from './information-sources/document.js';
 // Core domain model (the ubiquitous language, used by services, UI DTOs, and

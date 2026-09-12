@@ -1,12 +1,12 @@
 name: Release
 
-# Publishes the MCP bridge and the Claude Code plugin to npm when a v* tag is
-# pushed — one version train (decision 33): both packages carry the tag's
-# version, bridge first so the plugin's .mcp.json pin resolves the moment the
-# plugin lands. Auth is npm trusted publishing (OIDC) — no token secret.
-# Provenance is attached automatically. Requires a trusted publisher configured
-# on npmjs.com for BOTH @noesis-vision/claude-code-plugin and
-# @noesis-vision/mcp-bridge pointing at this repo + workflow file.
+# Publishes the Noesis service and the Claude Code plugin to npm when a v* tag
+# is pushed — one version train (decisions 33 and 68): both packages carry the
+# tag's version, service first so the plugin's .mcp.json pin resolves the
+# moment the plugin lands. Auth is npm trusted publishing (OIDC) — no token
+# secret. Provenance is attached automatically. Requires a trusted publisher
+# configured on npmjs.com for BOTH @noesis-vision/claude-code-plugin and
+# @noesis-vision/noesis pointing at this repo + workflow file.
 on:
   push:
     tags: ['v*']
@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish bridge + plugin to npm
+    name: Publish service + plugin to npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -59,13 +59,13 @@ jobs:
         id: version
         run: |
           VERSION=$(node -p 'require("./plugins/claude-code/package.json").version')
-          BRIDGE_VERSION=$(node -p 'require("./plugins/mcp-bridge/package.json").version')
+          SERVICE_VERSION=$(node -p 'require("./server/backend/package.json").version')
           if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $VERSION."
             exit 1
           fi
-          if [ "$BRIDGE_VERSION" != "$VERSION" ]; then
-            echo "::error::Bridge version $BRIDGE_VERSION does not match plugin version $VERSION (one version train)."
+          if [ "$SERVICE_VERSION" != "$VERSION" ]; then
+            echo "::error::Service version $SERVICE_VERSION does not match plugin version $VERSION (one version train)."
             exit 1
           fi
           # Prereleases go to the beta dist-tag, stable releases to latest.
@@ -74,8 +74,8 @@ jobs:
             *) echo "dist-tag=latest" >> "$GITHUB_OUTPUT" ;;
           esac
 
-      - name: Pack bridge
-        working-directory: plugins/mcp-bridge
+      - name: Pack service
+        working-directory: server/backend
         run: |
           bun run build
           bun pm pack
@@ -84,10 +84,10 @@ jobs:
         working-directory: plugins/claude-code
         run: bun pm pack
 
-      # Bridge first: the plugin's .mcp.json pins this exact bridge version, so
-      # a plugin without its bridge must never be the published state.
-      - name: Publish bridge
-        working-directory: plugins/mcp-bridge
+      # Service first: the plugin's .mcp.json pins this exact service version,
+      # so a plugin without its service must never be the published state.
+      - name: Publish service
+        working-directory: server/backend
         run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public
 
       - name: Publish plugin

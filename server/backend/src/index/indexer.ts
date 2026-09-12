@@ -72,7 +72,7 @@ export class GraphIndexer {
       files: designDocs.length,
       durationMs: Math.round(performance.now() - started),
     };
-    console.log(
+    console.error(
       `[indexer] indexed ${report.files} files in ${report.durationMs} ms`,
     );
     return report;

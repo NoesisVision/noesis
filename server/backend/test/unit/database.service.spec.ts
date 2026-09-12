@@ -16,7 +16,7 @@ describe('DatabaseService', () => {
 
   it('connects, runs parameterized queries, and re-initializes after destroy', async () => {
     const service = newService();
-    service.init();
+    await service.init();
 
     // Set up via service.query — the convention is that all lbug access goes
     // through it so QueryResults are closed deterministically (see query()).
@@ -36,7 +36,7 @@ describe('DatabaseService', () => {
     await service.close();
     expect(() => service.getConnection()).toThrow('Database not initialized');
 
-    service.init();
+    await service.init();
     const after = await service.query<{ x: number | bigint }>('RETURN 2 AS x');
     expect(after.map((r) => Number(r.x))).toEqual([2]);
     await service.close();

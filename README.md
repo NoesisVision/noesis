@@ -27,25 +27,25 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 | `server/frontend` | React 19 + TanStack Router | Web frontend (Vite SPA)   |
 | `server/backend`  | Hono on `Bun.serve`        | Backend API (port `3000`) |
 
-### The MCP bridge (`plugins/mcp-bridge`)
+### The service (`server/backend`)
 
-A **stdio MCP server** (plain TS on bun) bridging coding agents to `backend`
-over REST. Published to npm as **`@noesis-vision/mcp-bridge`** — a
-self-contained `dist/main.js` bin built at publish time — so every agent
-plugin launches the same bridge via `bunx @noesis-vision/mcp-bridge@<version>`
-instead of shipping its own copy (decision 33). Versioned in lockstep with the
-Claude Code plugin.
+One **stdio MCP process per agent session**, started by the agent host. It
+holds the services, the file repositories over `.noesis/`, the in-memory graph
+cache and its watcher, and serves the browser UI over HTTP on an ephemeral
+port. Published to npm as **`@noesis-vision/noesis`** — a self-contained
+`dist/main.js` bin plus the built ui — so every agent plugin launches it via
+`bunx @noesis-vision/noesis@<version>` (decision 68). Versioned in lockstep
+with the Claude Code plugin.
 
 ### Contract packages — single source of truth for DTOs
 
 All contracts are [zod](https://zod.dev/) schemas with inferred TS types, consumed directly as TypeScript source (no build step):
 
 ```
-@repo/shared-contracts            DTOs common to all of the below
-     ▲                   ▲
-@repo/local-contracts   plugins/mcp-bridge/src/contracts
-(backend↔bridge)        (MCP tool payloads + registry, owned by the
-                        bridge; feeds skill schemas & bridge validation)
+@repo/shared-contracts            the domain model, shared by the service and the ui
+     ▲
+server/backend/src/mcp/contracts  MCP tool payloads + registry, owned by the
+                                  service; feeds skill schemas & tool validation
 ```
 
 The backend↔frontend boundary needs no contracts package: the frontend infers
@@ -56,9 +56,9 @@ request and response types from the backend's route tree via Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** by the bridge from its contracts (decision 38)
+- **`skills/prepare-mcp-data/`** — teaches the model how to build MCP payloads; `references/*.schema.json` + `*.example.json` are **generated** by the service from its contracts (decision 38)
 - **`tools/`** — dev/build tooling (generate, bump, release); not shipped
-- **`.mcp.json`** — launches the bridge via `bunx @noesis-vision/mcp-bridge@<version>` (pin stamped by `bun run generate`); target server is configurable via `NOESIS_SERVER_URL` (default `http://localhost:3000`)
+- **`.mcp.json`** — launches the service as a stdio MCP server via `bunx @noesis-vision/noesis@<version>` (pin stamped by `bun run generate`) with `NOESIS_ROOT` set to the project directory
 
 The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
@@ -83,7 +83,7 @@ Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not p
 | [zod](https://zod.dev/) (v4)                                                        | Contract schemas, env validation, JSON Schema generation                                            |
 | [Hono](https://hono.dev/) 4                                                         | `backend` app (routing on `Bun.serve`) + typed RPC client (`hc`) in the `frontend` app              |
 | [React](https://react.dev/) 19 + [Vite](https://vite.dev/)                          | `frontend` app (Vite dev server proxies `/ui` to the backend; `vite build` emits the SPA it ships)  |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `plugins/mcp-bridge`                                                                  |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) | MCP server in `server/backend/src/mcp`                                                              |
 | [Biome](https://biomejs.dev/) 2                                                     | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                             |
 | GitHub Actions                                                                      | CI (verify + generated-artifact drift check) and tag-driven npm releases via trusted publishing     |
 
@@ -109,7 +109,7 @@ bun run test:e2e       # e2e tests
 bun run format         # biome + prettier(md) --write (`format:check` to verify)
 ```
 
-Filter to one package: `bun run --filter=backend build`.
+Filter to one package: `bun run --filter=@noesis-vision/noesis build`.
 
 ### Configuration
 
@@ -125,8 +125,8 @@ register and nothing to authenticate against (decision 65).
 
 ### Working with contracts
 
-1. Add/edit a zod schema in the right place (`@repo/shared-contracts`, `@repo/local-contracts`, or `plugins/mcp-bridge/src/contracts`).
-2. For MCP payloads, register it in `plugins/mcp-bridge/src/contracts/registry.ts`.
+1. Add/edit a zod schema in the right place (`@repo/shared-contracts` or `server/backend/src/mcp/contracts`).
+2. For MCP payloads, register it in `server/backend/src/mcp/contracts/registry.ts`.
 3. Regenerate plugin artifacts:
 
 ```sh
@@ -148,30 +148,24 @@ The plugin installs from npm — no monorepo clone needed. Add the marketplace b
 
 > Note: the catalog references the **published npm package** (`@noesis-vision/claude-code-plugin`), so installs track releases, not `main`. The `noesis-beta` entry is pinned to the latest published prerelease. When developing the plugin itself, point a local marketplace entry at the folder instead (`"source": "./"`).
 
-Releasing a new version (from `plugins/claude-code`; the plugin and `@noesis-vision/mcp-bridge` release in lockstep — one version train, decision 33):
+Releasing a new version (from `plugins/claude-code`; the plugin and `@noesis-vision/noesis` release in lockstep — one version train, decisions 33 and 68):
 
 ```sh
 # Beta: one command — bump, generate, smoke-test, commit, tag, push
 bun run release:beta            # or: bun run release:beta 0.2.0-beta.1
 
 # Stable: the same steps by hand
-bun run bump 0.2.0     # plugin + bridge package.json + matching marketplace channel pin
-bun run generate       # stamps .claude-plugin/plugin.json + the .mcp.json bridge pin
+bun run bump 0.2.0     # plugin + service package.json + matching marketplace channel pin
+bun run generate       # stamps .claude-plugin/plugin.json + the .mcp.json service pin
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```
 
-The `Release` workflow (`.github/workflows/release.yml`) verifies the tag against both package versions, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes both packages via npm **trusted publishing** (bridge first, so the plugin's pin always resolves) — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
+The `Release` workflow (`.github/workflows/release.yml`) verifies the tag against both package versions, packs with `bun pm pack` (rewrites `workspace:*`/`catalog:`), and publishes both packages via npm **trusted publishing** (service first, so the plugin's pin always resolves) — prereleases land on the `beta` dist-tag, stable versions on `latest`. Testers install with `/plugin install noesis-beta@noesis` (or `npm i @noesis-vision/claude-code-plugin@beta`).
 
 > Local fallback: `bun publish` / `bun run publish:beta` (never raw `npm publish` from the workspace — only the bun pack pipeline rewrites `workspace:*`/`catalog:` versions in the manifest).
 
-Point the MCP server at a different backend per project via `.claude/settings.local.json` (e.g. the deployed Railway domain):
-
-```json
-{ "env": { "NOESIS_SERVER_URL": "https://<service>.up.railway.app" } }
-```
-
-Payload validation happens in the MCP bridge itself (decision 34): every `tools/call` is checked against its contract's zod schema, and mismatches come back as descriptive in-band tool errors (failing fields + a valid example) so the calling agent can correct itself.
+Payload validation happens in the service's MCP server (decision 34): every `tools/call` is checked against its contract's zod schema, and mismatches come back as descriptive in-band tool errors (failing fields + a valid example) so the calling agent can correct itself.
 
 ## 4. Deployment
 
@@ -196,6 +190,3 @@ own machine, inside one checkout (decision 65).
 docker build -f server/backend/Dockerfile -t noesis-backend .
 docker run --rm -p 3000:3000 --env-file .env.local noesis-backend
 ```
-
-- **Plugin users** point `NOESIS_SERVER_URL` at the service's generated
-  Railway domain (see above).

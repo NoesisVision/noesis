@@ -20,7 +20,7 @@ let shared: DatabaseService | undefined;
 export async function sharedTestDatabase(): Promise<DatabaseService> {
   if (shared === undefined) {
     const db = new DatabaseService();
-    db.init();
+    await db.init();
     await new SchemaService(db).ensureSchema();
     shared = db;
   }

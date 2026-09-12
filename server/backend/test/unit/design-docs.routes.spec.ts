@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { GreetingService } from '../../src/greeting/greeting.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { createUiApp } from '../../src/ui/ui.routes.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
@@ -18,7 +17,6 @@ beforeEach(async () => {
   t = await testNoesis();
   await t.changesRepository.create(CHANGE);
   app = createUiApp({
-    greetingService: new GreetingService(),
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,

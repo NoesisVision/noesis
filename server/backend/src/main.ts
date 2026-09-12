@@ -1,6 +1,22 @@
+// The Noesis service: one process per agent session, started by the agent
+// host as a stdio MCP server. The same process serves the browser UI over HTTP
+// on an ephemeral port (decision 68). Published to npm as @noesis-vision/noesis
+// (self-contained dist/main.js bin, built by `bun run build`); agent plugins
+// launch it via bunx.
+//
+// stdout belongs to the MCP protocol — every log line goes to stderr. Our own
+// code logs with console.error/warn; the redirect below catches anything a
+// dependency prints with console.log, which would otherwise corrupt the
+// stream.
+console.log = (...args: unknown[]) => console.error(...args);
+
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { serveStatic } from 'hono/bun';
 import { createApp } from './app.js';
+import { openBrowser } from './browser.js';
 import { ChangesRepository } from './changes/changes.repository.js';
 import { ChangesService } from './changes/changes.service.js';
 import { loadServerConfig } from './config/config.js';
@@ -9,9 +25,10 @@ import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { NoesisDir } from './files/noesis-dir.js';
 import { resolveRepositoryRoot } from './files/repository-root.js';
-import { GreetingService } from './greeting/greeting.service.js';
 import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
+import { createMcpServer } from './mcp/mcp-server.js';
+import { ensureLadybugBinary } from './native/ensure-ladybug.js';
 import { SchemaService } from './schema/schema.service.js';
 import { SearchService } from './ui/search/search.service.js';
 
@@ -25,10 +42,11 @@ const config = loadServerConfig();
 // (decision 68). Services write files only — never the graph.
 const noesis = new NoesisDir(loadRepositoryRoot());
 await noesis.ensure();
-console.log(`[server] knowledge graph files in ${noesis.path}`);
+console.error(`[server] knowledge graph files in ${noesis.path}`);
 
+ensureLadybugBinary();
 const db = new DatabaseService();
-db.init();
+await db.init();
 await new SchemaService(db).ensureSchema();
 
 const changesRepository = new ChangesRepository(noesis);
@@ -44,7 +62,6 @@ await indexer.rebuild();
 // as their entities land (documents, graph nodes).
 const changesService = new ChangesService(changesRepository);
 const app = createApp({
-  greetingService: new GreetingService(),
   searchService: new SearchService([]),
   changesService,
   designDocsService: new DesignDocsService(
@@ -53,17 +70,17 @@ const app = createApp({
   ),
 });
 
-// Serving the built ui app (SPA at /, index.html fallback for client routes)
-// is opt-in via UI_DIST_PATH — set in the production container, unset in dev
-// (the ui app's own dev server serves the UI) and in tests. The route surfaces
-// are excluded from the fallback so their 404s are not swallowed by the SPA.
+// The built ui app ships inside the package (`ui/` beside `dist/`, copied
+// there by `bun run build`); `UI_DIST_PATH` overrides it for development. The
+// SPA is served at / with an index.html fallback for client routes; the route
+// surfaces are excluded from the fallback so their 404s are not swallowed.
 const uiDistPath = process.env.UI_DIST_PATH
   ? resolve(process.env.UI_DIST_PATH)
-  : undefined;
-if (uiDistPath !== undefined) {
+  : fileURLToPath(new URL('../ui/', import.meta.url));
+if (existsSync(uiDistPath)) {
   // Registered after the routes in createApp, so surface endpoints win and
   // static files are only consulted for everything else.
-  const surfaces = ['/ui', '/api', '/internal'];
+  const surfaces = ['/ui', '/internal'];
   // `path` must be relative — hono's serveStatic strips a leading slash from
   // it (absolute paths are only honored in `root`).
   const spaIndex = serveStatic({ root: uiDistPath, path: 'index.html' });
@@ -75,13 +92,31 @@ if (uiDistPath !== undefined) {
     }
     return spaIndex(c, next);
   });
+} else {
+  console.error(`[server] no ui build at ${uiDistPath} — serving routes only`);
 }
 
 const server = Bun.serve({
-  port: Number(process.env.PORT ?? 3000),
+  port: config.port,
+  hostname: '127.0.0.1',
   fetch: app.fetch,
 });
-console.log(`[server] listening on ${server.url}`);
+const url = `http://localhost:${server.port}/`;
+console.error(`[server] listening on ${url}`);
+if (config.openBrowser) openBrowser(url);
+
+// The agent's entry point: MCP over stdio, calling the same services
+// in-process. When the host closes the stream the session is over, and so is
+// this process — the UI lives exactly as long as the agent session.
+const mcp = createMcpServer({ repositoryRoot: noesis.root });
+await mcp.connect(new StdioServerTransport());
+// The SDK's transport reads stdin but does not report its end; the host
+// closing the stream is what ends the session, so watch for it here.
+process.stdin.once('end', () => {
+  console.error('[server] MCP stream closed — shutting down');
+  void shutdown();
+});
+console.error('[server] MCP server connected on stdio');
 
 function loadRepositoryRoot(): string {
   const result = resolveRepositoryRoot({
@@ -107,6 +142,7 @@ async function shutdown(): Promise<void> {
   shuttingDown = true;
   watcher.close();
   try {
+    await mcp.close();
     await server.stop();
   } catch (error) {
     console.error(

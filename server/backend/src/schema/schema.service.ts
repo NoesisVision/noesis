@@ -14,7 +14,7 @@ export class SchemaService {
     for (const ddl of GRAPH_SCHEMA) {
       await this.db.query(ddl);
     }
-    console.log(
+    console.error(
       `[SchemaService] Graph schema ensured (${GRAPH_SCHEMA.length} statements)`,
     );
   }

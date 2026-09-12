@@ -12,7 +12,16 @@ import {
   type HelloRequest,
   toJsonSchema,
 } from './contracts/index.js';
-import type { ServerClient } from './server-client.js';
+
+/**
+ * What the tools may touch: the same services the HTTP surface gets, handed in
+ * by the composition root. Tools call them directly — there is no REST hop
+ * between the agent's process and the services (decision 68).
+ */
+export interface McpDeps {
+  /** The repository root, stated in the server's `instructions`. */
+  repositoryRoot: string;
+}
 
 interface ToolDefinition {
   description: string;
@@ -27,7 +36,9 @@ function errorResult(text: string): CallToolResult {
 }
 
 /**
- * Builds the MCP server and registers its tools; transport wiring stays in main.ts.
+ * Builds the MCP server and registers its tools; transport wiring stays in
+ * main.ts. Tools are thin — parse arguments, call one service method, shape
+ * the response.
  *
  * Validation is owned here, not by the SDK (decision 34): the SDK's built-in
  * input validation rejects bad payloads with a protocol-level InvalidParams
@@ -36,25 +47,26 @@ function errorResult(text: string): CallToolResult {
  * advertises the exact JSON Schema generated from its contract — the same
  * schema the plugin skill ships as a reference.
  */
-export function createMcpServer(serverClient: ServerClient): Server {
+export function createMcpServer(deps: McpDeps): Server {
   const tools: Record<string, ToolDefinition> = {
+    // Placeholder from the hello flow; the import and validate tools of the
+    // migration's R4 replace it.
     hello: {
-      description:
-        'Greets a person. Fetches the greeting from the configured Noesis server over REST.',
+      description: 'Greets a person.',
       contract: 'hello-request',
       handler: async (payload) => {
         const { name } = payload as HelloRequest;
-        const greeting = await serverClient.hello();
-        return {
-          content: [{ type: 'text', text: `${greeting} Greetings, ${name}!` }],
-        };
+        return { content: [{ type: 'text', text: `Greetings, ${name}!` }] };
       },
     },
   };
 
   const server = new Server(
-    { name: 'noesis-local', version: '0.1.0' },
-    { capabilities: { tools: {} } },
+    { name: 'noesis', version: '0.1.0' },
+    {
+      capabilities: { tools: {} },
+      instructions: `Noesis serves the repository at ${deps.repositoryRoot}.`,
+    },
   );
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({

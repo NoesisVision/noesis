@@ -1,36 +1,46 @@
-// Black-box e2e for SPA serving: spawns the real server with UI_DIST_PATH
+// Black-box e2e for SPA serving: spawns the real service with UI_DIST_PATH
 // pointing at a fixture dist, then asserts the SPA is served at /, client
-// routes fall back to index.html, and the /ui /api /internal surfaces are
-// not swallowed by the fallback. Runs as a subprocess because UI_DIST_PATH
-// is read at module-definition time.
+// routes fall back to index.html, and the /ui and /internal surfaces are not
+// swallowed by the fallback. The port is ephemeral, so the URL is read from
+// the service's own log line on stderr — the way a person finds it too.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-const serverRoot = resolve(__dirname, '../..');
+const serviceRoot = resolve(__dirname, '../..');
 
-const PORT = 3919;
-const BASE = `http://localhost:${PORT}`;
 const INDEX_MARKER = '<title>noesis-spa-fixture</title>';
 
 let serverProcess: ChildProcess;
 let uiDist: string;
 let repoRoot: string;
+let BASE: string;
 
-async function waitForHealth(timeoutMs: number): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const res = await fetch(`${BASE}/internal/health`);
-      if (res.ok) return;
-    } catch {
-      // server not up yet
-    }
-    await new Promise((r) => setTimeout(r, 200));
-  }
-  throw new Error(`Server did not become healthy within ${timeoutMs}ms`);
+function listeningUrl(child: ChildProcess, timeoutMs: number): Promise<string> {
+  return new Promise((resolveUrl, reject) => {
+    let log = '';
+    const timer = setTimeout(
+      () =>
+        reject(new Error(`No listening line within ${timeoutMs}ms:\n${log}`)),
+      timeoutMs,
+    );
+    child.stderr?.on('data', (chunk: Buffer) => {
+      log += chunk.toString();
+      const match = /\[server\] listening on (http:\/\/\S+)/.exec(log);
+      if (match?.[1]) {
+        clearTimeout(timer);
+        resolveUrl(match[1].replace(/\/$/, ''));
+      }
+    });
+    child.on('exit', (code) => {
+      clearTimeout(timer);
+      reject(
+        new Error(`Service exited with ${code} before listening:\n${log}`),
+      );
+    });
+  });
 }
 
 beforeAll(async () => {
@@ -39,21 +49,23 @@ beforeAll(async () => {
     join(uiDist, 'index.html'),
     `<!doctype html><html><head>${INDEX_MARKER}</head><body></body></html>`,
   );
-
   repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
 
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
-    cwd: serverRoot,
+    cwd: serviceRoot,
     env: {
       ...process.env,
-      PORT: String(PORT),
       UI_DIST_PATH: uiDist,
-      // A throwaway repository root so the run writes no `.noesis/` here.
+      // A throwaway repository root so the run writes no `.noesis/` here,
+      // and no browser popping up in a test run.
       NOESIS_ROOT: repoRoot,
+      NOESIS_OPEN_BROWSER: '0',
     },
-    stdio: 'ignore',
+    // stdin stays open: the service treats a closed MCP stream as the end of
+    // the session and exits.
+    stdio: ['pipe', 'ignore', 'pipe'],
   });
-  await waitForHealth(15_000);
+  BASE = await listeningUrl(serverProcess, 15_000);
 }, 30_000);
 
 afterAll(async () => {
@@ -62,7 +74,7 @@ afterAll(async () => {
   if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
 });
 
-describe('SPA serving via UI_DIST_PATH (e2e)', () => {
+describe('SPA serving (e2e)', () => {
   it('serves index.html at /', async () => {
     const res = await fetch(`${BASE}/`);
     expect(res.status).toBe(200);
@@ -76,20 +88,28 @@ describe('SPA serving via UI_DIST_PATH (e2e)', () => {
   });
 
   it('keeps the ui surface working', async () => {
-    const res = await fetch(`${BASE}/ui/hello`);
+    const res = await fetch(`${BASE}/ui/changes`);
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe('Hello World!');
+    expect(await res.json()).toEqual({ changes: [] });
   });
 
-  it('keeps the api surface working', async () => {
-    const res = await fetch(`${BASE}/api/hello`);
+  it('keeps the internal surface working', async () => {
+    const res = await fetch(`${BASE}/internal/health`);
     expect(res.status).toBe(200);
-    expect(await res.text()).toBe('Hello World!');
+    expect(await res.json()).toEqual({ status: 'ok' });
   });
 
   it('does not swallow surface 404s into the SPA fallback', async () => {
-    const res = await fetch(`${BASE}/api/no-such-endpoint`);
+    const res = await fetch(`${BASE}/ui/no-such-endpoint`);
     expect(res.status).toBe(404);
     expect(await res.text()).not.toContain(INDEX_MARKER);
   });
+
+  it('exits when the MCP stream closes — the UI lives as long as the session', async () => {
+    const exited = new Promise<number | null>((r) =>
+      serverProcess.on('exit', (code) => r(code)),
+    );
+    serverProcess.stdin?.end();
+    expect(await exited).toBe(0);
+  }, 10_000);
 });

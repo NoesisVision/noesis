@@ -5,22 +5,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createMcpServer } from '../../src/mcp-server.js';
-import { ServerClient } from '../../src/server-client.js';
+import { createMcpServer } from '../../src/mcp/mcp-server.js';
 
 let client: Client;
-const realFetch = globalThis.fetch;
 
 beforeAll(async () => {
-  // The hello handler's REST hop, stubbed; the full hop is covered by the e2e.
-  globalThis.fetch = (async () =>
-    new Response('Hello World!')) as unknown as typeof fetch;
-
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
-  const server = createMcpServer(
-    new ServerClient({ serverUrl: 'http://stubbed.invalid' }),
-  );
+  const server = createMcpServer({ repositoryRoot: '/work/repo' });
   await server.connect(serverTransport);
 
   client = new Client({ name: 'mcp-server-spec', version: '0.0.0' });
@@ -28,7 +20,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  globalThis.fetch = realFetch;
   await client?.close();
 });
 
@@ -38,6 +29,10 @@ function textOf(result: Awaited<ReturnType<Client['callTool']>>): string {
 }
 
 describe('createMcpServer', () => {
+  it('states the repository root in its instructions', () => {
+    expect(client.getInstructions()).toContain('/work/repo');
+  });
+
   it('advertises each tool with the JSON Schema generated from its contract', async () => {
     const { tools } = await client.listTools();
     const hello = tools.find((t) => t.name === 'hello');
@@ -52,7 +47,7 @@ describe('createMcpServer', () => {
       arguments: { name: 'Ada' },
     });
     expect(result.isError).toBeFalsy();
-    expect(textOf(result)).toBe('Hello World! Greetings, Ada!');
+    expect(textOf(result)).toBe('Greetings, Ada!');
   });
 
   it('returns a descriptive in-band error for a schema violation', async () => {

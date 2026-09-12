@@ -20,14 +20,4 @@ Every Noesis MCP tool payload has a contract. Before constructing a payload:
 
 - `hello-request` — payload for the `hello` MCP tool
 
-## Choosing the server
-
-The `noesis-local` MCP server talks to a Noesis server app over REST. It targets
-`http://localhost:3000` by default; override with the `NOESIS_SERVER_URL`
-environment variable — e.g. per project in `.claude/settings.local.json`:
-
-```json
-{ "env": { "NOESIS_SERVER_URL": "https://staging.noesis.dev" } }
-```
-
-(These files are generated from `@repo/mcp-contracts` — do not edit them by hand; run `bun run generate` after changing the zod schemas.)
+(These files are generated from the service's `src/mcp/contracts` — do not edit them by hand; run `bun run generate` after changing the zod schemas.)
