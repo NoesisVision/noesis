@@ -4,28 +4,27 @@ A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis apps, th
 
 ## 1. Architecture
 
+The target architecture and its diagram are in
+[`docs/arch/ARCHITECTURE.md`](docs/arch/ARCHITECTURE.md); decision 68 in
+[`docs/decisions.md`](docs/decisions.md) records its adoption. In one line:
+the agent host launches one Noesis service process per session over stdio,
+that process serves the browser UI on an ephemeral port, the knowledge graph
+lives as JSON files under `.noesis/` in the user's repository, and the embedded
+graph database is a cache rebuilt from those files.
+
 ```
-┌─────────────────┐   REST    ┌────────────────┐   REST    ┌─────────────────────┐
-│ server/frontend │ ────────► │ server/backend │ ◄──────── │ plugins/mcp-bridge  │
-│  React + Vite   │           │   Hono (bun)   │           │  MCP bridge (stdio) │
-│     :5173       │           │      :3000     │           │  npm: @noesis-vision│
-└─────────────────┘           └────────────────┘           │     /mcp-bridge     │
-                                                           └─────────────────────┘
-                                                          ▲ launched via bunx by
-                                                          │
-                                              ┌───────────┴───────────┐
-                                              │ plugins/claude-code   │
-                                              │ (OpenCode, Codex, ... │
-                                              │  planned)             │
-                                              └───────────────────────┘
+agent host (Claude Code) ──stdio/MCP──► @noesis-vision/noesis ◄──HTTP /ui──► browser
+   plugins/claude-code                   server/backend + built frontend
+   skills + contracts                    file repositories over .noesis/
+                                         in-memory graph + watcher + scanner
 ```
 
 ### Apps
 
-| App               | Stack                      | Purpose                   |
-| ----------------- | -------------------------- | ------------------------- |
-| `server/frontend` | React 19 + TanStack Router | Web frontend (Vite SPA)   |
-| `server/backend`  | Hono on `Bun.serve`        | Backend API (port `3000`) |
+| App               | Stack                      | Purpose                  |
+| ----------------- | -------------------------- | ------------------------ |
+| `server/frontend` | React 19 + TanStack Router | Web frontend (Vite SPA)  |
+| `server/backend`  | Hono on `Bun.serve`        | The service: MCP + `/ui` |
 
 ### The service (`server/backend`)
 
@@ -75,7 +74,7 @@ Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) 
 
 ### Scanners (`scanners/`)
 
-Planned language scanners (`java/`, `dotnet/`) — not yet implemented and not part of the bun workspace.
+The TypeScript scanner is a service component (`server/backend/src/scanner`), run by the `scan-system-model` tool; it writes `.noesis/system-model/`. `scanners/java` (a Maven tool, decisions 19/20) and the `dotnet/` stub are not integrated with the service yet — how they feed `system-model/` is a later decision.
 
 ## 2. Tools
 
@@ -120,11 +119,12 @@ The server runs locally inside a single checkout, as part of the Claude plugin.
 It has no identity provider and no tenant scoping, so there is nothing to
 register and nothing to authenticate against (decision 65).
 
-| Variable       | Meaning                                                                                        |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `NOESIS_ROOT`  | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
-| `PORT`         | Listen port; defaults to `3000`                                                                |
-| `UI_DIST_PATH` | Serve a built SPA from this directory (unset in dev/tests)                                     |
+| Variable              | Meaning                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `NOESIS_ROOT`         | Repository root holding `.noesis/`; defaults to the nearest `.git` above the working directory |
+| `NOESIS_OPEN_BROWSER` | `0` keeps the browser closed at boot (headless runs, tests)                                    |
+| `PORT`                | Pins the HTTP port for the Vite dev proxy (`bun run dev`); defaults to an ephemeral one        |
+| `UI_DIST_PATH`        | Serve the SPA from this directory instead of the packaged `ui/` (development only)             |
 
 ### Working with contracts
 
@@ -170,26 +170,16 @@ The `Release` workflow (`.github/workflows/release.yml`) verifies the tag agains
 
 Payload validation happens in the service's MCP server (decision 34): every `tools/call` is checked against its contract's zod schema, and mismatches come back as descriptive in-band tool errors (failing fields + a valid example) so the calling agent can correct itself.
 
-## 4. Deployment
+## 4. Distribution
 
-`backend` + `frontend` deploy as **one Railway service**: the Hono backend
-serves the built SPA (decisions 17/18/28). Routes are segregated by consumer — `/ui/*` for
-the SPA, `/api/*` for the MCP bridge, `/internal/*` for health and other
-technical endpoints. No surface is guarded: the server runs on the developer's
-own machine, inside one checkout (decision 65).
+There is no deployment: the service runs on the user's machine, one process
+per agent session (decision 68). What ships is two npm packages, released in
+lockstep by the `v*` tag workflow (`.github/workflows/release.yml`, trusted
+publishing):
 
-- **How it ships:** every green push to `main` triggers the `deploy` job in
-  `ci.yml`, which runs `railway up --ci`. Railway builds
-  `server/backend/Dockerfile` (multi-stage `oven/bun`, pinned to `packageManager`,
-  repo-root build context) and
-  health-checks `/internal/health` (`railway.json`).
-- **Configuration:** `RAILWAY_TOKEN` (GitHub Actions secret, a Railway project
-  token) and `RAILWAY_SERVICE` (GitHub Actions repository variable, the Railway
-  service name). Railway injects `PORT`; `UI_DIST_PATH` is baked into the
-  image. There is nothing else to configure.
-- **Run the production image locally:**
+- **`@noesis-vision/noesis`** — the service: `dist/main.js` bin, the built
+  frontend in `ui/`, the contract sources in `contracts/`.
+- **`@noesis-vision/claude-code-plugin`** — the plugin: skills, the
+  `contracts/` copy, and `.mcp.json` pinning the service version.
 
-```sh
-docker build -f server/backend/Dockerfile -t noesis-backend .
-docker run --rm -p 3000:3000 --env-file .env.local noesis-backend
-```
+See `plugins/claude-code/README.md` for the release procedure.

@@ -76,6 +76,19 @@ from version control, the **temp dir** `.noesis/tmp/` used as scratch space betw
 and the service. Skills are plugin content, versioned in the Noesis repository, not copied into
 the user's project.
 
+## Process model
+
+The service is one process per agent session, started by the agent host as a stdio MCP server
+(the plugin's `.mcp.json` launches `bunx @noesis-vision/noesis` with `NOESIS_ROOT` set to the
+project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
+working directory), ensures `.noesis/` and its `.gitignore`, opens its scratch directory under
+`.noesis/tmp/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
+opens the default browser on it once (`NOESIS_OPEN_BROWSER=0` suppresses this), and connects MCP
+on stdio. stdout belongs to MCP; every log line goes to stderr. When the host closes the stream
+the process removes its scratch directory, closes the database and exits — the UI lives exactly
+as long as the agent session. There is no daemon, no browser-only mode and no shared process
+between sessions; two sessions on one checkout are two processes over the same files.
+
 ## Entry points
 
 Two, and only two.

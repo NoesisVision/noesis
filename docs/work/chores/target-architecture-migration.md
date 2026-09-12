@@ -1,7 +1,7 @@
 ---
 type: chore
 scope: repo
-status: elicited
+status: built
 created: 2026-09-11
 ---
 
@@ -292,6 +292,18 @@ one reviewable pull request unless noted.
   against the current checkout's `.noesis/` with a fixed dev port so the Vite
   proxy has a target.
 - Delete `server/backend/.env` and rotate the GitHub App secret it holds.
+- Landed 2026-09-12: Dockerfile, `railway.json`, the CI bun-version guard,
+  the `railway.json` paths-filter entry and the `deploy` job are gone;
+  `server/backend/.env` is deleted locally (it was never committed).
+  **`PORT` stays** as an optional pin with an ephemeral default, because the
+  Vite dev proxy needs a fixed target; it is not set by the plugin's launch.
+  `release.yml` already published the service and the plugin (R3) and the
+  plugin's tarball test asserts the copied contracts and the bin (R5). **Not
+  done here, needs a person:** rotating the GitHub App client secret and
+  private key that the deleted `.env` held (`NOESIS_GITHUB_CLIENT_SECRET`,
+  `NOESIS_GITHUB_PRIVATE_KEY`, `NOESIS_TOKEN_KEY`) in the GitHub App
+  settings — the auth feature is removed (decision 65), so the App itself can
+  be deleted instead.
 
 ### R9 — Documentation
 
@@ -306,6 +318,16 @@ one reviewable pull request unless noted.
   rest is historical and stays.
 - `change-shell.md`: the change backend section is rewritten to directory
   semantics; the sidebar, routes and styling sections stand.
+- Landed 2026-09-12. `ARCHITECTURE.md` gained the "Process model" section
+  (the tree listing and `tmp/` were already corrected with decision 68);
+  `high_level.png` was already gone from the tree. README: the bridge-era diagram is replaced by
+  a pointer to the architecture document and a one-line sketch, the apps
+  table and the configuration table match `config.ts`, the scanners section
+  describes the in-process TypeScript scanner, and "Deployment" became
+  "Distribution" (two npm packages, one tag). `sdlc-migration-plan.md` §2
+  carries the status note. `change-shell.md`'s backend section was already
+  rewritten with R1. `docs/stack.md` describes only the frontend and needed no
+  change.
 
 ## Constraints
 

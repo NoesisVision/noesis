@@ -31,7 +31,6 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'bunfig.toml'
-              - 'railway.json'
               - '.github/workflows/ci.yml'
 
   # Ungated: format:check covers **/*.md (prettier), so doc-only commits are
@@ -59,16 +58,6 @@ jobs:
     if: needs.changes.outputs.ts == 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      # The bun version lives in packageManager (authoritative, used by
-      # setup-bun below) and in the Dockerfile's FROM tags — fail on drift.
-      - name: Dockerfile bun version matches packageManager
-        run: |
-          want=$(jq -r '.packageManager | split("@")[1]' package.json)
-          if grep -E '^FROM oven/bun' server/backend/Dockerfile | grep -vE "oven/bun:${want}(-slim)?( |$)"; then
-            echo "::error::server/backend/Dockerfile FROM tags must use oven/bun:${want} (packageManager in package.json)."
-            exit 1
-          fi
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -138,31 +127,3 @@ jobs:
       - name: Build and test
         run: mvn -B --no-transfer-progress verify
         working-directory: scanners/java
-
-  deploy:
-    name: Deploy to Railway
-    runs-on: ubuntu-latest
-    needs: [verify, generate-check]
-    # Deploys every green push to main that touched the TS workspace; a
-    # java-only push skips verify, which skips this job too. Railway builds
-    # the Dockerfile (railway.json); auth is a project token, so no
-    # `railway link` is needed.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Check deploy configuration
-        run: |
-          if [ -z "${{ secrets.RAILWAY_TOKEN }}" ] || [ -z "${{ vars.RAILWAY_SERVICE }}" ]; then
-            echo "::error::Set the RAILWAY_TOKEN secret and the RAILWAY_SERVICE repository variable (Railway service name)."
-            exit 1
-          fi
-
-      - name: Deploy
-        run: railway up --service "${{ vars.RAILWAY_SERVICE }}" --ci
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-

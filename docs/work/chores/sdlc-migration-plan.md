@@ -81,6 +81,13 @@ all per project, launched by Claude Code with `NOESIS_PROJECT_DIR=$(pwd)`.
 
 ## 2. Target architecture (decided)
 
+> **Status (2026-09-12):** superseded by decision 68 and
+> [`docs/arch/ARCHITECTURE.md`](../../arch/ARCHITECTURE.md). The invariant
+> below is now the opposite of what the system does: the files under `.noesis/`
+> are the source of truth and the graph is an in-memory cache rebuilt by a
+> watcher; there is one local process per agent session and no remote server.
+> The rest of this section is kept as the historical record.
+
 The foundational topology is settled. SDLC's defining assumption — _project files
 on the developer's disk are the source of truth, and the DB is a cache of them_ —
 **does not carry over.** In noesis the **server's DB is the single source of

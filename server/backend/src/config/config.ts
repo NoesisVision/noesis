@@ -9,7 +9,8 @@ import { z } from 'zod';
 // checkout, one process per agent session, so it has no identity provider, no
 // tenant scoping and no public URL (decision 65), and its graph is an
 // in-memory cache with no data directory (decision 68). The HTTP port is
-// ephemeral; `PORT` pins it only for the Vite dev proxy.
+// ephemeral; `PORT` pins it only for the Vite dev proxy (`bun run dev`), and
+// is not part of the plugin's launch — two agent sessions must not collide.
 const envSchema = z.object({
   NOESIS_ROOT: z.string().min(1).optional(),
   /** `0` keeps the browser closed — headless runs and tests. */
