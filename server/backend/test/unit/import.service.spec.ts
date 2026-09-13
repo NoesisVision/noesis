@@ -4,6 +4,7 @@ import type {
   ConversationAnalysis,
   DocumentAnalysis,
 } from '@repo/shared-contracts';
+import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { sha256 } from '../../src/ids/uuid.js';
 import {
@@ -34,72 +35,7 @@ const fragmentRef = (conversationId: string) => ({
 function conversationPayload(
   overrides: Partial<ConversationAnalysis> = {},
 ): ConversationAnalysis {
-  return {
-    conversation: {
-      conversation_id: 'placeholder-conv',
-      time: '2026-09-12T10:00:00Z',
-      main_topic: 'Slot holds',
-      turns: [
-        {
-          index: 0,
-          speaker: 'Ada',
-          time: '10:00',
-          fragments: [
-            {
-              index: 0,
-              sentences: ['Hold a slot for ten minutes.'],
-              categories: ['Decision'],
-            },
-          ],
-        },
-      ],
-    },
-    topics: [
-      {
-        id: 'new-parent',
-        parent_id: null,
-        is_new: true,
-        title: 'Booking',
-        short_summary: 'Booking in general.',
-        long_summary: 'Everything about booking.',
-        items: [],
-        decisions: [],
-        reviewed: false,
-        decisions_extracted: false,
-      },
-      {
-        id: 'new-child',
-        parent_id: 'new-parent',
-        is_new: true,
-        title: 'Slot holds',
-        short_summary: 'How slots are held.',
-        long_summary: 'Slots are held for ten minutes.',
-        items: [fragmentRef('placeholder-conv')],
-        decisions: [
-          {
-            title: 'Hold slots for ten minutes',
-            status: 'accepted',
-            context: {
-              text: 'Double bookings happened.',
-              text_locked: false,
-              supporting_info: [fragmentRef('placeholder-conv')],
-            },
-            decision: {
-              text: 'Ten minutes.',
-              text_locked: false,
-              rationale: 'Long enough to pay.',
-              rationale_locked: false,
-              supporting_info: [],
-            },
-            alternative_options: [],
-          },
-        ],
-        reviewed: false,
-        decisions_extracted: true,
-      },
-    ],
-    ...overrides,
-  };
+  return { ...conversationAnalysisFixture, ...overrides };
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

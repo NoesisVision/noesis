@@ -131,6 +131,13 @@ export interface NoesisStore<Input, Output, Children> {
   /** The keys of the collection's objects, in no particular order. */
   keys(): AsyncIterable<string>;
 
+  /**
+   * The collection's objects, validated, in the order of `keys()`; an object
+   * that vanishes between the two steps is skipped. A file that does not
+   * decode fails the iteration, as `get` would.
+   */
+  values(): AsyncIterable<Output>;
+
   /** Handles on the object's child collections; touches no file. */
   children(key: string): Children;
 }
@@ -153,6 +160,7 @@ export type NoesisStoreOperation =
   | 'set'
   | 'delete'
   | 'keys'
+  | 'values'
   | 'children';
 
 export interface NoesisStoreErrorDetails {

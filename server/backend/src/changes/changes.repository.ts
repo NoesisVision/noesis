@@ -77,6 +77,14 @@ export class ChangesRepository {
     return this.store.get(slug.value);
   }
 
+  /** Every change, in no particular order; see `keys()` for what is skipped. */
+  async *values(): AsyncIterable<Change> {
+    for await (const slug of this.keys()) {
+      const change = await this.read(slug);
+      if (change !== null) yield change;
+    }
+  }
+
   /** Creates or replaces the change's `data.json`; what it owns stays. */
   async write(change: Change): Promise<void> {
     await this.store.set(ChangeSlug.parse(change.slug).value, change);

@@ -86,11 +86,7 @@ class BunNoesisStore
     const operation = 'get';
     assertKey(key, operation);
     await this.assertAncestors(operation, key);
-    const location = this.locate(key);
-    if (!(await objectExists(location, operation, key))) return null;
-    const text = await readText(location.dataFile, operation, key);
-    if (text === null) return null;
-    return decodeObject(this.collection.schema, text, operation, key, location);
+    return this.read(key, operation);
   }
 
   async set(key: string, value: unknown): Promise<void> {
@@ -139,6 +135,14 @@ class BunNoesisStore
     }
   }
 
+  async *values(): AsyncIterable<unknown> {
+    const operation = 'values';
+    for await (const key of this.keys()) {
+      const value = await this.read(key, operation);
+      if (value !== null) yield value;
+    }
+  }
+
   children(key: string): Record<string, unknown> {
     assertKey(key, 'children');
     const location = this.locate(key);
@@ -154,6 +158,18 @@ class BunNoesisStore
 
   private locate(key: string): ObjectLocation {
     return objectLocation(this.directory, key);
+  }
+
+  /** The object's validated data after the key and ancestors are checked. */
+  private async read(
+    key: string,
+    operation: NoesisStoreOperation,
+  ): Promise<unknown> {
+    const location = this.locate(key);
+    if (!(await objectExists(location, operation, key))) return null;
+    const text = await readText(location.dataFile, operation, key);
+    if (text === null) return null;
+    return decodeObject(this.collection.schema, text, operation, key, location);
   }
 
   /** Every ancestor object must exist; a child handle never creates one. */
@@ -447,7 +463,7 @@ async function validate(
   try {
     return await schema.parseAsync(value);
   } catch (cause) {
-    const where = operation === 'get' ? 'on disk' : 'supplied';
+    const where = operation === 'set' ? 'supplied' : 'on disk';
     throw new NoesisStoreError(
       `Object "${key}" ${where} does not match the collection schema.`,
       {

@@ -81,11 +81,7 @@ export class DesignDocsService {
 
   async create(slug: ChangeSlug, input: unknown): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
-    const report = validate(designDocumentContract, withId(input, newUuid()));
-    if (!report.ok) {
-      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
-    }
-    return this.store(slug, report.value);
+    return this.accept(slug, input, newUuid());
   }
 
   /**
@@ -114,22 +110,13 @@ export class DesignDocsService {
     if ((await this.docs(slug).get(id)) === null) {
       throw new DesignDocNotFoundError(slug, id);
     }
-    const report = validate(designDocumentContract, withId(input, id));
-    if (!report.ok) {
-      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
-    }
-    return this.store(slug, report.value);
+    return this.accept(slug, input, id);
   }
 
   /** Newest first — `date` drives ordering on the documents page. */
   async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
     await this.changesService.assertExists(slug);
-    const docs = this.docs(slug);
-    const documents: DesignDocument[] = [];
-    for await (const id of docs.keys()) {
-      const document = await docs.get(id);
-      if (document !== null) documents.push(document);
-    }
+    const documents = await Array.fromAsync(this.docs(slug).values());
     return documents
       .sort(
         (a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name),
@@ -156,12 +143,18 @@ export class DesignDocsService {
     return this.changes.children(slug)['design-docs'];
   }
 
-  private async store(
+  /** The boundary: validates the input under the server's id, then stores it. */
+  private async accept(
     slug: ChangeSlug,
-    document: DesignDocument,
+    input: unknown,
+    id: string,
   ): Promise<DesignDocSummary> {
-    await this.docs(slug).set(document.id, document);
-    return this.summarize(slug, document);
+    const report = validate(designDocumentContract, withId(input, id));
+    if (!report.ok) {
+      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
+    }
+    await this.docs(slug).set(id, report.value);
+    return this.summarize(slug, report.value);
   }
 
   private summarize(

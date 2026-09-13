@@ -99,14 +99,9 @@ export function put<T extends { id: string }>(
   return store.set(entity.id, entity);
 }
 
-/** Every object of a collection, in key order. */
-export async function all<T>(
-  store: Pick<NoesisStore<unknown, T, unknown>, 'keys' | 'get'>,
+/** Every object of a collection, in no particular order. */
+export function all<T>(
+  store: Pick<NoesisStore<unknown, T, unknown>, 'values'>,
 ): Promise<T[]> {
-  const objects: T[] = [];
-  for (const key of (await Array.fromAsync(store.keys())).sort()) {
-    const object = await store.get(key);
-    if (object !== null) objects.push(object);
-  }
-  return objects;
+  return Array.fromAsync(store.values());
 }

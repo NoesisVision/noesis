@@ -434,6 +434,41 @@ describe('keys', () => {
   });
 });
 
+describe('values', () => {
+  it('yields every object of the collection, validated, and nothing else', async () => {
+    await changes.set('a', change('a'));
+    await changes.set('b', change('b'));
+    await mkdir(join(graph, 'changes', 'no-data'), { recursive: true });
+
+    const values = await Array.fromAsync(changes.values());
+    expect(values.map((c) => c.slug).sort()).toEqual(['a', 'b']);
+    expect(values.every((c) => c.status === 'discovery')).toBe(true);
+  });
+
+  it('fails on an object that does not decode, naming the operation', async () => {
+    await changes.set('a', change('a'));
+    await writeFile(join(graph, 'changes', 'a', 'data.json'), '{"slug":1}');
+
+    const error = await failure(Array.fromAsync(changes.values()));
+    expect(error.code).toBe('VALIDATION_FAILED');
+    expect(error.operation).toBe('values');
+  });
+
+  it('is scoped to the parent object and needs it to exist', async () => {
+    await changes.set('a', change('a'));
+    await changes.children('a')['design-docs'].set('d1', doc('d1'));
+
+    const docs = await Array.fromAsync(
+      changes.children('a')['design-docs'].values(),
+    );
+    expect(docs.map((d) => d.id)).toEqual(['d1']);
+    const error = await failure(
+      Array.fromAsync(changes.children('missing')['design-docs'].values()),
+    );
+    expect(error.code).toBe('PARENT_NOT_FOUND');
+  });
+});
+
 describe('delete', () => {
   it('removes an object that owns nothing and reports a second attempt as false', async () => {
     await changes.set('c', change('c'));

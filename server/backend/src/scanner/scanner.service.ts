@@ -56,14 +56,12 @@ export class ScannerService {
       });
     }
 
-    // The keys first, then the deletions: no removing under the iteration.
-    const stale = (await Array.fromAsync(this.systemModels.keys())).filter(
-      (id) => !written.has(id),
+    // Every model first, then the deletions: no removing under the iteration.
+    const stale = (await Array.fromAsync(this.systemModels.values())).filter(
+      (model) => !written.has(model.id),
     );
-    for (const id of stale) {
-      const model = await this.systemModels.get(id);
-      if (model === null) continue;
-      await this.systemModels.delete(id);
+    for (const model of stale) {
+      await this.systemModels.delete(model.id);
       report.removed.push(model.name);
     }
 

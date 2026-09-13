@@ -47,17 +47,12 @@ export class ChangesService {
 
   /** Newest first, then by slug for a stable order between equal stamps. */
   async list(): Promise<Change[]> {
-    const slugs = await Array.fromAsync(this.changes.keys());
-    const changes = await Promise.all(
-      slugs.map((slug) => this.changes.read(slug)),
+    const changes = await Array.fromAsync(this.changes.values());
+    return changes.sort(
+      (a, b) =>
+        b.created_at.localeCompare(a.created_at) ||
+        a.slug.localeCompare(b.slug),
     );
-    return changes
-      .filter((change): change is Change => change !== null)
-      .sort(
-        (a, b) =>
-          b.created_at.localeCompare(a.created_at) ||
-          a.slug.localeCompare(b.slug),
-      );
   }
 
   async findById(slug: ChangeSlug): Promise<Change> {

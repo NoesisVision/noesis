@@ -9,6 +9,7 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { listeningUrl, serviceEnv } from '../support/service-process.js';
 
 const serviceRoot = resolve(__dirname, '../..');
 
@@ -18,45 +19,12 @@ let serverProcess: ChildProcess;
 let repoRoot: string;
 let BASE: string;
 
-function listeningUrl(child: ChildProcess, timeoutMs: number): Promise<string> {
-  return new Promise((resolveUrl, reject) => {
-    let log = '';
-    const timer = setTimeout(
-      () =>
-        reject(new Error(`No listening line within ${timeoutMs}ms:\n${log}`)),
-      timeoutMs,
-    );
-    child.stderr?.on('data', (chunk: Buffer) => {
-      log += chunk.toString();
-      // Text while developing, a JSON line from the built bin: both carry
-      // the URL after "listening on", the JSON one in escaped quotes.
-      const match = /listening on \\?"?(http:\/\/[^\s"\\]+)/.exec(log);
-      if (match?.[1]) {
-        clearTimeout(timer);
-        resolveUrl(match[1].replace(/\/$/, ''));
-      }
-    });
-    child.on('exit', (code) => {
-      clearTimeout(timer);
-      reject(
-        new Error(`Service exited with ${code} before listening:\n${log}`),
-      );
-    });
-  });
-}
-
 beforeAll(async () => {
   repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
 
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serviceRoot,
-    env: {
-      ...process.env,
-      // A throwaway repository root so the run writes no `.noesis/` here,
-      // and no browser popping up in a test run.
-      NOESIS_ROOT: repoRoot,
-      NOESIS_OPEN_BROWSER: '0',
-    },
+    env: serviceEnv(repoRoot),
     // stdin stays open: the service treats a closed MCP stream as the end of
     // the session and exits.
     stdio: ['pipe', 'ignore', 'pipe'],

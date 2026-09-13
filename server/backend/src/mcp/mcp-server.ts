@@ -191,6 +191,24 @@ export function createMcpServer(deps: McpDeps): Server {
       'The graph picks the files up on the next re-index.',
     ].join('\n');
 
+  /** An import tool: a working file that satisfies `contract`, imported into a change. */
+  const importTool = (
+    description: string,
+    contract: string,
+    run: (change: ChangeSlug, payload: unknown) => Promise<ImportReport>,
+  ) =>
+    define({
+      description,
+      args: z.object({ change: changeSlug, path: workingPath }),
+      handler: async ({ change, path }) => {
+        const file = await readWorkingJson(path);
+        if (!file.ok) return errorResult(file.text);
+        return attempt(contract, async () =>
+          text(importReport(await run(ChangeSlug.parse(change), file.raw))),
+        );
+      },
+    });
+
   const tools = {
     validate: define({
       description:
@@ -227,45 +245,18 @@ export function createMcpServer(deps: McpDeps): Server {
       },
     }),
 
-    'import-conversation': define({
-      description:
-        'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      args: z.object({ change: changeSlug, path: workingPath }),
-      handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('conversation-analysis', async () =>
-          text(
-            importReport(
-              await deps.importService.importConversation(
-                ChangeSlug.parse(change),
-                file.raw,
-              ),
-            ),
-          ),
-        );
-      },
-    }),
+    'import-conversation': importTool(
+      'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
+      'conversation-analysis',
+      (change, payload) =>
+        deps.importService.importConversation(change, payload),
+    ),
 
-    'import-document': define({
-      description:
-        'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      args: z.object({ change: changeSlug, path: workingPath }),
-      handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('document-analysis', async () =>
-          text(
-            importReport(
-              await deps.importService.importDocument(
-                ChangeSlug.parse(change),
-                file.raw,
-              ),
-            ),
-          ),
-        );
-      },
-    }),
+    'import-document': importTool(
+      'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
+      'document-analysis',
+      (change, payload) => deps.importService.importDocument(change, payload),
+    ),
 
     'list-design-docs': define({
       description:

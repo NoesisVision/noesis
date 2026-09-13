@@ -8,6 +8,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { SessionDir } from '../../src/files/session-dir.js';
@@ -15,6 +16,7 @@ import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
 import { ScannerService } from '../../src/scanner/scanner.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
+import { textOf } from '../support/service-process.js';
 import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = 'booking';
@@ -52,11 +54,6 @@ afterEach(async () => {
   await client?.close();
   await t?.cleanup();
 });
-
-function textOf(result: Awaited<ReturnType<Client['callTool']>>): string {
-  const [content] = result.content as { type: string; text: string }[];
-  return content?.text ?? '';
-}
 
 /** A working file in this session's scratch directory, as the agent would write it. */
 async function working(name: string, content: unknown): Promise<string> {
@@ -301,57 +298,7 @@ describe('createMcpServer', () => {
   });
 
   describe('import-conversation', () => {
-    const payload = {
-      conversation: {
-        conversation_id: 'placeholder',
-        time: '2026-09-12T10:00:00Z',
-        main_topic: 'Slot holds',
-        turns: [
-          {
-            index: 0,
-            speaker: 'Ada',
-            time: '10:00',
-            fragments: [
-              {
-                index: 0,
-                sentences: ['Hold a slot for ten minutes.'],
-                categories: ['Decision'],
-              },
-            ],
-          },
-        ],
-      },
-      topics: [
-        {
-          id: 'new-1',
-          is_new: true,
-          title: 'Slot holds',
-          short_summary: 'How slots are held.',
-          long_summary: 'Slots are held for ten minutes.',
-          items: [
-            {
-              type: 'conversation_fragment_ref',
-              conversation_id: 'placeholder',
-              turn_index: 0,
-              fragment_index: 0,
-            },
-          ],
-          decisions: [
-            {
-              title: 'Hold slots for ten minutes',
-              status: 'accepted',
-              context: { text: 'Double bookings.', supporting_info: [] },
-              decision: {
-                text: 'Ten minutes.',
-                rationale: 'Long enough.',
-                supporting_info: [],
-              },
-              alternative_options: [],
-            },
-          ],
-        },
-      ],
-    };
+    const payload = conversationAnalysisFixture;
 
     it('writes the source and the wiki, and reports what it did', async () => {
       const path = await working('analysis.json', payload);
@@ -366,9 +313,9 @@ describe('createMcpServer', () => {
           `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/[0-9a-f-]{36}/data.json`,
         ),
       );
-      expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
+      expect(report).toMatch(/Topics created: [0-9a-f-]{36}, [0-9a-f-]{36}\./);
       expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);
-      expect(await all(t.topics)).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(2);
       expect(await all(t.decisions)).toHaveLength(1);
     });
 
@@ -384,7 +331,7 @@ describe('createMcpServer', () => {
       });
       expect(again.isError).toBe(true);
       expect(textOf(again)).toContain('was imported before as .noesis/');
-      expect(await all(t.topics)).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(2);
     });
 
     it('rejects a payload that fails the contract with the issue list', async () => {
