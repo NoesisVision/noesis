@@ -30,7 +30,7 @@
     "prepack": "bun run build"
   },
   "dependencies": {
-    "@ladybugdb/core": "^0.19.0"
+    "@ladybugdb/core": "^0.20.0"
   },
   "trustedDependencies": [
     "@ladybugdb/core"
