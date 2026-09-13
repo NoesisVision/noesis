@@ -6,7 +6,7 @@ import { GraphIndexer } from '../../src/index/indexer.js';
 import { createGraphSearch } from '../../src/search/graph-search.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const ALPHA = ChangeSlug.parse('alpha');
 
@@ -31,7 +31,7 @@ describe('graph search', () => {
     await t.changesRepository
       .children(ALPHA)
       ['design-docs'].set(designDocFixture.id, designDocFixture);
-    await t.topicsRepository.write({
+    await put(t.topics, {
       id: 't-1',
       parent_id: null,
       title: 'Appointment slots',
@@ -42,7 +42,7 @@ describe('graph search', () => {
       long_summary_locked: false,
       items: [],
     });
-    await t.topicsRepository.write({
+    await put(t.topics, {
       id: 't-2',
       parent_id: 't-1',
       title: 'Payments',
@@ -53,7 +53,7 @@ describe('graph search', () => {
       long_summary_locked: false,
       items: [],
     });
-    await t.decisionsRepository.write({
+    await put(t.decisions, {
       id: 'd-1',
       topic_id: 't-1',
       title: 'Hold appointment slots for ten minutes',

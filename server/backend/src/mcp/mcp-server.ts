@@ -335,7 +335,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'scan-system-model': define({
       description:
-        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
+        'Scans the repository source code and writes the implemented model to .noesis/graph/system-model/, one object per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
       args: z.object({}),
       handler: async () => {
         const report = await deps.scannerService.scan();

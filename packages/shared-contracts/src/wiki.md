@@ -10,7 +10,7 @@ person reads and edits, which is why its fields carry locks.
 
 ## Topics
 
-- One file per topic under `wiki/topics/`. The tree is in the data: a topic
+- One object per topic under `graph/wiki/topics/<id>/`. The tree is in the data: a topic
   names its parent by `parent_id`; a root has `null`. To move a topic, change
   that one field.
 - A topic is a subject, not an event. "Slot holds" is a topic; "the call on
@@ -24,7 +24,7 @@ person reads and edits, which is why its fields carry locks.
 
 ## Decisions
 
-- One file per decision under `wiki/decisions/`; `topic_id` names the topic
+- One object per decision under `graph/wiki/decisions/<id>/`; `topic_id` names the topic
   it belongs to.
 - A decision has a context (why it had to be made), the chosen option with
   its rationale, and the alternatives with theirs. Write each alternative's

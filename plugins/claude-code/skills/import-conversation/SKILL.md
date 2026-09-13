@@ -23,7 +23,7 @@ validates it, writes the files and re-indexes the graph.
    change the conversation belongs to, ask; do not guess.
 2. **Look before you create.** Call `search-knowledge-graph` with the main
    subjects of the conversation, then read the matching topic files under
-   `.noesis/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
+   `.noesis/graph/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
    whenever one fits; create a new one only when nothing does.
 3. **Split the transcript** into turns and fragments exactly as the companion
    document says: verbatim text, every turn covered, one idea per fragment,

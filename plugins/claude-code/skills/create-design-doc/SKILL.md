@@ -25,7 +25,7 @@ mints its id, and stores it under the change.
    exists, use the `update-design-doc` skill instead.
 2. **Ground the design.** Call `search-knowledge-graph` for the subjects
    involved and read the matching wiki topics and decisions under
-   `.noesis/wiki/`. Call `scan-system-model` when `.noesis/system-model/` is
+   `.noesis/graph/wiki/`. Call `scan-system-model` when `.noesis/graph/system-model/` is
    missing or older than the code, then read the relevant system-model files,
    so building blocks that already exist in the code are named as they are,
    not reinvented. Ask the user what the wiki does not answer.

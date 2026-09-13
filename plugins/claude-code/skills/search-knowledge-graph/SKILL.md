@@ -16,13 +16,12 @@ titles, and the files hold the substance.
 2. Try two or three different words when the first returns nothing; the
    match is literal, not semantic.
 3. Read the file behind a hit with your file tool:
-   - a topic: `.noesis/wiki/topics/*-<last 12 chars of the id>.json`
-   - a decision: `.noesis/wiki/decisions/*-<suffix>.json`
+   - a topic: `.noesis/graph/wiki/topics/<id>/data.json`
+   - a decision: `.noesis/graph/wiki/decisions/<id>/data.json`
    - a design document: `.noesis/graph/changes/<change>/design-docs/<id>/data.json`
    - a conversation or document: `.noesis/graph/changes/<change>/conversations/<id>/data.json`
      or `documents/<id>/data.json`
-     Under `wiki/` the file name ends in the id's suffix; `ls` the directory
-     and pick it. Under `graph/` the directory is the id itself.
+     The directory is the id itself.
 4. Follow the references: a topic's `items` point at source fragments
    (`conversation_id` or `document_id` plus indices) that ground it; a
    decision's `supporting_info` does the same. Quote the source when the user

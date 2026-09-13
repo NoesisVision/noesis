@@ -16,17 +16,14 @@ import {
   type ValidationIssue,
   validate,
 } from '../validation/validator.js';
-import type {
-  DecisionsRepository,
-  TopicsRepository,
-} from '../wiki/wiki.repository.js';
+import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
 
 export interface ImportDeps {
   changes: ChangesService;
   /** The sources land in the change's `conversations` and `documents`. */
   changesRepository: ChangesRepository;
-  topics: TopicsRepository;
-  decisions: DecisionsRepository;
+  topics: TopicsStore;
+  decisions: DecisionsStore;
 }
 
 /** What an import did, for the tool to report. */
@@ -178,7 +175,7 @@ export class ImportService {
   ): Promise<void> {
     for (const [index, topic] of analyzed.entries()) {
       if (topic.is_new) continue;
-      if ((await this.deps.topics.findById(topic.id)) !== null) continue;
+      if ((await this.deps.topics.get(topic.id)) !== null) continue;
       throw new InvalidImportError(
         contract,
         [
@@ -224,11 +221,10 @@ export class ImportService {
         long_summary_locked: false,
         items: topic.items.map(refs),
       };
-      const existing = topic.is_new
-        ? null
-        : await this.deps.topics.findById(id);
-      await this.deps.topics.write(
-        existing === null ? incoming : mergeTopic(existing.entity, incoming),
+      const existing = topic.is_new ? null : await this.deps.topics.get(id);
+      await this.deps.topics.set(
+        id,
+        existing === null ? incoming : mergeTopic(existing, incoming),
       );
       (existing === null ? report.topics.created : report.topics.updated).push(
         id,
@@ -259,11 +255,12 @@ export class ImportService {
         const existingDecision =
           analyzedDecision.id === undefined
             ? null
-            : await this.deps.decisions.findById(decisionId);
-        await this.deps.decisions.write(
+            : await this.deps.decisions.get(decisionId);
+        await this.deps.decisions.set(
+          decisionId,
           existingDecision === null
             ? incomingDecision
-            : mergeDecision(existingDecision.entity, incomingDecision),
+            : mergeDecision(existingDecision, incomingDecision),
         );
         (existingDecision === null
           ? report.decisions.created

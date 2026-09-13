@@ -26,12 +26,12 @@ live in a companion `.md` beside each family.
 
 | Files                                                                                     | Companion                                    | What they shape                                                                                 |
 | ----------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `file-ref.ts`, `locked.ts`                                                                | `conventions.md`                             | Rules every file follows: where files live, naming, ids, hash-pinned references, locked fields  |
+| `locked.ts`                                                                               | `conventions.md`                             | Rules every file follows: where files live, keys and ids, references, locked fields             |
 | `change.ts`                                                                               | `change.md`                                  | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to         |
 | `information-sources/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | `information-sources/information-sources.md` | Imported conversations and documents, their fragments and categories, and the import payloads   |
-| `topic.ts`, `decision.ts`                                                                 | `wiki.md`                                    | `wiki/topics/` and `wiki/decisions/` — the curated distillate, with `*_locked` markers          |
+| `topic.ts`, `decision.ts`                                                                 | `wiki.md`                                    | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate, with `*_locked` markers |
 | `design-doc.ts`, `design-doc-ref.ts`                                                      | `design-doc.md`                              | `graph/changes/<change>/design-docs/` — the normalised design-doc model (decision 50), its refs |
-| `system-model.ts`                                                                         | `system-model.md`                            | `system-model/` — the implemented model the scanner writes                                      |
+| `system-model.ts`                                                                         | `system-model.md`                            | `graph/system-model/` — the implemented model the scanner writes                                |
 
 `index.ts` re-exports every schema; `src/*.ts` is also importable by path.
 The `validate` tool's contract names (`change`, `conversation`, `document`,

@@ -1,5 +1,6 @@
+import { dataFileOf } from '../files/noesis-store.js';
 import { serverLogger } from '../logging/logging.js';
-import type { SystemModelRepository } from '../system-model/system-model.repository.js';
+import type { SystemModelStore } from '../system-model/system-model.store.js';
 import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
 
 const log = serverLogger('scanner');
@@ -20,12 +21,12 @@ export interface ScanReport {
  */
 export class ScannerService {
   private readonly root: string;
-  private readonly systemModels: SystemModelRepository;
+  private readonly systemModels: SystemModelStore;
   private readonly now: () => string;
 
   constructor(
     root: string,
-    systemModels: SystemModelRepository,
+    systemModels: SystemModelStore,
     now: () => string = () => new Date().toISOString(),
   ) {
     this.root = root;
@@ -46,19 +47,24 @@ export class ScannerService {
         root: this.root,
         now: this.now,
       });
-      const stored = await this.systemModels.write(model);
+      await this.systemModels.set(model.id, model);
       written.add(model.id);
       report.units.push({
         name: model.name,
-        path: stored.path,
+        path: dataFileOf(this.systemModels, model.id),
         buildingBlocks: model.buildingBlocks.length,
       });
     }
 
-    for (const stale of await this.systemModels.list()) {
-      if (written.has(stale.entity.id)) continue;
-      await this.systemModels.remove(stale.entity.id);
-      report.removed.push(stale.entity.name);
+    // The keys first, then the deletions: no removing under the iteration.
+    const stale = (await Array.fromAsync(this.systemModels.keys())).filter(
+      (id) => !written.has(id),
+    );
+    for (const id of stale) {
+      const model = await this.systemModels.get(id);
+      if (model === null) continue;
+      await this.systemModels.delete(id);
+      report.removed.push(model.name);
     }
 
     report.durationMs = Math.round(performance.now() - started);

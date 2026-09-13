@@ -54,7 +54,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
      PRIMARY KEY(id)
    )`,
 
-  // --- The implemented model (`system-model/`), one node per scanned unit ---
+  // --- The implemented model (`graph/system-model/`), one node per scanned unit ---
   `CREATE NODE TABLE IF NOT EXISTS SystemModel(
      id STRING,
      name STRING,
@@ -63,7 +63,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
      PRIMARY KEY(id)
    )`,
 
-  // --- The wiki (`wiki/topics/`, `wiki/decisions/`) ---
+  // --- The wiki (`graph/wiki/topics/`, `graph/wiki/decisions/`) ---
   `CREATE NODE TABLE IF NOT EXISTS Topic(
      id STRING,
      parent_id STRING,

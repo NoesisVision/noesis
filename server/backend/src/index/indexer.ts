@@ -3,11 +3,8 @@ import type { DatabaseService } from '../database/database.service.js';
 import { NoesisStoreError } from '../files/noesis-store.js';
 import { serverLogger } from '../logging/logging.js';
 import { nodeTableNames } from '../schema/graph-schema.js';
-import type { SystemModelRepository } from '../system-model/system-model.repository.js';
-import type {
-  DecisionsRepository,
-  TopicsRepository,
-} from '../wiki/wiki.repository.js';
+import type { SystemModelStore } from '../system-model/system-model.store.js';
+import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
 
 const log = serverLogger('indexer');
 
@@ -20,9 +17,9 @@ export interface IndexReport {
 export interface IndexerSources {
   /** The changes and, through their child collections, what they own. */
   changes: ChangesRepository;
-  topics: TopicsRepository;
-  decisions: DecisionsRepository;
-  systemModels: SystemModelRepository;
+  topics: TopicsStore;
+  decisions: DecisionsStore;
+  systemModels: SystemModelStore;
 }
 
 /** Rows per `UNWIND` statement; one statement per file would be 5× slower. */
@@ -31,8 +28,8 @@ const BATCH_SIZE = 1000;
 type Row = Record<string, string>;
 
 /**
- * Builds the graph from the files in `.noesis/`. Every rebuild is a full one:
- * the tables are emptied and reloaded from what the file repositories read,
+ * Builds the graph from the files in `.noesis/graph/`. Every rebuild is a
+ * full one: the tables are emptied and reloaded from what the stores read,
  * so the graph after a rebuild is a function of the files alone — whatever
  * changed them, including a `git checkout` while the process runs. The cost
  * is measured (`test/bench`) and stays within budget without an incremental
@@ -113,30 +110,30 @@ export class GraphIndexer {
         });
       }
     }
-    for (const s of await topics.list()) {
+    for await (const topic of objects(topics)) {
       push('Topic', {
-        id: s.entity.id,
-        parent_id: s.entity.parent_id ?? '',
-        title: s.entity.title,
-        short_summary: s.entity.short_summary,
-        json: JSON.stringify(s.entity),
+        id: topic.id,
+        parent_id: topic.parent_id ?? '',
+        title: topic.title,
+        short_summary: topic.short_summary,
+        json: JSON.stringify(topic),
       });
     }
-    for (const s of await systemModels.list()) {
+    for await (const model of objects(systemModels)) {
       push('SystemModel', {
-        id: s.entity.id,
-        name: s.entity.name,
-        scanned_at: s.entity.scanned_at,
-        json: JSON.stringify(s.entity),
+        id: model.id,
+        name: model.name,
+        scanned_at: model.scanned_at,
+        json: JSON.stringify(model),
       });
     }
-    for (const s of await decisions.list()) {
+    for await (const decision of objects(decisions)) {
       push('Decision', {
-        id: s.entity.id,
-        topic_id: s.entity.topic_id,
-        title: s.entity.title,
-        status: s.entity.status,
-        json: JSON.stringify(s.entity),
+        id: decision.id,
+        topic_id: decision.topic_id,
+        title: decision.title,
+        status: decision.status,
+        json: JSON.stringify(decision),
       });
     }
     return rows;

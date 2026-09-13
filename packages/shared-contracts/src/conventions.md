@@ -1,33 +1,31 @@
 # Conventions every knowledge graph file follows
 
-Companion to `file-ref.ts` and `locked.ts`. The schemas give the shapes; this
-is what they cannot say.
+Companion to `locked.ts`. The schemas give the shapes; this is what they
+cannot say.
 
 ## Where files live
 
-Everything is under `.noesis/` at the repository root, one directory per kind.
-The knowledge graph is moving under `.noesis/graph/`, one `<key>/data.json`
-per object (decision 76); changes are there already, the other kinds follow:
+Everything is under `.noesis/` at the repository root. The knowledge graph is
+`.noesis/graph/`: one directory per object at every depth, named by the
+object's key and holding exactly one `data.json` (decision 76):
 
 - `graph/changes/<change>/` — one change; holds its `data.json` and the
   `conversations/`, `documents/` and `design-docs/` it produced, each an
   object directory `<id>/data.json`.
-- `system-model/` — the implemented model, written by the scanner.
-- `wiki/topics/`, `wiki/decisions/` — the curated knowledge base.
+- `graph/system-model/<id>/` — the implemented model, written by the scanner.
+- `graph/wiki/topics/<id>/`, `graph/wiki/decisions/<id>/` — the curated
+  knowledge base. `wiki/` groups the two; it is not an object.
 - `tmp/<session>/` — scratch space between the agent and the service. Not
   graph content, not versioned.
 
-Under `graph/`, only what the store writes may exist: an object is a
-directory named by its key holding one `data.json`, and nothing sits beside
-it. Under the other kind directories, a file is graph content if and only if
-it is `.json`, and anything else beside it is ignored.
+Under `graph/`, only what the service writes may exist: nothing sits beside a
+`data.json`, and a directory without one is not an object. Notes and source
+files belong outside `graph/`.
 
 ## Names and ids
 
-- Under `graph/`, an object's directory is its key: the change's slug, the
-  entity's id everywhere else. Elsewhere, files are still
-  `<slug>-<id-suffix>.json`: the entity's name kebab-cased and capped, then
-  the tail of its id. The service names files; skills never do.
+- An object's directory is its key: the change's slug, the entity's id
+  everywhere else. The service names directories; skills never do.
 - Ids are opaque strings. Imported sources (conversations, documents) get a
   content hash, so re-importing the same source yields the same id and is a
   duplicate, not a second copy. Everything the graph authors itself (design
@@ -38,11 +36,10 @@ it is `.json`, and anything else beside it is ignored.
 
 ## References
 
-A pointer from one file to another is a `FileRef`: the target's id plus the
-hash of its file when the link was made. A hash that no longer matches the
-file on disk means the dependent may be stale; the service reports that, it
-does not repair it. Fragment refs into imported sources carry the same idea as
-`source_sha`.
+A pointer from one object to another is the target's id. A fragment ref into
+an imported source also carries `source_sha`, the SHA-256 of the source's JSON
+as the import wrote it; a source is never rewritten, so a differing hash
+means the ref was made against other content.
 
 ## Locked fields
 

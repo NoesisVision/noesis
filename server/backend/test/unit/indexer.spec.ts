@@ -7,7 +7,7 @@ import type { DatabaseService } from '../../src/database/database.service.js';
 import { dataFileOf } from '../../src/files/noesis-store.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const ALPHA = ChangeSlug.parse('alpha');
 const BETA = ChangeSlug.parse('beta');
@@ -134,7 +134,7 @@ describe('GraphIndexer', () => {
       fragments: [],
       section_tree: [],
     });
-    await t.topicsRepository.write({
+    await put(t.topics, {
       id: 't-1',
       parent_id: null,
       title: 'Slots',
@@ -145,7 +145,7 @@ describe('GraphIndexer', () => {
       long_summary_locked: false,
       items: [],
     });
-    await t.decisionsRepository.write({
+    await put(t.decisions, {
       id: 'd-1',
       topic_id: 't-1',
       title: 'Ten minutes',

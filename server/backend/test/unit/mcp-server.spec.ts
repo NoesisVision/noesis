@@ -15,7 +15,7 @@ import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
 import { ScannerService } from '../../src/scanner/scanner.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = 'booking';
 const SLUG = ChangeSlug.parse(CHANGE);
@@ -41,7 +41,7 @@ beforeEach(async () => {
     searchService: new SearchService([
       async (q) => [{ type: 'topic', id: 't-1', title: `Hit for ${q}` }],
     ]),
-    scannerService: new ScannerService(t.root, t.systemModelRepository),
+    scannerService: new ScannerService(t.root, t.systemModels),
   });
   await server.connect(serverTransport);
   client = new Client({ name: 'mcp-server-spec', version: '0.0.0' });
@@ -368,8 +368,8 @@ describe('createMcpServer', () => {
       );
       expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
       expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);
-      expect(await t.topicsRepository.list()).toHaveLength(1);
-      expect(await t.decisionsRepository.list()).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(1);
+      expect(await all(t.decisions)).toHaveLength(1);
     });
 
     it('reports a duplicate source in-band and writes nothing', async () => {
@@ -384,7 +384,7 @@ describe('createMcpServer', () => {
       });
       expect(again.isError).toBe(true);
       expect(textOf(again)).toContain('was imported before as .noesis/');
-      expect(await t.topicsRepository.list()).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(1);
     });
 
     it('rejects a payload that fails the contract with the issue list', async () => {
@@ -418,9 +418,9 @@ describe('createMcpServer', () => {
 
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain(
-        '@acme/pkg  1 building block(s)  .noesis/system-model/',
+        '@acme/pkg  1 building block(s)  .noesis/graph/system-model/',
       );
-      expect(await t.systemModelRepository.list()).toHaveLength(1);
+      expect(await all(t.systemModels)).toHaveLength(1);
     });
   });
 

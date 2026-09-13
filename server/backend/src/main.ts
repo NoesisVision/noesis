@@ -41,12 +41,9 @@ import { ensureLadybugBinary } from './native/ensure-ladybug.js';
 import { ScannerService } from './scanner/scanner.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { createGraphSearch } from './search/graph-search.js';
-import { SystemModelRepository } from './system-model/system-model.repository.js';
+import { createSystemModelStore } from './system-model/system-model.store.js';
 import { SearchService } from './ui/search/search.service.js';
-import {
-  DecisionsRepository,
-  TopicsRepository,
-} from './wiki/wiki.repository.js';
+import { createDecisionsStore, createTopicsStore } from './wiki/wiki.store.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
@@ -81,14 +78,14 @@ await db.init();
 await new SchemaService(db).ensureSchema();
 
 const changesRepository = new ChangesRepository(noesis);
-const topicsRepository = new TopicsRepository(noesis);
-const decisionsRepository = new DecisionsRepository(noesis);
-const systemModelRepository = new SystemModelRepository(noesis);
+const topics = createTopicsStore(noesis);
+const decisions = createDecisionsStore(noesis);
+const systemModels = createSystemModelStore(noesis);
 const indexer = new GraphIndexer(db, {
   changes: changesRepository,
-  topics: topicsRepository,
-  decisions: decisionsRepository,
-  systemModels: systemModelRepository,
+  topics,
+  decisions,
+  systemModels,
 });
 // Watching before the first build: a file that changes during the build then
 // queues a second one, instead of slipping through the gap.
@@ -104,12 +101,12 @@ const designDocsService = new DesignDocsService(
 const importService = new ImportService({
   changes: changesService,
   changesRepository,
-  topics: topicsRepository,
-  decisions: decisionsRepository,
+  topics,
+  decisions,
 });
 // The scanner writes system-model files; the watcher indexes them like any
 // other kind. It runs on demand (the scan-system-model tool), not at boot.
-const scannerService = new ScannerService(noesis.root, systemModelRepository);
+const scannerService = new ScannerService(noesis.root, systemModels);
 // One provider, over every node table the indexer fills.
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({

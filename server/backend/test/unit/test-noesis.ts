@@ -7,17 +7,23 @@ import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { ChangesService } from '../../src/changes/changes.service.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { NoesisDir } from '../../src/files/noesis-dir.js';
+import type { NoesisStore } from '../../src/files/noesis-store.js';
 import { ImportService } from '../../src/imports/import.service.js';
 import type { IndexerSources } from '../../src/index/indexer.js';
-import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
 import {
-  DecisionsRepository,
-  TopicsRepository,
-} from '../../src/wiki/wiki.repository.js';
+  createSystemModelStore,
+  type SystemModelStore,
+} from '../../src/system-model/system-model.store.js';
+import {
+  createDecisionsStore,
+  createTopicsStore,
+  type DecisionsStore,
+  type TopicsStore,
+} from '../../src/wiki/wiki.store.js';
 
 /**
- * A throwaway repository root with an ensured `.noesis/`, plus the file-backed
- * repositories and services wired over it. Each spec makes its own, so the
+ * A throwaway repository root with an ensured `.noesis/`, plus the stores
+ * and services wired over it. Each spec makes its own, so the
  * file system is the isolation — there is no shared state to reset between
  * tests.
  */
@@ -25,10 +31,10 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: ChangesRepository;
-  topicsRepository: TopicsRepository;
-  decisionsRepository: DecisionsRepository;
-  systemModelRepository: SystemModelRepository;
-  /** The repositories as the indexer takes them. */
+  topics: TopicsStore;
+  decisions: DecisionsStore;
+  systemModels: SystemModelStore;
+  /** The stores as the indexer takes them. */
   sources: IndexerSources;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
@@ -46,30 +52,25 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensure();
   const changesRepository = new ChangesRepository(noesis);
-  const topicsRepository = new TopicsRepository(noesis);
-  const decisionsRepository = new DecisionsRepository(noesis);
-  const systemModelRepository = new SystemModelRepository(noesis);
+  const topics = createTopicsStore(noesis);
+  const decisions = createDecisionsStore(noesis);
+  const systemModels = createSystemModelStore(noesis);
   const changesService = new ChangesService(changesRepository);
   return {
     root,
     noesis,
     changesRepository,
-    topicsRepository,
-    decisionsRepository,
-    systemModelRepository,
-    sources: {
-      changes: changesRepository,
-      topics: topicsRepository,
-      decisions: decisionsRepository,
-      systemModels: systemModelRepository,
-    },
+    topics,
+    decisions,
+    systemModels,
+    sources: { changes: changesRepository, topics, decisions, systemModels },
     changesService,
     designDocsService: new DesignDocsService(changesRepository, changesService),
     importService: new ImportService({
       changes: changesService,
       changesRepository,
-      topics: topicsRepository,
-      decisions: decisionsRepository,
+      topics,
+      decisions,
     }),
     createChange: async (slug, overrides = {}) => {
       const parsed = typeof slug === 'string' ? ChangeSlug.parse(slug) : slug;
@@ -88,4 +89,24 @@ export async function testNoesis(): Promise<TestNoesis> {
     },
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
+}
+
+/** Stores an entity under its own id. */
+export function put<T extends { id: string }>(
+  store: Pick<NoesisStore<T, unknown, unknown>, 'set'>,
+  entity: T,
+): Promise<void> {
+  return store.set(entity.id, entity);
+}
+
+/** Every object of a collection, in key order. */
+export async function all<T>(
+  store: Pick<NoesisStore<unknown, T, unknown>, 'keys' | 'get'>,
+): Promise<T[]> {
+  const objects: T[] = [];
+  for (const key of (await Array.fromAsync(store.keys())).sort()) {
+    const object = await store.get(key);
+    if (object !== null) objects.push(object);
+  }
+  return objects;
 }

@@ -5,7 +5,8 @@ import { Locked } from './locked.js';
 /*
  * A wiki decision: a choice the team made, with the options it was made
  * against and the source fragments that support each side. One file per
- * decision under `.noesis/wiki/decisions/`; a decision names its topic by id.
+ * decision under `.noesis/graph/wiki/decisions/`; a decision names its topic
+ * by id.
  */
 
 export const DecisionStatusSchema = z
@@ -66,6 +67,6 @@ export const DecisionSchema = z
       .describe('The options that were considered and not chosen.'),
   })
   .describe(
-    'One decision of the wiki: a wiki/decisions/<slug>-<id-suffix>.json file.',
+    'One decision of the wiki: the data.json of graph/wiki/decisions/<id>/.',
   );
 export type Decision = z.infer<typeof DecisionSchema>;

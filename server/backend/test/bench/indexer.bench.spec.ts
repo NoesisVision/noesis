@@ -14,11 +14,11 @@ import { NoesisDir } from '../../src/files/noesis-dir.js';
 import { dataFileOf } from '../../src/files/noesis-store.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { SchemaService } from '../../src/schema/schema.service.js';
-import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
+import { createSystemModelStore } from '../../src/system-model/system-model.store.js';
 import {
-  DecisionsRepository,
-  TopicsRepository,
-} from '../../src/wiki/wiki.repository.js';
+  createDecisionsStore,
+  createTopicsStore,
+} from '../../src/wiki/wiki.store.js';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;
@@ -72,9 +72,9 @@ async function measure(files: number): Promise<number> {
     const changes = new ChangesRepository(noesis);
     const indexer = new GraphIndexer(db, {
       changes,
-      topics: new TopicsRepository(noesis),
-      decisions: new DecisionsRepository(noesis),
-      systemModels: new SystemModelRepository(noesis),
+      topics: createTopicsStore(noesis),
+      decisions: createDecisionsStore(noesis),
+      systemModels: createSystemModelStore(noesis),
     });
     const report = await indexer.rebuild();
     expect(report.files).toBe(files);

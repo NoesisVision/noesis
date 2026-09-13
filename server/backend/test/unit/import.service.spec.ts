@@ -10,7 +10,7 @@ import {
   DuplicateSourceError,
   InvalidImportError,
 } from '../../src/imports/import.service.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = ChangeSlug.parse('booking');
 const OTHER = ChangeSlug.parse('other');
@@ -133,9 +133,9 @@ describe('ImportService.importConversation', () => {
 
     expect(report.topics.created).toHaveLength(2);
     expect(report.topics.updated).toEqual([]);
-    const topics = await t.topicsRepository.list();
-    const parent = topics.find((s) => s.entity.title === 'Booking')?.entity;
-    const child = topics.find((s) => s.entity.title === 'Slot holds')?.entity;
+    const topics = await all(t.topics);
+    const parent = topics.find((s) => s.title === 'Booking');
+    const child = topics.find((s) => s.title === 'Slot holds');
     expect(parent?.id).toMatch(UUID);
     expect(child?.parent_id).toBe(parent?.id ?? 'missing');
     const stored = await conversationsOf(CHANGE).get(report.source.id);
@@ -154,20 +154,18 @@ describe('ImportService.importConversation', () => {
     );
 
     expect(report.decisions.created).toHaveLength(1);
-    const [decision] = await t.decisionsRepository.list();
-    expect(decision?.entity.id).toMatch(UUID);
-    expect(decision?.entity.title).toBe('Hold slots for ten minutes');
-    const child = (await t.topicsRepository.list()).find(
-      (s) => s.entity.title === 'Slot holds',
-    );
-    expect(decision?.entity.topic_id).toBe(child?.entity.id ?? 'missing');
-    expect(decision?.entity.context.supporting_info[0]).toMatchObject({
+    const [decision] = await all(t.decisions);
+    expect(decision?.id).toMatch(UUID);
+    expect(decision?.title).toBe('Hold slots for ten minutes');
+    const child = (await all(t.topics)).find((s) => s.title === 'Slot holds');
+    expect(decision?.topic_id).toBe(child?.id ?? 'missing');
+    expect(decision?.context.supporting_info[0]).toMatchObject({
       conversation_id: report.source.id,
     });
   });
 
   it('merges into an existing topic, keeping its locked fields and the union of items', async () => {
-    await t.topicsRepository.write({
+    await put(t.topics, {
       id: 'topic-existing',
       parent_id: null,
       title: 'Slot holds (person wrote this)',
@@ -198,7 +196,7 @@ describe('ImportService.importConversation', () => {
     const report = await t.importService.importConversation(CHANGE, payload);
 
     expect(report.topics.updated).toEqual(['topic-existing']);
-    const topic = (await t.topicsRepository.findById('topic-existing'))?.entity;
+    const topic = await t.topics.get('topic-existing');
     expect(topic?.title).toBe('Slot holds (person wrote this)');
     expect(topic?.title_locked).toBe(true);
     expect(topic?.short_summary).toBe('New short.');
@@ -248,7 +246,7 @@ describe('ImportService.importConversation', () => {
 
     await expect(again).rejects.toBeInstanceOf(DuplicateSourceError);
     expect(await Array.fromAsync(conversationsOf(OTHER).keys())).toEqual([]);
-    expect(await t.topicsRepository.list()).toHaveLength(2);
+    expect(await all(t.topics)).toHaveLength(2);
   });
 
   it('rejects a payload that fails the contract with the validator issues', async () => {
@@ -319,8 +317,8 @@ describe('ImportService.importDocument', () => {
     expect(report.source.path).toContain(
       `/.noesis/graph/changes/${CHANGE}/documents/${report.source.id}/data.json`,
     );
-    const [topic] = await t.topicsRepository.list();
-    expect(topic?.entity.items[0]).toMatchObject({
+    const [topic] = await all(t.topics);
+    expect(topic?.items[0]).toMatchObject({
       type: 'document_fragment_ref',
       document_id: report.source.id,
     });

@@ -8,7 +8,7 @@ import {
 
 /*
  * The implemented model: what the source code actually contains, projected by
- * the scanner into files under `.noesis/system-model/`. It uses the same
+ * the scanner into objects under `.noesis/graph/system-model/`. It uses the same
  * structural vocabulary as a design document — bounded contexts, modules,
  * building blocks, behaviours — so a design can be read as a diff against it,
  * and every element carries where in the code it was found.
@@ -95,6 +95,6 @@ export const SystemModelSchema = z
       .describe('The behaviours found, each naming its building block.'),
   })
   .describe(
-    'The implemented model of one scanned unit: a system-model/<slug>-<id-suffix>.json file written by the scanner.',
+    'The implemented model of one scanned unit: the data.json of graph/system-model/<id>/, written by the scanner.',
   );
 export type SystemModel = z.infer<typeof SystemModelSchema>;
