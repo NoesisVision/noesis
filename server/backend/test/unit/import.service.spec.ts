@@ -4,19 +4,21 @@ import type {
   ConversationAnalysis,
   DocumentAnalysis,
 } from '@repo/shared-contracts';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import {
   DuplicateSourceError,
   InvalidImportError,
 } from '../../src/imports/import.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-const CHANGE = 'booking';
+const CHANGE = ChangeSlug.parse('booking');
+const OTHER = ChangeSlug.parse('other');
 
 let t: TestNoesis;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.changesRepository.create(CHANGE);
+  await t.createChange(CHANGE);
 });
 
 afterEach(() => t.cleanup());
@@ -112,7 +114,7 @@ describe('ImportService.importConversation', () => {
     expect(report.source.id).toMatch(UUID);
     expect(report.source.id).not.toBe('placeholder-conv');
     expect(report.source.path).toContain(
-      `/.noesis/changes/${CHANGE}/conversations/slot-holds-`,
+      `/.noesis/graph/changes/${CHANGE}/conversations/slot-holds-`,
     );
     expect((await stat(report.source.path)).isFile()).toBe(true);
     const stored = await t.conversationsRepository.findById(
@@ -238,16 +240,16 @@ describe('ImportService.importConversation', () => {
   });
 
   it('detects the same conversation imported again, in any change, and writes nothing', async () => {
-    await t.changesRepository.create('other');
+    await t.createChange(OTHER);
     await t.importService.importConversation(CHANGE, conversationPayload());
 
     const again = t.importService.importConversation(
-      'other',
+      OTHER,
       conversationPayload(),
     );
 
     await expect(again).rejects.toBeInstanceOf(DuplicateSourceError);
-    expect(await t.conversationsRepository.list('other')).toEqual([]);
+    expect(await t.conversationsRepository.list(OTHER)).toEqual([]);
     expect(await t.topicsRepository.list()).toHaveLength(2);
   });
 
@@ -317,7 +319,7 @@ describe('ImportService.importDocument', () => {
 
     expect(report.source.kind).toBe('document');
     expect(report.source.path).toContain(
-      `/.noesis/changes/${CHANGE}/documents/booking-rules-`,
+      `/.noesis/graph/changes/${CHANGE}/documents/booking-rules-`,
     );
     const [topic] = await t.topicsRepository.list();
     expect(topic?.entity.items[0]).toMatchObject({

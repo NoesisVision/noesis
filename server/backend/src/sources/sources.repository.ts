@@ -4,6 +4,7 @@ import {
   type Document,
   DocumentSchema,
 } from '@repo/shared-contracts';
+import type { ChangeSlug } from '../changes/change-slug.js';
 import type { ChangesRepository } from '../changes/changes.repository.js';
 import { FileRepository, type StoredFile } from '../files/file-repository.js';
 
@@ -12,7 +13,7 @@ export type StoredDocument = StoredFile<Document>;
 
 /**
  * The imported sources of one change, as files under
- * `.noesis/changes/<change>/conversations/` and `documents/`. A source is a
+ * `.noesis/graph/changes/<change>/conversations/` and `documents/`. A source is a
  * faithful record, written once at import and never rewritten; its id is a
  * hash of its content, so the same source imported twice is one file.
  */
@@ -24,28 +25,28 @@ export class ConversationsRepository {
   }
 
   async write(
-    change: string,
+    slug: ChangeSlug,
     conversation: Conversation,
   ): Promise<StoredConversation> {
-    return this.files(change).write(conversation);
+    return this.files(slug).write(conversation);
   }
 
   async findById(
-    change: string,
+    slug: ChangeSlug,
     id: string,
   ): Promise<StoredConversation | null> {
-    return this.files(change).read(id);
+    return this.files(slug).read(id);
   }
 
   /** Newest first by `time`. */
-  async list(change: string): Promise<StoredConversation[]> {
-    const stored = await this.files(change).list();
+  async list(slug: ChangeSlug): Promise<StoredConversation[]> {
+    const stored = await this.files(slug).list();
     return stored.sort((a, b) => b.entity.time.localeCompare(a.entity.time));
   }
 
-  private files(change: string): FileRepository<Conversation> {
+  private files(slug: ChangeSlug): FileRepository<Conversation> {
     return new FileRepository<Conversation>({
-      dir: this.changes.dirOf(change, 'conversations'),
+      dir: this.changes.dirOf(slug, 'conversations'),
       idKey: 'conversation_id',
       slugOf: (c) => c.main_topic,
       decode: (raw) => ConversationSchema.parse(raw),
@@ -60,23 +61,23 @@ export class DocumentsRepository {
     this.changes = changes;
   }
 
-  async write(change: string, document: Document): Promise<StoredDocument> {
-    return this.files(change).write(document);
+  async write(slug: ChangeSlug, document: Document): Promise<StoredDocument> {
+    return this.files(slug).write(document);
   }
 
-  async findById(change: string, id: string): Promise<StoredDocument | null> {
-    return this.files(change).read(id);
+  async findById(slug: ChangeSlug, id: string): Promise<StoredDocument | null> {
+    return this.files(slug).read(id);
   }
 
   /** Newest first by `date`. */
-  async list(change: string): Promise<StoredDocument[]> {
-    const stored = await this.files(change).list();
+  async list(slug: ChangeSlug): Promise<StoredDocument[]> {
+    const stored = await this.files(slug).list();
     return stored.sort((a, b) => b.entity.date.localeCompare(a.entity.date));
   }
 
-  private files(change: string): FileRepository<Document> {
+  private files(slug: ChangeSlug): FileRepository<Document> {
     return new FileRepository<Document>({
-      dir: this.changes.dirOf(change, 'documents'),
+      dir: this.changes.dirOf(slug, 'documents'),
       idKey: 'document_id',
       slugOf: (d) => d.title,
       decode: (raw) => DocumentSchema.parse(raw),

@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
@@ -41,18 +42,26 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-bench-'));
   const noesis = new NoesisDir(root);
   await noesis.ensure();
+  const changes = new ChangesRepository(noesis);
   for (let c = 0; c < CHANGES; c++) {
-    await mkdir(noesis.resolve('changes', `change-${c}`, 'design-docs'), {
-      recursive: true,
+    const slug = ChangeSlug.parse(`change-${c}`);
+    await changes.write({
+      slug: slug.value,
+      name: slug.value,
+      key: '',
+      type: 'chore',
+      status: 'discovery',
+      created_at: '2026-09-13T00:00:00.000Z',
+      description: '',
     });
+    await mkdir(changes.dirOf(slug, 'design-docs'), { recursive: true });
   }
   for (let i = 0; i < files; i++) {
     const id = `00000000-0000-7000-8000-${String(i).padStart(12, '0')}`;
     const name = `Design doc ${i}`;
     await writeFile(
-      noesis.resolve(
-        'changes',
-        `change-${i % CHANGES}`,
+      changes.dirOf(
+        ChangeSlug.parse(`change-${i % CHANGES}`),
         'design-docs',
         fileNameFor(id, name),
       ),

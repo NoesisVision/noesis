@@ -18,8 +18,8 @@ titles, and the files hold the substance.
 3. Read the file behind a hit with your file tool:
    - a topic: `.noesis/wiki/topics/*-<last 12 chars of the id>.json`
    - a decision: `.noesis/wiki/decisions/*-<suffix>.json`
-   - a design document: `.noesis/changes/<change>/design-docs/*-<suffix>.json`
-   - a conversation or document: under `.noesis/changes/<change>/conversations/`
+   - a design document: `.noesis/graph/changes/<change>/design-docs/*-<suffix>.json`
+   - a conversation or document: under `.noesis/graph/changes/<change>/conversations/`
      or `documents/`
      The file name ends in the id's suffix; `ls` the directory and pick it.
 4. Follow the references: a topic's `items` point at source fragments

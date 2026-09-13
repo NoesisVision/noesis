@@ -13,6 +13,9 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
+const slugs = async () =>
+  (await Array.fromAsync(t.changesRepository.keys())).map((s) => s.value);
+
 const post = (body: unknown) =>
   app.request('/', {
     method: 'POST',
@@ -21,7 +24,7 @@ const post = (body: unknown) =>
   });
 
 describe('ui changes routes', () => {
-  it('creates a change from its name, writes change.json and lists it', async () => {
+  it('creates a change from its name, writes its data.json and lists it', async () => {
     const created = await post({
       name: 'Payment retry',
       key: 'NOE-142',
@@ -42,7 +45,7 @@ describe('ui changes routes', () => {
     const listed = await app.request('/');
     expect(listed.status).toBe(200);
     expect(await listed.json()).toEqual({ changes: [change] });
-    expect(await t.changesRepository.list()).toEqual(['payment-retry']);
+    expect(await slugs()).toEqual(['payment-retry']);
   });
 
   it('lists newest first', async () => {
@@ -90,7 +93,7 @@ describe('ui changes routes', () => {
       error: 'duplicate_change',
       field: 'key',
     });
-    expect(await t.changesRepository.list()).toEqual(['once']);
+    expect(await slugs()).toEqual(['once']);
 
     expect((await post({ name: '', type: 'fix' })).status).toBe(400);
     expect((await post({ name: 'x', type: 'feat' })).status).toBe(400);

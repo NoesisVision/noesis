@@ -5,9 +5,11 @@ is what they cannot say.
 
 ## Where files live
 
-Everything is under `.noesis/` at the repository root, one directory per kind:
+Everything is under `.noesis/` at the repository root, one directory per kind.
+The knowledge graph is moving under `.noesis/graph/`, one `<key>/data.json`
+per object (decision 76); changes are there already, the other kinds follow:
 
-- `changes/<change>/` — one change; holds `change.json` and the
+- `graph/changes/<change>/` — one change; holds its `data.json` and the
   `conversations/`, `documents/` and `design-docs/` it produced.
 - `system-model/` — the implemented model, written by the scanner.
 - `wiki/topics/`, `wiki/decisions/` — the curated knowledge base.

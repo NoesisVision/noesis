@@ -1,12 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { isIgnored, NoesisWatcher } from '../../src/index/watcher.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
+
+const ALPHA = ChangeSlug.parse('alpha');
+const BETA = ChangeSlug.parse('beta');
 
 const DEBOUNCE_MS = 50;
 
@@ -49,19 +53,23 @@ async function countingWatcher(): Promise<{
 describe('NoesisWatcher', () => {
   it('rebuilds once for a burst of writes under a kind directory', async () => {
     const { watcher, rebuilds } = await countingWatcher();
-    const dir = t.changesRepository.dirOf('alpha', 'design-docs');
+    const dir = t.changesRepository.dirOf(ALPHA, 'design-docs');
     await mkdir(dir, { recursive: true });
-    await waitFor(async () => rebuilds() === 1);
+    await waitFor(async () => rebuilds() >= 1);
+    // The OS delivers the events of the nested mkdir over a moment; let them
+    // all land before counting the burst.
+    await quiet();
     await watcher.settle();
+    const before = rebuilds();
 
     await writeFile(`${dir}/one-1.json`, '{"id":"1"}');
     await writeFile(`${dir}/two-2.json`, '{"id":"2"}');
     await writeFile(`${dir}/three-3.json`, '{"id":"3"}');
-    await waitFor(async () => rebuilds() >= 2);
+    await waitFor(async () => rebuilds() > before);
     await quiet();
     await watcher.settle();
 
-    expect(rebuilds()).toBe(2);
+    expect(rebuilds()).toBe(before + 1);
   });
 
   it('ignores tmp/ and the service’s own temp and ignore files', async () => {
@@ -79,18 +87,18 @@ describe('NoesisWatcher', () => {
     expect(rebuilds()).toBe(before);
     expect(isIgnored('tmp')).toBe(true);
     expect(isIgnored('tmp/s/x.json')).toBe(true);
-    expect(isIgnored('changes/a/design-docs/x.json.abc.tmp')).toBe(true);
+    expect(isIgnored('graph/changes/a/design-docs/x.json.abc.tmp')).toBe(true);
     expect(isIgnored('.gitignore')).toBe(true);
-    expect(isIgnored('changes/a/design-docs/x.json')).toBe(false);
-    expect(isIgnored('changes')).toBe(false);
+    expect(isIgnored('graph/changes/a/design-docs/x.json')).toBe(false);
+    expect(isIgnored('graph')).toBe(false);
   });
 
   it('keeps the graph a function of the files across a checkout-like swap', async () => {
     const db: DatabaseService = await sharedTestDatabase();
     const designDocs = new DesignDocsRepository(t.changesRepository);
     const indexer = new GraphIndexer(db, t.sources);
-    await t.changesRepository.create('alpha');
-    await designDocs.create('alpha', {
+    await t.createChange(ALPHA);
+    await designDocs.create(ALPHA, {
       ...designDocFixture,
       id: 'a1',
       name: 'Before',
@@ -110,8 +118,9 @@ describe('NoesisWatcher', () => {
     expect(await ids()).toEqual(['a1']);
 
     // Behind the service's back, as `git checkout` would.
-    await rm(t.noesis.resolve('changes', 'alpha'), { recursive: true });
-    const other = t.changesRepository.dirOf('beta', 'design-docs');
+    await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
+    await t.createChange(BETA);
+    const other = t.changesRepository.dirOf(BETA, 'design-docs');
     await mkdir(other, { recursive: true });
     await writeFile(
       `${other}/after-b1.json`,

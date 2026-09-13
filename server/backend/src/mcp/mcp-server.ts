@@ -10,6 +10,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { type ZodType, z } from 'zod';
+import { ChangeSlug, InvalidChangeSlugError } from '../changes/change-slug.js';
 import type { ChangesService } from '../changes/changes.service.js';
 import { ChangeNotFoundError } from '../changes/changes.service.js';
 import {
@@ -80,7 +81,7 @@ const changeSlug = z
   .string()
   .min(1)
   .describe(
-    'The change the result belongs to: the slug of a directory under .noesis/changes/.',
+    'The change the result belongs to: the slug of a directory under .noesis/graph/changes/.',
   );
 
 /**
@@ -140,7 +141,7 @@ export function createMcpServer(deps: McpDeps): Server {
     );
 
   const changeMissing = async (
-    error: ChangeNotFoundError,
+    error: ChangeNotFoundError | InvalidChangeSlugError,
   ): Promise<CallToolResult> => {
     const existing = (await deps.changesService.list()).map((c) => c.slug);
     return errorResult(
@@ -162,7 +163,12 @@ export function createMcpServer(deps: McpDeps): Server {
       if (error instanceof InvalidImportError) {
         return rejected(error.contract, error.issues, error.suppressed);
       }
-      if (error instanceof ChangeNotFoundError) return changeMissing(error);
+      if (
+        error instanceof ChangeNotFoundError ||
+        error instanceof InvalidChangeSlugError
+      ) {
+        return changeMissing(error);
+      }
       if (error instanceof DesignDocNotFoundError) {
         return errorResult(
           `${error.message} Call list-design-docs to see the ids the change has.`,
@@ -209,7 +215,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'list-changes': define({
       description:
-        'Lists the changes of this repository: the directories under .noesis/changes/. Imports and design documents belong to a change.',
+        'Lists the changes of this repository: the directories under .noesis/graph/changes/. Imports and design documents belong to a change.',
       args: z.object({}),
       handler: async () => {
         const changes = await deps.changesService.list();
@@ -231,7 +237,10 @@ export function createMcpServer(deps: McpDeps): Server {
         return attempt('conversation-analysis', async () =>
           text(
             importReport(
-              await deps.importService.importConversation(change, file.raw),
+              await deps.importService.importConversation(
+                ChangeSlug.parse(change),
+                file.raw,
+              ),
             ),
           ),
         );
@@ -248,7 +257,10 @@ export function createMcpServer(deps: McpDeps): Server {
         return attempt('document-analysis', async () =>
           text(
             importReport(
-              await deps.importService.importDocument(change, file.raw),
+              await deps.importService.importDocument(
+                ChangeSlug.parse(change),
+                file.raw,
+              ),
             ),
           ),
         );
@@ -261,7 +273,9 @@ export function createMcpServer(deps: McpDeps): Server {
       args: z.object({ change: changeSlug }),
       handler: async ({ change }) =>
         attempt('design-document', async () => {
-          const docs = await deps.designDocsService.list(change);
+          const docs = await deps.designDocsService.list(
+            ChangeSlug.parse(change),
+          );
           if (docs.length === 0) {
             return text(`Change ${change} has no design documents yet.`);
           }
@@ -284,7 +298,10 @@ export function createMcpServer(deps: McpDeps): Server {
         const file = await readWorkingJson(path);
         if (!file.ok) return errorResult(file.text);
         return attempt('design-document', async () => {
-          const summary = await deps.designDocsService.create(change, file.raw);
+          const summary = await deps.designDocsService.create(
+            ChangeSlug.parse(change),
+            file.raw,
+          );
           return text(
             `Created design document "${summary.name}" (${summary.id}) at ${rel(summary.path)}. The graph picks it up on the next re-index.`,
           );
@@ -305,7 +322,7 @@ export function createMcpServer(deps: McpDeps): Server {
         if (!file.ok) return errorResult(file.text);
         return attempt('design-document', async () => {
           const summary = await deps.designDocsService.update(
-            change,
+            ChangeSlug.parse(change),
             id,
             file.raw,
           );

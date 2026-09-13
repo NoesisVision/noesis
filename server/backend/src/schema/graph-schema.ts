@@ -13,7 +13,7 @@
 // Every node table follows one pattern: the id, the denormalised columns a
 // list or a search reads without parsing, the whole entity as JSON in `json`,
 // and the file's modification time in `updated_at`. `change` is set on the
-// kinds that live under `.noesis/changes/<change>/` and empty on the wiki.
+// kinds that live under `.noesis/graph/changes/<change>/` and empty on the wiki.
 //
 // The server runs locally against one checkout, so there is no tenant scoping
 // and no `version` column: the single writer needs no optimistic concurrency
@@ -21,7 +21,7 @@
 export const GRAPH_SCHEMA: readonly string[] = [
   // --- Design documents (design-doc phase 2) ---
   //
-  // The projection of `.noesis/changes/<change>/design-docs/*.json`, one node
+  // The projection of `.noesis/graph/changes/<change>/design-docs/*.json`, one node
   // per file. `document` is the whole portable specification
   // (`DesignDocument`) as JSON; `name`, `status` and `date` are denormalised
   // copies of document fields so listing does not parse every document.

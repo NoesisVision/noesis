@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { createGraphSearch } from '../../src/search/graph-search.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
+
+const ALPHA = ChangeSlug.parse('alpha');
 
 let db: DatabaseService;
 let t: TestNoesis;
@@ -24,8 +27,8 @@ afterEach(async () => {
 
 describe('graph search', () => {
   it('finds topics, decisions and design docs by a case-insensitive substring', async () => {
-    await t.changesRepository.create('alpha');
-    await t.designDocsRepository.create('alpha', designDocFixture);
+    await t.createChange(ALPHA);
+    await t.designDocsRepository.create(ALPHA, designDocFixture);
     await t.topicsRepository.write({
       id: 't-1',
       parent_id: null,

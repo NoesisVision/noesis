@@ -94,8 +94,9 @@ export class GraphIndexer {
     ]);
     const push = (table: string, row: Row) => rows.get(table)?.push(row);
 
-    for (const change of await changes.list()) {
-      for (const s of await designDocs.list(change)) {
+    for await (const slug of changes.keys()) {
+      const change = slug.value;
+      for (const s of await designDocs.list(slug)) {
         const { id, name, status, date } = s.entity;
         push('DesignDoc', {
           id,
@@ -107,7 +108,7 @@ export class GraphIndexer {
           updated_at: s.updatedAt,
         });
       }
-      for (const s of await conversations.list(change)) {
+      for (const s of await conversations.list(slug)) {
         push('Conversation', {
           id: s.entity.conversation_id,
           change,
@@ -117,7 +118,7 @@ export class GraphIndexer {
           updated_at: s.updatedAt,
         });
       }
-      for (const s of await documents.list(change)) {
+      for (const s of await documents.list(slug)) {
         push('Document', {
           id: s.entity.document_id,
           change,

@@ -1,124 +1,67 @@
-import type { Dirent } from 'node:fs';
-import {
-  mkdir,
-  readdir,
-  readFile,
-  rename,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { join } from 'node:path';
 import { type Change, ChangeSchema } from '@repo/shared-contracts';
+import { createNoesisStore } from '../files/bun-noesis-store.js';
 import type { NoesisDir } from '../files/noesis-dir.js';
+import type { NoesisStore } from '../files/noesis-store.js';
+import { serverLogger } from '../logging/logging.js';
+import { ChangeSlug } from './change-slug.js';
+
+const log = serverLogger('changes');
+
+type ChangesStore = NoesisStore<Change, Change, Record<never, never>>;
 
 /**
- * A change slug is a directory name, so it is the safe subset: lower-case
- * kebab-case, nothing that could climb out of `changes/`.
- */
-export const CHANGE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-export const CHANGE_SLUG_MAX_LENGTH = 64;
-
-/** The metadata file inside a change directory (the `change` contract). */
-export const CHANGE_FILE_NAME = 'change.json';
-
-export function isChangeSlug(value: string): boolean {
-  return (
-    value.length <= CHANGE_SLUG_MAX_LENGTH && CHANGE_SLUG_PATTERN.test(value)
-  );
-}
-
-/** The slug a name gets: kebab-cased, capped, never empty. */
-export function slugForChange(name: string): string {
-  const slug = name
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, CHANGE_SLUG_MAX_LENGTH)
-    .replace(/-+$/, '');
-  return slug || 'untitled';
-}
-
-/**
- * A change is the directory `.noesis/changes/<change>/`: everything produced
- * while working on it — imports and design docs — lands underneath, and its
- * metadata is the `change.json` file inside it. Listing is a directory read,
- * creation is a directory write, and there is no seed (decision 68).
+ * The `changes` collection of `.noesis/graph/`: one object per change, keyed
+ * by its slug, whose `data.json` is the `change` contract (decision 76). The
+ * store validates on both sides of the disk and replaces the file atomically;
+ * this class only chooses the key.
+ *
+ * A change owns its conversations, documents and design documents. Until
+ * those repositories move onto the store as child collections, they keep
+ * writing their files under the change's directory through `dirOf`, so a
+ * change stays one tree: `graph/changes/<slug>/design-docs/`.
  */
 export class ChangesRepository {
-  private readonly noesis: NoesisDir;
+  private readonly store: ChangesStore;
 
   constructor(noesis: NoesisDir) {
-    this.noesis = noesis;
+    this.store = createNoesisStore({
+      directory: noesis.resolve('graph', 'changes'),
+      schema: ChangeSchema,
+    });
   }
 
-  /** The change's directory. Throws on a slug that is not a safe dir name. */
-  dirOf(change: string, ...segments: string[]): string {
-    if (!isChangeSlug(change)) {
-      throw new Error(`Not a change slug: ${JSON.stringify(change)}`);
-    }
-    return this.noesis.resolve('changes', change, ...segments);
-  }
-
-  /** Every change, sorted by slug. Non-directories and dot entries are not changes. */
-  async list(): Promise<string[]> {
-    let entries: Dirent[];
-    try {
-      entries = await readdir(this.noesis.resolve('changes'), {
-        withFileTypes: true,
-      });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-      throw error;
-    }
-    return entries
-      .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
-      .map((e) => e.name)
-      .sort();
-  }
-
-  async exists(change: string): Promise<boolean> {
-    return (await this.list()).includes(change);
-  }
-
-  /** Creates the directory; answers whether it was new. */
-  async create(change: string): Promise<boolean> {
-    if (await this.exists(change)) return false;
-    await mkdir(this.dirOf(change), { recursive: true });
-    return true;
+  /** The change's directory, or a path under it. */
+  dirOf(slug: ChangeSlug, ...segments: string[]): string {
+    return join(this.store.directory, slug.value, ...segments);
   }
 
   /**
-   * The change's metadata. A directory without a `change.json` — made by hand
-   * or before metadata existed — is still a change: it reads as a chore in
-   * discovery named after its slug, stamped with the directory's birth time,
-   * so the picker lists it and nothing under it is orphaned.
+   * The slug of every change, in no particular order; the graph sorts. A
+   * key the store accepts but that is not a slug was not written by this
+   * repository; it is logged and skipped.
    */
-  async readMetadata(change: string): Promise<Change | null> {
-    if (!(await this.exists(change))) return null;
-    try {
-      const raw = await readFile(this.dirOf(change, CHANGE_FILE_NAME), 'utf8');
-      return ChangeSchema.parse({ ...JSON.parse(raw), slug: change });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+  async *keys(): AsyncIterable<ChangeSlug> {
+    for await (const key of this.store.keys()) {
+      const slug = ChangeSlug.tryParse(key);
+      if (slug === null) {
+        log.warn('skipping {key} under {directory}: not a change slug', {
+          key,
+          directory: this.store.directory,
+        });
+        continue;
+      }
+      yield slug;
     }
-    const { birthtime } = await stat(this.dirOf(change));
-    return {
-      slug: change,
-      name: change,
-      key: '',
-      type: 'chore',
-      status: 'discovery',
-      created_at: birthtime.toISOString(),
-      description: '',
-    };
   }
 
-  /** Writes `change.json` whole, atomically, under the change's directory. */
-  async writeMetadata(change: Change): Promise<void> {
-    const file = this.dirOf(change.slug, CHANGE_FILE_NAME);
-    const temp = `${file}.tmp`;
-    await writeFile(temp, `${JSON.stringify(change, null, 2)}\n`, 'utf8');
-    await rename(temp, file);
+  /** The change, or `null` when there is none under that slug. */
+  async read(slug: ChangeSlug): Promise<Change | null> {
+    return this.store.get(slug.value);
+  }
+
+  /** Creates or replaces the change's `data.json`; what it owns stays. */
+  async write(change: Change): Promise<void> {
+    await this.store.set(ChangeSlug.parse(change.slug).value, change);
   }
 }

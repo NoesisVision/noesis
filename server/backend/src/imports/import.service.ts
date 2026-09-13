@@ -6,6 +6,7 @@ import {
   type InformationFragmentRef,
   type Topic,
 } from '@repo/shared-contracts';
+import { ChangeSlug } from '../changes/change-slug.js';
 import type { ChangesService } from '../changes/changes.service.js';
 import { contentHashAsUuid, newUuid } from '../ids/uuid.js';
 import type {
@@ -89,10 +90,10 @@ export class ImportService {
   }
 
   async importConversation(
-    change: string,
+    slug: ChangeSlug,
     payload: unknown,
   ): Promise<ImportReport> {
-    await this.deps.changes.assertExists(change);
+    await this.deps.changes.assertExists(slug);
     const { conversation, topics } = parse(
       'conversation-analysis',
       { description: '', schema: ConversationAnalysisSchema },
@@ -104,7 +105,7 @@ export class ImportService {
       this.deps.conversations.findById(c, id),
     );
     await this.assertTopicsResolve('conversation-analysis', topics);
-    const stored = await this.deps.conversations.write(change, {
+    const stored = await this.deps.conversations.write(slug, {
       ...conversation,
       conversation_id: id,
     });
@@ -120,10 +121,10 @@ export class ImportService {
   }
 
   async importDocument(
-    change: string,
+    slug: ChangeSlug,
     payload: unknown,
   ): Promise<ImportReport> {
-    await this.deps.changes.assertExists(change);
+    await this.deps.changes.assertExists(slug);
     const { document, topics } = parse(
       'document-analysis',
       { description: '', schema: DocumentAnalysisSchema },
@@ -135,7 +136,7 @@ export class ImportService {
       this.deps.documents.findById(c, id),
     );
     await this.assertTopicsResolve('document-analysis', topics);
-    const stored = await this.deps.documents.write(change, {
+    const stored = await this.deps.documents.write(slug, {
       ...document,
       document_id: id,
     });
@@ -153,10 +154,10 @@ export class ImportService {
   private async assertNew(
     kind: 'conversation' | 'document',
     id: string,
-    find: (change: string) => Promise<{ path: string } | null>,
+    find: (slug: ChangeSlug) => Promise<{ path: string } | null>,
   ): Promise<void> {
-    for (const { slug } of await this.deps.changes.list()) {
-      const existing = await find(slug);
+    for (const change of await this.deps.changes.list()) {
+      const existing = await find(ChangeSlug.parse(change.slug));
       if (existing !== null) {
         throw new DuplicateSourceError(kind, id, existing.path);
       }

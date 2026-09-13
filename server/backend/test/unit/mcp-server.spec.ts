@@ -9,6 +9,7 @@ import { join, relative } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { SessionDir } from '../../src/files/session-dir.js';
 import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
@@ -17,6 +18,7 @@ import { SearchService } from '../../src/ui/search/search.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = 'booking';
+const SLUG = ChangeSlug.parse(CHANGE);
 
 let t: TestNoesis;
 let session: SessionDir;
@@ -209,7 +211,7 @@ describe('createMcpServer', () => {
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain('"Appointment booking"');
 
-      const listed = await t.designDocsService.list(CHANGE);
+      const listed = await t.designDocsService.list(SLUG);
       expect(listed).toHaveLength(1);
       expect(textOf(result)).toContain(listed[0]?.id ?? 'no id');
     });
@@ -223,7 +225,7 @@ describe('createMcpServer', () => {
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('Invalid design-document');
       expect(textOf(result)).toContain('svc-booking');
-      expect(await t.designDocsService.list(CHANGE)).toEqual([]);
+      expect(await t.designDocsService.list(SLUG)).toEqual([]);
     });
 
     it('names the existing changes when the change does not exist', async () => {
@@ -257,20 +259,20 @@ describe('createMcpServer', () => {
     });
 
     it('lists design documents with id and relative path', async () => {
-      await t.designDocsService.createSample(CHANGE);
+      await t.designDocsService.createSample(SLUG);
       const result = await client.callTool({
         name: 'list-design-docs',
         arguments: { change: CHANGE },
       });
       const line = textOf(result);
       expect(line).toContain('Appointment booking');
-      expect(line).toContain(`.noesis/changes/${CHANGE}/design-docs/`);
+      expect(line).toContain(`.noesis/graph/changes/${CHANGE}/design-docs/`);
     });
   });
 
   describe('update-design-doc', () => {
     it('replaces the document under its id', async () => {
-      const created = await t.designDocsService.createSample(CHANGE);
+      const created = await t.designDocsService.createSample(SLUG);
       const path = await working('doc.json', {
         ...designDocFixture,
         name: 'Renamed booking',
@@ -281,7 +283,7 @@ describe('createMcpServer', () => {
       });
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain('"Renamed booking"');
-      const listed = await t.designDocsService.list(CHANGE);
+      const listed = await t.designDocsService.list(SLUG);
       expect(listed.map((d) => [d.id, d.name])).toEqual([
         [created.id, 'Renamed booking'],
       ]);
@@ -360,7 +362,7 @@ describe('createMcpServer', () => {
       expect(result.isError).toBeFalsy();
       const report = textOf(result);
       expect(report).toContain(
-        `Imported the conversation as .noesis/changes/${CHANGE}/conversations/slot-holds-`,
+        `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/slot-holds-`,
       );
       expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
       expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);

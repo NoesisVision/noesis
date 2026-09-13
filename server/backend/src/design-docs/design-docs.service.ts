@@ -1,5 +1,6 @@
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import type { ChangeSlug } from '../changes/change-slug.js';
 import type { ChangesService } from '../changes/changes.service.js';
 import { newUuid } from '../ids/uuid.js';
 import { designDocumentContract } from '../mcp/contracts/design-document.js';
@@ -24,8 +25,8 @@ export interface DesignDocSummary {
 export class DesignDocNotFoundError extends Error {
   readonly id: string;
 
-  constructor(change: string, id: string) {
-    super(`No design document ${JSON.stringify(id)} in change ${change}.`);
+  constructor(slug: ChangeSlug, id: string) {
+    super(`No design document ${JSON.stringify(id)} in change ${slug.value}.`);
     this.name = 'DesignDocNotFoundError';
     this.id = id;
   }
@@ -66,7 +67,7 @@ export class InvalidDesignDocumentError extends Error {
  * overwrite anything.
  *
  * Documents are scoped to a change; every method throws
- * `ChangeNotFoundError` for a change that has no directory.
+ * `ChangeNotFoundError` for a slug no change has.
  */
 export class DesignDocsService {
   private readonly designDocs: DesignDocsRepository;
@@ -77,13 +78,13 @@ export class DesignDocsService {
     this.changes = changes;
   }
 
-  async create(change: string, input: unknown): Promise<DesignDocSummary> {
-    await this.changes.assertExists(change);
+  async create(slug: ChangeSlug, input: unknown): Promise<DesignDocSummary> {
+    await this.changes.assertExists(slug);
     const report = validate(designDocumentContract, withId(input, newUuid()));
     if (!report.ok) {
       throw new InvalidDesignDocumentError(report.issues, report.suppressed);
     }
-    return toSummary(await this.designDocs.create(change, report.value));
+    return toSummary(await this.designDocs.create(slug, report.value));
   }
 
   /**
@@ -91,8 +92,8 @@ export class DesignDocsService {
    * put in front of a reviewer before the agent writes real ones (phase 2 has
    * no other author). Stamped with today's date; the id is minted in `create`.
    */
-  async createSample(change: string): Promise<DesignDocSummary> {
-    return this.create(change, {
+  async createSample(slug: ChangeSlug): Promise<DesignDocSummary> {
+    return this.create(slug, {
       ...designDocFixture,
       date: new Date().toISOString().slice(0, 10),
     });
@@ -104,36 +105,39 @@ export class DesignDocsService {
    * whatever id the input carries is ignored.
    */
   async update(
-    change: string,
+    slug: ChangeSlug,
     id: string,
     input: unknown,
   ): Promise<DesignDocSummary> {
-    await this.changes.assertExists(change);
-    if ((await this.designDocs.findById(change, id)) === null) {
-      throw new DesignDocNotFoundError(change, id);
+    await this.changes.assertExists(slug);
+    if ((await this.designDocs.findById(slug, id)) === null) {
+      throw new DesignDocNotFoundError(slug, id);
     }
     const report = validate(designDocumentContract, withId(input, id));
     if (!report.ok) {
       throw new InvalidDesignDocumentError(report.issues, report.suppressed);
     }
-    return toSummary(await this.designDocs.create(change, report.value));
+    return toSummary(await this.designDocs.create(slug, report.value));
   }
 
-  async list(change: string): Promise<DesignDocSummary[]> {
-    await this.changes.assertExists(change);
-    return (await this.designDocs.list(change)).map(toSummary);
+  async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
+    await this.changes.assertExists(slug);
+    return (await this.designDocs.list(slug)).map(toSummary);
   }
 
-  async findById(change: string, id: string): Promise<DesignDocDetail | null> {
-    await this.changes.assertExists(change);
-    const stored = await this.designDocs.findById(change, id);
+  async findById(
+    slug: ChangeSlug,
+    id: string,
+  ): Promise<DesignDocDetail | null> {
+    await this.changes.assertExists(slug);
+    const stored = await this.designDocs.findById(slug, id);
     if (stored === null) return null;
     return { summary: toSummary(stored), document: stored.entity };
   }
 
-  async delete(change: string, id: string): Promise<boolean> {
-    await this.changes.assertExists(change);
-    return this.designDocs.delete(change, id);
+  async delete(slug: ChangeSlug, id: string): Promise<boolean> {
+    await this.changes.assertExists(slug);
+    return this.designDocs.delete(slug, id);
   }
 }
 

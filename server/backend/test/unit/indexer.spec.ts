@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
+
+const ALPHA = ChangeSlug.parse('alpha');
+const BETA = ChangeSlug.parse('beta');
+const GAMMA = ChangeSlug.parse('gamma');
 
 let db: DatabaseService;
 let t: TestNoesis;
@@ -37,19 +42,19 @@ const graphRows = () =>
 
 describe('GraphIndexer', () => {
   it('projects every design doc of every change into the graph', async () => {
-    await t.changesRepository.create('alpha');
-    await t.changesRepository.create('beta');
-    await designDocs.create('alpha', {
+    await t.createChange(ALPHA);
+    await t.createChange(BETA);
+    await designDocs.create(ALPHA, {
       ...designDocFixture,
       id: 'a1',
       name: 'A one',
     });
-    await designDocs.create('alpha', {
+    await designDocs.create(ALPHA, {
       ...designDocFixture,
       id: 'a2',
       name: 'A two',
     });
-    await designDocs.create('beta', {
+    await designDocs.create(BETA, {
       ...designDocFixture,
       id: 'b1',
       name: 'B one',
@@ -67,9 +72,9 @@ describe('GraphIndexer', () => {
   });
 
   it('is a function of the files alone: a rebuild drops what the files no longer hold', async () => {
-    await t.changesRepository.create('alpha');
-    await designDocs.create('alpha', { ...designDocFixture, id: 'a1' });
-    await designDocs.create('alpha', {
+    await t.createChange(ALPHA);
+    await designDocs.create(ALPHA, { ...designDocFixture, id: 'a1' });
+    await designDocs.create(ALPHA, {
       ...designDocFixture,
       id: 'a2',
       name: 'Two',
@@ -77,14 +82,14 @@ describe('GraphIndexer', () => {
     await indexer.rebuild();
 
     // What a `git checkout` does: files vanish and appear behind the service's back.
-    await rm(t.noesis.resolve('changes', 'alpha'), { recursive: true });
-    await t.changesRepository.create('gamma');
-    await designDocs.create('gamma', {
+    await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
+    await t.createChange(GAMMA);
+    await designDocs.create(GAMMA, {
       ...designDocFixture,
       id: 'g1',
       name: 'Renamed',
     });
-    await designDocs.create('gamma', {
+    await designDocs.create(GAMMA, {
       ...designDocFixture,
       id: 'a2',
       name: 'Renamed too',
@@ -100,10 +105,10 @@ describe('GraphIndexer', () => {
   it('indexes an empty .noesis/ to an empty graph and skips what does not decode', async () => {
     expect((await indexer.rebuild()).files).toBe(0);
 
-    await t.changesRepository.create('alpha');
-    await designDocs.create('alpha', designDocFixture);
+    await t.createChange(ALPHA);
+    await designDocs.create(ALPHA, designDocFixture);
     await writeFile(
-      t.changesRepository.dirOf('alpha', 'design-docs', 'junk-x.json'),
+      t.changesRepository.dirOf(ALPHA, 'design-docs', 'junk-x.json'),
       '{',
     );
 
@@ -112,14 +117,14 @@ describe('GraphIndexer', () => {
   });
 
   it('projects sources and the wiki into their own tables', async () => {
-    await t.changesRepository.create('alpha');
-    await t.conversationsRepository.write('alpha', {
+    await t.createChange(ALPHA);
+    await t.conversationsRepository.write(ALPHA, {
       conversation_id: 'c-1',
       time: '2026-09-12T10:00:00Z',
       main_topic: 'Slots',
       turns: [],
     });
-    await t.documentsRepository.write('alpha', {
+    await t.documentsRepository.write(ALPHA, {
       document_id: 'doc-1',
       title: 'Rules',
       date: '2026-09-01',
@@ -176,8 +181,8 @@ describe('GraphIndexer', () => {
   });
 
   it('stores the whole document beside its denormalised columns', async () => {
-    await t.changesRepository.create('alpha');
-    await designDocs.create('alpha', designDocFixture);
+    await t.createChange(ALPHA);
+    await designDocs.create(ALPHA, designDocFixture);
     await indexer.rebuild();
 
     const [row] = await db.query<{

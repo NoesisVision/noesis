@@ -1,17 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-const CHANGE = 'booking';
+const CHANGE = ChangeSlug.parse('booking');
+const OTHER = ChangeSlug.parse('other');
 
 let t: TestNoesis;
 let designDocs: DesignDocsRepository;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.changesRepository.create(CHANGE);
+  await t.createChange(CHANGE);
   designDocs = new DesignDocsRepository(t.changesRepository);
 });
 
@@ -23,7 +25,7 @@ describe('DesignDocsRepository', () => {
 
     expect(created.entity.name).toBe('Appointment booking');
     expect(
-      await readdir(t.noesis.resolve('changes', CHANGE, 'design-docs')),
+      await readdir(t.changesRepository.dirOf(CHANGE, 'design-docs')),
     ).toEqual([`appointment-booking-${designDocFixture.id.slice(-12)}.json`]);
 
     const found = await designDocs.findById(CHANGE, designDocFixture.id);
@@ -48,11 +50,11 @@ describe('DesignDocsRepository', () => {
   });
 
   it('keeps the changes apart', async () => {
-    await t.changesRepository.create('other');
+    await t.createChange(OTHER);
     await designDocs.create(CHANGE, designDocFixture);
 
-    expect(await designDocs.list('other')).toEqual([]);
-    expect(await designDocs.findById('other', designDocFixture.id)).toBe(null);
+    expect(await designDocs.list(OTHER)).toEqual([]);
+    expect(await designDocs.findById(OTHER, designDocFixture.id)).toBe(null);
   });
 
   it('deletes a document and reports a missing one', async () => {

@@ -3,7 +3,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { IconPlus } from '@tabler/icons-react';
 import { NewChangeModal } from '#/components/shell/new-change-modal';
 
-/** The first-run experience: a checkout with no `.noesis/changes/` yet. */
+/** The first-run experience: a checkout with no changes in `.noesis/graph/` yet. */
 export function NoChangesView() {
   const [opened, modal] = useDisclosure(false);
   return (

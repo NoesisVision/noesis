@@ -4,7 +4,7 @@ import { InformationCategory } from './information-category.js';
 /*
  * An imported document: its content split into fragments the wiki can point
  * at, plus the section tree that says where each fragment sits. One file per
- * document under `.noesis/changes/<change>/documents/`; never rewritten after
+ * document under `.noesis/graph/changes/<change>/documents/`; never rewritten after
  * import.
  */
 

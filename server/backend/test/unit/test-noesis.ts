@@ -1,6 +1,8 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Change } from '@repo/shared-contracts';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { ChangesService } from '../../src/changes/changes.service.js';
 import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
@@ -39,6 +41,11 @@ export interface TestNoesis {
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   importService: ImportService;
+  /** Writes a change under `slug` with placeholder data; answers its slug. */
+  createChange(
+    slug: string | ChangeSlug,
+    overrides?: Partial<Change>,
+  ): Promise<ChangeSlug>;
   cleanup(): Promise<void>;
 }
 
@@ -87,6 +94,21 @@ export async function testNoesis(): Promise<TestNoesis> {
       topics: topicsRepository,
       decisions: decisionsRepository,
     }),
+    createChange: async (slug, overrides = {}) => {
+      const parsed = typeof slug === 'string' ? ChangeSlug.parse(slug) : slug;
+      const change: Change = {
+        slug: parsed.value,
+        name: parsed.value,
+        key: '',
+        type: 'chore',
+        status: 'discovery',
+        created_at: '2026-09-13T00:00:00.000Z',
+        description: '',
+        ...overrides,
+      };
+      await changesRepository.write(change);
+      return parsed;
+    },
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
 }
