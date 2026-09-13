@@ -1,0 +1,48 @@
+# LogTape: unobtrusive logging for modern JavaScript
+
+> Unobtrusive logging library with zero dependencies and a library-first design for Deno, Node.js, Bun, browsers, and edge functions
+
+## Table of Contents
+
+
+
+
+### Manual
+
+- [Installation](/manual/install.md)
+- [Quick start](/manual/start.md)
+- [Configuration](/manual/config.md)
+- [Categories](/manual/categories.md)
+- [Severity levels](/manual/levels.md)
+- [Structured logging](/manual/struct.md)
+- [Contexts](/manual/contexts.md)
+- [Lazy evaluation](/manual/lazy.md)
+- [Sinks](/manual/sinks.md)
+- [Filters](/manual/filters.md)
+- [Text formatters](/manual/formatters.md)
+- [Data redaction](/manual/redaction.md)
+- [Adapters](/manual/adaptors.md)
+- [Third-party integrations](/manual/integrations.md)
+- [Using in libraries](/manual/library.md)
+- [Debugging and error handling](/manual/debug.md)
+- [Testing](/manual/testing.md)
+- [LLM integration](/manual/llm.md)
+
+### Sinks
+
+- [File sink](/sinks/file.md)
+- [OpenTelemetry sink](/sinks/otel.md)
+- [Sentry sink](/sinks/sentry.md)
+- [Syslog sink](/sinks/syslog.md)
+- [AWS CloudWatch Logs sink](/sinks/cloudwatch-logs.md)
+- [Windows Event Log sink](/sinks/windows-eventlog.md)
+
+### Lint rules
+
+- [Lint rules](/lint.md)
+- [`no-message-interpolation`](/lint/no-message-interpolation.md)
+- [`prefer-lazy-evaluation`](/lint/prefer-lazy-evaluation.md)
+- [`no-unawaited-log`](/lint/no-unawaited-log.md)
+- [`require-meta-sink`](/lint/require-meta-sink.md)
+
+

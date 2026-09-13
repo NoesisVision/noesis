@@ -1,5 +1,8 @@
 import { type FSWatcher, watch } from 'node:fs';
 import type { NoesisDir } from '../files/noesis-dir.js';
+import { serverLogger } from '../logging/logging.js';
+
+const log = serverLogger('watcher');
 
 export interface WatcherOptions {
   /** Quiet time after the last event before a rebuild starts. */
@@ -44,7 +47,7 @@ export class NoesisWatcher {
       (_event, filename) => this.onEvent(filename),
     );
     this.watcher.on('error', (error) => {
-      console.error(`[watcher] ${String(error)}`);
+      log.error('watch failed: {error}', { error: String(error) });
     });
   }
 
@@ -83,7 +86,7 @@ export class NoesisWatcher {
         try {
           await this.rebuild();
         } catch (error) {
-          console.error(`[watcher] re-index failed: ${String(error)}`);
+          log.error('re-index failed: {error}', { error: String(error) });
         }
       }
     })().finally(() => {

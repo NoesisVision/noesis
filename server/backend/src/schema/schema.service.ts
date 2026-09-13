@@ -1,5 +1,8 @@
 import type { DatabaseService } from '../database/database.service.js';
+import { serverLogger } from '../logging/logging.js';
 import { GRAPH_SCHEMA } from './graph-schema.js';
+
+const log = serverLogger('schema');
 
 export class SchemaService {
   private readonly db: DatabaseService;
@@ -14,9 +17,9 @@ export class SchemaService {
     for (const ddl of GRAPH_SCHEMA) {
       await this.db.query(ddl);
     }
-    console.error(
-      `[SchemaService] Graph schema ensured (${GRAPH_SCHEMA.length} statements)`,
-    );
+    log.info('graph schema ensured ({statements} statements)', {
+      statements: GRAPH_SCHEMA.length,
+    });
   }
 
   // The declared schema, for the schema-explorer (migrated in a later part).

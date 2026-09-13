@@ -48,6 +48,9 @@
         "@ladybugdb/core": "^0.19.0",
       },
       "devDependencies": {
+        "@logtape/file": "^2.3.4",
+        "@logtape/hono": "^2.3.4",
+        "@logtape/logtape": "^2.3.4",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "@repo/shared-contracts": "workspace:*",
         "@repo/typescript-config": "workspace:*",
@@ -62,6 +65,7 @@
       "name": "frontend",
       "dependencies": {
         "@fontsource-variable/raleway": "^5.3.0",
+        "@logtape/logtape": "^2.3.4",
         "@mantine/core": "^9.6.1",
         "@mantine/form": "^9.6.1",
         "@mantine/hooks": "^9.6.1",
@@ -183,6 +187,12 @@
     "@ladybugdb/core-linux-x64": ["@ladybugdb/core-linux-x64@0.19.1", "", { "os": "linux", "cpu": "x64" }, "sha512-LDx+E1UHlmNXSb3F9QmvdBgZGfB3wI/DcrHzfOwXgT3BP8C4ScB2tZdpiYQiuPp8MiSZ9kuuGqos8A4tQKQu8Q=="],
 
     "@ladybugdb/core-win32-x64": ["@ladybugdb/core-win32-x64@0.19.1", "", { "os": "win32", "cpu": "x64" }, "sha512-2spst1g+Z050Fz/5z7Pc6Fuc5dVXLzekOuWW4lP+mEGCL3tkv3QWYxk37DiFy+O9fDFxiWK2f3aauab58/f9kQ=="],
+
+    "@logtape/file": ["@logtape/file@2.3.4", "", { "peerDependencies": { "@logtape/logtape": "^2.3.4" } }, "sha512-4jXkntOowasyo5qrAjV1RdL9iEbP80xYLcSgnorRgBaxkBVtN0kiYdtMC/975Sj6ATmCuuTrnWlvcO0tyrY/9w=="],
+
+    "@logtape/hono": ["@logtape/hono@2.3.4", "", { "peerDependencies": { "@logtape/logtape": "^2.3.4", "hono": "^4.0.0" } }, "sha512-oC5lYcUDvvGrXY2WPkmkoX2aFyYdbS+WOphlg++4VG8F4myrZkwjycKDdYSGXpqH45ZnKiAEYVO01V1ph+lHvA=="],
+
+    "@logtape/logtape": ["@logtape/logtape@2.3.4", "", {}, "sha512-oW5Q6EOdjemL94c324j2fUn+2nRGuODwmOKmrwY6YAVkjqNWYVgkzpfbckFc4CKmDDCMk+GiwNfPybMZB3QqNQ=="],
 
     "@mantine/core": ["@mantine/core@9.6.1", "", { "dependencies": { "@floating-ui/react": "^0.27.20", "clsx": "^2.1.1", "react-number-format": "^5.4.5", "react-remove-scroll": "^2.7.2", "type-fest": "^5.8.0" }, "peerDependencies": { "@mantine/hooks": "9.6.1", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-UkcPo8Zq0uSdodvyXV62HVmfIfHCcrjFrFrH0TggTy6Wtp8a78znGP8RJOz8zC9XSPpJmKjBQjg0M+nOvIzftA=="],
 

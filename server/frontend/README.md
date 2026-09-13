@@ -27,6 +27,7 @@ src/
   main.tsx                  # providers (Mantine, Query), router, mount
   router.tsx                # createRouter over the generated route tree; staticData.breadcrumb type
   theme.ts                  # createTheme: brand ramp, Raleway, radius; colour-scheme manager
+  logging.ts                # LogTape: console sink, uiLogger(), window error handlers
   api/                      # fetch wrapper and TanStack Query options per resource (changes)
   routes/                   # file-based routes; each file exports only `Route`
     _shell.tsx              # pathless layout: loads the change list, renders ShellLayout

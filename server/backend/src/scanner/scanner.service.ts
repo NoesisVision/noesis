@@ -1,5 +1,8 @@
+import { serverLogger } from '../logging/logging.js';
 import type { SystemModelRepository } from '../system-model/system-model.repository.js';
 import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
+
+const log = serverLogger('scanner');
 
 export interface ScanReport {
   /** Units (directories with a package.json) that had source files. */
@@ -59,9 +62,10 @@ export class ScannerService {
     }
 
     report.durationMs = Math.round(performance.now() - started);
-    console.error(
-      `[scanner] ${report.units.length} unit(s) in ${report.durationMs} ms`,
-    );
+    log.info('scanned {units} unit(s) in {durationMs} ms', {
+      units: report.units.length,
+      durationMs: report.durationMs,
+    });
     return report;
   }
 }

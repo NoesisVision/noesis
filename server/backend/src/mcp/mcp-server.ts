@@ -1,5 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { relative } from 'node:path';
+import { withContext } from '@logtape/logtape';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   CallToolRequestSchema,
@@ -398,7 +400,12 @@ export function createMcpServer(deps: McpDeps): Server {
       );
     }
 
-    return tool.handler(parsed.data);
+    // The MCP counterpart of the HTTP request id: every log line the tool
+    // writes carries which tool ran and a fresh id for the call.
+    return withContext(
+      { requestId: randomUUID(), tool: request.params.name },
+      () => tool.handler(parsed.data),
+    );
   });
 
   return server;

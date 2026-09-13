@@ -4,6 +4,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getContext } from '#/integrations/tanstack-query/root-provider';
+import { configureLogging } from '#/logging';
 import { getRouter } from '#/router';
 import { colorSchemeManager, theme } from '#/theme';
 import '@mantine/core/styles.css';
@@ -13,6 +14,7 @@ import '#/styles.css';
 // The single browser entry point: this app is a plain SPA, so nothing here
 // runs anywhere but the browser (decision 67). The backend imports
 // `index.html`, which is how bun finds this file and bundles it.
+configureLogging();
 const context = getContext();
 const router = getRouter(context);
 

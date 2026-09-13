@@ -1,6 +1,9 @@
 import { copyFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
+import { serverLogger } from '../logging/logging.js';
+
+const log = serverLogger('native');
 
 /**
  * Puts LadybugDB's native binary where its loader expects it.
@@ -33,7 +36,7 @@ export function ensureLadybugBinary(): void {
     );
   }
   copyFileSync(source, target);
-  console.error(
-    `[server] installed the LadybugDB binary from ${platformPackage}`,
-  );
+  log.info('installed the LadybugDB binary from {platformPackage}', {
+    platformPackage,
+  });
 }

@@ -6,7 +6,8 @@
 // bunx.
 //
 // stdout belongs to the MCP protocol — every log line goes to stderr. Our own
-// code logs with console.error/warn; the redirect below catches anything a
+// code logs through LogTape (logging/logging.ts, decision 75), whose stderr
+// sink writes there directly; the redirect below catches anything a
 // dependency prints with console.log, which would otherwise corrupt the
 // stream.
 console.log = (...args: unknown[]) => console.error(...args);
@@ -31,6 +32,11 @@ import { SessionDir } from './files/session-dir.js';
 import { ImportService } from './imports/import.service.js';
 import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
+import {
+  configureLogging,
+  disposeLogging,
+  serverLogger,
+} from './logging/logging.js';
 import { createMcpServer } from './mcp/mcp-server.js';
 import { ensureLadybugBinary } from './native/ensure-ladybug.js';
 import { ScannerService } from './scanner/scanner.service.js';
@@ -57,13 +63,22 @@ const config = loadServerConfig();
 // (decision 68). Services write files only — never the graph.
 const noesis = new NoesisDir(loadRepositoryRoot());
 await noesis.ensure();
-console.error(`[server] knowledge graph files in ${noesis.path}`);
+const production = process.env.NODE_ENV === 'production';
+// Logging needs `.noesis/logs/`, so it starts right after the directory
+// exists; the two failures above it (config, root) still print and exit.
+await configureLogging({
+  logDir: noesis.logDir,
+  production,
+  level: config.logLevel,
+});
+const log = serverLogger();
+log.info('knowledge graph files in {path}', { path: noesis.path });
 // This process's scratch directory under `.noesis/tmp/`: working files pass
 // between the agent and the tools through it, and it goes when the session
 // does. Stale directories left by crashed sessions are swept while opening.
 const session = new SessionDir(noesis);
 await session.open();
-console.error(`[server] session scratch directory ${session.path}`);
+log.info('session scratch directory {path}', { path: session.path });
 
 ensureLadybugBinary();
 const db = new DatabaseService();
@@ -138,13 +153,14 @@ const server = Bun.serve({
   // with "Cannot read properties of null (reading 'replaceRouteChunk')"
   // (bun 1.3.14 and 1.4.2 alike; the plain dev and production bundles are
   // fine). Refresh the browser after an edit.
-  development: process.env.NODE_ENV !== 'production' && {
+  development: !production && {
     hmr: false,
     console: true,
   },
 });
 const url = `http://localhost:${server.port}/`;
-console.error(`[server] listening on ${url}`);
+// The e2e specs and a person alike find the UI by this line.
+log.info('listening on {url}', { url });
 if (config.openBrowser) openBrowser(url);
 
 // The agent's entry point: MCP over stdio, calling the same services
@@ -163,10 +179,10 @@ await mcp.connect(new StdioServerTransport());
 // The SDK's transport reads stdin but does not report its end; the host
 // closing the stream is what ends the session, so watch for it here.
 process.stdin.once('end', () => {
-  console.error('[server] MCP stream closed — shutting down');
+  log.info('MCP stream closed — shutting down');
   void shutdown();
 });
-console.error('[server] MCP server connected on stdio');
+log.info('MCP server connected on stdio');
 
 function loadRepositoryRoot(): string {
   const result = resolveRepositoryRoot({
@@ -196,12 +212,13 @@ async function shutdown(): Promise<void> {
     await server.stop();
     await session.dispose();
   } catch (error) {
-    console.error(
-      `[server] shutdown failed before the database closed: ${String(error)}`,
-    );
+    log.error('shutdown failed before the database closed: {error}', {
+      error: String(error),
+    });
   } finally {
     await db.close();
   }
+  await disposeLogging();
   process.exit(0);
 }
 process.on('SIGINT', shutdown);

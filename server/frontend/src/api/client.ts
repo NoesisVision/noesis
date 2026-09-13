@@ -1,3 +1,7 @@
+import { uiLogger } from '#/logging';
+
+const log = uiLogger('api');
+
 /**
  * The `/ui` surface, called as plain JSON over `fetch` and typed by the
  * contracts both sides share (`@repo/shared-contracts`). Hono's `hc<AppType>`
@@ -27,16 +31,44 @@ function errorText(body: unknown): string | null {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // The id travels in `x-request-id`; the service logs every line of the
+  // request under it and echoes it back, so a browser line and the
+  // service's lines for one call share a key (decision 75).
+  const requestId = crypto.randomUUID();
+  const method = init?.method ?? 'GET';
+  const started = performance.now();
   const res = await fetch(path, {
     ...init,
-    headers: { accept: 'application/json', ...init?.headers },
+    headers: {
+      accept: 'application/json',
+      'x-request-id': requestId,
+      ...init?.headers,
+    },
   });
   const body: unknown = res.headers
     .get('content-type')
     ?.includes('application/json')
     ? await res.json()
     : null;
-  if (!res.ok) throw new ApiError(res.status, body);
+  const durationMs = Math.round(performance.now() - started);
+  if (!res.ok) {
+    log.warn('{method} {path} failed with {status} in {durationMs} ms', {
+      method,
+      path,
+      status: res.status,
+      durationMs,
+      requestId,
+      body,
+    });
+    throw new ApiError(res.status, body);
+  }
+  log.debug('{method} {path} {status} in {durationMs} ms', {
+    method,
+    path,
+    status: res.status,
+    durationMs,
+    requestId,
+  });
   return body as T;
 }
 

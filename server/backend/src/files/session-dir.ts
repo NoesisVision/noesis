@@ -9,7 +9,10 @@ import {
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
 import { newUuid } from '../ids/uuid.js';
+import { serverLogger } from '../logging/logging.js';
 import type { NoesisDir } from './noesis-dir.js';
+
+const log = serverLogger('session');
 
 export const TMP_DIR_NAME = 'tmp';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
@@ -127,7 +130,10 @@ export class SessionDir {
     try {
       entries = await readdir(this.tmpRoot, { withFileTypes: true });
     } catch (error) {
-      console.error(`[session] could not list ${this.tmpRoot}: ${error}`);
+      log.warn('could not list {dir}: {error}', {
+        dir: this.tmpRoot,
+        error: String(error),
+      });
       return;
     }
     const cutoff = this.now() - this.maxAgeMs;
@@ -141,11 +147,14 @@ export class SessionDir {
         swept += 1;
       } catch (error) {
         // A crashed session's leftovers are never worth failing a boot over.
-        console.error(`[session] could not sweep ${dir}: ${error}`);
+        log.warn('could not sweep {dir}: {error}', {
+          dir,
+          error: String(error),
+        });
       }
     }
     if (swept > 0) {
-      console.error(`[session] swept ${swept} stale session dir(s)`);
+      log.info('swept {swept} stale session dir(s)', { swept });
     }
   }
 }

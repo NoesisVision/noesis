@@ -10,6 +10,9 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { join } from 'node:path';
+import { serverLogger } from '../logging/logging.js';
+
+const log = serverLogger('files');
 
 /** One entity as it sits on disk. `hash` is the SHA-256 of the file bytes. */
 export interface StoredFile<T> {
@@ -117,7 +120,7 @@ export class FileRepository<T extends object> {
       try {
         stored.push(await this.load(path, raw));
       } catch (error) {
-        console.warn(`[files] skipping ${path}: ${String(error)}`);
+        log.warn('skipping {path}: {error}', { path, error: String(error) });
       }
     }
     return stored;
@@ -190,7 +193,10 @@ async function readRaw(path: string): Promise<RawFile | null> {
   try {
     return { bytes, json: JSON.parse(bytes.toString('utf8')) };
   } catch (error) {
-    console.warn(`[files] skipping ${path}: not JSON (${String(error)})`);
+    log.warn('skipping {path}: not JSON ({error})', {
+      path,
+      error: String(error),
+    });
     return null;
   }
 }

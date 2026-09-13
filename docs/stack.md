@@ -27,6 +27,9 @@ The service, contracts and tooling stack is in the root `README.md`.
   `src/integrations/tanstack-query/`
 - **TanStack devtools** (`@tanstack/react-devtools` with the Router and
   Query panels) — mounted from the root layout
+- **LogTape** (`@logtape/logtape`) — logging to the browser console under
+  `noesis.ui.*`, configured once in `src/logging.ts` before the app renders;
+  the service uses the same library (decision 75, `docs/logging.md`)
 - **bun** — bundler and dev server (decision 72): the backend imports
   `index.html`, bun bundles the scripts and styles it references. From
   source the page is bundled on request with hot module reload off (refresh

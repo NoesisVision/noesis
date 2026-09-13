@@ -2427,3 +2427,67 @@ requirements and the prototype's option C sidebar.
 - The mobile drawer and the `md` collapse are Mantine's own behaviour and
   were not exercised in a browser during the build; the desktop flows in
   the feature doc's checklist were.
+
+## 75. Logging is LogTape: structured lines to stderr and to `.noesis/logs/`, request ids across HTTP, MCP and the browser
+
+**Status: accepted** (2026-09-13)
+
+**Amends 68** (`.noesis/` gains an unversioned `logs/` beside `tmp/`).
+
+**Context:** The service logged with `console.error` and hand-typed
+`[module]` prefixes; the browser app did not log at all. stderr is what the
+agent host captures, in a `.jsonl` under `~/Library/Caches/` that nobody
+finds, and the session scratch directory is removed on exit, so a session
+left nothing readable behind. Finding why a create failed meant reading the
+host's log through `jq`. There was no way to tie a browser call to the
+service lines it caused, or a tool call to the lines it wrote.
+
+**Decision:**
+
+- **LogTape** (`@logtape/logtape`) in both packages: zero dependencies,
+  the same library in Bun and the browser, a facade-like design where
+  modules only call `getLogger()` and one place per process calls
+  `configure()`. Pino and winston were the alternatives; pino's worker-thread
+  transports were the risk for the single-file bin, and neither runs in the
+  browser without a shim. `@logtape/hono` for request lines, `@logtape/file`
+  for the file.
+- **Categories** are `noesis.<process>.<module>`: `noesis.server.files`,
+  `noesis.ui.api`. Helpers `serverLogger()` and `uiLogger()` own the first
+  two segments; `docs/logging.md` lists the modules. Messages use named
+  placeholders and a properties object, never interpolation.
+- **The service writes two sinks, always.** stderr, coloured text from
+  source and JSON lines in the built bin — stdout stays the MCP transport.
+  And `.noesis/logs/noesis.log`, JSON lines, written through (no buffer),
+  rotated at 5 MB, five files kept. `NoesisDir.ensure()` creates `logs/`
+  and keeps it in the `.gitignore` it maintains, adding the line to an
+  older file. `NOESIS_LOG_LEVEL` sets the lowest level, `info` by default.
+- **Request ids.** The Hono middleware takes `x-request-id` or mints a UUID,
+  echoes it on the response, and opens a LogTape context on
+  `AsyncLocalStorage` so every line under the request carries it. The MCP
+  dispatcher does the same per tool call, with the tool name. The browser's
+  fetch wrapper mints the id, sends it, and logs the call under it.
+- **The browser app** configures one console sink, `debug` from source and
+  `info` in the built bin, and logs uncaught errors and unhandled rejections
+  under `noesis.ui.window`.
+- The LogTape skill shipped in the package is copied to
+  `.agents/skills/logtape/` with the site's `llms.txt` beside it, the way the
+  other project skills are installed.
+
+**Consequences:**
+
+- `.noesis/` has a second unversioned directory. An existing `.gitignore`
+  gains `logs/` on the next boot, which shows as a change in a checkout that
+  committed the file.
+- The LogTape packages are devDependencies of the service: the bin bundles
+  them, and the pack spec still expects `@ladybugdb/core` as the sole
+  runtime dependency.
+- The e2e and pack specs find the UI's URL by `listening on` rather than the
+  old `[server]` prefix; the JSON form of the line escapes the URL's quotes,
+  and the regex allows for both.
+- The readable stderr formatter prints strings unquoted and appends
+  `(req …)`; the text formatter does not otherwise show context properties.
+  The JSON file is the complete record.
+- The two failures before logging exists — a bad config, no repository
+  root — still print with `console.error` and exit.
+- Write-through file logging costs one syscall per line. The volume is one
+  developer's session; a buffer returns if that ever shows.

@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service \u2014 one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -36,6 +36,9 @@
     "@ladybugdb/core"
   ],
   "devDependencies": {
+    "@logtape/file": "^2.3.4",
+    "@logtape/hono": "^2.3.4",
+    "@logtape/logtape": "^2.3.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@repo/shared-contracts": "workspace:*",
     "@repo/typescript-config": "workspace:*",

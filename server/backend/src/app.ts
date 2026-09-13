@@ -1,3 +1,4 @@
+import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
 import type { ChangesService } from './changes/changes.service.js';
 import type { DesignDocsService } from './design-docs/design-docs.service.js';
@@ -22,14 +23,28 @@ export interface AppDeps {
 // unbroken: Hono infers the route tree from this expression, which is what a
 // typed RPC client (`hc`) in the frontend would consume.
 export function createApp(deps: AppDeps) {
-  return new Hono()
-    .route(
-      '/ui',
-      createUiApp({
-        searchService: deps.searchService,
-        changesService: deps.changesService,
-        designDocsService: deps.designDocsService,
-      }),
-    )
-    .route('/internal', createInternalApp());
+  return (
+    new Hono()
+      // One line per request under ["noesis", "server", "http"], and a
+      // request id — taken from `x-request-id` or minted — that every log
+      // line inside the request carries and the response echoes
+      // (decision 75). The health probe is noise and stays out.
+      .use(
+        honoLogger({
+          category: ['noesis', 'server', 'http'],
+          format: 'structured-common',
+          context: true,
+          skip: (c) => c.req.path === '/internal/health',
+        }),
+      )
+      .route(
+        '/ui',
+        createUiApp({
+          searchService: deps.searchService,
+          changesService: deps.changesService,
+          designDocsService: deps.designDocsService,
+        }),
+      )
+      .route('/internal', createInternalApp())
+  );
 }

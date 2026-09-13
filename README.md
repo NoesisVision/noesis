@@ -36,7 +36,8 @@ boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above
 the working directory), ensures `.noesis/` and its `.gitignore`, opens its
 scratch directory under `.noesis/tmp/<session>/`, indexes the files into the
 in-memory graph, binds HTTP on an ephemeral loopback port, opens the browser
-once, and connects MCP on stdio. stdout belongs to MCP; logs go to stderr.
+once, and connects MCP on stdio. stdout belongs to MCP; logs go to stderr
+and to `.noesis/logs/noesis.log` (LogTape, decision 75, `docs/logging.md`).
 When the host closes the stream the process removes its scratch directory
 and exits: the UI lives exactly as long as the agent session (decision 68).
 

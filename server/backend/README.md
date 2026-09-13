@@ -11,7 +11,10 @@ The knowledge graph files under `.noesis/` in the served repository are the
 source of truth; the LadybugDB graph is an in-memory cache rebuilt from them
 at boot and on every change. `src/main.ts` is the composition root: config →
 `.noesis/` → graph → indexer + watcher → services → HTTP app + MCP server.
-stdout belongs to the MCP protocol; all logging goes to stderr. When the host
+stdout belongs to the MCP protocol; logging goes to stderr and to
+`.noesis/logs/noesis.log`, with a request id on every line of a request or
+a tool call (LogTape, decision 75; conventions in `docs/logging.md`).
+When the host
 closes stdin the process removes its scratch directory, closes the database
 and exits — the UI lives exactly as long as the agent session.
 
@@ -73,6 +76,7 @@ src/
                       asset manifest against cwd, and bunx launches it from the project)
   app.ts              the Hono app: /ui and /internal
   config/             env parsing (zod)
+  logging/            LogTape setup: stderr + .noesis/logs/noesis.log, request context
   files/              repository root lookup, .noesis/ + its .gitignore, session scratch dir,
                       the generic file repository (atomic whole-file writes, <slug>-<id>.json)
   changes/ design-docs/ imports/ sources/ system-model/ wiki/

@@ -1,6 +1,7 @@
 import type { ChangesRepository } from '../changes/changes.repository.js';
 import type { DatabaseService } from '../database/database.service.js';
 import type { DesignDocsRepository } from '../design-docs/design-docs.repository.js';
+import { serverLogger } from '../logging/logging.js';
 import { nodeTableNames } from '../schema/graph-schema.js';
 import type {
   ConversationsRepository,
@@ -11,6 +12,8 @@ import type {
   DecisionsRepository,
   TopicsRepository,
 } from '../wiki/wiki.repository.js';
+
+const log = serverLogger('indexer');
 
 export interface IndexReport {
   /** Knowledge graph files decoded into the graph. */
@@ -67,9 +70,7 @@ export class GraphIndexer {
       files,
       durationMs: Math.round(performance.now() - started),
     };
-    console.error(
-      `[indexer] indexed ${report.files} files in ${report.durationMs} ms`,
-    );
+    log.info('indexed {files} files in {durationMs} ms', report);
     return report;
   }
 

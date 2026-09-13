@@ -1,9 +1,12 @@
 import type lbug from '@ladybugdb/core';
 import type { LbugValue } from '@ladybugdb/core';
+import { serverLogger } from '../logging/logging.js';
 
 type LbugDatabase = InstanceType<typeof lbug.Database>;
 type LbugConnection = InstanceType<typeof lbug.Connection>;
 export type QueryParams = Record<string, LbugValue>;
+
+const log = serverLogger('db');
 
 // Owns the LadybugDB database handle. The database is in-memory only: the
 // graph is a cache over the files in `.noesis/`, rebuilt by the indexer at
@@ -23,7 +26,7 @@ export class DatabaseService {
     const { Database, Connection } = (await import('@ladybugdb/core')).default;
     this.database = new Database(':memory:');
     this.connection = new Connection(this.database);
-    console.error('[DatabaseService] LadybugDB initialized (in-memory)');
+    log.info('LadybugDB initialized (in-memory)');
   }
 
   async close(): Promise<void> {

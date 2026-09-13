@@ -1,4 +1,6 @@
+import type { LogLevel } from '@logtape/logtape';
 import { z } from 'zod';
+import { DEFAULT_LOG_LEVEL, parseLogLevel } from '../logging/logging.js';
 
 // Server configuration is read from the environment and zod-validated at
 // bootstrap, failing fast on garbage (decision 10's pattern). The service
@@ -17,6 +19,8 @@ const envSchema = z.object({
   /** `0` keeps the browser closed — headless runs and tests. */
   NOESIS_OPEN_BROWSER: z.string().optional(),
   PORT: z.coerce.number().int().min(0).max(65535).default(0),
+  /** The lowest level logged; `info` unless set (docs/logging.md). */
+  NOESIS_LOG_LEVEL: z.string().optional(),
 });
 
 export interface ServerConfig {
@@ -25,6 +29,7 @@ export interface ServerConfig {
   openBrowser: boolean;
   /** `0` for an ephemeral port. */
   port: number;
+  logLevel: LogLevel;
 }
 
 export type ConfigResult =
@@ -46,6 +51,10 @@ export function parseServerConfig(env: NodeJS.ProcessEnv): ConfigResult {
       root: parsed.data.NOESIS_ROOT,
       openBrowser: parsed.data.NOESIS_OPEN_BROWSER !== '0',
       port: parsed.data.PORT,
+      logLevel:
+        parsed.data.NOESIS_LOG_LEVEL === undefined
+          ? DEFAULT_LOG_LEVEL
+          : parseLogLevel(parsed.data.NOESIS_LOG_LEVEL),
     },
   };
 }

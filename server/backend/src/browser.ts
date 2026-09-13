@@ -1,3 +1,7 @@
+import { serverLogger } from './logging/logging.js';
+
+const log = serverLogger('browser');
+
 /**
  * Opens the default browser on a URL, once, at boot — the UI exists while the
  * agent session does, and this is how the person finds it (decision 68, point
@@ -14,11 +18,11 @@ export function openBrowser(url: string): void {
     Bun.spawn(command, { stdout: 'ignore', stderr: 'ignore', stdin: 'ignore' })
       .exited.then((code) => {
         if (code !== 0) {
-          console.error(`[server] could not open the browser (exit ${code})`);
+          log.warn('could not open the browser (exit {code})', { code });
         }
       })
       .catch(() => undefined);
   } catch (error) {
-    console.error(`[server] could not open the browser: ${String(error)}`);
+    log.warn('could not open the browser: {error}', { error: String(error) });
   }
 }

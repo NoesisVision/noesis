@@ -33,7 +33,9 @@ function listeningUrl(child: ChildProcess, timeoutMs: number): Promise<string> {
     );
     child.stderr?.on('data', (chunk: Buffer) => {
       log += chunk.toString();
-      const match = /\[server\] listening on (http:\/\/\S+)/.exec(log);
+      // Text while developing, a JSON line from the built bin: both carry
+      // the URL after "listening on", the JSON one in escaped quotes.
+      const match = /listening on \\?"?(http:\/\/[^\s"\\]+)/.exec(log);
       if (match?.[1]) {
         clearTimeout(timer);
         resolveUrl(match[1].replace(/\/$/, ''));
