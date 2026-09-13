@@ -11,11 +11,19 @@ export class ApiError extends Error {
   readonly body: unknown;
 
   constructor(status: number, body: unknown) {
-    super(`Request failed with status ${status}`);
+    // The surfaces answer `{ error }`: a code (`duplicate_change`) or, on a
+    // 400, zod's prettified issues. Either reads better than the status.
+    super(errorText(body) ?? `Request failed with status ${status}`);
     this.name = 'ApiError';
     this.status = status;
     this.body = body;
   }
+}
+
+function errorText(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const { error } = body as { error?: unknown };
+  return typeof error === 'string' && error.trim() !== '' ? error : null;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
