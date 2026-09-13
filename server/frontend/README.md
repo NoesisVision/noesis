@@ -22,6 +22,7 @@ is built. Run it from the repo root with `bun run dev` (the service on `:3000`).
 
 ```
 index.html                  # the page the backend imports; mounts #app, sets the colour scheme before load
+favicon.ico                 # the noesis.vision mark, linked from the page and bundled with it
 src/
   main.tsx                  # providers (Mantine, Query), router, mount
   router.tsx                # createRouter over the generated route tree; staticData.breadcrumb type
