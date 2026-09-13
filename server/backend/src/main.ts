@@ -24,7 +24,6 @@ import { ChangesRepository } from './changes/changes.repository.js';
 import { ChangesService } from './changes/changes.service.js';
 import { loadServerConfig } from './config/config.js';
 import { DatabaseService } from './database/database.service.js';
-import { DesignDocsRepository } from './design-docs/design-docs.repository.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
 import { NoesisDir } from './files/noesis-dir.js';
 import { resolveRepositoryRoot } from './files/repository-root.js';
@@ -42,10 +41,6 @@ import { ensureLadybugBinary } from './native/ensure-ladybug.js';
 import { ScannerService } from './scanner/scanner.service.js';
 import { SchemaService } from './schema/schema.service.js';
 import { createGraphSearch } from './search/graph-search.js';
-import {
-  ConversationsRepository,
-  DocumentsRepository,
-} from './sources/sources.repository.js';
 import { SystemModelRepository } from './system-model/system-model.repository.js';
 import { SearchService } from './ui/search/search.service.js';
 import {
@@ -86,17 +81,11 @@ await db.init();
 await new SchemaService(db).ensureSchema();
 
 const changesRepository = new ChangesRepository(noesis);
-const designDocsRepository = new DesignDocsRepository(changesRepository);
-const conversationsRepository = new ConversationsRepository(changesRepository);
-const documentsRepository = new DocumentsRepository(changesRepository);
 const topicsRepository = new TopicsRepository(noesis);
 const decisionsRepository = new DecisionsRepository(noesis);
 const systemModelRepository = new SystemModelRepository(noesis);
 const indexer = new GraphIndexer(db, {
   changes: changesRepository,
-  designDocs: designDocsRepository,
-  conversations: conversationsRepository,
-  documents: documentsRepository,
   topics: topicsRepository,
   decisions: decisionsRepository,
   systemModels: systemModelRepository,
@@ -109,13 +98,12 @@ await indexer.rebuild();
 
 const changesService = new ChangesService(changesRepository);
 const designDocsService = new DesignDocsService(
-  designDocsRepository,
+  changesRepository,
   changesService,
 );
 const importService = new ImportService({
   changes: changesService,
-  conversations: conversationsRepository,
-  documents: documentsRepository,
+  changesRepository,
   topics: topicsRepository,
   decisions: decisionsRepository,
 });

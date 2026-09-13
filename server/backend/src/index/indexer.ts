@@ -1,12 +1,8 @@
 import type { ChangesRepository } from '../changes/changes.repository.js';
 import type { DatabaseService } from '../database/database.service.js';
-import type { DesignDocsRepository } from '../design-docs/design-docs.repository.js';
+import { NoesisStoreError } from '../files/noesis-store.js';
 import { serverLogger } from '../logging/logging.js';
 import { nodeTableNames } from '../schema/graph-schema.js';
-import type {
-  ConversationsRepository,
-  DocumentsRepository,
-} from '../sources/sources.repository.js';
 import type { SystemModelRepository } from '../system-model/system-model.repository.js';
 import type {
   DecisionsRepository,
@@ -22,10 +18,8 @@ export interface IndexReport {
 }
 
 export interface IndexerSources {
+  /** The changes and, through their child collections, what they own. */
   changes: ChangesRepository;
-  designDocs: DesignDocsRepository;
-  conversations: ConversationsRepository;
-  documents: DocumentsRepository;
   topics: TopicsRepository;
   decisions: DecisionsRepository;
   systemModels: SystemModelRepository;
@@ -75,15 +69,7 @@ export class GraphIndexer {
   }
 
   private async collect(): Promise<Map<string, Row[]>> {
-    const {
-      changes,
-      designDocs,
-      conversations,
-      documents,
-      topics,
-      decisions,
-      systemModels,
-    } = this.sources;
+    const { changes, topics, decisions, systemModels } = this.sources;
     const rows = new Map<string, Row[]>([
       ['DesignDoc', []],
       ['Conversation', []],
@@ -96,36 +82,34 @@ export class GraphIndexer {
 
     for await (const slug of changes.keys()) {
       const change = slug.value;
-      for (const s of await designDocs.list(slug)) {
-        const { id, name, status, date } = s.entity;
+      const owned = changes.children(slug);
+      for await (const document of objects(owned['design-docs'])) {
+        const { id, name, status, date } = document;
         push('DesignDoc', {
           id,
           change,
           name,
           status,
           date,
-          document: JSON.stringify(s.entity),
-          updated_at: s.updatedAt,
+          document: JSON.stringify(document),
         });
       }
-      for (const s of await conversations.list(slug)) {
+      for await (const conversation of objects(owned.conversations)) {
         push('Conversation', {
-          id: s.entity.conversation_id,
+          id: conversation.conversation_id,
           change,
-          title: s.entity.main_topic,
-          time: s.entity.time,
-          json: JSON.stringify(s.entity),
-          updated_at: s.updatedAt,
+          title: conversation.main_topic,
+          time: conversation.time,
+          json: JSON.stringify(conversation),
         });
       }
-      for (const s of await documents.list(slug)) {
+      for await (const document of objects(owned.documents)) {
         push('Document', {
-          id: s.entity.document_id,
+          id: document.document_id,
           change,
-          title: s.entity.title,
-          date: s.entity.date,
-          json: JSON.stringify(s.entity),
-          updated_at: s.updatedAt,
+          title: document.title,
+          date: document.date,
+          json: JSON.stringify(document),
         });
       }
     }
@@ -136,7 +120,6 @@ export class GraphIndexer {
         title: s.entity.title,
         short_summary: s.entity.short_summary,
         json: JSON.stringify(s.entity),
-        updated_at: s.updatedAt,
       });
     }
     for (const s of await systemModels.list()) {
@@ -145,7 +128,6 @@ export class GraphIndexer {
         name: s.entity.name,
         scanned_at: s.entity.scanned_at,
         json: JSON.stringify(s.entity),
-        updated_at: s.updatedAt,
       });
     }
     for (const s of await decisions.list()) {
@@ -155,7 +137,6 @@ export class GraphIndexer {
         title: s.entity.title,
         status: s.entity.status,
         json: JSON.stringify(s.entity),
-        updated_at: s.updatedAt,
       });
     }
     return rows;
@@ -173,4 +154,46 @@ export class GraphIndexer {
       );
     }
   }
+}
+
+/** What the walk needs of a store handle: keys, and one object per key. */
+interface Readable<T> {
+  keys(): AsyncIterable<string>;
+  get(key: string): Promise<T | null>;
+}
+
+/**
+ * The objects of one collection, `keys()` then `get` per key (decision 76).
+ * A corrupt or invalid file costs that one key, logged, not the walk; an
+ * object that vanishes between the two is not an object; and a change taken
+ * away under the walk — a `git checkout` — ends it with what it had.
+ */
+async function* objects<T>(collection: Readable<T>): AsyncIterable<T> {
+  try {
+    for await (const key of collection.keys()) {
+      try {
+        const object = await collection.get(key);
+        if (object !== null) yield object;
+      } catch (error) {
+        if (!isUndecodable(error)) throw error;
+        log.warn('skipping {path}: {error}', {
+          path: error.path ?? key,
+          error: error.message,
+        });
+      }
+    }
+  } catch (error) {
+    if (!isParentMissing(error)) throw error;
+  }
+}
+
+function isUndecodable(error: unknown): error is NoesisStoreError {
+  return (
+    error instanceof NoesisStoreError &&
+    (error.code === 'INVALID_JSON' || error.code === 'VALIDATION_FAILED')
+  );
+}
+
+function isParentMissing(error: unknown): boolean {
+  return error instanceof NoesisStoreError && error.code === 'PARENT_NOT_FOUND';
 }

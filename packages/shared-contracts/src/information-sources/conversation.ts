@@ -83,6 +83,6 @@ export const ConversationSchema = z
       .describe('Every turn of the conversation, in order.'),
   })
   .describe(
-    'An imported conversation: a changes/<change>/conversations/<slug>-<id-suffix>.json file.',
+    'An imported conversation: the data.json of graph/changes/<change>/conversations/<id>/.',
   );
 export type Conversation = z.infer<typeof ConversationSchema>;

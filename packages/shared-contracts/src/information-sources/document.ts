@@ -110,6 +110,6 @@ export const DocumentSchema = z
       .describe('The top-level sections; each holds its subsections.'),
   })
   .describe(
-    'An imported document: a changes/<change>/documents/<slug>-<id-suffix>.json file.',
+    'An imported document: the data.json of graph/changes/<change>/documents/<id>/.',
   );
 export type Document = z.infer<typeof DocumentSchema>;

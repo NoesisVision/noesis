@@ -28,7 +28,9 @@ afterEach(async () => {
 describe('graph search', () => {
   it('finds topics, decisions and design docs by a case-insensitive substring', async () => {
     await t.createChange(ALPHA);
-    await t.designDocsRepository.create(ALPHA, designDocFixture);
+    await t.changesRepository
+      .children(ALPHA)
+      ['design-docs'].set(designDocFixture.id, designDocFixture);
     await t.topicsRepository.write({
       id: 't-1',
       parent_id: null,

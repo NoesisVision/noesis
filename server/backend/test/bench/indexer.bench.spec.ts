@@ -10,15 +10,10 @@ import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { DatabaseService } from '../../src/database/database.service.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
-import { fileNameFor } from '../../src/files/file-repository.js';
 import { NoesisDir } from '../../src/files/noesis-dir.js';
+import { dataFileOf } from '../../src/files/noesis-store.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { SchemaService } from '../../src/schema/schema.service.js';
-import {
-  ConversationsRepository,
-  DocumentsRepository,
-} from '../../src/sources/sources.repository.js';
 import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
 import {
   DecisionsRepository,
@@ -43,6 +38,8 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
   const noesis = new NoesisDir(root);
   await noesis.ensure();
   const changes = new ChangesRepository(noesis);
+  const designDocs = (slug: ChangeSlug) =>
+    changes.children(slug)['design-docs'];
   for (let c = 0; c < CHANGES; c++) {
     const slug = ChangeSlug.parse(`change-${c}`);
     await changes.write({
@@ -54,17 +51,15 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
       created_at: '2026-09-13T00:00:00.000Z',
       description: '',
     });
-    await mkdir(changes.dirOf(slug, 'design-docs'), { recursive: true });
+    await mkdir(designDocs(slug).directory, { recursive: true });
   }
   for (let i = 0; i < files; i++) {
     const id = `00000000-0000-7000-8000-${String(i).padStart(12, '0')}`;
     const name = `Design doc ${i}`;
+    const slug = ChangeSlug.parse(`change-${i % CHANGES}`);
+    await mkdir(join(designDocs(slug).directory, id));
     await writeFile(
-      changes.dirOf(
-        ChangeSlug.parse(`change-${i % CHANGES}`),
-        'design-docs',
-        fileNameFor(id, name),
-      ),
+      dataFileOf(designDocs(slug), id),
       JSON.stringify({ ...designDocFixture, id, name }, null, 2),
     );
   }
@@ -77,9 +72,6 @@ async function measure(files: number): Promise<number> {
     const changes = new ChangesRepository(noesis);
     const indexer = new GraphIndexer(db, {
       changes,
-      designDocs: new DesignDocsRepository(changes),
-      conversations: new ConversationsRepository(changes),
-      documents: new DocumentsRepository(changes),
       topics: new TopicsRepository(noesis),
       decisions: new DecisionsRepository(noesis),
       systemModels: new SystemModelRepository(noesis),

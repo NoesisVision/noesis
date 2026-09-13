@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { NoesisStoreError } from '../../src/files/noesis-store.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
@@ -52,10 +53,21 @@ describe('ChangesRepository', () => {
     expect(await keys()).toEqual(['real']);
   });
 
-  it('builds paths under the change', () => {
-    expect(
-      t.changesRepository.dirOf(ChangeSlug.parse('real'), 'design-docs'),
-    ).toBe(t.noesis.resolve('graph', 'changes', 'real', 'design-docs'));
+  it('names the change directory and hands out its child collections', () => {
+    const real = ChangeSlug.parse('real');
+    expect(t.changesRepository.dirOf(real)).toBe(
+      t.noesis.resolve('graph', 'changes', 'real'),
+    );
+    const children = t.changesRepository.children(real);
+    expect(children['design-docs'].directory).toBe(
+      t.noesis.resolve('graph', 'changes', 'real', 'design-docs'),
+    );
+    expect(children.conversations.directory).toBe(
+      t.noesis.resolve('graph', 'changes', 'real', 'conversations'),
+    );
+    expect(children.documents.directory).toBe(
+      t.noesis.resolve('graph', 'changes', 'real', 'documents'),
+    );
   });
 
   it('round-trips a change through graph/changes/<slug>/data.json', async () => {
@@ -84,16 +96,15 @@ describe('ChangesRepository', () => {
 
   it('replaces the data and keeps what the change owns', async () => {
     const kept = await t.createChange('kept', { status: 'discovery' });
-    const owned = t.changesRepository.dirOf(kept, 'design-docs', 'doc.json');
-    await mkdir(t.changesRepository.dirOf(kept, 'design-docs'));
-    await writeFile(owned, '{}');
+    const owned = t.changesRepository.children(kept)['design-docs'];
+    await owned.set(designDocFixture.id, designDocFixture);
     const before = await t.changesRepository.read(kept);
     if (before === null) throw new Error('the change was not written');
 
     await t.changesRepository.write({ ...before, status: 'design' });
 
     expect((await t.changesRepository.read(kept))?.status).toBe('design');
-    expect(await readFile(owned, 'utf8')).toBe('{}');
+    expect(await owned.get(designDocFixture.id)).toEqual(designDocFixture);
   });
 
   it('refuses data whose slug is not one, and data that is not a change', async () => {

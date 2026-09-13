@@ -11,9 +11,10 @@
 // EXISTS` is kept so ensureSchema stays idempotent within a process.
 //
 // Every node table follows one pattern: the id, the denormalised columns a
-// list or a search reads without parsing, the whole entity as JSON in `json`,
-// and the file's modification time in `updated_at`. `change` is set on the
-// kinds that live under `.noesis/graph/changes/<change>/` and empty on the wiki.
+// list or a search reads without parsing, and the whole entity as JSON in
+// `json`. `change` is set on the kinds that live under
+// `.noesis/graph/changes/<change>/` and empty on the wiki. There is no file
+// time: a `git checkout` rewrites it, and nothing read it (decision 76).
 //
 // The server runs locally against one checkout, so there is no tenant scoping
 // and no `version` column: the single writer needs no optimistic concurrency
@@ -21,8 +22,8 @@
 export const GRAPH_SCHEMA: readonly string[] = [
   // --- Design documents (design-doc phase 2) ---
   //
-  // The projection of `.noesis/graph/changes/<change>/design-docs/*.json`, one node
-  // per file. `document` is the whole portable specification
+  // The projection of `.noesis/graph/changes/<change>/design-docs/`, one
+  // node per document. `document` is the whole portable specification
   // (`DesignDocument`) as JSON; `name`, `status` and `date` are denormalised
   // copies of document fields so listing does not parse every document.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
@@ -32,7 +33,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      status STRING,
      date STRING,
      document STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
 
@@ -43,7 +43,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      title STRING,
      time STRING,
      json STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
   `CREATE NODE TABLE IF NOT EXISTS Document(
@@ -52,7 +51,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      title STRING,
      date STRING,
      json STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
 
@@ -62,7 +60,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      name STRING,
      scanned_at STRING,
      json STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
 
@@ -73,7 +70,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      title STRING,
      short_summary STRING,
      json STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
   `CREATE NODE TABLE IF NOT EXISTS Decision(
@@ -82,7 +78,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      title STRING,
      status STRING,
      json STRING,
-     updated_at STRING,
      PRIMARY KEY(id)
    )`,
 ];

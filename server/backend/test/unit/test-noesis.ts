@@ -5,15 +5,10 @@ import type { Change } from '@repo/shared-contracts';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { ChangesService } from '../../src/changes/changes.service.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
 import { NoesisDir } from '../../src/files/noesis-dir.js';
 import { ImportService } from '../../src/imports/import.service.js';
 import type { IndexerSources } from '../../src/index/indexer.js';
-import {
-  ConversationsRepository,
-  DocumentsRepository,
-} from '../../src/sources/sources.repository.js';
 import { SystemModelRepository } from '../../src/system-model/system-model.repository.js';
 import {
   DecisionsRepository,
@@ -30,9 +25,6 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: ChangesRepository;
-  designDocsRepository: DesignDocsRepository;
-  conversationsRepository: ConversationsRepository;
-  documentsRepository: DocumentsRepository;
   topicsRepository: TopicsRepository;
   decisionsRepository: DecisionsRepository;
   systemModelRepository: SystemModelRepository;
@@ -54,11 +46,6 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensure();
   const changesRepository = new ChangesRepository(noesis);
-  const designDocsRepository = new DesignDocsRepository(changesRepository);
-  const conversationsRepository = new ConversationsRepository(
-    changesRepository,
-  );
-  const documentsRepository = new DocumentsRepository(changesRepository);
   const topicsRepository = new TopicsRepository(noesis);
   const decisionsRepository = new DecisionsRepository(noesis);
   const systemModelRepository = new SystemModelRepository(noesis);
@@ -67,30 +54,20 @@ export async function testNoesis(): Promise<TestNoesis> {
     root,
     noesis,
     changesRepository,
-    designDocsRepository,
-    conversationsRepository,
-    documentsRepository,
     topicsRepository,
     decisionsRepository,
     systemModelRepository,
     sources: {
       changes: changesRepository,
-      designDocs: designDocsRepository,
-      conversations: conversationsRepository,
-      documents: documentsRepository,
       topics: topicsRepository,
       decisions: decisionsRepository,
       systemModels: systemModelRepository,
     },
     changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-    ),
+    designDocsService: new DesignDocsService(changesRepository, changesService),
     importService: new ImportService({
       changes: changesService,
-      conversations: conversationsRepository,
-      documents: documentsRepository,
+      changesRepository,
       topics: topicsRepository,
       decisions: decisionsRepository,
     }),

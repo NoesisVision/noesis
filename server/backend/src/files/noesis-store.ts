@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import type { z } from 'zod';
 
 /**
@@ -28,6 +29,14 @@ import type { z } from 'zod';
 
 /** The one file an object directory holds. */
 export const DATA_FILE_NAME = 'data.json';
+
+/** Where the object under `key` keeps its data, absolute; touches no file. */
+export function dataFileOf(
+  store: Pick<NoesisStore<unknown, unknown, unknown>, 'directory'>,
+  key: string,
+): string {
+  return join(store.directory, key, DATA_FILE_NAME);
+}
 
 /** What an object key may look like; rejected before any disk access. */
 export const KEY_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/;

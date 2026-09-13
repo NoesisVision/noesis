@@ -572,6 +572,6 @@ export const DesignDocumentSchema = z
       .describe('The behaviours of the building blocks.'),
   })
   .describe(
-    'A design document: a changes/<change>/design-docs/<slug>-<id-suffix>.json file.',
+    'A design document: the data.json of graph/changes/<change>/design-docs/<id>/.',
   );
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;

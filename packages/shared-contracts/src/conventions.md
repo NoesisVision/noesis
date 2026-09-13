@@ -10,19 +10,24 @@ The knowledge graph is moving under `.noesis/graph/`, one `<key>/data.json`
 per object (decision 76); changes are there already, the other kinds follow:
 
 - `graph/changes/<change>/` — one change; holds its `data.json` and the
-  `conversations/`, `documents/` and `design-docs/` it produced.
+  `conversations/`, `documents/` and `design-docs/` it produced, each an
+  object directory `<id>/data.json`.
 - `system-model/` — the implemented model, written by the scanner.
 - `wiki/topics/`, `wiki/decisions/` — the curated knowledge base.
 - `tmp/<session>/` — scratch space between the agent and the service. Not
   graph content, not versioned.
 
-A file is graph content if and only if it is `.json` under a kind directory.
-Anything else beside it is ignored, so notes can sit next to the data.
+Under `graph/`, only what the store writes may exist: an object is a
+directory named by its key holding one `data.json`, and nothing sits beside
+it. Under the other kind directories, a file is graph content if and only if
+it is `.json`, and anything else beside it is ignored.
 
 ## Names and ids
 
-- Files are `<slug>-<id-suffix>.json`: the entity's name kebab-cased and
-  capped, then the tail of its id. The service names files; skills never do.
+- Under `graph/`, an object's directory is its key: the change's slug, the
+  entity's id everywhere else. Elsewhere, files are still
+  `<slug>-<id-suffix>.json`: the entity's name kebab-cased and capped, then
+  the tail of its id. The service names files; skills never do.
 - Ids are opaque strings. Imported sources (conversations, documents) get a
   content hash, so re-importing the same source yields the same id and is a
   duplicate, not a second copy. Everything the graph authors itself (design

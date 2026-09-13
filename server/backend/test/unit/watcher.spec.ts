@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import type { DatabaseService } from '../../src/database/database.service.js';
-import { DesignDocsRepository } from '../../src/design-docs/design-docs.repository.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { isIgnored, NoesisWatcher } from '../../src/index/watcher.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
@@ -53,8 +53,10 @@ async function countingWatcher(): Promise<{
 describe('NoesisWatcher', () => {
   it('rebuilds once for a burst of writes under a kind directory', async () => {
     const { watcher, rebuilds } = await countingWatcher();
-    const dir = t.changesRepository.dirOf(ALPHA, 'design-docs');
-    await mkdir(dir, { recursive: true });
+    await t.createChange(ALPHA);
+    const dir = t.changesRepository.children(ALPHA)['design-docs'].directory;
+    const ids = ['one', 'two', 'three'];
+    for (const id of ids) await mkdir(`${dir}/${id}`, { recursive: true });
     await waitFor(async () => rebuilds() >= 1);
     // The OS delivers the events of the nested mkdir over a moment; let them
     // all land before counting the burst.
@@ -62,9 +64,9 @@ describe('NoesisWatcher', () => {
     await watcher.settle();
     const before = rebuilds();
 
-    await writeFile(`${dir}/one-1.json`, '{"id":"1"}');
-    await writeFile(`${dir}/two-2.json`, '{"id":"2"}');
-    await writeFile(`${dir}/three-3.json`, '{"id":"3"}');
+    for (const id of ids) {
+      await writeFile(`${dir}/${id}/data.json`, `{"id":"${id}"}`);
+    }
     await waitFor(async () => rebuilds() > before);
     await quiet();
     await watcher.settle();
@@ -95,10 +97,9 @@ describe('NoesisWatcher', () => {
 
   it('keeps the graph a function of the files across a checkout-like swap', async () => {
     const db: DatabaseService = await sharedTestDatabase();
-    const designDocs = new DesignDocsRepository(t.changesRepository);
     const indexer = new GraphIndexer(db, t.sources);
     await t.createChange(ALPHA);
-    await designDocs.create(ALPHA, {
+    await t.changesRepository.children(ALPHA)['design-docs'].set('a1', {
       ...designDocFixture,
       id: 'a1',
       name: 'Before',
@@ -120,10 +121,13 @@ describe('NoesisWatcher', () => {
     // Behind the service's back, as `git checkout` would.
     await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
     await t.createChange(BETA);
-    const other = t.changesRepository.dirOf(BETA, 'design-docs');
+    const other = join(
+      t.changesRepository.children(BETA)['design-docs'].directory,
+      'b1',
+    );
     await mkdir(other, { recursive: true });
     await writeFile(
-      `${other}/after-b1.json`,
+      `${other}/data.json`,
       JSON.stringify({ ...designDocFixture, id: 'b1', name: 'After' }),
     );
     await waitFor(async () => (await ids()).join() === 'b1');

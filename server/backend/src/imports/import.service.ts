@@ -7,12 +7,10 @@ import {
   type Topic,
 } from '@repo/shared-contracts';
 import { ChangeSlug } from '../changes/change-slug.js';
+import type { ChangesRepository } from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
-import { contentHashAsUuid, newUuid } from '../ids/uuid.js';
-import type {
-  ConversationsRepository,
-  DocumentsRepository,
-} from '../sources/sources.repository.js';
+import { dataFileOf } from '../files/noesis-store.js';
+import { contentHashAsUuid, newUuid, sha256 } from '../ids/uuid.js';
 import {
   type FileContract,
   type ValidationIssue,
@@ -25,8 +23,8 @@ import type {
 
 export interface ImportDeps {
   changes: ChangesService;
-  conversations: ConversationsRepository;
-  documents: DocumentsRepository;
+  /** The sources land in the change's `conversations` and `documents`. */
+  changesRepository: ChangesRepository;
   topics: TopicsRepository;
   decisions: DecisionsRepository;
 }
@@ -101,21 +99,24 @@ export class ImportService {
     );
     const placeholderId = conversation.conversation_id;
     const id = contentHashAsUuid(JSON.stringify(conversation.turns));
-    await this.assertNew('conversation', id, (c) =>
-      this.deps.conversations.findById(c, id),
-    );
+    await this.assertNew('conversation', id);
     await this.assertTopicsResolve('conversation-analysis', topics);
-    const stored = await this.deps.conversations.write(slug, {
-      ...conversation,
-      conversation_id: id,
-    });
+    const conversations =
+      this.deps.changesRepository.children(slug).conversations;
+    const stored = { ...conversation, conversation_id: id };
+    await conversations.set(id, stored);
+    const sourceSha = sha256(JSON.stringify(stored));
     const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
       ref.type === 'conversation_fragment_ref' &&
       ref.conversation_id === placeholderId
-        ? { ...ref, conversation_id: id, source_sha: stored.hash }
+        ? { ...ref, conversation_id: id, source_sha: sourceSha }
         : ref;
     return {
-      source: { kind: 'conversation', id, path: stored.path },
+      source: {
+        kind: 'conversation',
+        id,
+        path: dataFileOf(conversations, id),
+      },
       ...(await this.applyTopics(topics, refs)),
     };
   }
@@ -132,20 +133,22 @@ export class ImportService {
     );
     const placeholderId = document.document_id;
     const id = contentHashAsUuid(JSON.stringify(document.fragments));
-    await this.assertNew('document', id, (c) =>
-      this.deps.documents.findById(c, id),
-    );
+    await this.assertNew('document', id);
     await this.assertTopicsResolve('document-analysis', topics);
-    const stored = await this.deps.documents.write(slug, {
-      ...document,
-      document_id: id,
-    });
+    const documents = this.deps.changesRepository.children(slug).documents;
+    const stored = { ...document, document_id: id };
+    await documents.set(id, stored);
+    const sourceSha = sha256(JSON.stringify(stored));
     const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
       ref.type === 'document_fragment_ref' && ref.document_id === placeholderId
-        ? { ...ref, document_id: id, source_sha: stored.hash }
+        ? { ...ref, document_id: id, source_sha: sourceSha }
         : ref;
     return {
-      source: { kind: 'document', id, path: stored.path },
+      source: {
+        kind: 'document',
+        id,
+        path: dataFileOf(documents, id),
+      },
       ...(await this.applyTopics(topics, refs)),
     };
   }
@@ -154,12 +157,13 @@ export class ImportService {
   private async assertNew(
     kind: 'conversation' | 'document',
     id: string,
-    find: (slug: ChangeSlug) => Promise<{ path: string } | null>,
   ): Promise<void> {
+    const collection = kind === 'conversation' ? 'conversations' : 'documents';
     for (const change of await this.deps.changes.list()) {
-      const existing = await find(ChangeSlug.parse(change.slug));
-      if (existing !== null) {
-        throw new DuplicateSourceError(kind, id, existing.path);
+      const slug = ChangeSlug.parse(change.slug);
+      const sources = this.deps.changesRepository.children(slug)[collection];
+      if ((await sources.get(id)) !== null) {
+        throw new DuplicateSourceError(kind, id, dataFileOf(sources, id));
       }
     }
   }

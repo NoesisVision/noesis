@@ -164,6 +164,12 @@ directory makes the unit of work the unit of review — the whole record of a ch
 directory in a pull request. `system-model/` and `wiki/` are change-independent: the former
 tracks the code as it is, the latter accumulates across every change.
 
+The layout is moving (decision 76): the knowledge graph goes under `.noesis/graph/`, one
+directory per object at every depth named by its key and holding one `data.json`, written
+through a single typed store. Changes and what they own — design docs, conversations,
+documents — are there already; `system-model/` and `wiki/` still follow the rules below, which
+describe the original layout.
+
 Rules that hold across every kind:
 
 - **JSON only.** A file is part of the graph if and only if it is `.json` under one of the kind

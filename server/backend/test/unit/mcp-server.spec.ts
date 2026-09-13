@@ -361,8 +361,10 @@ describe('createMcpServer', () => {
       });
       expect(result.isError).toBeFalsy();
       const report = textOf(result);
-      expect(report).toContain(
-        `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/slot-holds-`,
+      expect(report).toMatch(
+        new RegExp(
+          `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/[0-9a-f-]{36}/data.json`,
+        ),
       );
       expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
       expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);

@@ -5,6 +5,7 @@ import type {
   DocumentAnalysis,
 } from '@repo/shared-contracts';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
+import { sha256 } from '../../src/ids/uuid.js';
 import {
   DuplicateSourceError,
   InvalidImportError,
@@ -103,6 +104,9 @@ function conversationPayload(
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+const conversationsOf = (slug: ChangeSlug) =>
+  t.changesRepository.children(slug).conversations;
+
 describe('ImportService.importConversation', () => {
   it('writes the conversation under a content-hash id and reports its path', async () => {
     const report = await t.importService.importConversation(
@@ -114,14 +118,11 @@ describe('ImportService.importConversation', () => {
     expect(report.source.id).toMatch(UUID);
     expect(report.source.id).not.toBe('placeholder-conv');
     expect(report.source.path).toContain(
-      `/.noesis/graph/changes/${CHANGE}/conversations/slot-holds-`,
+      `/.noesis/graph/changes/${CHANGE}/conversations/${report.source.id}/data.json`,
     );
     expect((await stat(report.source.path)).isFile()).toBe(true);
-    const stored = await t.conversationsRepository.findById(
-      CHANGE,
-      report.source.id,
-    );
-    expect(stored?.entity.conversation_id).toBe(report.source.id);
+    const stored = await conversationsOf(CHANGE).get(report.source.id);
+    expect(stored?.conversation_id).toBe(report.source.id);
   });
 
   it('mints ids for new topics, resolves placeholders in parents and refs, and pins refs to the source hash', async () => {
@@ -137,14 +138,11 @@ describe('ImportService.importConversation', () => {
     const child = topics.find((s) => s.entity.title === 'Slot holds')?.entity;
     expect(parent?.id).toMatch(UUID);
     expect(child?.parent_id).toBe(parent?.id ?? 'missing');
-    const stored = await t.conversationsRepository.findById(
-      CHANGE,
-      report.source.id,
-    );
+    const stored = await conversationsOf(CHANGE).get(report.source.id);
     expect(child?.items).toEqual([
       {
         ...fragmentRef(report.source.id),
-        source_sha: stored?.hash,
+        source_sha: sha256(JSON.stringify(stored)),
       },
     ]);
   });
@@ -236,7 +234,7 @@ describe('ImportService.importConversation', () => {
     await expect(attempt).rejects.toMatchObject({
       issues: [expect.objectContaining({ path: '$.topics[0].id' })],
     });
-    expect(await t.conversationsRepository.list(CHANGE)).toEqual([]);
+    expect(await Array.fromAsync(conversationsOf(CHANGE).keys())).toEqual([]);
   });
 
   it('detects the same conversation imported again, in any change, and writes nothing', async () => {
@@ -249,7 +247,7 @@ describe('ImportService.importConversation', () => {
     );
 
     await expect(again).rejects.toBeInstanceOf(DuplicateSourceError);
-    expect(await t.conversationsRepository.list(OTHER)).toEqual([]);
+    expect(await Array.fromAsync(conversationsOf(OTHER).keys())).toEqual([]);
     expect(await t.topicsRepository.list()).toHaveLength(2);
   });
 
@@ -319,7 +317,7 @@ describe('ImportService.importDocument', () => {
 
     expect(report.source.kind).toBe('document');
     expect(report.source.path).toContain(
-      `/.noesis/graph/changes/${CHANGE}/documents/booking-rules-`,
+      `/.noesis/graph/changes/${CHANGE}/documents/${report.source.id}/data.json`,
     );
     const [topic] = await t.topicsRepository.list();
     expect(topic?.entity.items[0]).toMatchObject({

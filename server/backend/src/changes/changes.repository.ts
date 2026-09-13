@@ -1,25 +1,41 @@
 import { join } from 'node:path';
-import { type Change, ChangeSchema } from '@repo/shared-contracts';
+import {
+  type Change,
+  ChangeSchema,
+  ConversationSchema,
+  DesignDocumentSchema,
+  DocumentSchema,
+} from '@repo/shared-contracts';
 import { createNoesisStore } from '../files/bun-noesis-store.js';
 import type { NoesisDir } from '../files/noesis-dir.js';
-import type { NoesisStore } from '../files/noesis-store.js';
+import type { ChildHandles, NoesisStoreOf } from '../files/noesis-store.js';
 import { serverLogger } from '../logging/logging.js';
 import { ChangeSlug } from './change-slug.js';
 
 const log = serverLogger('changes');
 
-type ChangesStore = NoesisStore<Change, Change, Record<never, never>>;
+/**
+ * What a change owns, by collection name. Each is keyed by the contract's
+ * own id: `id`, `conversation_id`, `document_id`.
+ */
+const CHANGE_CHILDREN = {
+  'design-docs': DesignDocumentSchema,
+  conversations: ConversationSchema,
+  documents: DocumentSchema,
+} as const;
+
+export type ChangeChildren = ChildHandles<typeof CHANGE_CHILDREN>;
+export type ChangeChildName = keyof ChangeChildren;
+
+type ChangesStore = NoesisStoreOf<typeof ChangeSchema, typeof CHANGE_CHILDREN>;
 
 /**
  * The `changes` collection of `.noesis/graph/`: one object per change, keyed
- * by its slug, whose `data.json` is the `change` contract (decision 76). The
- * store validates on both sides of the disk and replaces the file atomically;
- * this class only chooses the key.
- *
- * A change owns its conversations, documents and design documents. Until
- * those repositories move onto the store as child collections, they keep
- * writing their files under the change's directory through `dirOf`, so a
- * change stays one tree: `graph/changes/<slug>/design-docs/`.
+ * by its slug, whose `data.json` is the `change` contract, and under it the
+ * design documents, conversations and documents the change owns (decision
+ * 76). The store validates on both sides of the disk and replaces files
+ * atomically; this class only chooses the key and hands out the handles on
+ * a change's child collections.
  */
 export class ChangesRepository {
   private readonly store: ChangesStore;
@@ -28,12 +44,13 @@ export class ChangesRepository {
     this.store = createNoesisStore({
       directory: noesis.resolve('graph', 'changes'),
       schema: ChangeSchema,
+      children: CHANGE_CHILDREN,
     });
   }
 
-  /** The change's directory, or a path under it. */
-  dirOf(slug: ChangeSlug, ...segments: string[]): string {
-    return join(this.store.directory, slug.value, ...segments);
+  /** The directory the change and everything it owns live in. */
+  dirOf(slug: ChangeSlug): string {
+    return join(this.store.directory, slug.value);
   }
 
   /**
@@ -63,5 +80,10 @@ export class ChangesRepository {
   /** Creates or replaces the change's `data.json`; what it owns stays. */
   async write(change: Change): Promise<void> {
     await this.store.set(ChangeSlug.parse(change.slug).value, change);
+  }
+
+  /** Handles on the change's child collections; touches no file. */
+  children(slug: ChangeSlug): ChangeChildren {
+    return this.store.children(slug.value);
   }
 }

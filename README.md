@@ -75,7 +75,7 @@ lockstep with the Claude Code plugin.
 <project>/.noesis/
 ├── .gitignore            written by the service on first run; contains `tmp/`
 ├── tmp/<session>/        scratch space between agent and service; never versioned
-├── changes/<change>/     one directory per change: conversations/, documents/, design-docs/
+├── graph/changes/<change>/  one directory per change: data.json plus conversations/, documents/, design-docs/
 ├── system-model/         the implemented model, projected from source by the scanner
 └── wiki/                 topics/ and decisions/, distilled from the imports
 ```
