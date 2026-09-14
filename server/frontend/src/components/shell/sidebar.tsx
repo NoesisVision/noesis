@@ -1,4 +1,3 @@
-import { AppShell, Box, NavLink, ScrollArea, Text } from '@mantine/core';
 import {
   IconBook,
   IconFiles,
@@ -16,6 +15,11 @@ import {
 } from '@tanstack/react-router';
 import type { ComponentType } from 'react';
 import { changesList } from '#/api/changes';
+import { AppShell } from '#/components/design-system/app-shell';
+import { Box } from '#/components/design-system/box';
+import { NavLink } from '#/components/design-system/nav-link';
+import { ScrollArea } from '#/components/design-system/scroll-area';
+import { Text } from '#/components/design-system/text';
 import type { routeTree } from '#/routeTree.gen';
 import { ChangePicker } from './change-picker';
 import { readLastChange } from './last-change';

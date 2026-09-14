@@ -1,20 +1,20 @@
 import {
-  ActionIcon,
-  Burger,
-  Group,
-  type MantineColorScheme,
-  Menu,
-  Text,
-  ThemeIcon,
-  useComputedColorScheme,
-  useMantineColorScheme,
-} from '@mantine/core';
-import {
   IconCheck,
   IconDeviceDesktop,
   IconMoon,
   IconSun,
 } from '@tabler/icons-react';
+import { ActionIcon } from '#/components/design-system/action-icon';
+import { Burger } from '#/components/design-system/burger';
+import {
+  type MantineColorScheme,
+  useComputedColorScheme,
+  useMantineColorScheme,
+} from '#/components/design-system/color-scheme';
+import { Group } from '#/components/design-system/group';
+import { Menu } from '#/components/design-system/menu';
+import { Text } from '#/components/design-system/text';
+import { ThemeIcon } from '#/components/design-system/theme-icon';
 
 interface ShellHeaderProps {
   navbarOpened: boolean;

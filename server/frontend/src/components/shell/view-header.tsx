@@ -1,5 +1,9 @@
-import { Anchor, Breadcrumbs, Stack, Text, Title } from '@mantine/core';
 import { Link, useMatches } from '@tanstack/react-router';
+import { Anchor } from '#/components/design-system/anchor';
+import { Breadcrumbs } from '#/components/design-system/breadcrumbs';
+import { Stack } from '#/components/design-system/stack';
+import { Text } from '#/components/design-system/text';
+import { Title } from '#/components/design-system/title';
 
 /**
  * Every content view opens with this: breadcrumbs then the view title, both

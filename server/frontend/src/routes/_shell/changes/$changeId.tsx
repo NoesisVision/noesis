@@ -9,7 +9,7 @@ import { ChangeNotFoundView } from '#/components/views/change-not-found';
 export const Route = createFileRoute('/_shell/changes/$changeId')({
   loader: async ({ context, params }) => {
     try {
-      const change = await context.queryClient.ensureQueryData(
+      const change = await context.queryClient.query(
         changeById(params.changeId),
       );
       writeLastChange(change.slug);

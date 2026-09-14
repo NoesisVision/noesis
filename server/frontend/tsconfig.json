@@ -5,10 +5,12 @@
     "jsx": "react-jsx",
     "module": "ESNext",
     "paths": {
+      "#/server/*": ["../backend/src/*"],
       "#/*": ["./src/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": [],
+    // Required to check the backend source imported through AppType.
+    "types": ["node", "bun"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

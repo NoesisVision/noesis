@@ -7,7 +7,7 @@ import { NoChangesView } from '#/components/views/no-changes';
 // in the list; with no change at all it is the empty state.
 export const Route = createFileRoute('/_shell/')({
   beforeLoad: async ({ context }) => {
-    const changes = await context.queryClient.ensureQueryData(changesList);
+    const changes = await context.queryClient.query(changesList);
     const last = readLastChange();
     const target = changes.find((c) => c.slug === last) ?? changes[0];
     if (target) {

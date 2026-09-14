@@ -1,6 +1,6 @@
 /* The Select-like button of the prototype: a bordered row that lifts its
    border on hover and shows a focus ring while the menu is open. */
-.pick {
+.pick.pick {
   display: block;
   width: 100%;
   min-height: 40px;
@@ -13,10 +13,10 @@
   transition:
     border-color 100ms ease,
     box-shadow 100ms ease;
-}
 
-.pick:hover {
-  border-color: var(--mantine-color-gray-5);
+  &:hover {
+    border-color: var(--mantine-color-gray-5);
+  }
 }
 
 /* Dark scheme by Mantine's attribute, not `light-dark()`: the bundler's

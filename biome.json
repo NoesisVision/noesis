@@ -64,6 +64,29 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "server/frontend/**",
+        "!server/frontend/src/components/design-system/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@mantine/*"],
+                    "message": "Import from #/components/design-system instead. Mantine is private to the design system."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

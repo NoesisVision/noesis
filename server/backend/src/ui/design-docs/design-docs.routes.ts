@@ -1,3 +1,4 @@
+import { zValidator } from '@hono/zod-validator';
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeNotFoundError } from '../../changes/changes.service.js';
@@ -34,29 +35,34 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         );
       })
 
-      .post('/', async (c) => {
-        const parsed = createDesignDocSchema.safeParse(await c.req.json());
-        if (!parsed.success) {
-          return c.json({ error: z.prettifyError(parsed.error) }, 400);
-        }
-        return inChange(c, async (change) => {
-          try {
-            const designDoc = await designDocsService.create(
-              change,
-              parsed.data.document,
-            );
-            return c.json({ designDoc }, 201);
-          } catch (error) {
-            if (error instanceof InvalidDesignDocumentError) {
-              return c.json(
-                { error: 'invalid_document', issues: error.issues },
-                400,
-              );
-            }
-            throw error;
+      .post(
+        '/',
+        zValidator('json', createDesignDocSchema, (result, c) => {
+          if (!result.success) {
+            return c.json({ error: z.prettifyError(result.error) }, 400);
           }
-        });
-      })
+        }),
+        async (c) => {
+          const data = c.req.valid('json');
+          return inChange(c, async (change) => {
+            try {
+              const designDoc = await designDocsService.create(
+                change,
+                data.document,
+              );
+              return c.json({ designDoc }, 201);
+            } catch (error) {
+              if (error instanceof InvalidDesignDocumentError) {
+                return c.json(
+                  { error: 'invalid_document', issues: error.issues },
+                  400,
+                );
+              }
+              throw error;
+            }
+          });
+        },
+      )
 
       // The demo seed: phase 2 has no editor and no agent, so this is how a
       // reviewable document gets in at all.
@@ -94,10 +100,10 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
 }
 
 /** Runs the handler for the change in the path; a missing change is a 404. */
-async function inChange(
+async function inChange<T extends Response>(
   c: Context,
-  handler: (change: string) => Promise<Response>,
-): Promise<Response> {
+  handler: (change: string) => Promise<T>,
+) {
   const change = c.req.param('change') ?? '';
   try {
     return await handler(change);

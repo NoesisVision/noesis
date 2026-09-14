@@ -1,6 +1,10 @@
-import { Button, Center, Stack, Text, Title } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { IconPlus } from '@tabler/icons-react';
+import { Button } from '#/components/design-system/button';
+import { Center } from '#/components/design-system/center';
+import { useDisclosure } from '#/components/design-system/hooks';
+import { Stack } from '#/components/design-system/stack';
+import { Text } from '#/components/design-system/text';
+import { Title } from '#/components/design-system/title';
 import { NewChangeModal } from '#/components/shell/new-change-modal';
 
 /** The first-run experience: a checkout with no `.noesis/changes/` yet. */

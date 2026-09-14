@@ -30,21 +30,25 @@ export class ChangeNotFoundError extends Error {
 }
 
 export const changesList = queryOptions({
+  staleTime: 'static',
   queryKey: ['changes'] as const,
-  queryFn: async (): Promise<Change[]> =>
-    (await api.get<{ changes: Change[] }>('/ui/changes')).changes,
+  queryFn: async ({ signal }): Promise<Change[]> => {
+    const data = await api.changes.$get({}, { init: { signal } });
+    return data.changes;
+  },
 });
 
 export const changeById = (id: string) =>
   queryOptions({
+    staleTime: 'static',
     queryKey: ['changes', id] as const,
-    queryFn: async (): Promise<Change> => {
+    queryFn: async ({ signal }) => {
       try {
-        return (
-          await api.get<{ change: Change }>(
-            `/ui/changes/${encodeURIComponent(id)}`,
-          )
-        ).change;
+        const data = await api.changes[':id'].$get(
+          { param: { id } },
+          { init: { signal } },
+        );
+        return data.change;
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           throw new ChangeNotFoundError(id);
@@ -55,23 +59,35 @@ export const changeById = (id: string) =>
     retry: false,
   });
 
+/** Maps only recognized conflicts; transport and other HTTP errors propagate. */
+export async function createChange(input: CreateChange): Promise<Change> {
+  try {
+    const data = await api.changes.$post({ json: input });
+    return data.change;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 409) {
+      const body = error.body;
+      if (
+        typeof body === 'object' &&
+        body !== null &&
+        'error' in body &&
+        body.error === 'duplicate_change' &&
+        'field' in body &&
+        (body.field === 'slug' || body.field === 'key')
+      ) {
+        throw new DuplicateChangeError(body.field);
+      }
+    }
+    throw error;
+  }
+}
+
 /** Creates a change, refreshes the list and lands on the new change's Overview. */
 export function useCreateChange() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   return useMutation({
-    mutationFn: async (input: CreateChange): Promise<Change> => {
-      try {
-        return (await api.post<{ change: Change }>('/ui/changes', input))
-          .change;
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 409) {
-          const { field } = error.body as { field: 'slug' | 'key' };
-          throw new DuplicateChangeError(field);
-        }
-        throw error;
-      }
-    },
+    mutationFn: createChange,
     onSuccess: async (change) => {
       await queryClient.invalidateQueries({ queryKey: changesList.queryKey });
       await navigate({

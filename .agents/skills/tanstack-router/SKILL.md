@@ -172,7 +172,8 @@ function PostComponent() {
 export const Route = createFileRoute('/posts')({
   loader: async ({ context }) => {
     // Access router context (e.g., queryClient)
-    const posts = await context.queryClient.ensureQueryData({
+    const posts = await context.queryClient.query({
+      staleTime: 'static',
       queryKey: ['posts'],
       queryFn: fetchPosts,
     })
@@ -258,7 +259,7 @@ export const Route = createFileRoute('/protected')({
     if (!context.auth.user) throw redirect({ to: '/login' })
   },
   loader: ({ context }) => {
-    return context.queryClient.ensureQueryData(userQueryOptions())
+    return context.queryClient.query(userQueryOptions())
   },
 })
 ```

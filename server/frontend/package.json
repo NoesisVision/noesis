@@ -3,9 +3,13 @@
   "private": true,
   "type": "module",
   "imports": {
-    "#/*": "./src/*"
+    "#/*": "./src/*",
+    "#/server/*": "../backend/src/*"
   },
   "scripts": {
+    "dev": "bun run --cwd ../backend dev",
+    "start:debug": "bun run --cwd ../backend start:debug",
+    "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
     "check-types": "tsc --noEmit"
   },
@@ -22,11 +26,14 @@
     "@tanstack/react-query-devtools": "latest",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
+    "hono": "catalog:",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@tanstack/router-cli": "^1.132.0",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "typescript": "catalog:"

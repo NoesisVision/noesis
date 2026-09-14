@@ -9,14 +9,23 @@ This package has no build of its own (decision 72). The backend imports
 `index.html`, and bun bundles what the page references: on the fly when the service runs from
 source (refresh the browser after an edit — hot module reload is off, see
 `main.ts` in the backend), ahead of time into the service's `dist/` when it
-is built. Run it from the repo root with `bun run dev` (the service on `:3000`).
+is built. Run it from the repo root with `bun run dev`, or from this directory
+with `bun run dev`, then open `http://127.0.0.1:3000`.
 
 ## Scripts
 
-| Script                    | What it does                      |
-| ------------------------- | --------------------------------- |
-| `bun run check-types`     | `tsc --noEmit`                    |
-| `bun run generate-routes` | Regenerate `src/routeTree.gen.ts` |
+| Script                    | What it does                                            |
+| ------------------------- | ------------------------------------------------------- |
+| `bun run dev`             | Start the backend and SPA in watch mode on port 3000    |
+| `bun run start:debug`     | Start development mode with Bun's inspector             |
+| `bun run start`           | Start the backend's production build, including the SPA |
+| `bun run check-types`     | `tsc --noEmit`                                          |
+| `bun run generate-routes` | Regenerate `src/routeTree.gen.ts`                       |
+
+Before `bun run start`, build the service with `bun run --cwd ../backend build`.
+Production startup uses an ephemeral port and opens the browser by default;
+set `PORT=3000` for a fixed port. These scripts forward directly to the backend
+to preserve stdin, which keeps its MCP session and HTTP server alive.
 
 ## Layout
 

@@ -1,5 +1,8 @@
-import { Button, Stack, Text, Title } from '@mantine/core';
 import { Link, useParams } from '@tanstack/react-router';
+import { Button } from '#/components/design-system/button';
+import { Stack } from '#/components/design-system/stack';
+import { Text } from '#/components/design-system/text';
+import { Title } from '#/components/design-system/title';
 
 /** Rendered inside the shell when the URL names a change that does not exist. */
 export function ChangeNotFoundView() {
