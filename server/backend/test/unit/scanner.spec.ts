@@ -1,14 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SystemModelSchema } from '@repo/shared-contracts';
+import { dataFileOf } from '../../src/files/noesis-store.js';
 import { ScannerService } from '../../src/scanner/scanner.service.js';
 import {
   exportedClasses,
   findUnits,
   typeOf,
 } from '../../src/scanner/typescript-scanner.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;
 let scanner: ScannerService;
@@ -17,12 +18,20 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = new ScannerService(
     t.root,
-    t.systemModelRepository,
+    t.systemModels,
     () => '2026-09-12T12:00:00.000Z',
   );
 });
 
 afterEach(() => t.cleanup());
+
+/** The stored files by id, with their bytes: what a scan leaves on disk. */
+async function filesOf(store: TestNoesis['systemModels']) {
+  const ids = (await Array.fromAsync(store.keys())).sort();
+  return Promise.all(
+    ids.map(async (id) => [id, await readFile(dataFileOf(store, id), 'utf8')]),
+  );
+}
 
 /** Lays out a package with source files, given as path → content under its dir. */
 async function pkg(
@@ -113,8 +122,8 @@ describe('ScannerService', () => {
     expect(report.units.map((u) => [u.name, u.buildingBlocks])).toEqual([
       ['@acme/backend', 3],
     ]);
-    const [stored] = await t.systemModelRepository.list();
-    const model = SystemModelSchema.parse(stored?.entity);
+    const [stored] = await all(t.systemModels);
+    const model = SystemModelSchema.parse(stored);
     expect(model.name).toBe('@acme/backend');
     expect(model.scanned_at).toBe('2026-09-12T12:00:00.000Z');
     expect(model.boundedContexts).toEqual([
@@ -165,20 +174,14 @@ describe('ScannerService', () => {
     await pkg('a', 'a', { 'src/a.ts': 'export class A {}\n' });
     await pkg('b', 'b', { 'src/b.ts': 'export class B {}\n' });
     const first = await scanner.scan();
-    const before = (await t.systemModelRepository.list()).map((s) => [
-      s.entity.id,
-      s.hash,
-    ]);
+    const before = await filesOf(t.systemModels);
     expect(first.units).toHaveLength(2);
 
     await rm(join(t.root, 'b'), { recursive: true });
     const second = await scanner.scan();
 
     expect(second.removed).toEqual(['b']);
-    const after = (await t.systemModelRepository.list()).map((s) => [
-      s.entity.id,
-      s.hash,
-    ]);
+    const after = await filesOf(t.systemModels);
     expect(after).toEqual(before.filter(([id]) => id === after[0]?.[0]));
     expect(after).toHaveLength(1);
   });

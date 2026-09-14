@@ -4,14 +4,14 @@ Companion to `change.ts`.
 
 A change is the unit of work the graph tracks, and the unit of review: every
 import made while working on it and every design document describing it lands
-in `changes/<slug>/`, so a pull request carries the whole record of the change
+in `graph/changes/<slug>/`, so a pull request carries the whole record of the change
 in one directory.
 
 - The directory name is the slug: lower-case kebab-case, at most 64
   characters, derived from `name` when the change is created and never changed
   after, so paths and references stay valid. A rename changes `name`, not the
   slug.
-- `change.json` in the directory is the metadata this contract describes.
+- `data.json` in the directory is the change this contract describes.
   Everything else in the directory is under `conversations/`, `documents/` or
   `design-docs/`.
 - `type` uses the commit-type vocabulary (`feature`, `fix`, `improvement`,

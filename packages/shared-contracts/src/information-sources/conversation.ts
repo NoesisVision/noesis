@@ -5,7 +5,7 @@ import { InformationCategory } from './information-category.js';
  * An imported conversation: a faithful record of what was said, split into
  * turns and, within a turn, into fragments (idea units) that the wiki can
  * point at. One file per conversation under
- * `.noesis/changes/<change>/conversations/`; never rewritten after import.
+ * `.noesis/graph/changes/<change>/conversations/`; never rewritten after import.
  */
 
 export const ConversationFragmentSchema = z
@@ -83,6 +83,6 @@ export const ConversationSchema = z
       .describe('Every turn of the conversation, in order.'),
   })
   .describe(
-    'An imported conversation: a changes/<change>/conversations/<slug>-<id-suffix>.json file.',
+    'An imported conversation: the data.json of graph/changes/<change>/conversations/<id>/.',
   );
 export type Conversation = z.infer<typeof ConversationSchema>;

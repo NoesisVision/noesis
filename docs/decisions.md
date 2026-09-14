@@ -2491,3 +2491,113 @@ service lines it caused, or a tool call to the lines it wrote.
   root — still print with `console.error` and exit.
 - Write-through file logging costs one syscall per line. The volume is one
   developer's session; a buffer returns if that ever shows.
+
+## 76. Knowledge graph files move under `.noesis/graph/` as `<key>/data.json`, written through one typed `NoesisStore`; `sources/` is the ignored drop zone for source files
+
+**Status: accepted** (2026-09-13)
+
+**Amends 68** (the layout of `.noesis/`, the file names, `updated_at`,
+`FileRef.hash`) **and 74** (`change.json`, the directory-without-metadata
+fallback). The store's contract is
+[`docs/work/improvements/noesis-store.md`](./work/improvements/noesis-store.md).
+
+**Context:** Decision 68 laid the knowledge graph out as flat
+`<slug>-<id-suffix>.json` files per kind directory, and 74 put a change's
+metadata in `change.json` beside its subdirectories. Five repositories share
+`FileRepository`, which locates a file by suffix and confirms it by parsing,
+names files from a slug it recomputes on every write, returns the file's
+hash and mtime with every read, and lists a directory by parsing every file
+in it. `.noesis/` meanwhile grew `tmp/` and `logs/` beside the kind
+directories, so "every `.json` under a kind directory is graph content" was
+a rule with exceptions. A review of the `NoesisStore` draft on 2026-09-13
+found the draft and the log disagreeing on layout, identity, concurrency
+and what a read returns; the points were settled the same day.
+
+**Decision:**
+
+- **`.noesis/graph/` holds the knowledge graph and nothing else.** Under it,
+  one directory per object at every depth, named by the object's key,
+  holding exactly one `data.json` and the object's child collections:
+  `changes/<slug>/data.json`, `changes/<slug>/conversations/<id>/data.json`,
+  `changes/<slug>/documents/<id>/data.json`,
+  `changes/<slug>/design-docs/<id>/data.json`, `system-model/<id>/data.json`,
+  `wiki/topics/<id>/data.json`, `wiki/decisions/<id>/data.json`. Only files
+  the store writes may exist there: no notes beside the data, no foreign
+  JSON. `change.json` becomes the change's `data.json`. The slug in the file
+  name goes; a `git diff` shows an id.
+- **One typed store, `NoesisStore`, is the write path.** A collection is a
+  directory, a zod schema and named child collections; a handle offers
+  `get`, `set`, `delete`, `keys` and `children`, with input, output and
+  child types inferred from the definitions. `set` validates with the
+  schema, serialises the parsed value, writes a temporary file in the
+  object's directory and renames it over `data.json`. The key is the
+  repository's choice — the slug for a change, the contract id everywhere
+  else — and the store neither reads it from the data nor checks that they
+  agree. There is no `getAll`, no sorted listing and no metadata in a read:
+  services read the in-memory graph, the repositories only modify files,
+  and the indexer walks `keys()` and `get` per key at boot and on watcher
+  events.
+- **An object is a directory with `data.json`.** A directory without one is
+  not an object — `keys()` skips it, `get` returns `null` — and the service
+  removes it, recursively, in a sweep at boot before the indexer runs. The
+  fallback of 74, a change directory without metadata reading as a chore in
+  discovery, goes.
+- **Concurrency stays last write wins** (68, point 9). No coordinator, no
+  per-object queue, no locks; atomic rename is the whole guarantee, and it
+  holds across the two service processes a checkout may have. A recursive
+  delete racing a child write can leave a directory without `data.json`,
+  which the sweep removes.
+- **`updated_at` is dropped** from every node table and from
+  `DesignDocSummary`. It was the file's mtime, which a `git checkout`
+  rewrites, and nothing in the UI reads it. A last-modified field returns as
+  data a repository writes, when a view needs it.
+- **`FileRef.hash` is dropped;** `FileRef.check()` had no caller.
+  `source_sha` on fragment refs is computed by the import service from the
+  conversation or document it writes. A source's id is already a hash of
+  its content, so the import feature decides whether `source_sha` still
+  carries information.
+- **`sources/` is the drop zone for source files, ignored by git.** Two
+  things were called "source": the information sources — the `Conversation`
+  and `Document` entities the import skills build, which are graph content
+  under the change, indexed and searchable — and the source files the skills
+  read: transcripts, Markdown, PDFs. The latter are not graph content. They
+  may be put under `.noesis/sources/` so a skill can find them; the service
+  neither reads, indexes nor lays out that directory. It is unversioned like
+  `tmp/` and `logs/`: large, often private, and the graph built from them is
+  what gets committed. `NoesisDir.ensure()` creates it and keeps it in the
+  `.gitignore` it maintains.
+
+**Alternatives considered:**
+
+- **Keep the flat layout and fit the store to it.** Smaller migration,
+  readable file names in diffs. Rejected: a change already owns
+  subdirectories, and one shape at every depth is what makes the child
+  collections and the recursive delete uniform.
+- **An in-process coordinator with per-object and ancestor locks**, as the
+  first draft specified. Rejected: the real concurrency is two processes on
+  one checkout and git underneath, which no in-process lock reaches; the
+  sweep handles the one orphan case the locks would have prevented.
+- **`updated_at` as a field in the data, stamped on every write.** Viable,
+  and the way back if a view needs it; not now, with no consumer.
+- **Information sources under `sources/`, outside the graph.** Rejected:
+  search matches them and fragment refs point into them, so they are graph
+  content.
+
+**Consequences:**
+
+- `FileRepository` and `StoredFile` go; the seven repositories become thin
+  wrappers over store handles. `ChangesRepository` loses `list` and `exists`;
+  existence is the graph's answer.
+- The watcher treats only `graph/` as graph content; `sources/`, `tmp/`,
+  `logs/` and `.gitignore` are outside it.
+- The `.gitignore` the service writes gains `sources/`; an older file gains
+  the line on the next boot.
+- `packages/shared-contracts/src/conventions.md` is rewritten: where files
+  live, `<key>/data.json`, no side files under `graph/`, no `FileRef.hash`.
+  The `change` contract's `slug` description no longer names
+  `.noesis/changes/`.
+- The two test changes on disk (`.noesis/changes/test`, `test-2`) predate
+  any real data and are moved by hand or deleted; there is no migration
+  code.
+- `DesignDocSummary.path` still names the file the agent reads; it now ends
+  in `data.json`.

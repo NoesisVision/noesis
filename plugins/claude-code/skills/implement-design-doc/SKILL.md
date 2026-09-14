@@ -17,7 +17,7 @@ names — is the vocabulary of the code.
    means if it is not obvious.
 2. **Map the design onto the code.** Call `scan-system-model`, then for each
    building block find where it lives or should live: the
-   `.noesis/system-model/` files list the exported classes and their methods
+   `.noesis/graph/system-model/` files list the exported classes and their methods
    with file and line. Each `boundedContextId` and
    `domainModuleId` says where a block belongs; `implements` says what it
    must satisfy.

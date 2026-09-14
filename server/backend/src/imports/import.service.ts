@@ -6,28 +6,24 @@ import {
   type InformationFragmentRef,
   type Topic,
 } from '@repo/shared-contracts';
+import { ChangeSlug } from '../changes/change-slug.js';
+import type { ChangesRepository } from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
-import { contentHashAsUuid, newUuid } from '../ids/uuid.js';
-import type {
-  ConversationsRepository,
-  DocumentsRepository,
-} from '../sources/sources.repository.js';
+import { dataFileOf } from '../files/noesis-store.js';
+import { contentHashAsUuid, newUuid, sha256 } from '../ids/uuid.js';
 import {
   type FileContract,
   type ValidationIssue,
   validate,
 } from '../validation/validator.js';
-import type {
-  DecisionsRepository,
-  TopicsRepository,
-} from '../wiki/wiki.repository.js';
+import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
 
 export interface ImportDeps {
   changes: ChangesService;
-  conversations: ConversationsRepository;
-  documents: DocumentsRepository;
-  topics: TopicsRepository;
-  decisions: DecisionsRepository;
+  /** The sources land in the change's `conversations` and `documents`. */
+  changesRepository: ChangesRepository;
+  topics: TopicsStore;
+  decisions: DecisionsStore;
 }
 
 /** What an import did, for the tool to report. */
@@ -89,10 +85,10 @@ export class ImportService {
   }
 
   async importConversation(
-    change: string,
+    slug: ChangeSlug,
     payload: unknown,
   ): Promise<ImportReport> {
-    await this.deps.changes.assertExists(change);
+    await this.deps.changes.assertExists(slug);
     const { conversation, topics } = parse(
       'conversation-analysis',
       { description: '', schema: ConversationAnalysisSchema },
@@ -100,30 +96,33 @@ export class ImportService {
     );
     const placeholderId = conversation.conversation_id;
     const id = contentHashAsUuid(JSON.stringify(conversation.turns));
-    await this.assertNew('conversation', id, (c) =>
-      this.deps.conversations.findById(c, id),
-    );
+    await this.assertNew('conversation', id);
     await this.assertTopicsResolve('conversation-analysis', topics);
-    const stored = await this.deps.conversations.write(change, {
-      ...conversation,
-      conversation_id: id,
-    });
+    const conversations =
+      this.deps.changesRepository.children(slug).conversations;
+    const stored = { ...conversation, conversation_id: id };
+    await conversations.set(id, stored);
+    const sourceSha = sha256(JSON.stringify(stored));
     const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
       ref.type === 'conversation_fragment_ref' &&
       ref.conversation_id === placeholderId
-        ? { ...ref, conversation_id: id, source_sha: stored.hash }
+        ? { ...ref, conversation_id: id, source_sha: sourceSha }
         : ref;
     return {
-      source: { kind: 'conversation', id, path: stored.path },
+      source: {
+        kind: 'conversation',
+        id,
+        path: dataFileOf(conversations, id),
+      },
       ...(await this.applyTopics(topics, refs)),
     };
   }
 
   async importDocument(
-    change: string,
+    slug: ChangeSlug,
     payload: unknown,
   ): Promise<ImportReport> {
-    await this.deps.changes.assertExists(change);
+    await this.deps.changes.assertExists(slug);
     const { document, topics } = parse(
       'document-analysis',
       { description: '', schema: DocumentAnalysisSchema },
@@ -131,20 +130,22 @@ export class ImportService {
     );
     const placeholderId = document.document_id;
     const id = contentHashAsUuid(JSON.stringify(document.fragments));
-    await this.assertNew('document', id, (c) =>
-      this.deps.documents.findById(c, id),
-    );
+    await this.assertNew('document', id);
     await this.assertTopicsResolve('document-analysis', topics);
-    const stored = await this.deps.documents.write(change, {
-      ...document,
-      document_id: id,
-    });
+    const documents = this.deps.changesRepository.children(slug).documents;
+    const stored = { ...document, document_id: id };
+    await documents.set(id, stored);
+    const sourceSha = sha256(JSON.stringify(stored));
     const refs = (ref: InformationFragmentRef): InformationFragmentRef =>
       ref.type === 'document_fragment_ref' && ref.document_id === placeholderId
-        ? { ...ref, document_id: id, source_sha: stored.hash }
+        ? { ...ref, document_id: id, source_sha: sourceSha }
         : ref;
     return {
-      source: { kind: 'document', id, path: stored.path },
+      source: {
+        kind: 'document',
+        id,
+        path: dataFileOf(documents, id),
+      },
       ...(await this.applyTopics(topics, refs)),
     };
   }
@@ -153,12 +154,13 @@ export class ImportService {
   private async assertNew(
     kind: 'conversation' | 'document',
     id: string,
-    find: (change: string) => Promise<{ path: string } | null>,
   ): Promise<void> {
-    for (const { slug } of await this.deps.changes.list()) {
-      const existing = await find(slug);
-      if (existing !== null) {
-        throw new DuplicateSourceError(kind, id, existing.path);
+    const collection = kind === 'conversation' ? 'conversations' : 'documents';
+    for (const change of await this.deps.changes.list()) {
+      const slug = ChangeSlug.parse(change.slug);
+      const sources = this.deps.changesRepository.children(slug)[collection];
+      if ((await sources.get(id)) !== null) {
+        throw new DuplicateSourceError(kind, id, dataFileOf(sources, id));
       }
     }
   }
@@ -173,7 +175,7 @@ export class ImportService {
   ): Promise<void> {
     for (const [index, topic] of analyzed.entries()) {
       if (topic.is_new) continue;
-      if ((await this.deps.topics.findById(topic.id)) !== null) continue;
+      if ((await this.deps.topics.get(topic.id)) !== null) continue;
       throw new InvalidImportError(
         contract,
         [
@@ -219,11 +221,10 @@ export class ImportService {
         long_summary_locked: false,
         items: topic.items.map(refs),
       };
-      const existing = topic.is_new
-        ? null
-        : await this.deps.topics.findById(id);
-      await this.deps.topics.write(
-        existing === null ? incoming : mergeTopic(existing.entity, incoming),
+      const existing = topic.is_new ? null : await this.deps.topics.get(id);
+      await this.deps.topics.set(
+        id,
+        existing === null ? incoming : mergeTopic(existing, incoming),
       );
       (existing === null ? report.topics.created : report.topics.updated).push(
         id,
@@ -254,11 +255,12 @@ export class ImportService {
         const existingDecision =
           analyzedDecision.id === undefined
             ? null
-            : await this.deps.decisions.findById(decisionId);
-        await this.deps.decisions.write(
+            : await this.deps.decisions.get(decisionId);
+        await this.deps.decisions.set(
+          decisionId,
           existingDecision === null
             ? incomingDecision
-            : mergeDecision(existingDecision.entity, incomingDecision),
+            : mergeDecision(existingDecision, incomingDecision),
         );
         (existingDecision === null
           ? report.decisions.created

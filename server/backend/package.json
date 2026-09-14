@@ -24,7 +24,7 @@
     "dev": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "check-types": "tsc --noEmit",
-    "test": "bun test test/unit",
+    "test": "bun test test/unit test/integration",
     "test:e2e": "bun test test/e2e",
     "test:bench": "bun test test/bench",
     "prepack": "bun run build"

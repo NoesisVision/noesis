@@ -7,7 +7,7 @@ import { Text } from '#/components/design-system/text';
 import { Title } from '#/components/design-system/title';
 import { NewChangeModal } from '#/components/shell/new-change-modal';
 
-/** The first-run experience: a checkout with no `.noesis/changes/` yet. */
+/** The first-run experience: a checkout with no changes in `.noesis/graph/` yet. */
 export function NoChangesView() {
   const [opened, modal] = useDisclosure(false);
   return (

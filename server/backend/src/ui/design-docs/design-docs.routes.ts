@@ -1,6 +1,7 @@
 import { zValidator } from '@hono/zod-validator';
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
+import { ChangeSlug } from '../../changes/change-slug.js';
 import { ChangeNotFoundError } from '../../changes/changes.service.js';
 import {
   type DesignDocsService,
@@ -21,7 +22,7 @@ export const createDesignDocSchema = z.object({
  * Mounted at `/ui/changes/:change/design-docs` — the documents of one change.
  * Reads serve the documents page; the writes are the whole-document boundary
  * of decision 51 — a rejected document is a 400 naming its issues, never a
- * stored one. A change without a directory is a 404 on every route.
+ * stored one. A slug no change has is a 404 on every route.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
@@ -102,11 +103,12 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
 /** Runs the handler for the change in the path; a missing change is a 404. */
 async function inChange<T extends Response>(
   c: Context,
-  handler: (change: string) => Promise<T>,
+  handler: (slug: ChangeSlug) => Promise<T>,
 ) {
-  const change = c.req.param('change') ?? '';
+  const slug = ChangeSlug.tryParse(c.req.param('change') ?? '');
+  if (slug === null) return c.json({ error: 'change_not_found' }, 404);
   try {
-    return await handler(change);
+    return await handler(slug);
   } catch (error) {
     if (error instanceof ChangeNotFoundError) {
       return c.json({ error: 'change_not_found' }, 404);

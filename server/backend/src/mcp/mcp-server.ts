@@ -10,6 +10,7 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { type ZodType, z } from 'zod';
+import { ChangeSlug, InvalidChangeSlugError } from '../changes/change-slug.js';
 import type { ChangesService } from '../changes/changes.service.js';
 import { ChangeNotFoundError } from '../changes/changes.service.js';
 import {
@@ -80,7 +81,7 @@ const changeSlug = z
   .string()
   .min(1)
   .describe(
-    'The change the result belongs to: the slug of a directory under .noesis/changes/.',
+    'The change the result belongs to: the slug of a directory under .noesis/graph/changes/.',
   );
 
 /**
@@ -140,7 +141,7 @@ export function createMcpServer(deps: McpDeps): Server {
     );
 
   const changeMissing = async (
-    error: ChangeNotFoundError,
+    error: ChangeNotFoundError | InvalidChangeSlugError,
   ): Promise<CallToolResult> => {
     const existing = (await deps.changesService.list()).map((c) => c.slug);
     return errorResult(
@@ -162,7 +163,12 @@ export function createMcpServer(deps: McpDeps): Server {
       if (error instanceof InvalidImportError) {
         return rejected(error.contract, error.issues, error.suppressed);
       }
-      if (error instanceof ChangeNotFoundError) return changeMissing(error);
+      if (
+        error instanceof ChangeNotFoundError ||
+        error instanceof InvalidChangeSlugError
+      ) {
+        return changeMissing(error);
+      }
       if (error instanceof DesignDocNotFoundError) {
         return errorResult(
           `${error.message} Call list-design-docs to see the ids the change has.`,
@@ -184,6 +190,24 @@ export function createMcpServer(deps: McpDeps): Server {
       `Decisions created: ${listOrNone(report.decisions.created)}. Decisions updated: ${listOrNone(report.decisions.updated)}.`,
       'The graph picks the files up on the next re-index.',
     ].join('\n');
+
+  /** An import tool: a working file that satisfies `contract`, imported into a change. */
+  const importTool = (
+    description: string,
+    contract: string,
+    run: (change: ChangeSlug, payload: unknown) => Promise<ImportReport>,
+  ) =>
+    define({
+      description,
+      args: z.object({ change: changeSlug, path: workingPath }),
+      handler: async ({ change, path }) => {
+        const file = await readWorkingJson(path);
+        if (!file.ok) return errorResult(file.text);
+        return attempt(contract, async () =>
+          text(importReport(await run(ChangeSlug.parse(change), file.raw))),
+        );
+      },
+    });
 
   const tools = {
     validate: define({
@@ -209,7 +233,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'list-changes': define({
       description:
-        'Lists the changes of this repository: the directories under .noesis/changes/. Imports and design documents belong to a change.',
+        'Lists the changes of this repository: the directories under .noesis/graph/changes/. Imports and design documents belong to a change.',
       args: z.object({}),
       handler: async () => {
         const changes = await deps.changesService.list();
@@ -221,39 +245,18 @@ export function createMcpServer(deps: McpDeps): Server {
       },
     }),
 
-    'import-conversation': define({
-      description:
-        'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      args: z.object({ change: changeSlug, path: workingPath }),
-      handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('conversation-analysis', async () =>
-          text(
-            importReport(
-              await deps.importService.importConversation(change, file.raw),
-            ),
-          ),
-        );
-      },
-    }),
+    'import-conversation': importTool(
+      'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
+      'conversation-analysis',
+      (change, payload) =>
+        deps.importService.importConversation(change, payload),
+    ),
 
-    'import-document': define({
-      description:
-        'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      args: z.object({ change: changeSlug, path: workingPath }),
-      handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('document-analysis', async () =>
-          text(
-            importReport(
-              await deps.importService.importDocument(change, file.raw),
-            ),
-          ),
-        );
-      },
-    }),
+    'import-document': importTool(
+      'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
+      'document-analysis',
+      (change, payload) => deps.importService.importDocument(change, payload),
+    ),
 
     'list-design-docs': define({
       description:
@@ -261,7 +264,9 @@ export function createMcpServer(deps: McpDeps): Server {
       args: z.object({ change: changeSlug }),
       handler: async ({ change }) =>
         attempt('design-document', async () => {
-          const docs = await deps.designDocsService.list(change);
+          const docs = await deps.designDocsService.list(
+            ChangeSlug.parse(change),
+          );
           if (docs.length === 0) {
             return text(`Change ${change} has no design documents yet.`);
           }
@@ -284,7 +289,10 @@ export function createMcpServer(deps: McpDeps): Server {
         const file = await readWorkingJson(path);
         if (!file.ok) return errorResult(file.text);
         return attempt('design-document', async () => {
-          const summary = await deps.designDocsService.create(change, file.raw);
+          const summary = await deps.designDocsService.create(
+            ChangeSlug.parse(change),
+            file.raw,
+          );
           return text(
             `Created design document "${summary.name}" (${summary.id}) at ${rel(summary.path)}. The graph picks it up on the next re-index.`,
           );
@@ -305,7 +313,7 @@ export function createMcpServer(deps: McpDeps): Server {
         if (!file.ok) return errorResult(file.text);
         return attempt('design-document', async () => {
           const summary = await deps.designDocsService.update(
-            change,
+            ChangeSlug.parse(change),
             id,
             file.raw,
           );
@@ -318,7 +326,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'scan-system-model': define({
       description:
-        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
+        'Scans the repository source code and writes the implemented model to .noesis/graph/system-model/, one object per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
       args: z.object({}),
       handler: async () => {
         const report = await deps.scannerService.scan();

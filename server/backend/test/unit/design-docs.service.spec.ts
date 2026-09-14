@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangeNotFoundError } from '../../src/changes/changes.service.js';
 import {
   DesignDocNotFoundError,
@@ -8,14 +9,15 @@ import {
 } from '../../src/design-docs/design-docs.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
-const CHANGE = 'booking';
+const CHANGE = ChangeSlug.parse('booking');
+const NOPE = ChangeSlug.parse('nope');
 
 let t: TestNoesis;
 let service: DesignDocsService;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.changesRepository.create(CHANGE);
+  await t.createChange(CHANGE);
   service = t.designDocsService;
 });
 
@@ -94,15 +96,14 @@ describe('DesignDocsService', () => {
   });
 
   it('refuses every operation on a change that has no directory', async () => {
-    expect(service.list('nope')).rejects.toBeInstanceOf(ChangeNotFoundError);
-    expect(service.create('nope', designDocFixture)).rejects.toBeInstanceOf(
+    expect(service.list(NOPE)).rejects.toBeInstanceOf(ChangeNotFoundError);
+    expect(service.create(NOPE, designDocFixture)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    expect(service.findById('nope', 'x')).rejects.toBeInstanceOf(
+    expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    expect(service.delete('../x', 'x')).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    // An unsafe slug never reaches the service: it is not a `ChangeSlug`.
+    expect(ChangeSlug.tryParse('../x')).toBeNull();
   });
 });

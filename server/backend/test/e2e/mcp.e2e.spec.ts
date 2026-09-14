@@ -9,6 +9,7 @@ import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { serviceEnv, textOf } from '../support/service-process.js';
 
 const serviceRoot = resolve(__dirname, '../..');
 
@@ -23,8 +24,7 @@ beforeAll(async () => {
       command: 'bun',
       args: ['run', 'src/main.ts'],
       cwd: serviceRoot,
-      // A throwaway repository root, and no browser popping up in a test run.
-      env: { ...process.env, NOESIS_ROOT: repoRoot, NOESIS_OPEN_BROWSER: '0' },
+      env: serviceEnv(repoRoot),
       stderr: 'ignore',
     }),
   );
@@ -47,11 +47,6 @@ function sessionDir(): string {
   );
   if (!match?.[1]) throw new Error('instructions name no scratch directory');
   return match[1];
-}
-
-function textOf(result: Awaited<ReturnType<Client['callTool']>>): string {
-  const [content] = result.content as { type: string; text: string }[];
-  return content?.text ?? '';
 }
 
 describe('MCP over stdio against the real service (e2e)', () => {

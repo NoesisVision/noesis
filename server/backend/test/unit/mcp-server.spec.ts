@@ -8,15 +8,19 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { SessionDir } from '../../src/files/session-dir.js';
 import { contractNames } from '../../src/mcp/contracts/registry.js';
 import { createMcpServer } from '../../src/mcp/mcp-server.js';
 import { ScannerService } from '../../src/scanner/scanner.service.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { textOf } from '../support/service-process.js';
+import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = 'booking';
+const SLUG = ChangeSlug.parse(CHANGE);
 
 let t: TestNoesis;
 let session: SessionDir;
@@ -39,7 +43,7 @@ beforeEach(async () => {
     searchService: new SearchService([
       async (q) => [{ type: 'topic', id: 't-1', title: `Hit for ${q}` }],
     ]),
-    scannerService: new ScannerService(t.root, t.systemModelRepository),
+    scannerService: new ScannerService(t.root, t.systemModels),
   });
   await server.connect(serverTransport);
   client = new Client({ name: 'mcp-server-spec', version: '0.0.0' });
@@ -50,11 +54,6 @@ afterEach(async () => {
   await client?.close();
   await t?.cleanup();
 });
-
-function textOf(result: Awaited<ReturnType<Client['callTool']>>): string {
-  const [content] = result.content as { type: string; text: string }[];
-  return content?.text ?? '';
-}
 
 /** A working file in this session's scratch directory, as the agent would write it. */
 async function working(name: string, content: unknown): Promise<string> {
@@ -209,7 +208,7 @@ describe('createMcpServer', () => {
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain('"Appointment booking"');
 
-      const listed = await t.designDocsService.list(CHANGE);
+      const listed = await t.designDocsService.list(SLUG);
       expect(listed).toHaveLength(1);
       expect(textOf(result)).toContain(listed[0]?.id ?? 'no id');
     });
@@ -223,7 +222,7 @@ describe('createMcpServer', () => {
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('Invalid design-document');
       expect(textOf(result)).toContain('svc-booking');
-      expect(await t.designDocsService.list(CHANGE)).toEqual([]);
+      expect(await t.designDocsService.list(SLUG)).toEqual([]);
     });
 
     it('names the existing changes when the change does not exist', async () => {
@@ -257,20 +256,20 @@ describe('createMcpServer', () => {
     });
 
     it('lists design documents with id and relative path', async () => {
-      await t.designDocsService.createSample(CHANGE);
+      await t.designDocsService.createSample(SLUG);
       const result = await client.callTool({
         name: 'list-design-docs',
         arguments: { change: CHANGE },
       });
       const line = textOf(result);
       expect(line).toContain('Appointment booking');
-      expect(line).toContain(`.noesis/changes/${CHANGE}/design-docs/`);
+      expect(line).toContain(`.noesis/graph/changes/${CHANGE}/design-docs/`);
     });
   });
 
   describe('update-design-doc', () => {
     it('replaces the document under its id', async () => {
-      const created = await t.designDocsService.createSample(CHANGE);
+      const created = await t.designDocsService.createSample(SLUG);
       const path = await working('doc.json', {
         ...designDocFixture,
         name: 'Renamed booking',
@@ -281,7 +280,7 @@ describe('createMcpServer', () => {
       });
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain('"Renamed booking"');
-      const listed = await t.designDocsService.list(CHANGE);
+      const listed = await t.designDocsService.list(SLUG);
       expect(listed.map((d) => [d.id, d.name])).toEqual([
         [created.id, 'Renamed booking'],
       ]);
@@ -299,57 +298,7 @@ describe('createMcpServer', () => {
   });
 
   describe('import-conversation', () => {
-    const payload = {
-      conversation: {
-        conversation_id: 'placeholder',
-        time: '2026-09-12T10:00:00Z',
-        main_topic: 'Slot holds',
-        turns: [
-          {
-            index: 0,
-            speaker: 'Ada',
-            time: '10:00',
-            fragments: [
-              {
-                index: 0,
-                sentences: ['Hold a slot for ten minutes.'],
-                categories: ['Decision'],
-              },
-            ],
-          },
-        ],
-      },
-      topics: [
-        {
-          id: 'new-1',
-          is_new: true,
-          title: 'Slot holds',
-          short_summary: 'How slots are held.',
-          long_summary: 'Slots are held for ten minutes.',
-          items: [
-            {
-              type: 'conversation_fragment_ref',
-              conversation_id: 'placeholder',
-              turn_index: 0,
-              fragment_index: 0,
-            },
-          ],
-          decisions: [
-            {
-              title: 'Hold slots for ten minutes',
-              status: 'accepted',
-              context: { text: 'Double bookings.', supporting_info: [] },
-              decision: {
-                text: 'Ten minutes.',
-                rationale: 'Long enough.',
-                supporting_info: [],
-              },
-              alternative_options: [],
-            },
-          ],
-        },
-      ],
-    };
+    const payload = conversationAnalysisFixture;
 
     it('writes the source and the wiki, and reports what it did', async () => {
       const path = await working('analysis.json', payload);
@@ -359,13 +308,15 @@ describe('createMcpServer', () => {
       });
       expect(result.isError).toBeFalsy();
       const report = textOf(result);
-      expect(report).toContain(
-        `Imported the conversation as .noesis/changes/${CHANGE}/conversations/slot-holds-`,
+      expect(report).toMatch(
+        new RegExp(
+          `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/[0-9a-f-]{36}/data.json`,
+        ),
       );
-      expect(report).toMatch(/Topics created: [0-9a-f-]{36}\./);
+      expect(report).toMatch(/Topics created: [0-9a-f-]{36}, [0-9a-f-]{36}\./);
       expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);
-      expect(await t.topicsRepository.list()).toHaveLength(1);
-      expect(await t.decisionsRepository.list()).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(2);
+      expect(await all(t.decisions)).toHaveLength(1);
     });
 
     it('reports a duplicate source in-band and writes nothing', async () => {
@@ -380,7 +331,7 @@ describe('createMcpServer', () => {
       });
       expect(again.isError).toBe(true);
       expect(textOf(again)).toContain('was imported before as .noesis/');
-      expect(await t.topicsRepository.list()).toHaveLength(1);
+      expect(await all(t.topics)).toHaveLength(2);
     });
 
     it('rejects a payload that fails the contract with the issue list', async () => {
@@ -414,9 +365,9 @@ describe('createMcpServer', () => {
 
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain(
-        '@acme/pkg  1 building block(s)  .noesis/system-model/',
+        '@acme/pkg  1 building block(s)  .noesis/graph/system-model/',
       );
-      expect(await t.systemModelRepository.list()).toHaveLength(1);
+      expect(await all(t.systemModels)).toHaveLength(1);
     });
   });
 
