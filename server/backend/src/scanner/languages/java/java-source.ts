@@ -65,7 +65,7 @@ export function stereotypeOf(
   return null;
 }
 
-const PACKAGE = /^\s*package\s+([\w.]+)\s*;/m;
+const PACKAGE = /^[ \t]*package[ \t]+([\w.]+)[ \t]*;/m;
 
 /** The declared package, or null for the default package. */
 export function packageOf(content: string): string | null {
@@ -273,14 +273,14 @@ function methodOf(
   if (kind === 'interface') {
     if (modifiers.includes('private')) return null;
   } else if (!modifiers.includes('public')) return null;
-  const name = /(\w+)\s*$/.exec(header);
-  if (!name?.[1]) return null;
-  if (name[1] === typeName || METHODS_NEVER_BEHAVIOURS.has(name[1]))
-    return null;
+  const trimmed = header.trimEnd();
+  const name = /\w+$/.exec(trimmed)?.[0];
+  if (name === undefined) return null;
+  if (name === typeName || METHODS_NEVER_BEHAVIOURS.has(name)) return null;
   // A header with only a name and no return type is a constructor of a
   // differently-named type or a call — neither is a method here.
-  if (header.replace(MODIFIER_WORD, '').trim() === name[1]) return null;
-  return { name: name[1], offset: name.index };
+  if (header.replace(MODIFIER_WORD, '').trim() === name) return null;
+  return { name, offset: trimmed.length - name.length };
 }
 
 /** Comments and string/char literals replaced by spaces, newlines kept, so braces inside them do not count. */

@@ -64,7 +64,7 @@ export async function findUnits(root: string): Promise<ScannedUnit[]> {
     SKIPPED_DIRS,
   );
   const units = new Map<string, ScannedUnit>();
-  for (const path of manifests.sort()) {
+  for (const path of manifests.sort((a, b) => a.localeCompare(b))) {
     const dir = dirname(path);
     const known = units.get(dir);
     if (known && basename(path) !== 'pom.xml') continue;

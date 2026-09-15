@@ -58,5 +58,7 @@ export function excludeNestedUnits(
   const nested = allUnits
     .filter((u) => u.dir !== unit.dir && u.dir.startsWith(unit.dir + sep))
     .map((u) => u.dir + sep);
-  return files.filter((f) => !nested.some((n) => f.startsWith(n))).sort();
+  return files
+    .filter((f) => !nested.some((n) => f.startsWith(n)))
+    .sort((a, b) => a.localeCompare(b));
 }

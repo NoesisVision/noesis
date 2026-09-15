@@ -474,8 +474,6 @@ public class OrderTest { public void notScanned() {} }
     expect(
       [...byName.values()].map((b) => [b.name, b.type, b.domainModuleId]),
     ).toEqual([
-      // A type in the prefix package itself belongs to no module.
-      ['OrdersModule', null, null],
       [
         'OrderApplicationService',
         'application_service',
@@ -496,6 +494,8 @@ public class OrderTest { public void notScanned() {} }
       ['OrderPlaced', 'domain_event', 'mod:acme-orders/order'],
       ['OrderRepository', 'external_integration', 'mod:acme-orders/order'],
       ['PlaceOrder', 'domain_command', 'mod:acme-orders/order'],
+      // A type in the prefix package itself belongs to no module.
+      ['OrdersModule', null, null],
     ]);
 
     expect(byName.get('Order')).toMatchObject({
