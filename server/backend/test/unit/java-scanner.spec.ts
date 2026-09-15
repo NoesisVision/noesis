@@ -345,8 +345,8 @@ describe('ScannerService with the Java scanner', () => {
       ['OrderPlaced', 'domain_event', 'mod:acme-orders/order'],
       ['OrderRepository', 'external_integration', 'mod:acme-orders/order'],
       ['PlaceOrder', 'domain_command', 'mod:acme-orders/order'],
-      // A type in the prefix package itself belongs to no module.
-      ['OrdersModule', null, null],
+      // A type in the unit's root package (the common prefix) has no module.
+      ['OrdersApplication', null, null],
     ]);
 
     expect(byName.get('Order')).toMatchObject({
