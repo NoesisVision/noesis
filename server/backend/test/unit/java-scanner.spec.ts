@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SystemModelSchema } from '@repo/shared-contracts';
 import {
@@ -29,6 +29,22 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
+/*
+ * Java under test lives in test/fixtures/java as real .java files:
+ * `sources/` holds one file per extraction case, the other directories are
+ * Maven modules copied whole into the throwaway root.
+ */
+const FIXTURES = join(import.meta.dir, '..', 'fixtures', 'java');
+
+function javaSource(name: string): Promise<string> {
+  return readFile(join(FIXTURES, 'sources', `${name}.java`), 'utf8');
+}
+
+/** Copies a fixture tree into the root; the unit layout is the fixture's. */
+function fixtureTree(name: string): Promise<void> {
+  return cp(join(FIXTURES, name), t.root, { recursive: true });
+}
+
 /** Lays out files under the root, given as path → content. */
 async function files(entries: Record<string, string>): Promise<void> {
   for (const [path, content] of Object.entries(entries)) {
@@ -54,48 +70,8 @@ function pom(artifactId: string, parent?: string): string {
 /* ------------------------------------------------------------ extraction */
 
 describe('typesOf', () => {
-  it('finds an annotated class, its public methods and their lines, skipping constructors and the Object trio', () => {
-    const source = `package com.acme.orders;
-
-import vision.noesis.annotations.AggregateRoot;
-
-/** An order. { not a brace that counts } */
-@AggregateRoot
-public class Order implements Comparable<Order>, Serializable {
-
-    private final OrderId id;
-    private final List<OrderLine> lines = new ArrayList<>();
-
-    public Order(OrderId id) {
-        this.id = id;
-    }
-
-    public OrderPlaced place(String item) {
-        // place() is a behaviour; this comment's "}" is not
-        return new OrderPlaced(id, item);
-    }
-
-    public <T extends Discount> T apply(T discount) throws DiscountRejected {
-        if (discount == null) { throw new DiscountRejected("}"); }
-        return discount;
-    }
-
-    public static Order draft() {
-        return new Order(OrderId.next());
-    }
-
-    protected void audit() {}
-    private void recompute() {}
-    void packagePrivate() {}
-
-    @Override
-    public boolean equals(Object other) { return false; }
-    @Override
-    public int hashCode() { return 0; }
-    @Override
-    public String toString() { return ""; }
-}
-`;
+  it('finds an annotated class, its public methods and their lines, skipping constructors and the Object trio', async () => {
+    const source = await javaSource('Order');
     const [order] = typesOf(source);
     expect(order).toMatchObject({
       name: 'Order',
@@ -112,18 +88,8 @@ public class Order implements Comparable<Order>, Serializable {
     ]);
   });
 
-  it('reads interface members as public unless private, including default and static ones', () => {
-    const source = `package com.acme.orders;
-
-@Port(Direction.SECONDARY)
-public interface OrderRepository extends Repository<Order, OrderId>, AutoCloseable {
-    void save(Order order);
-    Optional<Order> findById(OrderId id);
-    default boolean exists(OrderId id) { return findById(id).isPresent(); }
-    static OrderRepository inMemory() { return new InMemoryOrderRepository(); }
-    private void helper() {}
-}
-`;
+  it('reads interface members as public unless private, including default and static ones', async () => {
+    const source = await javaSource('OrderRepository');
     const [port] = typesOf(source);
     expect(port).toMatchObject({
       name: 'OrderRepository',
@@ -139,19 +105,8 @@ public interface OrderRepository extends Repository<Order, OrderId>, AutoCloseab
     ]);
   });
 
-  it('reads records, with their header parameters ignored and compact constructors skipped', () => {
-    const source = `package com.acme.orders;
-
-@ValueObject
-public record Money(BigDecimal amount, Currency currency) implements Comparable<Money> {
-    public Money {
-        Objects.requireNonNull(amount);
-    }
-    public Money add(Money other) { return new Money(amount.add(other.amount), currency); }
-    public static Money zero(Currency currency) { return new Money(BigDecimal.ZERO, currency); }
-    @Override public int compareTo(Money other) { return amount.compareTo(other.amount); }
-}
-`;
+  it('reads records, with their header parameters ignored and compact constructors skipped', async () => {
+    const source = await javaSource('Money');
     const [money] = typesOf(source);
     expect(money).toMatchObject({
       name: 'Money',
@@ -167,35 +122,14 @@ public record Money(BigDecimal amount, Currency currency) implements Comparable<
     ]);
   });
 
-  it('reads enums without behaviours', () => {
-    const [status] = typesOf(`package com.acme;
-public enum OrderStatus {
-    NEW, PAID { public boolean isFinal() { return true; } };
-    public boolean isFinal() { return false; }
-}
-`);
+  it('reads enums without behaviours', async () => {
+    const [status] = typesOf(await javaSource('OrderStatus'));
     expect(status).toMatchObject({ name: 'OrderStatus', kind: 'enum' });
     expect(status?.methods).toEqual([]);
   });
 
-  it('finds nested types, marks them as not top-level and keeps their methods apart from the outer type', () => {
-    const source = `package com.acme.orders;
-
-public class Order {
-    public void place() {}
-
-    @Event
-    public record Placed(OrderId id) {
-        public boolean isRecent() { return true; }
-    }
-
-    private static class Helper {
-        public void hidden() {}
-    }
-
-    public void cancel() {}
-}
-`;
+  it('finds nested types, marks them as not top-level and keeps their methods apart from the outer type', async () => {
+    const source = await javaSource('OrderWithNestedTypes');
     const found = typesOf(source);
     expect(found.map((f) => [f.name, f.topLevel, f.annotations])).toEqual([
       ['Order', true, []],
@@ -207,18 +141,8 @@ public class Order {
     expect(found[2]?.methods.map((m) => m.name)).toEqual(['hidden']);
   });
 
-  it('reads annotations with arguments and qualified names, and ignores annotation type declarations and class literals', () => {
-    const source = `package com.acme;
-
-@vision.noesis.annotations.Adapter(Direction.SECONDARY)
-@SuppressWarnings({"unchecked", "class interface enum"})
-@Component(value = "orders", scope = @Scope("singleton"))
-public final class JpaOrderRepository extends JpaBase implements OrderRepository {
-    private static final Class<?> TYPE = Order.class;
-    public @interface Marker {}
-    public void save(Order order) {}
-}
-`;
+  it('reads annotations with arguments and qualified names, and ignores annotation type declarations and class literals', async () => {
+    const source = await javaSource('JpaOrderRepository');
     const found = typesOf(source);
     expect(found.map((f) => f.name)).toEqual(['JpaOrderRepository']);
     expect(found[0]?.annotations).toEqual([
@@ -231,45 +155,20 @@ public final class JpaOrderRepository extends JpaBase implements OrderRepository
     expect(found[0]?.methods.map((m) => m.name)).toEqual(['save']);
   });
 
-  it('is not fooled by braces, keywords or declarations inside strings, text blocks and comments', () => {
-    const source = `package com.acme;
-
-// public class Commented {}
-/* public class BlockCommented { public void nope() {} } */
-public class Templates {
-    private static final String OPEN = "{";
-    private static final char CLOSE = '}';
-    private static final String SNIPPET = """
-        public class InText {
-            public void nope() {}
-        }
-        """;
-    public String render() { return OPEN + "\\"}" + CLOSE; }
-}
-`;
+  it('is not fooled by braces, keywords or declarations inside strings, text blocks and comments', async () => {
+    const source = await javaSource('Templates');
     const found = typesOf(source);
     expect(found.map((f) => f.name)).toEqual(['Templates']);
     expect(found[0]?.methods).toEqual([{ name: 'render', line: 13 }]);
   });
 
-  it('does not read fields, initialisers or generic-typed fields as methods', () => {
-    const source = `package com.acme;
-public class Cache {
-    public final Map<String, List<Integer>> entries = new HashMap<>();
-    public int[] sizes = { 1, 2 };
-    public static int count;
-    static { count = 0; }
-    { entries.clear(); }
-    public Map<String, List<Integer>> entries() { return entries; }
-}
-`;
+  it('does not read fields, initialisers or generic-typed fields as methods', async () => {
+    const source = await javaSource('Cache');
     expect(typesOf(source)[0]?.methods.map((m) => m.name)).toEqual(['entries']);
   });
 
-  it('handles several top-level types in one file and a file in the default package', () => {
-    const source = `class A { public void a() {} }
-interface B { void b(); }
-`;
+  it('handles several top-level types in one file and a file in the default package', async () => {
+    const source = await javaSource('DefaultPackage');
     expect(packageOf(source)).toBeNull();
     expect(typesOf(source).map((f) => [f.name, f.kind, f.topLevel])).toEqual([
       ['A', 'class', true],
@@ -307,6 +206,11 @@ describe('commonPackagePrefix', () => {
 
 /* ----------------------------------------------------------------- units */
 
+/*
+ * Unit detection is about directory layout, not Java syntax, so these two
+ * lay their trees out inline: build files of both tools, skipped
+ * directories, a nested unit.
+ */
 describe('findUnits and findSources', () => {
   it('names Maven units by their own artifactId, not the parent or a dependency, and Gradle units by directory', async () => {
     await files({
@@ -363,60 +267,7 @@ describe('findUnits and findSources', () => {
 
 describe('ScannerService with the Java scanner', () => {
   it('writes a system model with the unit as bounded context, packages below the common prefix as modules, annotated types as typed blocks', async () => {
-    await files({
-      'orders/pom.xml': pom('acme-orders'),
-      'orders/src/main/java/com/acme/orders/OrdersModule.java': `package com.acme.orders;
-public class OrdersModule {}
-`,
-      'orders/src/main/java/com/acme/orders/order/Order.java': `package com.acme.orders.order;
-import vision.noesis.annotations.AggregateRoot;
-@AggregateRoot
-public class Order {
-    public Order(OrderId id) {}
-    public OrderPlaced place(String item) { return null; }
-}
-`,
-      'orders/src/main/java/com/acme/orders/order/OrderId.java': `package com.acme.orders.order;
-@Identifier
-public record OrderId(String value) {}
-`,
-      'orders/src/main/java/com/acme/orders/order/OrderPlaced.java': `package com.acme.orders.order;
-@Event
-public record OrderPlaced(OrderId orderId, String item) {}
-`,
-      'orders/src/main/java/com/acme/orders/order/PlaceOrder.java': `package com.acme.orders.order;
-@Command
-public record PlaceOrder(String item) {}
-`,
-      'orders/src/main/java/com/acme/orders/order/OrderRepository.java': `package com.acme.orders.order;
-@Port(Direction.SECONDARY)
-public interface OrderRepository {
-    void save(Order order);
-}
-`,
-      'orders/src/main/java/com/acme/orders/application/OrderApplicationService.java': `package com.acme.orders.application;
-@ApplicationService
-public class OrderApplicationService {
-    public void handle(PlaceOrder command) {}
-}
-`,
-      'orders/src/main/java/com/acme/orders/infrastructure/persistence/InMemoryOrderRepository.java': `package com.acme.orders.infrastructure.persistence;
-@Adapter(Direction.SECONDARY)
-public class InMemoryOrderRepository implements OrderRepository {
-    @Override
-    public void save(Order order) {}
-}
-`,
-      'orders/src/main/java/com/acme/orders/infrastructure/PaymentGateway.java': `package com.acme.orders.infrastructure;
-public class PaymentGateway {
-    public void charge(Money amount) {}
-}
-`,
-      'orders/src/test/java/com/acme/orders/order/OrderTest.java': `package com.acme.orders.order;
-@AggregateRoot
-public class OrderTest { public void notScanned() {} }
-`,
-    });
+    await fixtureTree('acme-orders');
 
     const report = await scanner.scan();
 
@@ -529,16 +380,7 @@ public class OrderTest { public void notScanned() {} }
   });
 
   it('includes a nested type only when a stereotype names it', async () => {
-    await files({
-      'pom.xml': pom('acme'),
-      'src/main/java/com/acme/Order.java': `package com.acme;
-public class Order {
-    @Event
-    public record Placed(String id) {}
-    public static class Builder { public Order build() { return null; } }
-}
-`,
-    });
+    await fixtureTree('nested-stereotype');
     await scanner.scan();
     const [stored] = await t.systemModelRepository.list();
     const model = SystemModelSchema.parse(stored?.entity);
@@ -549,11 +391,7 @@ public class Order {
   });
 
   it('puts every type of a single-package unit directly under the bounded context', async () => {
-    await files({
-      'pom.xml': pom('acme'),
-      'src/main/java/com/acme/A.java': 'package com.acme; public class A {}',
-      'src/main/java/com/acme/B.java': 'package com.acme; public class B {}',
-    });
+    await fixtureTree('single-package');
     await scanner.scan();
     const [stored] = await t.systemModelRepository.list();
     const model = SystemModelSchema.parse(stored?.entity);
