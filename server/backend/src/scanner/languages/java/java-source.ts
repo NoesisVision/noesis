@@ -274,13 +274,20 @@ function methodOf(
     if (modifiers.includes('private')) return null;
   } else if (!modifiers.includes('public')) return null;
   const trimmed = header.trimEnd();
-  const name = /\w+$/.exec(trimmed)?.[0];
-  if (name === undefined) return null;
+  const name = trailingWord(trimmed);
+  if (name === '') return null;
   if (name === typeName || METHODS_NEVER_BEHAVIOURS.has(name)) return null;
   // A header with only a name and no return type is a constructor of a
   // differently-named type or a call — neither is a method here.
   if (header.replace(MODIFIER_WORD, '').trim() === name) return null;
   return { name, offset: trimmed.length - name.length };
+}
+
+/** The run of word characters `text` ends with; empty when it ends otherwise. */
+function trailingWord(text: string): string {
+  let start = text.length;
+  while (start > 0 && /\w/.test(text[start - 1] ?? '')) start--;
+  return text.slice(start);
 }
 
 /** Comments and string/char literals replaced by spaces, newlines kept, so braces inside them do not count. */
