@@ -2554,6 +2554,12 @@ stereotypes by their attributes, gives a design skill enough to work with.
 - **Detect the repository's language once and pick one scanner.** Real
   repositories mix a Java service with a TypeScript frontend; per-unit
   detection costs nothing and handles both.
+- **Name the scanner in a project configuration** (a `scanners` list in
+  `.noesis/`, say). Every user would have to write it before the first
+  scan, and keep it in step with the repository as languages come and go —
+  for a fact the build files already state. Configuration returns only for
+  what the files cannot say (excluded packages, an unusual source layout),
+  and as an override, not a prerequisite.
 
 **Consequences:**
 
