@@ -51,8 +51,10 @@ Inside the process:
   indexer at boot and by the **file watcher** on every change, including
   ones Noesis did not make (a `git checkout`, a hand edit). Nothing of it
   touches the disk.
-- **Scanner** (`src/scanner`) reads the checkout's TypeScript source and
-  writes `.noesis/system-model/` plus its graph projection.
+- **Scanner** (`src/scanner`) reads the checkout's source and writes
+  `.noesis/system-model/`, one file per unit; one primitive,
+  annotation-driven scanner per language (`languages/typescript`,
+  `languages/java`), each picking up the units it recognises (decision 76).
 - **MCP server** (`src/mcp`) exposes thin tools that call one service
   method each: `validate`, `list-changes`, `import-conversation`,
   `import-document`, `list-design-docs`, `create-design-doc`,

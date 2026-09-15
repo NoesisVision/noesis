@@ -112,7 +112,8 @@ Both land on the same service layer. Neither bypasses it.
 - **File watcher** observes the knowledge graph files and re-indexes into the graph when they
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
-  graph and into the system model files.
+  system model files (and, through the watcher, the graph); one scanner per language, each
+  handling the units it recognises (decision 76).
 
 ## Source of truth
 

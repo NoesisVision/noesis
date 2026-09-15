@@ -2491,3 +2491,77 @@ service lines it caused, or a tool call to the lines it wrote.
   root — still print with `console.error` and exit.
 - Write-through file logging costs one syscall per line. The volume is one
   developer's session; a buffer returns if that ever shows.
+
+## 76. MVP scanners are primitive, annotation-driven and in-process: one TypeScript-written scanner per language behind a common interface, chosen by the units it finds
+
+**Status: accepted** (2026-09-15)
+
+**Amends 68** (resolved point 10 said the JVM scanners were deferred whole;
+a primitive Java scanner now runs in-process, while `scanners/java` stays
+deferred). **Does not touch 19 and 20:** they describe the deep Java
+scanner, which remains the tool for relations between blocks.
+
+**Context:** The service ran one scanner, for TypeScript, wired directly
+into `ScannerService`. Design documents for Java and .NET codebases had no
+implemented model to name blocks against. Two deep scanners exist —
+`scanners/java` on ArchUnit, and the Roslyn scanner in `noesis-dotnet`
+writing a P3 model — but neither writes `system-model/` files, both need a
+build, and integrating either is a project of its own. The SDLC plugin had
+shown that a regular-expression scanner over `.cs` files, detecting DDD
+stereotypes by their attributes, gives a design skill enough to work with.
+
+**Decision:**
+
+- For the MVP, a scanner **detects building blocks by their stereotype
+  annotations** and their public methods; it does not analyse relations,
+  invocations or inheritance. That is the deep scanners' job, later.
+- Every MVP scanner is **written in TypeScript, runs inside the service**
+  and writes the `SystemModel` contract, one file per unit, exactly as the
+  TypeScript scanner does. `server/backend/src/scanner/languages/<lang>/`
+  holds one scanner per language; `shared/` what they have in common (the
+  directory walk, the name heuristic).
+- A scanner implements `LanguageScanner`: `findUnits`, `findSources`,
+  `scanUnit`, plus a `name` recorded in every file it writes. **The service
+  runs every registered scanner; which one handles a directory follows from
+  the unit markers it finds** (`package.json` for TypeScript, `pom.xml` or
+  `build.gradle(.kts)` for Java). A polyglot repository is scanned whole
+  with no configuration, and a scanner that finds no units writes nothing.
+- A system-model file's id is derived from the scanner name and the unit
+  name, so a Maven module and an npm package sharing a name keep two files.
+  The TypeScript scanner's ids changed once as a result; its files are
+  rewritten on the next scan.
+- The Java scanner reads the stereotype annotations of
+  `scanners/java/annotations` (`@AggregateRoot`, `@Entity`, `@ValueObject`,
+  `@Identifier`, `@DomainService`, `@ApplicationService`, `@Repository`,
+  `@Factory`, `@Port`, `@Adapter`, `@Command`, `@Query`, `@Event`), mapped
+  onto the contract's block types (`@Port` and `@Adapter` are
+  `external_integration`, `@Identifier` a `value_object`); a class without
+  one takes the shared name heuristic. The unit is the bounded context; the
+  first package segment below the unit's common package prefix is the
+  module; every top-level type and every annotated nested type is a block;
+  constructors, `equals`, `hashCode` and `toString` are not behaviours.
+  Tests under `src/test/` are not scanned.
+
+**Alternatives considered:**
+
+- **Integrate `scanners/java` now.** Requires the user's build to run the
+  plugin and a translation from decision 20's graph to `system-model/`; the
+  MVP needs blocks to name, not the invocation graph.
+- **One generic scanner parameterised by language.** Java, C# and
+  TypeScript differ enough in what a unit and a module are that the
+  parameters would be the scanner; separate scanners over a small shared
+  toolkit keep each one readable.
+- **Detect the repository's language once and pick one scanner.** Real
+  repositories mix a Java service with a TypeScript frontend; per-unit
+  detection costs nothing and handles both.
+
+**Consequences:**
+
+- Adding a language is a directory under `languages/`, an entry in
+  `languages/index.ts` and a spec; nothing else moves. The C# scanner from
+  SDLC is the next one.
+- The `scan-system-model` tool's report names the scanner per unit.
+- Extraction is regular expressions over comment- and string-blanked
+  source; it is wrong on code it does not anticipate, and the specs record
+  what it does anticipate. A real parser can replace one scanner's
+  extraction without touching the pipeline.

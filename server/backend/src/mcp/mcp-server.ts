@@ -318,7 +318,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'scan-system-model': define({
       description:
-        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per unit: bounded contexts, modules, classes as building blocks and their public methods as behaviours, each with its source location. The language is detected per unit — a package.json marks a TypeScript unit — so each unit is scanned by the scanner for its language. Run it before designing against existing code, or when the system model is missing or stale.',
+        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per unit: bounded contexts, modules, classes as building blocks and their public methods as behaviours, each with its source location. The language is detected per unit — a package.json marks a TypeScript unit, a pom.xml or build.gradle a Java one — so a polyglot repository is scanned whole. Java building blocks are typed by their DDD stereotype annotations (@AggregateRoot, @Entity, @ValueObject, @DomainService, @ApplicationService, @Repository, @Factory, @Port, @Adapter, @Command, @Query, @Event). Run it before designing against existing code, or when the system model is missing or stale.',
       args: z.object({}),
       handler: async () => {
         const report = await deps.scannerService.scan();
@@ -331,7 +331,7 @@ export function createMcpServer(deps: McpDeps): Server {
         }
         return text(
           lines.length === 0
-            ? 'No units found (no package.json with .ts sources under the repository root).'
+            ? 'No units found (no package.json with .ts sources, and no pom.xml or build.gradle with .java sources, under the repository root).'
             : `Scanned ${report.units.length} unit(s) in ${report.durationMs} ms.\n${lines.join('\n')}`,
         );
       },

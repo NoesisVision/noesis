@@ -11,8 +11,10 @@ graph vocabulary.
 **Status: standalone, not yet integrated with the service.** The scanner
 writes a JSON graph file; how that file feeds `.noesis/system-model/` is a
 later decision, once the file format settles (decision 68, resolved point
-10). The TypeScript scanner inside `server/backend` is the only one the
-service runs today.
+10). The service runs its own primitive Java scanner in-process
+(`server/backend/src/scanner/languages/java`, decision 76): stereotype
+annotations and public methods, no relations. This scanner is the deep
+one, for when relations are needed.
 
 ## Modules
 
