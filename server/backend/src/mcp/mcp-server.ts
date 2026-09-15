@@ -318,20 +318,20 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'scan-system-model': define({
       description:
-        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per package: bounded contexts, modules, exported classes as building blocks and their public methods as behaviours, each with its source location. Run it before designing against existing code, or when the system model is missing or stale.',
+        'Scans the repository source code and writes the implemented model to .noesis/system-model/, one file per unit: bounded contexts, modules, classes as building blocks and their public methods as behaviours, each with its source location. The language is detected per unit — a package.json marks a TypeScript unit — so each unit is scanned by the scanner for its language. Run it before designing against existing code, or when the system model is missing or stale.',
       args: z.object({}),
       handler: async () => {
         const report = await deps.scannerService.scan();
         const lines = report.units.map(
           (u) =>
-            `${u.name}  ${u.buildingBlocks} building block(s)  ${rel(u.path)}`,
+            `${u.name}  [${u.scanner}]  ${u.buildingBlocks} building block(s)  ${rel(u.path)}`,
         );
         if (report.removed.length > 0) {
           lines.push(`Removed stale: ${report.removed.join(', ')}.`);
         }
         return text(
           lines.length === 0
-            ? 'No TypeScript units found (no package.json with .ts sources under the repository root).'
+            ? 'No units found (no package.json with .ts sources under the repository root).'
             : `Scanned ${report.units.length} unit(s) in ${report.durationMs} ms.\n${lines.join('\n')}`,
         );
       },

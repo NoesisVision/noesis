@@ -1,59 +1,56 @@
-import type { Dirent } from 'node:fs';
-import { readdir, readFile } from 'node:fs/promises';
-import { basename, dirname, join, relative, sep } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { basename, dirname, relative, sep } from 'node:path';
 import type {
-  DesignedBuildingBlockType,
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
   SystemModel,
 } from '@repo/shared-contracts';
-import { contentHashAsUuid } from '../ids/uuid.js';
+import {
+  excludeNestedUnits,
+  type LanguageScanner,
+  type ScanInput,
+  type ScannedUnit,
+  systemModelId,
+} from '../../language-scanner.js';
+import { typeOfName } from '../../shared/block-type.js';
+import { walk } from '../../shared/walk.js';
 
 /*
- * The TypeScript scanner: reads a checkout and projects what it finds into
- * system-model files, one per unit (a directory with a package.json). The
- * migration's R7 fixes the pipeline — units, files, ids, output shape — and
- * deliberately not the language coverage: extraction is line-based (exported
- * classes and their public methods), good enough to give a design document
- * real building blocks to name, and to be replaced by a real parser without
- * moving anything around it.
+ * The TypeScript scanner: projects a checkout's TypeScript into system-model
+ * files, one per unit (a directory with a package.json). The migration's R7
+ * fixed the pipeline — units, files, ids, output shape — and deliberately not
+ * the language coverage: extraction is line-based (exported classes and their
+ * public methods), good enough to give a design document real building blocks
+ * to name, and to be replaced by a real parser without moving anything
+ * around it.
  */
 
 export const SCANNER_NAME = 'noesis-typescript';
 export const SCANNER_VERSION = '0.1.0';
 
 /** Directories never entered, at any depth. */
-const SKIPPED_DIRS = new Set([
-  'node_modules',
-  'dist',
-  'build',
-  'coverage',
-  'ui',
-  '.noesis',
-]);
+const SKIPPED_DIRS = new Set(['dist', 'build', 'coverage', 'ui']);
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
 const IGNORED_SUFFIXES = ['.d.ts', '.spec.ts', '.test.ts', '.bench.spec.ts'];
 
-export interface ScannedUnit {
-  /** The unit's directory, absolute. */
-  dir: string;
-  /** The package name, or the directory name when package.json has none. */
-  name: string;
-}
+export const typescriptScanner: LanguageScanner = {
+  name: SCANNER_NAME,
+  version: SCANNER_VERSION,
+  findUnits,
+  findSources,
+  scanUnit,
+};
 
-export interface ScanInput {
-  /** The repository root; every `source.path` is relative to it. */
-  root: string;
-  /** When the scan ran, ISO 8601. Injected so ids and output are testable. */
-  now: () => string;
-}
-
-/** Every directory holding a package.json, outside the skipped directories, sorted. */
+/** Every directory holding a package.json, outside the skipped directories, sorted; named by the package. */
 export async function findUnits(root: string): Promise<ScannedUnit[]> {
   const units: ScannedUnit[] = [];
-  for (const path of await walk(root, (name) => name === 'package.json')) {
+  for (const path of await walk(
+    root,
+    (name) => name === 'package.json',
+    SKIPPED_DIRS,
+  )) {
     const dir = dirname(path);
     let name = basename(dir);
     try {
@@ -76,16 +73,14 @@ export async function findSources(
   unit: ScannedUnit,
   allUnits: ScannedUnit[],
 ): Promise<string[]> {
-  const nested = allUnits
-    .filter((u) => u.dir !== unit.dir && u.dir.startsWith(unit.dir + sep))
-    .map((u) => u.dir + sep);
   const files = await walk(
     unit.dir,
     (name) =>
       SOURCE_EXTENSIONS.some((ext) => name.endsWith(ext)) &&
       !IGNORED_SUFFIXES.some((suffix) => name.endsWith(suffix)),
+    SKIPPED_DIRS,
   );
-  return files.filter((f) => !nested.some((n) => f.startsWith(n))).sort();
+  return excludeNestedUnits(unit, allUnits, files, sep);
 }
 
 /**
@@ -128,7 +123,7 @@ export async function scanUnit(
       buildingBlocks.push({
         id: blockId,
         name: found.name,
-        type: typeOf(found.name),
+        type: typeOfName(found.name),
         boundedContextId: contextId,
         domainModuleId: moduleId,
         description: '',
@@ -159,7 +154,7 @@ export async function scanUnit(
   }
 
   return {
-    id: contentHashAsUuid(`system-model:${unit.name}`),
+    id: systemModelId(typescriptScanner, unit.name),
     name: unit.name,
     scanned_at: input.now(),
     scanner: { name: SCANNER_NAME, version: SCANNER_VERSION },
@@ -228,19 +223,6 @@ export function exportedClasses(lines: string[]): FoundClass[] {
   return found;
 }
 
-/** A conventional-name heuristic; everything else is left for a person to type. */
-export function typeOf(className: string): DesignedBuildingBlockType | null {
-  if (/Repository$/.test(className)) return 'repository';
-  if (/Service$/.test(className)) return 'application_service';
-  if (/Factory$/.test(className)) return 'factory';
-  if (/(Client|Gateway|Adapter)$/.test(className))
-    return 'external_integration';
-  if (/(Event)$/.test(className)) return 'domain_event';
-  if (/(Command)$/.test(className)) return 'domain_command';
-  if (/(Query)$/.test(className)) return 'domain_query';
-  return null;
-}
-
 /** The first directory under `src/` (or under the unit when there is no `src/`); null for a root-level file. */
 function moduleOf(relativeToUnit: string): string | null {
   const parts = relativeToUnit.split('/');
@@ -251,27 +233,4 @@ function moduleOf(relativeToUnit: string): string | null {
 function dirnameOf(path: string, moduleName: string): string {
   const at = path.indexOf(`/${moduleName}/`);
   return at === -1 ? dirname(path) : path.slice(0, at + moduleName.length + 1);
-}
-
-async function walk(
-  dir: string,
-  accept: (fileName: string) => boolean,
-): Promise<string[]> {
-  let entries: Dirent[];
-  try {
-    entries = await readdir(dir, { withFileTypes: true });
-  } catch {
-    return [];
-  }
-  const out: string[] = [];
-  for (const entry of entries) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (SKIPPED_DIRS.has(entry.name) || entry.name.startsWith('.')) continue;
-      out.push(...(await walk(path, accept)));
-    } else if (entry.isFile() && accept(entry.name)) {
-      out.push(path);
-    }
-  }
-  return out;
 }

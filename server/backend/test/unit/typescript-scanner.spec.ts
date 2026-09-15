@@ -2,12 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SystemModelSchema } from '@repo/shared-contracts';
-import { ScannerService } from '../../src/scanner/scanner.service.js';
 import {
   exportedClasses,
   findUnits,
-  typeOf,
-} from '../../src/scanner/typescript-scanner.js';
+  typescriptScanner,
+} from '../../src/scanner/languages/typescript/typescript-scanner.js';
+import { ScannerService } from '../../src/scanner/scanner.service.js';
+import { typeOfName } from '../../src/scanner/shared/block-type.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;
@@ -15,11 +16,10 @@ let scanner: ScannerService;
 
 beforeEach(async () => {
   t = await testNoesis();
-  scanner = new ScannerService(
-    t.root,
-    t.systemModelRepository,
-    () => '2026-09-12T12:00:00.000Z',
-  );
+  scanner = new ScannerService(t.root, t.systemModelRepository, {
+    scanners: [typescriptScanner],
+    now: () => '2026-09-12T12:00:00.000Z',
+  });
 });
 
 afterEach(() => t.cleanup());
@@ -89,12 +89,12 @@ describe('exportedClasses', () => {
   });
 });
 
-describe('typeOf', () => {
+describe('typeOfName', () => {
   it('types blocks by their conventional name suffix', () => {
-    expect(typeOf('SlotRepository')).toBe('repository');
-    expect(typeOf('BookingService')).toBe('application_service');
-    expect(typeOf('PaymentGateway')).toBe('external_integration');
-    expect(typeOf('AppointmentBooked')).toBeNull();
+    expect(typeOfName('SlotRepository')).toBe('repository');
+    expect(typeOfName('BookingService')).toBe('application_service');
+    expect(typeOfName('PaymentGateway')).toBe('external_integration');
+    expect(typeOfName('AppointmentBooked')).toBeNull();
   });
 });
 
@@ -110,9 +110,9 @@ describe('ScannerService', () => {
 
     const report = await scanner.scan();
 
-    expect(report.units.map((u) => [u.name, u.buildingBlocks])).toEqual([
-      ['@acme/backend', 3],
-    ]);
+    expect(
+      report.units.map((u) => [u.scanner, u.name, u.buildingBlocks]),
+    ).toEqual([['noesis-typescript', '@acme/backend', 3]]);
     const [stored] = await t.systemModelRepository.list();
     const model = SystemModelSchema.parse(stored?.entity);
     expect(model.name).toBe('@acme/backend');

@@ -414,7 +414,7 @@ describe('createMcpServer', () => {
 
       expect(result.isError).toBeFalsy();
       expect(textOf(result)).toContain(
-        '@acme/pkg  1 building block(s)  .noesis/system-model/',
+        '@acme/pkg  [noesis-typescript]  1 building block(s)  .noesis/system-model/',
       );
       expect(await t.systemModelRepository.list()).toHaveLength(1);
     });
