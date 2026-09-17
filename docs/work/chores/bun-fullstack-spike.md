@@ -74,7 +74,15 @@ What the branch does:
    without HMR (`development: { hmr: false }`) and the production bundle
    evaluate the same cycle correctly, so the service runs from source with
    `hmr: false`: the page is rebundled on the next request after an edit,
-   at the cost of a manual refresh.
+   at the cost of a manual refresh. Tracked upstream as
+   [oven-sh/bun#40378](https://github.com/oven-sh/bun/issues/40378) (this
+   exact TanStack Router error) and
+   [oven-sh/bun#40248](https://github.com/oven-sh/bun/issues/40248) (the
+   underlying import-cycle defect, with a dependency-free reproduction);
+   the fix is
+   [oven-sh/bun#40259](https://github.com/oven-sh/bun/pull/40259), open and
+   unreleased as of 2026-09-17. Once it ships, turn `hmr` back on and
+   retest.
 
 ## Outcome
 
