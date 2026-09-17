@@ -13,7 +13,6 @@ export * from './change.js';
 export * from './decision.js';
 export * from './design-doc.js';
 export * from './design-doc-ref.js';
-export * from './file-ref.js';
 export * from './information-sources/conversation.js';
 export * from './information-sources/conversation-analysis.js';
 export * from './information-sources/document.js';

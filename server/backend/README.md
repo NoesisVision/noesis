@@ -41,7 +41,7 @@ own machine inside one checkout (decision 65).
 ## Scripts
 
 ```sh
-bun run dev         # watch mode on :3000, SPA rebundled on refresh, no browser
+bun run dev         # backend-only watch mode on :3001, no browser
 bun run start:debug # same, with bun's inspector attached
 bun run build       # one bun build: src/main.ts + the SPA it imports into dist/
 bun run start       # run the built dist/main.js bin
@@ -51,9 +51,11 @@ bun run test:e2e    # boots the real service over stdio and HTTP (test/e2e)
 bun run test:bench  # boot re-index cost at 1k and 10k files (test/bench)
 ```
 
-Run `dev` from the repo root (`bun run dev`) or here directly — not through
-`bun run --filter`, which closes the child's stdin and the service reads that
-as the MCP session ending.
+Run `dev` here for backend-only development. The repository-root `bun run dev`
+starts both workspace scripts: Vite owns port 3000 with hot reloading and
+proxies `/ui` and `/internal` to this service on port 3001.
+Do not run the backend through `bun run --filter`, which closes the child's
+stdin and the service reads that as the MCP session ending.
 
 ## Configuration
 

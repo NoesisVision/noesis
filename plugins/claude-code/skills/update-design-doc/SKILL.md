@@ -19,7 +19,7 @@ stores it.
 
 1. **Find the document.** Call `list-changes`, then `list-design-docs` for
    the change. Read the current document from the path the tool gives (under
-   `.noesis/changes/<change>/design-docs/`).
+   `.noesis/graph/changes/<change>/design-docs/`).
 2. **Ground the revision** as for a new design: `search-knowledge-graph`, the
    wiki, the system model, and the user.
 3. **Revise the whole document.** Keep every existing element id; add new

@@ -45,14 +45,15 @@ Inside the process:
 
 - **Services** own use-case orchestration and view assembly; both entry
   points (MCP tools and `/ui` routes) call them and nothing bypasses them.
-- **File repositories** own the on-disk layout under `.noesis/`: one
-  repository per kind, whole-file atomic writes, `<slug>-<id-suffix>.json`.
+- **The store** (`NoesisStore`) owns the on-disk layout under
+  `.noesis/graph/`: one collection per kind, `<key>/data.json` per object,
+  schema-validated whole-file atomic writes.
 - **Graph cache** is LadybugDB (`@ladybugdb/core`) in memory: rebuilt by the
   indexer at boot and by the **file watcher** on every change, including
   ones Noesis did not make (a `git checkout`, a hand edit). Nothing of it
   touches the disk.
 - **Scanner** (`src/scanner`) reads the checkout's TypeScript source and
-  writes `.noesis/system-model/` plus its graph projection.
+  writes `.noesis/graph/system-model/` plus its graph projection.
 - **MCP server** (`src/mcp`) exposes thin tools that call one service
   method each: `validate`, `list-changes`, `import-conversation`,
   `import-document`, `list-design-docs`, `create-design-doc`,
@@ -75,12 +76,13 @@ lockstep with the Claude Code plugin.
 <project>/.noesis/
 ├── .gitignore            written by the service on first run; contains `tmp/`
 ├── tmp/<session>/        scratch space between agent and service; never versioned
-├── changes/<change>/     one directory per change: conversations/, documents/, design-docs/
-├── system-model/         the implemented model, projected from source by the scanner
-└── wiki/                 topics/ and decisions/, distilled from the imports
+└── graph/                the knowledge graph: one <key>/data.json per object
+    ├── changes/<change>/ one per change: data.json plus conversations/, documents/, design-docs/
+    ├── system-model/     the implemented model, projected from source by the scanner
+    └── wiki/             topics/ and decisions/, distilled from the imports
 ```
 
-JSON only, one directory per kind, every file committed. The files are the
+JSON only, one directory per object, every file committed. The files are the
 source of truth and the graph is a cache; two sessions on one checkout are
 two processes over the same files, last write wins.
 
@@ -126,7 +128,7 @@ Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) 
 
 ### Scanners (`scanners/`)
 
-The TypeScript scanner is a service component (`server/backend/src/scanner`), run by the `scan-system-model` tool; it writes `.noesis/system-model/`. `scanners/java` (a Maven tool, decisions 19/20) and the `dotnet/` stub are not integrated with the service yet — how they feed `system-model/` is a later decision.
+The TypeScript scanner is a service component (`server/backend/src/scanner`), run by the `scan-system-model` tool; it writes `.noesis/graph/system-model/`. `scanners/java` (a Maven tool, decisions 19/20) and the `dotnet/` stub are not integrated with the service yet — how they feed `system-model/` is a later decision.
 
 ### Docs (`docs/`)
 
@@ -164,10 +166,9 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 ```sh
 bun install            # install all workspaces; `prepare` also points git at .githooks/
 
-bun run dev            # the service in watch mode on :3000, serving the SPA (refresh after edits)
-                       # (runs it directly, not through --filter: --filter closes the
-                       #  child's stdin, which the service reads as the MCP session ending)
-bun run start:debug    # same, with bun's inspector attached
+bun run dev            # Vite with HMR on :3000 + watched backend on :3001
+                       # (the launcher preserves backend stdin and stops both together)
+bun run start:debug    # backend only on :3000, with bun's inspector attached
 
 bun run build          # build every workspace (service bundle + plugin contracts copy)
 bun run build:plugin   # only copy the contracts into the plugin (for --plugin-dir development)

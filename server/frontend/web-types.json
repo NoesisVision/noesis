@@ -1,0 +1,84 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JetBrains/web-types/master/schema/web-types.json",
+  "name": "noesis-frontend",
+  "version": "0.1.0",
+  "description-markup": "markdown",
+  "contributions": {
+    "css": {
+      "properties": [
+        {
+          "name": "--mantine-color-brand-0",
+          "description": "Noesis brand shade 0 (`#eff6ff`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-1",
+          "description": "Noesis brand shade 1 (`#dbeafe`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-2",
+          "description": "Noesis brand shade 2 (`#bfdbfe`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-3",
+          "description": "Noesis brand shade 3 (`#93c5fd`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-4",
+          "description": "Noesis brand shade 4 (`#60a5fa`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-5",
+          "description": "Noesis brand shade 5 (`#3b82f6`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-6",
+          "description": "Noesis brand shade 6 (`#2563eb`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-7",
+          "description": "Noesis brand shade 7 (`#1d4ed8`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-8",
+          "description": "Noesis brand shade 8 (`#1e40af`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-9",
+          "description": "Noesis brand shade 9 (`#1e3a8a`) from `theme.ts`."
+        },
+        {
+          "name": "--mantine-color-brand-text",
+          "description": "Theme-aware text color for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-filled",
+          "description": "Theme-aware filled color for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-filled-hover",
+          "description": "Theme-aware filled hover color for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-light",
+          "description": "Theme-aware light background for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-light-hover",
+          "description": "Theme-aware light hover background for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-light-color",
+          "description": "Theme-aware foreground for a light Noesis brand background."
+        },
+        {
+          "name": "--mantine-color-brand-outline",
+          "description": "Theme-aware outline color for the Noesis brand palette."
+        },
+        {
+          "name": "--mantine-color-brand-outline-hover",
+          "description": "Theme-aware outlined hover background for the Noesis brand palette."
+        }
+      ]
+    }
+  }
+}

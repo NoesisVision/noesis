@@ -15,7 +15,7 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.changesRepository.create(CHANGE);
+  await t.createChange(CHANGE);
   app = createUiApp({
     searchService: new SearchService(),
     changesService: t.changesService,

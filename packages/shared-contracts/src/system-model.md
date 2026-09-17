@@ -3,7 +3,7 @@
 Companion to `system-model.ts`.
 
 The system model is the implemented model: what the source code contains,
-projected into files under `system-model/` by the scanner. It uses the same
+projected into objects under `graph/system-model/` by the scanner. It uses the same
 structural vocabulary as a design document — bounded contexts, domain modules,
 building blocks, behaviours — so a design can be read against what exists, and
 a scanned element can be matched to the designed one that introduced it.

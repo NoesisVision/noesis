@@ -23,7 +23,7 @@ validates it, writes the files and re-indexes the graph.
    change the document belongs to, ask; do not guess.
 2. **Look before you create.** Call `search-knowledge-graph` with the main
    subjects of the document, then read the matching topic files under
-   `.noesis/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
+   `.noesis/graph/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
    whenever one fits; create a new one only when nothing does.
 3. **Split the document** into fragments and a section tree exactly as the
    companion document says: one fragment per block, verbatim text, headings

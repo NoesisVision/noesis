@@ -4,19 +4,23 @@ import type {
   ConversationAnalysis,
   DocumentAnalysis,
 } from '@repo/shared-contracts';
+import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
+import { ChangeSlug } from '../../src/changes/change-slug.js';
+import { sha256 } from '../../src/ids/uuid.js';
 import {
   DuplicateSourceError,
   InvalidImportError,
 } from '../../src/imports/import.service.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 
-const CHANGE = 'booking';
+const CHANGE = ChangeSlug.parse('booking');
+const OTHER = ChangeSlug.parse('other');
 
 let t: TestNoesis;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.changesRepository.create(CHANGE);
+  await t.createChange(CHANGE);
 });
 
 afterEach(() => t.cleanup());
@@ -31,75 +35,13 @@ const fragmentRef = (conversationId: string) => ({
 function conversationPayload(
   overrides: Partial<ConversationAnalysis> = {},
 ): ConversationAnalysis {
-  return {
-    conversation: {
-      conversation_id: 'placeholder-conv',
-      time: '2026-09-12T10:00:00Z',
-      main_topic: 'Slot holds',
-      turns: [
-        {
-          index: 0,
-          speaker: 'Ada',
-          time: '10:00',
-          fragments: [
-            {
-              index: 0,
-              sentences: ['Hold a slot for ten minutes.'],
-              categories: ['Decision'],
-            },
-          ],
-        },
-      ],
-    },
-    topics: [
-      {
-        id: 'new-parent',
-        parent_id: null,
-        is_new: true,
-        title: 'Booking',
-        short_summary: 'Booking in general.',
-        long_summary: 'Everything about booking.',
-        items: [],
-        decisions: [],
-        reviewed: false,
-        decisions_extracted: false,
-      },
-      {
-        id: 'new-child',
-        parent_id: 'new-parent',
-        is_new: true,
-        title: 'Slot holds',
-        short_summary: 'How slots are held.',
-        long_summary: 'Slots are held for ten minutes.',
-        items: [fragmentRef('placeholder-conv')],
-        decisions: [
-          {
-            title: 'Hold slots for ten minutes',
-            status: 'accepted',
-            context: {
-              text: 'Double bookings happened.',
-              text_locked: false,
-              supporting_info: [fragmentRef('placeholder-conv')],
-            },
-            decision: {
-              text: 'Ten minutes.',
-              text_locked: false,
-              rationale: 'Long enough to pay.',
-              rationale_locked: false,
-              supporting_info: [],
-            },
-            alternative_options: [],
-          },
-        ],
-        reviewed: false,
-        decisions_extracted: true,
-      },
-    ],
-    ...overrides,
-  };
+  return { ...conversationAnalysisFixture, ...overrides };
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+const conversationsOf = (slug: ChangeSlug) =>
+  t.changesRepository.children(slug).conversations;
 
 describe('ImportService.importConversation', () => {
   it('writes the conversation under a content-hash id and reports its path', async () => {
@@ -112,14 +54,11 @@ describe('ImportService.importConversation', () => {
     expect(report.source.id).toMatch(UUID);
     expect(report.source.id).not.toBe('placeholder-conv');
     expect(report.source.path).toContain(
-      `/.noesis/changes/${CHANGE}/conversations/slot-holds-`,
+      `/.noesis/graph/changes/${CHANGE}/conversations/${report.source.id}/data.json`,
     );
     expect((await stat(report.source.path)).isFile()).toBe(true);
-    const stored = await t.conversationsRepository.findById(
-      CHANGE,
-      report.source.id,
-    );
-    expect(stored?.entity.conversation_id).toBe(report.source.id);
+    const stored = await conversationsOf(CHANGE).get(report.source.id);
+    expect(stored?.conversation_id).toBe(report.source.id);
   });
 
   it('mints ids for new topics, resolves placeholders in parents and refs, and pins refs to the source hash', async () => {
@@ -130,19 +69,16 @@ describe('ImportService.importConversation', () => {
 
     expect(report.topics.created).toHaveLength(2);
     expect(report.topics.updated).toEqual([]);
-    const topics = await t.topicsRepository.list();
-    const parent = topics.find((s) => s.entity.title === 'Booking')?.entity;
-    const child = topics.find((s) => s.entity.title === 'Slot holds')?.entity;
+    const topics = await all(t.topics);
+    const parent = topics.find((s) => s.title === 'Booking');
+    const child = topics.find((s) => s.title === 'Slot holds');
     expect(parent?.id).toMatch(UUID);
     expect(child?.parent_id).toBe(parent?.id ?? 'missing');
-    const stored = await t.conversationsRepository.findById(
-      CHANGE,
-      report.source.id,
-    );
+    const stored = await conversationsOf(CHANGE).get(report.source.id);
     expect(child?.items).toEqual([
       {
         ...fragmentRef(report.source.id),
-        source_sha: stored?.hash,
+        source_sha: sha256(JSON.stringify(stored)),
       },
     ]);
   });
@@ -154,20 +90,18 @@ describe('ImportService.importConversation', () => {
     );
 
     expect(report.decisions.created).toHaveLength(1);
-    const [decision] = await t.decisionsRepository.list();
-    expect(decision?.entity.id).toMatch(UUID);
-    expect(decision?.entity.title).toBe('Hold slots for ten minutes');
-    const child = (await t.topicsRepository.list()).find(
-      (s) => s.entity.title === 'Slot holds',
-    );
-    expect(decision?.entity.topic_id).toBe(child?.entity.id ?? 'missing');
-    expect(decision?.entity.context.supporting_info[0]).toMatchObject({
+    const [decision] = await all(t.decisions);
+    expect(decision?.id).toMatch(UUID);
+    expect(decision?.title).toBe('Hold slots for ten minutes');
+    const child = (await all(t.topics)).find((s) => s.title === 'Slot holds');
+    expect(decision?.topic_id).toBe(child?.id ?? 'missing');
+    expect(decision?.context.supporting_info[0]).toMatchObject({
       conversation_id: report.source.id,
     });
   });
 
   it('merges into an existing topic, keeping its locked fields and the union of items', async () => {
-    await t.topicsRepository.write({
+    await put(t.topics, {
       id: 'topic-existing',
       parent_id: null,
       title: 'Slot holds (person wrote this)',
@@ -198,7 +132,7 @@ describe('ImportService.importConversation', () => {
     const report = await t.importService.importConversation(CHANGE, payload);
 
     expect(report.topics.updated).toEqual(['topic-existing']);
-    const topic = (await t.topicsRepository.findById('topic-existing'))?.entity;
+    const topic = await t.topics.get('topic-existing');
     expect(topic?.title).toBe('Slot holds (person wrote this)');
     expect(topic?.title_locked).toBe(true);
     expect(topic?.short_summary).toBe('New short.');
@@ -234,21 +168,21 @@ describe('ImportService.importConversation', () => {
     await expect(attempt).rejects.toMatchObject({
       issues: [expect.objectContaining({ path: '$.topics[0].id' })],
     });
-    expect(await t.conversationsRepository.list(CHANGE)).toEqual([]);
+    expect(await Array.fromAsync(conversationsOf(CHANGE).keys())).toEqual([]);
   });
 
   it('detects the same conversation imported again, in any change, and writes nothing', async () => {
-    await t.changesRepository.create('other');
+    await t.createChange(OTHER);
     await t.importService.importConversation(CHANGE, conversationPayload());
 
     const again = t.importService.importConversation(
-      'other',
+      OTHER,
       conversationPayload(),
     );
 
     await expect(again).rejects.toBeInstanceOf(DuplicateSourceError);
-    expect(await t.conversationsRepository.list('other')).toEqual([]);
-    expect(await t.topicsRepository.list()).toHaveLength(2);
+    expect(await Array.fromAsync(conversationsOf(OTHER).keys())).toEqual([]);
+    expect(await all(t.topics)).toHaveLength(2);
   });
 
   it('rejects a payload that fails the contract with the validator issues', async () => {
@@ -317,10 +251,10 @@ describe('ImportService.importDocument', () => {
 
     expect(report.source.kind).toBe('document');
     expect(report.source.path).toContain(
-      `/.noesis/changes/${CHANGE}/documents/booking-rules-`,
+      `/.noesis/graph/changes/${CHANGE}/documents/${report.source.id}/data.json`,
     );
-    const [topic] = await t.topicsRepository.list();
-    expect(topic?.entity.items[0]).toMatchObject({
+    const [topic] = await all(t.topics);
+    expect(topic?.items[0]).toMatchObject({
       type: 'document_fragment_ref',
       document_id: report.source.id,
     });

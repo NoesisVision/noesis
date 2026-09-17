@@ -20,7 +20,7 @@ import { designDocumentContract } from './design-document.js';
 export const contracts = {
   'design-document': designDocumentContract,
   change: {
-    description: 'The change.json metadata file of a change directory.',
+    description: 'The data.json of a change under .noesis/graph/changes/.',
     schema: ChangeSchema,
   },
   conversation: {

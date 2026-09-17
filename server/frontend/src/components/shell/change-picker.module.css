@@ -1,22 +1,22 @@
 /* The Select-like button of the prototype: a bordered row that lifts its
    border on hover and shows a focus ring while the menu is open. */
-.pick {
+.pick.pick {
   display: block;
   width: 100%;
   min-height: 40px;
   padding: 14px 12px;
   border: 1px solid var(--mantine-color-gray-4);
-  border-radius: var(--mantine-radius-sm);
+  border-radius: var(--mantine-radius-md);
   background: var(--mantine-color-white);
   box-shadow: var(--mantine-shadow-xs);
   text-align: left;
   transition:
     border-color 100ms ease,
     box-shadow 100ms ease;
-}
 
-.pick:hover {
-  border-color: var(--mantine-color-gray-5);
+  &:hover {
+    border-color: var(--mantine-color-gray-5);
+  }
 }
 
 /* Dark scheme by Mantine's attribute, not `light-dark()`: the bundler's
@@ -42,13 +42,28 @@
   border-radius: 2px;
 }
 
-.item[data-current] {
-  background: var(--mantine-primary-color-light);
-}
-
-.new {
-  margin-top: 2px;
-  border-top: 1px solid var(--mantine-color-default-border);
-  border-radius: 0;
-  color: var(--mantine-primary-color-light-color);
+.item {
+  .subLabel {
+    color: light-dark(var(--mantine-color-dark-3), var(--mantine-color-dark-2));
+  }
+  /* biome-ignore lint/style/noDescendingSpecificity: all good */
+  &:hover {
+    background: light-dark(
+      var(--mantine-color-brand-0),
+      var(--mantine-color-dark-5)
+    );
+  }
+  &[data-current] {
+    &,
+    &:hover {
+      background-color: light-dark(
+        var(--mantine-color-brand-1),
+        var(--mantine-color-brand-9)
+      );
+      color: light-dark(
+        var(--mantine-color-dark-9),
+        var(--mantine-color-brand-0)
+      );
+    }
+  }
 }

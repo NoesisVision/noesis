@@ -4,7 +4,7 @@ import { InformationCategory } from './information-category.js';
 /*
  * An imported document: its content split into fragments the wiki can point
  * at, plus the section tree that says where each fragment sits. One file per
- * document under `.noesis/changes/<change>/documents/`; never rewritten after
+ * document under `.noesis/graph/changes/<change>/documents/`; never rewritten after
  * import.
  */
 
@@ -110,6 +110,6 @@ export const DocumentSchema = z
       .describe('The top-level sections; each holds its subsections.'),
   })
   .describe(
-    'An imported document: a changes/<change>/documents/<slug>-<id-suffix>.json file.',
+    'An imported document: the data.json of graph/changes/<change>/documents/<id>/.',
   );
 export type Document = z.infer<typeof DocumentSchema>;

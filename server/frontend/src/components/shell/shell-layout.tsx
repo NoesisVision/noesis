@@ -1,6 +1,6 @@
-import { AppShell } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { Outlet } from '@tanstack/react-router';
+import { AppShell } from '#/components/design-system/app-shell';
+import { useDisclosure } from '#/components/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
 
@@ -30,7 +30,7 @@ export function ShellLayout() {
       <AppShell.Navbar>
         <Sidebar onNavigate={navbar.close} />
       </AppShell.Navbar>
-      <AppShell.Main>
+      <AppShell.Main bg="var(--mantine-color-gray-0)">
         <Outlet />
       </AppShell.Main>
     </AppShell>

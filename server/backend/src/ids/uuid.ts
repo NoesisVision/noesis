@@ -8,8 +8,13 @@ export function newUuid(): string {
   return Bun.randomUUIDv7();
 }
 
+/** The SHA-256 of `content`, hex. */
+export function sha256(content: string | Buffer): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
 export function contentHashAsUuid(content: string | Buffer): string {
-  const hex = createHash('sha256').update(content).digest('hex');
+  const hex = sha256(content);
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),

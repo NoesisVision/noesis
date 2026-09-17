@@ -8,11 +8,12 @@
 // bun resolves the bundle manifest against the working directory, and
 // src/bundle-cwd.ts is what makes that work.
 import { afterAll, expect, test } from 'bun:test';
-import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listeningUrl, serviceEnv } from '../support/service-process.js';
 
 const serviceRoot = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -22,33 +23,6 @@ let packageDir: string;
 afterAll(async () => {
   if (workDir) await rm(workDir, { recursive: true, force: true });
 });
-
-function listeningUrl(child: ChildProcess, timeoutMs: number): Promise<string> {
-  return new Promise((resolveUrl, reject) => {
-    let log = '';
-    const timer = setTimeout(
-      () =>
-        reject(new Error(`No listening line within ${timeoutMs}ms:\n${log}`)),
-      timeoutMs,
-    );
-    child.stderr?.on('data', (chunk: Buffer) => {
-      log += chunk.toString();
-      // Text while developing, a JSON line from the built bin: both carry
-      // the URL after "listening on", the JSON one in escaped quotes.
-      const match = /listening on \\?"?(http:\/\/[^\s"\\]+)/.exec(log);
-      if (match?.[1]) {
-        clearTimeout(timer);
-        resolveUrl(match[1].replace(/\/$/, ''));
-      }
-    });
-    child.on('exit', (code) => {
-      clearTimeout(timer);
-      reject(
-        new Error(`Service exited with ${code} before listening:\n${log}`),
-      );
-    });
-  });
-}
 
 test('the packed tarball is bunx-installable: one bin, the ui, one native dep', async () => {
   workDir = await mkdtemp(join(tmpdir(), 'noesis-service-pack-'));
@@ -109,11 +83,7 @@ test('the packed bin serves the page when launched from another directory', asyn
   // node_modules, and installing it needs the network.
   const child = spawn('bun', [join(serviceRoot, 'dist', 'main.js')], {
     cwd: projectDir,
-    env: {
-      ...process.env,
-      NOESIS_ROOT: projectDir,
-      NOESIS_OPEN_BROWSER: '0',
-    },
+    env: serviceEnv(projectDir),
     stdio: ['pipe', 'ignore', 'pipe'],
   });
   try {

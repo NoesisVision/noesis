@@ -3,8 +3,8 @@ import { InformationFragmentRefSchema } from './information-sources/information-
 import { Locked } from './locked.js';
 
 /*
- * A wiki topic: one node of the topic tree under `.noesis/wiki/topics/`, one
- * file per topic. The tree lives in the data — a topic names its parent by
+ * A wiki topic: one node of the topic tree under `.noesis/graph/wiki/topics/`,
+ * one object per topic. The tree lives in the data — a topic names its parent by
  * id — so reparenting is a one-field edit, not a file move. Summaries are the
  * distillate of the imported sources the topic points at through `items`.
  */
@@ -35,7 +35,5 @@ export const TopicSchema = z
         'The source fragments this topic is grounded in — conversation and document fragments, in reading order.',
       ),
   })
-  .describe(
-    'One topic of the wiki: a wiki/topics/<slug>-<id-suffix>.json file.',
-  );
+  .describe('One topic of the wiki: the data.json of graph/wiki/topics/<id>/.');
 export type Topic = z.infer<typeof TopicSchema>;

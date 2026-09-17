@@ -1,13 +1,15 @@
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import type { ChangeSlug } from '../changes/change-slug.js';
+import type {
+  ChangeChildren,
+  ChangesRepository,
+} from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
+import { dataFileOf } from '../files/noesis-store.js';
 import { newUuid } from '../ids/uuid.js';
 import { designDocumentContract } from '../mcp/contracts/design-document.js';
 import { type ValidationIssue, validate } from '../validation/validator.js';
-import type {
-  DesignDocsRepository,
-  StoredDesignDoc,
-} from './design-docs.repository.js';
 
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {
@@ -15,8 +17,7 @@ export interface DesignDocSummary {
   name: string;
   status: string;
   date: string;
-  updatedAt: string;
-  /** The file under `.noesis/`, absolute — the agent reads the document from there. */
+  /** The document's `data.json`, absolute — the agent reads it from there. */
   path: string;
 }
 
@@ -24,8 +25,8 @@ export interface DesignDocSummary {
 export class DesignDocNotFoundError extends Error {
   readonly id: string;
 
-  constructor(change: string, id: string) {
-    super(`No design document ${JSON.stringify(id)} in change ${change}.`);
+  constructor(slug: ChangeSlug, id: string) {
+    super(`No design document ${JSON.stringify(id)} in change ${slug.value}.`);
     this.name = 'DesignDocNotFoundError';
     this.id = id;
   }
@@ -65,25 +66,22 @@ export class InvalidDesignDocumentError extends Error {
  * the input carries is replaced, so an agent inventing a colliding id cannot
  * overwrite anything.
  *
- * Documents are scoped to a change; every method throws
- * `ChangeNotFoundError` for a change that has no directory.
+ * Documents are scoped to a change — the `design-docs` collection under it,
+ * keyed by document id — and every method throws `ChangeNotFoundError` for a
+ * slug no change has.
  */
 export class DesignDocsService {
-  private readonly designDocs: DesignDocsRepository;
-  private readonly changes: ChangesService;
+  private readonly changes: ChangesRepository;
+  private readonly changesService: ChangesService;
 
-  constructor(designDocs: DesignDocsRepository, changes: ChangesService) {
-    this.designDocs = designDocs;
+  constructor(changes: ChangesRepository, changesService: ChangesService) {
     this.changes = changes;
+    this.changesService = changesService;
   }
 
-  async create(change: string, input: unknown): Promise<DesignDocSummary> {
-    await this.changes.assertExists(change);
-    const report = validate(designDocumentContract, withId(input, newUuid()));
-    if (!report.ok) {
-      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
-    }
-    return toSummary(await this.designDocs.create(change, report.value));
+  async create(slug: ChangeSlug, input: unknown): Promise<DesignDocSummary> {
+    await this.changesService.assertExists(slug);
+    return this.accept(slug, input, newUuid());
   }
 
   /**
@@ -91,8 +89,8 @@ export class DesignDocsService {
    * put in front of a reviewer before the agent writes real ones (phase 2 has
    * no other author). Stamped with today's date; the id is minted in `create`.
    */
-  async createSample(change: string): Promise<DesignDocSummary> {
-    return this.create(change, {
+  async createSample(slug: ChangeSlug): Promise<DesignDocSummary> {
+    return this.create(slug, {
       ...designDocFixture,
       date: new Date().toISOString().slice(0, 10),
     });
@@ -104,36 +102,67 @@ export class DesignDocsService {
    * whatever id the input carries is ignored.
    */
   async update(
-    change: string,
+    slug: ChangeSlug,
     id: string,
     input: unknown,
   ): Promise<DesignDocSummary> {
-    await this.changes.assertExists(change);
-    if ((await this.designDocs.findById(change, id)) === null) {
-      throw new DesignDocNotFoundError(change, id);
+    await this.changesService.assertExists(slug);
+    if ((await this.docs(slug).get(id)) === null) {
+      throw new DesignDocNotFoundError(slug, id);
     }
+    return this.accept(slug, input, id);
+  }
+
+  /** Newest first — `date` drives ordering on the documents page. */
+  async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
+    await this.changesService.assertExists(slug);
+    const documents = await Array.fromAsync(this.docs(slug).values());
+    return documents
+      .sort(
+        (a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name),
+      )
+      .map((document) => this.summarize(slug, document));
+  }
+
+  async findById(
+    slug: ChangeSlug,
+    id: string,
+  ): Promise<DesignDocDetail | null> {
+    await this.changesService.assertExists(slug);
+    const document = await this.docs(slug).get(id);
+    if (document === null) return null;
+    return { summary: this.summarize(slug, document), document };
+  }
+
+  async delete(slug: ChangeSlug, id: string): Promise<boolean> {
+    await this.changesService.assertExists(slug);
+    return this.docs(slug).delete(id);
+  }
+
+  private docs(slug: ChangeSlug): ChangeChildren['design-docs'] {
+    return this.changes.children(slug)['design-docs'];
+  }
+
+  /** The boundary: validates the input under the server's id, then stores it. */
+  private async accept(
+    slug: ChangeSlug,
+    input: unknown,
+    id: string,
+  ): Promise<DesignDocSummary> {
     const report = validate(designDocumentContract, withId(input, id));
     if (!report.ok) {
       throw new InvalidDesignDocumentError(report.issues, report.suppressed);
     }
-    return toSummary(await this.designDocs.create(change, report.value));
+    await this.docs(slug).set(id, report.value);
+    return this.summarize(slug, report.value);
   }
 
-  async list(change: string): Promise<DesignDocSummary[]> {
-    await this.changes.assertExists(change);
-    return (await this.designDocs.list(change)).map(toSummary);
-  }
-
-  async findById(change: string, id: string): Promise<DesignDocDetail | null> {
-    await this.changes.assertExists(change);
-    const stored = await this.designDocs.findById(change, id);
-    if (stored === null) return null;
-    return { summary: toSummary(stored), document: stored.entity };
-  }
-
-  async delete(change: string, id: string): Promise<boolean> {
-    await this.changes.assertExists(change);
-    return this.designDocs.delete(change, id);
+  private summarize(
+    slug: ChangeSlug,
+    document: DesignDocument,
+  ): DesignDocSummary {
+    const { id, name, status, date } = document;
+    return { id, name, status, date, path: dataFileOf(this.docs(slug), id) };
   }
 }
 
@@ -142,16 +171,4 @@ function withId(input: unknown, id: string): unknown {
   return input !== null && typeof input === 'object' && !Array.isArray(input)
     ? { ...input, id }
     : input;
-}
-
-function toSummary(stored: StoredDesignDoc): DesignDocSummary {
-  const { id, name, status, date } = stored.entity;
-  return {
-    id,
-    name,
-    status,
-    date,
-    updatedAt: stored.updatedAt,
-    path: stored.path,
-  };
 }

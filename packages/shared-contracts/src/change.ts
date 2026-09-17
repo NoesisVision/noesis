@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 /*
  * A change: one unit of work tracked across the graph, and the directory
- * `.noesis/changes/<slug>/` that collects everything produced while working on
- * it — imported conversations and documents, and the design docs that
- * describe it. This file is the directory's metadata, stored as
- * `change.json` inside it.
+ * `.noesis/graph/changes/<slug>/` that collects everything produced while
+ * working on it — imported conversations and documents, and the design docs
+ * that describe it. This file is the change's data, stored as `data.json`
+ * inside the directory (decision 76).
  */
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
@@ -36,7 +36,7 @@ export const ChangeSchema = z
     slug: z
       .string()
       .describe(
-        'The directory name under .noesis/changes/: lower-case kebab-case, at most 64 characters, derived from the name at creation and never changed after.',
+        'The directory name under .noesis/graph/changes/: lower-case kebab-case, at most 64 characters, derived from the name at creation and never changed after.',
       ),
     name: z
       .string()
@@ -58,9 +58,7 @@ export const ChangeSchema = z
         'A paragraph on what the change is about, for the change list.',
       ),
   })
-  .describe(
-    'Metadata of one change: the change.json file inside its directory.',
-  );
+  .describe('One change: the data.json file inside its directory.');
 export type Change = z.infer<typeof ChangeSchema>;
 
 /** A tracker key: an upper-case project prefix, a dash, a number — `NOE-142`. */

@@ -164,24 +164,26 @@ directory makes the unit of work the unit of review — the whole record of a ch
 directory in a pull request. `system-model/` and `wiki/` are change-independent: the former
 tracks the code as it is, the latter accumulates across every change.
 
-Rules that hold across every kind:
+The knowledge graph is `.noesis/graph/` (decision 76): one directory per object at every depth,
+named by the object's key and holding exactly one `data.json`, written through a single typed
+store. Rules that hold across every kind:
 
-- **JSON only.** A file is part of the graph if and only if it is `.json` under one of the kind
-  directories. Anything else — including everything under `tmp/` — is ignored, which makes it
-  safe to keep notes alongside.
-- **Directories group by kind, never by entity hierarchy.** The only nesting is by change —
-  `changes/<change>/` — and below it every leaf directory is flat. The topic tree lives in the
-  data — a topic names its parent by id, a decision names its topic — so reparenting a topic is
-  a one-field edit, not a file move.
-- **`<slug>-<id-suffix>.json`.** The slug is the entity's name, kebab-cased and capped, and the
-  suffix is the tail of its id. The name makes the file findable in a diff; the suffix keeps it
-  unique. Renaming an entity renames its file — the service moves it and removes the old path.
+- **Store-managed only.** Under `graph/`, an object is a directory with a `data.json`; a
+  directory without one is not an object, and nothing sits beside the data. Notes, source files
+  and scratch space live outside `graph/` — `sources/`, `tmp/` — and are not graph content.
+- **Directories nest by ownership, never by classification.** A change owns its conversations,
+  documents and design documents, so those are child collections under
+  `graph/changes/<change>/`; `system-model/` and `wiki/` are flat root collections. The topic
+  tree lives in the data — a topic names its parent by id, a decision names its topic — so
+  reparenting a topic is a one-field edit, not a file move.
+- **The directory is the key.** A change's slug, the entity's id everywhere else. The service
+  chooses the key; a `git diff` shows an id, and renaming an entity changes a field, not a path.
 - **Stable ids.** Imported sources are identified by the hash of their content, so re-importing
   the same source yields the same id and is detected as a duplicate. Everything the graph
   authors itself gets a time-ordered id.
-- **References carry a hash.** When one file points at another, it records the referenced file's
-  hash at the time the link was made. A mismatch is how the service knows a dependent has gone
-  stale — the mechanism that survives a branch switch.
+- **References are ids.** One object points at another by id. A fragment ref into an imported
+  source also carries the hash of the source's JSON as imported; a source is never rewritten, so
+  a differing hash means the ref was made against other content.
 - **User edits are marked.** A field edited by a person is flagged as locked in the file itself.
   Skills preserve locked fields instead of overwriting them, and must ask before changing one.
 

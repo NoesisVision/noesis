@@ -26,7 +26,7 @@ export function configureLogging(): void {
       {
         category: 'noesis',
         sinks: ['console'],
-        lowestLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        lowestLevel: import.meta.env.PROD ? 'info' : 'debug',
       },
       {
         category: ['logtape', 'meta'],
