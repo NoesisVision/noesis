@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { ChangeNotFoundError, changeById } from '#/api/changes';
-import { writeLastChange } from '#/components/shell/last-change';
+import { writeLastChange } from '#/components/core/last-change.ts';
 import { ChangeNotFoundView } from '#/components/views/change-not-found';
 
 // The change layout: loads the change once for every view under it (the

@@ -14,14 +14,19 @@
       try {
         const stored = window.localStorage.getItem('noesis.shell.colorScheme');
         const scheme =
-          stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto';
+          stored === 'light' || stored === 'dark' || stored === 'auto'
+            ? stored
+            : 'auto';
         const computed =
           scheme !== 'auto'
             ? scheme
             : window.matchMedia('(prefers-color-scheme: dark)').matches
               ? 'dark'
               : 'light';
-        document.documentElement.setAttribute('data-mantine-color-scheme', computed);
+        document.documentElement.setAttribute(
+          'data-mantine-color-scheme',
+          computed,
+        );
       } catch {}
     </script>
   </head>

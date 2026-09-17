@@ -2,15 +2,17 @@
   "name": "frontend",
   "private": true,
   "type": "module",
+  "web-types": "./web-types.json",
   "imports": {
     "#/*": "./src/*",
     "#/server/*": "../backend/src/*"
   },
   "scripts": {
-    "dev": "bun run --cwd ../backend dev",
+    "dev": "vite",
     "start:debug": "bun run --cwd ../backend start:debug",
     "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
+    "format": "prettier --write .",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -26,16 +28,20 @@
     "@tanstack/react-query-devtools": "latest",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
+    "clsx": "2.1.1",
     "hono": "catalog:",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
     "@tanstack/router-cli": "^1.132.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "typescript": "catalog:"
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "vite": "^7.1.7"
   }
 }

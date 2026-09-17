@@ -52,17 +52,17 @@ export function ChangePicker({
 
   return (
     <Box>
-      <Text
-        size="xs"
-        fw={600}
-        tt="uppercase"
-        c="dimmed"
-        mb={6}
-        ml={2}
-        style={{ letterSpacing: '0.06em' }}
-      >
-        Change
-      </Text>
+      {/*<Text*/}
+      {/*  size="xs"*/}
+      {/*  fw={600}*/}
+      {/*  tt="uppercase"*/}
+      {/*  c="dimmed"*/}
+      {/*  mb={6}*/}
+      {/*  ml={2}*/}
+      {/*  style={{ letterSpacing: '0.06em' }}*/}
+      {/*>*/}
+      {/*  Change*/}
+      {/*</Text>*/}
       <Menu width="target" position="bottom-start" shadow="md" offset={4}>
         <Menu.Target>
           <UnstyledButton className={classes.pick} aria-label="Switch change">
@@ -138,13 +138,14 @@ export function ChangePicker({
               <Text size="sm" fw={500} truncate lh={1.3}>
                 {change.name}
               </Text>
-              <Text size="xs" c="dimmed" truncate lh={1.3}>
+              <Text size="xs" className={classes.subLabel} truncate lh={1.3}>
                 {detailLine(change)}
               </Text>
             </Menu.Item>
           ))}
+          <Menu.Divider />
           <Menu.Item
-            className={classes.new}
+            className={classes.item}
             leftSection={<IconPlus size={16} />}
             onClick={modal.open}
           >
