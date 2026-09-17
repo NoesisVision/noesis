@@ -4,6 +4,21 @@
 # script on `bun install`. Bypass for a work-in-progress commit: `git commit -n`.
 set -e
 
+# Hooks inherit the environment of whatever launched git, and a GUI client or an
+# IDE (notably the Flatpak VS Code, whose sandbox PATH is just /app/bin) never
+# sources the shell rc that puts bun on PATH. Fall back to bun's install dir.
+if ! command -v bunx >/dev/null 2>&1; then
+  PATH="${BUN_INSTALL:-$HOME/.bun}/bin:$PATH"
+  export PATH
+fi
+
+if ! command -v bunx >/dev/null 2>&1; then
+  echo "pre-commit: bunx not found on PATH." >&2
+  echo "  Install bun (https://bun.sh) or set BUN_INSTALL to its install dir." >&2
+  echo "  Skip these checks for one commit with: git commit -n" >&2
+  exit 1
+fi
+
 bunx biome check --staged --no-errors-on-unmatched
 
 # Prettier owns Markdown (Biome has no md support).

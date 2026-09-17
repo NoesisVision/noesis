@@ -45,3 +45,6 @@ yarn-error.log*
 
 # Claude Code worktrees (local agent scratch)
 .claude/worktrees/
+
+# Local scratch — personal notes, generated references, anything not shared
+.local/
