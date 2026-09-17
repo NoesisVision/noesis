@@ -3,11 +3,11 @@ import { resolve } from 'node:path';
 
 const repositoryRoot = resolve(import.meta.dir, '..');
 
-const backend = spawn('bun', ['run', 'dev'], {
+const backend = spawn(process.execPath, ['run', 'dev'], {
   cwd: resolve(repositoryRoot, 'server/backend'),
   stdio: 'inherit',
 });
-const frontend = spawn('bun', ['run', 'dev'], {
+const frontend = spawn(process.execPath, ['run', 'dev'], {
   cwd: resolve(repositoryRoot, 'server/frontend'),
   stdio: 'inherit',
 });

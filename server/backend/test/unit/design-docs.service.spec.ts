@@ -96,11 +96,13 @@ describe('DesignDocsService', () => {
   });
 
   it('refuses every operation on a change that has no directory', async () => {
-    expect(service.list(NOPE)).rejects.toBeInstanceOf(ChangeNotFoundError);
-    expect(service.create(NOPE, designDocFixture)).rejects.toBeInstanceOf(
+    await expect(service.list(NOPE)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
+    await expect(service.create(NOPE, designDocFixture)).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
+    await expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
     // An unsafe slug never reaches the service: it is not a `ChangeSlug`.
