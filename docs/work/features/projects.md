@@ -7,19 +7,21 @@ created: 2026-08-15
 
 # Projects with connected GitHub repositories
 
+> Historical record. This feature was removed; current decisions are D1–D10 in docs/decisions.md (see D1).
+
 ## Context
 
-Noesis signs users in through a GitHub App (decision 46,
+Noesis signs users in through a GitHub App (archived decision 46,
 [`github-login.md`](github-login.md)); both user-to-server tokens and
 installation tokens are available. The UI shell (`ui-shell.md`) provides the
 sidebar/workspace frame this feature will live in. All application data lives
 in the single LadybugDB graph — no second datastore (see the config module's
-single-data-dir rule and the reasoning recorded with decision 46).
+single-data-dir rule and the reasoning recorded with archived decision 46).
 
 Projects are the unit everything downstream hangs off: scanning scope first,
 and later a workspace boundary for collaboration. Per the high-level
-architecture (`docs/arch/high_level.png`) and decision 47, scanning itself
-runs on CI or a developer's machine — the server only receives uploaded
+architecture (`docs/arch/high_level.png`) and archived decision 47, scanning
+itself runs on CI or a developer's machine — the server only receives uploaded
 results — so a project's repository connections define what the server may
 represent and accept results for, not what the server reads. This document
 captures the problem space only.
@@ -130,18 +132,18 @@ covered by section 2; revocation itself happens on GitHub, outside the system.
   installations of the GitHub App.
 - GitHub is the authority on who may grant the App access; Noesis implements
   no rights model of its own for that (send-to-GitHub, reflect the result).
-- Scanning runs on CI or a local machine, never on the server (decision 47):
-  the server never clones or reads source, and App access is not a scanning
-  credential — connections exist so the server knows what it may represent
-  and accept results for.
+- Scanning runs on CI or a local machine, never on the server (archived decision
+  47): the server never clones or reads source, and App access is not a scanning
+  credential — connections exist so the server knows what it may represent and
+  accept results for.
 
 ## Non-goals
 
 - Per-project membership / visibility — v1: every admitted member sees and can
   edit every project.
 - Scan execution and result ingestion — scanning runs on CI or local machines
-  (decision 47), and the authenticated upload API for results is a separate
-  feature; this one ends at a project with connected, App-accessible
+  (archived decision 47), and the authenticated upload API for results is a
+  separate feature; this one ends at a project with connected, App-accessible
   repositories.
 - A Noesis-side "request access" workflow (tracking pending grant requests) —
   GitHub's native flow handles it.
@@ -167,11 +169,11 @@ All but one resolved during solutioning (2026-08-15):
       re-scanning.
 - [x] **Uploads for disconnected repositories:** refused, with the reason
       (re-grant access to resume). Disconnected means not entitled —
-      consistent with connections-define-entitlement (decision 48); stored
-      data stays frozen at the revocation point.
+      consistent with connections-define-entitlement (archived decision 48);
+      stored data stays frozen at the revocation point.
 - [ ] Result-upload authentication and repository binding — owned by the
-      ingestion feature (direction set in decision 48: GitHub Actions OIDC
-      default, Noesis-minted credential for other CI and local runs); the
+      ingestion feature (direction set in archived decision 48: GitHub Actions
+      OIDC default, Noesis-minted credential for other CI and local runs); the
       project/repository model here must not preclude it.
 
 ## Solution options
@@ -263,7 +265,7 @@ no secret in the repo, none in CI.
 Fallbacks where GitHub OIDC does not exist: other CI systems (their own OIDC
 issuers later, or a Noesis-minted upload token in a CI secret meanwhile) and
 local scans (the engineer authenticates as themselves — the same deferred
-credential question as the MCP bridge, decision 46). An App-authored
+credential question as the MCP bridge, archived decision 46). An App-authored
 onboarding PR can add the config file (and optionally the workflow) to a
 repository; it requires widening the App's permissions to Contents +
 Pull requests (+ Workflows) read/write, which existing installations must
@@ -271,7 +273,7 @@ re-approve — cheap to decide now, annoying later.
 
 ### Decision
 
-**Option A, with routing variant 3 — decided as decision 48 in
+**Option A, with routing variant 3 — decided as archived decision 48 in
 [`docs/decisions.md`](../../decisions.md).** The registry in the graph is the
 source of truth; the scanner states which repository it scanned and the
 server resolves the owning project via the exclusivity rule; repository
@@ -286,7 +288,7 @@ or App-authored PR convenience, never as the binding.
 
 Appended to `graph-schema.ts` under a new heading, idempotent like everything
 already there. `Project` exists (Part 2); this change adds the `Repository`
-table and the relationships whose shape decision 46 already settled:
+table and the relationships whose shape archived decision 46 already settled:
 
 ```
 Repository(id, full_name, private, status, status_changed_at,
@@ -300,7 +302,7 @@ Repository(id, full_name, private, status, status_changed_at,
 - `status` — `'connected' | 'disconnected'`; `status_changed_at` records when
   it last flipped, so the UI can say since when results are stale.
 
-Relationships (exactly the decision-46 sketch):
+Relationships (exactly the archived decision 46 sketch):
 
 ```
 UsesInstallation(Project → GhInstallation)     -- exactly one per project
@@ -356,8 +358,8 @@ gives the elicited return-trip continuity: the engineer lands back in the
 connect flow, re-fetches the picker, and the newly granted repository is in the
 list. For extending an _existing_ installation the UI deep-links to GitHub's
 installation settings page (`github.com/settings/installations/:id` or the
-organization variant) — per decision 46's note, repository selection on an
-existing install is GitHub's screen, not requestable via API. GitHub's
+organization variant) — per archived decision 46's note, repository selection
+on an existing install is GitHub's screen, not requestable via API. GitHub's
 request-to-owner flow needs nothing from us: `setup_action=request` already
 lands on the callback with no installation id and is reported as "requested".
 
@@ -371,7 +373,7 @@ repository selection (all/selected) appear on the install screen and the
 listings work. Adding it to an already-registered App means every existing
 installation must approve the permission update on GitHub before selecting
 repositories. The onboarding-PR permission widening (Contents + Pull
-requests, decision 48) stays deferred to the ingestion feature.
+requests, archived decision 48) stays deferred to the ingestion feature.
 
 ### 3. Access check (first real `GhAppService` caller)
 
@@ -463,5 +465,6 @@ impossible there. Resolved: **creation is blocked in disabled mode** — the
 write endpoints answer 503 `auth_disabled`, the same stance the invites
 routes already take. The invariant is identical in every mode; testing the
 full project flow locally means running `mode=github` with a locally
-registered GitHub App (the per-deployment registration decision 46 already
-assumes). Unit and e2e specs exercise the real flow against `github-fake.ts`.
+registered GitHub App (the per-deployment registration archived decision 46
+already assumes). Unit and e2e specs exercise the real flow against
+`github-fake.ts`.

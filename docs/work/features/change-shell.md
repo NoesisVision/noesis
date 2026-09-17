@@ -8,18 +8,19 @@ implemented: 2026-09-13
 
 # Feature Plan: Change-scoped app shell (Mantine, option C sidebar)
 
-**Status:** implemented (2026-09-13) — architecture recorded as decision 74 in
+**Status:** implemented (2026-09-13) — architecture recorded as decision D5 in
 [`docs/decisions.md`](../../decisions.md). Two things landed differently from
 the plan below: the frontend calls `/ui` over plain `fetch` typed by
-`@repo/shared-contracts` rather than `hc<AppType>` (importing the route type
-drags the service's module graph into the frontend's type program), and the
-key is optional (the contract's "empty when there is none").
+`@repo/shared-contracts` rather than `hc<AppType>` (archived decision 74:
+importing the route type drags the service's module graph into the frontend's
+type program; now `hc<AppType>`, see D5), and the key is optional (the
+contract's "empty when there is none").
 **Prototype:** [`change-shell-prototype.html`](./change-shell-prototype.html) —
 static mock of three sidebar structures; **option C ("Flat + pinned")** is the
 one being built. Options A and B stay in the file for reference.
 **Goal:** Give `server/frontend` (a client-only React SPA on TanStack Router,
-bundled and served by the service through bun's fullstack mode — decisions 67
-and 72) a real application shell: a left sidebar with a **change
+bundled and served by the service through bun's fullstack mode — decision
+D5) a real application shell: a left sidebar with a **change
 picker** on top, four flat change-scoped entries below it, and a pinned bottom
 zone with the change-independent **System model** and **Wiki** links. A small
 change backend supplies the picker. Every content view renders only breadcrumbs
@@ -34,7 +35,7 @@ and the view name; real content is later work.
 - **Documentation** — the change-independent area: System model and Wiki
   (was "Workspace"). Used as sidebar section label and breadcrumb root.
 - **Change type** — `feature | fix | improvement | chore`, the commit-message
-  vocabulary of decision 42 with `feat` spelled out as `feature` (a stored
+  vocabulary of decision D7 with `feat` spelled out as `feature` (a stored
   value read by people, not a 72-char subject prefix). A change is the work
   behind one or more commits of the matching type; `feature` ↔ `feat`.
 
@@ -91,7 +92,7 @@ Change id lives in the path; all three content kinds hang under the change:
 ### Change backend
 
 - A change is the directory `.noesis/changes/<change>/` in the checkout the
-  server serves (decision 68): listing is a directory read, creation is a
+  server serves (decision D2): listing is a directory read, creation is a
   directory write, and there is no seed — a first run starts with no changes
   and the empty state below. Nothing about a change lives in the LadybugDB
   graph; the graph is a cache over the files.
@@ -109,7 +110,7 @@ Change id lives in the path; all three content kinds hang under the change:
   (`packages/shared-contracts/src/change.ts`, landed with the migration's R5):
   `ChangeSchema` with `slug`, `name`, `key` (e.g. `NOE-142`), `type`
   (`CHANGE_TYPES` tuple `feature | fix | improvement | chore`, the commit-type
-  vocabulary of decision 42 with `feature` as the long form of `feat`),
+  vocabulary of decision D7 with `feature` as the long form of `feat`),
   `status` (`CHANGE_STATUSES` tuple `discovery | design | implementation |
 done`, kept in lifecycle order so later sorting and "advance" actions need
   no second list), `created_at` and `description`. It is the `change.json`
@@ -130,7 +131,7 @@ done`, kept in lifecycle order so later sorting and "advance" actions need
 
 ### Styling
 
-- **Mantine** is already the component library (decision 72): `@mantine/core`,
+- **Mantine** is already the component library (decision D5): `@mantine/core`,
   `@mantine/hooks` and `@mantine/form` are installed, `MantineProvider` wraps
   the app in `main.tsx`, `@mantine/core/styles.css` is imported there, and
   Tailwind and Vite are gone. This feature adds `@tabler/icons-react`. There
@@ -138,8 +139,8 @@ done`, kept in lifecycle order so later sorting and "advance" actions need
   so styles use Mantine's style props and CSS modules, not
   `postcss-preset-mantine` mixins.
 - Theme: `createTheme` with `primaryColor: 'brand'` — a 10-step ramp derived
-  from the noesis.vision `blue-700` (decision 60's palette, kept as brand
-  guidance by decision 66), `fontFamily`
+  from the noesis.vision `blue-700` (archived decision 60's palette, kept as
+  brand guidance by decision D5), `fontFamily`
   Raleway via `@fontsource-variable/raleway`, `defaultRadius: 'sm'`.
   Everything else Mantine default.
 - Colour scheme `auto` by default, persisted by Mantine's
@@ -147,7 +148,7 @@ done`, kept in lifecycle order so later sorting and "advance" actions need
 
 ### Auth
 
-- There is none, anywhere: decision 65 removed authentication, sessions and
+- There is none, anywhere: decision D1 removed authentication, sessions and
   the `/auth` surface. The frontend has no session guard and no login route,
   and nothing in this feature reintroduces a trust boundary.
 
@@ -156,10 +157,10 @@ done`, kept in lifecycle order so later sorting and "advance" actions need
 - Frontend today: bare scaffold (`__root.tsx`, `index.tsx`,
   `components/home.tsx`, `components/root-layout.tsx`) on Mantine, TanStack
   Query wired in `integrations/tanstack-query/`, no build of its own — the
-  backend imports `index.html` and bun bundles it (decision 72). No React
+  backend imports `index.html` and bun bundles it (decision D5). No React
   Compiler, no route splitting. `tsr generate` writes `routeTree.gen.ts`.
   Free to restructure.
-- Nothing renders outside the browser (decision 67 dropped TanStack Start),
+- Nothing renders outside the browser (decision D5 dropped TanStack Start),
   so Mantine's `ColorSchemeScript` goes in `index.html` and `localStorage` may
   be read anywhere. `main.tsx` is the entry: `MantineProvider` and
   `QueryClientProvider` already wrap `RouterProvider` there, not in the root
@@ -167,18 +168,18 @@ done`, kept in lifecycle order so later sorting and "advance" actions need
 - Backend: one Hono sub-app per surface (`app.ts`); `/ui` routes are typed
   through `hc<AppType>` from `backend/client`. The `.route()` chain must stay
   unbroken. The knowledge graph files under `.noesis/` are the source of
-  truth (decision 68): a `FileRepository` per kind owns its directory, and
+  truth (decision D1): a `FileRepository` per kind owns its directory, and
   the `GRAPH_SCHEMA` graph is a cache to be rebuilt from them. Ids come from
   `@repo/shared-contracts/uuid`.
 - Changes and design docs already follow the directory layout
   (`ChangesRepository`, `DesignDocsRepository` over
   `changes/<change>/design-docs/`). The inbox is gone. The repository root is
   `NOESIS_ROOT` or the nearest `.git` above the working directory.
-- `docs/decisions.md` numbering ends at 73. Decision 66 retired the old
-  frontend stack and left the component library open; decision 72 chose
-  Mantine, so `docs/stack.md` lists React, Mantine, TanStack Router/Query and
-  bun. The frontend does not yet depend on `backend` or
-  `@repo/shared-contracts` and calls no endpoint.
+- The decision log's numbering ended at 73 at the time (now archived).
+  Archived decision 66 retired the old frontend stack and left the component
+  library open; decision D5 chose Mantine, so `docs/stack.md` lists React,
+  Mantine, TanStack Router/Query and bun. The frontend does not yet depend on
+  `backend` or `@repo/shared-contracts` and calls no endpoint.
 
 ## Target architecture
 
@@ -268,7 +269,7 @@ server/frontend/
    with `{ name, key, type }`, `GET /ui/changes/:id`. Unit specs: repository
    (duplicate slug and key, newest-first ordering), routes (200/201/400/404/
    409). No seed, no schema table.
-3. **Theme.** Mantine is already in (decision 72). Add `@tabler/icons-react`
+3. **Theme.** Mantine is already in (decision D5). Add `@tabler/icons-react`
    and Raleway, `theme.ts`, the colour-scheme manager on the existing
    `MantineProvider` in `main.tsx`, `ColorSchemeScript` as a `<script>` in
    `index.html`.
@@ -282,9 +283,9 @@ server/frontend/
    (name, key, type; `@mantine/form`, already installed), `ViewHeader`.
 7. **Docs.** `docs/stack.md`: add `@tabler/icons-react` and Raleway. A
    `docs/decisions.md` entry for the shell itself: the change-scoped sidebar,
-   the `_shell` layout route, and decision 60's palette re-expressed as a
-   Mantine theme (decision 72 already records Mantine as the component
-   library and Tailwind's removal; decision 68 already records a change as a
+   the `_shell` layout route, and archived decision 60's palette re-expressed
+   as a Mantine theme (decision D5 already records Mantine as the component
+   library and Tailwind's removal; decision D2 already records a change as a
    directory under `.noesis/changes/`). This file's status → implemented.
 8. **Verify.** `bun run lint && bun run check-types && bun run test`, then
    `bun run dev` in `server/backend` and the manual checklist.

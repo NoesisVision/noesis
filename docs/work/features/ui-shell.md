@@ -1,10 +1,10 @@
 # Feature Plan: UI Shell
 
-**Status:** retired (2026-09-09) — built on 2026-08-12 as decision 45, deleted
-with the old frontend (decision 64); decision 66 retired the frontend clauses
-of 45 and keeps this file as the requirements record. Only `GET /ui/search`
-survives. A rebuild on Mantine (decision 72) is a new task. See
-[`docs/decisions.md`](../../decisions.md).
+**Status:** retired (2026-09-09) — built on 2026-08-12 as archived decision
+45, deleted with the old frontend (archived decision 64); archived decision 66
+retired the frontend clauses of 45 and keeps this file as the requirements
+record. Only `GET /ui/search` survives. A rebuild on Mantine (decision D5) is a
+new task. See [`docs/decisions.md`](../../decisions.md).
 **Prototype:** [`ui-shell-prototype.html`](./ui-shell-prototype.html) — static
 single-file HTML mock of the shell (open in a browser); demonstrates the
 sidebar with project selector, bottom-pinned Settings, top bar, contextual

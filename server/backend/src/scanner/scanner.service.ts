@@ -17,7 +17,7 @@ export interface ScanReport {
  * The scanner as a service component: reads the checkout, writes one
  * system-model file per unit and drops the files of units that no longer
  * exist. The graph projection is not written here — the watcher sees the
- * files and re-indexes, the same path every other kind takes (decision 68).
+ * files and re-indexes, the same path every other kind takes (decision D1).
  */
 export class ScannerService {
   private readonly root: string;

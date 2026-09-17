@@ -1,6 +1,6 @@
 // Packs the real npm tarball and verifies what ships: file whitelist,
 // rewritten manifest, and the .mcp.json service pin staying in lockstep with
-// the plugin version (decisions 33 and 68 — plugin and @noesis-vision/noesis
+// the plugin version (decision D6 — plugin and @noesis-vision/noesis
 // release as one version train). The MCP boot smoke test builds the service
 // from the workspace sources the pinned version will be published from.
 // Tests run in file order; the pack test seeds the state the rest assert on.
@@ -118,7 +118,7 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
 
   const service = mcp.mcpServers.noesis;
   if (!service) throw new Error('.mcp.json has no noesis server entry');
-  // Both are `${VAR:-default}` expansions (decision 73): installed plugins run
+  // Both are `${VAR:-default}` expansions (decision D6): installed plugins run
   // the published bin through bunx; a checkout points them at the source.
   // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal placeholder is what Claude Code expands
   expect(service.command).toBe('${NOESIS_SERVICE_COMMAND:-bunx}');

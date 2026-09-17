@@ -4,8 +4,8 @@ const log = serverLogger('browser');
 
 /**
  * Opens the default browser on a URL, once, at boot — the UI exists while the
- * agent session does, and this is how the person finds it (decision 68, point
- * 1). Best effort: a missing opener is logged, never fatal.
+ * agent session does, and this is how the person finds it (decision D1).
+ * Best effort: a missing opener is logged, never fatal.
  */
 export function openBrowser(url: string): void {
   const command =

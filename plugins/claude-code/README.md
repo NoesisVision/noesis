@@ -25,7 +25,7 @@ Channels:
 ## How it runs
 
 Every Claude Code session starts its own Noesis service process over stdio
-(decision 68). The service serves the project Claude Code runs in
+(decision D1). The service serves the project Claude Code runs in
 (`NOESIS_ROOT` is set to the project directory by `.mcp.json`), keeps the
 knowledge graph as JSON files in `.noesis/` at its root, and opens the
 browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
@@ -49,7 +49,7 @@ a write accepts.
   companion `.md` per family for what the shapes cannot say. A build output:
   copied from `packages/shared-contracts/src` by `bun run build` (which
   `bun pm pack` runs as `prepack`), stamped with the plugin version, and
-  asserted byte-identical by the plugin's tests (decisions 69 and 71). Only
+  asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full
   copy.
 - `skills/` — the knowledge-management skills (`import-conversation`,
@@ -64,7 +64,7 @@ a write accepts.
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables
   replace the command and its one argument; unset, the defaults apply
-  (decision 73). The pin is stamped by `bun run generate`.
+  (decision D6). The pin is stamped by `bun run generate`.
 - `.claude-plugin/plugin.json` — the plugin manifest, its version stamped by
   `bun run generate`; `marketplace.json` beside it is the catalog users add
   by URL, with one entry per channel pinned to a published npm version.
@@ -111,7 +111,7 @@ claude --plugin-dir /path/to/noesis/plugins/claude-code
 ```
 
 The service runs from `src/main.ts` with no build (the page is bundled on
-request, decision 72) and serves the repository Claude Code started in. The local plugin
+request, decision D5) and serves the repository Claude Code started in. The local plugin
 takes precedence over an installed `noesis` for that session. After editing
 a skill or the service, run `/reload-plugins`. Set the two variables in the
 sample app's `.claude/settings.local.json` under `env` to skip typing them.
@@ -127,7 +127,7 @@ bun run release:beta 0.2.0-beta.1   # explicit target prerelease
 
 The script verifies a clean, up-to-date `main`, bumps the plugin +
 `@noesis-vision/noesis` `package.json`s and the beta marketplace pin (one
-version train — decisions 33 and 68), regenerates stamped artifacts (the
+version train — decision D6), regenerates stamped artifacts (the
 `.mcp.json` service pin), smoke-tests the packed tarball (whose `prepack`
 copies `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
 workflow (`.github/workflows/release.yml`), which re-runs the verify steps,

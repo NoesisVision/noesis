@@ -16,8 +16,7 @@ export const UNVERSIONED_DIRS = ['tmp', 'logs'] as const;
  * agent and the service, and `logs/`, the service's log file — so the first
  * run writes a `.gitignore` that says exactly that, and a later run adds a
  * line an older `.gitignore` lacks. Every other file under `.noesis/` is
- * meant to be committed alongside the code it describes (decision 68, points
- * 7 and 8).
+ * meant to be committed alongside the code it describes (decision D2).
  */
 export class NoesisDir {
   readonly root: string;

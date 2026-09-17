@@ -14,7 +14,7 @@ import {
 } from '@logtape/logtape';
 
 /**
- * Logging for the service, on LogTape (decision 75).
+ * Logging for the service, on LogTape (decision D10).
  *
  * Categories are `["noesis", "server", <module>]` — the browser app uses
  * `["noesis", "ui", <module>]` — so one root category covers the product and

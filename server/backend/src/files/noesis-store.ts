@@ -3,7 +3,7 @@ import type { z } from 'zod';
 
 /**
  * `NoesisStore`: the contract of the one door to `.noesis/graph/`
- * (decision 76). This file holds the types and the error; an implementation
+ * (decision D2). This file holds the types and the error; an implementation
  * (`bun-noesis-store.ts`) supplies the factory.
  *
  * A collection is a directory of objects, one directory per object named by

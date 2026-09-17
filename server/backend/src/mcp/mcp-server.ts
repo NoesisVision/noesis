@@ -39,7 +39,7 @@ import { contractNames, contracts } from './contracts/index.js';
 /**
  * What the tools may touch: the same services the HTTP surface gets, handed in
  * by the composition root. Tools call them directly — there is no REST hop
- * between the agent's process and the services (decision 68).
+ * between the agent's process and the services (decision D3).
  */
 export interface McpDeps {
   /** The repository root, stated in the server's `instructions`. */
@@ -91,7 +91,7 @@ const changeSlug = z
  * working file the agent wrote under `.noesis/tmp/`, and a result too large to
  * return inline is written there and handed back as a path.
  *
- * Validation is owned here, not by the SDK (decision 34): the SDK's built-in
+ * Validation is owned here, not by the SDK (decision D3): the SDK's built-in
  * input validation rejects bad payloads with a protocol-level InvalidParams
  * error, while the MCP spec wants tool-level failures in-band (`isError`) so
  * the calling model can read the problem and correct itself.

@@ -6,7 +6,7 @@ import {
 } from '@logtape/logtape';
 
 /**
- * Logging for the browser app, on LogTape (decision 75). Same root category
+ * Logging for the browser app, on LogTape (decision D10). Same root category
  * as the service — `["noesis", "ui", <module>]` against its
  * `["noesis", "server", <module>]` — so a log line says which process wrote
  * it (docs/logging.md). One sink, the browser console, at `debug` from

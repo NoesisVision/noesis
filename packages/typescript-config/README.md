@@ -9,7 +9,7 @@ publishes it.
 Strict, ES2022, `NodeNext` module resolution, `isolatedModules`,
 `noUncheckedIndexedAccess`, `skipLibCheck`, declaration output on and
 `incremental` off. Every option in it is one TypeScript 7 still accepts: the
-native compiler (decision 44) dropped `baseUrl`, `outFile` and the legacy
+native compiler (decision D7) dropped `baseUrl`, `outFile` and the legacy
 module kinds, and the preset never used them.
 
 `tsc` is only ever run as `check-types` (`tsc --noEmit`); bun transpiles and
@@ -26,7 +26,7 @@ bundles, Biome lints. So the preset shapes type-checking, not emit, and the
 | `server/frontend`           | no      | Its own bundler-mode config: `jsx: react-jsx`, DOM libs, `#/*` path alias  |
 
 The frontend stands alone because it is browser code bundled by bun's
-fullstack mode (decision 72): DOM libs, JSX, `moduleResolution: bundler`
+fullstack mode (decision D5): DOM libs, JSX, `moduleResolution: bundler`
 and `allowImportingTsExtensions` have no place in a Node-style preset.
 
 ## Changing it

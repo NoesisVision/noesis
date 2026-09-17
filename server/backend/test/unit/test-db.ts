@@ -6,8 +6,8 @@ import { SchemaService } from '../../src/schema/schema.service.js';
 // shared database keeps schema setup out of every spec. (Original motivation
 // was stronger: lbug 0.14.3 segfaulted once more than a handful of `Database`
 // instances were opened per process. That no longer reproduces on
-// @ladybugdb/core 0.18.0 — decision 35 — but the shared fixture stays for
-// speed.)
+// @ladybugdb/core 0.18.0 — archived decision 35 — but the shared fixture
+// stays for speed.)
 //
 // This fixture lazily creates a single in-memory database with the full graph
 // schema, reused across all specs in the process. Tests isolate themselves by

@@ -83,12 +83,12 @@ Human-authored decisions are preserved by default. An agent may challenge them i
 
 ### 2.6 Keep the codebase delta visible
 
-> _Deferred in full to a future iteration (decision 52)._ Comparing the document against a
+> _Deferred in full to a future iteration (decision D4)._ Comparing the document against a
 > source-code baseline — the Existing / New / Modified / Removed markers, the Deriving-Modified
 > rule, and baseline refresh — is out of this iteration's requirements. The principle to preserve
 > in the meantime: when the feature returns, a visible marker must mean "the source code must
 > change here", derived from scanner-comparable fields only and never propagated upward through
-> containment (decision 49).
+> containment (decision D4).
 
 ## 3. Users and collaboration model
 
@@ -151,7 +151,7 @@ Blank manual authoring and import workflows are not the primary interaction to o
 
 ### 6.2 Source-code baseline
 
-> _Deferred in full to a future iteration (decision 52)._ The scan-as-comparison-baseline, the
+> _Deferred in full to a future iteration (decision D4)._ The scan-as-comparison-baseline, the
 > newer-scan notification, and the explicit baseline refresh through a reconciled whole-document
 > proposal all belong to the codebase-delta feature. Until it returns, a document is created and
 > edited without reference to a scan.
@@ -278,7 +278,7 @@ When a user selects an actor, use case, behavior, or building block, the canvas 
 
 ### 8.3 Codebase-relative visual state
 
-> _Deferred with the codebase-delta feature (decision 52)._ When delta markers return, they must
+> _Deferred with the codebase-delta feature (decision D4)._ When delta markers return, they must
 > be distinguishable wherever model elements are browsed or edited, consistent across lenses,
 > never colour alone, and quieter than the element name and behaviour type.
 
@@ -462,7 +462,7 @@ A comment may mention people. Comment threads are a human conversation: agents a
 
 The original `design-doc.ts` schema was a useful starting point, but several confirmed UX decisions required changes.
 
-> **Built.** Every subsection below is now implemented in `packages/shared-contracts/src`, except 14.4 and 14.5, which stay deferred with the Technical lens. Decision 50 records the model, decision 51 the relationship between it and the editor, and `plan.md` section 3 the delivered shape. Each subsection ends with a note on how it was settled.
+> **Built.** Every subsection below is now implemented in `packages/shared-contracts/src`, except 14.4 and 14.5, which stay deferred with the Technical lens. Decision D4 records the model, archived decision 51 the relationship between it and the editor, and `plan.md` section 3 the delivered shape. Each subsection ends with a note on how it was settled.
 
 ### 14.1 Make use cases first-class
 
@@ -529,7 +529,7 @@ The repeated `*_locked` booleans should be reconsidered in favor of provenance m
 
 The existing `added`, `removed`, and `modified` change-set shape appears throughout the document tree. The clarified product requirement is that the accepted specification and the changes contained in a pending agent proposal are distinct: a pending proposal must not change what the accepted document says.
 
-> **Settled as a normalized model.** Change sets are gone; the document is flat arrays related by ID. Proposal state is a separate object entirely — a whole-document `DesignDocProposal` held outside the specification. The codebase-relative dimension (Existing / New / Modified / Removed against a scanner baseline) is deferred with the codebase-delta feature (decision 52); when it returns it stays a dimension of its own, never collapsed into a proposal flag.
+> **Settled as a normalized model.** Change sets are gone; the document is flat arrays related by ID. Proposal state is a separate object entirely — a whole-document `DesignDocProposal` held outside the specification. The codebase-relative dimension (Existing / New / Modified / Removed against a scanner baseline) is deferred with the codebase-delta feature (decision D4); when it returns it stays a dimension of its own, never collapsed into a proposal flag.
 
 ### 14.8 Add collaboration metadata outside core domain fields
 
@@ -537,11 +537,11 @@ Comments, mentions, presence, cursors, versions, and provenance are collaborativ
 
 > **Settled.** Comments, suggestions and proposals live in `design-doc-collaboration.ts`, keyed by document ID and anchored by an `ElementRef` — an element's ID alone, or `{ ownerId, path }` for a place that holds no element of its own, such as the goal text or a list as an insertion point. An anchor names what it points at and not where that thing sits, so it survives the element being renamed, reordered or moved to another parent. The quoted text travels with the anchor as evidence, not as the anchoring mechanism.
 >
-> Once the editor exists, the durable substring anchor is a mark carried in the shared Yjs document (decision 51); the portable specification carries plain text, so an export never leaks comment or suggestion state.
+> Once the editor exists, the durable substring anchor is a mark carried in the shared Yjs document (archived decision 51); the portable specification carries plain text, so an export never leaks comment or suggestion state.
 
 ### 14.9 Track scanner origin and baseline comparison
 
-> _Deferred in full to a future iteration (decision 52)._ Scanner identity, baseline snapshots,
+> _Deferred in full to a future iteration (decision D4)._ Scanner identity, baseline snapshots,
 > derived codebase-relative state, newer-scan notification and refresh reconciliation belong to
 > the codebase-delta feature. Element IDs stay stable, so the metadata can be reintroduced
 > without re-anchoring anything. What remains in the model now: a `DesignDocProposal` carries the
@@ -630,7 +630,7 @@ After comparing the low-fidelity concepts, select or combine the strongest inter
 
 ### Deferred to a later iteration
 
-- The codebase-delta feature: source-code baseline, Existing / New / Modified / Removed markers, scanner identity, and baseline refresh (decision 52).
+- The codebase-delta feature: source-code baseline, Existing / New / Modified / Removed markers, scanner identity, and baseline refresh (decision D4).
 - The Product/Technical lens switch, and with it Related building blocks and Interaction flow.
 - The visual canvas: behaviour map, selection-based relationships, contextual neighbourhood, layout controls, graph editing.
 - Sequence diagrams, the behaviour graph they project from, and scenario paths.
@@ -658,7 +658,7 @@ Still open for the first iteration:
 
 5. What collaboration and versioning semantics apply when several humans edit while an agent proposal is pending?
 6. What happens to a comment or suggestion whose anchored text is edited away — reanchor, orphan, or resolve? _Narrowed by the model: an anchor points at an element by ID, so editing the words inside a rule cannot detach a thread from it. Only the substring case is left, and it lands with the Yjs marks in phase 4._
-7. How is a chat-applied change shown and undone, so "applied directly" does not read as "changed behind my back"? _Decision 51 supplies the mechanism — undo and version history belong to the Yjs document — but not the presentation._
+7. How is a chat-applied change shown and undone, so "applied directly" does not read as "changed behind my back"? _Archived decision 51 supplies the mechanism — undo and version history belong to the Yjs document — but not the presentation._
 
 Open, but only when their features arrive:
 

@@ -34,7 +34,7 @@ export type WorkingPathResult =
 
 /**
  * `.noesis/tmp/<session-id>/`: the scratch area of one service process
- * (decision 68, point 7). Large payloads between the agent and the service
+ * (decision D2). Large payloads between the agent and the service
  * move through it — the agent writes a working file there by convention and
  * hands tools its path; MCP messages carry coordinates, not content.
  *

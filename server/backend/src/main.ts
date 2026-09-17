@@ -1,12 +1,12 @@
 // The Noesis service: one process per agent session, started by the agent
 // host as a stdio MCP server. The same process serves the browser UI over HTTP
-// on an ephemeral port (decision 68). Published to npm as @noesis-vision/noesis
+// on an ephemeral port (decision D1). Published to npm as @noesis-vision/noesis
 // (self-contained dist/ built by `bun run build`: the server bundle plus the
 // browser assets it imports through index.html); agent plugins launch it via
 // bunx.
 //
 // stdout belongs to the MCP protocol — every log line goes to stderr. Our own
-// code logs through LogTape (logging/logging.ts, decision 75), whose stderr
+// code logs through LogTape (logging/logging.ts, decision D10), whose stderr
 // sink writes there directly; the redirect below catches anything a
 // dependency prints with console.log, which would otherwise corrupt the
 // stream.
@@ -52,7 +52,7 @@ const config = loadServerConfig();
 // The knowledge graph files are the source of truth, under `.noesis/` at the
 // root of the repository this process serves; the graph is an in-memory cache
 // over them, built by the indexer at boot and kept current by the watcher
-// (decision 68). Services write files only — never the graph.
+// (decision D1). Services write files only — never the graph.
 const noesis = new NoesisDir(loadRepositoryRoot());
 await noesis.ensure();
 const production = process.env.NODE_ENV === 'production';
@@ -183,12 +183,11 @@ function loadRepositoryRoot(): string {
 
 // Explicit shutdown (Nest's lifecycle hooks, made ours): stop watching and
 // accepting requests, then close the database deterministically so its native
-// handles are released (decisions 23/35).
+// handles are released (decision D3).
 let shuttingDown = false;
 async function shutdown(): Promise<void> {
   // A second signal must not start a second teardown: two `db.close()` calls
-  // racing on one native handle is undefined behaviour (decision 62's guard,
-  // kept by 68).
+  // racing on one native handle is undefined behaviour (decision D3's guard).
   if (shuttingDown) return;
   shuttingDown = true;
   watcher.close();

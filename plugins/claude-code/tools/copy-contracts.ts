@@ -4,11 +4,11 @@
 // `prepack`); the directory is gitignored except for its README. Skills name
 // contracts by a plugin-relative path, and the packed tarball carries the
 // copy. The service itself imports the contracts and bundles them into its
-// executable; it ships no readable copy (decision 70).
+// executable; it ships no readable copy (decision D4).
 //
 // The copy is byte-identical to the source below the header; the plugin's
 // test asserts that. `.ts` sources are shipped deliberately: compiled output
-// would keep the types and lose the `.describe()` text (decision 68).
+// would keep the types and lose the `.describe()` text (decision D4).
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';

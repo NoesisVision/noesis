@@ -5,7 +5,7 @@ import { z } from 'zod';
  * `.noesis/graph/changes/<slug>/` that collects everything produced while
  * working on it — imported conversations and documents, and the design docs
  * that describe it. This file is the change's data, stored as `data.json`
- * inside the directory (decision 76).
+ * inside the directory (decision D2).
  */
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */

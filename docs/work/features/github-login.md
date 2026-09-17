@@ -1,7 +1,9 @@
 # Feature Plan: Login with GitHub
 
-**Status:** built (2026-08-13) — architecture recorded as decision 46 in
-[`docs/decisions.md`](../../decisions.md), whose consequences list what the
+> Historical record. This feature was removed; current decisions are D1–D10 in docs/decisions.md (see D1).
+
+**Status:** built (2026-08-13) — architecture recorded as archived decision 46
+in [`docs/decisions.md`](../../decisions.md), whose consequences list what the
 implementation changed. Steps 1–8 of §9 are done; §10 is still out of scope.
 **Goal:** Give Noesis a sign-in flow backed by GitHub, and — in the same
 mechanism — the credentials it needs to read users' repositories. GitHub is
@@ -57,10 +59,10 @@ tokens expire after 8 hours.
 Against that, the hand-rolled cost is bounded: the OAuth mechanics are a code
 exchange and a refresh call (both shipped as functions by
 `@octokit/oauth-methods`), and the session is an opaque cookie plus one node
-table. The route surfaces that middleware binds to already exist — decision 18
-split `/ui`, `/api` and `/internal` by consumer for exactly this reason, and
-decision 45 anticipated a chrome-less route next to `_shell` for exactly this
-kind of page.
+table. The route surfaces that middleware binds to already exist — archived
+decision 18 split `/ui`, `/api` and `/internal` by consumer for exactly this
+reason, and archived decision 45 anticipated a chrome-less route next to
+`_shell` for exactly this kind of page.
 
 Revisit Better Auth if the auth surface grows beyond sign-in — organisations,
 2FA, user-managed API keys.
@@ -150,10 +152,10 @@ resolve to a single installation token.
 
 The `Project` relationships and the `Repository` table are **not part of this
 change** — project creation does not exist yet (the shell's project switcher
-runs on placeholder state, per decision 45). They are written down here because
-the cardinality decides how `GhInstallation` is modelled now: hanging off
-`Account` alone, reachable later from `Project` by a second relationship rather
-than by an owning one.
+runs on placeholder state, per archived decision 45). They are written down
+here because the cardinality decides how `GhInstallation` is modelled now:
+hanging off `Account` alone, reachable later from `Project` by a second
+relationship rather than by an owning one.
 
 Note that repository selection happens on **two screens with different
 authority**. GitHub's install screen decides what the App may touch at all —
@@ -166,7 +168,7 @@ and cannot be requested through the API; the best the UI can do is deep-link to
 
 A fourth top-level surface, `/auth`, mounted in `app.ts` next to `/ui`, `/api`
 and `/internal`, and added to `main.ts`'s SPA-fallback exclusion list. It is a
-surface by decision 18's own criterion — its consumer is the browser's address
+surface by decision D3's own criterion — its consumer is the browser's address
 bar, exchanging 302s and cookies, not the typed JSON RPC contract `/ui` owes
 `hc<AppType>`. Keeping it out of `/ui` also avoids the ordering problem of
 mounting unguarded routes inside a guarded sub-app.

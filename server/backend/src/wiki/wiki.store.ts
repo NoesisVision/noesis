@@ -7,7 +7,7 @@ import type { NoesisDir } from '../files/noesis-dir.js';
  * two root collections keyed by id, change-independent — the distillate
  * accumulates across every import. The topic tree is in the data
  * (`parent_id`), so both collections stay flat; `wiki/` is a grouping
- * directory, not an object (decision 76).
+ * directory, not an object (decision D2).
  */
 export function createTopicsStore(noesis: NoesisDir) {
   return createNoesisStore({

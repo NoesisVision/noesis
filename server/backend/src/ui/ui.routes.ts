@@ -18,8 +18,8 @@ export interface UiDeps {
 // inferable so the frontend can reach them through Hono's typed RPC client
 // without shared path constants. The server serves the
 // one checkout it was started in, so nothing is scoped by project or account
-// (decision 65); imports and design docs are scoped to a change, mirroring
-// `.noesis/graph/changes/<change>/` (decisions 68 and 76).
+// (decision D1); imports and design docs are scoped to a change, mirroring
+// `.noesis/graph/changes/<change>/` (decision D2).
 export function createUiApp(deps: UiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()

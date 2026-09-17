@@ -1,5 +1,5 @@
 // Full-stack MCP e2e: boots the real service (src/main.ts) as a stdio MCP
-// server the way an agent host does, walks the import flow of decision 68
+// server the way an agent host does, walks the import flow of decision D3
 // (write a working file to the session's scratch directory, validate, create)
 // and checks the scratch directory goes when the session does.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';

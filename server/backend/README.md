@@ -5,7 +5,7 @@ host (Claude Code via `plugins/claude-code`, OpenCode, Codex, ...) as a
 **stdio MCP server**. The same process serves the browser UI over HTTP on an
 ephemeral port and opens the default browser on it once at boot. Published to
 npm as a self-contained bin — agent plugins launch it with
-`bunx @noesis-vision/noesis@<version>` (decision 68).
+`bunx @noesis-vision/noesis@<version>` (decision D6).
 
 The knowledge graph files under `.noesis/` in the served repository are the
 source of truth; the LadybugDB graph is an in-memory cache rebuilt from them
@@ -13,13 +13,13 @@ at boot and on every change. `src/main.ts` is the composition root: config →
 `.noesis/` → graph → indexer + watcher → services → HTTP app + MCP server.
 stdout belongs to the MCP protocol; logging goes to stderr and to
 `.noesis/logs/noesis.log`, with a request id on every line of a request or
-a tool call (LogTape, decision 75; conventions in `docs/logging.md`).
+a tool call (LogTape, decision D10; conventions in `docs/logging.md`).
 When the host
 closes stdin the process removes its scratch directory, closes the database
 and exits — the UI lives exactly as long as the agent session.
 
 There is no auth and no tenant scoping: the service runs on the developer's
-own machine inside one checkout (decision 65).
+own machine inside one checkout (decision D1).
 
 ## Entry points
 
@@ -36,7 +36,7 @@ own machine inside one checkout (decision 65).
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles
   the page and its assets — on request from source, ahead of time into
-  `dist/` on build (decision 72).
+  `dist/` on build (decision D5).
 
 ## Scripts
 
@@ -103,7 +103,7 @@ The package ships `dist/` alone: the self-contained `main.js` bin plus the
 SPA's `index.html` and hashed assets, built at pack time by `prepack`. It
 carries no readable contracts copy — the service imports
 `@repo/shared-contracts` and `bun build` inlines the schemas; the plugin's
-`contracts/` is the one copy the agent reads (decision 70). Its only
+`contracts/` is the one copy the agent reads (decision D4). Its only
 runtime dependency is the native `@ladybugdb/core`; workspace deps
 (`@repo/*`) never leak into the published manifest because `bun pm pack`
 rewrites `workspace:*` and `catalog:`.

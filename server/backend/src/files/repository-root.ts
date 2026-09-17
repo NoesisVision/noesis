@@ -7,7 +7,7 @@ import { dirname, join, resolve } from 'node:path';
  * directory); otherwise the nearest ancestor of the working directory that
  * holds a `.git` entry — a directory for a checkout, a file for a worktree.
  * Neither yielding a directory is a refusal to start, not a default
- * (decision 68, point 6).
+ * (decision D2).
  */
 export type RootResult =
   | { ok: true; root: string }

@@ -12,7 +12,7 @@ import '@fontsource-variable/raleway';
 import '#/styles.css';
 
 // The single browser entry point: this app is a plain SPA, so nothing here
-// runs anywhere but the browser (decision 67). The backend imports
+// runs anywhere but the browser (decision D5). The backend imports
 // `index.html`, which is how bun finds this file and bundles it.
 configureLogging();
 const context = getContext();

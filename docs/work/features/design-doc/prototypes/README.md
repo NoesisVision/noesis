@@ -23,7 +23,7 @@ original sketches — live in [`../prior-art/`](../prior-art/README.md).
 **Document shape.** Goal, business context, target outcomes and scope open the document; actors
 follow; then the use cases, grouped bounded context → application service, each with summary,
 description, rules, input, output, acceptance scenarios and quality attributes in the fixed order
-from decision 49. The left rail is the numbered table of contents, three levels deep, with
+from decision D4. The left rail is the numbered table of contents, three levels deep, with
 scroll-spy. Empty sections are not printed as empty boxes — they are named once, quietly, at the end
 of the use case, so a thin Draft still reads as a document.
 

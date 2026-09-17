@@ -1,7 +1,7 @@
 // Packs the real npm tarball (`prepack` builds dist/) and verifies the publish
 // invariants bunx depends on: the self-contained dist/main.js bin with a bun
 // shebang, the browser app's page and assets beside it, no readable contracts
-// copy (decision 70), and a manifest whose only dependency is the native
+// copy (decision D4), and a manifest whose only dependency is the native
 // @ladybugdb/core (the @repo/* workspace deps are private — leaking them
 // would break every `bunx @noesis-vision/noesis` install). Then boots the
 // packed bin from another directory, the way bunx does, and fetches the page:

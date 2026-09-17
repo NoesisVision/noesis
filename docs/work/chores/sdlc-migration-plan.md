@@ -1,5 +1,7 @@
 # SDLC → noesis Migration Plan
 
+> Historical record. The system described here has since changed; current decisions are D1–D10 in docs/decisions.md.
+
 _Status: plan of record. Date: 2026-06-29._
 
 This document plans migrating the feature set of the **SDLC** repository
@@ -40,16 +42,16 @@ Parts are ordered by dependency. The foundational architecture is now **decided*
 
 ### 1.1 noesis (target) — established architecture
 
-| Concern             | Decision (see `docs/decisions.md`)                                                                                                     |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| App split           | `apps/server` (NestJS REST, owns DB, serves UI), `apps/ui` (React/Vite), `apps/local` (stdio MCP, calls server over REST)              |
-| Route surfaces      | `/ui/*`, `/api/*`, `/internal/*` — one Nest module each, auth per surface (18)                                                         |
-| MCP server          | `apps/local/src/mcp.ts`: Nest **application context** (no HTTP), stdio transport, calls server over REST via `ServerClientService` (8) |
-| Contracts           | zod-only, consumed as TS source; `shared-`/`ui-`/`local-`/`mcp-contracts` packages (3, 4)                                              |
-| Plugin distribution | `plugins/claude-code` published to npm; MCP server bundled into `servers/noesis-local.js` (9, 14, 15, 16)                              |
-| Deployment          | `server` + `ui` as one Railway service via Dockerfile + CI `railway up` (17, 18)                                                       |
-| DB                  | on-disk LadybugDB graph, embedded in the server; **the source of truth** (see §2)                                                      |
-| Scanners            | out-of-process, ship graph facts; Java = ArchUnit + Spoon (19, 20); `scanners/dotnet` a stub                                           |
+| Concern             | Decision (see `docs/decisions.md`)                                                                                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App split           | `apps/server` (NestJS REST, owns DB, serves UI), `apps/ui` (React/Vite), `apps/local` (stdio MCP, calls server over REST)                                |
+| Route surfaces      | `/ui/*`, `/api/*`, `/internal/*` — one Nest module each, auth per surface (archived decision 18)                                                         |
+| MCP server          | `apps/local/src/mcp.ts`: Nest **application context** (no HTTP), stdio transport, calls server over REST via `ServerClientService` (archived decision 8) |
+| Contracts           | zod-only, consumed as TS source; `shared-`/`ui-`/`local-`/`mcp-contracts` packages (D4)                                                                  |
+| Plugin distribution | `plugins/claude-code` published to npm; MCP server bundled into `servers/noesis-local.js` (D6; archived decision 9)                                      |
+| Deployment          | `server` + `ui` as one Railway service via Dockerfile + CI `railway up` (archived decisions 17 and 18)                                                   |
+| DB                  | on-disk LadybugDB graph, embedded in the server; **the source of truth** (see §2)                                                                        |
+| Scanners            | out-of-process, ship graph facts; Java = ArchUnit + Spoon (archived decisions 19 and 20); `scanners/dotnet` a stub                                       |
 
 ### 1.2 SDLC (source) — feature inventory
 
@@ -81,7 +83,7 @@ all per project, launched by Claude Code with `NOESIS_PROJECT_DIR=$(pwd)`.
 
 ## 2. Target architecture (decided)
 
-> **Status (2026-09-12):** superseded by decision 68 and
+> **Status (2026-09-12):** superseded by decision D1 and
 > [`docs/arch/ARCHITECTURE.md`](../../arch/ARCHITECTURE.md). The invariant
 > below is now the opposite of what the system does: the files under `.noesis/`
 > are the source of truth and the graph is an in-memory cache rebuilt by a
@@ -165,8 +167,8 @@ separately and is out of scope for this document):
   rebuild-from-files fallback. Tracked under OQ-2.3.)
 - **Scale:** multi-user + multi-agent + multi-UI-user concurrency in scope →
   project scoping, auth, and concurrent writes are first-class (Part 2).
-- **Supersedes:** decision 17's "DB is an in-memory cache of files" framing —
-  now on-disk and authoritative.
+- **Supersedes:** archived decision 17's "DB is an in-memory cache of files"
+  framing — now on-disk and authoritative.
 
 ---
 
@@ -178,7 +180,7 @@ SDLC `CLAUDE.md` (the good parts).
 1. **Naming / structure:** kebab-case files; capabilities over technical layers;
    public-before-private function ordering; `assertNever` on every closed union
    (already in `shared-contracts/assert-never.ts` in both repos).
-2. **Contracts are zod, consumed as TS source**, no build step (decision 3, 4).
+2. **Contracts are zod, consumed as TS source**, no build step (decision D4).
    SDLC already uses zod for domain + skill schemas — good. SDLC's **UI contracts
    are plain TS `interface`s**; decide their fate in Part 8 (OQ-8.1).
 3. **Tests are colocated `*.spec.ts`** run by `bun test` via a per-package Turbo
@@ -188,13 +190,14 @@ SDLC `CLAUDE.md` (the good parts).
    `apps/server/src/testing/test-db.ts` — `lbug` segfaults with many `Database`
    instances per process, and `bun test` runs all specs in one process (see
    Part 2). Never open a fresh `Database` per test.
-4. **Generated artifacts are committed and CI-drift-checked** (decisions 6, 11).
+4. **Generated artifacts are committed and CI-drift-checked** (archived
+   decision 6, decision D8).
    Any new model-facing schema/example follows the `bun run generate` pipeline.
-5. **Route constants live in contract packages** (decision 18) — never hardcode a
-   path in a controller or client.
+5. **Route constants live in contract packages** (archived decision 18) — never
+   hardcode a path in a controller or client.
 6. **No `any` without justification; strict TS.** Note the bun tsconfig-`extends`
-   decorator footgun (decision 7) — new Nest apps/packages need the two decorator
-   flags inline.
+   decorator footgun (archived decision 7) — new Nest apps/packages need the two
+   decorator flags inline.
 7. **Persistence = DB only.** No artifact touches the filesystem on the server
    (see §2.2). Inputs arrive as REST content; outputs are DB rows.
 8. **Everything is project-scoped.** Every artifact, query, and MCP call carries
@@ -302,9 +305,10 @@ ready for concurrent multi-user access.
 
 **What was built (`apps/server/src/`):**
 
-- `config/config.module.ts` — `@Global` zod-validated config (decision 10);
-  provides the `DATA_DIR` token from `NOESIS_DATA_DIR` (default `.data`),
-  fail-fast on invalid. SDLC's `PROJECT_DIR` is gone (one server data dir).
+- `config/config.module.ts` — `@Global` zod-validated config (archived
+  decision 10); provides the `DATA_DIR` token from `NOESIS_DATA_DIR` (default
+  `.data`), fail-fast on invalid. SDLC's `PROJECT_DIR` is gone (one server data
+  dir).
 - `database/database.service.ts` (+ `.module`, lifecycle `.spec`) — the `lbug`
   wrapper, ported. Creates the data dir if missing, supports `:memory:`.
   `lbug` added to deps + `trustedDependencies`.
@@ -370,11 +374,11 @@ Each MCP tool needs a matching `/api/*` endpoint. Decide the contract style:
   `local-contracts`. Explicit, easy to auth/version per operation.
 - **Option 2 — a thin generic "invoke" endpoint** that proxies tool name +
   payload. Less boilerplate, but loses per-operation typing and the
-  route-constant drift-protection of decision 18.
+  route-constant drift-protection of archived decision 18.
 
-_Best practice:_ explicit typed endpoints (Option 1) match decision 18 and keep
-the `/api` surface auditable. **Recommend Option 1.** **Confirm** (this sets the
-pattern for all tools).
+_Best practice:_ explicit typed endpoints (Option 1) match archived decision 18
+and keep the `/api` surface auditable. **Recommend Option 1.** **Confirm** (this
+sets the pattern for all tools).
 
 **Review checklist:** one full vertical (prepare → skill output → `local` sends
 content → server merges → DB rows written → UI reads it) works; pattern
@@ -529,16 +533,17 @@ client (extend noesis's existing one).
   server from config, auth token attached, project identity resolved and attached
   per call (OQ-2.2), error/retry handling for a remote endpoint.
 - **Auth becomes real** (multi-user, §2.5): `local`→`/api` uses an API token; the
-  UI→`/ui` uses a session (decision 18). Each `local` instance authenticates and
-  is bound to its project.
+  UI→`/ui` uses a session (archived decision 18). Each `local` instance
+  authenticates and is bound to its project.
 - Port `mcp-tool-output.ts` (file-output vs inline-JSON tool results, stale-output
   pruning) — its temp dir lives where the MCP process runs (`local`, on the
   developer machine).
-- Bundle implications (decisions 9, 15): the `local` MCP server is bundled into
-  `plugins/claude-code/servers/noesis-local.js`. Because `local` is now a thin
-  REST client, the bundle stays small — **verify `lbug` native bindings are NOT
-  dragged into `local`** (they belong only to the server) and that the bundle
-  still boots from an empty dir (decision 9's invariant).
+- Bundle implications (archived decisions 9 and 15): the `local` MCP server is
+  bundled into `plugins/claude-code/servers/noesis-local.js`. Because `local` is
+  now a thin REST client, the bundle stays small — **verify `lbug` native
+  bindings are NOT dragged into `local`** (they belong only to the server) and
+  that the bundle still boots from an empty dir (archived decision 9's
+  invariant).
 
 ### OQ-7.1 — MCP tool output: file vs inline
 
@@ -552,9 +557,10 @@ the threshold/policy.
 
 noesis's plugin ships a `prepare-mcp-data` skill + generated `*.schema.json` +
 `scripts/validate.ts` so the _model_ can self-validate payloads before calling a
-tool (decisions 6, 13, 14). NEW-DESIGN removes the server-side `validate_output`
-tool (validation = zod load at merge). These aren't contradictory (one is
-model-side pre-flight, the other server-side enforcement), but decide:
+tool (archived decisions 6, 13 and 14). NEW-DESIGN removes the server-side
+`validate_output` tool (validation = zod load at merge). These aren't
+contradictory (one is model-side pre-flight, the other server-side enforcement),
+but decide:
 
 - Keep **both** (model pre-validates via generated schema; server re-validates via
   zod at the merge endpoint — defense in depth), or
@@ -563,7 +569,7 @@ model-side pre-flight, the other server-side enforcement), but decide:
 
 _Best practice:_ schema at the boundary you control + helpful pre-flight for the
 model is the robust combination; generating model-facing schemas from the same
-zod source is decision 13's value. **Recommend keep both.** **Confirm.**
+zod source is archived decision 13's value. **Recommend keep both.** **Confirm.**
 
 **Review checklist:** every former in-process tool now goes MCP→REST→service over
 the network; auth + project identity attached per call; bundle boots from empty
@@ -583,14 +589,14 @@ components, theme; plus the `ui-contracts/*` DTOs.
 **Adjustments / SDLC changes needed:**
 
 - Repoint API calls from SDLC's `/api/ui/*` to noesis's **`/ui/*`** surface
-  (decision 18) using `uiRoutes`/`uiPath` constants — no hardcoded paths.
+  (decision D3) using `uiRoutes`/`uiPath` constants — no hardcoded paths.
 - **No port discovery.** SDLC's `dev-discovery.ts` (random local server port) is
   removed; the server is a fixed remote URL. The Vite dev proxy targets the
   configured server URL.
-- **Multi-user UI:** the UI authenticates (session per decision 18) and operates
-  within a selected project (OQ-2.2). Account for project selection/scoping in the
-  UI shell and for concurrent edits surfacing (e.g. staleness/lock state changing
-  underneath a user).
+- **Multi-user UI:** the UI authenticates (session per archived decision 18) and
+  operates within a selected project (OQ-2.2). Account for project
+  selection/scoping in the UI shell and for concurrent edits surfacing (e.g.
+  staleness/lock state changing underneath a user).
 - Remove `edited_by_user` from UI contracts; render the per-field lock model
   (`<field>_locked`) and **derived** staleness (computed server-side from
   `source_sha`, returned on the read DTO — not a stored `is_stale` field).
@@ -598,14 +604,14 @@ components, theme; plus the `ui-contracts/*` DTOs.
 ### OQ-8.1 — UI contract form: keep plain TS interfaces, or make them zod
 
 SDLC's `ui-contracts/*` are hand-written TS `interface`s, **not** zod — diverging
-from decision 4.
+from decision D4.
 
 - **Option 1:** convert UI contracts to zod in `@repo/ui-contracts` (uniform;
   enables runtime validation of API responses; single source of truth).
 - **Option 2:** keep them as TS interfaces (read-only projections; runtime
   validation may be unnecessary overhead).
 
-_Best practice:_ decision 4 committed to zod-everywhere; deriving UI DTO types
+_Best practice:_ decision D4 committed to zod-everywhere; deriving UI DTO types
 from zod keeps server/UI in lockstep, with runtime validation opt-in at the fetch
 boundary. **Recommend Option 1.** **Confirm.**
 
@@ -631,7 +637,7 @@ auth/project selection works; lock/staleness badges reflect the new model; no
 
 **Important context:** NEW-DESIGN puts this subsystem **out of scope** of the
 clean refactor ("stays as-is"), so it is the **least clean** code. It also
-collides with noesis decisions 19/20, which describe scanners as
+collides with noesis archived decisions 19/20, which describe scanners as
 **out-of-process** engines that ship graph facts (Java = ArchUnit + Spoon), with
 `scanners/dotnet` as a planned sibling. The new topology makes the out-of-process
 shape natural: the developer's code lives on the developer machine, so the
@@ -641,9 +647,9 @@ them and runs implementation-check.
 ### OQ-9.1 — In-process TS C# scanner vs. out-of-process `scanners/dotnet`
 
 SDLC's scanner is **TypeScript, in-process**, inside the Nest app. noesis
-decisions 19/20 mandate out-of-process scanners that emit a typed graph contract
-— and the remote-server topology forbids the in-process shape anyway (the server
-cannot see the developer's code).
+archived decisions 19/20 mandate out-of-process scanners that emit a typed graph
+contract — and the remote-server topology forbids the in-process shape anyway
+(the server cannot see the developer's code).
 
 - **Option 1:** keep a TS C# scanner but run it **locally, out-of-process** (on
   the developer machine), shipping facts to the server. Faster to migrate than a
@@ -657,7 +663,7 @@ cannot see the developer's code).
 
 _Best practice:_ the clean-from-the-start mandate is hard to reconcile with the
 explicitly-not-clean scanner. **Recommend Option 3 (defer)**, and when picked up,
-**Option 2** (Roslyn, aligned with decisions 19/20, shipping facts to the
+**Option 2** (Roslyn, aligned with archived decisions 19/20, shipping facts to the
 server). **Decide scope + approach.**
 
 ### OQ-9.2 — Implementation-check coupling
@@ -687,9 +693,10 @@ implement-design-doc,search-topics,clarify-requirements}/` (SKILL.md + reference
   content to the server). Any SKILL.md referencing `validate_output` or
   `save_design_doc` must be updated (those tools are gone).
 - Generated references: noesis generates `references/*.schema.json` +
-  `*.example.json` from `mcp-contracts` (decisions 6, 13) and commits them (CI
-  drift-checked). SDLC's skill references are hand-written prose — keep the prose,
-  **add** the generated schema/example artifacts via `bun run generate`.
+  `*.example.json` from `mcp-contracts` (archived decisions 6 and 13) and
+  commits them (CI drift-checked). SDLC's skill references are hand-written
+  prose — keep the prose, **add** the generated schema/example artifacts via
+  `bun run generate`.
 - Skill outputs are validated by zod load at the server merge endpoint (no
   separate tool).
 
@@ -723,7 +730,7 @@ exhaustive optional/ChangeSet/union coverage rules), and the `test:smoke` harnes
   fixtures; every ChangeSet slot exercised; every union variant present) are
   excellent — **keep them** and apply transitively to the new contracts. Seed
   data is now written to the **server DB** (project-scoped), not to files.
-- Per noesis (decisions 21, 22), tests run under `bun run test`; the smoke
+- Per noesis (decision D7), tests run under `bun run test`; the smoke
   test consumes tokens and must stay **opt-in** (env-gated, never autonomous) —
   preserve SDLC's `NOESIS_SMOKE_CONFIRM` guard.
 - The smoke test now drives the full distributed path (`local` → remote `server`)
@@ -781,7 +788,7 @@ NEW-DESIGN model on the decided architecture (server-owned authoritative DB, thi
 `local` adapter, no indexer), and **defer the scanner / implement-design-doc
 subsystem** (Part 9 + its skill) — it is the un-clean, architecturally divergent
 corner and fits the "clean from the start" mandate poorly until rebuilt to
-decisions 19/20.
+archived decisions 19/20.
 
 ## 6. SDLC-side changes summary (where the source repo must change)
 
@@ -820,7 +827,7 @@ Most are _conceptual_ — applied while porting:
 12. **UI contracts → zod**, repointed from `/api/ui/*` to `/ui/*`, port discovery
     removed, auth + project selection added (Part 8).
 13. **Scanner** rebuilt out-of-process (runs locally, ships facts to the server)
-    to match decisions 19/20 (Part 9).
+    to match archived decisions 19/20 (Part 9).
 14. **Skill references** gain generated `*.schema.json`/`*.example.json` artifacts
     from `mcp-contracts` (Part 10).
 15. **Never migrate** `noesis-backup/`, the legacy non-`New` services, or the

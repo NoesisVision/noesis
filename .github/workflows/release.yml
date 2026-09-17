@@ -1,7 +1,7 @@
 name: Release
 
 # Publishes the Noesis service and the Claude Code plugin to npm when a v* tag
-# is pushed — one version train (decisions 33 and 68): both packages carry the
+# is pushed — one version train (decision D6): both packages carry the
 # tag's version, service first so the plugin's .mcp.json pin resolves the
 # moment the plugin lands. Auth is npm trusted publishing (OIDC) — no token
 # secret. Provenance is attached automatically. Requires a trusted publisher

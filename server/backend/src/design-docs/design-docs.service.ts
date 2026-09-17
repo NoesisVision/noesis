@@ -58,7 +58,7 @@ export class InvalidDesignDocumentError extends Error {
 }
 
 /**
- * Every write runs decision 51's boundary pipeline —
+ * Every write runs decision D4's boundary pipeline —
  * `DesignDocumentSchema.parse → checkDesignDocument`, packaged as the
  * design-document contract the `validate` tool runs too — so a document that
  * fails is a retry, never a stored inconsistency. The server mints the
@@ -97,7 +97,7 @@ export class DesignDocsService {
   }
 
   /**
-   * Whole-document replacement (decision 51): the incoming document is
+   * Whole-document replacement (decision D4): the incoming document is
    * validated like a new one and replaces the stored file under the same id;
    * whatever id the input carries is ignored.
    */

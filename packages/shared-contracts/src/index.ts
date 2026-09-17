@@ -3,7 +3,7 @@
 // read by the agent as source (the plugin ships a copy), validated by the
 // service on every write.
 //
-// Declarative on purpose (decision 68): object shapes, enums and `.describe()`
+// Declarative on purpose (decision D4): object shapes, enums and `.describe()`
 // text, no refinements, no transforms, no imports beyond zod and sibling
 // contract files. Whole-document rules the schemas cannot express live with
 // the service that enforces them; conventions with no type live in the

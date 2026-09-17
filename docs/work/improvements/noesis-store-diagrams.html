@@ -254,8 +254,8 @@
       <h1>NoesisStore</h1>
       <p class="lead">
         One typed door to <code>.noesis/graph/</code>. Spec:
-        <code>docs/work/improvements/noesis-store.md</code>, decision 76 in
-        <code>docs/decisions.md</code>, 2026-09-13.
+        <code>docs/work/improvements/noesis-store.md</code>, decision D2 in
+        <code>docs/decisions.md</code> (archived decision 76), 2026-09-13.
       </p>
 
       <svg width="0" height="0" style="position: absolute" aria-hidden="true">
@@ -774,7 +774,7 @@
 
           <!-- concurrency -->
           <text x="20" y="176" class="t b">
-            Concurrency: last write wins (decision 68, point 9)
+            Concurrency: last write wins (decision D2)
           </text>
           <rect x="20" y="190" width="300" height="70" rx="8" class="box" />
           <text x="34" y="212" class="t">
@@ -856,7 +856,10 @@
       </figure>
 
       <!-- 5. Decisions -->
-      <h2>5. Key decisions (decision 76, amends 68 and 74)</h2>
+      <h2>
+        5. Key decisions (decision D2; archived decision 76 amends archived
+        decisions 68 and 74)
+      </h2>
       <div class="cards">
         <div class="card">
           <h3>
@@ -889,8 +892,8 @@
           </h3>
           <p>
             Such a directory is garbage: skipped by <code>keys()</code>, removed
-            recursively by a sweep at boot before the indexer runs. Decision
-            74's fallback goes.
+            recursively by a sweep at boot before the indexer runs. Archived
+            decision 74's fallback goes.
           </p>
         </div>
         <div class="card">
