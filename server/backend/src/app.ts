@@ -9,8 +9,8 @@ import { createUiApp } from './ui/ui.routes.js';
 // The composition surface: routes are segregated by consumer, one sub-app per
 // surface: /ui (ui app), /internal (health and other technical endpoints).
 // The agent does not come through HTTP at all — it reaches the same services
-// over MCP on stdio (src/mcp, decision 68). No surface is guarded — the server
-// runs on the developer's own machine inside one checkout (decision 65).
+// over MCP on stdio (src/mcp, decision D3). No surface is guarded — the server
+// runs on the developer's own machine inside one checkout (decision D1).
 // Deps are wired by the composition root (main.ts for prod, tests otherwise);
 // each surface factory receives only the slice it is allowed to touch.
 export interface AppDeps {
@@ -28,7 +28,7 @@ export function createApp(deps: AppDeps) {
       // One line per request under ["noesis", "server", "http"], and a
       // request id — taken from `x-request-id` or minted — that every log
       // line inside the request carries and the response echoes
-      // (decision 75). The health probe is noise and stays out.
+      // (decision D10). The health probe is noise and stays out.
       .use(
         honoLogger({
           category: ['noesis', 'server', 'http'],

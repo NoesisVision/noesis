@@ -1,7 +1,7 @@
 // Stamps version pins from package.json, the single source of truth for the
 // plugin version: .claude-plugin/plugin.json's version and .mcp.json's
 // @noesis-vision/noesis pin (the service is released in lockstep with the
-// plugin — one version train, decisions 33 and 68). Run via `bun run
+// plugin — one version train, decision D6). Run via `bun run
 // generate`; CI's drift check enforces they stay in sync.
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -23,7 +23,7 @@ console.log(`stamped .claude-plugin/plugin.json -> ${version}`);
 
 // Textual replacement (not parse/re-serialize) so Biome's JSON formatting is
 // preserved — the drift check diffs this file byte-for-byte. The pin is the
-// default of a `${NOESIS_SERVICE_ENTRY:-...}` expansion (decision 73), so the
+// default of a `${NOESIS_SERVICE_ENTRY:-...}` expansion (decision D6), so the
 // match stops at the closing brace.
 const mcpPath = `${root}.mcp.json`;
 const mcp = await readFile(mcpPath, 'utf8');

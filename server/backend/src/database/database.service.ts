@@ -11,9 +11,9 @@ const log = serverLogger('db');
 // Owns the LadybugDB database handle. The database is in-memory only: the
 // graph is a cache over the files in `.noesis/`, rebuilt by the indexer at
 // boot and on every change, so nothing of it touches the disk and there is
-// nothing to recover (decision 68). Constructed and initialized by the
+// nothing to recover (decision D1). Constructed and initialized by the
 // composition root (main.ts), which also closes it on shutdown so native
-// resources are released deterministically (decisions 23/35).
+// resources are released deterministically (decision D3).
 //
 // `@ladybugdb/core` is imported lazily, in `init()`: loading it dlopen's the
 // native binary, which `native/ensure-ladybug.ts` may first have to put in
@@ -61,8 +61,9 @@ export class DatabaseService {
     } finally {
       // QueryResults hold native handles; close them here so they are freed
       // deterministically instead of at the GC's whim. (On lbug 0.14.3 a
-      // result finalized after its Database closed segfaulted — decision 23;
-      // not reproducible on @ladybugdb/core 0.18.0, kept as hygiene.)
+      // result finalized after its Database closed segfaulted — archived
+      // decision 23; not reproducible on @ladybugdb/core 0.18.0, kept as
+      // hygiene.)
       closeResults(result);
     }
   }

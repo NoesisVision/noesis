@@ -3,17 +3,17 @@
 The knowledge graph **file contracts**: every shape a file under `.noesis/`
 can have, plus the payloads the import tools take. Defined once here as
 [zod](https://zod.dev/) schemas with inferred TS types, consumed as
-TypeScript source by two readers (decision 68):
+TypeScript source by two readers (decision D4):
 
 - **the agent**, through the copy `plugins/claude-code/contracts/` — a build
   output of the plugin (`bun run build`, run as `prepack`), stamped with the
   plugin version and asserted byte-identical by the plugin's tests
-  (decisions 69, 71). Skills name the contract they need by a path under that
+  (decision D4). Skills name the contract they need by a path under that
   directory and read the `.ts` file directly.
 - **the service**, which imports this package and validates with the same
   schemas twice: in the `validate` tool against the agent's working file, and
   again at the write boundary. `bun build` inlines them into the service
-  bundle, so the service package ships no readable copy (decision 70).
+  bundle, so the service package ships no readable copy (decision D4).
 
 The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
@@ -30,7 +30,7 @@ live in a companion `.md` beside each family.
 | `change.ts`                                                                               | `change.md`                                  | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to         |
 | `information-sources/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | `information-sources/information-sources.md` | Imported conversations and documents, their fragments and categories, and the import payloads   |
 | `topic.ts`, `decision.ts`                                                                 | `wiki.md`                                    | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate, with `*_locked` markers |
-| `design-doc.ts`, `design-doc-ref.ts`                                                      | `design-doc.md`                              | `graph/changes/<change>/design-docs/` — the normalised design-doc model (decision 50), its refs |
+| `design-doc.ts`, `design-doc-ref.ts`                                                      | `design-doc.md`                              | `graph/changes/<change>/design-docs/` — the normalised design-doc model (decision D4), its refs |
 | `system-model.ts`                                                                         | `system-model.md`                            | `graph/system-model/` — the implemented model the scanner writes                                |
 
 `index.ts` re-exports every schema; `src/*.ts` is also importable by path.

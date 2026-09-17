@@ -3,14 +3,15 @@ import { z } from 'zod';
 import { DEFAULT_LOG_LEVEL, parseLogLevel } from '../logging/logging.js';
 
 // Server configuration is read from the environment and zod-validated at
-// bootstrap, failing fast on garbage (decision 10's pattern). The service
-// serves the one repository `NOESIS_ROOT` names — or, when unset, the checkout
-// it was started in (the walk to `.git` lives in `files/repository-root.ts`).
+// bootstrap, failing fast on garbage (archived decision 10's pattern). The
+// service serves the one repository `NOESIS_ROOT` names — or, when unset, the
+// checkout it was started in (the walk to `.git` lives in
+// `files/repository-root.ts`).
 //
 // There is little else to configure: the service runs locally inside a single
 // checkout, one process per agent session, so it has no identity provider, no
-// tenant scoping and no public URL (decision 65), and its graph is an
-// in-memory cache with no data directory (decision 68). The HTTP port is
+// tenant scoping and no public URL, and its graph is an
+// in-memory cache with no data directory (decision D1). The HTTP port is
 // ephemeral; `PORT` pins it only for a stable URL during development
 // (`bun run dev`), and is not part of the plugin's launch — two agent sessions
 // must not collide.

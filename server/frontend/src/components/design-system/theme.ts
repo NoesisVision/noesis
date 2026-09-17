@@ -1,10 +1,9 @@
 import { createTheme, localStorageColorSchemeManager } from '@mantine/core';
 
 /**
- * The noesis.vision palette as a Mantine theme (decision 60's finding, kept
- * as brand guidance by decision 66): a cool blue ramp with `blue-700` as the
- * primary shade, Raleway, and small radii. Everything else is Mantine's
- * default.
+ * The noesis.vision palette as a Mantine theme (decision D5): a cool blue
+ * ramp with `blue-700` as the primary shade, Raleway, and small radii.
+ * Everything else is Mantine's default.
  */
 export const theme = createTheme({
   primaryColor: 'brand',

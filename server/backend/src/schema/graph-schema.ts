@@ -3,7 +3,7 @@
 // read it as the single source of truth. Each later part appends its own tables
 // under its heading rather than scattering `CREATE … TABLE` across repositories.
 //
-// The graph is an in-memory cache over the files in `.noesis/` (decision 68):
+// The graph is an in-memory cache over the files in `.noesis/` (decision D1):
 // the indexer rebuilds every table from the files at boot and whenever the
 // watcher sees a change, and nothing writes a table any other way. So there
 // are no migrations — a schema change here is picked up by the next boot —
@@ -14,11 +14,11 @@
 // list or a search reads without parsing, and the whole entity as JSON in
 // `json`. `change` is set on the kinds that live under
 // `.noesis/graph/changes/<change>/` and empty on the wiki. There is no file
-// time: a `git checkout` rewrites it, and nothing read it (decision 76).
+// time: a `git checkout` rewrites it, and nothing read it (decision D2).
 //
 // The server runs locally against one checkout, so there is no tenant scoping
 // and no `version` column: the single writer needs no optimistic concurrency
-// (decision 65, superseding OQ-2.2/2.3's clauses).
+// (decision D1, superseding OQ-2.2/2.3's clauses).
 export const GRAPH_SCHEMA: readonly string[] = [
   // --- Design documents (design-doc phase 2) ---
   //

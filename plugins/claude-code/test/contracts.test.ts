@@ -1,5 +1,5 @@
 // The plugin's contracts/ directory is a build output: a copy of
-// packages/shared-contracts/src made by `bun run build` (decisions 68, 69).
+// packages/shared-contracts/src made by `bun run build` (decision D4).
 // Skills name a contract by this plugin-relative path, so the copy must hold
 // exactly the source files, carry the plugin version in its header, and be
 // byte-identical to the source below it. The copy is gitignored, so the test

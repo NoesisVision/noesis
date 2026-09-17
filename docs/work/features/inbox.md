@@ -7,6 +7,8 @@ created: 2026-08-16
 
 # Inbox
 
+> Historical record. This feature was removed; current decisions are D1–D10 in docs/decisions.md (see D1).
+
 **Prototype:** [`inbox-prototype.html`](./inbox-prototype.html) — single-file
 HTML mock (open in a browser); full shell chrome with Inbox active, functional
 triage over in-memory sample data: dismiss-with-reason, defer, promote-to-task
@@ -16,13 +18,14 @@ escalation, and inbox-zero empty state. Build plan and design notes:
 
 ## Context
 
-Noesis serves project teams (decision 48: projects own their repositories in a
-server-side registry). Today there is no place inside noesis where things that
-demand a reaction — alerts, meeting outcomes, upcoming events — accumulate;
-they live in the systems that produced them. A task/work module is planned but
-does not exist yet; the inbox is its upstream funnel. Identity is the GitHub
-App flow (decision 46); the UI shell and search provider registry are decision 45. This task doc follows decision 43 (typed, scoped task docs under
-`docs/work/`).
+Noesis serves project teams (archived decision 48: projects own their
+repositories in a server-side registry). Today there is no place inside noesis
+where things that demand a reaction — alerts, meeting outcomes, upcoming
+events — accumulate; they live in the systems that produced them. A task/work
+module is planned but does not exist yet; the inbox is its upstream funnel.
+Identity is the GitHub App flow (archived decision 46); the UI shell and search
+provider registry are archived decision 45. This task doc follows decision D7
+(typed, scoped task docs under `docs/work/`).
 
 ## Problem / Goal
 
@@ -130,8 +133,8 @@ are pure noise.
 
 ## Constraints
 
-- Team boundary is the existing **project** (decision 48); the inbox is
-  per-project. No new team/membership entity.
+- Team boundary is the existing **project** (archived decision 48); the inbox
+  is per-project. No new team/membership entity.
 - Intake must be designed so future automatic sources — notably coding agents
   via the MCP bridge — can plug in without redesigning it (source-agnostic
   signal contract).
@@ -144,7 +147,8 @@ are pure noise.
   attached file of any kind; a transcript is one item (no extraction).
 - Calendar events come from a Google Calendar integration and/or API push;
   all events within the window land (no filtering rules).
-- Identity/auth rides on the existing GitHub App flow (decision 46).
+- Identity/auth rides on the existing GitHub App flow (archived
+  decision 46).
 
 ## Non-goals
 
@@ -174,7 +178,7 @@ are pure noise.
 
 ## Solution
 
-Implemented (decision 58): `InboxItem` graph nodes under their project
+Implemented (archived decision 58): `InboxItem` graph nodes under their project
 (`server/backend/src/inbox/`), conditional-write state transitions, read-time
 expiry/wake sweeps, and two `/ui` intake endpoints — manual capture and a
 source-agnostic `/signals` contract. The Inbox view is the top item in the

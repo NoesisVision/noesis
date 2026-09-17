@@ -1,4 +1,4 @@
-// Boot re-index cost (decision 68, point 12): a synthetic `.noesis/` at 1k
+// Boot re-index cost (decision D2): a synthetic `.noesis/` at 1k
 // and 10k design docs, indexed from cold. Not part of `bun test test/unit`;
 // run with `bun run test:bench` and record the numbers in
 // docs/work/chores/target-architecture-migration.md.

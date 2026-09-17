@@ -13,7 +13,7 @@ import type {
 } from '../../validation/validator.js';
 
 /**
- * A design document as a whole file: decision 51's boundary pipeline
+ * A design document as a whole file: decision D4's boundary pipeline
  * (`DesignDocumentSchema.parse → checkDesignDocument`) expressed as one
  * contract, so the `validate` tool and the service's write run the very same
  * thing. Integrity warnings do not fail validation; errors do.

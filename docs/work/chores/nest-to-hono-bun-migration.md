@@ -1,6 +1,8 @@
 # Migration Plan: NestJS → Hono, Vite → Bun fullstack
 
-**Status:** done (2026-07-06, decision 28)
+> Historical record. The system described here has since changed; current decisions are D1–D10 in docs/decisions.md.
+
+**Status:** done (2026-07-06, archived decision 28)
 **Goal:** Replace NestJS with Hono on `Bun.serve` in `apps/server` and replace
 Vite with Bun's fullstack dev server + `Bun.build` in `apps/ui`, following the
 wiring of the `first-app` reference project (`~/IdeaProjects/learn-js/first-app`):
@@ -17,14 +19,14 @@ via route constants).
 - Nest is the only reason for `@nestjs/*` (7 packages), `rxjs`,
   `reflect-metadata`, Express, `supertest`, and 6 of the 7 `--external` build
   flags. After migration the only external is `lbug` (native module,
-  decision 24).
+  decision D3).
 - The UI is a plain React 19 SPA (no SSR planned). Bun's fullstack dev server
   covers dev (HMR) and `Bun.build` covers the static prod build; Tailwind (when
   adopted) has an official Bun plugin.
-- The Docker image's minimal-lbug staging (decision 24) requires shipping a
-  server _bundle_, so the server keeps its `bun build` step — unlike first-app,
-  which runs from source but has no native-module constraint. The runtime stage
-  of the Dockerfile is unchanged.
+- The Docker image's minimal-lbug staging (archived decision 24) requires
+  shipping a server _bundle_, so the server keeps its `bun build` step — unlike
+  first-app, which runs from source but has no native-module constraint. The
+  runtime stage of the Dockerfile is unchanged.
 - The dependency graph stays acyclic: server never imports UI files (prod
   serving is by path via `UI_DIST_PATH`, as today); the UI gains a _type-only_
   devDependency on server for the `hc` client.
@@ -78,7 +80,7 @@ Dev stays two processes (as with Vite), both Bun, started by the existing root
 | ui client       | `src/App.tsx`                                                                  | `fetch(uiPath('hello'))` → typed `hc` call                                                       |
 | ui manifest     | `apps/ui/package.json`, `tsconfig.json`                                        | drop vite deps; add type-only `server` devDep; `tsc -b` → `tsc --noEmit`                         |
 | docker          | `apps/server/Dockerfile`                                                       | build stage: comments only; runtime stage: unchanged                                             |
-| docs            | `README.md`, `docs/decisions.md`                                               | tech table; add decision 28 (supersedes parts of 17)                                             |
+| docs            | `README.md`, `docs/decisions.md`                                               | tech table; add archived decision 28 (supersedes parts of archived decision 17)                  |
 
 Unchanged: `apps/local`, all `packages/*`, `railway.json` (healthcheck
 `/internal/health` survives), `.github/workflows/ci.yml`, `.githooks`, root
@@ -98,7 +100,7 @@ Unchanged: `apps/local`, all `packages/*`, `railway.json` (healthcheck
   5. if `UI_DIST_PATH`: mount `serveStatic({ root })` + SPA fallback (Step 2)
   6. `Bun.serve({ port: PORT ?? 3000, fetch: app.fetch })`
   7. `SIGTERM`/`SIGINT` handler: `server.stop()` then `await db.close()` —
-     explicit because lbug segfaults on GC-finalized handles (decision 23);
+     explicit because lbug segfaults on GC-finalized handles (decision D3);
      Nest's `enableShutdownHooks` equivalent is now our job.
 - Nest `Logger` → `console.log`/`console.error` with a `[name]` prefix (5 call
   sites; not worth a dependency).
@@ -120,7 +122,7 @@ Replicate `ServeStaticModule`'s behavior with `hono/bun`'s `serveStatic`:
 - e2e specs: `Test.createTestingModule` + `supertest` →
   `createApp(testDeps).request('/ui/hello')`. The shared in-memory DB fixture
   (`test-db.ts`) survives as-is minus the `reflect-metadata` import — the
-  one-DB-per-process constraint (decision 23) is unchanged.
+  one-DB-per-process constraint (archived decision 23) is unchanged.
 - Controller specs become route-factory specs via `app.request()`; service
   specs lose only decorator imports.
 - Delete `supertest`, `@types/supertest`; nothing replaces them.
@@ -169,7 +171,7 @@ console: true }`. Script: `"dev": "bun --hot src/dev-server.ts"`.
   exports `hc<AppType>(window.location.origin)`.
 - `App.tsx`: `client.ui.hello.$get()` replaces `fetch(uiPath('hello'))` —
   path, method, and response type now compile-time-checked against the server.
-- Guardrails (also recorded in decision 28): UI may import only _types_ from
+- Guardrails (also recorded in decision D5): UI may import only _types_ from
   server (Biome's `useImportType` is already active via the recommended set);
   if Hono type inference ever slows `tsc`, the escape hatch is precompiling the
   server's `.d.ts`.
@@ -180,14 +182,14 @@ console: true }`. Script: `"dev": "bun --hot src/dev-server.ts"`.
   only comments change ("NestJS" → "Hono"). Runtime stage untouched
   (`UI_DIST_PATH=/app/ui`, minimal lbug staging, `server/main.js`).
 - `README.md`: tech table rows for NestJS and Vite.
-- `docs/decisions.md`: **Decision 28** — Hono replaces NestJS; Bun replaces
-  Vite; first-app wiring (two dev processes, static-by-path prod, acyclic
-  deps, type-only `hc` client); portability rules keeping the Vite exit open:
-  no `bun:` imports / Bun APIs / Bun import attributes in `apps/ui/src` except
-  `dev-server.ts`, HTML import confined to `dev-server.ts` + `build.ts`,
+- `docs/decisions.md`: **Archived decision 28** — Hono replaces NestJS; Bun
+  replaces Vite; first-app wiring (two dev processes, static-by-path prod,
+  acyclic deps, type-only `hc` client); portability rules keeping the Vite exit
+  open: no `bun:` imports / Bun APIs / Bun import attributes in `apps/ui/src`
+  except `dev-server.ts`, HTML import confined to `dev-server.ts` + `build.ts`,
   client-visible env only via `BUN_PUBLIC_*` behind one module. Supersedes the
-  "Nest serves the UI" wording of decision 17 (single-service hosting itself
-  stands) and the Nest-specific externals list of decision 24.
+  "Nest serves the UI" wording of archived decision 17 (single-service hosting
+  itself stands) and the Nest-specific externals list of archived decision 24.
 - Verify: `bun run ci` green; `docker build -f apps/server/Dockerfile .`;
   manual pass — `bun run dev:server`, UI HMR works, `/ui/hello` through the
   typed client, `/internal/health` 200, SPA fallback + surface-404 parity via
@@ -197,7 +199,7 @@ console: true }`. Script: `"dev": "bun --hot src/dev-server.ts"`.
 
 - **Server prod artifact — chosen: keep bundling** (`bun build`, one external).
   Running from source (first-app style) would require shipping workspace
-  `node_modules`, defeating decision 24's 500 MB → 17 MB lbug staging.
+  `node_modules`, defeating archived decision 24's 500 MB → 17 MB lbug staging.
 - **Route constants vs `hc` — chosen: `hc` for the UI surface.**
   `@repo/ui-contracts`' `uiRoutes`/`uiPath` lose their consumer; retiring the
   package (its DTO barrel just re-exports `@repo/shared-contracts`) is a
@@ -259,6 +261,6 @@ config, DB lifecycle, Docker runtime stage, CI, or `apps/local`.
   `apps/server`+`apps/local` to `apps/local` only — import-type hygiene on the
   server is part of this decision's guardrails. `apps/ui/src/favicon.svg`
   excluded from linting (asset, not code).
-- **Server tsconfig** now extends `base.json` directly; the decision-7
-  decorator duplication is gone with the decorators. `nest.json` stays for
-  `apps/local`.
+- **Server tsconfig** now extends `base.json` directly; the decorator
+  duplication of archived decision 7 is gone with the decorators. `nest.json`
+  stays for `apps/local`.

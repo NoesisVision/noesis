@@ -86,5 +86,5 @@ What the branch does:
 
 ## Outcome
 
-Adopted on 2026-09-12 as decision 72 and merged into the architecture
+Adopted on 2026-09-12 as decision D5 and merged into the architecture
 branch.

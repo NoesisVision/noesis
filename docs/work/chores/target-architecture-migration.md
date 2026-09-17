@@ -10,12 +10,13 @@ created: 2026-09-11
 ## Context
 
 [`docs/arch/ARCHITECTURE.md`](../../arch/ARCHITECTURE.md) describes the target
-system; decision 68 adopts it, records which earlier decisions it supersedes or
-amends, and settles the points the document left open (process model, skills
-location, directory name, graph storage, inbox, root discovery, temp dir,
-version control, concurrent writers, JVM scanners, picture). This chore is the
-mechanical side of that adoption: what changes in the tree, in which order, and
-what still has to be decided before each step can start.
+system; decision D1 (archived decision 68) adopts it, records which earlier
+decisions it supersedes or amends, and settles the points the document left open
+(process model, skills location, directory name, graph storage, inbox, root
+discovery, temp dir, version control, concurrent writers, JVM scanners,
+picture). This chore is the mechanical side of that adoption: what changes in
+the tree, in which order, and what still has to be decided before each step can
+start.
 
 The relevant current state, verified on 2026-09-11:
 
@@ -23,8 +24,8 @@ The relevant current state, verified on 2026-09-11:
   `/api`, `/internal`), a composition root in `main.ts`, and two graph-backed
   repositories (`design-docs`, `inbox`) over `DatabaseService` and the single
   `GRAPH_SCHEMA` list. The graph is on-disk LadybugDB under `NOESIS_DATA_DIR`,
-  with torn-WAL recovery behind `NOESIS_RECOVER_WAL` (decision 62). No file I/O
-  anywhere.
+  with torn-WAL recovery behind `NOESIS_RECOVER_WAL` (archived decision 62). No
+  file I/O anywhere.
 - `plugins/mcp-bridge` is a stdio MCP server published as
   `@noesis-vision/mcp-bridge`, launched by the plugin's `.mcp.json` via `bunx`,
   calling `/api/hello` over REST using `@repo/local-contracts` route constants.
@@ -84,7 +85,7 @@ one reviewable pull request unless noted.
   content; other files, and everything under `.noesis/tmp/`, are ignored.
 - Writes are whole-file and atomic: write to a sibling temp name in the same
   directory, then rename. Last write wins across processes; no locks, no hash
-  preconditions (decision 68, point 9).
+  preconditions (decision D2).
 - Ids: content hash for imported sources (re-import is detected as a
   duplicate), time-ordered (UUIDv7) for authored entities.
 - Cross-file references carry the referenced file's hash at link time; the
@@ -213,7 +214,7 @@ one reviewable pull request unless noted.
   the backend: `ids/uuid.ts`, `design-docs/design-doc-integrity.ts` and the
   ref-resolving functions as `design-docs/design-doc-paths.ts` (the
   `ElementRefSchema` stays a contract). Deleted: `design-doc-collaboration.ts`
-  (no consumer since decision 64) and `assert-never.ts`. New contracts:
+  (no consumer since archived decision 64) and `assert-never.ts`. New contracts:
   `change`, `file-ref`, `locked`, `system-model`, `conversation-analysis` and
   `document-analysis` (the former `analyzed-topic` skill payload, with the id
   left to the service); companion docs `conventions.md`, `change.md`,
@@ -223,12 +224,12 @@ one reviewable pull request unless noted.
   `plugins/claude-code/contracts/` (committed, drift-checked, byte-identity
   and declarativeness asserted by `plugins/claude-code/test/contracts.test.ts`)
   and `build:contracts` fills the gitignored `server/backend/contracts/` that
-  ships in the service package. Revised the same day (decisions 69, 70): the
+  ships in the service package. Revised the same day (decision D4): the
   plugin copy is a build output too — gitignored except for a README, made
   by the plugin's `bun run build` and on `prepack` — and the service ships
   no copy at all, since nothing read it; the tree holds the sources once
   and one package carries the readable copy, with the copy tool moved into
-  the plugin (decision 71). The `validate` tool now accepts every
+  the plugin (decision D4). The `validate` tool now accepts every
   registered contract, not only `design-document`. The plugin has no skills
   until R6.
 
@@ -307,7 +308,7 @@ one reviewable pull request unless noted.
   done here, needs a person:** rotating the GitHub App client secret and
   private key that the deleted `.env` held (`NOESIS_GITHUB_CLIENT_SECRET`,
   `NOESIS_GITHUB_PRIVATE_KEY`, `NOESIS_TOKEN_KEY`) in the GitHub App
-  settings — the auth feature is removed (decision 65), so the App itself can
+  settings — the auth feature is removed (decision D1), so the App itself can
   be deleted instead.
 
 ### R9 — Documentation
@@ -319,12 +320,12 @@ one reviewable pull request unless noted.
   `docs/arch/high_level.png`.
 - README architecture section and diagram, `docs/stack.md`, the contracts
   section, the configuration table.
-- `sdlc-migration-plan.md` §2 gets a status note pointing at decision 68; the
+- `sdlc-migration-plan.md` §2 gets a status note pointing at decision D1; the
   rest is historical and stays.
 - `change-shell.md`: the change backend section is rewritten to directory
   semantics; the sidebar, routes and styling sections stand.
 - Landed 2026-09-12. `ARCHITECTURE.md` gained the "Process model" section
-  (the tree listing and `tmp/` were already corrected with decision 68);
+  (the tree listing and `tmp/` were already corrected with decision D2);
   `high_level.png` was already gone from the tree. README: the bridge-era diagram is replaced by
   a pointer to the architecture document and a one-line sketch, the apps
   table and the configuration table match `config.ts`, the scanners section
@@ -336,8 +337,8 @@ one reviewable pull request unless noted.
 
 ## Constraints
 
-- Append-only decision log: nothing in 1–67 is edited; decision 68 is the
-  record of what changed.
+- Append-only decision log: nothing in archived decisions 1–67 is edited;
+  archived decision 68 is the record of what changed.
 - Every pull request leaves `bun run ci` green. Groups that delete (inbox,
   bridge, hosting) must remove their tests in the same change, not skip them.
 - The `/ui` surface keeps its inferable route tree and the unbroken `.route()`
@@ -360,15 +361,15 @@ one reviewable pull request unless noted.
 - A long-running daemon, a browser-only mode, or a shared process between
   agent sessions.
 - Locks or hash preconditions for concurrent writers.
-- Multi-user, remote access, or any trust boundary (decision 65 stands).
+- Multi-user, remote access, or any trust boundary (decision D1 stands).
 - The change-shell UI itself; only its backend section is rewritten here.
 - Re-homing the inbox as a file kind.
 - An on-disk graph cache; performance work on rebuild or watch.
 
 ## Open questions
 
-None. Every point the architecture document left open was resolved on
-2026-09-11 (decision 68, "Resolved points"), and the three implementation
+None. Every point the architecture document left open was resolved on 2026-09-11
+(archived decision 68, "Resolved points"), and the three implementation
 questions this document raised — boot re-index cost, temp-dir cleanup, how the
 agent learns the temp-dir path — were resolved the same day and folded into R2
 and R4. The re-index budget in R2 is a working figure to be replaced by the

@@ -1,11 +1,11 @@
 # frontend
 
 The Noesis web UI: a client-only React SPA on TanStack Router with Mantine
-(decisions 67 and 72). There is no SSR and no server-side execution of any
+(decision D5). There is no SSR and no server-side execution of any
 kind — anything that needs a server is a Hono route on the backend's `/ui`
 surface.
 
-This package has no production build of its own (decision 72). The backend
+This package has no production build of its own (decision D5). The backend
 imports `index.html`, and bun bundles what the page references ahead of time
 into the service's `dist/` when it is built. During development, Vite serves
 the page with React Fast Refresh on `http://127.0.0.1:3000` and proxies the
@@ -49,7 +49,7 @@ src/
   env.d.ts                  # module declarations for side-effect CSS imports
 ```
 
-The shell is change-scoped (decision 74): the sidebar's picker names the
+The shell is change-scoped (decision D5): the sidebar's picker names the
 current change, the four entries under it are that change's views, and the
 pinned documentation zone holds the change-independent ones. `/` lands on
 the last-opened change (`localStorage` `noesis.shell.lastChangeId`), the

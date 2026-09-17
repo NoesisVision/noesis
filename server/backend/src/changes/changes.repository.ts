@@ -33,7 +33,7 @@ type ChangesStore = NoesisStoreOf<typeof ChangeSchema, typeof CHANGE_CHILDREN>;
  * The `changes` collection of `.noesis/graph/`: one object per change, keyed
  * by its slug, whose `data.json` is the `change` contract, and under it the
  * design documents, conversations and documents the change owns (decision
- * 76). The store validates on both sides of the disk and replaces files
+ * D2). The store validates on both sides of the disk and replaces files
  * atomically; this class only chooses the key and hands out the handles on
  * a change's child collections.
  */

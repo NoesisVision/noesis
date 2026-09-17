@@ -1,7 +1,7 @@
 // Bumps the plugin version in package.json (the single version source — run
 // `bun run generate` afterwards to stamp .claude-plugin/plugin.json and the
 // .mcp.json service pin), the service package (@noesis-vision/noesis in
-// server/backend) released in lockstep with it (decisions 33 and 68), and the
+// server/backend) released in lockstep with it (decision D6), and the
 // matching marketplace channel entry. Marketplace npm
 // sources only document exact-semver pins (no dist-tags), so each entry stays
 // pinned: the beta entry always to a prerelease, the stable entry to a stable

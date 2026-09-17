@@ -9,7 +9,7 @@ created: 2026-09-12
 
 ## Context
 
-The migration's R3 (decision 68) ships the service as `@noesis-vision/noesis`,
+The migration's R3 (decision D6) ships the service as `@noesis-vision/noesis`,
 launched by the plugin's `.mcp.json` via `bunx`. That surfaced a packaging gap
 in `@ladybugdb/core`: the package ships its native binary in a per-platform
 optional package (`@ladybugdb/core-<platform>-<arch>`) and copies it into its

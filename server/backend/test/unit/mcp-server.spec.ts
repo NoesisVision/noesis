@@ -1,5 +1,5 @@
 // Drives createMcpServer through a real MCP client over an in-memory
-// transport, over a throwaway `.noesis/`. Pins the R4 shape of decision 68:
+// transport, over a throwaway `.noesis/`. Pins the R4 shape of decision D3:
 // payloads travel as working-file paths under `.noesis/tmp/`, validation is a
 // tool whose output the agent can act on, and failures come back in-band
 // (isError) — never as protocol-level errors the model cannot read.

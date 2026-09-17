@@ -11,7 +11,7 @@ updated: 2026-09-13
 Target: TypeScript, Bun, Zod, local disk  
 Primary use case: the Hono service writing change objects, design documents, wiki entries and system-model files under `.noesis/graph/`
 
-Revision note: the first draft was reviewed on 2026-09-13 against decisions 68 and 74, `packages/shared-contracts/src/conventions.md` and the five repositories built on `FileRepository`. The decisions taken in that review, and in the follow-up on the open points, are folded in below; §13 records what each resolved.
+Revision note: the first draft was reviewed on 2026-09-13 against archived decisions 68 and 74, `packages/shared-contracts/src/conventions.md` and the five repositories built on `FileRepository`. The decisions taken in that review, and in the follow-up on the open points, are folded in below; §13 records what each resolved.
 
 ## 1. Purpose
 
@@ -176,7 +176,7 @@ Only files the store writes may exist under `graph/`. There is no place for note
 Two things are called "source" and they land in different places:
 
 - **Information sources** are graph content. A conversation is what the import-conversation skill builds from a transcript; a document is what the import-document skill builds from a Markdown or PDF file. Both are JSON entities with contracts (`Conversation`, `Document`), written through the store as children of a change, indexed into the `Conversation` and `Document` node tables, searchable, and the target of fragment refs from topics and decisions.
-- **Source files** are what the skills read: the transcript, the `.md`, the `.pdf`. They are not graph content and are never written through the store. `sources/` is a place to put them so the skill can find them; the service does not index it, does not manage it and does not define its layout. It is not versioned: transcripts and PDFs are large, often private, and the graph built from them is what gets committed. `NoesisDir.ensure()` creates it and keeps it in the `.gitignore` it maintains, beside `tmp/` and `logs/` (decision 76).
+- **Source files** are what the skills read: the transcript, the `.md`, the `.pdf`. They are not graph content and are never written through the store. `sources/` is a place to put them so the skill can find them; the service does not index it, does not manage it and does not define its layout. It is not versioned: transcripts and PDFs are large, often private, and the graph built from them is what gets committed. `NoesisDir.ensure()` creates it and keeps it in the `.gitignore` it maintains, beside `tmp/` and `logs/` (decision D2).
 
 ### Under `graph/`
 
@@ -230,7 +230,7 @@ Iteration is not a snapshot. Concurrent additions or removals may or may not app
 
 ### What this replaces
 
-The layout from decision 68 (flat `<slug>-<id-suffix>.json` files per kind directory) and decision 74 (`change.json` inside the change directory) go. The human-readable slug in the file name goes with them: a directory named by an opaque id is what a `git diff` shows. The `slug` remains a field inside `data.json` for changes, where it is also the key.
+The layout from archived decision 68 (flat `<slug>-<id-suffix>.json` files per kind directory) and archived decision 74 (`change.json` inside the change directory) go. The human-readable slug in the file name goes with them: a directory named by an opaque id is what a `git diff` shows. The `slug` remains a field inside `data.json` for changes, where it is also the key.
 
 ## 6. Keys and collection names
 
@@ -250,7 +250,7 @@ Child collection names are application-defined and must match:
 
 Names are preserved exactly, including `design-docs`. Reject sibling collection names that differ only by case, so definitions remain portable across case-sensitive and case-insensitive filesystems.
 
-Neither keys nor collection names may contain path separators or traversal segments. Managed object paths must not follow symbolic links. The data directory is application-controlled; concurrent modification by unrelated filesystem processes is outside the concurrency contract, but git operations underneath the service are normal (decision 68) and must never make the store throw anything other than the errors in §9 or leave it wedged.
+Neither keys nor collection names may contain path separators or traversal segments. Managed object paths must not follow symbolic links. The data directory is application-controlled; concurrent modification by unrelated filesystem processes is outside the concurrency contract, but git operations underneath the service are normal (decision D1) and must never make the store throw anything other than the errors in §9 or leave it wedged.
 
 ## 7. Validation and JSON representation
 
@@ -290,7 +290,7 @@ This is an atomic-visibility guarantee, not a guarantee of survival after sudden
 
 ### Concurrency: last write wins
 
-Decision 68 (point 9) stands: concurrent writers are resolved by atomic whole-file replacement, and the last complete write wins. The store has no operation coordinator, no per-object queue and no locks.
+Decision D2 stands: concurrent writers are resolved by atomic whole-file replacement, and the last complete write wins. The store has no operation coordinator, no per-object queue and no locks.
 
 - Two `set` calls on the same key, from the same process or from two service processes on one checkout, each produce a complete valid file; whichever rename lands last is the file that stays.
 - A `get` followed by `set` is not a transaction. Callers needing read-modify-write semantics must serialize the complete operation at the application layer.
@@ -348,18 +348,18 @@ The Hono integration decides how errors map to HTTP responses and must avoid exp
 - JSON parsing and serialization are not streaming operations in this design. Async filesystem methods do not make that CPU work nonblocking.
 - Callers control parallelism when processing many large objects.
 - Backend code owns disk access. React accesses objects through Hono endpoints.
-- Resolve the data directory from deployment configuration (`NoesisDir`, decision 68 point 6). Do not import mutable JSON into the application bundle or store it inside the executable.
+- Resolve the data directory from deployment configuration (`NoesisDir`, decision D2). Do not import mutable JSON into the application bundle or store it inside the executable.
 - The library does not log object contents. Applications may log operation metadata such as key, duration, and result.
 
 ### Consequences for existing code
 
 - `FileRepository` and its `StoredFile<T>` (entity, path, hash, mtime) are replaced. The five repositories on it (`ChangesRepository`, `DesignDocsRepository`, `ConversationsRepository`, `DocumentsRepository`, `TopicsRepository`, `DecisionsRepository`, `SystemModelRepository`) become thin wrappers over store handles, each choosing its key.
-- `ChangesRepository` loses `list`, `exists` and the "directory without `change.json` is still a change" fallback of decision 74. Existence is answered by the graph.
+- `ChangesRepository` loses `list`, `exists` and the "directory without `change.json` is still a change" fallback of archived decision 74. Existence is answered by the graph.
 - `ConversationsRepository` and `DocumentsRepository` stay on the store as children of a change, keyed by `conversation_id` and `document_id`.
 - The watcher's ignore rules change: only `graph/` is graph content; `sources/`, `tmp/`, `logs/` and `.gitignore` are not.
 - The `updated_at` column is dropped from every node table and `updatedAt` from `DesignDocSummary`: it was the file's mtime, which a `git checkout` rewrites, and nothing in the UI reads it. A "last modified" field returns as data written by a repository when a view needs it.
 - `FileRef.hash` is dropped; `FileRef.check()` has no caller. `source_sha` on fragment refs is computed by the import service from the conversation or document it writes, not read back from the store. Since a source's id is already a hash of its content, the import feature decides whether `source_sha` still carries information.
-- `conventions.md` is rewritten for the new layout, and a decisions.md entry amends 68 (layout, file names, `updated_at`, `FileRef.hash`) and 74 (`change.json`, the fallback).
+- `conventions.md` is rewritten for the new layout, and a decisions.md entry amends archived decision 68 (layout, file names, `updated_at`, `FileRef.hash`) and archived decision 74 (`change.json`, the fallback).
 - The two test changes on disk (`.noesis/changes/test`, `test-2`) are moved by hand or deleted; no migration code.
 
 ## 11. Acceptance criteria
@@ -412,13 +412,13 @@ Decided on 2026-09-13 after the review:
 
 11. **`sources/` is ignored** by git, like `tmp/` and `logs/`.
 
-Recorded as decision 76 in `docs/decisions.md`.
+Recorded as decision D2 in `docs/decisions.md` (archived decision 76).
 
 ## References
 
 - [Zod: parsing, async validation, and inferred input/output types](https://zod.dev/basics)
 - [Zod: schema API](https://zod.dev/api)
 - [Bun: file I/O](https://bun.com/docs/runtime/file-io)
-- Decision 68 (files as the source of truth, layout, last write wins), decision 74 (`change.json`), `packages/shared-contracts/src/conventions.md`.
+- Decisions D1 and D2 (files as the source of truth, layout, last write wins), archived decision 74 (`change.json`), `packages/shared-contracts/src/conventions.md`.
 
 The API and behavioral guarantees above are the proposed store contract, not functionality already provided by Zod or Bun alone.

@@ -17,7 +17,7 @@ finding solution options** — it captures the problem space, not a solution.
 
 ## 1. Determine type and scope
 
-**Type** is one of the four commit types (decision 42, same vocabulary as the
+**Type** is one of the four commit types (decision D7, same vocabulary as the
 commit-message skill): `feat`, `fix`, `improvement`, `chore`. Infer it from the
 user's description and confirm; if genuinely ambiguous, ask with
 AskUserQuestion.
@@ -98,8 +98,8 @@ created: <YYYY-MM-DD>
 
 ## Context
 
-<Where this sits in the system; relevant prior decisions (link decisions.md
-entries by number) and existing code/docs.>
+<Where this sits in the system; relevant current decisions (cite them as `D<n>`
+from `docs/decisions.md`; never read `docs/archive/`) and existing code/docs.>
 
 ## Problem / Goal
 
@@ -134,6 +134,7 @@ Omit a section only if elicitation genuinely produced nothing for it; keep
 
 Report the created file path and a one-line summary of the captured scope.
 Remind that the next step is exploring solution options in that file, and that
-whatever gets decided there should land as an entry in the scope's
-`decisions.md` (root `docs/decisions.md` unless the scope has its own).
+whatever gets decided there is recorded by editing the relevant D-entry of
+`docs/decisions.md` in place (or adding D11+ for a genuinely new theme), per
+that file's "How to use this file" section.
 Do not start solutioning unless asked.

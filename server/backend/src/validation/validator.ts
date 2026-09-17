@@ -2,7 +2,7 @@ import type { ZodType, z } from 'zod';
 
 /**
  * One problem in a document, written to be acted on rather than read
- * (decision 68): where, what was expected against what is there, and the one
+ * (decision D3): where, what was expected against what is there, and the one
  * line that fixes it. The agent edits the working file in place from this
  * instead of regenerating it.
  */

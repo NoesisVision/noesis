@@ -7,7 +7,7 @@ cannot say.
 
 Everything is under `.noesis/` at the repository root. The knowledge graph is
 `.noesis/graph/`: one directory per object at every depth, named by the
-object's key and holding exactly one `data.json` (decision 76):
+object's key and holding exactly one `data.json` (decision D2):
 
 - `graph/changes/<change>/` — one change; holds its `data.json` and the
   `conversations/`, `documents/` and `design-docs/` it produced, each an

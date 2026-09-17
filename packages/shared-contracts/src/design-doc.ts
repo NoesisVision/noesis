@@ -6,9 +6,9 @@ import { z } from 'zod';
  * Shape follows section 3 of docs/work/features/design-doc/plan.md: a
  * normalised accepted model with stable ids, replacing the previous tree of
  * `added/removed/modified` change sets (specification §14.7). Codebase-relative
- * state (the baseline diff against the system model) is deferred (decision 52)
+ * state (the baseline diff against the system model) is deferred
  * and re-decided together with locked fields once the system model exists
- * (decision 68).
+ * (decision D4).
  *
  * Every addressable element carries a stable `id`, unique across the whole
  * document. Ids are what references point at (see `design-doc-ref.ts`), and

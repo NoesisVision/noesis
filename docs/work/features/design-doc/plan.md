@@ -1,16 +1,16 @@
 # Collaborative Design Document Workspace — implementation plan
 
 **Status:** Phases 1–5 delivered; phases 6–6b (agent surface) dropped from this iteration
-(decision 57) — the iteration is complete
+(decision D4) — the iteration is complete
 **Date:** 2026-08-17
 **Basis:** [`prototypes/document-view.html`](prototypes/document-view.html), the specification in
-[`design-doc.md`](design-doc.md), and decisions 49–52 in `docs/decisions.md`.
+[`design-doc.md`](design-doc.md), and decision D4 in `docs/decisions.md`.
 **Supersedes:** the Stage 1 three-concept comparison (section 15 of the specification). Those
 prototypes moved to [`prior-art/stage1/`](prior-art/README.md).
 
 Sections 3 to 6 record the shape as built where phase 1 settled it, and as intended where it has
-not been built yet. Decision 50 owns the model; decision 51 owns which representation is the truth
-once the editor exists.
+not been built yet. Decision D4 owns the model; archived decision 51 owns which representation is
+the truth once the editor exists.
 
 ---
 
@@ -51,7 +51,7 @@ Answers to open questions from section 17 of the specification:
 
 The prototype also settled question **9** — an accessible `+ new` / `± modified` / `− removed`
 word-plus-glyph treatment, never colour alone — but the codebase-delta feature it belongs to is now
-deferred whole (decision 52), so the answer is parked with the feature.
+deferred whole (decision D4), so the answer is parked with the feature.
 
 Still open for this iteration: **5** (collaboration semantics while a proposal is pending), plus two
 the prototype raised — what happens to a comment or suggestion whose anchor text is edited away, and
@@ -68,7 +68,7 @@ iteration deliberately builds less. Not now:
 
 | Deferred                                                                               | Why it can wait                                                                               |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Codebase delta (§2.6, §6.2, §8.3, §14.9): baseline, markers, scanner identity, refresh | Deferred whole (decision 52). Element ids stay stable, so it reattaches without re-anchoring. |
+| Codebase delta (§2.6, §6.2, §8.3, §14.9): baseline, markers, scanner identity, refresh | Deferred whole (decision D4). Element ids stay stable, so it reattaches without re-anchoring. |
 | Product/Technical lens (§2.1, §9.2)                                                    | One typed field list already serves both audiences; the lens is designed next iteration.      |
 | Related building blocks and Interaction flow sections (§9.1 rows 9–10)                 | They are the technical half of the lens.                                                      |
 | Behaviour graph, scenario paths, sequence diagrams (§10.2, §12, §14.4–14.5)            | Nothing in the document view reads or edits them; they arrive with the Technical lens.        |
@@ -82,7 +82,7 @@ elements, so nothing in the schema or the editor may assume a single audience.
 
 ## 3. Model and schema work
 
-**Delivered in phase 1** (decision 50), across four files in `packages/shared-contracts/src`:
+**Delivered in phase 1** (decision D4), across four files in `packages/shared-contracts/src`:
 
 | File                          | Holds                                                |
 | ----------------------------- | ---------------------------------------------------- |
@@ -93,7 +93,7 @@ elements, so nothing in the schema or the editor may assume a single audience.
 
 A fifth file, `design-doc-baseline.ts` (comparable projections and derived codebase state), was
 delivered with phase 1 and then removed when the codebase-delta feature was deferred whole
-(decision 52).
+(decision D4).
 
 The old tree of `changeSetSchema(...)` wrappers is gone, replaced by flat arrays related by id
 (specification §14.7). Nothing outside the package imported the old schema, so there was no
@@ -210,7 +210,7 @@ Proposal state lives in its own object — a whole-document `DesignDocProposal` 
 specification — and a pending proposal never changes what the accepted document says. The
 codebase-relative dimension (baseline snapshots, derived `existing | new | modified | removed`,
 scanner identity, newer-scan tracking) was built in phase 1 and removed when the codebase-delta
-feature was deferred whole (decision 52); decision 49's derivation rule travels with it.
+feature was deferred whole (decision D4, whose derivation rule travels with it).
 
 ## 4. Editor
 
@@ -234,10 +234,10 @@ block schema** where each block type maps to one design-doc element:
 The right-hand column is documentation shorthand for reading this table, not a type. An address in
 code is an `ElementRef` (§3.7); there is no string form of one.
 
-**Which side holds the truth** (decision 51). BlockNote wraps ProseMirror, which owns its own
-document representation, so a ProseMirror document exists whether or not one is designed. The Yjs
-document holding it is the **stored truth for editing**; `DesignDocument` is the **interchange
-format** — agent output, API reads, export, integrity input — derived from the
+**Which side holds the truth** (archived decision 51). BlockNote wraps ProseMirror, which owns its
+own document representation, so a ProseMirror document exists whether or not one is designed. The
+Yjs document holding it is the **stored truth for editing**; `DesignDocument` is the
+**interchange format** — agent output, API reads, export, integrity input — derived from the
 Y.Doc on read. It may be cached, invalidated on update, but it is a cache and never a second store.
 
 The custom block schema is therefore the mechanism by which "nothing untyped" is enforced rather
@@ -320,7 +320,7 @@ seeding runs headless, block-to-ProseMirror conversion must work outside a brows
   result, and undo is the remedy. A change nobody asked for arrives as a **whole-document proposal**
   (specification §6.3–6.4): a re-analysis of the existing model, plus anything else the agent
   starts on its own. Proposals are reviewed and accepted whole. (Scan-driven triggers arrive with
-  the codebase-delta feature, decision 52.)
+  the codebase-delta feature, decision D4.)
 - Consequently the agent never authors **suggestions**. Suggesting mode is the human review path:
   people propose wording to each other and accept or reject it individually.
 
@@ -334,7 +334,7 @@ document, and the whole-document integrity check. No UI. Beyond what this sectio
 scoped, phase 1 also restored the technical vocabulary (§3.6), folded the application-service
 record into `DesignedBuildingBlock`, and dropped the binding string form (§3.7). Derived codebase
 state was delivered here and removed again when the codebase-delta feature was deferred
-(decision 52).
+(decision D4).
 
 **Phase 2 — Read-only document. Done.** Render a stored design document in the reading order, with
 the table of contents, numbering, scroll-spy and the "not written yet" line. Viewing mode only. This
@@ -344,7 +344,8 @@ is the first thing to put in front of a product reviewer. As built: documents pe
 the current project's documents and opens each in the reading view
 (`components/design-doc/`). A "create sample document" endpoint seeds the shared-contracts fixture
 so a reviewer has something to read before the agent exists. In phase 3 the Y.Doc becomes the
-stored editing truth (decision 51) and this JSON column becomes the seed input / projection cache.
+stored editing truth (archived decision 51) and this JSON column becomes the seed input /
+projection cache.
 
 **Phase 3 — Typed collaborative editing. Done, with noted gaps.** BlockNote with the custom block
 schema on a Yjs document: filtered block menu, constrained drag and drop, schema-aware deletion,
@@ -356,9 +357,10 @@ As built: block configs, `toBlocks` and the `toDocument` projection live in
 `@repo/design-doc-blocks`, shared by the frontend editor (React renders) and the backend's headless
 schema (`design-doc-editor.server.ts`), so both sides produce the same document structure. Elements
 attach to their owners through explicit props (`useCaseId`, `applicationServiceId`), never position.
-The `/collab` surface embeds Hocuspocus in the backend process (decision 53, now accepted): session
-cookie on the upgrade, Y.Doc state persisted as a `DesignDocState` node, seed-once at creation, and
-the store hook refreshing the `DesignDocument` JSON column — now explicitly the projection cache.
+The `/collab` surface embeds Hocuspocus in the backend process (archived decision 53, now
+accepted): session cookie on the upgrade, Y.Doc state persisted as a `DesignDocState` node,
+seed-once at creation, and the store hook refreshing the `DesignDocument` JSON column — now
+explicitly the projection cache.
 The document route is one surface, as the prototype has it: always the collaborative editor, with
 the table-of-contents rail permanently beside it — the outline (prototype numbering, scroll-spy,
 click-to-jump) recomputed live from the editor's block list, so a renamed use case renames its TOC
@@ -385,9 +387,9 @@ section — a rendering concern over the model, not undeletable heading blocks.
 **Phase 4 — Comments and presence. Done.** Threads sidebar, anchors as marks, filters, replies,
 resolve, mentions of people, plus live presence and cursors on the awareness channel.
 
-The build rides BlockNote's own comments feature rather than hand-rolling one (decision 55): the
-`CommentsExtension` carries a comment mark in the shared fragment — the durable substring anchor
-section 4 asks for — and threads live in a `threads` Y.Map inside the same Y.Doc through
+The build rides BlockNote's own comments feature rather than hand-rolling one (archived decision
+55): the `CommentsExtension` carries a comment mark in the shared fragment — the durable substring
+anchor section 4 asks for — and threads live in a `threads` Y.Map inside the same Y.Doc through
 `YjsThreadStore`, so sync and persistence come free from the existing `/collab` surface and store
 hook. Four slices, each reviewable in the running app:
 
@@ -435,10 +437,10 @@ proved.
 **Phase 5 — Suggestions. Done.** Suggesting mode, tracked marks, accept/reject writing through to
 the model, and word-level narrowing — all under concurrent editing.
 
-As built (decision 56): the build rides `@handlewithcare/prosemirror-suggest-changes` — the tracked-
-changes library BlockNote's own xl-ai package uses — rather than the hand-rolled `Suggestion`
-record. The three suggestion marks (`insertion`, `deletion`, `modification`) travel in the shared
-fragment, so sync, persistence and concurrency come free from the `/collab` surface; the mark
+As built (archived decision 56): the build rides `@handlewithcare/prosemirror-suggest-changes` —
+the tracked-changes library BlockNote's own xl-ai package uses — rather than the hand-rolled
+`Suggestion` record. The three suggestion marks (`insertion`, `deletion`, `modification`) travel
+in the shared fragment, so sync, persistence and concurrency come free from the `/collab` surface; the mark
 definitions live in `@repo/design-doc-blocks/suggestion-marks` and are registered by the frontend
 editor and the headless server schema from the same source (the phase-4 mark rule, made
 structural). Suggesting is a local mode: the Editing / Suggesting toggle in the document
@@ -451,21 +453,21 @@ accept-all/reject-all; clicking marked text highlights its card and clicking a c
 tints the marked text. The server
 projection reverts pending suggestions before `toDocument`, so the `DesignDocument` cache is always
 the accepted document; accepting writes through via the ordinary store hook. One limitation is
-recorded in decision 56: Enter is inert while Suggesting, because the library's revert of a
+recorded in archived decision 56: Enter is inert while Suggesting, because the library's revert of a
 block-opening split leaves the split behind — structural suggestions are slash-menu insertions and
 drag-handle removals, which round-trip.
 
-**Phase 6 — Agent surface, mocked. Dropped** (decision 57). Chat with schema-bound context applying
+**Phase 6 — Agent surface, mocked. Dropped** (decision D4). Chat with schema-bound context applying
 its changes directly, plus proposal review (impact summary, challenged decisions) and the
 accept/reject flow for whole proposals — all against canned agent output, so both paths can be
 exercised before a model is wired in.
 
-**Phase 6b — Real agent. Dropped** (decision 57). Replace the canned replies with the model, keeping
+**Phase 6b — Real agent. Dropped** (decision D4). Replace the canned replies with the model, keeping
 the proposal contract unchanged.
 
 The scanner-baseline phase that used to follow (delta markers from real scans, newer-scan
 notification, refresh through a reconciled proposal) moved out of this iteration with the
-codebase-delta feature (decision 52). The agent phases followed it out (decision 57): section 6
+codebase-delta feature (decision D4). The agent phases followed it out (decision D4): section 6
 remains the design for when agent integration returns.
 
 Phases 2–3 are the minimum for internal use; 4–5 make it reviewable together — and close this

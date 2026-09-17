@@ -1,6 +1,8 @@
 # Migration Plan: Turborepo → Pure Bun Monorepo
 
-**Status:** done (2026-07-06, decision 22)
+> Historical record. The system described here has since changed; current decisions are D1–D10 in docs/decisions.md.
+
+**Status:** done (2026-07-06, archived decision 22)
 **Goal:** Remove Turborepo and run the workspace as a pure Bun monorepo, using
 `bun run --filter` for task orchestration (the shape used by the `first-app`
 reference project).
@@ -25,19 +27,19 @@ Turbo's caching and topological ordering therefore buy almost nothing here.
 
 ## Turbo touchpoints inventory
 
-| File                                                                            | Turbo coupling                                                                                  | Action                      |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------- |
-| `turbo.json`                                                                    | task graph + globalEnv                                                                          | **delete**                  |
-| `.turbo/` (cache, preferences)                                                  | local cache                                                                                     | **delete**                  |
-| root `package.json`                                                             | `turbo` dep + 8 `turbo run` scripts                                                             | rewrite scripts, drop dep   |
-| `packages/eslint-config/base.js` + `pkg.json`                                   | `eslint-plugin-turbo`, `turbo/no-undeclared-env-vars` rule                                      | remove plugin + rule + dep  |
-| `packages/eslint-config/README.md`                                              | titled `@turbo/eslint-config`                                                                   | retitle                     |
-| `Dockerfile`                                                                    | `COPY … turbo.json`, `bunx turbo build --filter=…`                                              | swap to `bun run --filter`  |
-| `.github/workflows/ci.yml`                                                      | `turbo run … --affected`, `TURBO_SCM_BASE` step, `turbo.json` in paths-filter, `fetch-depth: 0` | rewrite verify job          |
-| `.gitignore`                                                                    | `.turbo` entry                                                                                  | remove line                 |
-| `README.md`                                                                     | 3 Turborepo mentions                                                                            | update                      |
-| `docs/decisions.md`                                                             | decision 21 describes turbo `--affected`                                                        | add superseding decision 22 |
-| `generate-references.ts`, `prepare-mcp-data/SKILL.md`, `sdlc-migration-plan.md` | `turbo generate` in comments/docs                                                               | text swap                   |
+| File                                                                            | Turbo coupling                                                                                  | Action                               |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `turbo.json`                                                                    | task graph + globalEnv                                                                          | **delete**                           |
+| `.turbo/` (cache, preferences)                                                  | local cache                                                                                     | **delete**                           |
+| root `package.json`                                                             | `turbo` dep + 8 `turbo run` scripts                                                             | rewrite scripts, drop dep            |
+| `packages/eslint-config/base.js` + `pkg.json`                                   | `eslint-plugin-turbo`, `turbo/no-undeclared-env-vars` rule                                      | remove plugin + rule + dep           |
+| `packages/eslint-config/README.md`                                              | titled `@turbo/eslint-config`                                                                   | retitle                              |
+| `Dockerfile`                                                                    | `COPY … turbo.json`, `bunx turbo build --filter=…`                                              | swap to `bun run --filter`           |
+| `.github/workflows/ci.yml`                                                      | `turbo run … --affected`, `TURBO_SCM_BASE` step, `turbo.json` in paths-filter, `fetch-depth: 0` | rewrite verify job                   |
+| `.gitignore`                                                                    | `.turbo` entry                                                                                  | remove line                          |
+| `README.md`                                                                     | 3 Turborepo mentions                                                                            | update                               |
+| `docs/decisions.md`                                                             | archived decision 21 describes turbo `--affected`                                               | add superseding archived decision 22 |
+| `generate-references.ts`, `prepare-mcp-data/SKILL.md`, `sdlc-migration-plan.md` | `turbo generate` in comments/docs                                                               | text swap                            |
 
 The `globalEnv` vars (`PORT`, `NOESIS_SERVER_URL`, `UI_DIST_PATH`,
 `NOESIS_DATA_DIR`) need no new home — apps already read `process.env` directly;
@@ -99,8 +101,8 @@ Drop `"turbo": "^2.9.16"` from `devDependencies`.
   → `bun run generate`.
 - `sdlc-migration-plan.md`: update the 3 _forward-looking_ `turbo generate` /
   `turbo test` mentions; leave historical "Verified:" lines as-is.
-- `docs/decisions.md`: add **Decision 22** superseding the turbo / `--affected`
-  parts of decision 21.
+- `docs/decisions.md`: add **archived decision 22** superseding the turbo /
+  `--affected` parts of archived decision 21.
 
 ## Step 7 — Lockfile & verify
 

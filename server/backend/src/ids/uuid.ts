@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-// Ids the service mints (decision 68): time-ordered for what the graph
+// Ids the service mints (decision D2): time-ordered for what the graph
 // authors itself, a content hash for imported sources so a re-import of the
 // same content yields the same id and is detected as a duplicate.
 

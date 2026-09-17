@@ -33,7 +33,7 @@ type Row = Record<string, string>;
  * so the graph after a rebuild is a function of the files alone — whatever
  * changed them, including a `git checkout` while the process runs. The cost
  * is measured (`test/bench`) and stays within budget without an incremental
- * path (decision 68, point 12).
+ * path (decision D2).
  */
 export class GraphIndexer {
   private readonly db: DatabaseService;
@@ -160,7 +160,7 @@ interface Readable<T> {
 }
 
 /**
- * The objects of one collection, `keys()` then `get` per key (decision 76).
+ * The objects of one collection, `keys()` then `get` per key (decision D2).
  * A corrupt or invalid file costs that one key, logged, not the walk; an
  * object that vanishes between the two is not an object; and a change taken
  * away under the walk — a `git checkout` — ends it with what it had.
