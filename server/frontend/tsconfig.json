@@ -9,9 +9,11 @@
       "#/*": ["./src/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    // Limit ambient packages to the browser toolchain. Local declarations in
-    // src/types are loaded by include above.
-    "types": ["vite/client"],
+    // Limit ambient packages to the browser toolchain, plus bun: the specs
+    // run under bun:test and the Hono RPC client type (#/server/app.types.ts)
+    // pulls backend source, which uses Bun globals, into this program. Local
+    // declarations in src/types are loaded by include above.
+    "types": ["vite/client", "bun"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
