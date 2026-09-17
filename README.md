@@ -164,10 +164,9 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 ```sh
 bun install            # install all workspaces; `prepare` also points git at .githooks/
 
-bun run dev            # the service in watch mode on :3000, serving the SPA (refresh after edits)
-                       # (runs it directly, not through --filter: --filter closes the
-                       #  child's stdin, which the service reads as the MCP session ending)
-bun run start:debug    # same, with bun's inspector attached
+bun run dev            # Vite with HMR on :3000 + watched backend on :3001
+                       # (the launcher preserves backend stdin and stops both together)
+bun run start:debug    # backend only on :3000, with bun's inspector attached
 
 bun run build          # build every workspace (service bundle + plugin contracts copy)
 bun run build:plugin   # only copy the contracts into the plugin (for --plugin-dir development)

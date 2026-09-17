@@ -30,7 +30,7 @@ export function ShellLayout() {
       <AppShell.Navbar>
         <Sidebar onNavigate={navbar.close} />
       </AppShell.Navbar>
-      <AppShell.Main>
+      <AppShell.Main bg="var(--mantine-color-gray-0)">
         <Outlet />
       </AppShell.Main>
     </AppShell>

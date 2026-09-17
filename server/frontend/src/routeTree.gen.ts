@@ -8,99 +8,99 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as ShellRouteImport } from './routes/_shell'
-import { Route as ShellIndexRouteImport } from './routes/_shell/index'
-import { Route as ShellSystemModelRouteImport } from './routes/_shell/system-model'
-import { Route as ShellWikiRouteImport } from './routes/_shell/wiki'
-import { Route as ShellChangesChangeIdRouteImport } from './routes/_shell/changes/$changeId'
-import { Route as ShellChangesChangeIdIndexRouteImport } from './routes/_shell/changes/$changeId/index'
-import { Route as ShellChangesChangeIdConversationsRouteImport } from './routes/_shell/changes/$changeId/conversations'
-import { Route as ShellChangesChangeIdDesignDocsRouteImport } from './routes/_shell/changes/$changeId/design-docs'
-import { Route as ShellChangesChangeIdDocumentsRouteImport } from './routes/_shell/changes/$changeId/documents'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as ShellRouteImport } from './routes/_shell';
+import { Route as ShellIndexRouteImport } from './routes/_shell/index';
+import { Route as ShellSystemModelRouteImport } from './routes/_shell/system-model';
+import { Route as ShellWikiRouteImport } from './routes/_shell/wiki';
+import { Route as ShellChangesChangeIdRouteImport } from './routes/_shell/changes/$changeId';
+import { Route as ShellChangesChangeIdIndexRouteImport } from './routes/_shell/changes/$changeId/index';
+import { Route as ShellChangesChangeIdConversationsRouteImport } from './routes/_shell/changes/$changeId/conversations';
+import { Route as ShellChangesChangeIdDesignDocsRouteImport } from './routes/_shell/changes/$changeId/design-docs';
+import { Route as ShellChangesChangeIdDocumentsRouteImport } from './routes/_shell/changes/$changeId/documents';
 
 const ShellRoute = ShellRouteImport.update({
   id: '/_shell',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ShellIndexRoute = ShellIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ShellRoute,
-} as any)
+} as any);
 const ShellSystemModelRoute = ShellSystemModelRouteImport.update({
   id: '/system-model',
   path: '/system-model',
   getParentRoute: () => ShellRoute,
-} as any)
+} as any);
 const ShellWikiRoute = ShellWikiRouteImport.update({
   id: '/wiki',
   path: '/wiki',
   getParentRoute: () => ShellRoute,
-} as any)
+} as any);
 const ShellChangesChangeIdRoute = ShellChangesChangeIdRouteImport.update({
   id: '/changes/$changeId',
   path: '/changes/$changeId',
   getParentRoute: () => ShellRoute,
-} as any)
+} as any);
 const ShellChangesChangeIdIndexRoute =
   ShellChangesChangeIdIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => ShellChangesChangeIdRoute,
-  } as any)
+  } as any);
 const ShellChangesChangeIdConversationsRoute =
   ShellChangesChangeIdConversationsRouteImport.update({
     id: '/conversations',
     path: '/conversations',
     getParentRoute: () => ShellChangesChangeIdRoute,
-  } as any)
+  } as any);
 const ShellChangesChangeIdDesignDocsRoute =
   ShellChangesChangeIdDesignDocsRouteImport.update({
     id: '/design-docs',
     path: '/design-docs',
     getParentRoute: () => ShellChangesChangeIdRoute,
-  } as any)
+  } as any);
 const ShellChangesChangeIdDocumentsRoute =
   ShellChangesChangeIdDocumentsRouteImport.update({
     id: '/documents',
     path: '/documents',
     getParentRoute: () => ShellChangesChangeIdRoute,
-  } as any)
+  } as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof ShellIndexRoute
-  '/system-model': typeof ShellSystemModelRoute
-  '/wiki': typeof ShellWikiRoute
-  '/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
-  '/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute
-  '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute
-  '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute
-  '/changes/$changeId/': typeof ShellChangesChangeIdIndexRoute
+  '/': typeof ShellIndexRoute;
+  '/system-model': typeof ShellSystemModelRoute;
+  '/wiki': typeof ShellWikiRoute;
+  '/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren;
+  '/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute;
+  '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute;
+  '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute;
+  '/changes/$changeId/': typeof ShellChangesChangeIdIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/system-model': typeof ShellSystemModelRoute
-  '/wiki': typeof ShellWikiRoute
-  '/': typeof ShellIndexRoute
-  '/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute
-  '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute
-  '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute
-  '/changes/$changeId': typeof ShellChangesChangeIdIndexRoute
+  '/system-model': typeof ShellSystemModelRoute;
+  '/wiki': typeof ShellWikiRoute;
+  '/': typeof ShellIndexRoute;
+  '/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute;
+  '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute;
+  '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute;
+  '/changes/$changeId': typeof ShellChangesChangeIdIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/_shell': typeof ShellRouteWithChildren
-  '/_shell/system-model': typeof ShellSystemModelRoute
-  '/_shell/wiki': typeof ShellWikiRoute
-  '/_shell/': typeof ShellIndexRoute
-  '/_shell/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
-  '/_shell/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute
-  '/_shell/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute
-  '/_shell/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute
-  '/_shell/changes/$changeId/': typeof ShellChangesChangeIdIndexRoute
+  __root__: typeof rootRouteImport;
+  '/_shell': typeof ShellRouteWithChildren;
+  '/_shell/system-model': typeof ShellSystemModelRoute;
+  '/_shell/wiki': typeof ShellWikiRoute;
+  '/_shell/': typeof ShellIndexRoute;
+  '/_shell/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren;
+  '/_shell/changes/$changeId/conversations': typeof ShellChangesChangeIdConversationsRoute;
+  '/_shell/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRoute;
+  '/_shell/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute;
+  '/_shell/changes/$changeId/': typeof ShellChangesChangeIdIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | '/'
     | '/system-model'
@@ -109,8 +109,8 @@ export interface FileRouteTypes {
     | '/changes/$changeId/conversations'
     | '/changes/$changeId/design-docs'
     | '/changes/$changeId/documents'
-    | '/changes/$changeId/'
-  fileRoutesByTo: FileRoutesByTo
+    | '/changes/$changeId/';
+  fileRoutesByTo: FileRoutesByTo;
   to:
     | '/system-model'
     | '/wiki'
@@ -118,7 +118,7 @@ export interface FileRouteTypes {
     | '/changes/$changeId/conversations'
     | '/changes/$changeId/design-docs'
     | '/changes/$changeId/documents'
-    | '/changes/$changeId'
+    | '/changes/$changeId';
   id:
     | '__root__'
     | '/_shell'
@@ -129,86 +129,86 @@ export interface FileRouteTypes {
     | '/_shell/changes/$changeId/conversations'
     | '/_shell/changes/$changeId/design-docs'
     | '/_shell/changes/$changeId/documents'
-    | '/_shell/changes/$changeId/'
-  fileRoutesById: FileRoutesById
+    | '/_shell/changes/$changeId/';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  ShellRoute: typeof ShellRouteWithChildren
+  ShellRoute: typeof ShellRouteWithChildren;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/_shell': {
-      id: '/_shell'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ShellRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/_shell';
+      path: '';
+      fullPath: '/';
+      preLoaderRoute: typeof ShellRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/_shell/': {
-      id: '/_shell/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof ShellIndexRouteImport
-      parentRoute: typeof ShellRoute
-    }
+      id: '/_shell/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof ShellIndexRouteImport;
+      parentRoute: typeof ShellRoute;
+    };
     '/_shell/system-model': {
-      id: '/_shell/system-model'
-      path: '/system-model'
-      fullPath: '/system-model'
-      preLoaderRoute: typeof ShellSystemModelRouteImport
-      parentRoute: typeof ShellRoute
-    }
+      id: '/_shell/system-model';
+      path: '/system-model';
+      fullPath: '/system-model';
+      preLoaderRoute: typeof ShellSystemModelRouteImport;
+      parentRoute: typeof ShellRoute;
+    };
     '/_shell/wiki': {
-      id: '/_shell/wiki'
-      path: '/wiki'
-      fullPath: '/wiki'
-      preLoaderRoute: typeof ShellWikiRouteImport
-      parentRoute: typeof ShellRoute
-    }
+      id: '/_shell/wiki';
+      path: '/wiki';
+      fullPath: '/wiki';
+      preLoaderRoute: typeof ShellWikiRouteImport;
+      parentRoute: typeof ShellRoute;
+    };
     '/_shell/changes/$changeId': {
-      id: '/_shell/changes/$changeId'
-      path: '/changes/$changeId'
-      fullPath: '/changes/$changeId'
-      preLoaderRoute: typeof ShellChangesChangeIdRouteImport
-      parentRoute: typeof ShellRoute
-    }
+      id: '/_shell/changes/$changeId';
+      path: '/changes/$changeId';
+      fullPath: '/changes/$changeId';
+      preLoaderRoute: typeof ShellChangesChangeIdRouteImport;
+      parentRoute: typeof ShellRoute;
+    };
     '/_shell/changes/$changeId/': {
-      id: '/_shell/changes/$changeId/'
-      path: '/'
-      fullPath: '/changes/$changeId/'
-      preLoaderRoute: typeof ShellChangesChangeIdIndexRouteImport
-      parentRoute: typeof ShellChangesChangeIdRoute
-    }
+      id: '/_shell/changes/$changeId/';
+      path: '/';
+      fullPath: '/changes/$changeId/';
+      preLoaderRoute: typeof ShellChangesChangeIdIndexRouteImport;
+      parentRoute: typeof ShellChangesChangeIdRoute;
+    };
     '/_shell/changes/$changeId/conversations': {
-      id: '/_shell/changes/$changeId/conversations'
-      path: '/conversations'
-      fullPath: '/changes/$changeId/conversations'
-      preLoaderRoute: typeof ShellChangesChangeIdConversationsRouteImport
-      parentRoute: typeof ShellChangesChangeIdRoute
-    }
+      id: '/_shell/changes/$changeId/conversations';
+      path: '/conversations';
+      fullPath: '/changes/$changeId/conversations';
+      preLoaderRoute: typeof ShellChangesChangeIdConversationsRouteImport;
+      parentRoute: typeof ShellChangesChangeIdRoute;
+    };
     '/_shell/changes/$changeId/design-docs': {
-      id: '/_shell/changes/$changeId/design-docs'
-      path: '/design-docs'
-      fullPath: '/changes/$changeId/design-docs'
-      preLoaderRoute: typeof ShellChangesChangeIdDesignDocsRouteImport
-      parentRoute: typeof ShellChangesChangeIdRoute
-    }
+      id: '/_shell/changes/$changeId/design-docs';
+      path: '/design-docs';
+      fullPath: '/changes/$changeId/design-docs';
+      preLoaderRoute: typeof ShellChangesChangeIdDesignDocsRouteImport;
+      parentRoute: typeof ShellChangesChangeIdRoute;
+    };
     '/_shell/changes/$changeId/documents': {
-      id: '/_shell/changes/$changeId/documents'
-      path: '/documents'
-      fullPath: '/changes/$changeId/documents'
-      preLoaderRoute: typeof ShellChangesChangeIdDocumentsRouteImport
-      parentRoute: typeof ShellChangesChangeIdRoute
-    }
+      id: '/_shell/changes/$changeId/documents';
+      path: '/documents';
+      fullPath: '/changes/$changeId/documents';
+      preLoaderRoute: typeof ShellChangesChangeIdDocumentsRouteImport;
+      parentRoute: typeof ShellChangesChangeIdRoute;
+    };
   }
 }
 
 interface ShellChangesChangeIdRouteChildren {
-  ShellChangesChangeIdConversationsRoute: typeof ShellChangesChangeIdConversationsRoute
-  ShellChangesChangeIdDesignDocsRoute: typeof ShellChangesChangeIdDesignDocsRoute
-  ShellChangesChangeIdDocumentsRoute: typeof ShellChangesChangeIdDocumentsRoute
-  ShellChangesChangeIdIndexRoute: typeof ShellChangesChangeIdIndexRoute
+  ShellChangesChangeIdConversationsRoute: typeof ShellChangesChangeIdConversationsRoute;
+  ShellChangesChangeIdDesignDocsRoute: typeof ShellChangesChangeIdDesignDocsRoute;
+  ShellChangesChangeIdDocumentsRoute: typeof ShellChangesChangeIdDocumentsRoute;
+  ShellChangesChangeIdIndexRoute: typeof ShellChangesChangeIdIndexRoute;
 }
 
 const ShellChangesChangeIdRouteChildren: ShellChangesChangeIdRouteChildren = {
@@ -217,16 +217,16 @@ const ShellChangesChangeIdRouteChildren: ShellChangesChangeIdRouteChildren = {
   ShellChangesChangeIdDesignDocsRoute: ShellChangesChangeIdDesignDocsRoute,
   ShellChangesChangeIdDocumentsRoute: ShellChangesChangeIdDocumentsRoute,
   ShellChangesChangeIdIndexRoute: ShellChangesChangeIdIndexRoute,
-}
+};
 
 const ShellChangesChangeIdRouteWithChildren =
-  ShellChangesChangeIdRoute._addFileChildren(ShellChangesChangeIdRouteChildren)
+  ShellChangesChangeIdRoute._addFileChildren(ShellChangesChangeIdRouteChildren);
 
 interface ShellRouteChildren {
-  ShellSystemModelRoute: typeof ShellSystemModelRoute
-  ShellWikiRoute: typeof ShellWikiRoute
-  ShellIndexRoute: typeof ShellIndexRoute
-  ShellChangesChangeIdRoute: typeof ShellChangesChangeIdRouteWithChildren
+  ShellSystemModelRoute: typeof ShellSystemModelRoute;
+  ShellWikiRoute: typeof ShellWikiRoute;
+  ShellIndexRoute: typeof ShellIndexRoute;
+  ShellChangesChangeIdRoute: typeof ShellChangesChangeIdRouteWithChildren;
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
@@ -234,13 +234,13 @@ const ShellRouteChildren: ShellRouteChildren = {
   ShellWikiRoute: ShellWikiRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellChangesChangeIdRoute: ShellChangesChangeIdRouteWithChildren,
-}
+};
 
-const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
+const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
   ShellRoute: ShellRouteWithChildren,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

@@ -9,8 +9,9 @@
       "#/*": ["./src/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    // Required to check the backend source imported through AppType.
-    "types": ["node", "bun"],
+    // Limit ambient packages to the browser toolchain. Local declarations in
+    // src/types are loaded by include above.
+    "types": ["vite/client"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

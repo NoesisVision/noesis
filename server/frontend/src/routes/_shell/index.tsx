@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { changesList } from '#/api/changes';
-import { readLastChange } from '#/components/shell/last-change';
+import { readLastChange } from '#/components/core/last-change.ts';
 import { NoChangesView } from '#/components/views/no-changes';
 
 // `/` lands on the last-opened change when it still exists, else the first
