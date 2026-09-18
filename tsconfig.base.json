@@ -1,19 +1,27 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  // Bun's recommended compilerOptions (https://bun.com/docs/typescript).
+  // Bun runs and bundles all code; tsc only type-checks.
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "incremental": false,
-    "isolatedModules": true,
-    "lib": ["ES2022"],
-    "module": "NodeNext",
+    // Environment setup & latest features
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "Preserve",
     "moduleDetection": "force",
-    "moduleResolution": "NodeNext",
-    "noUncheckedIndexedAccess": true,
+    "types": ["bun"],
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "noEmit": true,
+
+    // Best practices
     "strict": true,
-    "target": "ES2022"
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
   }
 }

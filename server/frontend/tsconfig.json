@@ -1,14 +1,15 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "jsx": "react-jsx",
     "module": "ESNext",
+    "moduleDetection": "force",
     "paths": {
       "#/server/*": ["../backend/src/*"],
       "#/*": ["./src/*"]
     },
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM"],
     // Limit ambient packages to the browser toolchain, plus bun: the specs
     // run under bun:test and the Hono RPC client type (#/server/app.types.ts)
     // pulls backend source, which uses Bun globals, into this program. Local
@@ -27,6 +28,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "noUncheckedIndexedAccess": true,
+    "erasableSyntaxOnly": true
   }
 }

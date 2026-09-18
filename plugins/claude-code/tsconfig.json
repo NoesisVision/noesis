@@ -1,13 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "module": "Preserve",
-    "moduleResolution": "Bundler",
-    "noEmit": true,
-    "declaration": false,
-    "declarationMap": false,
-    "types": ["node", "bun"]
-  },
   "include": ["tools", "scripts", "test"],
   "exclude": ["node_modules"]
 }
