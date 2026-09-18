@@ -42,7 +42,7 @@ The service, contracts and tooling stack is in the root `README.md`.
 - **Vite** (`vite`, `@vitejs/plugin-react`) — the development server only
   (`vite.config.ts`, decision D5): `127.0.0.1:3000` with React Fast Refresh,
   proxying `/ui` and `/internal` to the backend on `:3001`; root
-  `bun run dev` (`scripts/dev.ts`) runs both. Vite never produces the
+  `bun run dev` (`server/scripts/dev.ts`) runs both. Vite never produces the
   shipped bundle
 
 What the backend serves the SPA from and how the `/ui` surface is typed is

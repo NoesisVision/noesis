@@ -212,7 +212,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `NODE_ENV=production`) and `src/bundle-cwd.ts` are load-bearing; re-check them
   on a bun upgrade (`docs/work/chores/bun-fullstack-spike.md`).
 - **Development: Vite is the dev server only.** Root `bun run dev`
-  (`scripts/dev.ts`) runs the backend on `:3001` (watch, browser not opened) and
+  (`server/scripts/dev.ts`) runs the backend on `:3001` (watch, browser not opened) and
   Vite on `127.0.0.1:3000` with React Fast Refresh, proxying `/ui` and
   `/internal`. Vite never produces the shipped bundle.
 - **The frontend calls `/ui` through Hono's typed RPC client**,

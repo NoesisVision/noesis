@@ -6,7 +6,7 @@
     "setup:openssl": "brew install openssl@3",
     "build": "bun run --filter '*' build",
     "build:plugin": "bun run --cwd plugins/claude-code build",
-    "dev": "bun run scripts/dev.ts",
+    "dev": "bun run server/scripts/dev.ts",
     "start:debug": "bun run --cwd server/backend start:debug",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

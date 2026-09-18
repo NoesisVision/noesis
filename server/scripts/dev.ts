@@ -1,14 +1,14 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
-const repositoryRoot = resolve(import.meta.dir, '..');
+const serverRoot = resolve(import.meta.dir, '..');
 
 const backend = spawn(process.execPath, ['run', 'dev'], {
-  cwd: resolve(repositoryRoot, 'server/backend'),
+  cwd: resolve(serverRoot, 'backend'),
   stdio: 'inherit',
 });
 const frontend = spawn(process.execPath, ['run', 'dev'], {
-  cwd: resolve(repositoryRoot, 'server/frontend'),
+  cwd: resolve(serverRoot, 'frontend'),
   stdio: 'inherit',
 });
 
