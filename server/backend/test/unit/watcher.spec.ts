@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { IndexService } from '../../src/adapters/graph/index.service.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import type { DatabaseService } from '../../src/platform/database/database.service.js';
-import { isIgnored, NoesisWatcher } from '../../src/platform/files/watcher.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { resetGraph, sharedTestDatabase } from './test-db.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { IndexService } from '#backend/adapters/graph/index.service';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { DatabaseService } from '#backend/platform/database/database.service';
+import { isIgnored, NoesisWatcher } from '#backend/platform/files/watcher';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import { resetGraph, sharedTestDatabase } from './test-db';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 const ALPHA = ChangeSlug.parse('alpha');
 const BETA = ChangeSlug.parse('beta');

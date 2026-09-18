@@ -6,19 +6,19 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { IndexService } from '../../src/adapters/graph/index.service.js';
-import { SchemaService } from '../../src/adapters/graph/schema.service.js';
-import { NoesisChangesRepository } from '../../src/adapters/store/changes.repository.js';
-import { createSystemModelStore } from '../../src/adapters/store/system-model.store.js';
+import { IndexService } from '#backend/adapters/graph/index.service';
+import { SchemaService } from '#backend/adapters/graph/schema.service';
+import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import { createSystemModelStore } from '#backend/adapters/store/system-model.store';
 import {
   createDecisionsStore,
   createTopicsStore,
-} from '../../src/adapters/store/wiki.store.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { DatabaseService } from '../../src/platform/database/database.service.js';
-import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
-import { dataFileOf } from '../../src/platform/files/noesis-store.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
+} from '#backend/adapters/store/wiki.store';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { DatabaseService } from '#backend/platform/database/database.service';
+import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { dataFileOf } from '#backend/platform/files/noesis-store';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;

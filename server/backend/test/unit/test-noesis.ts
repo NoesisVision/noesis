@@ -1,26 +1,26 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { IndexerSources } from '../../src/adapters/graph/index.service.js';
-import { ImportService } from '../../src/adapters/mcp/import.service.js';
-import { NoesisChangesRepository } from '../../src/adapters/store/changes.repository.js';
-import { NoesisDesignDocsRepository } from '../../src/adapters/store/design-docs.repository.js';
+import type { IndexerSources } from '#backend/adapters/graph/index.service';
+import { ImportService } from '#backend/adapters/mcp/import.service';
+import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
 import {
   createSystemModelStore,
   type SystemModelStore,
-} from '../../src/adapters/store/system-model.store.js';
+} from '#backend/adapters/store/system-model.store';
 import {
   createDecisionsStore,
   createTopicsStore,
   type DecisionsStore,
   type TopicsStore,
-} from '../../src/adapters/store/wiki.store.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { ChangesService } from '../../src/app/changes/changes.service.js';
-import { DesignDocsService } from '../../src/app/design-docs/design-docs.service.js';
-import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
-import type { NoesisStore } from '../../src/platform/files/noesis-store.js';
-import type { Change } from '../../src/shared/contracts/index.js';
+} from '#backend/adapters/store/wiki.store';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangesService } from '#backend/app/changes/changes.service';
+import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import type { NoesisStore } from '#backend/platform/files/noesis-store';
+import type { Change } from '#backend/shared/contracts';
 
 /**
  * A throwaway repository root with an ensured `.noesis/`, plus the stores

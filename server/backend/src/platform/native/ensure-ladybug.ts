@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
-import { serverLogger } from '../logging/logging.js';
+import { serverLogger } from '#backend/platform/logging/logging';
 
 const log = serverLogger('native');
 

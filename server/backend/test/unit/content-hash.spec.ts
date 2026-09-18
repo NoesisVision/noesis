@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { contentHashAsUuid } from '../../src/platform/crypto/content-hash.js';
+import { contentHashAsUuid } from '#backend/platform/crypto/content-hash';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

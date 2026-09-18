@@ -118,6 +118,12 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `scanner/`); `ui` drives `app`. `adapters` and `ui` never import each other,
   no layer imports the composition root (`src/*.ts`), and there are no
   cycles.
+- **Imports are extensionless; across directories they use `#backend/*`**
+  (`#backend/app/changes/changes.service`, tests too), relative only within a
+  directory. The alias is a tsconfig `paths` entry mapping to `src/*`, and the
+  frontend maps the same name to the same files, so backend source resolves
+  alike in both programs. Contracts keep relative imports throughout: the
+  plugin ships them as a standalone copy (D4).
 - **Routes are segregated by consumer:** `/ui/*` (the SPA) and `/internal/*`
   (health and technical endpoints). The agent does not use HTTP — it reaches the
   same services over MCP on stdio. Surface routes win over the SPA's `/*` route, so a surface 404 is
@@ -164,7 +170,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - **All contracts are zod v4 schemas with inferred types** in
   `server/backend/src/shared/contracts`, consumed as TypeScript source (no
   build step, no workspace package). The service imports them relatively; the
-  frontend type-only through its `#/server/*` alias; the plugin copies the
+  frontend type-only through its `#backend/*` alias; the plugin copies the
   directory. Runtime helpers never go inside `contracts/`, so the directory
   stays declarative and the plugin copy stays free of runtime code: time-ordered
   ids come straight from the `uuid` package (`v7`), content-hash ids from
@@ -230,16 +236,16 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - **The frontend calls `/ui` through Hono's typed RPC client**,
   `hc<AppType>('/ui')`, in `src/api/client.ts`. `AppType` comes from
   `server/backend/src/app.types.ts` (the `/ui` route tree only) via the
-  `#/server/*` import alias, as a **type-only** import: the frontend never
+  `#backend/*` import alias, as a **type-only** import: the frontend never
   imports backend runtime code. Payload types come from
-  `#/server/shared/contracts` the same way. The client's fetch wrapper mints `x-request-id`
+  `#backend/shared/contracts` the same way. The client's fetch wrapper mints `x-request-id`
   (D10) and raises `ApiError` carrying the service's `{ error }` text.
 - **TypeScript: one config per runtime** (the create-vite layout), checked
   with `tsc -b`: `tsconfig.app.json` (`src`, `vite/client` types only — no
   Bun or Node globals, so a browser file using them fails to type-check),
   `tsconfig.node.json` (`vite.config.ts`, Node types) and `tsconfig.test.json`
   (`src` and `test`, Bun types for `bun:test`). The solution `tsconfig.json`
-  holds the `#/*` and `#/server/*` `paths` and the app config extends it,
+  holds the `#/*` and `#backend/*` `paths` and the app config extends it,
   because bun's bundler and test runner read `paths` only from
   `tsconfig.json` and do not follow references.
 - **Backend code the frontend's types reach stays runtime-neutral.** `AppType`

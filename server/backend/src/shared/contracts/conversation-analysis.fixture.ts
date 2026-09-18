@@ -1,7 +1,7 @@
 import {
   type ConversationAnalysis,
   ConversationAnalysisSchema,
-} from './information-sources/conversation-analysis.js';
+} from './information-sources/conversation-analysis';
 
 /*
  * A small but complete conversation import, used by the import specs: one

@@ -14,40 +14,40 @@ console.log = (...args: unknown[]) => console.error(...args);
 
 // Must stay the first import: it moves the working directory to the bundle
 // before the HTML import below resolves its assets.
-import './bundle-cwd.js';
+import './bundle-cwd';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import index from '../../frontend/index.html';
-import { createGraphSearch } from './adapters/graph/graph-search.js';
-import { IndexService } from './adapters/graph/index.service.js';
-import { SchemaService } from './adapters/graph/schema.service.js';
-import { ImportService } from './adapters/mcp/import.service.js';
-import { createMcpServer } from './adapters/mcp/mcp-server.js';
-import { ScannerService } from './adapters/scanner/scanner.service.js';
-import { NoesisChangesRepository } from './adapters/store/changes.repository.js';
-import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository.js';
-import { createSystemModelStore } from './adapters/store/system-model.store.js';
+import { createGraphSearch } from './adapters/graph/graph-search';
+import { IndexService } from './adapters/graph/index.service';
+import { SchemaService } from './adapters/graph/schema.service';
+import { ImportService } from './adapters/mcp/import.service';
+import { createMcpServer } from './adapters/mcp/mcp-server';
+import { ScannerService } from './adapters/scanner/scanner.service';
+import { NoesisChangesRepository } from './adapters/store/changes.repository';
+import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
+import { createSystemModelStore } from './adapters/store/system-model.store';
 import {
   createDecisionsStore,
   createTopicsStore,
-} from './adapters/store/wiki.store.js';
-import { createApp } from './app.js';
-import { ChangesService } from './app/changes/changes.service.js';
-import { DesignDocsService } from './app/design-docs/design-docs.service.js';
-import { SearchService } from './app/search/search.service.js';
-import { openBrowser } from './browser.js';
-import { launchCwd } from './bundle-cwd.js';
-import { loadServerConfig } from './platform/config/config.js';
-import { DatabaseService } from './platform/database/database.service.js';
-import { NoesisDir } from './platform/files/noesis-dir.js';
-import { resolveRepositoryRoot } from './platform/files/repository-root.js';
-import { SessionDir } from './platform/files/session-dir.js';
-import { NoesisWatcher } from './platform/files/watcher.js';
+} from './adapters/store/wiki.store';
+import { createApp } from './app';
+import { ChangesService } from './app/changes/changes.service';
+import { DesignDocsService } from './app/design-docs/design-docs.service';
+import { SearchService } from './app/search/search.service';
+import { openBrowser } from './browser';
+import { launchCwd } from './bundle-cwd';
+import { loadServerConfig } from './platform/config/config';
+import { DatabaseService } from './platform/database/database.service';
+import { NoesisDir } from './platform/files/noesis-dir';
+import { resolveRepositoryRoot } from './platform/files/repository-root';
+import { SessionDir } from './platform/files/session-dir';
+import { NoesisWatcher } from './platform/files/watcher';
 import {
   configureLogging,
   disposeLogging,
   serverLogger,
-} from './platform/logging/logging.js';
-import { ensureLadybugBinary } from './platform/native/ensure-ladybug.js';
+} from './platform/logging/logging';
+import { ensureLadybugBinary } from './platform/native/ensure-ladybug';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.

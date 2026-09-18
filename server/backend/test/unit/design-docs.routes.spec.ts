@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { SearchService } from '../../src/app/search/search.service.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { createUiApp } from '../../src/ui/ui.routes.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { SearchService } from '#backend/app/search/search.service';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import { createUiApp } from '#backend/ui/ui.routes';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/design-docs`), which is what is under test.

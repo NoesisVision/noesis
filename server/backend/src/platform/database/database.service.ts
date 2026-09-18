@@ -1,6 +1,6 @@
 import type lbug from '@ladybugdb/core';
 import type { LbugValue } from '@ladybugdb/core';
-import { serverLogger } from '../logging/logging.js';
+import { serverLogger } from '#backend/platform/logging/logging';
 
 type LbugDatabase = InstanceType<typeof lbug.Database>;
 type LbugConnection = InstanceType<typeof lbug.Connection>;

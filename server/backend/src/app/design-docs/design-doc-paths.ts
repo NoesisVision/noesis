@@ -1,7 +1,4 @@
-import type {
-  DesignDocument,
-  ElementRef,
-} from '../../shared/contracts/index.js';
+import type { DesignDocument, ElementRef } from '#backend/shared/contracts';
 
 /*
  * Resolving element refs against a design document.

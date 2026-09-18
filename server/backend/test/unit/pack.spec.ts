@@ -13,7 +13,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { listeningUrl, serviceEnv } from '../support/service-process.js';
+import { listeningUrl, serviceEnv } from '../support/service-process';
 
 const serviceRoot = fileURLToPath(new URL('../../', import.meta.url));
 

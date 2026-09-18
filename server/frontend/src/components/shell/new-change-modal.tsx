@@ -11,7 +11,7 @@ import {
   CHANGE_KEY_PATTERN,
   CHANGE_TYPES,
   type CreateChange,
-} from '#/server/shared/contracts/index.ts';
+} from '#backend/shared/contracts/index.ts';
 import { CHANGE_TYPE_META } from './change-status';
 
 interface NewChangeModalProps {

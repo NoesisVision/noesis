@@ -16,7 +16,7 @@ import {
   type NoesisStoreOf,
   type NoesisStoreOperation,
   type NoesisStoreOptions,
-} from './noesis-store.js';
+} from './noesis-store';
 
 /**
  * `NoesisStore` on Bun's file I/O: `Bun.file` reads and `Bun.write` writes

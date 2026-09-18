@@ -1,20 +1,20 @@
 import { join } from 'node:path';
-import { ChangeSlug } from '../../app/changes/change-slug.js';
-import type { ChangesRepository } from '../../app/changes/changes.repository.js';
-import { createNoesisStore } from '../../platform/files/bun-noesis-store.js';
-import type { NoesisDir } from '../../platform/files/noesis-dir.js';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangesRepository } from '#backend/app/changes/changes.repository';
+import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type {
   ChildHandles,
   NoesisStoreOf,
-} from '../../platform/files/noesis-store.js';
-import { serverLogger } from '../../platform/logging/logging.js';
+} from '#backend/platform/files/noesis-store';
+import { serverLogger } from '#backend/platform/logging/logging';
 import {
   type Change,
   ChangeSchema,
   ConversationSchema,
   DesignDocumentSchema,
   DocumentSchema,
-} from '../../shared/contracts/index.js';
+} from '#backend/shared/contracts';
 
 const log = serverLogger('changes');
 

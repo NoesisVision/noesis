@@ -95,7 +95,7 @@ server/backend/src/shared/contracts   every knowledge graph file shape + import 
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
      ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
-     └─▶ server/frontend                 type-only imports via the #/server/* alias
+     └─▶ server/frontend                 type-only imports via the #backend/* alias
 server/backend/src/app/validation/contracts   the file-contract registry: schema + the
                                    whole-document check the ui routes and MCP tools run
                                    before a service write; backs the validate tool

@@ -3,9 +3,9 @@ import {
   DecisionContextSchema,
   DecisionOptionSchema,
   DecisionStatusSchema,
-} from '../decision.js';
-import { ConversationSchema } from './conversation.js';
-import { InformationFragmentRefSchema } from './information-fragment.js';
+} from '../decision';
+import { ConversationSchema } from './conversation';
+import { InformationFragmentRefSchema } from './information-fragment';
 
 /*
  * The payload of a conversation import: what the agent produces when it runs

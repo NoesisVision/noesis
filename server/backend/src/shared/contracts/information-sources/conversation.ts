@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { InformationCategory } from './information-category.js';
+import { InformationCategory } from './information-category';
 
 /*
  * An imported conversation: a faithful record of what was said, split into

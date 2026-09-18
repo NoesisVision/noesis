@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import {
   AnalyzedDecisionSchema,
   AnalyzedTopicSchema,
-} from '../../src/shared/contracts/information-sources/conversation-analysis.js';
+} from '#backend/shared/contracts/information-sources/conversation-analysis';
 
 describe('AnalyzedDecisionSchema', () => {
   const conversationRef = {

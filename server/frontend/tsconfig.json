@@ -11,7 +11,7 @@
   // references. tsconfig.app.json extends this file to share them.
   "compilerOptions": {
     "paths": {
-      "#/server/*": ["../backend/src/*"],
+      "#backend/*": ["../backend/src/*"],
       "#/*": ["./src/*"]
     }
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { TopicSchema } from '../../src/shared/contracts/topic.js';
+import { TopicSchema } from '#backend/shared/contracts/topic';
 
 describe('TopicSchema', () => {
   const minimal = {

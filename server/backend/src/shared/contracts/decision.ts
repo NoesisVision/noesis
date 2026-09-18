@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { InformationFragmentRefSchema } from './information-sources/information-fragment.js';
-import { Locked } from './locked.js';
+import { InformationFragmentRefSchema } from './information-sources/information-fragment';
+import { Locked } from './locked';
 
 /*
  * A wiki decision: a choice the team made, with the options it was made

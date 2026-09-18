@@ -9,16 +9,16 @@
 // the service that enforces them; conventions with no type live in the
 // companion `.md` beside each family.
 
-export * from './change.js';
-export * from './decision.js';
-export * from './design-doc.js';
-export * from './design-doc-ref.js';
-export * from './information-sources/conversation.js';
-export * from './information-sources/conversation-analysis.js';
-export * from './information-sources/document.js';
-export * from './information-sources/document-analysis.js';
-export * from './information-sources/information-category.js';
-export * from './information-sources/information-fragment.js';
-export * from './locked.js';
-export * from './system-model.js';
-export * from './topic.js';
+export * from './change';
+export * from './decision';
+export * from './design-doc';
+export * from './design-doc-ref';
+export * from './information-sources/conversation';
+export * from './information-sources/conversation-analysis';
+export * from './information-sources/document';
+export * from './information-sources/document-analysis';
+export * from './information-sources/information-category';
+export * from './information-sources/information-fragment';
+export * from './locked';
+export * from './system-model';
+export * from './topic';

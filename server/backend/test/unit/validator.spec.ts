@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { designDocumentContract } from '../../src/app/validation/contracts/design-document.js';
+import { designDocumentContract } from '#backend/app/validation/contracts/design-document';
 import {
   type FileContract,
   formatReport,
   ISSUE_CAP,
   validate,
-} from '../../src/app/validation/validator.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
+} from '#backend/app/validation/validator';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 const schema = z.strictObject({
   name: z.string(),

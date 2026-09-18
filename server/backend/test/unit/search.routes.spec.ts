@@ -3,8 +3,8 @@ import { z } from 'zod';
 import {
   SearchService,
   searchResultSchema,
-} from '../../src/app/search/search.service.js';
-import { createSearchApp } from '../../src/ui/search/search.routes.js';
+} from '#backend/app/search/search.service';
+import { createSearchApp } from '#backend/ui/search/search.routes';
 
 const responseSchema = z.object({ results: z.array(searchResultSchema) });
 

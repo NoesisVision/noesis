@@ -1,16 +1,21 @@
 import { v7 as uuidv7 } from 'uuid';
-import { ChangeSlug } from '../../app/changes/change-slug.js';
-import type { ChangesService } from '../../app/changes/changes.service.js';
+import type { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import type {
+  DecisionsStore,
+  TopicsStore,
+} from '#backend/adapters/store/wiki.store';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangesService } from '#backend/app/changes/changes.service';
 import {
   type FileContract,
   type ValidationIssue,
   validate,
-} from '../../app/validation/validator.js';
+} from '#backend/app/validation/validator';
 import {
   contentHashAsUuid,
   sha256,
-} from '../../platform/crypto/content-hash.js';
-import { dataFileOf } from '../../platform/files/noesis-store.js';
+} from '#backend/platform/crypto/content-hash';
+import { dataFileOf } from '#backend/platform/files/noesis-store';
 import {
   type AnalyzedTopic,
   ConversationAnalysisSchema,
@@ -18,9 +23,7 @@ import {
   DocumentAnalysisSchema,
   type InformationFragmentRef,
   type Topic,
-} from '../../shared/contracts/index.js';
-import type { NoesisChangesRepository } from '../store/changes.repository.js';
-import type { DecisionsStore, TopicsStore } from '../store/wiki.store.js';
+} from '#backend/shared/contracts';
 
 export interface ImportDeps {
   changes: ChangesService;

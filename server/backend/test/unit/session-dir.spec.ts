@@ -11,11 +11,11 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
+import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   SESSION_MAX_AGE_MS,
   SessionDir,
-} from '../../src/platform/files/session-dir.js';
+} from '#backend/platform/files/session-dir';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

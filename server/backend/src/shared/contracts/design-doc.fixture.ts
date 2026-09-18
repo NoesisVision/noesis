@@ -1,4 +1,4 @@
-import { type DesignDocument, DesignDocumentSchema } from './design-doc.js';
+import { type DesignDocument, DesignDocumentSchema } from './design-doc';
 
 /*
  * A small but structurally complete design document, used by the design-doc

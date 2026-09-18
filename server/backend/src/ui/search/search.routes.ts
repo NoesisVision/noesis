@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { SearchService } from '../../app/search/search.service.js';
+import type { SearchService } from '#backend/app/search/search.service';
 
 export interface SearchDeps {
   searchService: SearchService;

@@ -1,6 +1,9 @@
 import type { LogLevel } from '@logtape/logtape';
 import { z } from 'zod';
-import { DEFAULT_LOG_LEVEL, parseLogLevel } from '../logging/logging.js';
+import {
+  DEFAULT_LOG_LEVEL,
+  parseLogLevel,
+} from '#backend/platform/logging/logging';
 
 // Server configuration is read from the environment and zod-validated at
 // bootstrap, failing fast on garbage (archived decision 10's pattern). The

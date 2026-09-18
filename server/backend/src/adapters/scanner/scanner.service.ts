@@ -1,7 +1,7 @@
-import { dataFileOf } from '../../platform/files/noesis-store.js';
-import { serverLogger } from '../../platform/logging/logging.js';
-import type { SystemModelStore } from '../store/system-model.store.js';
-import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
+import type { SystemModelStore } from '#backend/adapters/store/system-model.store';
+import { dataFileOf } from '#backend/platform/files/noesis-store';
+import { serverLogger } from '#backend/platform/logging/logging';
+import { findSources, findUnits, scanUnit } from './typescript-scanner';
 
 const log = serverLogger('scanner');
 

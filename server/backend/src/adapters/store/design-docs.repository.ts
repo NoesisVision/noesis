@@ -1,11 +1,11 @@
-import type { ChangeSlug } from '../../app/changes/change-slug.js';
-import type { DesignDocsRepository } from '../../app/design-docs/design-docs.repository.js';
-import { dataFileOf } from '../../platform/files/noesis-store.js';
-import type { DesignDocument } from '../../shared/contracts/index.js';
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
+import { dataFileOf } from '#backend/platform/files/noesis-store';
+import type { DesignDocument } from '#backend/shared/contracts';
 import type {
   ChangeChildren,
   NoesisChangesRepository,
-} from './changes.repository.js';
+} from './changes.repository';
 
 /**
  * A change's design documents: the `design-docs` collection under the

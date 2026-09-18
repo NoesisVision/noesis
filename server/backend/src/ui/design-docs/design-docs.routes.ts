@@ -1,11 +1,11 @@
 import { zValidator } from '@hono/zod-validator';
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
-import { ChangeSlug } from '../../app/changes/change-slug.js';
-import { ChangeNotFoundError } from '../../app/changes/changes.service.js';
-import type { DesignDocsService } from '../../app/design-docs/design-docs.service.js';
-import { designDocumentContract } from '../../app/validation/contracts/design-document.js';
-import { validate } from '../../app/validation/validator.js';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { designDocumentContract } from '#backend/app/validation/contracts/design-document';
+import { validate } from '#backend/app/validation/validator';
 
 export interface DesignDocsDeps {
   designDocsService: DesignDocsService;

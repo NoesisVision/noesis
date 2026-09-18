@@ -4,7 +4,7 @@ import {
   DesignedBoundedContextSchema,
   DesignedBuildingBlockSchema,
   DesignedDomainModuleSchema,
-} from './design-doc.js';
+} from './design-doc';
 
 /*
  * The implemented model: what the source code actually contains, projected by

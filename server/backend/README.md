@@ -124,7 +124,7 @@ They are read three ways: the service imports them and validates twice (the
 `validate` tool, then the write boundary); the plugin copies the directory
 verbatim into `plugins/claude-code/contracts/` at build time for the agent
 to read as source; the frontend takes payload types from them, type-only,
-through its `#/server/*` alias.
+through its `#backend/*` alias.
 
 The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod

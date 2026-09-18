@@ -9,8 +9,8 @@ import {
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
-import { serverLogger } from '../logging/logging.js';
-import type { NoesisDir } from './noesis-dir.js';
+import { serverLogger } from '#backend/platform/logging/logging';
+import type { NoesisDir } from './noesis-dir';
 
 const log = serverLogger('session');
 
