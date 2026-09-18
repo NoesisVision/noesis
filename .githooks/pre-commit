@@ -19,16 +19,12 @@ if ! command -v bunx >/dev/null 2>&1; then
   exit 1
 fi
 
-bunx biome check --staged --no-errors-on-unmatched
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -n "$staged" ] || exit 0
 
-# Layer rules are whole-graph, so any staged backend source reruns them all
-# (under a second). Checks the working tree, not the index.
-if git diff --cached --name-only --diff-filter=ACMRD -- 'server/backend/src/' | grep -q .; then
-  bun run --cwd server/backend lint:deps
-fi
-
-# Prettier owns Markdown (Biome has no md support).
-staged_md=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
-if [ -n "$staged_md" ]; then
-  echo "$staged_md" | tr '\n' '\0' | xargs -0 bunx prettier --check
-fi
+# Both tools skip what they ignore or cannot handle (a lockfile, an image), so
+# the whole list goes to each. They read the working tree, not the index.
+# Oxlint's layer and cycle rules resolve imports across the project, so a
+# staged file is judged against everything it imports.
+echo "$staged" | tr '\n' '\0' | xargs -0 bunx oxfmt --check --no-error-on-unmatched-pattern
+echo "$staged" | tr '\n' '\0' | xargs -0 bunx oxlint --no-error-on-unmatched-pattern

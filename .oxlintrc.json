@@ -1,0 +1,208 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "react", "jsx-a11y"],
+  "jsPlugins": [
+    { "name": "boundaries", "specifier": "eslint-plugin-boundaries" }
+  ],
+  "categories": { "correctness": "error" },
+  // Type-aware rules (no-floating-promises, …) run on tsgolint, which is
+  // built on TypeScript 7's own compiler.
+  "options": { "typeAware": true },
+  "ignorePatterns": [
+    "server/frontend/src/routeTree.gen.ts",
+    "docs/**/prior-art/**",
+    "docs/**/prototypes/**",
+    "docs/work/**/*.html"
+  ],
+  "settings": {
+    // The backend's layers (decision D3). A file belongs to the first
+    // element whose folder contains it; `root` catches what is directly in
+    // `src/` — the composition root.
+    "boundaries/include": ["server/backend/src/**/*.ts"],
+    "boundaries/elements": [
+      {
+        "type": "contracts",
+        "pattern": "server/backend/src/shared/contracts/**",
+        "partialMatch": false
+      },
+      {
+        "type": "shared",
+        "pattern": "server/backend/src/shared/**",
+        "partialMatch": false
+      },
+      {
+        "type": "platform",
+        "pattern": "server/backend/src/platform/**",
+        "partialMatch": false
+      },
+      {
+        "type": "app",
+        "pattern": "server/backend/src/app/**",
+        "partialMatch": false
+      },
+      {
+        "type": "adapters",
+        "pattern": "server/backend/src/adapters/**",
+        "partialMatch": false
+      },
+      {
+        "type": "ui",
+        "pattern": "server/backend/src/ui/**",
+        "partialMatch": false
+      },
+      { "type": "root", "pattern": "server/backend/src" }
+    ],
+    "import/resolver": {
+      "oxc": { "tsconfig": { "configFile": "./server/backend/tsconfig.json" } }
+    }
+  },
+  "rules": {
+    "import/no-cycle": "error",
+    "boundaries/no-unknown-dependencies": "error",
+    "boundaries/no-unknown-files": "error",
+    "boundaries/dependencies": [
+      "error",
+      {
+        "default": "disallow",
+        // Also judge npm and node: imports, so contracts can be held to zod.
+        "checkAllOrigins": true,
+        "policies": [
+          {
+            "allow": { "to": { "module": { "origin": ["core", "external"] } } }
+          },
+          // Contracts are declarative: zod and sibling contracts only, since
+          // the plugin copies them verbatim (decision D4).
+          {
+            "from": { "element": { "type": "contracts" } },
+            "disallow": {
+              "to": { "module": { "origin": ["core", "external"] } }
+            }
+          },
+          {
+            "from": { "element": { "type": "contracts" } },
+            "allow": {
+              "to": { "module": { "origin": "external", "source": "zod" } }
+            }
+          },
+          {
+            "from": { "element": { "type": "contracts" } },
+            "allow": { "to": { "element": { "type": "contracts" } } }
+          },
+          {
+            "from": { "element": { "type": "shared" } },
+            "allow": {
+              "to": { "element": { "type": ["shared", "contracts"] } }
+            }
+          },
+          // platform is generic plumbing; it knows nothing of the layers above.
+          {
+            "from": { "element": { "type": "platform" } },
+            "allow": {
+              "to": {
+                "element": { "type": ["platform", "shared", "contracts"] }
+              }
+            }
+          },
+          // app is the core: it declares the ports it needs and adapters
+          // implement them. Import the port, not platform.
+          {
+            "from": { "element": { "type": "app" } },
+            "allow": {
+              "to": { "element": { "type": ["app", "shared", "contracts"] } }
+            }
+          },
+          {
+            "from": { "element": { "type": "adapters" } },
+            "allow": {
+              "to": {
+                "element": {
+                  "type": ["adapters", "app", "platform", "shared", "contracts"]
+                }
+              }
+            }
+          },
+          {
+            "from": { "element": { "type": "ui" } },
+            "allow": {
+              "to": {
+                "element": {
+                  "type": ["ui", "app", "platform", "shared", "contracts"]
+                }
+              }
+            }
+          },
+          // Only the composition root wires everything; nothing imports it.
+          {
+            "from": { "element": { "type": "root" } },
+            "allow": {
+              "to": {
+                "element": {
+                  "type": [
+                    "root",
+                    "ui",
+                    "adapters",
+                    "app",
+                    "platform",
+                    "shared",
+                    "contracts"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["server/backend/**"],
+      "rules": { "typescript/no-floating-promises": "error" }
+    },
+    {
+      "files": ["server/frontend/**"],
+      "rules": {
+        "react/only-export-components": "error",
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@mantine/*"],
+                "message": "Import from #/components/design-system instead. Mantine is private to the design system."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["server/frontend/src/routes/**"],
+      "rules": {
+        "react/only-export-components": [
+          "error",
+          { "allowExportNames": ["Route"] }
+        ]
+      }
+    },
+    {
+      // The design system wraps Mantine; types/ extends its theme types.
+      "files": [
+        "server/frontend/src/components/design-system/**",
+        "server/frontend/src/types/**"
+      ],
+      "rules": { "no-restricted-imports": "off" }
+    },
+    {
+      // bun's typings declare `expect().rejects`/`.resolves` matchers as
+      // non-thenables; type tests reference members and methods on purpose.
+      "files": ["**/test/**"],
+      "rules": {
+        "typescript/await-thenable": "off",
+        "typescript/unbound-method": "off",
+        "typescript/restrict-template-expressions": "off",
+        "no-unused-expressions": "off"
+      }
+    }
+  ]
+}

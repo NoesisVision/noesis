@@ -32,8 +32,8 @@ jobs:
               - 'bunfig.toml'
               - '.github/workflows/ci.yml'
 
-  # Ungated: format:check covers **/*.md (prettier), so doc-only commits are
-  # still checked; biome covers the code side.
+  # Ungated: format:check (oxfmt) covers **/*.md as well as code, so doc-only
+  # commits are still checked.
   format:
     name: Format check
     runs-on: ubuntu-latest

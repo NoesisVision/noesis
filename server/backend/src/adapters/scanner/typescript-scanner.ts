@@ -230,9 +230,9 @@ export function exportedClasses(lines: string[]): FoundClass[] {
 
 /** A conventional-name heuristic; everything else is left for a person to type. */
 export function typeOf(className: string): DesignedBuildingBlockType | null {
-  if (/Repository$/.test(className)) return 'repository';
-  if (/Service$/.test(className)) return 'application_service';
-  if (/Factory$/.test(className)) return 'factory';
+  if (className.endsWith('Repository')) return 'repository';
+  if (className.endsWith('Service')) return 'application_service';
+  if (className.endsWith('Factory')) return 'factory';
   if (/(Client|Gateway|Adapter)$/.test(className))
     return 'external_integration';
   if (/(Event)$/.test(className)) return 'domain_event';

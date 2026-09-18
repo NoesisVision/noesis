@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "sortImports": {
+    "newlinesBetween": false
+  },
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "server/frontend/src/routeTree.gen.ts",
+    "docs/**/prior-art",
+    "docs/**/prototypes",
+    "docs/work/**/*.html",
+    ".agents/"
+  ]
+}

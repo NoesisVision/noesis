@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { SearchService } from '../../src/app/search/search.service.js';
 import { createApp } from '../../src/app.js';
+import { SearchService } from '../../src/app/search/search.service.js';
 import { testNoesis } from '../unit/test-noesis.js';
 
 // Route-surface assertions over the composed app. A throwaway `.noesis/`

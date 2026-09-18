@@ -107,8 +107,9 @@ test/
   unit/ e2e/ bench/
 ```
 
-The layers are checked by `bun run lint:deps` (dependency-cruiser, rules and
-their reasons in `.dependency-cruiser.mjs`; decision D3): `shared` imports no
+The layers are checked by `bun run lint` (Oxlint with
+eslint-plugin-boundaries; rules and their reasons in the root `.oxlintrc.json`;
+decision D3): `shared` imports no
 other layer, `platform` only `shared`, `app` only `shared`; `adapters` and
 `ui` build on `app` and `platform` but not on each other; nothing imports the
 composition root. A new need of `app` on files or the database is a port in

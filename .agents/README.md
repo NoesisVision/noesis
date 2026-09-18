@@ -33,7 +33,7 @@ the same file).
 
 Third-party skills are vendored and hash-locked by `skills-lock.json` at the repo root.
 Do not edit them by hand — local changes are lost on the next update. The whole `.agents/`
-folder is excluded from Prettier (`.prettierignore`) so formatting never changes their hashes.
+folder is excluded from Oxfmt (`ignorePatterns` in `.oxfmtrc.json`) so formatting never changes their hashes.
 
 ## Managing third-party skills with `npx skills`
 
