@@ -1,6 +1,6 @@
-import type { Change, CreateChange } from '../../shared/contracts/index.js';
-import { ChangeSlug } from './change-slug.js';
-import type { ChangesRepository } from './changes.repository.js';
+import type { Change, CreateChange } from '../../shared/contracts';
+import { ChangeSlug } from './change-slug';
+import type { ChangesRepository } from './changes.repository';
 
 export class ChangeNotFoundError extends Error {
   readonly slug: ChangeSlug;

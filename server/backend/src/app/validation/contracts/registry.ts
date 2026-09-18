@@ -1,3 +1,4 @@
+import type { FileContract } from '#backend/app/validation/validator';
 import {
   ChangeSchema,
   ConversationAnalysisSchema,
@@ -7,9 +8,8 @@ import {
   DocumentSchema,
   SystemModelSchema,
   TopicSchema,
-} from '../../../shared/contracts/index.js';
-import type { FileContract } from '../validator.js';
-import { designDocumentContract } from './design-document.js';
+} from '#backend/shared/contracts';
+import { designDocumentContract } from './design-document';
 
 /**
  * Every file contract the agent can validate against, keyed by the name the

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
 import {
   DesignDocumentSchema,
   DesignedUseCaseSchema,
-} from '../../src/shared/contracts/design-doc.js';
+} from '#backend/shared/contracts/design-doc';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 describe('DesignDocumentSchema', () => {
   const minimal = { id: 'dd-1', name: 'Ordering', date: '2026-09-12' };

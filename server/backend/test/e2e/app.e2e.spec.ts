@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { createApp } from '../../src/app.js';
-import { SearchService } from '../../src/app/search/search.service.js';
-import { testNoesis } from '../unit/test-noesis.js';
+import { createApp } from '#backend/app';
+import { SearchService } from '#backend/app/search/search.service';
+import { testNoesis } from '../unit/test-noesis';
 
 // Route-surface assertions over the composed app. A throwaway `.noesis/`
 // backs the stateful services; everything else is the deps the surfaces need.

@@ -1,13 +1,16 @@
 import {
+  checkDesignDocument,
+  type DesignDocIssue,
+} from '#backend/app/design-docs/design-doc-integrity';
+import type {
+  FileContract,
+  ValidationIssue,
+} from '#backend/app/validation/validator';
+import {
   type DesignDocument,
   DesignDocumentSchema,
   type ElementRef,
-} from '../../../shared/contracts/index.js';
-import {
-  checkDesignDocument,
-  type DesignDocIssue,
-} from '../../design-docs/design-doc-integrity.js';
-import type { FileContract, ValidationIssue } from '../validator.js';
+} from '#backend/shared/contracts';
 
 /**
  * A design document as a whole file: decision D4's boundary pipeline

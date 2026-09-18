@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { NoesisStoreError } from '../../src/platform/files/noesis-store.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { NoesisStoreError } from '#backend/platform/files/noesis-store';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 

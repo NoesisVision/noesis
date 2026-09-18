@@ -18,9 +18,9 @@ The service, contracts and tooling stack is in the root `README.md`.
   imported from `main.tsx`; bun inlines the font files into the page's CSS
 - **Contracts** (`server/backend/src/shared/contracts`) — the zod contracts
   both sides share; the frontend takes its payload types from them
-  (type-only, via the `#/server/*` alias) and calls `/ui` through Hono's
+  (type-only, via the `#backend/*` alias) and calls `/ui` through Hono's
   typed RPC client, `hc<AppType>('/ui')` in `src/api/client.ts`, with
-  `AppType` a type-only import from the backend via the `#/server/*` alias
+  `AppType` a type-only import from the backend via the `#backend/*` alias
   (decision D5)
 - **TanStack Router** — type-safe file-based routing; `tsr generate`
   (`bun run generate-routes`, `@tanstack/router-cli`) writes the committed

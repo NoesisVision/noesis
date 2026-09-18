@@ -3,6 +3,6 @@
 // with the whole-document check the service runs on write. The agent reads
 // the same schemas as source from the plugin's `contracts/` copy.
 
-export * from '../../../shared/contracts/index.js';
-export * from './design-document.js';
-export * from './registry.js';
+export * from '#backend/shared/contracts';
+export * from './design-document';
+export * from './registry';

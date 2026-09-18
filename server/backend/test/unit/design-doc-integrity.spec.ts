@@ -3,14 +3,14 @@ import {
   checkDesignDocument,
   type DesignDocIssueCode,
   isConsistentDesignDocument,
-} from '../../src/app/design-docs/design-doc-integrity.js';
+} from '#backend/app/design-docs/design-doc-integrity';
 import {
   elementRef,
   resolveRef,
   slotRef,
-} from '../../src/app/design-docs/design-doc-paths.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import type { DesignDocument } from '../../src/shared/contracts/index.js';
+} from '#backend/app/design-docs/design-doc-paths';
+import type { DesignDocument } from '#backend/shared/contracts';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 /**
  * Structured-clone the fixture so a mutation in one case cannot leak into the

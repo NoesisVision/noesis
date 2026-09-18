@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import {
   findRepositoryRoot,
   resolveRepositoryRoot,
-} from '../../src/platform/files/repository-root.js';
+} from '#backend/platform/files/repository-root';
 
 let base: string;
 

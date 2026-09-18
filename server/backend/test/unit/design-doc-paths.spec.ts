@@ -8,9 +8,9 @@ import {
   resolveRef,
   slotRef,
   valueAtModelPath,
-} from '../../src/app/design-docs/design-doc-paths.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { ElementRefSchema } from '../../src/shared/contracts/index.js';
+} from '#backend/app/design-docs/design-doc-paths';
+import { ElementRefSchema } from '#backend/shared/contracts';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 const doc = designDocFixture;
 

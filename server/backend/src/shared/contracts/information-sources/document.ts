@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { InformationCategory } from './information-category.js';
+import { InformationCategory } from './information-category';
 
 /*
  * An imported document: its content split into fragments the wiki can point

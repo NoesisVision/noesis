@@ -1,5 +1,5 @@
-import type { Change } from '../../shared/contracts/index.js';
-import type { ChangeSlug } from './change-slug.js';
+import type { Change } from '#backend/shared/contracts';
+import type { ChangeSlug } from './change-slug';
 
 /**
  * Where the changes of this checkout are kept, as `ChangesService` needs

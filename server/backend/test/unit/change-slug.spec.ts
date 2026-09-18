@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import {
   ChangeSlug,
   InvalidChangeSlugError,
-} from '../../src/app/changes/change-slug.js';
+} from '#backend/app/changes/change-slug';
 
 describe('ChangeSlug', () => {
   it('parses a safe directory name and nothing else', () => {

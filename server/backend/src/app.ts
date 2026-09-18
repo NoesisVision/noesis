@@ -1,10 +1,10 @@
 import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
-import type { ChangesService } from './app/changes/changes.service.js';
-import type { DesignDocsService } from './app/design-docs/design-docs.service.js';
-import type { SearchService } from './app/search/search.service.js';
-import { createInternalApp } from './ui/internal.routes.js';
-import { createUiApp } from './ui/ui.routes.js';
+import type { ChangesService } from './app/changes/changes.service';
+import type { DesignDocsService } from './app/design-docs/design-docs.service';
+import type { SearchService } from './app/search/search.service';
+import { createInternalApp } from './ui/internal.routes';
+import { createUiApp } from './ui/ui.routes';
 
 // The composition surface: routes are segregated by consumer, one sub-app per
 // surface: /ui (ui app), /internal (health and other technical endpoints).

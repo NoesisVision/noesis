@@ -2,12 +2,12 @@ import type {
   DesignDocument,
   DesignedScenario,
   ElementRef,
-} from '../../shared/contracts/index.js';
+} from '#backend/shared/contracts';
 import {
   elementRef,
   type ModelPath,
   refForModelPath,
-} from './design-doc-paths.js';
+} from './design-doc-paths';
 
 /*
  * Whole-document invariants.

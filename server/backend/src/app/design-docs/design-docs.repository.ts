@@ -1,5 +1,5 @@
-import type { DesignDocument } from '../../shared/contracts/index.js';
-import type { ChangeSlug } from '../changes/change-slug.js';
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { DesignDocument } from '#backend/shared/contracts';
 
 /**
  * Where a change's design documents are kept, keyed by document id, as

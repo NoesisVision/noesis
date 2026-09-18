@@ -1,10 +1,13 @@
-import type { DatabaseService } from '../../platform/database/database.service.js';
-import { NoesisStoreError } from '../../platform/files/noesis-store.js';
-import { serverLogger } from '../../platform/logging/logging.js';
-import type { NoesisChangesRepository } from '../store/changes.repository.js';
-import type { SystemModelStore } from '../store/system-model.store.js';
-import type { DecisionsStore, TopicsStore } from '../store/wiki.store.js';
-import { nodeTableNames } from './graph-schema.js';
+import type { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import type { SystemModelStore } from '#backend/adapters/store/system-model.store';
+import type {
+  DecisionsStore,
+  TopicsStore,
+} from '#backend/adapters/store/wiki.store';
+import type { DatabaseService } from '#backend/platform/database/database.service';
+import { NoesisStoreError } from '#backend/platform/files/noesis-store';
+import { serverLogger } from '#backend/platform/logging/logging';
+import { nodeTableNames } from './graph-schema';
 
 const log = serverLogger('indexer');
 

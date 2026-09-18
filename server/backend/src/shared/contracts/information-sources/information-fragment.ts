@@ -2,11 +2,11 @@ import { z } from 'zod';
 import {
   type ConversationFragmentRef,
   ConversationFragmentRefSchema,
-} from './conversation.js';
+} from './conversation';
 import {
   type DocumentFragmentRef,
   DocumentFragmentRefSchema,
-} from './document.js';
+} from './document';
 
 // A reference to a single information fragment in any source — a fragment of a
 // conversation or of a document. Topics and decisions point at their supporting

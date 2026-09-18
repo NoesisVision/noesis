@@ -1,6 +1,6 @@
-import type { DatabaseService } from '../../platform/database/database.service.js';
-import { serverLogger } from '../../platform/logging/logging.js';
-import { GRAPH_SCHEMA } from './graph-schema.js';
+import type { DatabaseService } from '#backend/platform/database/database.service';
+import { serverLogger } from '#backend/platform/logging/logging';
+import { GRAPH_SCHEMA } from './graph-schema';
 
 const log = serverLogger('schema');
 

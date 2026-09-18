@@ -1,9 +1,9 @@
 import { v7 as uuidv7 } from 'uuid';
-import { designDocFixture } from '../../shared/contracts/design-doc.fixture.js';
-import type { DesignDocument } from '../../shared/contracts/index.js';
-import type { ChangeSlug } from '../changes/change-slug.js';
-import type { ChangesService } from '../changes/changes.service.js';
-import type { DesignDocsRepository } from './design-docs.repository.js';
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { DesignDocument } from '#backend/shared/contracts';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import type { DesignDocsRepository } from './design-docs.repository';
 
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {

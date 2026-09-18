@@ -5,7 +5,7 @@
   "web-types": "./web-types.json",
   "imports": {
     "#/*": "./src/*",
-    "#/server/*": "../backend/src/*"
+    "#backend/*": "../backend/src/*"
   },
   "scripts": {
     "dev": "vite",

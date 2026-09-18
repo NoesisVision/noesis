@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { createGraphSearch } from '../../src/adapters/graph/graph-search.js';
-import { IndexService } from '../../src/adapters/graph/index.service.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { SearchService } from '../../src/app/search/search.service.js';
-import type { DatabaseService } from '../../src/platform/database/database.service.js';
-import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { resetGraph, sharedTestDatabase } from './test-db.js';
-import { put, type TestNoesis, testNoesis } from './test-noesis.js';
+import { createGraphSearch } from '#backend/adapters/graph/graph-search';
+import { IndexService } from '#backend/adapters/graph/index.service';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { SearchService } from '#backend/app/search/search.service';
+import type { DatabaseService } from '#backend/platform/database/database.service';
+import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import { resetGraph, sharedTestDatabase } from './test-db';
+import { put, type TestNoesis, testNoesis } from './test-noesis';
 
 const ALPHA = ChangeSlug.parse('alpha');
 

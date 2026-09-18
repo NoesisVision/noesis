@@ -10,38 +10,38 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { type ZodType, z } from 'zod';
+import type { ScannerService } from '#backend/adapters/scanner/scanner.service';
 import {
   ChangeSlug,
   InvalidChangeSlugError,
-} from '../../app/changes/change-slug.js';
-import type { ChangesService } from '../../app/changes/changes.service.js';
-import { ChangeNotFoundError } from '../../app/changes/changes.service.js';
+} from '#backend/app/changes/change-slug';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
-} from '../../app/design-docs/design-docs.service.js';
-import type { SearchService } from '../../app/search/search.service.js';
+} from '#backend/app/design-docs/design-docs.service';
+import type { SearchService } from '#backend/app/search/search.service';
 import {
   contractNames,
   contracts,
   designDocumentContract,
-} from '../../app/validation/contracts/index.js';
+} from '#backend/app/validation/contracts';
 import {
   type FileContract,
   formatReport,
   singleIssue,
   type ValidationIssue,
   validate,
-} from '../../app/validation/validator.js';
-import type { SessionDir } from '../../platform/files/session-dir.js';
-import type { DesignDocument } from '../../shared/contracts/index.js';
-import type { ScannerService } from '../scanner/scanner.service.js';
+} from '#backend/app/validation/validator';
+import type { SessionDir } from '#backend/platform/files/session-dir';
+import type { DesignDocument } from '#backend/shared/contracts';
 import {
   DuplicateSourceError,
   type ImportReport,
   type ImportService,
   InvalidImportError,
-} from './import.service.js';
+} from './import.service';
 
 /**
  * What the tools may touch: the same services the HTTP surface gets, handed in

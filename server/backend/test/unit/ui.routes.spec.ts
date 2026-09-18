@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { SearchService } from '../../src/app/search/search.service.js';
-import { createUiApp } from '../../src/ui/ui.routes.js';
-import { testNoesis } from './test-noesis.js';
+import { SearchService } from '#backend/app/search/search.service';
+import { createUiApp } from '#backend/ui/ui.routes';
+import { testNoesis } from './test-noesis';
 
 const t = await testNoesis();
 afterAll(() => t.cleanup());

@@ -3,15 +3,15 @@ import { stat } from 'node:fs/promises';
 import {
   DuplicateSourceError,
   InvalidImportError,
-} from '../../src/adapters/mcp/import.service.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { sha256 } from '../../src/platform/crypto/content-hash.js';
-import { conversationAnalysisFixture } from '../../src/shared/contracts/conversation-analysis.fixture.js';
+} from '#backend/adapters/mcp/import.service';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { sha256 } from '#backend/platform/crypto/content-hash';
 import type {
   ConversationAnalysis,
   DocumentAnalysis,
-} from '../../src/shared/contracts/index.js';
-import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
+} from '#backend/shared/contracts';
+import { conversationAnalysisFixture } from '#backend/shared/contracts/conversation-analysis.fixture';
+import { all, put, type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');
 const OTHER = ChangeSlug.parse('other');

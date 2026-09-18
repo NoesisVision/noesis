@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { InformationFragmentRefSchema } from './information-sources/information-fragment.js';
-import { Locked } from './locked.js';
+import { InformationFragmentRefSchema } from './information-sources/information-fragment';
+import { Locked } from './locked';
 
 /*
  * A wiki topic: one node of the topic tree under `.noesis/graph/wiki/topics/`,

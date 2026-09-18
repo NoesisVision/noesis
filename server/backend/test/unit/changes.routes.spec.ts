@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '../../src/shared/contracts/index.js';
-import { createChangesApp } from '../../src/ui/changes/changes.routes.js';
-import { type TestNoesis, testNoesis } from './test-noesis.js';
+import type { Change } from '#backend/shared/contracts';
+import { createChangesApp } from '#backend/ui/changes/changes.routes';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 let app: ReturnType<typeof createChangesApp>;

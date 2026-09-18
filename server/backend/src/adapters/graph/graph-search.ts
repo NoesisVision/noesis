@@ -1,8 +1,8 @@
 import type {
   SearchProvider,
   SearchResult,
-} from '../../app/search/search.service.js';
-import type { DatabaseService } from '../../platform/database/database.service.js';
+} from '#backend/app/search/search.service';
+import type { DatabaseService } from '#backend/platform/database/database.service';
 
 /** Results per kind; the palette and the tool both want a short list. */
 const LIMIT = 10;

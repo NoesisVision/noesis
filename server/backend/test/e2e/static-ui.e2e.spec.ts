@@ -9,7 +9,7 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { listeningUrl, serviceEnv } from '../support/service-process.js';
+import { listeningUrl, serviceEnv } from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
 

@@ -1,5 +1,5 @@
 import type { hc } from 'hono/client';
-import type { AppType } from '../../src/app.types.js';
+import type { AppType } from '#backend/app.types';
 
 // Compile-only contract checks; this function is never invoked.
 export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {

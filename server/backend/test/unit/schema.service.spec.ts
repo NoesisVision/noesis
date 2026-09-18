@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { GRAPH_SCHEMA } from '../../src/adapters/graph/graph-schema.js';
-import { SchemaService } from '../../src/adapters/graph/schema.service.js';
-import type { DatabaseService } from '../../src/platform/database/database.service.js';
-import { sharedTestDatabase } from './test-db.js';
+import { GRAPH_SCHEMA } from '#backend/adapters/graph/graph-schema';
+import { SchemaService } from '#backend/adapters/graph/schema.service';
+import type { DatabaseService } from '#backend/platform/database/database.service';
+import { sharedTestDatabase } from './test-db';
 
 describe('SchemaService', () => {
   let db: DatabaseService;

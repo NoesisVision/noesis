@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { AnalyzedTopicSchema } from './conversation-analysis.js';
-import { DocumentSchema } from './document.js';
+import { AnalyzedTopicSchema } from './conversation-analysis';
+import { DocumentSchema } from './document';
 
 /*
  * The payload of a document import: the document split into fragments and
