@@ -5,8 +5,8 @@ import type {
   DocumentAnalysis,
 } from '@repo/shared-contracts';
 import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { sha256 } from '../../src/ids/uuid.js';
+import { sha256 } from '@repo/shared-vo';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import {
   DuplicateSourceError,
   InvalidImportError,

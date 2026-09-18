@@ -1,6 +1,6 @@
 import { type FSWatcher, watch } from 'node:fs';
-import type { NoesisDir } from '../infra/files/noesis-dir.js';
-import { serverLogger } from '../infra/logging/logging.js';
+import { serverLogger } from '../logging/logging.js';
+import type { NoesisDir } from './noesis-dir.js';
 
 const log = serverLogger('watcher');
 

@@ -7,18 +7,18 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { ChangesRepository } from '../../src/changes/changes.repository.js';
-import { GraphIndexer } from '../../src/index/indexer.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
+import { IndexService } from '../../src/app/index/index.service.js';
+import { createSystemModelStore } from '../../src/app/system-model/system-model.store.js';
+import {
+  createDecisionsStore,
+  createTopicsStore,
+} from '../../src/app/wiki/wiki.store.js';
 import { DatabaseService } from '../../src/infra/database/database.service.js';
 import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
 import { dataFileOf } from '../../src/infra/files/noesis-store.js';
 import { SchemaService } from '../../src/infra/schema/schema.service.js';
-import { createSystemModelStore } from '../../src/system-model/system-model.store.js';
-import {
-  createDecisionsStore,
-  createTopicsStore,
-} from '../../src/wiki/wiki.store.js';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;
@@ -70,7 +70,7 @@ async function measure(files: number): Promise<number> {
   const noesis = await syntheticNoesis(files);
   try {
     const changes = new ChangesRepository(noesis);
-    const indexer = new GraphIndexer(db, {
+    const indexer = new IndexService(db, {
       changes,
       topics: createTopicsStore(noesis),
       decisions: createDecisionsStore(noesis),

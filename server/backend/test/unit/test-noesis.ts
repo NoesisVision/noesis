@@ -2,24 +2,24 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Change } from '@repo/shared-contracts';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { ChangesRepository } from '../../src/changes/changes.repository.js';
-import { ChangesService } from '../../src/changes/changes.service.js';
-import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
-import type { IndexerSources } from '../../src/index/indexer.js';
-import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
-import type { NoesisStore } from '../../src/infra/files/noesis-store.js';
-import { ImportService } from '../../src/infra/mcp/import.service.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
+import { ChangesService } from '../../src/app/changes/changes.service.js';
+import { DesignDocsService } from '../../src/app/design-docs/design-docs.service.js';
+import type { IndexerSources } from '../../src/app/index/index.service.js';
 import {
   createSystemModelStore,
   type SystemModelStore,
-} from '../../src/system-model/system-model.store.js';
+} from '../../src/app/system-model/system-model.store.js';
 import {
   createDecisionsStore,
   createTopicsStore,
   type DecisionsStore,
   type TopicsStore,
-} from '../../src/wiki/wiki.store.js';
+} from '../../src/app/wiki/wiki.store.js';
+import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
+import type { NoesisStore } from '../../src/infra/files/noesis-store.js';
+import { ImportService } from '../../src/infra/mcp/import.service.js';
 
 /**
  * A throwaway repository root with an ensured `.noesis/`, plus the stores

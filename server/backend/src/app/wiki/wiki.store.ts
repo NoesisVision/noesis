@@ -1,6 +1,6 @@
 import { DecisionSchema, TopicSchema } from '@repo/shared-contracts';
-import { createNoesisStore } from '../infra/files/bun-noesis-store.js';
-import type { NoesisDir } from '../infra/files/noesis-dir.js';
+import { createNoesisStore } from '../../infra/files/bun-noesis-store.js';
+import type { NoesisDir } from '../../infra/files/noesis-dir.js';
 
 /**
  * The wiki: `.noesis/graph/wiki/topics/` and `.noesis/graph/wiki/decisions/`,

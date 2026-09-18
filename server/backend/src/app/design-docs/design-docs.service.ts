@@ -1,13 +1,13 @@
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { newUuid } from '@repo/shared-vo';
+import { dataFileOf } from '../../infra/files/noesis-store.js';
 import type { ChangeSlug } from '../changes/change-slug.js';
 import type {
   ChangeChildren,
   ChangesRepository,
 } from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
-import { newUuid } from '../ids/uuid.js';
-import { dataFileOf } from '../infra/files/noesis-store.js';
 
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {

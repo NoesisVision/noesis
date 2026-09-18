@@ -77,22 +77,24 @@ src/
   bundle-cwd.ts       moves cwd to the bundle before start (the built bin resolves its
                       asset manifest against cwd, and bunx launches it from the project)
   app.ts              the Hono app: /ui and /internal
-  config/             env parsing (zod)
-  logging/            LogTape setup: stderr + .noesis/logs/noesis.log, request context
-  files/              repository root lookup, .noesis/ + its .gitignore, session scratch dir,
-                      the generic file repository (atomic whole-file writes, <slug>-<id>.json)
-  changes/ design-docs/ imports/ sources/ system-model/ wiki/
-                      one repository (and service, where there is one) per kind
-  ids/                time-ordered ids for authored entities, content hashes for imports
-  database/           the LadybugDB handle, in-memory only
-  schema/             the declarative graph schema, one place for every node/rel table
-  index/              indexer (files → graph at boot) and watcher (re-index on change)
-  search/             graph search behind the search tool and /ui/search
-  scanner/            the TypeScript source scanner behind scan-system-model
-  validation/         the actionable problem list validate and writes report
-  mcp/                the MCP server and the file-contract registry
-  ui/ internal/       the HTTP surfaces
-  native/             puts LadybugDB's native binary where its loader expects it
+  app/                application services and repositories, one folder per kind:
+    changes/ design-docs/ system-model/ wiki/
+    search/           graph search behind the search tool and /ui/search
+    index/            the index service (files → graph at boot and on change)
+  ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
+  infra/
+    config/           env parsing (zod)
+    logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context
+    files/            repository root lookup, .noesis/ + its .gitignore, session scratch
+                      dir, the generic file repository (atomic whole-file writes), and
+                      the watcher that re-indexes on change
+    database/         the LadybugDB handle, in-memory only
+    schema/           the declarative graph schema, one place for every node/rel table
+    validation/       the actionable problem list and the file-contract registry that
+                      the validate tool, the ui routes and the MCP tools run
+    mcp/              the MCP server and the import service behind its import tools
+    native/           puts LadybugDB's native binary where its loader expects it
+    scanner/          the TypeScript source scanner behind scan-system-model
 test/
   unit/ e2e/ bench/
 ```

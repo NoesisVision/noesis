@@ -5,12 +5,12 @@ import {
   checkDesignDocument,
   type DesignDocIssueCode,
   isConsistentDesignDocument,
-} from '../../src/design-docs/design-doc-integrity.js';
+} from '../../src/app/design-docs/design-doc-integrity.js';
 import {
   elementRef,
   resolveRef,
   slotRef,
-} from '../../src/design-docs/design-doc-paths.js';
+} from '../../src/app/design-docs/design-doc-paths.js';
 
 /**
  * Structured-clone the fixture so a mutation in one case cannot leak into the

@@ -17,19 +17,25 @@ console.log = (...args: unknown[]) => console.error(...args);
 import './bundle-cwd.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import index from '../../frontend/index.html';
+import { ChangesRepository } from './app/changes/changes.repository.js';
+import { ChangesService } from './app/changes/changes.service.js';
+import { DesignDocsService } from './app/design-docs/design-docs.service.js';
+import { IndexService } from './app/index/index.service.js';
+import { createGraphSearch } from './app/search/graph-search.js';
+import { createSystemModelStore } from './app/system-model/system-model.store.js';
+import {
+  createDecisionsStore,
+  createTopicsStore,
+} from './app/wiki/wiki.store.js';
 import { createApp } from './app.js';
 import { openBrowser } from './browser.js';
 import { launchCwd } from './bundle-cwd.js';
-import { ChangesRepository } from './changes/changes.repository.js';
-import { ChangesService } from './changes/changes.service.js';
-import { DesignDocsService } from './design-docs/design-docs.service.js';
-import { GraphIndexer } from './index/indexer.js';
-import { NoesisWatcher } from './index/watcher.js';
 import { loadServerConfig } from './infra/config/config.js';
 import { DatabaseService } from './infra/database/database.service.js';
 import { NoesisDir } from './infra/files/noesis-dir.js';
 import { resolveRepositoryRoot } from './infra/files/repository-root.js';
 import { SessionDir } from './infra/files/session-dir.js';
+import { NoesisWatcher } from './infra/files/watcher.js';
 import {
   configureLogging,
   disposeLogging,
@@ -38,12 +44,9 @@ import {
 import { ImportService } from './infra/mcp/import.service.js';
 import { createMcpServer } from './infra/mcp/mcp-server.js';
 import { ensureLadybugBinary } from './infra/native/ensure-ladybug.js';
+import { ScannerService } from './infra/scanner/scanner.service.js';
 import { SchemaService } from './infra/schema/schema.service.js';
-import { ScannerService } from './scanner/scanner.service.js';
-import { createGraphSearch } from './search/graph-search.js';
-import { createSystemModelStore } from './system-model/system-model.store.js';
 import { SearchService } from './ui/search/search.service.js';
-import { createDecisionsStore, createTopicsStore } from './wiki/wiki.store.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
@@ -81,7 +84,7 @@ const changesRepository = new ChangesRepository(noesis);
 const topics = createTopicsStore(noesis);
 const decisions = createDecisionsStore(noesis);
 const systemModels = createSystemModelStore(noesis);
-const indexer = new GraphIndexer(db, {
+const indexer = new IndexService(db, {
   changes: changesRepository,
   topics,
   decisions,

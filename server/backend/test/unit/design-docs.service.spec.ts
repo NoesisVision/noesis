@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { ChangeNotFoundError } from '../../src/changes/changes.service.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { ChangeNotFoundError } from '../../src/app/changes/changes.service.js';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
-} from '../../src/design-docs/design-docs.service.js';
+} from '../../src/app/design-docs/design-docs.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = ChangeSlug.parse('booking');

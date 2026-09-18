@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { ChangesService } from '../changes/changes.service.js';
-import type { DesignDocsService } from '../design-docs/design-docs.service.js';
+import type { ChangesService } from '../app/changes/changes.service.js';
+import type { DesignDocsService } from '../app/design-docs/design-docs.service.js';
 import { createChangesApp } from './changes/changes.routes.js';
 import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
 import { createSearchApp } from './search/search.routes.js';

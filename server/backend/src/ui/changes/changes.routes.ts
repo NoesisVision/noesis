@@ -2,12 +2,12 @@ import { zValidator } from '@hono/zod-validator';
 import { CreateChangeSchema } from '@repo/shared-contracts';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { ChangeSlug } from '../../changes/change-slug.js';
+import { ChangeSlug } from '../../app/changes/change-slug.js';
 import {
   ChangeNotFoundError,
   type ChangesService,
   DuplicateChangeError,
-} from '../../changes/changes.service.js';
+} from '../../app/changes/changes.service.js';
 
 export interface ChangesDeps {
   changesService: ChangesService;

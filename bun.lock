@@ -23,6 +23,16 @@
         "typescript": "catalog:",
       },
     },
+    "packages/shared-vo": {
+      "name": "@repo/shared-vo",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/bun": "catalog:",
+        "@types/node": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/typescript-config": {
       "name": "@repo/typescript-config",
       "version": "0.0.0",
@@ -54,6 +64,7 @@
         "@logtape/logtape": "^2.3.4",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "@repo/shared-contracts": "workspace:*",
+        "@repo/shared-vo": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
@@ -289,6 +300,8 @@
     "@noesis-vision/noesis": ["@noesis-vision/noesis@workspace:server/backend"],
 
     "@repo/shared-contracts": ["@repo/shared-contracts@workspace:packages/shared-contracts"],
+
+    "@repo/shared-vo": ["@repo/shared-vo@workspace:packages/shared-vo"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 

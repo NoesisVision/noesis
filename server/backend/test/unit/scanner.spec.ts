@@ -3,12 +3,12 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SystemModelSchema } from '@repo/shared-contracts';
 import { dataFileOf } from '../../src/infra/files/noesis-store.js';
-import { ScannerService } from '../../src/scanner/scanner.service.js';
+import { ScannerService } from '../../src/infra/scanner/scanner.service.js';
 import {
   exportedClasses,
   findUnits,
   typeOf,
-} from '../../src/scanner/typescript-scanner.js';
+} from '../../src/infra/scanner/typescript-scanner.js';
 import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;

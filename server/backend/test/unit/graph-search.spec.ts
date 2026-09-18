@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { GraphIndexer } from '../../src/index/indexer.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { IndexService } from '../../src/app/index/index.service.js';
+import { createGraphSearch } from '../../src/app/search/graph-search.js';
 import type { DatabaseService } from '../../src/infra/database/database.service.js';
-import { createGraphSearch } from '../../src/search/graph-search.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { put, type TestNoesis, testNoesis } from './test-noesis.js';
@@ -70,7 +70,7 @@ describe('graph search', () => {
       },
       alternative_options: [],
     });
-    await new GraphIndexer(db, t.sources).rebuild();
+    await new IndexService(db, t.sources).rebuild();
 
     const results = await search.search('APPOINTMENT');
 
@@ -107,7 +107,7 @@ describe('graph search', () => {
   });
 
   it('answers nothing for a query nothing matches', async () => {
-    await new GraphIndexer(db, t.sources).rebuild();
+    await new IndexService(db, t.sources).rebuild();
     expect(await search.search('zebra')).toEqual([]);
   });
 });

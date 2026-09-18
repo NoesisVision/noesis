@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { GraphIndexer } from '../../src/index/indexer.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { IndexService } from '../../src/app/index/index.service.js';
 import type { DatabaseService } from '../../src/infra/database/database.service.js';
 import { dataFileOf } from '../../src/infra/files/noesis-store.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
@@ -15,12 +15,12 @@ const GAMMA = ChangeSlug.parse('gamma');
 
 let db: DatabaseService;
 let t: TestNoesis;
-let indexer: GraphIndexer;
+let indexer: IndexService;
 
 beforeEach(async () => {
   db = await sharedTestDatabase();
   t = await testNoesis();
-  indexer = new GraphIndexer(db, t.sources);
+  indexer = new IndexService(db, t.sources);
 });
 
 afterEach(async () => {
@@ -42,7 +42,7 @@ const graphRows = () =>
     'MATCH (d:DesignDoc) RETURN d.id AS id, d.change AS change, d.name AS name ORDER BY id',
   );
 
-describe('GraphIndexer', () => {
+describe('IndexService', () => {
   it('projects every design doc of every change into the graph', async () => {
     await t.createChange(ALPHA);
     await t.createChange(BETA);

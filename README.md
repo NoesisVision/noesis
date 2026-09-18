@@ -99,6 +99,8 @@ packages/shared-contracts/src      every knowledge graph file shape + import pay
 server/backend/src/infra/validation/contracts   the file-contract registry: schema + the
                                    whole-document check the ui routes and MCP tools run
                                    before a service write; backs the validate tool
+packages/shared-vo/src             runtime value objects (ids: UUIDv7, content hashes);
+                                   not copied to the plugin
 ```
 
 The service package ships no readable copy; the plugin's `contracts/` is the one copy and `tools/copy-contracts.ts` lives beside it (decision D4).

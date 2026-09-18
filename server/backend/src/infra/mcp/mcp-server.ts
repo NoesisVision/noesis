@@ -14,16 +14,16 @@ import { type ZodType, z } from 'zod';
 import {
   ChangeSlug,
   InvalidChangeSlugError,
-} from '../../changes/change-slug.js';
-import type { ChangesService } from '../../changes/changes.service.js';
-import { ChangeNotFoundError } from '../../changes/changes.service.js';
+} from '../../app/changes/change-slug.js';
+import type { ChangesService } from '../../app/changes/changes.service.js';
+import { ChangeNotFoundError } from '../../app/changes/changes.service.js';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
-} from '../../design-docs/design-docs.service.js';
-import type { ScannerService } from '../../scanner/scanner.service.js';
+} from '../../app/design-docs/design-docs.service.js';
 import type { SearchService } from '../../ui/search/search.service.js';
 import type { SessionDir } from '../files/session-dir.js';
+import type { ScannerService } from '../scanner/scanner.service.js';
 import {
   contractNames,
   contracts,

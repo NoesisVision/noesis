@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { contentHashAsUuid, newUuid } from '../../src/ids/uuid.js';
+import { contentHashAsUuid, newUuid } from './uuid.js';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

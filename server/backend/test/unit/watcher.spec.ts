@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
-import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { GraphIndexer } from '../../src/index/indexer.js';
-import { isIgnored, NoesisWatcher } from '../../src/index/watcher.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { IndexService } from '../../src/app/index/index.service.js';
 import type { DatabaseService } from '../../src/infra/database/database.service.js';
+import { isIgnored, NoesisWatcher } from '../../src/infra/files/watcher.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
@@ -97,7 +97,7 @@ describe('NoesisWatcher', () => {
 
   it('keeps the graph a function of the files across a checkout-like swap', async () => {
     const db: DatabaseService = await sharedTestDatabase();
-    const indexer = new GraphIndexer(db, t.sources);
+    const indexer = new IndexService(db, t.sources);
     await t.createChange(ALPHA);
     await t.changesRepository.children(ALPHA)['design-docs'].set('a1', {
       ...designDocFixture,

@@ -10,7 +10,7 @@ import {
   resolveRef,
   slotRef,
   valueAtModelPath,
-} from '../../src/design-docs/design-doc-paths.js';
+} from '../../src/app/design-docs/design-doc-paths.js';
 
 const doc = designDocFixture;
 
