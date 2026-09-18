@@ -83,6 +83,8 @@ src/
     index/            the index service (files → graph at boot and on change)
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
   shared/
+    contracts/        the zod file contracts (decision D4): every .noesis/ file shape and
+                      import payload, declarative, copied verbatim into the plugin
     vo/               value objects: the ids the service mints (UUIDv7, content hashes)
   platform/
     config/           env parsing (zod)
@@ -102,12 +104,44 @@ test/
   unit/ e2e/ bench/
 ```
 
+## Contracts
+
+`src/shared/contracts` holds the knowledge graph **file contracts**: every
+shape a file under `.noesis/` can have, plus the payloads the import tools
+take, as [zod](https://zod.dev/) schemas with inferred types (decision D4).
+They are read three ways: the service imports them and validates twice (the
+`validate` tool, then the write boundary); the plugin copies the directory
+verbatim into `plugins/claude-code/contracts/` at build time for the agent
+to read as source; the frontend takes payload types from them, type-only,
+through its `#/server/*` alias.
+
+The schemas are **declarative on purpose**: object shapes, enums, defaults
+and `.describe()` text; no refinements, no transforms, no imports beyond zod
+and sibling contract files. The plugin's tests assert that. Whole-document
+rules a schema cannot express live in `src/adapters/validation/contracts`,
+whose registry maps the `validate` tool's contract names to these schemas.
+
+| Files                                                                                     | What they shape                                                                               |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `locked.ts`                                                                               | `*_locked` markers: a person edited the field                                                 |
+| `change.ts`                                                                               | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to       |
+| `information-sources/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | Imported conversations and documents, their fragments and categories, and the import payloads |
+| `topic.ts`, `decision.ts`                                                                 | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate                        |
+| `design-doc.ts`, `design-doc-ref.ts`                                                      | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs             |
+| `system-model.ts`                                                                         | `graph/system-model/` — the implemented model the scanner writes                              |
+
+`index.ts` re-exports every schema; `*.fixture.ts` files are the examples
+the tests and the plugin copy share. Specs live in `test/unit/contracts-*`.
+To change a contract: edit the schema (describe every field, keep it
+declarative), put any whole-document rule in the registry, and rebuild the
+plugin; nothing else is generated or committed.
+
 ## Package
 
 The package ships `dist/` alone: the self-contained `main.js` bin plus the
 SPA's `index.html` and hashed assets, built at pack time by `prepack`. It
 carries no readable contracts copy — the service imports
-`@repo/shared-contracts` and `bun build` inlines the schemas; the plugin's
+`src/shared/contracts` and `bun build` inlines the schemas; the plugin's
 `contracts/` is the one copy the agent reads (decision D4). Its only
 runtime dependency is the native `@ladybugdb/core`; workspace deps
 (`@repo/*`) never leak into the published manifest because `bun pm pack`

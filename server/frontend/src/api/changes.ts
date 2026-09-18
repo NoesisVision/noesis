@@ -1,10 +1,10 @@
-import type { Change, CreateChange } from '@repo/shared-contracts';
 import {
   queryOptions,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
+import type { Change, CreateChange } from '#/server/shared/contracts/index.ts';
 import { ApiError, api } from './client';
 
 /** Where a change failed to be created, as the service reports it. */

@@ -1,4 +1,4 @@
-// Copies the contract sources (packages/shared-contracts/src, minus specs)
+// Copies the contract sources (server/backend/src/shared/contracts)
 // into the plugin's contracts/ directory, each file stamped with a header
 // naming the plugin version it ships in. Run by `bun run build` (also
 // `prepack`); the directory is gitignored except for its README. Skills name
@@ -14,14 +14,14 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const CONTRACTS_SOURCE = fileURLToPath(
-  new URL('../../../packages/shared-contracts/src/', import.meta.url),
+  new URL('../../../server/backend/src/shared/contracts/', import.meta.url),
 );
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
 
 /** The header a copied file starts with; the rest is the source, byte for byte. */
 export function contractHeader(relativePath: string, version: string): string {
-  const text = `Copied from packages/shared-contracts/src/${relativePath} by @noesis-vision/claude-code-plugin ${version}. Do not edit: run \`bun run build\`.`;
+  const text = `Copied from server/backend/src/shared/contracts/${relativePath} by @noesis-vision/claude-code-plugin ${version}. Do not edit: run \`bun run build\`.`;
   return relativePath.endsWith('.md')
     ? `<!-- ${text} -->\n\n`
     : `// ${text}\n\n`;

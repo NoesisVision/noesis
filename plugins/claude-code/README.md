@@ -45,9 +45,9 @@ a write accepts.
 ## What's inside
 
 - `contracts/` — the contract sources every knowledge graph file and import
-  payload must satisfy, as zod `.ts` the model reads directly, with a
-  companion `.md` per family for what the shapes cannot say. A build output:
-  copied from `packages/shared-contracts/src` by `bun run build` (which
+  payload must satisfy, as zod `.ts` the model reads directly. A build
+  output:
+  copied from `server/backend/src/shared/contracts` by `bun run build` (which
   `bun pm pack` runs as `prepack`), stamped with the plugin version, and
   asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full

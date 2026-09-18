@@ -18,12 +18,11 @@ bundles, Biome lints. So the preset shapes type-checking, not emit, and the
 
 ## Who extends it
 
-| Package                     | Extends | Overrides                                                                  |
-| --------------------------- | ------- | -------------------------------------------------------------------------- |
-| `server/backend`            | yes     | `types: ["node", "bun"]`                                                   |
-| `packages/shared-contracts` | yes     | `types: ["node", "bun"]`, `outDir`                                         |
-| `plugins/claude-code`       | yes     | `module: Preserve`, `moduleResolution: Bundler`, `noEmit`, no declarations |
-| `server/frontend`           | no      | Its own bundler-mode config: `jsx: react-jsx`, DOM libs, `#/*` path alias  |
+| Package               | Extends | Overrides                                                                  |
+| --------------------- | ------- | -------------------------------------------------------------------------- |
+| `server/backend`      | yes     | `types: ["node", "bun"]`                                                   |
+| `plugins/claude-code` | yes     | `module: Preserve`, `moduleResolution: Bundler`, `noEmit`, no declarations |
+| `server/frontend`     | no      | Its own bundler-mode config: `jsx: react-jsx`, DOM libs, `#/*` path alias  |
 
 The frontend stands alone because it is browser code bundled by bun's
 fullstack mode (decision D5): DOM libs, JSX, `moduleResolution: bundler`

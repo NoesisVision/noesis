@@ -1,4 +1,4 @@
-# The contract sources, copied in from packages/shared-contracts/src by
+# The contract sources, copied in from server/backend/src/shared/contracts by
 # `bun run build` (also on `bun pm pack`) and shipped in the tarball. Only the
 # README describing the directory is committed.
 /contracts/*

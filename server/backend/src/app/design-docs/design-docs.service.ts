@@ -1,6 +1,6 @@
-import type { DesignDocument } from '@repo/shared-contracts';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { dataFileOf } from '../../platform/files/noesis-store.js';
+import { designDocFixture } from '../../shared/contracts/design-doc.fixture.js';
+import type { DesignDocument } from '../../shared/contracts/index.js';
 import { newUuid } from '../../shared/vo/uuid.js';
 import type { ChangeSlug } from '../changes/change-slug.js';
 import type {

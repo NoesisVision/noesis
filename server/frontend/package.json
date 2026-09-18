@@ -21,7 +21,6 @@
     "@mantine/core": "^9.6.1",
     "@mantine/form": "^9.6.1",
     "@mantine/hooks": "^9.6.1",
-    "@repo/shared-contracts": "workspace:*",
     "@tabler/icons-react": "^3.46.0",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "latest",

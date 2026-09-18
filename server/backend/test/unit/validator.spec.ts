@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { z } from 'zod';
 import { designDocumentContract } from '../../src/adapters/validation/contracts/design-document.js';
 import {
@@ -8,6 +7,7 @@ import {
   ISSUE_CAP,
   validate,
 } from '../../src/adapters/validation/validator.js';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
 
 const schema = z.strictObject({
   name: z.string(),

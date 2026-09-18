@@ -1,4 +1,3 @@
-import type { Change } from '@repo/shared-contracts';
 import { IconPlus, IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
 import { Badge } from '#/components/design-system/badge';
@@ -8,6 +7,7 @@ import { useDisclosure } from '#/components/design-system/hooks';
 import { Menu } from '#/components/design-system/menu';
 import { Text } from '#/components/design-system/text';
 import { UnstyledButton } from '#/components/design-system/unstyled-button';
+import type { Change } from '#/server/shared/contracts/index.ts';
 import classes from './change-picker.module.css';
 import {
   CHANGE_STATUS_META,

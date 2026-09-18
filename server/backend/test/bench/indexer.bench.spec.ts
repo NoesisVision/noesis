@@ -6,7 +6,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { SchemaService } from '../../src/adapters/schema/schema.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
@@ -19,6 +18,7 @@ import {
 import { DatabaseService } from '../../src/platform/database/database.service.js';
 import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
 import { dataFileOf } from '../../src/platform/files/noesis-store.js';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;

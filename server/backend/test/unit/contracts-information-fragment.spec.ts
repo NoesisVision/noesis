@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { InformationFragmentRefSchema } from './information-fragment.js';
+import { InformationFragmentRefSchema } from '../../src/shared/contracts/information-sources/information-fragment.js';
 
 describe('InformationFragmentRefSchema', () => {
   it('accepts a conversation fragment ref with an optional source_sha', () => {

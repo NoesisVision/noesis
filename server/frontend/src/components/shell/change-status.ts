@@ -1,4 +1,7 @@
-import type { ChangeStatus, ChangeType } from '@repo/shared-contracts';
+import type {
+  ChangeStatus,
+  ChangeType,
+} from '#/server/shared/contracts/index.ts';
 
 /** How each lifecycle status reads in the picker and future lists. */
 export const CHANGE_STATUS_META: Record<

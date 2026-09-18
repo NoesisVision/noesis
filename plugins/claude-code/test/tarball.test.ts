@@ -55,8 +55,6 @@ test('ships exactly the expected plugin files', async () => {
     'README.md',
     'contracts/README.md',
     'contracts/design-doc.ts',
-    'contracts/design-doc.md',
-    'contracts/conventions.md',
     'contracts/information-sources/conversation-analysis.ts',
     'skills/import-conversation/SKILL.md',
     'skills/import-document/SKILL.md',

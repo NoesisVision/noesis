@@ -1,6 +1,6 @@
-import { SystemModelSchema } from '@repo/shared-contracts';
 import { createNoesisStore } from '../../platform/files/bun-noesis-store.js';
 import type { NoesisDir } from '../../platform/files/noesis-dir.js';
+import { SystemModelSchema } from '../../shared/contracts/index.js';
 
 /**
  * `.noesis/graph/system-model/`: the implemented model as the scanner

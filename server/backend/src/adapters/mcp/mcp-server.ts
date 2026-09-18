@@ -9,7 +9,6 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { DesignDocument } from '@repo/shared-contracts';
 import { type ZodType, z } from 'zod';
 import {
   ChangeSlug,
@@ -22,6 +21,7 @@ import {
   type DesignDocsService,
 } from '../../app/design-docs/design-docs.service.js';
 import type { SessionDir } from '../../platform/files/session-dir.js';
+import type { DesignDocument } from '../../shared/contracts/index.js';
 import type { SearchService } from '../../ui/search/search.service.js';
 import type { ScannerService } from '../scanner/scanner.service.js';
 import {

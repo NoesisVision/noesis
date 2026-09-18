@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { SystemModelSchema } from '@repo/shared-contracts';
 import { ScannerService } from '../../src/adapters/scanner/scanner.service.js';
 import {
   exportedClasses,
@@ -9,6 +8,7 @@ import {
   typeOf,
 } from '../../src/adapters/scanner/typescript-scanner.js';
 import { dataFileOf } from '../../src/platform/files/noesis-store.js';
+import { SystemModelSchema } from '../../src/shared/contracts/index.js';
 import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;

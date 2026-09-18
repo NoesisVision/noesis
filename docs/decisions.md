@@ -100,7 +100,7 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
   that budget is exceeded.
 
 The store's full contract: `docs/work/improvements/noesis-store.md`. File
-conventions for skills: `packages/shared-contracts/src/conventions.md`.
+conventions for skills: the contracts' `.describe()` text (D4).
 
 ## D3. Service internals: Hono on `Bun.serve`, surfaces by consumer, thin MCP tools, validate-then-write
 
@@ -146,24 +146,26 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
   tests), `NOESIS_LOG_LEVEL`, and `PORT` as a stable development URL only.
   That is the whole list.
 - Test layout: `test/unit`, `test/integration`, `test/e2e`, `test/bench` in
-  apps; contract packages co-locate specs in `src/`.
+  apps; contract specs are `test/unit/contracts-*.spec.ts`.
 
-## D4. Contracts: declarative zod in `@repo/shared-contracts`, shipped to the agent as source
+## D4. Contracts: declarative zod in the service's `src/shared/contracts`, shipped to the agent as source
 
 - **All contracts are zod v4 schemas with inferred types** in
-  `packages/shared-contracts`, consumed as TypeScript source (no build step).
-  It is the only contracts package. Type-only consumers use type-only imports.
-  Runtime helpers that are not contracts — value objects such as the id
-  functions in `uuid.ts` — live in the service (`server/backend/src/shared/vo`),
-  so the contracts package stays declarative and the plugin copy stays free
-  of runtime code.
+  `server/backend/src/shared/contracts`, consumed as TypeScript source (no
+  build step, no workspace package). The service imports them relatively; the
+  frontend type-only through its `#/server/*` alias; the plugin copies the
+  directory. Runtime helpers that are not contracts — value objects such as
+  the id functions in `uuid.ts` — live beside them in `src/shared/vo`, never
+  inside `contracts/`, so the directory stays declarative and the plugin copy
+  stays free of runtime code.
 - **Contracts are declarative on purpose:** object shapes, enums, `.describe()`
   text; no refinements, no transforms, no imports beyond zod and sibling files.
-  The agent reads the `.ts` source directly. What a schema cannot say lives in
-  a companion `.md` beside it (`conventions.md`, `design-doc.md`, `wiki.md`, …).
+  The agent reads the `.ts` source directly; what a shape cannot say goes in
+  `.describe()` text. Whole-document rules live in the service's registry
+  (`src/adapters/validation/contracts`).
 - **The plugin's `contracts/` is the one readable copy, and it is a build
   output.** `plugins/claude-code/tools/copy-contracts.ts` copies
-  `packages/shared-contracts/src` with a header naming the plugin version;
+  `server/backend/src/shared/contracts` with a header naming the plugin version;
   `bun run build` / `prepack` runs it; the directory is gitignored except its
   README. The plugin's tests assert byte-identity with the source and
   declarativeness; the tarball test asserts the copy is packed. Skills name a
@@ -218,7 +220,7 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
   `server/backend/src/app.types.ts` (the `/ui` route tree only) via the
   `#/server/*` import alias, as a **type-only** import: the frontend never
   imports backend runtime code. Payload types come from
-  `@repo/shared-contracts`. The client's fetch wrapper mints `x-request-id`
+  `#/server/shared/contracts` the same way. The client's fetch wrapper mints `x-request-id`
   (D10) and raises `ApiError` carrying the service's `{ error }` text.
 - **Routing.** A pathless `_shell` layout route; routes carry the change slug:
   `/changes/$changeId[/documents|/conversations|/design-docs]`, plus
@@ -250,8 +252,8 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
   `plugins/claude-code` follows the official Claude Code plugin layout
   (`.claude-plugin/plugin.json`, `skills/`, `contracts/`, `.mcp.json`; dev
   tooling in unshipped `tools/`, never in `scripts/` or `bin/`, which have
-  plugin semantics). The plugin is content: skills, contract sources, companion
-  docs, launch config. Skills live here, versioned in this repository; nothing
+  plugin semantics). The plugin is content: skills, contract sources, launch
+  config. Skills live here, versioned in this repository; nothing
   is copied into the user's project.
 - **Two published packages, one version train:** `@noesis-vision/noesis` (the
   service: `bin` → `dist/main.js`, `files: ["dist"]`) and
@@ -289,7 +291,7 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
 - **The bun workspace owns the repo root; minority languages live in
   self-contained subtrees.** `server/` (`backend`, `frontend` — the Noesis
   service), `plugins/` (shipped to agent hosts), `packages/` (internal
-  libraries: `shared-contracts`, `typescript-config`), `scanners/` (`java`,
+  libraries: `typescript-config`), `scanners/` (`java`,
   `dotnet`, own build files), `docs/`. Package names are `backend` and
   `frontend`.
 - **Pure bun workspace.** Root scripts are

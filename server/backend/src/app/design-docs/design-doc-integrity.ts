@@ -2,7 +2,7 @@ import type {
   DesignDocument,
   DesignedScenario,
   ElementRef,
-} from '@repo/shared-contracts';
+} from '../../shared/contracts/index.js';
 import {
   elementRef,
   type ModelPath,

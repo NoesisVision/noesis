@@ -7,7 +7,7 @@ import type {
   ScannedBuildingBlock,
   ScannedDomainModule,
   SystemModel,
-} from '@repo/shared-contracts';
+} from '../../shared/contracts/index.js';
 import { contentHashAsUuid } from '../../shared/vo/uuid.js';
 
 /*

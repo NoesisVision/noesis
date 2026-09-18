@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-import { ElementRefSchema } from '@repo/shared-contracts';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import {
   elementIndex,
   elementRef,
@@ -11,6 +9,8 @@ import {
   slotRef,
   valueAtModelPath,
 } from '../../src/app/design-docs/design-doc-paths.js';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
+import { ElementRefSchema } from '../../src/shared/contracts/index.js';
 
 const doc = designDocFixture;
 

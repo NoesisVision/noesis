@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-import type { DesignDocument } from '@repo/shared-contracts';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import {
   checkDesignDocument,
   type DesignDocIssueCode,
@@ -11,6 +9,8 @@ import {
   resolveRef,
   slotRef,
 } from '../../src/app/design-docs/design-doc-paths.js';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
+import type { DesignDocument } from '../../src/shared/contracts/index.js';
 
 /**
  * Structured-clone the fixture so a mutation in one case cannot leak into the

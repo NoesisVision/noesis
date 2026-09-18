@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { stat } from 'node:fs/promises';
-import type {
-  ConversationAnalysis,
-  DocumentAnalysis,
-} from '@repo/shared-contracts';
-import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
 import {
   DuplicateSourceError,
   InvalidImportError,
 } from '../../src/adapters/mcp/import.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { conversationAnalysisFixture } from '../../src/shared/contracts/conversation-analysis.fixture.js';
+import type {
+  ConversationAnalysis,
+  DocumentAnalysis,
+} from '../../src/shared/contracts/index.js';
 import { sha256 } from '../../src/shared/vo/uuid.js';
 import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 

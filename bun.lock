@@ -10,19 +10,6 @@
         "typescript": "catalog:",
       },
     },
-    "packages/shared-contracts": {
-      "name": "@repo/shared-contracts",
-      "version": "0.0.0",
-      "dependencies": {
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@repo/typescript-config": "workspace:*",
-        "@types/bun": "catalog:",
-        "@types/node": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
     "packages/typescript-config": {
       "name": "@repo/typescript-config",
       "version": "0.0.0",
@@ -53,7 +40,6 @@
         "@logtape/hono": "^2.3.4",
         "@logtape/logtape": "^2.3.4",
         "@modelcontextprotocol/sdk": "^1.29.0",
-        "@repo/shared-contracts": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
@@ -70,7 +56,6 @@
         "@mantine/core": "^9.6.1",
         "@mantine/form": "^9.6.1",
         "@mantine/hooks": "^9.6.1",
-        "@repo/shared-contracts": "workspace:*",
         "@tabler/icons-react": "^3.46.0",
         "@tanstack/react-devtools": "latest",
         "@tanstack/react-query": "latest",
@@ -287,8 +272,6 @@
     "@noesis-vision/claude-code-plugin": ["@noesis-vision/claude-code-plugin@workspace:plugins/claude-code"],
 
     "@noesis-vision/noesis": ["@noesis-vision/noesis@workspace:server/backend"],
-
-    "@repo/shared-contracts": ["@repo/shared-contracts@workspace:packages/shared-contracts"],
 
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 

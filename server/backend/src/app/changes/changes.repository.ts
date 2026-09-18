@@ -1,11 +1,4 @@
 import { join } from 'node:path';
-import {
-  type Change,
-  ChangeSchema,
-  ConversationSchema,
-  DesignDocumentSchema,
-  DocumentSchema,
-} from '@repo/shared-contracts';
 import { createNoesisStore } from '../../platform/files/bun-noesis-store.js';
 import type { NoesisDir } from '../../platform/files/noesis-dir.js';
 import type {
@@ -13,6 +6,13 @@ import type {
   NoesisStoreOf,
 } from '../../platform/files/noesis-store.js';
 import { serverLogger } from '../../platform/logging/logging.js';
+import {
+  type Change,
+  ChangeSchema,
+  ConversationSchema,
+  DesignDocumentSchema,
+  DocumentSchema,
+} from '../../shared/contracts/index.js';
 import { ChangeSlug } from './change-slug.js';
 
 const log = serverLogger('changes');

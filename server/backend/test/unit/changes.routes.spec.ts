@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '@repo/shared-contracts';
+import type { Change } from '../../src/shared/contracts/index.js';
 import { createChangesApp } from '../../src/ui/changes/changes.routes.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 

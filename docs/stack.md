@@ -16,8 +16,9 @@ The service, contracts and tooling stack is in the root `README.md`.
 - **@tabler/icons-react** — the icon set Mantine's own docs use
 - **Raleway** (`@fontsource-variable/raleway`) — the brand typeface,
   imported from `main.tsx`; bun inlines the font files into the page's CSS
-- **@repo/shared-contracts** — the zod contracts both sides share; the
-  frontend takes its payload types from them and calls `/ui` through Hono's
+- **Contracts** (`server/backend/src/shared/contracts`) — the zod contracts
+  both sides share; the frontend takes its payload types from them
+  (type-only, via the `#/server/*` alias) and calls `/ui` through Hono's
   typed RPC client, `hc<AppType>('/ui')` in `src/api/client.ts`, with
   `AppType` a type-only import from the backend via the `#/server/*` alias
   (decision D5)

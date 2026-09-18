@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
 import { serviceEnv, textOf } from '../support/service-process.js';
 
 const serviceRoot = resolve(__dirname, '../..');

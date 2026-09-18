@@ -4,7 +4,7 @@ import {
   CHANGE_TYPES,
   ChangeSchema,
   CreateChangeSchema,
-} from './change.js';
+} from '../../src/shared/contracts/change.js';
 
 describe('ChangeSchema', () => {
   const minimal = {

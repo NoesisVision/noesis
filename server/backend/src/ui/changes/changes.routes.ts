@@ -1,5 +1,4 @@
 import { zValidator } from '@hono/zod-validator';
-import { CreateChangeSchema } from '@repo/shared-contracts';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeSlug } from '../../app/changes/change-slug.js';
@@ -8,6 +7,7 @@ import {
   type ChangesService,
   DuplicateChangeError,
 } from '../../app/changes/changes.service.js';
+import { CreateChangeSchema } from '../../shared/contracts/index.js';
 
 export interface ChangesDeps {
   changesService: ChangesService;

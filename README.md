@@ -1,6 +1,6 @@
 # noesis
 
-A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis service, the shared contract package, and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
+A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis service and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
 
 Noesis turns conversations and design drafts into a queryable knowledge graph kept as JSON files inside the user's repository, and drives design and implementation work from it. Everything runs on the user's machine; there is no server component.
 
@@ -88,14 +88,14 @@ two processes over the same files, last write wins.
 
 ### Contracts — the shapes the agent reads and the service enforces
 
-All contracts are [zod](https://zod.dev/) schemas with inferred TS types in `packages/shared-contracts` (`@repo/shared-contracts`), consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and sibling files), so the agent reads the source directly; what a schema cannot say lives in a companion `.md` beside it (decision D4):
+All contracts are [zod](https://zod.dev/) schemas with inferred TS types in `server/backend/src/shared/contracts`, consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and sibling files), so the agent reads the source directly (decision D4):
 
 ```
-packages/shared-contracts/src      every knowledge graph file shape + import payloads,
-     │                             with a companion .md per family
+server/backend/src/shared/contracts   every knowledge graph file shape + import payloads
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
-     └─▶ server/backend/dist/main.js     imported by the service and bundled into it
+     ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
+     └─▶ server/frontend                 type-only imports via the #/server/* alias
 server/backend/src/adapters/validation/contracts   the file-contract registry: schema + the
                                    whole-document check the ui routes and MCP tools run
                                    before a service write; backs the validate tool
@@ -114,7 +114,7 @@ its Hono route tree inferable, so the frontend can type its calls with Hono's
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/`** — the knowledge-management skills (`import-conversation`, `import-document`, `create-design-doc`, `update-design-doc`, `search-knowledge-graph`) and the implementation skill (`implement-design-doc`); each names the contract it needs by a path under `contracts/`
-- **`contracts/`** — the contract sources and companion docs, **copied** from `packages/shared-contracts/src` by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
+- **`contracts/`** — the contract sources, **copied** from `server/backend/src/shared/contracts` by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
 - **`tools/`** — dev/build tooling (copy-contracts, stamp-plugin-version, bump-version, release-beta); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}` (pin stamped by `bun run generate`; the two variables point a checkout at the service source, decision D6) with `NOESIS_ROOT` set to the project directory
 
@@ -214,7 +214,7 @@ register and nothing to authenticate against (decision D1).
 
 ### Working with contracts
 
-1. Add/edit a zod schema in `packages/shared-contracts/src`: describe every field, keep it declarative, and update the family's companion `.md` for anything the shape cannot say.
+1. Add/edit a zod schema in `server/backend/src/shared/contracts`: describe every field and keep it declarative.
 2. For a file the `validate` tool should accept, register it in `server/backend/src/adapters/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 

@@ -1,12 +1,12 @@
 import {
-  type DesignDocument,
-  DesignDocumentSchema,
-  type ElementRef,
-} from '@repo/shared-contracts';
-import {
   checkDesignDocument,
   type DesignDocIssue,
 } from '../../../app/design-docs/design-doc-integrity.js';
+import {
+  type DesignDocument,
+  DesignDocumentSchema,
+  type ElementRef,
+} from '../../../shared/contracts/index.js';
 import type { FileContract, ValidationIssue } from '../validator.js';
 
 /**

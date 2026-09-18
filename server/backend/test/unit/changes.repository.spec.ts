@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { NoesisStoreError } from '../../src/platform/files/noesis-store.js';
+import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;

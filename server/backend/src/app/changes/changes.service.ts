@@ -1,4 +1,4 @@
-import type { Change, CreateChange } from '@repo/shared-contracts';
+import type { Change, CreateChange } from '../../shared/contracts/index.js';
 import { ChangeSlug } from './change-slug.js';
 import type { ChangesRepository } from './changes.repository.js';
 

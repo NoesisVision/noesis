@@ -1,8 +1,3 @@
-import {
-  CHANGE_KEY_PATTERN,
-  CHANGE_TYPES,
-  type CreateChange,
-} from '@repo/shared-contracts';
 import { DuplicateChangeError, useCreateChange } from '#/api/changes';
 import { Alert } from '#/components/design-system/alert';
 import { Button } from '#/components/design-system/button';
@@ -12,6 +7,11 @@ import { Modal } from '#/components/design-system/modal';
 import { SegmentedControl } from '#/components/design-system/segmented-control';
 import { Stack } from '#/components/design-system/stack';
 import { TextInput } from '#/components/design-system/text-input';
+import {
+  CHANGE_KEY_PATTERN,
+  CHANGE_TYPES,
+  type CreateChange,
+} from '#/server/shared/contracts/index.ts';
 import { CHANGE_TYPE_META } from './change-status';
 
 interface NewChangeModalProps {
