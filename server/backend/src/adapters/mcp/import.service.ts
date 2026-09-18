@@ -1,7 +1,10 @@
 import { ChangeSlug } from '../../app/changes/change-slug.js';
-import type { ChangesRepository } from '../../app/changes/changes.repository.js';
 import type { ChangesService } from '../../app/changes/changes.service.js';
-import type { DecisionsStore, TopicsStore } from '../../app/wiki/wiki.store.js';
+import {
+  type FileContract,
+  type ValidationIssue,
+  validate,
+} from '../../app/validation/validator.js';
 import { dataFileOf } from '../../platform/files/noesis-store.js';
 import {
   type AnalyzedTopic,
@@ -12,16 +15,13 @@ import {
   type Topic,
 } from '../../shared/contracts/index.js';
 import { contentHashAsUuid, newUuid, sha256 } from '../../shared/vo/uuid.js';
-import {
-  type FileContract,
-  type ValidationIssue,
-  validate,
-} from '../validation/validator.js';
+import type { NoesisChangesRepository } from '../store/changes.repository.js';
+import type { DecisionsStore, TopicsStore } from '../store/wiki.store.js';
 
 export interface ImportDeps {
   changes: ChangesService;
   /** The sources land in the change's `conversations` and `documents`. */
-  changesRepository: ChangesRepository;
+  changesRepository: NoesisChangesRepository;
   topics: TopicsStore;
   decisions: DecisionsStore;
 }

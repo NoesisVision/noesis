@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { IndexService } from '../../src/adapters/graph/index.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { IndexService } from '../../src/app/index/index.service.js';
 import type { DatabaseService } from '../../src/platform/database/database.service.js';
 import { isIgnored, NoesisWatcher } from '../../src/platform/files/watcher.js';
 import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';

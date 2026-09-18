@@ -1,13 +1,9 @@
-import { dataFileOf } from '../../platform/files/noesis-store.js';
 import { designDocFixture } from '../../shared/contracts/design-doc.fixture.js';
 import type { DesignDocument } from '../../shared/contracts/index.js';
 import { newUuid } from '../../shared/vo/uuid.js';
 import type { ChangeSlug } from '../changes/change-slug.js';
-import type {
-  ChangeChildren,
-  ChangesRepository,
-} from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
+import type { DesignDocsRepository } from './design-docs.repository.js';
 
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {
@@ -49,11 +45,11 @@ export interface DesignDocDetail {
  * slug no change has.
  */
 export class DesignDocsService {
-  private readonly changes: ChangesRepository;
+  private readonly docs: DesignDocsRepository;
   private readonly changesService: ChangesService;
 
-  constructor(changes: ChangesRepository, changesService: ChangesService) {
-    this.changes = changes;
+  constructor(docs: DesignDocsRepository, changesService: ChangesService) {
+    this.docs = docs;
     this.changesService = changesService;
   }
 
@@ -88,7 +84,7 @@ export class DesignDocsService {
     document: DesignDocument,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
-    if ((await this.docs(slug).get(id)) === null) {
+    if ((await this.docs.get(slug, id)) === null) {
       throw new DesignDocNotFoundError(slug, id);
     }
     return this.store(slug, document, id);
@@ -97,7 +93,7 @@ export class DesignDocsService {
   /** Newest first — `date` drives ordering on the documents page. */
   async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
     await this.changesService.assertExists(slug);
-    const documents = await Array.fromAsync(this.docs(slug).values());
+    const documents = await Array.fromAsync(this.docs.values(slug));
     return documents
       .sort(
         (a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name),
@@ -110,18 +106,14 @@ export class DesignDocsService {
     id: string,
   ): Promise<DesignDocDetail | null> {
     await this.changesService.assertExists(slug);
-    const document = await this.docs(slug).get(id);
+    const document = await this.docs.get(slug, id);
     if (document === null) return null;
     return { summary: this.summarize(slug, document), document };
   }
 
   async delete(slug: ChangeSlug, id: string): Promise<boolean> {
     await this.changesService.assertExists(slug);
-    return this.docs(slug).delete(id);
-  }
-
-  private docs(slug: ChangeSlug): ChangeChildren['design-docs'] {
-    return this.changes.children(slug)['design-docs'];
+    return this.docs.delete(slug, id);
   }
 
   /** Stores the document under the server's id, replacing whatever id it carried. */
@@ -131,7 +123,7 @@ export class DesignDocsService {
     id: string,
   ): Promise<DesignDocSummary> {
     const stored = { ...document, id };
-    await this.docs(slug).set(id, stored);
+    await this.docs.set(slug, id, stored);
     return this.summarize(slug, stored);
   }
 
@@ -140,6 +132,6 @@ export class DesignDocsService {
     document: DesignDocument,
   ): DesignDocSummary {
     const { id, name, status, date } = document;
-    return { id, name, status, date, path: dataFileOf(this.docs(slug), id) };
+    return { id, name, status, date, path: this.docs.pathOf(slug, id) };
   }
 }

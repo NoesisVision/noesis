@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import type { ChangesService } from '../app/changes/changes.service.js';
 import type { DesignDocsService } from '../app/design-docs/design-docs.service.js';
+import type { SearchService } from '../app/search/search.service.js';
 import { createChangesApp } from './changes/changes.routes.js';
 import { createDesignDocsApp } from './design-docs/design-docs.routes.js';
 import { createSearchApp } from './search/search.routes.js';
-import type { SearchService } from './search/search.service.js';
 
 // The module's dependency contract — the explicit allow-list of what these
 // routes may touch. Nothing outside this interface is in scope for the handlers.

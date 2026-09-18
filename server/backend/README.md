@@ -23,7 +23,7 @@ own machine inside one checkout (decision D1).
 
 ## Entry points
 
-- **MCP on stdio** (`src/mcp`): thin tools, one service call each —
+- **MCP on stdio** (`src/adapters/mcp`): thin tools, one service call each —
   `validate`, `list-changes`, `import-conversation`, `import-document`,
   `list-design-docs`, `create-design-doc`, `update-design-doc`,
   `scan-system-model`, `search-knowledge-graph`. Tools take paths, not
@@ -31,7 +31,7 @@ own machine inside one checkout (decision D1).
   directory (`.noesis/tmp/<session>/`, named in the server's
   `instructions`), validates it, and passes the path. `validate` and the
   write boundary run the same contract check from
-  `src/adapters/validation/contracts`, so what one accepts the other accepts.
+  `src/app/validation/contracts`, so what one accepts the other accepts.
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles
@@ -77,10 +77,12 @@ src/
   bundle-cwd.ts       moves cwd to the bundle before start (the built bin resolves its
                       asset manifest against cwd, and bunx launches it from the project)
   app.ts              the Hono app: /ui and /internal
-  app/                application services and repositories, one folder per kind:
-    changes/ design-docs/ system-model/ wiki/
-    search/           graph search behind the search tool and /ui/search
-    index/            the index service (files → graph at boot and on change)
+  app/                the core: services and the ports they need; imports shared only
+    changes/          ChangesService, the change slug, the ChangesRepository port
+    design-docs/      DesignDocsService, the DesignDocsRepository port, integrity checks
+    search/           SearchService and its SearchProvider port
+    validation/       the actionable problem list and the file-contract registry that
+                      the validate tool, the ui routes and the MCP tools run
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
   shared/
     contracts/        the zod file contracts (decision D4): every .noesis/ file shape and
@@ -95,14 +97,22 @@ src/
     database/         the LadybugDB handle, in-memory only
     native/           puts LadybugDB's native binary where its loader expects it
   adapters/
-    schema/           the declarative graph schema, one place for every node/rel table
-    validation/       the actionable problem list and the file-contract registry that
-                      the validate tool, the ui routes and the MCP tools run
+    store/            app's repositories over NoesisStore, plus the wiki and
+                      system-model stores
+    graph/            the graph schema, the index service (files → graph at boot and
+                      on change) and the graph search provider
     mcp/              the MCP server and the import service behind its import tools
     scanner/          the TypeScript source scanner behind scan-system-model
 test/
   unit/ e2e/ bench/
 ```
+
+The layers are checked by `bun run lint:deps` (dependency-cruiser, rules and
+their reasons in `.dependency-cruiser.mjs`; decision D3): `shared` imports no
+other layer, `platform` only `shared`, `app` only `shared`; `adapters` and
+`ui` build on `app` and `platform` but not on each other; nothing imports the
+composition root. A new need of `app` on files or the database is a port in
+`app` with its implementation in `adapters`.
 
 ## Contracts
 
@@ -118,7 +128,7 @@ through its `#/server/*` alias.
 The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
 and sibling contract files. The plugin's tests assert that. Whole-document
-rules a schema cannot express live in `src/adapters/validation/contracts`,
+rules a schema cannot express live in `src/app/validation/contracts`,
 whose registry maps the `validate` tool's contract names to these schemas.
 
 | Files                                                                                     | What they shape                                                                               |

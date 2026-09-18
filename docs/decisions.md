@@ -107,6 +107,17 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - **`server/backend` is a Hono app on `Bun.serve` with an explicit composition
   root** (`main.ts` constructs services, wires `createApp(deps)`, owns
   lifecycle). Surfaces are factory functions taking narrow deps interfaces.
+- **Layers under `src/`, enforced by dependency-cruiser** (`bun run lint:deps`,
+  rules in `server/backend/.dependency-cruiser.mjs`): `shared` (contracts,
+  value objects) imports no other layer; `platform` (files, database,
+  logging) imports `shared` only; `app` is the core — services, the contract
+  registry, and the ports they need (`ChangesRepository`,
+  `DesignDocsRepository`, `SearchProvider`) — and imports `shared` only;
+  `adapters` implement those ports over `platform` (`store/` over
+  `NoesisStore`, `graph/` over LadybugDB) or drive `app` (`mcp/`,
+  `scanner/`); `ui` drives `app`. `adapters` and `ui` never import each other,
+  no layer imports the composition root (`src/*.ts`), and there are no
+  cycles.
 - **Routes are segregated by consumer:** `/ui/*` (the SPA) and `/internal/*`
   (health and technical endpoints). The agent does not use HTTP — it reaches the
   same services over MCP on stdio. Surface routes win over the SPA's `/*` route, so a surface 404 is
@@ -117,7 +128,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   depends on it (D5).
 - **MCP tools are thin:** each validates its input and calls one service method
   in-process. Every tool is defined against a contract in
-  `src/adapters/validation/contracts/registry.ts`; there is deliberately no way to register a
+  `src/app/validation/contracts/registry.ts`; there is deliberately no way to register a
   tool without one. Current tools: `list-changes`, `import-conversation`,
   `import-document`, `list-design-docs`, `create-design-doc`,
   `update-design-doc`, `scan-system-model`, `search-knowledge-graph`,
@@ -162,7 +173,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   text; no refinements, no transforms, no imports beyond zod and sibling files.
   The agent reads the `.ts` source directly; what a shape cannot say goes in
   `.describe()` text. Whole-document rules live in the service's registry
-  (`src/adapters/validation/contracts`).
+  (`src/app/validation/contracts`).
 - **The plugin's `contracts/` is the one readable copy, and it is a build
   output.** `plugins/claude-code/tools/copy-contracts.ts` copies
   `server/backend/src/shared/contracts` with a header naming the plugin version;
@@ -189,7 +200,8 @@ conventions for skills: the contracts' `.describe()` text (D4).
   boundary.** Every write is whole-document replacement, written as a file.
   There is no server-side edit path; an editor is a new decision.
 - **Validation is a boundary concern, not a service one.** The ui routes and
-  the MCP tools run the contract (`src/adapters/validation`) and answer a 400 or
+  the MCP tools run the contract (`src/app/validation`, in `app` so both
+  can reach it) and answer a 400 or
   an in-band issue list; an application service such as `DesignDocsService`
   takes the typed, already-valid document. The store's schema parse on write
   is the last guarantee, not a second boundary.
@@ -306,10 +318,15 @@ conventions for skills: the contracts' `.describe()` text (D4).
   workspaces (zod, hono, typescript, biome, prettier, `@types/*`);
   single-consumer deps stay inline. `^` ranges plus a frozen `bun.lock`.
 - **Biome 2 lints and formats all code** from one root `biome.json`
-  (`bun run lint` = `biome check .`, imports organised); **Prettier is for
-  Markdown only**.
+  (`bun run lint` = `biome check .`, imports organised, then `lint:deps`);
+  **Prettier is for Markdown only**. **dependency-cruiser checks the
+  backend's layers** (D3): Biome's `noRestrictedImports` sees one file at a
+  time and cannot express layers or cycles. It runs under bun
+  (`bun --bun depcruise`) with the swc parser, because TypeScript 7 has no
+  compiler API for it to load.
 - **Git hooks via `core.hooksPath`, no hook manager.** `.githooks/pre-commit`
-  runs `biome check --staged` and `prettier --check` on staged Markdown;
+  runs `biome check --staged`, `prettier --check` on staged Markdown and,
+  when backend sources are staged, `lint:deps` over the whole backend;
   `.githooks/commit-msg` validates the subject. The root `prepare` script
   activates them. Heavier checks are deliberately not hooked; `git commit -n`
   is the WIP escape hatch.

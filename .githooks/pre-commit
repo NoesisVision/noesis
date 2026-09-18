@@ -21,6 +21,12 @@ fi
 
 bunx biome check --staged --no-errors-on-unmatched
 
+# Layer rules are whole-graph, so any staged backend source reruns them all
+# (under a second). Checks the working tree, not the index.
+if git diff --cached --name-only --diff-filter=ACMRD -- 'server/backend/src/' | grep -q .; then
+  bun run --cwd server/backend lint:deps
+fi
+
 # Prettier owns Markdown (Biome has no md support).
 staged_md=$(git diff --cached --name-only --diff-filter=ACMR -- '*.md')
 if [ -n "$staged_md" ]; then

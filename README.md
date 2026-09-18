@@ -96,7 +96,7 @@ server/backend/src/shared/contracts   every knowledge graph file shape + import 
      │                                   the plugin, read by skills; a test asserts byte-identity
      ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
      └─▶ server/frontend                 type-only imports via the #/server/* alias
-server/backend/src/adapters/validation/contracts   the file-contract registry: schema + the
+server/backend/src/app/validation/contracts   the file-contract registry: schema + the
                                    whole-document check the ui routes and MCP tools run
                                    before a service write; backs the validate tool
 ```
@@ -143,19 +143,20 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 
 ## 2. Tools
 
-| Tool                                                                                                              | Role                                                                                                 |
-| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner |
-| [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7)                                  |
-| [zod](https://zod.dev/) (v4)                                                                                      | Contract schemas and env validation                                                                  |
-| [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend              |
-| [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                   |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                               | MCP server in `server/backend/src/mcp`, stdio transport                                              |
-| [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)             |
-| [Biome](https://biomejs.dev/) 2                                                                                   | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                              |
-| Git hooks (`.githooks/`)                                                                                          | `pre-commit` runs biome + prettier on staged files; `commit-msg` enforces the commit convention      |
-| GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases              |
-| [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                 |
+| Tool                                                                                                              | Role                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner                                                    |
+| [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7)                                                                                     |
+| [zod](https://zod.dev/) (v4)                                                                                      | Contract schemas and env validation                                                                                                                     |
+| [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend                                                                 |
+| [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                                                                      |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                               | MCP server in `server/backend/src/mcp`, stdio transport                                                                                                 |
+| [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)                                                                |
+| [Biome](https://biomejs.dev/) 2                                                                                   | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                                                                                 |
+| [dependency-cruiser](https://github.com/sverweij/dependency-cruiser)                                              | The backend's layer rules (`server/backend/.dependency-cruiser.mjs`, decision D3)                                                                       |
+| Git hooks (`.githooks/`)                                                                                          | `pre-commit` runs biome + prettier on staged files, and dependency-cruiser when backend sources are staged; `commit-msg` enforces the commit convention |
+| GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases                                                                 |
+| [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                                                                    |
 
 ## 3. Getting started
 
@@ -177,7 +178,8 @@ bun run build          # build every workspace (service bundle + plugin contract
 bun run build:plugin   # only copy the contracts into the plugin (for --plugin-dir development)
 bun run generate       # re-stamp the version pins (plugin.json, .mcp.json); CI checks they are committed
 
-bun run lint           # biome check (lint + format check; `lint:fix` to autofix)
+bun run lint           # biome check (lint + format check; `lint:fix` to autofix), then lint:deps
+bun run lint:deps      # dependency-cruiser: the backend's layer rules
 bun run lint:md        # prettier --check on Markdown
 bun run check-types    # tsc --noEmit across packages
 bun run test           # unit tests (service, contracts, plugin: contracts copy + tarball)
@@ -216,7 +218,7 @@ register and nothing to authenticate against (decision D1).
 ### Working with contracts
 
 1. Add/edit a zod schema in `server/backend/src/shared/contracts`: describe every field and keep it declarative.
-2. For a file the `validate` tool should accept, register it in `server/backend/src/adapters/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
+2. For a file the `validate` tool should accept, register it in `server/backend/src/app/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 
 ### Using the Claude Code plugin

@@ -10,12 +10,12 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createMcpServer } from '../../src/adapters/mcp/mcp-server.js';
 import { ScannerService } from '../../src/adapters/scanner/scanner.service.js';
-import { contractNames } from '../../src/adapters/validation/contracts/registry.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { SearchService } from '../../src/app/search/search.service.js';
+import { contractNames } from '../../src/app/validation/contracts/registry.js';
 import { SessionDir } from '../../src/platform/files/session-dir.js';
 import { conversationAnalysisFixture } from '../../src/shared/contracts/conversation-analysis.fixture.js';
 import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { SearchService } from '../../src/ui/search/search.service.js';
 import { textOf } from '../support/service-process.js';
 import { all, type TestNoesis, testNoesis } from './test-noesis.js';
 

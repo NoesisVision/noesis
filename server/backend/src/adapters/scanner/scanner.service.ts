@@ -1,6 +1,6 @@
-import type { SystemModelStore } from '../../app/system-model/system-model.store.js';
 import { dataFileOf } from '../../platform/files/noesis-store.js';
 import { serverLogger } from '../../platform/logging/logging.js';
+import type { SystemModelStore } from '../store/system-model.store.js';
 import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
 
 const log = serverLogger('scanner');

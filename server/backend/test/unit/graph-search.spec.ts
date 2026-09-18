@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { createGraphSearch } from '../../src/adapters/graph/graph-search.js';
+import { IndexService } from '../../src/adapters/graph/index.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { IndexService } from '../../src/app/index/index.service.js';
-import { createGraphSearch } from '../../src/app/search/graph-search.js';
+import { SearchService } from '../../src/app/search/search.service.js';
 import type { DatabaseService } from '../../src/platform/database/database.service.js';
 import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';
-import { SearchService } from '../../src/ui/search/search.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { put, type TestNoesis, testNoesis } from './test-noesis.js';
 
