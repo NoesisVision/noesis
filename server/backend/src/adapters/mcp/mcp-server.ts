@@ -20,22 +20,22 @@ import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '../../app/design-docs/design-docs.service.js';
-import type { SessionDir } from '../../platform/files/session-dir.js';
-import type { DesignDocument } from '../../shared/contracts/index.js';
-import type { SearchService } from '../../ui/search/search.service.js';
-import type { ScannerService } from '../scanner/scanner.service.js';
+import type { SearchService } from '../../app/search/search.service.js';
 import {
   contractNames,
   contracts,
   designDocumentContract,
-} from '../validation/contracts/index.js';
+} from '../../app/validation/contracts/index.js';
 import {
   type FileContract,
   formatReport,
   singleIssue,
   type ValidationIssue,
   validate,
-} from '../validation/validator.js';
+} from '../../app/validation/validator.js';
+import type { SessionDir } from '../../platform/files/session-dir.js';
+import type { DesignDocument } from '../../shared/contracts/index.js';
+import type { ScannerService } from '../scanner/scanner.service.js';
 import {
   DuplicateSourceError,
   type ImportReport,

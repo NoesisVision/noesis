@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
+import { IndexService } from '../../src/adapters/graph/index.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { IndexService } from '../../src/app/index/index.service.js';
 import type { DatabaseService } from '../../src/platform/database/database.service.js';
 import { dataFileOf } from '../../src/platform/files/noesis-store.js';
 import { designDocFixture } from '../../src/shared/contracts/design-doc.fixture.js';

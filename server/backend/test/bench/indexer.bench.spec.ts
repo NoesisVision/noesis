@@ -6,15 +6,15 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { SchemaService } from '../../src/adapters/schema/schema.service.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
-import { IndexService } from '../../src/app/index/index.service.js';
-import { createSystemModelStore } from '../../src/app/system-model/system-model.store.js';
+import { IndexService } from '../../src/adapters/graph/index.service.js';
+import { SchemaService } from '../../src/adapters/graph/schema.service.js';
+import { NoesisChangesRepository } from '../../src/adapters/store/changes.repository.js';
+import { createSystemModelStore } from '../../src/adapters/store/system-model.store.js';
 import {
   createDecisionsStore,
   createTopicsStore,
-} from '../../src/app/wiki/wiki.store.js';
+} from '../../src/adapters/store/wiki.store.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { DatabaseService } from '../../src/platform/database/database.service.js';
 import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
 import { dataFileOf } from '../../src/platform/files/noesis-store.js';
@@ -37,7 +37,7 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-bench-'));
   const noesis = new NoesisDir(root);
   await noesis.ensure();
-  const changes = new ChangesRepository(noesis);
+  const changes = new NoesisChangesRepository(noesis);
   const designDocs = (slug: ChangeSlug) =>
     changes.children(slug)['design-docs'];
   for (let c = 0; c < CHANGES; c++) {
@@ -69,7 +69,7 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
 async function measure(files: number): Promise<number> {
   const noesis = await syntheticNoesis(files);
   try {
-    const changes = new ChangesRepository(noesis);
+    const changes = new NoesisChangesRepository(noesis);
     const indexer = new IndexService(db, {
       changes,
       topics: createTopicsStore(noesis),

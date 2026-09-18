@@ -1,10 +1,10 @@
-import { nodeTableNames } from '../../adapters/schema/graph-schema.js';
 import type { DatabaseService } from '../../platform/database/database.service.js';
 import { NoesisStoreError } from '../../platform/files/noesis-store.js';
 import { serverLogger } from '../../platform/logging/logging.js';
-import type { ChangesRepository } from '../changes/changes.repository.js';
-import type { SystemModelStore } from '../system-model/system-model.store.js';
-import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
+import type { NoesisChangesRepository } from '../store/changes.repository.js';
+import type { SystemModelStore } from '../store/system-model.store.js';
+import type { DecisionsStore, TopicsStore } from '../store/wiki.store.js';
+import { nodeTableNames } from './graph-schema.js';
 
 const log = serverLogger('indexer');
 
@@ -16,7 +16,7 @@ export interface IndexReport {
 
 export interface IndexerSources {
   /** The changes and, through their child collections, what they own. */
-  changes: ChangesRepository;
+  changes: NoesisChangesRepository;
   topics: TopicsStore;
   decisions: DecisionsStore;
   systemModels: SystemModelStore;

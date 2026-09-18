@@ -19,7 +19,7 @@ const keys = async () =>
     .map((slug) => slug.value)
     .sort();
 
-describe('ChangesRepository', () => {
+describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every slug written', async () => {
     expect(await keys()).toEqual([]);
 

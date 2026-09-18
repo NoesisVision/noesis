@@ -1,22 +1,23 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { IndexerSources } from '../../src/adapters/graph/index.service.js';
 import { ImportService } from '../../src/adapters/mcp/import.service.js';
-import { ChangeSlug } from '../../src/app/changes/change-slug.js';
-import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
-import { ChangesService } from '../../src/app/changes/changes.service.js';
-import { DesignDocsService } from '../../src/app/design-docs/design-docs.service.js';
-import type { IndexerSources } from '../../src/app/index/index.service.js';
+import { NoesisChangesRepository } from '../../src/adapters/store/changes.repository.js';
+import { NoesisDesignDocsRepository } from '../../src/adapters/store/design-docs.repository.js';
 import {
   createSystemModelStore,
   type SystemModelStore,
-} from '../../src/app/system-model/system-model.store.js';
+} from '../../src/adapters/store/system-model.store.js';
 import {
   createDecisionsStore,
   createTopicsStore,
   type DecisionsStore,
   type TopicsStore,
-} from '../../src/app/wiki/wiki.store.js';
+} from '../../src/adapters/store/wiki.store.js';
+import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { ChangesService } from '../../src/app/changes/changes.service.js';
+import { DesignDocsService } from '../../src/app/design-docs/design-docs.service.js';
 import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
 import type { NoesisStore } from '../../src/platform/files/noesis-store.js';
 import type { Change } from '../../src/shared/contracts/index.js';
@@ -30,7 +31,7 @@ import type { Change } from '../../src/shared/contracts/index.js';
 export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
-  changesRepository: ChangesRepository;
+  changesRepository: NoesisChangesRepository;
   topics: TopicsStore;
   decisions: DecisionsStore;
   systemModels: SystemModelStore;
@@ -51,7 +52,7 @@ export async function testNoesis(): Promise<TestNoesis> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-test-'));
   const noesis = new NoesisDir(root);
   await noesis.ensure();
-  const changesRepository = new ChangesRepository(noesis);
+  const changesRepository = new NoesisChangesRepository(noesis);
   const topics = createTopicsStore(noesis);
   const decisions = createDecisionsStore(noesis);
   const systemModels = createSystemModelStore(noesis);
@@ -65,7 +66,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     systemModels,
     sources: { changes: changesRepository, topics, decisions, systemModels },
     changesService,
-    designDocsService: new DesignDocsService(changesRepository, changesService),
+    designDocsService: new DesignDocsService(
+      new NoesisDesignDocsRepository(changesRepository),
+      changesService,
+    ),
     importService: new ImportService({
       changes: changesService,
       changesRepository,

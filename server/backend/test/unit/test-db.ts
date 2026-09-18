@@ -1,5 +1,5 @@
-import { nodeTableNames } from '../../src/adapters/schema/graph-schema.js';
-import { SchemaService } from '../../src/adapters/schema/schema.service.js';
+import { nodeTableNames } from '../../src/adapters/graph/graph-schema.js';
+import { SchemaService } from '../../src/adapters/graph/schema.service.js';
 import { DatabaseService } from '../../src/platform/database/database.service.js';
 
 // Why this exists: `bun test` loads every `*.spec.ts` into ONE process, and a

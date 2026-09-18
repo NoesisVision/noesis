@@ -1,0 +1,44 @@
+import type { ChangeSlug } from '../../app/changes/change-slug.js';
+import type { DesignDocsRepository } from '../../app/design-docs/design-docs.repository.js';
+import { dataFileOf } from '../../platform/files/noesis-store.js';
+import type { DesignDocument } from '../../shared/contracts/index.js';
+import type {
+  ChangeChildren,
+  NoesisChangesRepository,
+} from './changes.repository.js';
+
+/**
+ * A change's design documents: the `design-docs` collection under the
+ * change's directory, keyed by document id (decision D2).
+ */
+export class NoesisDesignDocsRepository implements DesignDocsRepository {
+  private readonly changes: NoesisChangesRepository;
+
+  constructor(changes: NoesisChangesRepository) {
+    this.changes = changes;
+  }
+
+  get(slug: ChangeSlug, id: string): Promise<DesignDocument | null> {
+    return this.docs(slug).get(id);
+  }
+
+  set(slug: ChangeSlug, id: string, document: DesignDocument): Promise<void> {
+    return this.docs(slug).set(id, document);
+  }
+
+  delete(slug: ChangeSlug, id: string): Promise<boolean> {
+    return this.docs(slug).delete(id);
+  }
+
+  values(slug: ChangeSlug): AsyncIterable<DesignDocument> {
+    return this.docs(slug).values();
+  }
+
+  pathOf(slug: ChangeSlug, id: string): string {
+    return dataFileOf(this.docs(slug), id);
+  }
+
+  private docs(slug: ChangeSlug): ChangeChildren['design-docs'] {
+    return this.changes.children(slug)['design-docs'];
+  }
+}

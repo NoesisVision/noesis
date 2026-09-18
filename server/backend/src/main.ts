@@ -17,20 +17,22 @@ console.log = (...args: unknown[]) => console.error(...args);
 import './bundle-cwd.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import index from '../../frontend/index.html';
+import { createGraphSearch } from './adapters/graph/graph-search.js';
+import { IndexService } from './adapters/graph/index.service.js';
+import { SchemaService } from './adapters/graph/schema.service.js';
 import { ImportService } from './adapters/mcp/import.service.js';
 import { createMcpServer } from './adapters/mcp/mcp-server.js';
 import { ScannerService } from './adapters/scanner/scanner.service.js';
-import { SchemaService } from './adapters/schema/schema.service.js';
-import { ChangesRepository } from './app/changes/changes.repository.js';
-import { ChangesService } from './app/changes/changes.service.js';
-import { DesignDocsService } from './app/design-docs/design-docs.service.js';
-import { IndexService } from './app/index/index.service.js';
-import { createGraphSearch } from './app/search/graph-search.js';
-import { createSystemModelStore } from './app/system-model/system-model.store.js';
+import { NoesisChangesRepository } from './adapters/store/changes.repository.js';
+import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository.js';
+import { createSystemModelStore } from './adapters/store/system-model.store.js';
 import {
   createDecisionsStore,
   createTopicsStore,
-} from './app/wiki/wiki.store.js';
+} from './adapters/store/wiki.store.js';
+import { ChangesService } from './app/changes/changes.service.js';
+import { DesignDocsService } from './app/design-docs/design-docs.service.js';
+import { SearchService } from './app/search/search.service.js';
 import { createApp } from './app.js';
 import { openBrowser } from './browser.js';
 import { launchCwd } from './bundle-cwd.js';
@@ -46,7 +48,6 @@ import {
   serverLogger,
 } from './platform/logging/logging.js';
 import { ensureLadybugBinary } from './platform/native/ensure-ladybug.js';
-import { SearchService } from './ui/search/search.service.js';
 
 // The composition root: the ONE place that constructs dependencies, decides
 // which slice each surface receives, and owns their lifecycle.
@@ -80,7 +81,7 @@ const db = new DatabaseService();
 await db.init();
 await new SchemaService(db).ensureSchema();
 
-const changesRepository = new ChangesRepository(noesis);
+const changesRepository = new NoesisChangesRepository(noesis);
 const topics = createTopicsStore(noesis);
 const decisions = createDecisionsStore(noesis);
 const systemModels = createSystemModelStore(noesis);
@@ -98,7 +99,7 @@ await indexer.rebuild();
 
 const changesService = new ChangesService(changesRepository);
 const designDocsService = new DesignDocsService(
-  changesRepository,
+  new NoesisDesignDocsRepository(changesRepository),
   changesService,
 );
 const importService = new ImportService({
