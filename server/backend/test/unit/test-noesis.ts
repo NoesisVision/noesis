@@ -6,10 +6,10 @@ import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
 import { ChangesService } from '../../src/changes/changes.service.js';
 import { DesignDocsService } from '../../src/design-docs/design-docs.service.js';
-import { NoesisDir } from '../../src/files/noesis-dir.js';
-import type { NoesisStore } from '../../src/files/noesis-store.js';
-import { ImportService } from '../../src/imports/import.service.js';
 import type { IndexerSources } from '../../src/index/indexer.js';
+import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
+import type { NoesisStore } from '../../src/infra/files/noesis-store.js';
+import { ImportService } from '../../src/infra/mcp/import.service.js';
 import {
   createSystemModelStore,
   type SystemModelStore,

@@ -19,7 +19,7 @@ The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
 and sibling contract files. That is what keeps the source readable as
 reference material. Whole-document rules a schema cannot express live in the
-service (`server/backend/src/mcp/contracts`), and conventions with no type
+service (`server/backend/src/infra/validation/contracts`), and conventions with no type
 live in a companion `.md` beside each family.
 
 ## Families
@@ -37,7 +37,7 @@ live in a companion `.md` beside each family.
 The `validate` tool's contract names (`change`, `conversation`, `document`,
 `conversation-analysis`, `document-analysis`, `topic`, `decision`,
 `system-model`, `design-document`) are the keys of the service's registry in
-`server/backend/src/mcp/contracts/registry.ts`, which maps each to a schema
+`server/backend/src/infra/validation/contracts/registry.ts`, which maps each to a schema
 here.
 
 ## Changing a contract

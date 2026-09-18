@@ -5,7 +5,6 @@ import { ChangeNotFoundError } from '../../src/changes/changes.service.js';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
-  InvalidDesignDocumentError,
 } from '../../src/design-docs/design-docs.service.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
@@ -36,27 +35,6 @@ describe('DesignDocsService', () => {
       ...designDocFixture,
       id: summary.id,
     });
-  });
-
-  it('rejects a document that does not parse', async () => {
-    expect(service.create(CHANGE, { name: 42 })).rejects.toBeInstanceOf(
-      InvalidDesignDocumentError,
-    );
-  });
-
-  it('rejects a document with an integrity error, naming the issue', async () => {
-    const broken = {
-      ...designDocFixture,
-      // Both use cases point at an application service that does not exist.
-      buildingBlocks: designDocFixture.buildingBlocks.filter(
-        (b) => b.id !== 'svc-booking',
-      ),
-    };
-
-    expect(service.create(CHANGE, broken)).rejects.toBeInstanceOf(
-      InvalidDesignDocumentError,
-    );
-    expect(await service.list(CHANGE)).toEqual([]);
   });
 
   it('replaces a document whole under its id, ignoring the id in the input', async () => {

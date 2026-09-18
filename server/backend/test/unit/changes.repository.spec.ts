@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
-import { NoesisStoreError } from '../../src/files/noesis-store.js';
+import { NoesisStoreError } from '../../src/infra/files/noesis-store.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 
 let t: TestNoesis;

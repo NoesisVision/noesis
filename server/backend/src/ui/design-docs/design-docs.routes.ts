@@ -3,26 +3,26 @@ import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeSlug } from '../../changes/change-slug.js';
 import { ChangeNotFoundError } from '../../changes/changes.service.js';
-import {
-  type DesignDocsService,
-  InvalidDesignDocumentError,
-} from '../../design-docs/design-docs.service.js';
+import type { DesignDocsService } from '../../design-docs/design-docs.service.js';
+import { designDocumentContract } from '../../infra/validation/contracts/design-document.js';
+import { validate } from '../../infra/validation/validator.js';
 
 export interface DesignDocsDeps {
   designDocsService: DesignDocsService;
 }
 
 export const createDesignDocSchema = z.object({
-  // Validated properly by the service (schema parse + integrity check); the
-  // route only asserts something document-shaped arrived.
+  // The envelope only; the document itself runs the design-document contract
+  // (schema parse + integrity check) in the handler.
   document: z.record(z.string(), z.unknown()),
 });
 
 /**
  * Mounted at `/ui/changes/:change/design-docs` — the documents of one change.
  * Reads serve the documents page; the writes are the whole-document boundary
- * of decision D4 — a rejected document is a 400 naming its issues, never a
- * stored one. A slug no change has is a 404 on every route.
+ * of decision D4 — the route runs the design-document contract, and a
+ * rejected document is a 400 naming its issues, never a stored one. A slug no
+ * change has is a 404 on every route.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
@@ -44,23 +44,22 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
           }
         }),
         async (c) => {
-          const data = c.req.valid('json');
+          const report = validate(
+            designDocumentContract,
+            c.req.valid('json').document,
+          );
+          if (!report.ok) {
+            return c.json(
+              { error: 'invalid_document', issues: report.issues },
+              400,
+            );
+          }
           return inChange(c, async (change) => {
-            try {
-              const designDoc = await designDocsService.create(
-                change,
-                data.document,
-              );
-              return c.json({ designDoc }, 201);
-            } catch (error) {
-              if (error instanceof InvalidDesignDocumentError) {
-                return c.json(
-                  { error: 'invalid_document', issues: error.issues },
-                  400,
-                );
-              }
-              throw error;
-            }
+            const designDoc = await designDocsService.create(
+              change,
+              report.value,
+            );
+            return c.json({ designDoc }, 201);
           });
         },
       )

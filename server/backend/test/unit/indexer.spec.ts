@@ -3,9 +3,9 @@ import { rm, writeFile } from 'node:fs/promises';
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
-import type { DatabaseService } from '../../src/database/database.service.js';
-import { dataFileOf } from '../../src/files/noesis-store.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
+import type { DatabaseService } from '../../src/infra/database/database.service.js';
+import { dataFileOf } from '../../src/infra/files/noesis-store.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { put, type TestNoesis, testNoesis } from './test-noesis.js';
 

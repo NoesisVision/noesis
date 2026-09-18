@@ -6,17 +6,17 @@ import {
   type InformationFragmentRef,
   type Topic,
 } from '@repo/shared-contracts';
-import { ChangeSlug } from '../changes/change-slug.js';
-import type { ChangesRepository } from '../changes/changes.repository.js';
-import type { ChangesService } from '../changes/changes.service.js';
+import { ChangeSlug } from '../../changes/change-slug.js';
+import type { ChangesRepository } from '../../changes/changes.repository.js';
+import type { ChangesService } from '../../changes/changes.service.js';
+import { contentHashAsUuid, newUuid, sha256 } from '../../ids/uuid.js';
+import type { DecisionsStore, TopicsStore } from '../../wiki/wiki.store.js';
 import { dataFileOf } from '../files/noesis-store.js';
-import { contentHashAsUuid, newUuid, sha256 } from '../ids/uuid.js';
 import {
   type FileContract,
   type ValidationIssue,
   validate,
 } from '../validation/validator.js';
-import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
 
 export interface ImportDeps {
   changes: ChangesService;

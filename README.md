@@ -96,8 +96,9 @@ packages/shared-contracts/src      every knowledge graph file shape + import pay
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
      └─▶ server/backend/dist/main.js     imported by the service and bundled into it
-server/backend/src/mcp/contracts   the file-contract registry: schema + the whole-document
-                                   check the service runs on write; backs the validate tool
+server/backend/src/infra/validation/contracts   the file-contract registry: schema + the
+                                   whole-document check the ui routes and MCP tools run
+                                   before a service write; backs the validate tool
 ```
 
 The service package ships no readable copy; the plugin's `contracts/` is the one copy and `tools/copy-contracts.ts` lives beside it (decision D4).
@@ -214,7 +215,7 @@ register and nothing to authenticate against (decision D1).
 ### Working with contracts
 
 1. Add/edit a zod schema in `packages/shared-contracts/src`: describe every field, keep it declarative, and update the family's companion `.md` for anything the shape cannot say.
-2. For a file the `validate` tool should accept, register it in `server/backend/src/mcp/contracts/registry.ts` (with the service's whole-document check, if it has one).
+2. For a file the `validate` tool should accept, register it in `server/backend/src/infra/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 
 ### Using the Claude Code plugin

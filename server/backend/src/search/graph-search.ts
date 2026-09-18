@@ -1,4 +1,4 @@
-import type { DatabaseService } from '../database/database.service.js';
+import type { DatabaseService } from '../infra/database/database.service.js';
 import type {
   SearchProvider,
   SearchResult,

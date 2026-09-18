@@ -2,7 +2,7 @@ import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
 import type { ChangesService } from './changes/changes.service.js';
 import type { DesignDocsService } from './design-docs/design-docs.service.js';
-import { createInternalApp } from './internal/internal.routes.js';
+import { createInternalApp } from './ui/internal.routes.js';
 import type { SearchService } from './ui/search/search.service.js';
 import { createUiApp } from './ui/ui.routes.js';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { DatabaseService } from '../../src/database/database.service.js';
+import { DatabaseService } from '../../src/infra/database/database.service.js';
 
 // This spec deliberately stands up its own DatabaseService instances to
 // exercise the init/destroy lifecycle — it cannot use the shared fixture

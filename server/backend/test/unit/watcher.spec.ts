@@ -3,9 +3,9 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
-import type { DatabaseService } from '../../src/database/database.service.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
 import { isIgnored, NoesisWatcher } from '../../src/index/watcher.js';
+import type { DatabaseService } from '../../src/infra/database/database.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 

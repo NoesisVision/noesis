@@ -9,24 +9,26 @@ import {
   ListToolsRequestSchema,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import type { DesignDocument } from '@repo/shared-contracts';
 import { type ZodType, z } from 'zod';
-import { ChangeSlug, InvalidChangeSlugError } from '../changes/change-slug.js';
-import type { ChangesService } from '../changes/changes.service.js';
-import { ChangeNotFoundError } from '../changes/changes.service.js';
+import {
+  ChangeSlug,
+  InvalidChangeSlugError,
+} from '../../changes/change-slug.js';
+import type { ChangesService } from '../../changes/changes.service.js';
+import { ChangeNotFoundError } from '../../changes/changes.service.js';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
-  InvalidDesignDocumentError,
-} from '../design-docs/design-docs.service.js';
+} from '../../design-docs/design-docs.service.js';
+import type { ScannerService } from '../../scanner/scanner.service.js';
+import type { SearchService } from '../../ui/search/search.service.js';
 import type { SessionDir } from '../files/session-dir.js';
 import {
-  DuplicateSourceError,
-  type ImportReport,
-  type ImportService,
-  InvalidImportError,
-} from '../imports/import.service.js';
-import type { ScannerService } from '../scanner/scanner.service.js';
-import type { SearchService } from '../ui/search/search.service.js';
+  contractNames,
+  contracts,
+  designDocumentContract,
+} from '../validation/contracts/index.js';
 import {
   type FileContract,
   formatReport,
@@ -34,7 +36,12 @@ import {
   type ValidationIssue,
   validate,
 } from '../validation/validator.js';
-import { contractNames, contracts } from './contracts/index.js';
+import {
+  DuplicateSourceError,
+  type ImportReport,
+  type ImportService,
+  InvalidImportError,
+} from './import.service.js';
 
 /**
  * What the tools may touch: the same services the HTTP surface gets, handed in
@@ -140,6 +147,28 @@ export function createMcpServer(deps: McpDeps): Server {
       ),
     );
 
+  /** The design-document boundary (decision D4): the working file must pass the contract before a service sees it. */
+  async function readDesignDocument(
+    path: string,
+  ): Promise<
+    { ok: true; value: DesignDocument } | { ok: false; result: CallToolResult }
+  > {
+    const file = await readWorkingJson(path);
+    if (!file.ok) return { ok: false, result: errorResult(file.text) };
+    const report = validate(designDocumentContract, file.raw);
+    if (!report.ok) {
+      return {
+        ok: false,
+        result: await rejected(
+          'design-document',
+          report.issues,
+          report.suppressed,
+        ),
+      };
+    }
+    return { ok: true, value: report.value };
+  }
+
   const changeMissing = async (
     error: ChangeNotFoundError | InvalidChangeSlugError,
   ): Promise<CallToolResult> => {
@@ -151,15 +180,11 @@ export function createMcpServer(deps: McpDeps): Server {
 
   /** Runs a write against a change, turning the known failures into in-band results. */
   async function attempt(
-    contract: string,
     run: () => Promise<CallToolResult>,
   ): Promise<CallToolResult> {
     try {
       return await run();
     } catch (error) {
-      if (error instanceof InvalidDesignDocumentError) {
-        return rejected(contract, error.issues, error.suppressed);
-      }
       if (error instanceof InvalidImportError) {
         return rejected(error.contract, error.issues, error.suppressed);
       }
@@ -191,10 +216,9 @@ export function createMcpServer(deps: McpDeps): Server {
       'The graph picks the files up on the next re-index.',
     ].join('\n');
 
-  /** An import tool: a working file that satisfies `contract`, imported into a change. */
+  /** An import tool: a working file the import service validates against its contract, imported into a change. */
   const importTool = (
     description: string,
-    contract: string,
     run: (change: ChangeSlug, payload: unknown) => Promise<ImportReport>,
   ) =>
     define({
@@ -203,7 +227,7 @@ export function createMcpServer(deps: McpDeps): Server {
       handler: async ({ change, path }) => {
         const file = await readWorkingJson(path);
         if (!file.ok) return errorResult(file.text);
-        return attempt(contract, async () =>
+        return attempt(async () =>
           text(importReport(await run(ChangeSlug.parse(change), file.raw))),
         );
       },
@@ -247,14 +271,12 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'import-conversation': importTool(
       'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      'conversation-analysis',
       (change, payload) =>
         deps.importService.importConversation(change, payload),
     ),
 
     'import-document': importTool(
       'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      'document-analysis',
       (change, payload) => deps.importService.importDocument(change, payload),
     ),
 
@@ -263,7 +285,7 @@ export function createMcpServer(deps: McpDeps): Server {
         'Lists the design documents of a change with their ids and file paths. Read a document from its file; update it with update-design-doc.',
       args: z.object({ change: changeSlug }),
       handler: async ({ change }) =>
-        attempt('design-document', async () => {
+        attempt(async () => {
           const docs = await deps.designDocsService.list(
             ChangeSlug.parse(change),
           );
@@ -286,12 +308,12 @@ export function createMcpServer(deps: McpDeps): Server {
         'Creates a design document in a change from a working file that satisfies the design-document contract. The service validates the file again and rejects it with the same issue list the validate tool gives.',
       args: z.object({ change: changeSlug, path: workingPath }),
       handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('design-document', async () => {
+        const document = await readDesignDocument(path);
+        if (!document.ok) return document.result;
+        return attempt(async () => {
           const summary = await deps.designDocsService.create(
             ChangeSlug.parse(change),
-            file.raw,
+            document.value,
           );
           return text(
             `Created design document "${summary.name}" (${summary.id}) at ${rel(summary.path)}. The graph picks it up on the next re-index.`,
@@ -309,13 +331,13 @@ export function createMcpServer(deps: McpDeps): Server {
         path: workingPath,
       }),
       handler: async ({ change, id, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt('design-document', async () => {
+        const document = await readDesignDocument(path);
+        if (!document.ok) return document.result;
+        return attempt(async () => {
           const summary = await deps.designDocsService.update(
             ChangeSlug.parse(change),
             id,
-            file.raw,
+            document.value,
           );
           return text(
             `Updated design document "${summary.name}" (${summary.id}) at ${rel(summary.path)}.`,

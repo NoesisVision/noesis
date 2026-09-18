@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { parseServerConfig } from '../../src/config/config.js';
+import { parseServerConfig } from '../../src/infra/config/config.js';
 
 describe('server configuration', () => {
   it('starts on a bare environment, leaving the root to the .git walk', () => {

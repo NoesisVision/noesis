@@ -1,4 +1,4 @@
-import { serverLogger } from './logging/logging.js';
+import { serverLogger } from './infra/logging/logging.js';
 
 const log = serverLogger('browser');
 

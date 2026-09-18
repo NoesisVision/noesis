@@ -1,8 +1,8 @@
 import type { ChangesRepository } from '../changes/changes.repository.js';
-import type { DatabaseService } from '../database/database.service.js';
-import { NoesisStoreError } from '../files/noesis-store.js';
-import { serverLogger } from '../logging/logging.js';
-import { nodeTableNames } from '../schema/graph-schema.js';
+import type { DatabaseService } from '../infra/database/database.service.js';
+import { NoesisStoreError } from '../infra/files/noesis-store.js';
+import { serverLogger } from '../infra/logging/logging.js';
+import { nodeTableNames } from '../infra/schema/graph-schema.js';
 import type { SystemModelStore } from '../system-model/system-model.store.js';
 import type { DecisionsStore, TopicsStore } from '../wiki/wiki.store.js';
 

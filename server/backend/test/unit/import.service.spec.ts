@@ -10,7 +10,7 @@ import { sha256 } from '../../src/ids/uuid.js';
 import {
   DuplicateSourceError,
   InvalidImportError,
-} from '../../src/imports/import.service.js';
+} from '../../src/infra/mcp/import.service.js';
 import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = ChangeSlug.parse('booking');

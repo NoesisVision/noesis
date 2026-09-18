@@ -9,11 +9,11 @@ import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
 import { ChangesRepository } from '../../src/changes/changes.repository.js';
-import { DatabaseService } from '../../src/database/database.service.js';
-import { NoesisDir } from '../../src/files/noesis-dir.js';
-import { dataFileOf } from '../../src/files/noesis-store.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
-import { SchemaService } from '../../src/schema/schema.service.js';
+import { DatabaseService } from '../../src/infra/database/database.service.js';
+import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
+import { dataFileOf } from '../../src/infra/files/noesis-store.js';
+import { SchemaService } from '../../src/infra/schema/schema.service.js';
 import { createSystemModelStore } from '../../src/system-model/system-model.store.js';
 import {
   createDecisionsStore,

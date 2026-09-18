@@ -1,6 +1,6 @@
-import { DatabaseService } from '../../src/database/database.service.js';
-import { nodeTableNames } from '../../src/schema/graph-schema.js';
-import { SchemaService } from '../../src/schema/schema.service.js';
+import { DatabaseService } from '../../src/infra/database/database.service.js';
+import { nodeTableNames } from '../../src/infra/schema/graph-schema.js';
+import { SchemaService } from '../../src/infra/schema/schema.service.js';
 
 // Why this exists: `bun test` loads every `*.spec.ts` into ONE process, and a
 // shared database keeps schema setup out of every spec. (Original motivation

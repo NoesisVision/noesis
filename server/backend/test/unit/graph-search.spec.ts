@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/changes/change-slug.js';
-import type { DatabaseService } from '../../src/database/database.service.js';
 import { GraphIndexer } from '../../src/index/indexer.js';
+import type { DatabaseService } from '../../src/infra/database/database.service.js';
 import { createGraphSearch } from '../../src/search/graph-search.js';
 import { SearchService } from '../../src/ui/search/search.service.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';

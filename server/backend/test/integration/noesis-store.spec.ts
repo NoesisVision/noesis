@@ -18,11 +18,11 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { createNoesisStore } from '../../src/files/bun-noesis-store.js';
+import { createNoesisStore } from '../../src/infra/files/bun-noesis-store.js';
 import {
   type NoesisStore,
   NoesisStoreError,
-} from '../../src/files/noesis-store.js';
+} from '../../src/infra/files/noesis-store.js';
 
 const ChangeSchema = z.strictObject({
   slug: z.string(),

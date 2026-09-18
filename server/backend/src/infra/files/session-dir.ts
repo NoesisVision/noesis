@@ -8,7 +8,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
-import { newUuid } from '../ids/uuid.js';
+import { newUuid } from '../../ids/uuid.js';
 import { serverLogger } from '../logging/logging.js';
 import type { NoesisDir } from './noesis-dir.js';
 

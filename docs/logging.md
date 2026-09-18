@@ -1,7 +1,7 @@
 # Logging
 
 Both processes log through [LogTape](https://logtape.org/) (decision D10).
-The service configures it in `server/backend/src/logging/logging.ts`, the
+The service configures it in `server/backend/src/infra/logging/logging.ts`, the
 browser app in `server/frontend/src/logging.ts`; every other module only
 asks for a logger. The LogTape skill under `.agents/skills/logtape/` covers
 the library; this page is the project's conventions.

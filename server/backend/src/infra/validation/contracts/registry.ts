@@ -8,7 +8,7 @@ import {
   SystemModelSchema,
   TopicSchema,
 } from '@repo/shared-contracts';
-import type { FileContract } from '../../validation/validator.js';
+import type { FileContract } from '../validator.js';
 import { designDocumentContract } from './design-document.js';
 
 /**

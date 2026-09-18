@@ -6,7 +6,7 @@
 // bunx.
 //
 // stdout belongs to the MCP protocol — every log line goes to stderr. Our own
-// code logs through LogTape (logging/logging.ts, decision D10), whose stderr
+// code logs through LogTape (infra/logging/logging.ts, decision D10), whose stderr
 // sink writes there directly; the redirect below catches anything a
 // dependency prints with console.log, which would otherwise corrupt the
 // stream.
@@ -22,24 +22,24 @@ import { openBrowser } from './browser.js';
 import { launchCwd } from './bundle-cwd.js';
 import { ChangesRepository } from './changes/changes.repository.js';
 import { ChangesService } from './changes/changes.service.js';
-import { loadServerConfig } from './config/config.js';
-import { DatabaseService } from './database/database.service.js';
 import { DesignDocsService } from './design-docs/design-docs.service.js';
-import { NoesisDir } from './files/noesis-dir.js';
-import { resolveRepositoryRoot } from './files/repository-root.js';
-import { SessionDir } from './files/session-dir.js';
-import { ImportService } from './imports/import.service.js';
 import { GraphIndexer } from './index/indexer.js';
 import { NoesisWatcher } from './index/watcher.js';
+import { loadServerConfig } from './infra/config/config.js';
+import { DatabaseService } from './infra/database/database.service.js';
+import { NoesisDir } from './infra/files/noesis-dir.js';
+import { resolveRepositoryRoot } from './infra/files/repository-root.js';
+import { SessionDir } from './infra/files/session-dir.js';
 import {
   configureLogging,
   disposeLogging,
   serverLogger,
-} from './logging/logging.js';
-import { createMcpServer } from './mcp/mcp-server.js';
-import { ensureLadybugBinary } from './native/ensure-ladybug.js';
+} from './infra/logging/logging.js';
+import { ImportService } from './infra/mcp/import.service.js';
+import { createMcpServer } from './infra/mcp/mcp-server.js';
+import { ensureLadybugBinary } from './infra/native/ensure-ladybug.js';
+import { SchemaService } from './infra/schema/schema.service.js';
 import { ScannerService } from './scanner/scanner.service.js';
-import { SchemaService } from './schema/schema.service.js';
 import { createGraphSearch } from './search/graph-search.js';
 import { createSystemModelStore } from './system-model/system-model.store.js';
 import { SearchService } from './ui/search/search.service.js';

@@ -30,8 +30,8 @@ own machine inside one checkout (decision D1).
   content: the agent writes a working file to the session's scratch
   directory (`.noesis/tmp/<session>/`, named in the server's
   `instructions`), validates it, and passes the path. `validate` and the
-  write boundary run the same contract check from `src/mcp/contracts`, so
-  what one accepts the other accepts.
+  write boundary run the same contract check from
+  `src/infra/validation/contracts`, so what one accepts the other accepts.
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles

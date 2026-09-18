@@ -6,10 +6,8 @@ import type {
   ChangesRepository,
 } from '../changes/changes.repository.js';
 import type { ChangesService } from '../changes/changes.service.js';
-import { dataFileOf } from '../files/noesis-store.js';
 import { newUuid } from '../ids/uuid.js';
-import { designDocumentContract } from '../mcp/contracts/design-document.js';
-import { type ValidationIssue, validate } from '../validation/validator.js';
+import { dataFileOf } from '../infra/files/noesis-store.js';
 
 /** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {
@@ -38,30 +36,10 @@ export interface DesignDocDetail {
 }
 
 /**
- * The incoming document failed the boundary validation — a malformed shape or
- * an integrity error. Carries the validator's issue list so the caller (the
- * `create-design-doc` tool, or a 400 on the ui surface) can hand it on as is.
- */
-export class InvalidDesignDocumentError extends Error {
-  readonly issues: readonly ValidationIssue[];
-  /** Issues beyond the validator's cap, counted but not listed. */
-  readonly suppressed: number;
-
-  constructor(issues: readonly ValidationIssue[], suppressed = 0) {
-    super(
-      `Design document rejected: ${issues.map((i) => `${i.path}: ${i.fix}`).join('; ')}`,
-    );
-    this.name = 'InvalidDesignDocumentError';
-    this.issues = issues;
-    this.suppressed = suppressed;
-  }
-}
-
-/**
- * Every write runs decision D4's boundary pipeline —
- * `DesignDocumentSchema.parse → checkDesignDocument`, packaged as the
- * design-document contract the `validate` tool runs too — so a document that
- * fails is a retry, never a stored inconsistency. The server mints the
+ * Takes documents that already passed decision D4's boundary pipeline
+ * (`DesignDocumentSchema.parse → checkDesignDocument`, the design-document
+ * contract): the ui route and the MCP tool validate before calling in, and
+ * the store parses the schema once more on write. The server mints the
  * document id (UUIDv7 — design docs are authored, not imported): whatever id
  * the input carries is replaced, so an agent inventing a colliding id cannot
  * overwrite anything.
@@ -79,9 +57,12 @@ export class DesignDocsService {
     this.changesService = changesService;
   }
 
-  async create(slug: ChangeSlug, input: unknown): Promise<DesignDocSummary> {
+  async create(
+    slug: ChangeSlug,
+    document: DesignDocument,
+  ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
-    return this.accept(slug, input, newUuid());
+    return this.store(slug, document, newUuid());
   }
 
   /**
@@ -97,20 +78,20 @@ export class DesignDocsService {
   }
 
   /**
-   * Whole-document replacement (decision D4): the incoming document is
-   * validated like a new one and replaces the stored file under the same id;
-   * whatever id the input carries is ignored.
+   * Whole-document replacement (decision D4): the incoming document replaces
+   * the stored file under the same id; whatever id the input carries is
+   * ignored.
    */
   async update(
     slug: ChangeSlug,
     id: string,
-    input: unknown,
+    document: DesignDocument,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     if ((await this.docs(slug).get(id)) === null) {
       throw new DesignDocNotFoundError(slug, id);
     }
-    return this.accept(slug, input, id);
+    return this.store(slug, document, id);
   }
 
   /** Newest first — `date` drives ordering on the documents page. */
@@ -143,18 +124,15 @@ export class DesignDocsService {
     return this.changes.children(slug)['design-docs'];
   }
 
-  /** The boundary: validates the input under the server's id, then stores it. */
-  private async accept(
+  /** Stores the document under the server's id, replacing whatever id it carried. */
+  private async store(
     slug: ChangeSlug,
-    input: unknown,
+    document: DesignDocument,
     id: string,
   ): Promise<DesignDocSummary> {
-    const report = validate(designDocumentContract, withId(input, id));
-    if (!report.ok) {
-      throw new InvalidDesignDocumentError(report.issues, report.suppressed);
-    }
-    await this.docs(slug).set(id, report.value);
-    return this.summarize(slug, report.value);
+    const stored = { ...document, id };
+    await this.docs(slug).set(id, stored);
+    return this.summarize(slug, stored);
   }
 
   private summarize(
@@ -164,11 +142,4 @@ export class DesignDocsService {
     const { id, name, status, date } = document;
     return { id, name, status, date, path: dataFileOf(this.docs(slug), id) };
   }
-}
-
-/** The server's id replaces whatever came in; a non-object is left for the schema to reject. */
-function withId(input: unknown, id: string): unknown {
-  return input !== null && typeof input === 'object' && !Array.isArray(input)
-    ? { ...input, id }
-    : input;
 }

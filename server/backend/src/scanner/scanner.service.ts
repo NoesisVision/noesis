@@ -1,5 +1,5 @@
-import { dataFileOf } from '../files/noesis-store.js';
-import { serverLogger } from '../logging/logging.js';
+import { dataFileOf } from '../infra/files/noesis-store.js';
+import { serverLogger } from '../infra/logging/logging.js';
 import type { SystemModelStore } from '../system-model/system-model.store.js';
 import { findSources, findUnits, scanUnit } from './typescript-scanner.js';
 

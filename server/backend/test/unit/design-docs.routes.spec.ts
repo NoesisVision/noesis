@@ -64,14 +64,37 @@ describe('ui design-docs routes', () => {
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
-  it('rejects an invalid document with its issues', async () => {
+  it('rejects a document that does not parse, with its issues', async () => {
     const invalid = await post(BASE, {
       document: { ...designDocFixture, useCases: 'not-a-list' },
     });
     expect(invalid.status).toBe(400);
+    const body = (await invalid.json()) as {
+      error: string;
+      issues: { path: string }[];
+    };
+    expect(body.error).toBe('invalid_document');
+    expect(body.issues.map((i) => i.path)).toEqual(['$.useCases']);
+  });
+
+  it('rejects a document with an integrity error and stores nothing', async () => {
+    const broken = {
+      ...designDocFixture,
+      // Both use cases point at an application service that does not exist.
+      buildingBlocks: designDocFixture.buildingBlocks.filter(
+        (b) => b.id !== 'svc-booking',
+      ),
+    };
+    const invalid = await post(BASE, { document: broken });
+    expect(invalid.status).toBe(400);
     expect(((await invalid.json()) as { error: string }).error).toBe(
       'invalid_document',
     );
+
+    const list = (await (await app.request(BASE)).json()) as {
+      designDocs: unknown[];
+    };
+    expect(list.designDocs).toEqual([]);
   });
 
   it('creates the sample document', async () => {

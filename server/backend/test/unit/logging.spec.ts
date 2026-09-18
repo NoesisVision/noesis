@@ -8,7 +8,7 @@ import {
   LOG_FILE_NAME,
   parseLogLevel,
   serverLogger,
-} from '../../src/logging/logging.js';
+} from '../../src/infra/logging/logging.js';
 
 const logDir = await mkdtemp(join(tmpdir(), 'noesis-logs-'));
 
