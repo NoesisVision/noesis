@@ -29,7 +29,6 @@ const CHANGE_CHILDREN = {
 } as const;
 
 export type ChangeChildren = ChildHandles<typeof CHANGE_CHILDREN>;
-export type ChangeChildName = keyof ChangeChildren;
 
 type ChangesStore = NoesisStoreOf<typeof ChangeSchema, typeof CHANGE_CHILDREN>;
 

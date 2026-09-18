@@ -18,8 +18,4 @@ declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof getRouter>;
   }
-  /** Each leaf route names its crumbs; `ViewHeader` reads them off the matches. */
-  interface StaticDataRouteOption {
-    breadcrumb?: string[];
-  }
 }

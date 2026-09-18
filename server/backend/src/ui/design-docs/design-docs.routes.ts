@@ -11,7 +11,7 @@ export interface DesignDocsDeps {
   designDocsService: DesignDocsService;
 }
 
-export const createDesignDocSchema = z.object({
+const createDesignDocSchema = z.object({
   // The envelope only; the document itself runs the design-document contract
   // (schema parse + integrity check) in the handler.
   document: z.record(z.string(), z.unknown()),

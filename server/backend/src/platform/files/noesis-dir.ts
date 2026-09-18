@@ -1,10 +1,10 @@
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-export const NOESIS_DIR_NAME = '.noesis';
+const NOESIS_DIR_NAME = '.noesis';
 
 /** The subdirectories git must not see: scratch space and the service's logs. */
-export const UNVERSIONED_DIRS = ['tmp', 'logs'] as const;
+const UNVERSIONED_DIRS = ['tmp', 'logs'] as const;
 
 /**
  * The `.noesis/` directory at the repository root: the one place every

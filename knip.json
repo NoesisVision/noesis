@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // Prototypes and prior art under docs/ are reference material, not code
+  // (Oxlint skips them too).
+  "ignore": ["docs/**/prior-art/**", "docs/**/prototypes/**"],
+  // setup:openssl calls Homebrew, which is not an npm binary.
+  "ignoreBinaries": ["brew"],
+  "workspaces": {
+    "server/backend": {
+      // Type-only tests are checked by tsc and never imported; the store
+      // writer runs as a subprocess of noesis-store.spec.ts.
+      "entry": [
+        "src/main.ts",
+        "test/**/*.types.ts",
+        "test/integration/noesis-store.writer.ts"
+      ]
+    },
+    "server/frontend": {
+      "entry": ["test/**/*.types.ts"]
+    }
+  }
+}

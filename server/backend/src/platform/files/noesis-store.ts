@@ -49,7 +49,7 @@ export const COLLECTION_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 // ---------------------------------------------------------------------------
 
 /** A child collection: a schema alone for a leaf, or a nested definition. */
-export type ChildDefinition = z.ZodType | NestedDefinition;
+type ChildDefinition = z.ZodType | NestedDefinition;
 
 export interface NestedDefinition {
   schema: z.ZodType;
@@ -76,7 +76,7 @@ export type ChildHandles<C> = C extends ChildDefinitions
   : Record<never, never>;
 
 /** The handle a child definition yields, with its own inferred children. */
-export type NoesisStoreHandle<D extends ChildDefinition> = D extends z.ZodType
+type NoesisStoreHandle<D extends ChildDefinition> = D extends z.ZodType
   ? NoesisStore<z.input<D>, z.output<D>, Record<never, never>>
   : D extends NestedDefinition
     ? NoesisStore<

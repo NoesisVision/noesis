@@ -27,7 +27,7 @@ interface SidebarRoute {
   icon: ComponentType<IconProps>;
 }
 
-export const OVERVIEW_ROUTE = {
+const OVERVIEW_ROUTE = {
   to: '/changes/$changeId',
   routeId: '/_shell/changes/$changeId/',
   label: 'Overview',
@@ -59,7 +59,7 @@ export const DESIGN_DOCS_ROUTE = {
   icon: IconPencilBolt,
 } satisfies SidebarRoute;
 
-export const SYSTEM_MODEL_ROUTE = {
+const SYSTEM_MODEL_ROUTE = {
   to: '/system-model',
   routeId: '/_shell/system-model',
   label: 'System model',
@@ -67,7 +67,7 @@ export const SYSTEM_MODEL_ROUTE = {
   icon: IconTopologyStar3,
 } satisfies SidebarRoute;
 
-export const WIKI_ROUTE = {
+const WIKI_ROUTE = {
   to: '/wiki',
   routeId: '/_shell/wiki',
   label: 'Wiki',

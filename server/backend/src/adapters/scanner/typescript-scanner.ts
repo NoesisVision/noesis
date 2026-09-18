@@ -20,8 +20,8 @@ import type {
  * moving anything around it.
  */
 
-export const SCANNER_NAME = 'noesis-typescript';
-export const SCANNER_VERSION = '0.1.0';
+const SCANNER_NAME = 'noesis-typescript';
+const SCANNER_VERSION = '0.1.0';
 
 /** Directories never entered, at any depth. */
 const SKIPPED_DIRS = new Set([
