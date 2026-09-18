@@ -1,0 +1,10 @@
+{
+  // Specs run under bun:test, so they see Bun's types; the app code they
+  // import is checked again here with the same options.
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["bun"]
+  },
+  "include": ["src", "test"]
+}

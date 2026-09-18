@@ -8,7 +8,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
-import { newUuid } from '../../shared/vo/uuid.js';
+import { v7 as uuidv7 } from 'uuid';
 import { serverLogger } from '../logging/logging.js';
 import type { NoesisDir } from './noesis-dir.js';
 
@@ -58,7 +58,7 @@ export class SessionDir {
 
   constructor(noesis: NoesisDir, options: SessionDirOptions = {}) {
     this.noesis = noesis;
-    this.id = options.id ?? newUuid();
+    this.id = options.id ?? uuidv7();
     this.tmpRoot = noesis.resolve(TMP_DIR_NAME);
     this.path = join(this.tmpRoot, this.id);
     this.now = options.now ?? Date.now;

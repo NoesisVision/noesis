@@ -1,3 +1,4 @@
+import { v7 as uuidv7 } from 'uuid';
 import { ChangeSlug } from '../../app/changes/change-slug.js';
 import type { ChangesService } from '../../app/changes/changes.service.js';
 import {
@@ -5,6 +6,10 @@ import {
   type ValidationIssue,
   validate,
 } from '../../app/validation/validator.js';
+import {
+  contentHashAsUuid,
+  sha256,
+} from '../../platform/crypto/content-hash.js';
 import { dataFileOf } from '../../platform/files/noesis-store.js';
 import {
   type AnalyzedTopic,
@@ -14,7 +19,6 @@ import {
   type InformationFragmentRef,
   type Topic,
 } from '../../shared/contracts/index.js';
-import { contentHashAsUuid, newUuid, sha256 } from '../../shared/vo/uuid.js';
 import type { NoesisChangesRepository } from '../store/changes.repository.js';
 import type { DecisionsStore, TopicsStore } from '../store/wiki.store.js';
 
@@ -203,7 +207,7 @@ export class ImportService {
     // Placeholders first, so a new topic can be another's parent.
     const ids = new Map<string, string>();
     for (const topic of analyzed) {
-      ids.set(topic.id, topic.is_new ? newUuid() : topic.id);
+      ids.set(topic.id, topic.is_new ? uuidv7() : topic.id);
     }
     const resolve = (id: string | null): string | null =>
       id === null ? null : (ids.get(id) ?? id);
@@ -231,7 +235,7 @@ export class ImportService {
       );
 
       for (const analyzedDecision of topic.decisions) {
-        const decisionId = analyzedDecision.id ?? newUuid();
+        const decisionId = analyzedDecision.id ?? uuidv7();
         const incomingDecision: Decision = {
           id: decisionId,
           topic_id: id,

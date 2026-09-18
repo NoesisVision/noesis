@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service \u2014 one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -45,6 +45,7 @@
     "@types/node": "catalog:",
     "hono": "catalog:",
     "typescript": "catalog:",
+    "uuid": "^14.0.2",
     "zod": "catalog:"
   }
 }

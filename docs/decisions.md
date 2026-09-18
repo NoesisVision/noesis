@@ -109,9 +109,8 @@ conventions for skills: the contracts' `.describe()` text (D4).
   lifecycle). Surfaces are factory functions taking narrow deps interfaces.
 - **Layers under `src/`, enforced by Oxlint** (`bun run lint`, through
   eslint-plugin-boundaries and `import/no-cycle`; rules in the root
-  `.oxlintrc.json`): `shared` (contracts,
-  value objects) imports no other layer; `platform` (files, database,
-  logging) imports `shared` only; `app` is the core — services, the contract
+  `.oxlintrc.json`): `shared` (contracts) imports no other layer;
+  `platform` (files, database, logging, crypto) imports `shared` only; `app` is the core — services, the contract
   registry, and the ports they need (`ChangesRepository`,
   `DesignDocsRepository`, `SearchProvider`) — and imports `shared` only;
   `adapters` implement those ports over `platform` (`store/` over
@@ -166,10 +165,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `server/backend/src/shared/contracts`, consumed as TypeScript source (no
   build step, no workspace package). The service imports them relatively; the
   frontend type-only through its `#/server/*` alias; the plugin copies the
-  directory. Runtime helpers that are not contracts — value objects such as
-  the id functions in `uuid.ts` — live beside them in `src/shared/vo`, never
-  inside `contracts/`, so the directory stays declarative and the plugin copy
-  stays free of runtime code.
+  directory. Runtime helpers never go inside `contracts/`, so the directory
+  stays declarative and the plugin copy stays free of runtime code: time-ordered
+  ids come straight from the `uuid` package (`v7`), content-hash ids from
+  `src/platform/crypto/content-hash.ts`.
 - **Contracts are declarative on purpose:** object shapes, enums, `.describe()`
   text; no refinements, no transforms, no imports beyond zod and sibling files.
   The agent reads the `.ts` source directly; what a shape cannot say goes in
@@ -235,6 +234,22 @@ conventions for skills: the contracts' `.describe()` text (D4).
   imports backend runtime code. Payload types come from
   `#/server/shared/contracts` the same way. The client's fetch wrapper mints `x-request-id`
   (D10) and raises `ApiError` carrying the service's `{ error }` text.
+- **TypeScript: one config per runtime** (the create-vite layout), checked
+  with `tsc -b`: `tsconfig.app.json` (`src`, `vite/client` types only — no
+  Bun or Node globals, so a browser file using them fails to type-check),
+  `tsconfig.node.json` (`vite.config.ts`, Node types) and `tsconfig.test.json`
+  (`src` and `test`, Bun types for `bun:test`). The solution `tsconfig.json`
+  holds the `#/*` and `#/server/*` `paths` and the app config extends it,
+  because bun's bundler and test runner read `paths` only from
+  `tsconfig.json` and do not follow references.
+- **Backend code the frontend's types reach stays runtime-neutral.** `AppType`
+  pulls the `/ui` route tree — routes, the app services behind them,
+  contracts — into the app program, which has no Bun or Node types, so that
+  code uses ECMAScript and Web APIs only. Time-ordered ids therefore come from
+  the `uuid` package's `v7`, not `Bun.randomUUIDv7()`; the `node:crypto`
+  content hashes live in `platform/crypto`, which only adapters import. The
+  services' `Array.fromAsync` is why the app config adds `ESNext.Array` to
+  `lib`.
 - **Routing.** A pathless `_shell` layout route; routes carry the change slug:
   `/changes/$changeId[/documents|/conversations|/design-docs]`, plus
   `/system-model` and `/wiki`. `/` redirects to the last-opened change
@@ -312,9 +327,11 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `bun run --filter '*' <task>`; root `bun run ci` is the one definition of
   "verified" (lint, Markdown lint, type-check, test, e2e, build).
 - **TypeScript 7** (native compiler), resolved through the root catalog; `tsc`
-  runs only as `check-types` (`--noEmit`). The root `tsconfig.base.json` is
-  the preset, extended by relative path: `ES2022` only, DOM libs are opt-in
-  per app type.
+  only type-checks, as `check-types` — bun runs and bundles everything. The
+  root `tsconfig.base.json` is bun's recommended preset (bundler mode,
+  `module: Preserve`, ESNext, `verbatimModuleSyntax`, `noEmit`,
+  `types: ["bun"]`), extended by relative path by the root, backend and
+  plugin configs. The frontend has its own configs (D5).
 - **The root catalog holds only deps that must stay in lock-step** across
   workspaces (zod, hono, typescript, `@types/*`);
   single-consumer deps stay inline. `^` ranges plus a frozen `bun.lock`.
