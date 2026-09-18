@@ -17,7 +17,7 @@ export function useActiveRoute() {
   };
 
   const activeRoute = allRoutes.find((route) => {
-    return route.routeId === matches[matches.length - 1].routeId;
+    return route.routeId === matches.at(-1)?.routeId;
   });
 
   return {
