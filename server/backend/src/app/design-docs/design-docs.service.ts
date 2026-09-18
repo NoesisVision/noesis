@@ -1,7 +1,7 @@
 import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { newUuid } from '@repo/shared-vo';
-import { dataFileOf } from '../../infra/files/noesis-store.js';
+import { dataFileOf } from '../../platform/files/noesis-store.js';
 import type { ChangeSlug } from '../changes/change-slug.js';
 import type {
   ChangeChildren,

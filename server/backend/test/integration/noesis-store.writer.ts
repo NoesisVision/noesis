@@ -3,7 +3,7 @@
  * object as fast as it can. Arguments: directory, key, label, rounds.
  */
 import { z } from 'zod';
-import { createNoesisStore } from '../../src/infra/files/bun-noesis-store.js';
+import { createNoesisStore } from '../../src/platform/files/bun-noesis-store.js';
 
 const [directory, key, label, rounds] = process.argv.slice(2);
 if (!directory || !key || !label || !rounds) {

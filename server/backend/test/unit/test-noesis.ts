@@ -2,6 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Change } from '@repo/shared-contracts';
+import { ImportService } from '../../src/adapters/mcp/import.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
 import { ChangesService } from '../../src/app/changes/changes.service.js';
@@ -17,9 +18,8 @@ import {
   type DecisionsStore,
   type TopicsStore,
 } from '../../src/app/wiki/wiki.store.js';
-import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
-import type { NoesisStore } from '../../src/infra/files/noesis-store.js';
-import { ImportService } from '../../src/infra/mcp/import.service.js';
+import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
+import type { NoesisStore } from '../../src/platform/files/noesis-store.js';
 
 /**
  * A throwaway repository root with an ensured `.noesis/`, plus the stores

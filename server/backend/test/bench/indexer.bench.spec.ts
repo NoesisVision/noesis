@@ -7,6 +7,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
+import { SchemaService } from '../../src/adapters/schema/schema.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { ChangesRepository } from '../../src/app/changes/changes.repository.js';
 import { IndexService } from '../../src/app/index/index.service.js';
@@ -15,10 +16,9 @@ import {
   createDecisionsStore,
   createTopicsStore,
 } from '../../src/app/wiki/wiki.store.js';
-import { DatabaseService } from '../../src/infra/database/database.service.js';
-import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
-import { dataFileOf } from '../../src/infra/files/noesis-store.js';
-import { SchemaService } from '../../src/infra/schema/schema.service.js';
+import { DatabaseService } from '../../src/platform/database/database.service.js';
+import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
+import { dataFileOf } from '../../src/platform/files/noesis-store.js';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;

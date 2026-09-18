@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import {
   findRepositoryRoot,
   resolveRepositoryRoot,
-} from '../../src/infra/files/repository-root.js';
+} from '../../src/platform/files/repository-root.js';
 
 let base: string;
 

@@ -6,13 +6,13 @@ import {
   DesignDocumentSchema,
   DocumentSchema,
 } from '@repo/shared-contracts';
-import { createNoesisStore } from '../../infra/files/bun-noesis-store.js';
-import type { NoesisDir } from '../../infra/files/noesis-dir.js';
+import { createNoesisStore } from '../../platform/files/bun-noesis-store.js';
+import type { NoesisDir } from '../../platform/files/noesis-dir.js';
 import type {
   ChildHandles,
   NoesisStoreOf,
-} from '../../infra/files/noesis-store.js';
-import { serverLogger } from '../../infra/logging/logging.js';
+} from '../../platform/files/noesis-store.js';
+import { serverLogger } from '../../platform/logging/logging.js';
 import { ChangeSlug } from './change-slug.js';
 
 const log = serverLogger('changes');

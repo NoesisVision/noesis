@@ -4,8 +4,8 @@ import type { DesignDocument } from '@repo/shared-contracts';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { IndexService } from '../../src/app/index/index.service.js';
-import type { DatabaseService } from '../../src/infra/database/database.service.js';
-import { dataFileOf } from '../../src/infra/files/noesis-store.js';
+import type { DatabaseService } from '../../src/platform/database/database.service.js';
+import { dataFileOf } from '../../src/platform/files/noesis-store.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { put, type TestNoesis, testNoesis } from './test-noesis.js';
 

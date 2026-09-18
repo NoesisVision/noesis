@@ -11,7 +11,7 @@ import { ChangeSlug } from '../../app/changes/change-slug.js';
 import type { ChangesRepository } from '../../app/changes/changes.repository.js';
 import type { ChangesService } from '../../app/changes/changes.service.js';
 import type { DecisionsStore, TopicsStore } from '../../app/wiki/wiki.store.js';
-import { dataFileOf } from '../files/noesis-store.js';
+import { dataFileOf } from '../../platform/files/noesis-store.js';
 import {
   type FileContract,
   type ValidationIssue,

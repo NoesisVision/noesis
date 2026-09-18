@@ -31,7 +31,7 @@ own machine inside one checkout (decision D1).
   directory (`.noesis/tmp/<session>/`, named in the server's
   `instructions`), validates it, and passes the path. `validate` and the
   write boundary run the same contract check from
-  `src/infra/validation/contracts`, so what one accepts the other accepts.
+  `src/adapters/validation/contracts`, so what one accepts the other accepts.
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles
@@ -82,18 +82,19 @@ src/
     search/           graph search behind the search tool and /ui/search
     index/            the index service (files → graph at boot and on change)
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
-  infra/
+  platform/
     config/           env parsing (zod)
     logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context
     files/            repository root lookup, .noesis/ + its .gitignore, session scratch
                       dir, the generic file repository (atomic whole-file writes), and
                       the watcher that re-indexes on change
     database/         the LadybugDB handle, in-memory only
+    native/           puts LadybugDB's native binary where its loader expects it
+  adapters/
     schema/           the declarative graph schema, one place for every node/rel table
     validation/       the actionable problem list and the file-contract registry that
                       the validate tool, the ui routes and the MCP tools run
     mcp/              the MCP server and the import service behind its import tools
-    native/           puts LadybugDB's native binary where its loader expects it
     scanner/          the TypeScript source scanner behind scan-system-model
 test/
   unit/ e2e/ bench/

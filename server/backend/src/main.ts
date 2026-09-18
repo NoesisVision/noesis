@@ -6,7 +6,7 @@
 // bunx.
 //
 // stdout belongs to the MCP protocol — every log line goes to stderr. Our own
-// code logs through LogTape (infra/logging/logging.ts, decision D10), whose stderr
+// code logs through LogTape (platform/logging/logging.ts, decision D10), whose stderr
 // sink writes there directly; the redirect below catches anything a
 // dependency prints with console.log, which would otherwise corrupt the
 // stream.
@@ -17,6 +17,10 @@ console.log = (...args: unknown[]) => console.error(...args);
 import './bundle-cwd.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import index from '../../frontend/index.html';
+import { ImportService } from './adapters/mcp/import.service.js';
+import { createMcpServer } from './adapters/mcp/mcp-server.js';
+import { ScannerService } from './adapters/scanner/scanner.service.js';
+import { SchemaService } from './adapters/schema/schema.service.js';
 import { ChangesRepository } from './app/changes/changes.repository.js';
 import { ChangesService } from './app/changes/changes.service.js';
 import { DesignDocsService } from './app/design-docs/design-docs.service.js';
@@ -30,22 +34,18 @@ import {
 import { createApp } from './app.js';
 import { openBrowser } from './browser.js';
 import { launchCwd } from './bundle-cwd.js';
-import { loadServerConfig } from './infra/config/config.js';
-import { DatabaseService } from './infra/database/database.service.js';
-import { NoesisDir } from './infra/files/noesis-dir.js';
-import { resolveRepositoryRoot } from './infra/files/repository-root.js';
-import { SessionDir } from './infra/files/session-dir.js';
-import { NoesisWatcher } from './infra/files/watcher.js';
+import { loadServerConfig } from './platform/config/config.js';
+import { DatabaseService } from './platform/database/database.service.js';
+import { NoesisDir } from './platform/files/noesis-dir.js';
+import { resolveRepositoryRoot } from './platform/files/repository-root.js';
+import { SessionDir } from './platform/files/session-dir.js';
+import { NoesisWatcher } from './platform/files/watcher.js';
 import {
   configureLogging,
   disposeLogging,
   serverLogger,
-} from './infra/logging/logging.js';
-import { ImportService } from './infra/mcp/import.service.js';
-import { createMcpServer } from './infra/mcp/mcp-server.js';
-import { ensureLadybugBinary } from './infra/native/ensure-ladybug.js';
-import { ScannerService } from './infra/scanner/scanner.service.js';
-import { SchemaService } from './infra/schema/schema.service.js';
+} from './platform/logging/logging.js';
+import { ensureLadybugBinary } from './platform/native/ensure-ladybug.js';
 import { SearchService } from './ui/search/search.service.js';
 
 // The composition root: the ONE place that constructs dependencies, decides

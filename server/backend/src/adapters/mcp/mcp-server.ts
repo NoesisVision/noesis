@@ -21,8 +21,8 @@ import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '../../app/design-docs/design-docs.service.js';
+import type { SessionDir } from '../../platform/files/session-dir.js';
 import type { SearchService } from '../../ui/search/search.service.js';
-import type { SessionDir } from '../files/session-dir.js';
 import type { ScannerService } from '../scanner/scanner.service.js';
 import {
   contractNames,

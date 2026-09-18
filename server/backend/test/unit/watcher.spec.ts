@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import { designDocFixture } from '@repo/shared-contracts/design-doc.fixture';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
 import { IndexService } from '../../src/app/index/index.service.js';
-import type { DatabaseService } from '../../src/infra/database/database.service.js';
-import { isIgnored, NoesisWatcher } from '../../src/infra/files/watcher.js';
+import type { DatabaseService } from '../../src/platform/database/database.service.js';
+import { isIgnored, NoesisWatcher } from '../../src/platform/files/watcher.js';
 import { resetGraph, sharedTestDatabase } from './test-db.js';
 import { type TestNoesis, testNoesis } from './test-noesis.js';
 

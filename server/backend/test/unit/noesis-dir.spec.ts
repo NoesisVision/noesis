@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { NoesisDir } from '../../src/infra/files/noesis-dir.js';
+import { NoesisDir } from '../../src/platform/files/noesis-dir.js';
 
 let root: string;
 

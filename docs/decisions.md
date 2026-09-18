@@ -71,7 +71,7 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
   transcripts, Markdown, PDFs a skill reads; the service neither reads nor
   indexes it). `NoesisDir.ensure()` creates them and maintains
   `.noesis/.gitignore`. Everything under `graph/` is committed.
-- **`NoesisStore` is the only write path** (`server/backend/src/infra/files/`). A
+- **`NoesisStore` is the only write path** (`server/backend/src/platform/files/`). A
   collection is a directory, a zod schema and named child collections; a handle
   offers `get`, `set`, `delete`, `keys`, `children`, with types inferred from
   the definitions. `set` validates, serialises the parsed value, writes a temp
@@ -117,7 +117,7 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
   depends on it (D5).
 - **MCP tools are thin:** each validates its input and calls one service method
   in-process. Every tool is defined against a contract in
-  `src/infra/validation/contracts/registry.ts`; there is deliberately no way to register a
+  `src/adapters/validation/contracts/registry.ts`; there is deliberately no way to register a
   tool without one. Current tools: `list-changes`, `import-conversation`,
   `import-document`, `list-design-docs`, `create-design-doc`,
   `update-design-doc`, `scan-system-model`, `search-knowledge-graph`,
@@ -187,7 +187,7 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
   boundary.** Every write is whole-document replacement, written as a file.
   There is no server-side edit path; an editor is a new decision.
 - **Validation is a boundary concern, not a service one.** The ui routes and
-  the MCP tools run the contract (`src/infra/validation`) and answer a 400 or
+  the MCP tools run the contract (`src/adapters/validation`) and answer a 400 or
   an in-band issue list; an application service such as `DesignDocsService`
   takes the typed, already-valid document. The store's schema parse on write
   is the last guarantee, not a second boundary.
