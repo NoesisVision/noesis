@@ -42,7 +42,6 @@
     "@logtape/logtape": "^2.3.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@repo/shared-contracts": "workspace:*",
-    "@repo/shared-vo": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",

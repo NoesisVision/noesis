@@ -8,7 +8,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
-import { newUuid } from '@repo/shared-vo';
+import { newUuid } from '../../shared/vo/uuid.js';
 import { serverLogger } from '../logging/logging.js';
 import type { NoesisDir } from './noesis-dir.js';
 

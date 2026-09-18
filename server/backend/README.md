@@ -82,6 +82,8 @@ src/
     search/           graph search behind the search tool and /ui/search
     index/            the index service (files → graph at boot and on change)
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
+  shared/
+    vo/               value objects: the ids the service mints (UUIDv7, content hashes)
   platform/
     config/           env parsing (zod)
     logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context

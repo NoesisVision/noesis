@@ -8,7 +8,7 @@ import type {
   ScannedDomainModule,
   SystemModel,
 } from '@repo/shared-contracts';
-import { contentHashAsUuid } from '@repo/shared-vo';
+import { contentHashAsUuid } from '../../shared/vo/uuid.js';
 
 /*
  * The TypeScript scanner: reads a checkout and projects what it finds into

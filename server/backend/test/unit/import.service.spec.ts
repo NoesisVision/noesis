@@ -5,12 +5,12 @@ import type {
   DocumentAnalysis,
 } from '@repo/shared-contracts';
 import { conversationAnalysisFixture } from '@repo/shared-contracts/conversation-analysis.fixture';
-import { sha256 } from '@repo/shared-vo';
 import {
   DuplicateSourceError,
   InvalidImportError,
 } from '../../src/adapters/mcp/import.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { sha256 } from '../../src/shared/vo/uuid.js';
 import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = ChangeSlug.parse('booking');

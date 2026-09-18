@@ -153,10 +153,10 @@ conventions for skills: `packages/shared-contracts/src/conventions.md`.
 - **All contracts are zod v4 schemas with inferred types** in
   `packages/shared-contracts`, consumed as TypeScript source (no build step).
   It is the only contracts package. Type-only consumers use type-only imports.
-  Runtime helpers that belong beside the contracts but are not contracts —
-  value objects such as the id functions in `uuid.ts` — live in a separate
-  package, `@repo/shared-vo` (`packages/shared-vo`), so the contracts package
-  stays declarative and the plugin copy stays free of runtime code.
+  Runtime helpers that are not contracts — value objects such as the id
+  functions in `uuid.ts` — live in the service (`server/backend/src/shared/vo`),
+  so the contracts package stays declarative and the plugin copy stays free
+  of runtime code.
 - **Contracts are declarative on purpose:** object shapes, enums, `.describe()`
   text; no refinements, no transforms, no imports beyond zod and sibling files.
   The agent reads the `.ts` source directly. What a schema cannot say lives in
