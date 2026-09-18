@@ -26,7 +26,6 @@ jobs:
               - '.github/workflows/ci.yml'
             ts:
               - 'server/**'
-              - 'packages/**'
               - 'plugins/**'
               - 'package.json'
               - 'bun.lock'

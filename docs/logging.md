@@ -20,7 +20,7 @@ One root, then the process, then the module:
 Get a logger through the helper of the package, never by spelling the array:
 `serverLogger('files')` in the backend, `uiLogger('api')` in the frontend.
 The second segment says which process wrote a line when both end up in one
-place. A library-shaped package (`packages/*`) may log under
+place. A library-shaped module may log under
 `noesis.<package>` and must never call `configure()`.
 
 ## Messages

@@ -10,16 +10,11 @@
         "typescript": "catalog:",
       },
     },
-    "packages/typescript-config": {
-      "name": "@repo/typescript-config",
-      "version": "0.0.0",
-    },
     "plugins/claude-code": {
       "name": "@noesis-vision/claude-code-plugin",
       "version": "0.1.0-beta.4",
       "devDependencies": {
         "@modelcontextprotocol/sdk": "^1.29.0",
-        "@repo/typescript-config": "workspace:*",
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
         "typescript": "catalog:",
@@ -40,7 +35,6 @@
         "@logtape/hono": "^2.3.4",
         "@logtape/logtape": "^2.3.4",
         "@modelcontextprotocol/sdk": "^1.29.0",
-        "@repo/typescript-config": "workspace:*",
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
         "hono": "catalog:",
@@ -272,8 +266,6 @@
     "@noesis-vision/claude-code-plugin": ["@noesis-vision/claude-code-plugin@workspace:plugins/claude-code"],
 
     "@noesis-vision/noesis": ["@noesis-vision/noesis@workspace:server/backend"],
-
-    "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-rc.3", "", {}, "sha512-eybk3TjzzzV97Dlj5c+XrBFW57eTNhzod66y9HrBlzJ6NsCrWCp/2kaPS3K9wJmurBC0Tdw4yPjXKZqlznim3Q=="],
 

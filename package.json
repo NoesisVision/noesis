@@ -28,7 +28,6 @@
   "workspaces": {
     "packages": [
       "server/*",
-      "packages/*",
       "plugins/*"
     ],
     "catalog": {

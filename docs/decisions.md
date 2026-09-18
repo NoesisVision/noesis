@@ -290,17 +290,18 @@ conventions for skills: the contracts' `.describe()` text (D4).
 
 - **The bun workspace owns the repo root; minority languages live in
   self-contained subtrees.** `server/` (`backend`, `frontend` — the Noesis
-  service), `plugins/` (shipped to agent hosts), `packages/` (internal
-  libraries: `typescript-config`), `scanners/` (`java`,
+  service), `plugins/` (shipped to agent hosts), `scanners/` (`java`,
   `dotnet`, own build files), `docs/`. Package names are `backend` and
-  `frontend`.
+  `frontend`. There is no `packages/` directory: shared tooling config is
+  root files, not workspace members (a one-file `@repo/typescript-config`
+  package was more manifest than content).
 - **Pure bun workspace.** Root scripts are
   `bun run --filter '*' <task>`; root `bun run ci` is the one definition of
   "verified" (lint, Markdown lint, type-check, test, e2e, build).
 - **TypeScript 7** (native compiler), resolved through the root catalog; `tsc`
-  runs only as `check-types` (`--noEmit`). `@repo/typescript-config` holds the
-  presets: `base.json` is `ES2022` only, DOM libs are opt-in per app type.
-  Internal packages export `src/*.ts`.
+  runs only as `check-types` (`--noEmit`). The root `tsconfig.base.json` is
+  the preset, extended by relative path: `ES2022` only, DOM libs are opt-in
+  per app type.
 - **The root catalog holds only deps that must stay in lock-step** across
   workspaces (zod, hono, typescript, biome, prettier, `@types/*`);
   single-consumer deps stay inline. `^` ranges plus a frozen `bun.lock`.

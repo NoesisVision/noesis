@@ -120,13 +120,14 @@ One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https
 
 The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts` and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
-### Config packages
+### Shared tooling config
 
-- `@repo/typescript-config` — the shared tsconfig preset `base.json`
+No config packages: everything shared lives as a file at the repo root.
 
-Linting and formatting need no config package: a single root `biome.json` covers the whole workspace (per-area rule tweaks live in its `overrides`).
+- `tsconfig.base.json` — the tsconfig preset (strict, ES2022, `NodeNext`, `isolatedModules`, `noUncheckedIndexedAccess`, `skipLibCheck`). `server/backend` and `plugins/claude-code` extend it by relative path (`"extends": "../../tsconfig.base.json"`) and override only their deltas; `server/frontend` stands alone because browser code bundled by bun (decision D5) needs DOM libs, JSX and bundler resolution that have no place in a Node-style preset. `tsc` runs only as `check-types` (`--noEmit`), so the preset shapes type-checking, not emit. To change it, edit the file and run `bun run check-types` from the root.
+- `biome.json` — linting and formatting for the whole workspace (per-area rule tweaks live in its `overrides`).
 
-Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`. Internal packages depend on each other via the `workspace:*` protocol.
+Shared dependency versions (`typescript`, `@biomejs/biome`, `zod`, `hono`, …) are pinned once in the root `package.json` **catalog** — workspaces reference them as `"catalog:"`.
 
 ### Scanners (`scanners/`)
 
@@ -142,19 +143,19 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 
 ## 2. Tools
 
-| Tool                                                                                                              | Role                                                                                                     |
-| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner     |
-| [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7); internal packages export `src/*.ts` |
-| [zod](https://zod.dev/) (v4)                                                                                      | Contract schemas and env validation                                                                      |
-| [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend                  |
-| [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                       |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                               | MCP server in `server/backend/src/mcp`, stdio transport                                                  |
-| [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)                 |
-| [Biome](https://biomejs.dev/) 2                                                                                   | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                                  |
-| Git hooks (`.githooks/`)                                                                                          | `pre-commit` runs biome + prettier on staged files; `commit-msg` enforces the commit convention          |
-| GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases                  |
-| [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                     |
+| Tool                                                                                                              | Role                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner |
+| [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7)                                  |
+| [zod](https://zod.dev/) (v4)                                                                                      | Contract schemas and env validation                                                                  |
+| [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend              |
+| [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                   |
+| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                               | MCP server in `server/backend/src/mcp`, stdio transport                                              |
+| [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)             |
+| [Biome](https://biomejs.dev/) 2                                                                                   | Linting and formatting (TS/TSX/JS/JSON); Prettier formats Markdown only                              |
+| Git hooks (`.githooks/`)                                                                                          | `pre-commit` runs biome + prettier on staged files; `commit-msg` enforces the commit convention      |
+| GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases              |
+| [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                 |
 
 ## 3. Getting started
 
@@ -269,7 +270,7 @@ Payload validation happens twice in the service (decision D3): the `validate` to
 `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests:
 
 - **Format check** — ungated, so doc-only commits are still checked (prettier on Markdown, biome on code)
-- **Lint, type-check, test, build** — gated on TS-side changes (`server/**`, `packages/**`, `plugins/**`, root manifests)
+- **Lint, type-check, test, build** — gated on TS-side changes (`server/**`, `plugins/**`, root manifests)
 - **Generated output is committed** — `bun run generate` must leave the tree clean (the version pins; the contracts copy is not committed, decision D4)
 - **Java scanner build** — `mvn verify`, gated on `scanners/java/**`
 
