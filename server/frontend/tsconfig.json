@@ -1,35 +1,18 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  // One config per runtime, checked with `tsc -b` (create-vite layout).
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.test.json" }
+  ],
+  // The aliases live here, not in tsconfig.app.json, because Bun's bundler
+  // and test runner read paths from tsconfig.json and do not follow
+  // references. tsconfig.app.json extends this file to share them.
   "compilerOptions": {
-    "target": "ES2023",
-    "jsx": "react-jsx",
-    "module": "ESNext",
-    "moduleDetection": "force",
     "paths": {
       "#/server/*": ["../backend/src/*"],
       "#/*": ["./src/*"]
-    },
-    "lib": ["ES2023", "DOM"],
-    // Limit ambient packages to the browser toolchain, plus bun: the specs
-    // run under bun:test and the Hono RPC client type (#/server/app.types.ts)
-    // pulls backend source, which uses Bun globals, into this program. Local
-    // declarations in src/types are loaded by include above.
-    "types": ["vite/client", "bun"],
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-
-    /* Linting */
-    "skipLibCheck": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "noUncheckedIndexedAccess": true,
-    "erasableSyntaxOnly": true
+    }
   }
 }

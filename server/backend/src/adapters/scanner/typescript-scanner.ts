@@ -1,6 +1,7 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, sep } from 'node:path';
+import { contentHashAsUuid } from '../../platform/crypto/content-hash.js';
 import type {
   DesignedBuildingBlockType,
   ScannedBehaviour,
@@ -8,7 +9,6 @@ import type {
   ScannedDomainModule,
   SystemModel,
 } from '../../shared/contracts/index.js';
-import { contentHashAsUuid } from '../../shared/vo/uuid.js';
 
 /*
  * The TypeScript scanner: reads a checkout and projects what it finds into

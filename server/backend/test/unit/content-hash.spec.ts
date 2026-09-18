@@ -1,14 +1,8 @@
 import { describe, expect, it } from 'bun:test';
-import { contentHashAsUuid, newUuid } from '../../src/shared/vo/uuid.js';
+import { contentHashAsUuid } from '../../src/platform/crypto/content-hash.js';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
-describe('newUuid', () => {
-  it('returns a uuid-shaped string', () => {
-    expect(newUuid()).toMatch(UUID_RE);
-  });
-});
 
 describe('contentHashAsUuid', () => {
   it('is deterministic and uuid-shaped for the same content', () => {

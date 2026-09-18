@@ -1,6 +1,6 @@
+import { v7 as uuidv7 } from 'uuid';
 import { designDocFixture } from '../../shared/contracts/design-doc.fixture.js';
 import type { DesignDocument } from '../../shared/contracts/index.js';
-import { newUuid } from '../../shared/vo/uuid.js';
 import type { ChangeSlug } from '../changes/change-slug.js';
 import type { ChangesService } from '../changes/changes.service.js';
 import type { DesignDocsRepository } from './design-docs.repository.js';
@@ -58,7 +58,7 @@ export class DesignDocsService {
     document: DesignDocument,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
-    return this.store(slug, document, newUuid());
+    return this.store(slug, document, uuidv7());
   }
 
   /**

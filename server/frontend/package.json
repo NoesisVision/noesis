@@ -12,7 +12,7 @@
     "start:debug": "bun run --cwd ../backend start:debug",
     "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc -b"
   },
   "dependencies": {
     "@fontsource-variable/raleway": "^5.3.0",

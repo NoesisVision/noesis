@@ -5,12 +5,12 @@ import {
   InvalidImportError,
 } from '../../src/adapters/mcp/import.service.js';
 import { ChangeSlug } from '../../src/app/changes/change-slug.js';
+import { sha256 } from '../../src/platform/crypto/content-hash.js';
 import { conversationAnalysisFixture } from '../../src/shared/contracts/conversation-analysis.fixture.js';
 import type {
   ConversationAnalysis,
   DocumentAnalysis,
 } from '../../src/shared/contracts/index.js';
-import { sha256 } from '../../src/shared/vo/uuid.js';
 import { all, put, type TestNoesis, testNoesis } from './test-noesis.js';
 
 const CHANGE = ChangeSlug.parse('booking');
