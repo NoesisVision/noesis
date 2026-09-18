@@ -14,11 +14,11 @@ import type { NoesisDir } from './noesis-dir';
 
 const log = serverLogger('session');
 
-export const TMP_DIR_NAME = 'tmp';
+const TMP_DIR_NAME = 'tmp';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 /** Tool results above this many bytes travel as a file path, not inline. */
-export const INLINE_RESULT_LIMIT = 8 * 1024;
+const INLINE_RESULT_LIMIT = 8 * 1024;
 
 export interface SessionDirOptions {
   /** The session id; minted (UUIDv7) when omitted. */

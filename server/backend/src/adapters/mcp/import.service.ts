@@ -292,7 +292,7 @@ function parse<T>(
 }
 
 /** A locked field keeps the stored value; items are the union, in stored-then-new order. */
-export function mergeTopic(stored: Topic, incoming: Topic): Topic {
+function mergeTopic(stored: Topic, incoming: Topic): Topic {
   return {
     id: stored.id,
     parent_id: incoming.parent_id,
@@ -310,7 +310,7 @@ export function mergeTopic(stored: Topic, incoming: Topic): Topic {
   };
 }
 
-export function mergeDecision(stored: Decision, incoming: Decision): Decision {
+function mergeDecision(stored: Decision, incoming: Decision): Decision {
   return {
     id: stored.id,
     topic_id: incoming.topic_id,

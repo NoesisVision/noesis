@@ -34,7 +34,7 @@ import {
  * names the element in words, so neither side needs a rendered path.
  */
 
-export type DesignDocIssueSeverity = 'error' | 'warning';
+type DesignDocIssueSeverity = 'error' | 'warning';
 
 export type DesignDocIssue = {
   /** Stable machine-readable code, so callers can filter without matching prose. */

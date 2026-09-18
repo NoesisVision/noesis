@@ -33,7 +33,7 @@ import {
  * context, and every log line under it carries the fields.
  */
 
-export const ROOT_CATEGORY = 'noesis';
+const ROOT_CATEGORY = 'noesis';
 export const LOG_FILE_NAME = 'noesis.log';
 
 /** A logger for one module of the service: `["noesis", "server", ...segments]`. */

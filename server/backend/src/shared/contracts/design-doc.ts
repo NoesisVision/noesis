@@ -252,7 +252,10 @@ export const DesignedScenarioSchema = z
   .describe('A Gherkin scenario, owned by a use case or a behaviour.');
 export type DesignedScenario = z.infer<typeof DesignedScenarioSchema>;
 
-/** A Gherkin scenario owned by a use case. */
+/**
+ * A Gherkin scenario owned by a use case.
+ * @alias
+ */
 export const DesignedAcceptanceScenarioSchema = DesignedScenarioSchema;
 export type DesignedAcceptanceScenario = DesignedScenario;
 

@@ -11,7 +11,6 @@ export function ViewHeader() {
 
   return (
     <Stack gap="xs" mb="lg">
-      {/*<Crumbs />*/}
       <Box>
         <Title order={2} mb={0}>
           {title}

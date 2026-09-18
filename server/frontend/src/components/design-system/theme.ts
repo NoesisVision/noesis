@@ -29,7 +29,7 @@ export const theme = createTheme({
 });
 
 /** Persisted under the shell's namespace; `index.html` reads the same key. */
-export const COLOR_SCHEME_KEY = 'noesis.shell.colorScheme';
+const COLOR_SCHEME_KEY = 'noesis.shell.colorScheme';
 
 export const colorSchemeManager = localStorageColorSchemeManager({
   key: COLOR_SCHEME_KEY,
