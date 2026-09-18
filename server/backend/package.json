@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service \u2014 one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -24,7 +24,6 @@
     "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "check-types": "tsc --noEmit",
-    "lint:deps": "bun --bun depcruise src",
     "test": "bun test test/unit test/integration",
     "test:e2e": "bun test test/e2e",
     "test:bench": "bun test test/bench",
@@ -42,10 +41,8 @@
     "@logtape/hono": "^2.3.4",
     "@logtape/logtape": "^2.3.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@swc/core": "^1.16.2",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "dependency-cruiser": "^18.3.1",
     "hono": "catalog:",
     "typescript": "catalog:",
     "zod": "catalog:"

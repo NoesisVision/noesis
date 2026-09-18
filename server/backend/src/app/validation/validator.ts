@@ -194,7 +194,10 @@ function describe(value: unknown): string {
       ? `${quoted.slice(0, PREVIEW_LENGTH)}…" (${value.length} chars)`
       : quoted;
   }
-  return `${String(value)} (${typeof value})`;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return `${value} (${typeof value})`;
+  }
+  return typeof value;
 }
 
 function anOf(noun: string): string {

@@ -30,10 +30,10 @@ import {
   createDecisionsStore,
   createTopicsStore,
 } from './adapters/store/wiki.store.js';
+import { createApp } from './app.js';
 import { ChangesService } from './app/changes/changes.service.js';
 import { DesignDocsService } from './app/design-docs/design-docs.service.js';
 import { SearchService } from './app/search/search.service.js';
-import { createApp } from './app.js';
 import { openBrowser } from './browser.js';
 import { launchCwd } from './bundle-cwd.js';
 import { loadServerConfig } from './platform/config/config.js';

@@ -12,7 +12,6 @@
     "start:debug": "bun run --cwd ../backend start:debug",
     "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
-    "format": "prettier --write .",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -33,13 +32,12 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.0.4",
     "@tanstack/router-cli": "^1.132.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "prettier": "catalog:",
+    "@vitejs/plugin-react": "^5.0.4",
     "typescript": "catalog:",
     "vite": "^7.1.7"
   }

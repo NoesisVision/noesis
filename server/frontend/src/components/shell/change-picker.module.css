@@ -21,12 +21,12 @@
 
 /* Dark scheme by Mantine's attribute, not `light-dark()`: the bundler's
    polyfill of that function keys on the OS preference, not on the toggle. */
-:global([data-mantine-color-scheme="dark"]) .pick {
+:global([data-mantine-color-scheme='dark']) .pick {
   border-color: var(--mantine-color-dark-3);
   background: var(--mantine-color-dark-6);
 }
 
-:global([data-mantine-color-scheme="dark"]) .pick:hover {
+:global([data-mantine-color-scheme='dark']) .pick:hover {
   border-color: var(--mantine-color-dark-2);
 }
 
@@ -46,7 +46,6 @@
   .subLabel {
     color: light-dark(var(--mantine-color-dark-3), var(--mantine-color-dark-2));
   }
-  /* biome-ignore lint/style/noDescendingSpecificity: all good */
   &:hover {
     background: light-dark(
       var(--mantine-color-brand-0),

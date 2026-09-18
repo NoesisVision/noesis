@@ -8,13 +8,13 @@ import { Menu } from '#/components/design-system/menu';
 import { Text } from '#/components/design-system/text';
 import { UnstyledButton } from '#/components/design-system/unstyled-button';
 import type { Change } from '#/server/shared/contracts/index.ts';
-import classes from './change-picker.module.css';
 import {
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,
   changeSwatch,
 } from './change-status';
 import { NewChangeModal } from './new-change-modal';
+import classes from './change-picker.module.css';
 
 interface ChangePickerProps {
   changes: Change[];

@@ -14,5 +14,5 @@ polymorphic signatures and public static helpers, and gives wrappers a
 as well. Keep component-specific customization in its wrapper file and shared
 theme defaults in `theme.ts`.
 
-Biome rejects `@mantine/*` imports and re-exports anywhere else in the frontend.
+Oxlint rejects `@mantine/*` imports and re-exports anywhere else in the frontend.
 Add new Mantine primitives here before using them in application components.

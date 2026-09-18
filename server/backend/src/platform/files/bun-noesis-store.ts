@@ -64,9 +64,11 @@ export const createNoesisStore: CreateNoesisStore = <
 // The handle
 // ---------------------------------------------------------------------------
 
-class BunNoesisStore
-  implements NoesisStore<unknown, unknown, Record<string, unknown>>
-{
+class BunNoesisStore implements NoesisStore<
+  unknown,
+  unknown,
+  Record<string, unknown>
+> {
   readonly directory: string;
   private readonly collection: Collection;
   /** The directory of every ancestor object, root first. */

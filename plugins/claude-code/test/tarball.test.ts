@@ -118,13 +118,11 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
   if (!service) throw new Error('.mcp.json has no noesis server entry');
   // Both are `${VAR:-default}` expansions (decision D6): installed plugins run
   // the published bin through bunx; a checkout points them at the source.
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal placeholder is what Claude Code expands
   expect(service.command).toBe('${NOESIS_SERVICE_COMMAND:-bunx}');
   expect(service.args).toEqual([
     `\${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@${version}}`,
   ]);
   // The service serves the project the plugin runs in, not its own cwd.
-  // biome-ignore lint/suspicious/noTemplateCurlyInString: the literal placeholder is what Claude Code expands
   expect(service.env.NOESIS_ROOT).toBe('${CLAUDE_PROJECT_DIR}');
 
   const serviceManifest = JSON.parse(

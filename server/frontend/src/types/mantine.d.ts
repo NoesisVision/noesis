@@ -1,4 +1,3 @@
-// biome-ignore lint/style/noRestrictedImports: declaring new color
 import type { DefaultMantineColor, MantineColorsTuple } from '@mantine/core';
 
 type ExtendedCustomColors = 'brand' | DefaultMantineColor;
