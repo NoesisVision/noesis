@@ -1,6 +1,7 @@
 {
   "name": "noesis",
   "private": true,
+  "type": "module",
   "scripts": {
     "setup:openssl": "brew install openssl@3",
     "build": "bun run --filter '*' build",
@@ -14,13 +15,15 @@
     "test:e2e": "bun run --filter '*' test:e2e",
     "format": "biome format --write . && prettier --write \"**/*.md\"",
     "format:check": "biome format . && prettier --check \"**/*.md\"",
-    "check-types": "bun run --filter '*' check-types",
+    "check-types": "tsc --noEmit && bun run --filter '*' check-types",
     "generate": "bun run --filter '*' generate",
     "prepare": "git config core.hooksPath .githooks || true",
     "ci": "bun run lint && bun run lint:md && bun run check-types && bun run test && bun run test:e2e && bun run build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.8",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
     "prettier": "^3.9.6",
     "typescript": "catalog:"
   },
