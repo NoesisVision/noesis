@@ -8,9 +8,6 @@ import {
   DocumentFragmentRefSchema,
 } from './document';
 
-// A reference to a single information fragment in any source — a fragment of a
-// conversation or of a document. Topics and decisions point at their supporting
-// content through these refs, source-agnostically.
 export const InformationFragmentRefSchema = z
   .union([ConversationFragmentRefSchema, DocumentFragmentRefSchema])
   .describe(

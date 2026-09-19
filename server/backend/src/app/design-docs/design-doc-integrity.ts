@@ -10,37 +10,16 @@ import {
 } from './design-doc-paths';
 
 /*
- * Whole-document invariants.
- *
- * The element schemas cannot see any of this. A normalised model relates its
- * parts by id, and zod validates one object at a time, so nothing in
- * `design-doc.ts` can tell whether `applicationServiceId` names a real building
- * block, whether that block is actually an application service, or whether the
- * use case and the behaviour that claim each other agree.
- *
- * Two families of check, and both matter for a different reason:
- *
- * - **Identity.** An element reference is a bare id resolved through one index,
- *   so a collision anywhere in the document makes the loser unreachable —
- *   every comment, suggestion and agent reference silently lands on the other.
- *   Ids also may not be empty.
- * - **References.** A dangling id is a broken document; a reference that
- *   resolves to the wrong kind of thing is worse, because it looks fine.
- *
- * Errors mean the document is inconsistent. Warnings mean it parses and
- * resolves but will read wrong.
- *
- * Each issue carries a `ref` for a caller to navigate to and a `message` that
- * names the element in words, so neither side needs a rendered path.
+ * Cross-element invariants zod cannot see, since it validates one object at a
+ * time. Errors mean the document is inconsistent; warnings mean it resolves
+ * but will read wrong.
  */
 
 type DesignDocIssueSeverity = 'error' | 'warning';
 
 export type DesignDocIssue = {
-  /** Stable machine-readable code, so callers can filter without matching prose. */
   readonly code: DesignDocIssueCode;
   readonly severity: DesignDocIssueSeverity;
-  /** Where to send a reader. For an identity issue this is the containing list. */
   readonly ref: ElementRef;
   readonly message: string;
 };
@@ -69,7 +48,6 @@ export function checkDesignDocument(
 ): DesignDocIssue[] {
   const issues: DesignDocIssue[] = [];
 
-  /** A ref for a path, falling back to the document when nothing is there. */
   const at = (path: ModelPath): ElementRef =>
     refForModelPath(document, path) ?? elementRef(document.id);
 
@@ -83,13 +61,10 @@ export function checkDesignDocument(
   };
 
   /*
-   * Ids are unique across the whole document, not merely within the array that
-   * holds them. `seen` remembers how each claim was described so a collision
-   * can say what it collided with.
-   *
-   * Identity issues point at the containing list rather than at the offending
-   * element: an empty id has no ref, and a duplicate id would resolve to the
-   * element that claimed it first.
+   * Refs resolve through one document-wide index, so a duplicate id anywhere
+   * makes the later element unreachable. Identity issues point at the
+   * containing list: an empty id has no ref, and a duplicate id would resolve
+   * to the element that claimed it first.
    */
   const seen = new Map<string, string>();
   const checkIds = (
@@ -126,8 +101,6 @@ export function checkDesignDocument(
 
   const THE_DOCUMENT = 'the document';
   if (document.id !== '') seen.set(document.id, THE_DOCUMENT);
-
-  /* ------------------------------------------------------------- identity */
 
   checkIds(['actors'], document.actors, 'actor', THE_DOCUMENT);
   checkIds(
@@ -273,8 +246,6 @@ export function checkDesignDocument(
       checkScenario(['behaviours', index, 'scenarios', at2], scenario, owner);
     }
   }
-
-  /* ----------------------------------------------------------- references */
 
   const actorIds = new Set(document.actors.map((actor) => actor.id));
   const contextIds = new Set(
@@ -432,6 +403,5 @@ export function checkDesignDocument(
   return issues;
 }
 
-/** True when the document holds together — warnings do not count against it. */
 export const isConsistentDesignDocument = (document: DesignDocument): boolean =>
   checkDesignDocument(document).every((issue) => issue.severity !== 'error');

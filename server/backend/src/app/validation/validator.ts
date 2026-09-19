@@ -1,13 +1,11 @@
 import type { ZodType, z } from 'zod';
 
 /**
- * One problem in a document, written to be acted on rather than read
- * (decision D3): where, what was expected against what is there, and the one
- * line that fixes it. The agent edits the working file in place from this
- * instead of regenerating it.
+ * Written to be acted on (decision D3): the agent edits the working file in
+ * place from it instead of regenerating it.
  */
 export interface ValidationIssue {
-  /** JSONPath-style location: `$.useCases[0].name`. Integrity issues address elements by id: `#svc-booking`. */
+  /** JSONPath (`$.useCases[0].name`), or an element id (`#svc-booking`) for integrity issues. */
   path: string;
   expected: string;
   found: string;
@@ -18,10 +16,6 @@ export type ValidationReport<T = unknown> =
   | { ok: true; value: T; issues: []; suppressed: 0 }
   | { ok: false; issues: ValidationIssue[]; suppressed: number };
 
-/**
- * A contract for a whole file: the shape as a zod schema, plus the integrity
- * rules the schema cannot express, which run only once the shape parses.
- */
 export interface FileContract<T = unknown> {
   description: string;
   schema: ZodType<T>;
@@ -33,11 +27,6 @@ export interface FileContract<T = unknown> {
 /** One structural mistake must not bury the first real cause. */
 export const ISSUE_CAP = 20;
 
-/**
- * The one validator: the `validate` MCP tool runs it against a working file,
- * and every service write runs it again — a failed save is never how the
- * agent discovers a shape error, but it is the guarantee.
- */
 export function validate<T>(
   contract: FileContract<T>,
   raw: unknown,
@@ -51,7 +40,6 @@ export function validate<T>(
   return { ok: true, value: parsed.data, issues: [], suppressed: 0 };
 }
 
-/** A report with a single issue, for problems found before the schema runs (unreadable JSON). */
 export function singleIssue(issue: ValidationIssue): ValidationReport<never> {
   return { ok: false, issues: [issue], suppressed: 0 };
 }

@@ -54,8 +54,7 @@ describe('DatabaseService', () => {
       await tx.query("CREATE (t:Thing {id: 'b', label: 'beta'})");
     });
 
-    // Parameterized query (prepare + execute) returns typed rows, and the
-    // prepared statement is reused across calls with different parameters.
+    // The prepared statement is reused across calls with different parameters.
     const cypher = 'MATCH (t:Thing) WHERE t.id = $id RETURN t.label AS label';
     expect(await service.query(cypher, { id: 'b' })).toEqual([
       { label: 'beta' },
@@ -65,7 +64,6 @@ describe('DatabaseService', () => {
       { label: 'beta' },
     ]);
 
-    // Close releases the connections; re-init yields a fresh working one.
     await service.close();
     await service.init();
     const after = await service.query<{ x: number | bigint }>('RETURN 2 AS x');
@@ -156,7 +154,6 @@ describe('DatabaseService', () => {
       );
       expect(runaway).rejects.toThrow('Interrupted');
       await runaway.catch(() => undefined);
-      // The connection is still usable afterwards.
       expect(await service.query('RETURN 1 AS x')).toHaveLength(1);
     } finally {
       await service.close();

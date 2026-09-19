@@ -26,7 +26,6 @@ describe('DesignDocsService', () => {
   it('stores a valid document under a server-minted id and reads it back whole', async () => {
     const summary = await service.create(CHANGE, designDocFixture);
 
-    // The server mints the id — whatever the input carried is replaced.
     expect(summary.id).not.toBe(designDocFixture.id);
     expect(summary.name).toBe('Appointment booking');
 

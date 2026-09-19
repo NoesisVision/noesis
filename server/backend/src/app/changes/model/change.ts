@@ -1,12 +1,7 @@
 import { z } from 'zod';
 
-/*
- * A change: one unit of work tracked across the graph, and the directory
- * `.noesis/graph/changes/<slug>/` that collects everything produced while
- * working on it — imported conversations and documents, and the design docs
- * that describe it. This file is the change's data, stored as `data.json`
- * inside the directory (decision D2).
- */
+// The change's directory also collects its imported conversations, documents
+// and design docs (decision D2).
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
 export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;
@@ -17,7 +12,7 @@ export const ChangeTypeSchema = z
   );
 export type ChangeType = z.infer<typeof ChangeTypeSchema>;
 
-/** Lifecycle order — later stages sort after earlier ones. */
+/** Order matters: later stages sort after earlier ones. */
 export const CHANGE_STATUSES = [
   'discovery',
   'design',
@@ -61,14 +56,9 @@ export const ChangeSchema = z
   .describe('One change: the data.json file inside its directory.');
 export type Change = z.infer<typeof ChangeSchema>;
 
-/** A tracker key: an upper-case project prefix, a dash, a number — `NOE-142`. */
 export const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
-/**
- * What creating a change takes. The slug is derived from the name, the status
- * starts at `discovery` and the creation stamp is the server's, so none of
- * them is part of the request.
- */
+/** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
 export const CreateChangeSchema = z
   .object({
     name: z.string().trim().min(1).max(120),

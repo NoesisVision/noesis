@@ -22,7 +22,6 @@ interface ChangePickerProps {
   onNavigate?: () => void;
 }
 
-/** `KEY · type · status`, the one dimmed line under a change's name. */
 function detailLine(change: Change): string {
   return [
     change.key,
@@ -33,7 +32,6 @@ function detailLine(change: Change): string {
     .join(' · ');
 }
 
-/** The sidebar's head: the current change, a menu of all of them, and the way to a new one. */
 export function ChangePicker({
   changes,
   current,
@@ -52,17 +50,6 @@ export function ChangePicker({
 
   return (
     <Box>
-      {/*<Text*/}
-      {/*  size="xs"*/}
-      {/*  fw={600}*/}
-      {/*  tt="uppercase"*/}
-      {/*  c="dimmed"*/}
-      {/*  mb={6}*/}
-      {/*  ml={2}*/}
-      {/*  style={{ letterSpacing: '0.06em' }}*/}
-      {/*>*/}
-      {/*  Change*/}
-      {/*</Text>*/}
       <Menu width="target" position="bottom-start" shadow="md" offset={4}>
         <Menu.Target>
           <UnstyledButton className={classes.pick} aria-label="Switch change">

@@ -11,9 +11,7 @@ export class SchemaService {
     this.db = db;
   }
 
-  // Called once from the composition root at startup, after DatabaseService
-  // has connected. Idempotent — safe on every boot. DDL is transactional in
-  // LadybugDB, so the schema lands whole or not at all.
+  // DDL is transactional in LadybugDB, so the schema lands whole or not at all.
   async ensureSchema(): Promise<void> {
     await this.db.transaction(async (tx) => {
       for (const ddl of GRAPH_SCHEMA) {
@@ -25,7 +23,7 @@ export class SchemaService {
     });
   }
 
-  // The declared schema, for the schema-explorer (migrated in a later part).
+  // For the schema-explorer, not yet migrated.
   statements(): readonly string[] {
     return GRAPH_SCHEMA;
   }

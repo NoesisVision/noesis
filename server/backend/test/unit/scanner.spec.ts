@@ -25,7 +25,6 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-/** The stored files by id, with their bytes: what a scan leaves on disk. */
 async function filesOf(store: TestNoesis['systemModels']) {
   const ids = (await Array.fromAsync(store.keys())).sort();
   return Promise.all(
@@ -33,7 +32,6 @@ async function filesOf(store: TestNoesis['systemModels']) {
   );
 }
 
-/** Lays out a package with source files, given as path → content under its dir. */
 async function pkg(
   dir: string,
   name: string,

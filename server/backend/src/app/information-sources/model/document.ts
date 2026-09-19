@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { InformationCategory } from './information-category';
 
-/*
- * An imported document: its content split into fragments the wiki can point
- * at, plus the section tree that says where each fragment sits. One file per
- * document under `.noesis/graph/changes/<change>/documents/`; never rewritten after
- * import.
- */
+// Never rewritten after import.
 
 export const DocumentFragmentRefSchema = z
   .object({

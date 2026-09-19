@@ -1,15 +1,7 @@
 /**
- * The identity of a change: the name of its directory under
- * `.noesis/graph/changes/` and the key of its object in the store. A value
- * object — two slugs with the same text are the same slug — that exists only
- * in valid form: lower-case kebab-case, at most 64 characters, nothing that
- * could climb out of the collection. Strings become slugs at the edges of the
- * service (a route parameter, a tool argument, the name of a new change);
- * inside, a change is named by a `ChangeSlug`.
- *
- * The `change` contract carries the same text as its `slug` field, because
- * the contract is shared with the frontend as JSON; `toJSON` keeps a slug
- * serialising to that string.
+ * Exists only in valid form, so a slug can never climb out of
+ * `.noesis/graph/changes/`. `toJSON` keeps it serialising to the plain string
+ * the `change` contract shares with the frontend.
  */
 export class ChangeSlug {
   static readonly PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -21,14 +13,12 @@ export class ChangeSlug {
     this.value = value;
   }
 
-  /** The slug `value` spells; throws `InvalidChangeSlugError` otherwise. */
   static parse(value: string): ChangeSlug {
     const slug = ChangeSlug.tryParse(value);
     if (slug === null) throw new InvalidChangeSlugError(value);
     return slug;
   }
 
-  /** The slug `value` spells, or `null` when it is not one. */
   static tryParse(value: string): ChangeSlug | null {
     return typeof value === 'string' &&
       value.length <= ChangeSlug.MAX_LENGTH &&
@@ -37,7 +27,6 @@ export class ChangeSlug {
       : null;
   }
 
-  /** The slug a name gets: kebab-cased, capped, never empty. */
   static fromName(name: string): ChangeSlug {
     const slug = name
       .normalize('NFKD')
@@ -63,7 +52,6 @@ export class ChangeSlug {
   }
 }
 
-/** A string that is not a change slug, where one was required. */
 export class InvalidChangeSlugError extends Error {
   readonly value: string;
 

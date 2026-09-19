@@ -6,19 +6,12 @@ import { findSources, findUnits, scanUnit } from './typescript-scanner';
 const log = serverLogger('scanner');
 
 export interface ScanReport {
-  /** Units (directories with a package.json) that had source files. */
   units: { name: string; path: string; buildingBlocks: number }[];
-  /** System-model files removed because their unit is gone. */
   removed: string[];
   durationMs: number;
 }
 
-/**
- * The scanner as a service component: reads the checkout, writes one
- * system-model file per unit and drops the files of units that no longer
- * exist. The graph projection is not written here — the watcher sees the
- * files and re-indexes, the same path every other kind takes (decision D1).
- */
+// Writes files only; the watcher re-indexes them (decision D1).
 export class ScannerService {
   private readonly root: string;
   private readonly systemModels: SystemModelStore;

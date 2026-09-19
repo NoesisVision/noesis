@@ -3,8 +3,6 @@ import { Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import TanStackQueryDevtools from '#/integrations/tanstack-query/devtools';
 
-// Providers live in `main.tsx`; the root route is only the outlet and the
-// devtools panel.
 export function RootLayout() {
   return (
     <>

@@ -1,6 +1,5 @@
-// Boot re-index cost (decision D2): a synthetic `.noesis/` at 1k
-// and 10k design docs, indexed from cold. Not part of `bun test test/unit`;
-// run with `bun run test:bench` and record the numbers in
+// Boot re-index cost (decision D2). Not part of `bun test test/unit`: run with
+// `bun run test:bench` and record the numbers in
 // docs/work/chores/target-architecture-migration.md.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';

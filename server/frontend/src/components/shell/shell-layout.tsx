@@ -4,10 +4,6 @@ import { useDisclosure } from '#/components/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
 
-/**
- * The application shell: a 56 px header, a 280 px sidebar that is always open
- * on desktop and a burger-toggled drawer below `md`, and the content area.
- */
 export function ShellLayout() {
   const [navbarOpened, navbar] = useDisclosure(false);
 

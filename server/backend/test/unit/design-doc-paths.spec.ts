@@ -130,7 +130,6 @@ describe('refForModelPath', () => {
 
 describe('resolveRef', () => {
   it('finds an element without knowing where it sits', () => {
-    // One call shape reaches four different depths.
     expect(resolveRef(doc, elementRef('rule-deposit'))).toBe(
       doc.useCases[0]?.rules[1],
     );

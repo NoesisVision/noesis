@@ -36,7 +36,6 @@ const exists = (path: string) =>
     () => false,
   );
 
-/** A session directory left behind by another process, last touched `ageMs` ago. */
 async function leftover(name: string, ageMs: number): Promise<string> {
   const dir = noesis.resolve('tmp', name);
   await mkdir(dir, { recursive: true });

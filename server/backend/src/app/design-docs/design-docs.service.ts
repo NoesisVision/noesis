@@ -5,17 +5,15 @@ import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DesignDocsRepository } from './design-docs.repository';
 
-/** What a design document looks like in a list, without its content. */
 export interface DesignDocSummary {
   id: string;
   name: string;
   status: string;
   date: string;
-  /** The document's `data.json`, absolute — the agent reads it from there. */
+  /** Absolute; the agent reads the document from there. */
   path: string;
 }
 
-/** `update` for an id the change has no document for. */
 export class DesignDocNotFoundError extends Error {
   readonly id: string;
 
@@ -32,17 +30,9 @@ export interface DesignDocDetail {
 }
 
 /**
- * Takes documents that already passed decision D4's boundary pipeline
- * (`DesignDocumentSchema.parse → checkDesignDocument`, the design-document
- * contract): the ui route and the MCP tool validate before calling in, and
- * the store parses the schema once more on write. The server mints the
- * document id (UUIDv7 — design docs are authored, not imported): whatever id
- * the input carries is replaced, so an agent inventing a colliding id cannot
- * overwrite anything.
- *
- * Documents are scoped to a change — the `design-docs` collection under it,
- * keyed by document id — and every method throws `ChangeNotFoundError` for a
- * slug no change has.
+ * Callers validate before calling in (decision D4). The server mints the id and
+ * replaces whatever the input carries, so an agent inventing a colliding id
+ * cannot overwrite another document.
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
@@ -61,11 +51,6 @@ export class DesignDocsService {
     return this.store(slug, document, uuidv7());
   }
 
-  /**
-   * The appointment-booking sample from shared-contracts, so a document can be
-   * put in front of a reviewer before the agent writes real ones (phase 2 has
-   * no other author). Stamped with today's date; the id is minted in `create`.
-   */
   async createSample(slug: ChangeSlug): Promise<DesignDocSummary> {
     return this.create(slug, {
       ...designDocFixture,
@@ -73,11 +58,7 @@ export class DesignDocsService {
     });
   }
 
-  /**
-   * Whole-document replacement (decision D4): the incoming document replaces
-   * the stored file under the same id; whatever id the input carries is
-   * ignored.
-   */
+  /** Whole-document replacement (decision D4). */
   async update(
     slug: ChangeSlug,
     id: string,
@@ -90,7 +71,6 @@ export class DesignDocsService {
     return this.store(slug, document, id);
   }
 
-  /** Newest first — `date` drives ordering on the documents page. */
   async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
     await this.changesService.assertExists(slug);
     const documents = await Array.fromAsync(this.docs.values(slug));
@@ -116,7 +96,6 @@ export class DesignDocsService {
     return this.docs.delete(slug, id);
   }
 
-  /** Stores the document under the server's id, replacing whatever id it carried. */
   private async store(
     slug: ChangeSlug,
     document: DesignDocument,

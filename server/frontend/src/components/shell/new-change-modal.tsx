@@ -19,7 +19,7 @@ interface NewChangeModalProps {
   onClose: () => void;
 }
 
-/** Name, key and type; the service derives the slug and starts the status at discovery. */
+/** The service derives the slug and starts the status at discovery. */
 export function NewChangeModal({ opened, onClose }: NewChangeModalProps) {
   const create = useCreateChange();
   const form = useForm<CreateChange>({

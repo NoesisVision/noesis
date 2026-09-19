@@ -12,11 +12,8 @@ import {
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 
-/**
- * Structured-clone the fixture so a mutation in one case cannot leak into the
- * next, and so the checker is exercised against plain data rather than against
- * objects a test has been careful with.
- */
+// A clone, so a mutation cannot leak into the next case and the checker sees
+// plain data rather than objects a test has been careful with.
 const broken = (mutate: (document: DesignDocument) => void): DesignDocument => {
   const copy = structuredClone(designDocFixture) as DesignDocument;
   mutate(copy);

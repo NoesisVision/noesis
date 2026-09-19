@@ -10,20 +10,12 @@ import type {
 } from '#backend/app/system-model/model/system-model';
 import { contentHashAsUuid } from '#backend/platform/crypto/content-hash';
 
-/*
- * The TypeScript scanner: reads a checkout and projects what it finds into
- * system-model files, one per unit (a directory with a package.json). The
- * migration's R7 fixes the pipeline — units, files, ids, output shape — and
- * deliberately not the language coverage: extraction is line-based (exported
- * classes and their public methods), good enough to give a design document
- * real building blocks to name, and to be replaced by a real parser without
- * moving anything around it.
- */
+// Extraction is deliberately line-based: good enough to give a design document
+// real building blocks to name, replaceable by a real parser later.
 
 const SCANNER_NAME = 'noesis-typescript';
 const SCANNER_VERSION = '0.1.0';
 
-/** Directories never entered, at any depth. */
 const SKIPPED_DIRS = new Set([
   'node_modules',
   'dist',
@@ -37,20 +29,18 @@ const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
 const IGNORED_SUFFIXES = ['.d.ts', '.spec.ts', '.test.ts', '.bench.spec.ts'];
 
 export interface ScannedUnit {
-  /** The unit's directory, absolute. */
+  /** Absolute. */
   dir: string;
-  /** The package name, or the directory name when package.json has none. */
   name: string;
 }
 
 export interface ScanInput {
   /** The repository root; every `source.path` is relative to it. */
   root: string;
-  /** When the scan ran, ISO 8601. Injected so ids and output are testable. */
+  /** ISO 8601; injected so output is testable. */
   now: () => string;
 }
 
-/** Every directory holding a package.json, outside the skipped directories, sorted. */
 export async function findUnits(root: string): Promise<ScannedUnit[]> {
   const units: ScannedUnit[] = [];
   for (const path of await walk(root, (name) => name === 'package.json')) {
@@ -71,7 +61,6 @@ export async function findUnits(root: string): Promise<ScannedUnit[]> {
   return units.sort((a, b) => a.dir.localeCompare(b.dir));
 }
 
-/** The source files of one unit, excluding those of nested units. */
 export async function findSources(
   unit: ScannedUnit,
   allUnits: ScannedUnit[],
@@ -88,13 +77,8 @@ export async function findSources(
   return files.filter((f) => !nested.some((n) => f.startsWith(n))).sort();
 }
 
-/**
- * Projects one unit into a system model. The unit is the bounded context;
- * the first directory under `src/` (or under the unit) is the domain module;
- * every exported class is a building block and each of its public methods a
- * behaviour. Ids are derived from names and paths, so a re-scan of unchanged
- * code yields the same ids and the same file.
- */
+// Ids derive from names and paths, so a re-scan of unchanged code yields the
+// same file.
 export async function scanUnit(
   unit: ScannedUnit,
   sources: string[],
@@ -180,8 +164,6 @@ export async function scanUnit(
   };
 }
 
-/* ------------------------------------------------------------- extraction */
-
 interface FoundClass {
   name: string;
   line: number;
@@ -195,7 +177,6 @@ const METHOD_LINE =
   /^ {2}(?:(?:public|static|override|async|readonly)\s+)*(?!constructor\b|private\b|protected\b|get\b|set\b|if\b|for\b|while\b|switch\b|return\b)(\w+)\s*(?:<[^>]*>)?\s*\([^)]*\)?/;
 const RESERVED_MEMBERS = new Set(['constructor']);
 
-/** Exported classes with their public methods, from one file's lines. */
 export function exportedClasses(lines: string[]): FoundClass[] {
   const found: FoundClass[] = [];
   let current: FoundClass | null = null;
@@ -228,7 +209,6 @@ export function exportedClasses(lines: string[]): FoundClass[] {
   return found;
 }
 
-/** A conventional-name heuristic; everything else is left for a person to type. */
 export function typeOf(className: string): DesignedBuildingBlockType | null {
   if (className.endsWith('Repository')) return 'repository';
   if (className.endsWith('Service')) return 'application_service';
@@ -241,7 +221,6 @@ export function typeOf(className: string): DesignedBuildingBlockType | null {
   return null;
 }
 
-/** The first directory under `src/` (or under the unit when there is no `src/`); null for a root-level file. */
 function moduleOf(relativeToUnit: string): string | null {
   const parts = relativeToUnit.split('/');
   const start = parts[0] === 'src' ? 1 : 0;

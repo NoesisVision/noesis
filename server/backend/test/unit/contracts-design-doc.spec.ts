@@ -32,8 +32,8 @@ describe('DesignDocumentSchema', () => {
   });
 
   it('reads the document in the agreed order', () => {
-    // The reading order is the product (plan §1), so the key order of the
-    // schema is not incidental.
+    // The reading order is the product, so the schema's key order is not
+    // incidental.
     expect(Object.keys(DesignDocumentSchema.shape)).toEqual([
       'id',
       'name',
@@ -61,7 +61,6 @@ describe('use cases and behaviours', () => {
     );
 
     expect(entryPoint?.useCaseId).toBe('uc-book');
-    // Both name the same application service, in one id space.
     expect(entryPoint?.buildingBlockId).toBe('svc-booking');
     expect(useCase?.applicationServiceId).toBe('svc-booking');
   });

@@ -1,11 +1,9 @@
 import { type DesignDocument, DesignDocumentSchema } from './design-doc';
 
 /*
- * A small but structurally complete design document, used by the design-doc
- * specs. Trimmed from the appointment-booking sample the prototypes render
- * (docs/work/features/design-doc/prototypes/sample-data.js), keeping one of
- * every shape: a plain scenario and an outline with examples, a paired
- * entry-point behaviour and an interior one, human and agent authorship.
+ * Keeps one of every shape the specs rely on: a plain scenario and an outline
+ * with examples, a paired entry-point behaviour and an interior one, human and
+ * agent authorship.
  */
 export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
   id: 'doc-appointments',
@@ -226,8 +224,6 @@ export const designDocFixture: DesignDocument = DesignDocumentSchema.parse({
       qualityAttributes: [],
     },
   ],
-  // One entry-point behaviour, paired with its use case, and one interior
-  // behaviour that belongs to a building block and no use case at all.
   behaviours: [
     {
       id: 'b-book',

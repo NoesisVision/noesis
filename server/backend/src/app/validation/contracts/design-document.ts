@@ -12,12 +12,7 @@ import type {
   ValidationIssue,
 } from '#backend/app/validation/validator';
 
-/**
- * A design document as a whole file: decision D4's boundary pipeline
- * (`DesignDocumentSchema.parse → checkDesignDocument`) expressed as one
- * contract, so the `validate` tool and the service's write run the very same
- * thing. Integrity warnings do not fail validation; errors do.
- */
+/** One contract so the `validate` tool and the write path run the same checks (decision D4). */
 export const designDocumentContract: FileContract<DesignDocument> = {
   description:
     'A design document: goal, use cases, building blocks and their relations, scoped to one change.',
@@ -52,7 +47,7 @@ function fromIntegrityIssue(issue: DesignDocIssue): ValidationIssue {
   };
 }
 
-/** Integrity issues address elements by id, not by position — `#<id>` marks the difference from a JSON path. */
+/** `#<id>` marks an id address, as opposed to a JSON path. */
 function refPath(ref: ElementRef): string {
   return ref.kind === 'element'
     ? `#${ref.id}`

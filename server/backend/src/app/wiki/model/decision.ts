@@ -2,13 +2,6 @@ import { z } from 'zod';
 import { InformationFragmentRefSchema } from '../../information-sources/model/information-fragment';
 import { Locked } from './locked';
 
-/*
- * A wiki decision: a choice the team made, with the options it was made
- * against and the source fragments that support each side. One file per
- * decision under `.noesis/graph/wiki/decisions/`; a decision names its topic
- * by id.
- */
-
 export const DecisionStatusSchema = z
   .enum(['accepted', 'proposed', 'deprecated', 'superseded'])
   .describe(

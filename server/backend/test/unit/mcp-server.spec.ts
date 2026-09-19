@@ -1,8 +1,6 @@
-// Drives createMcpServer through a real MCP client over an in-memory
-// transport, over a throwaway `.noesis/`. Pins the R4 shape of decision D3:
-// payloads travel as working-file paths under `.noesis/tmp/`, validation is a
-// tool whose output the agent can act on, and failures come back in-band
-// (isError) — never as protocol-level errors the model cannot read.
+// Pins decision D3: payloads travel as working-file paths under
+// `.noesis/tmp/`, and failures come back in-band (isError), never as
+// protocol-level errors the model cannot read.
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
@@ -55,7 +53,6 @@ afterEach(async () => {
   await t?.cleanup();
 });
 
-/** A working file in this session's scratch directory, as the agent would write it. */
 async function working(name: string, content: unknown): Promise<string> {
   const path = join(session.path, name);
   await writeFile(

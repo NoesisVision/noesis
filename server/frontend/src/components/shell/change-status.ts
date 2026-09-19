@@ -3,7 +3,6 @@ import type {
   ChangeType,
 } from '#backend/app/changes/model/change.ts';
 
-/** How each lifecycle status reads in the picker and future lists. */
 export const CHANGE_STATUS_META: Record<
   ChangeStatus,
   { label: string; color: string }
@@ -14,7 +13,6 @@ export const CHANGE_STATUS_META: Record<
   done: { label: 'Done', color: 'green' },
 };
 
-/** The type badge beside the key. */
 export const CHANGE_TYPE_META: Record<
   ChangeType,
   { label: string; color: string }
@@ -38,7 +36,7 @@ const SWATCH_COLORS = [
   'yellow',
 ];
 
-/** A stable swatch per change, hashed from its slug on the client; nothing is stored. */
+/** Derived from the slug; the colour is deliberately not stored. */
 export function changeSwatch(slug: string): string {
   let hash = 0;
   for (const char of slug) hash = (hash * 31 + char.charCodeAt(0)) | 0;

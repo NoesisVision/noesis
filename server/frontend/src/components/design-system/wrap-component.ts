@@ -1,9 +1,7 @@
 import { type ComponentProps, createElement, type ElementType } from 'react';
 
-/**
- * React 19 passes refs through props. Preserve the original generic signatures
- * and Mantine's public static helpers without copying React's render internals.
- */
+// React 19 passes refs through props, so a plain wrapper suffices. Mantine's
+// static helpers are copied over; React's render internals are not.
 export function wrapComponent<T extends ElementType>(
   Component: T,
   name: string,

@@ -5,20 +5,14 @@ import type { NoesisDir } from './noesis-dir';
 const log = serverLogger('watcher');
 
 export interface WatcherOptions {
-  /** Quiet time after the last event before a rebuild starts. */
   debounceMs?: number;
 }
 
 /**
- * Re-indexes the graph whenever anything under `.noesis/` changes — the
- * service's own writes and everything else alike: a `git checkout`, a branch
- * switch, a hand edit. Events are debounced, and a change that arrives during
- * a rebuild queues exactly one more, so the graph always ends up reflecting
- * the last state of the files.
- *
- * `tmp/` is scratch space, not graph content, so it is ignored; so are the
- * `.tmp` files the repositories write before renaming (the rename reports
- * the target) and the `.gitignore` the service maintains.
+ * Reacts to every change, not only the service's own writes: a `git checkout`
+ * or a hand edit must re-index too. A change during a rebuild queues exactly
+ * one more, so the graph ends up reflecting the last state of the files.
+ * `.tmp` files are ignored because the rename that follows reports the target.
  */
 export class NoesisWatcher {
   private readonly noesis: NoesisDir;

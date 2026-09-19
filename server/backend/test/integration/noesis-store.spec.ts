@@ -129,7 +129,6 @@ describe('createNoesisStore', () => {
     type Attachment = z.output<typeof AttachmentSchema>;
     type Conversation = z.output<typeof ConversationSchema>;
 
-    // Root: output on get, input on set — `status` optional in, present out.
     expectTypeOf(changes.get).returns.resolves.toEqualTypeOf<Change | null>();
     expectTypeOf<
       Parameters<typeof changes.set>[1]
@@ -141,7 +140,6 @@ describe('createNoesisStore', () => {
       'discovery' | 'active' | 'done'
     >();
 
-    // Children: exactly the declared names, each with its own schema.
     const children = changes.children('c');
     expectTypeOf(children).toHaveProperty('conversations');
     expectTypeOf(children).toHaveProperty('design-docs');
@@ -156,7 +154,6 @@ describe('createNoesisStore', () => {
       children['design-docs'].get,
     ).returns.resolves.toEqualTypeOf<DesignDoc | null>();
 
-    // A nested definition yields grandchildren; a leaf yields none.
     const grandchildren = children['design-docs'].children('d');
     expectTypeOf<keyof typeof grandchildren>().toEqualTypeOf<'attachments'>();
     expectTypeOf(
@@ -169,7 +166,6 @@ describe('createNoesisStore', () => {
       Record<never, never>
     >();
 
-    // The handle is the contract's interface, nothing implementation-specific.
     expectTypeOf(changes).toMatchTypeOf<
       NoesisStore<ChangeInput, Change, typeof children>
     >();

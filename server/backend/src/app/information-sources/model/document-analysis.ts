@@ -2,13 +2,6 @@ import { z } from 'zod';
 import { AnalyzedTopicSchema } from './conversation-analysis';
 import { DocumentSchema } from './document';
 
-/*
- * The payload of a document import: the document split into fragments and
- * sections, plus the same topic analysis a conversation import carries. The
- * service validates it, writes the document file, and creates or updates the
- * wiki topics and decisions it names.
- */
-
 export const DocumentAnalysisSchema = z
   .object({
     document: DocumentSchema,

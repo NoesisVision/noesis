@@ -1,12 +1,7 @@
-// Bumps the plugin version in package.json (the single version source — run
-// `bun run generate` afterwards to stamp .claude-plugin/plugin.json and the
-// .mcp.json service pin), the service package (@noesis-vision/noesis in
-// server/backend) released in lockstep with it (decision D6), and the
-// matching marketplace channel entry. Marketplace npm
-// sources only document exact-semver pins (no dist-tags), so each entry stays
-// pinned: the beta entry always to a prerelease, the stable entry to a stable
-// release. A bump advances only the entries of its own channel.
-// Usage: `bun run bump 0.2.0` (from plugins/claude-code).
+// The service package is released in lockstep with the plugin (decision D6).
+// Marketplace npm sources only document exact-semver pins (no dist-tags), so
+// each channel entry stays pinned: beta to a prerelease, stable to a stable
+// release.
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -42,8 +37,6 @@ await update('.claude-plugin/marketplace.json', (json) => {
   const isPrerelease = version.includes('-');
   const plugins = json.plugins as { source: { version: string } }[];
   for (const plugin of plugins) {
-    // An entry belongs to the channel its current pin is on; prerelease bumps
-    // advance prerelease pins, stable bumps advance stable pins.
     if (plugin.source.version.includes('-') === isPrerelease) {
       plugin.source.version = version;
     }

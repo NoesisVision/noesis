@@ -6,7 +6,6 @@ import { createPolymorphicWrapper } from './create-polymorphic-wrapper';
 import { wrapComponent } from './wrap-component';
 
 export interface ButtonProps extends MantineButtonProps {
-  /** Shows the loader and prevents interaction while work is pending. */
   busy?: boolean;
 }
 

@@ -1,10 +1,5 @@
-// The plugin's contracts/ directory is a build output: a copy of every
-// server/backend/src/app/<feature>/model/ folder made by `bun run build`
-// (decision D4).
-// Skills name a contract by this plugin-relative path, so the copy must hold
-// exactly the source files, carry the plugin version in its header, and be
-// byte-identical to the source below it. The copy is gitignored, so the test
-// builds it first and asserts on the result.
+// contracts/ is a gitignored build output (decision D4), so the test builds it
+// before asserting on it.
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';

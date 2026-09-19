@@ -1,20 +1,6 @@
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import type { ElementRef } from '#backend/app/design-docs/model/design-doc-ref';
 
-/*
- * Resolving element refs against a design document.
- *
- * The model is normalised and related by id, so an address is an id — nothing
- * more (see `ElementRefSchema` in the contracts). Resolution goes through
- * `elementIndex`, one walk producing every id in the document. That is what
- * makes ids document-wide unique a hard requirement rather than a nicety;
- * `design-doc-integrity.ts` enforces it.
- *
- * This lives beside the integrity check, not in the contracts package: the
- * contracts are declarative shapes the agent reads, and these are the
- * functions the service runs over them.
- */
-
 export const elementRef = (id: string): ElementRef => ({ kind: 'element', id });
 
 export const slotRef = (ownerId: string, ...path: string[]): ElementRef => ({
@@ -23,7 +9,6 @@ export const slotRef = (ownerId: string, ...path: string[]): ElementRef => ({
   path,
 });
 
-/** A concrete location in the document object, as property keys and indices. */
 export type ModelPath = readonly (string | number)[];
 
 type Unknown = Record<string, unknown>;
@@ -36,7 +21,6 @@ const idOf = (value: unknown): string | null =>
     ? value.id
     : null;
 
-/** Read the value at a model path, or `undefined` if the path does not exist. */
 export function valueAtModelPath(
   document: DesignDocument,
   path: ModelPath,
@@ -56,12 +40,9 @@ export function valueAtModelPath(
 }
 
 /**
- * Every id in the document, mapped to where it currently sits.
- *
- * Rebuilt per call. Callers resolving many refs at once should build it once
- * and pass it in. A duplicate id resolves to whichever came first in document
- * order — the integrity check reports the collision rather than this silently
- * picking a winner.
+ * Rebuilt per call; callers resolving many refs should build it once and pass
+ * it in. A duplicate id resolves to the first in document order; the integrity
+ * check reports the collision.
  */
 export function elementIndex(document: DesignDocument): Map<string, ModelPath> {
   const index = new Map<string, ModelPath>();
@@ -81,7 +62,6 @@ export function elementIndex(document: DesignDocument): Map<string, ModelPath> {
   return index;
 }
 
-/** Where a ref points, or `null` if nothing is there. */
 export function modelPathForRef(
   document: DesignDocument,
   ref: ElementRef,
@@ -96,11 +76,9 @@ export function modelPathForRef(
 }
 
 /**
- * The ref for a model path — an element ref wherever the target carries an id,
- * and otherwise a slot on the nearest ancestor that does.
- *
- * Returns `null` for a position that cannot be addressed at all, which means a
- * member of a list whose members have no ids: a Gherkin tag, an examples cell.
+ * An element ref where the target has an id, else a slot on the nearest
+ * ancestor that does. `null` for members of id-less lists (a Gherkin tag, an
+ * examples cell).
  */
 export function refForModelPath(
   document: DesignDocument,
@@ -125,7 +103,6 @@ export function refForModelPath(
   return null;
 }
 
-/** The value a ref points at, or `undefined` if it resolves to nothing. */
 export function resolveRef(
   document: DesignDocument,
   ref: ElementRef,

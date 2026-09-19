@@ -13,12 +13,6 @@ export interface ChangesDeps {
   changesService: ChangesService;
 }
 
-/**
- * Mounted at `/ui/changes`. A change is an object of the `changes`
- * collection under `.noesis/graph/`: the list reads them newest first, a
- * create derives the slug from the name and writes the object, and a slug or
- * key that already exists is a 409 naming the field.
- */
 export function createChangesApp(deps: ChangesDeps) {
   const { changesService } = deps;
 

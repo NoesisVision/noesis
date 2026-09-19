@@ -2,12 +2,7 @@ import { z } from 'zod';
 import { InformationFragmentRefSchema } from '../../information-sources/model/information-fragment';
 import { Locked } from './locked';
 
-/*
- * A wiki topic: one node of the topic tree under `.noesis/graph/wiki/topics/`,
- * one object per topic. The tree lives in the data — a topic names its parent by
- * id — so reparenting is a one-field edit, not a file move. Summaries are the
- * distillate of the imported sources the topic points at through `items`.
- */
+// The tree lives in `parent_id`, so reparenting is a one-field edit, not a file move.
 
 export const TopicSchema = z
   .object({

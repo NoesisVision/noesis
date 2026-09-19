@@ -13,51 +13,30 @@ import {
   type Sink,
 } from '@logtape/logtape';
 
-/**
- * Logging for the service, on LogTape (decision D10).
- *
- * Categories are `["noesis", "server", <module>]` — the browser app uses
- * `["noesis", "ui", <module>]` — so one root category covers the product and
- * the second segment says which process spoke (docs/logging.md).
- *
- * Two sinks, both always on:
- *
- * - stderr, for the person watching the terminal or the host's MCP log:
- *   coloured text while developing, JSON lines in production. stdout is the
- *   MCP transport and is never written to.
- * - `.noesis/logs/noesis.log`, always JSON lines, rotated by size, written
- *   through so `tail -f` sees a line the moment it is logged.
- *
- * Request-scoped context (`requestId` and friends) rides on
- * `AsyncLocalStorage`: the Hono middleware and the MCP dispatcher open a
- * context, and every log line under it carries the fields.
- */
+// Decision D10; categories and sinks are described in docs/logging.md.
+// stdout is the MCP transport and is never written to.
 
 const ROOT_CATEGORY = 'noesis';
 export const LOG_FILE_NAME = 'noesis.log';
 
-/** A logger for one module of the service: `["noesis", "server", ...segments]`. */
 export function serverLogger(...segments: string[]): Logger {
   return getLogger([ROOT_CATEGORY, 'server', ...segments]);
 }
 
 export interface LoggingOptions {
-  /** Where `noesis.log` goes; created by `NoesisDir.ensure()`. */
+  /** Must already exist: created by `NoesisDir.ensure()`. */
   logDir: string;
   /** JSON on stderr when true, coloured text otherwise. */
   production: boolean;
-  /** The lowest level written to both sinks. */
   level: LogLevel;
 }
 
 export const DEFAULT_LOG_LEVEL: LogLevel = 'info';
 
-/** Parses `NOESIS_LOG_LEVEL`; anything unknown or unset is the default. */
 export function parseLogLevel(value: string | undefined): LogLevel {
   return value !== undefined && isLogLevel(value) ? value : DEFAULT_LOG_LEVEL;
 }
 
-/** Called once, by the composition root, after `.noesis/` exists. */
 export async function configureLogging(options: LoggingOptions): Promise<void> {
   const jsonLines = getJsonLinesFormatter();
   const stderrFormatter = options.production ? jsonLines : readableFormatter();
@@ -93,15 +72,10 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
   });
 }
 
-/** Flushes and closes the sinks; part of the service's shutdown. */
 export async function disposeLogging(): Promise<void> {
   await dispose();
 }
 
-/**
- * The development line: time, level, dotted category, the message with
- * strings unquoted, and the request id when the line was logged inside one.
- */
 function readableFormatter() {
   return getAnsiColorFormatter({
     timestamp: 'time',

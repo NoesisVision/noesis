@@ -1,13 +1,8 @@
-// Helpers for specs that run the real service as a child process, from
-// source or from the built bin, and talk to it over HTTP or MCP.
 import type { ChildProcess } from 'node:child_process';
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
-/**
- * The environment a spec starts the service with: a throwaway repository
- * root so the run writes no `.noesis/` into the checkout, and no browser
- * popping up in a test run.
- */
+// A throwaway repository root, so the run writes no `.noesis/` into the
+// checkout.
 export function serviceEnv(repositoryRoot: string): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [name, value] of Object.entries(process.env)) {
@@ -16,10 +11,8 @@ export function serviceEnv(repositoryRoot: string): Record<string, string> {
   return { ...env, NOESIS_ROOT: repositoryRoot, NOESIS_OPEN_BROWSER: '0' };
 }
 
-/**
- * The URL the service announces on stderr, without a trailing slash. The
- * port is ephemeral, so this is how a spec finds it, the way a person does.
- */
+// The port is ephemeral, so the URL is read from the service's own stderr
+// announcement.
 export function listeningUrl(
   child: ChildProcess,
   timeoutMs: number,
@@ -50,7 +43,6 @@ export function listeningUrl(
   });
 }
 
-/** The text of a tool result's first content block, or empty. */
 export function textOf(
   result: Awaited<ReturnType<Client['callTool']>>,
 ): string {

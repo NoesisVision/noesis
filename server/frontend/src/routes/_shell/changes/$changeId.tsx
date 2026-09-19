@@ -3,9 +3,6 @@ import { ChangeNotFoundError, changeById } from '#/api/changes';
 import { writeLastChange } from '#/components/core/last-change.ts';
 import { ChangeNotFoundView } from '#/components/views/change-not-found';
 
-// The change layout: loads the change once for every view under it,
-// remembers it as the last opened, and turns an unknown slug into a
-// not-found view inside the shell.
 export const Route = createFileRoute('/_shell/changes/$changeId')({
   loader: async ({ context, params }) => {
     try {

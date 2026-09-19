@@ -4,7 +4,6 @@ import type { AppType } from '#backend/app.types.ts';
 
 const log = uiLogger('api');
 
-/** Error returned by the JSON API wrapper. */
 export class ApiError extends Error {
   readonly status: number;
   readonly body: unknown;
@@ -101,7 +100,6 @@ type ResponseData<T> = T extends { ok: false }
       ? Data
       : never;
 
-/** Keep route arguments and helpers while unwrapping successful responses. */
 type JsonClient<T> = {
   [K in keyof T]: K extends HttpMethod
     ? T[K] extends (...args: infer Args) => Promise<infer Res>
@@ -159,5 +157,4 @@ function jsonClient<T extends object>(client: T): JsonClient<T> {
   }) as JsonClient<T>;
 }
 
-/** Same-origin RPC client returning JSON and throwing on HTTP failures. */
 export const api = jsonClient(hc<AppType>('/ui', { fetch: customFetch }));

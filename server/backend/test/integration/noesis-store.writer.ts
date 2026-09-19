@@ -1,7 +1,4 @@
-/**
- * A second process for the concurrency spec: writes `rounds` versions of one
- * object as fast as it can. Arguments: directory, key, label, rounds.
- */
+// A second process for the concurrency spec.
 import { z } from 'zod';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 

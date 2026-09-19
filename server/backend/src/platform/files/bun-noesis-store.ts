@@ -18,26 +18,15 @@ import {
   type NoesisStoreOptions,
 } from './noesis-store';
 
-/**
- * `NoesisStore` on Bun's file I/O: `Bun.file` reads and `Bun.write` writes
- * the data files; directories, renames and link-aware stats go through
- * `node:fs`, which Bun's file API leaves to Node's
- * (https://bun.com/docs/runtime/file-io). The contract this implements is
- * documented in `noesis-store.ts`.
- *
- * The file is laid out as the handle first, then the pieces it composes:
- * the definition tree, the object layout on disk, the codec between a
- * schema and `data.json`, and the error constructors.
- */
+// Directories, renames and link-aware stats go through `node:fs`: Bun's file
+// API leaves them to Node's (https://bun.com/docs/runtime/file-io).
 
 const TEMP_FILE_SUFFIX = '.tmp';
 
 /**
- * The one type assertion of the module. A handle is built from a definition
- * tree at runtime, so its `children(key)` shape is a plain record to the
- * compiler; the mapping from definition to typed handle is what
- * `NoesisStoreOf` describes, and the integration spec checks it at compile
- * time.
+ * The handle is built from a runtime definition tree, so the compiler sees
+ * `children(key)` as a plain record; the cast to `NoesisStoreOf` is checked
+ * at compile time by the integration spec.
  */
 export const createNoesisStore: CreateNoesisStore = <
   S extends z.ZodType,
@@ -60,10 +49,6 @@ export const createNoesisStore: CreateNoesisStore = <
   return store as NoesisStoreOf<S, C>;
 };
 
-// ---------------------------------------------------------------------------
-// The handle
-// ---------------------------------------------------------------------------
-
 class BunNoesisStore implements NoesisStore<
   unknown,
   unknown,
@@ -71,7 +56,7 @@ class BunNoesisStore implements NoesisStore<
 > {
   readonly directory: string;
   private readonly collection: Collection;
-  /** The directory of every ancestor object, root first. */
+  /** Root first. */
   private readonly ancestors: readonly string[];
 
   constructor(
@@ -162,7 +147,6 @@ class BunNoesisStore implements NoesisStore<
     return objectLocation(this.directory, key);
   }
 
-  /** The object's validated data after the key and ancestors are checked. */
   private async read(
     key: string,
     operation: NoesisStoreOperation,
@@ -174,7 +158,7 @@ class BunNoesisStore implements NoesisStore<
     return decodeObject(this.collection.schema, text, operation, key, location);
   }
 
-  /** Every ancestor object must exist; a child handle never creates one. */
+  /** A child handle never creates a missing ancestor. */
   private async assertAncestors(
     operation: NoesisStoreOperation,
     key?: string,
@@ -190,10 +174,6 @@ class BunNoesisStore implements NoesisStore<
     }
   }
 }
-
-// ---------------------------------------------------------------------------
-// The definition tree
-// ---------------------------------------------------------------------------
 
 interface Collection {
   schema: z.ZodType;
@@ -241,11 +221,6 @@ function isZodSchema(value: unknown): value is z.ZodType {
   return value instanceof z.ZodType;
 }
 
-// ---------------------------------------------------------------------------
-// The object layout on disk
-// ---------------------------------------------------------------------------
-
-/** Where one object lives: its directory and the data file inside it. */
 interface ObjectLocation {
   dir: string;
   dataFile: string;
@@ -269,11 +244,7 @@ function isTemporaryName(name: string): boolean {
   return name.endsWith(TEMP_FILE_SUFFIX);
 }
 
-/**
- * Whether the object's directory is there: a real directory, not a link.
- * `false` when nothing is at the path; a symbolic link or a file in the way
- * is an error, because a managed path never follows links.
- */
+/** A link or file in the way is an error: managed paths never follow links. */
 async function objectDirExists(
   location: ObjectLocation,
   operation: NoesisStoreOperation,
@@ -293,7 +264,6 @@ async function objectDirExists(
   return true;
 }
 
-/** Whether an object lives there: its directory holds a regular `data.json`. */
 async function objectExists(
   location: ObjectLocation,
   operation: NoesisStoreOperation,
@@ -368,11 +338,7 @@ async function assertOwnsNothing(
   }
 }
 
-/**
- * The entries of a directory, one at a time through a directory handle, so
- * a consumer that stops early never pays for the rest. A missing directory
- * is an empty one. The handle is closed however the iteration ends.
- */
+/** Streams entries so a consumer that stops early never pays for the rest. */
 async function* directoryEntries(
   path: string,
   operation: NoesisStoreOperation,
@@ -413,7 +379,7 @@ async function lstatOrNull(
   }
 }
 
-/** The file's text, or `null` when it has gone since the last look. */
+/** `null` when the file vanished after the existence check. */
 async function readText(
   path: string,
   operation: NoesisStoreOperation,
@@ -427,12 +393,7 @@ async function readText(
   }
 }
 
-/**
- * Replaces `path` with `content` in one step: the bytes land in a uniquely
- * named temporary file beside it, then a rename makes them the file. A
- * reader sees the old file or the new one, never a partial write; on failure
- * the old file is untouched and the temporary file is removed.
- */
+/** Temp file plus rename, so a reader never sees a partial write. */
 async function replaceFileAtomically(
   path: string,
   content: string,
@@ -450,10 +411,6 @@ async function replaceFileAtomically(
     throw ioError(operation, key, path, cause);
   }
 }
-
-// ---------------------------------------------------------------------------
-// The codec between a schema and data.json
-// ---------------------------------------------------------------------------
 
 async function validate(
   schema: z.ZodType,
@@ -479,7 +436,6 @@ async function validate(
   }
 }
 
-/** File text to a validated object: JSON first, then the schema. */
 async function decodeObject(
   schema: z.ZodType,
   text: string,
@@ -502,7 +458,6 @@ async function decodeObject(
   return validate(schema, json, operation, key, location);
 }
 
-/** A caller's value to file text: the schema first, then JSON of the result. */
 async function encodeObject(
   schema: z.ZodType,
   value: unknown,
@@ -514,12 +469,9 @@ async function encodeObject(
 }
 
 /**
- * The parsed value as the text of `data.json`: two-space indented, trailing
- * newline. It must survive `JSON.stringify` unchanged — plain objects,
- * arrays, strings, finite numbers, booleans and `null`. An `undefined`
- * property is an omitted optional property; anything else that JSON would
- * drop or rewrite — `Date`, `BigInt`, `Map`, `Set`, functions, `NaN`, holes
- * and `undefined` in arrays, cycles — is refused rather than changed.
+ * Anything `JSON.stringify` would drop or rewrite (`Date`, `BigInt`, `Map`,
+ * `NaN`, array holes, cycles) is refused rather than silently changed. An
+ * `undefined` property is an omitted optional property.
  */
 function serializeObject(
   value: unknown,
@@ -545,7 +497,6 @@ function serializeObject(
   }
 }
 
-/** The first thing in `value` JSON would not keep as it is, or `null`. */
 function findUnrepresentable(
   value: unknown,
 ): { at: string; what: string } | null {
@@ -611,10 +562,6 @@ function describe(value: object): string {
   const name = value.constructor?.name;
   return typeof name === 'string' && name !== '' ? name : 'non-plain object';
 }
-
-// ---------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------
 
 function isErrno(error: unknown, code: string): boolean {
   return (

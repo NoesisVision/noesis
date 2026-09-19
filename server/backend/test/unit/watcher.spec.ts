@@ -29,10 +29,8 @@ afterEach(async () => {
 
 const quiet = () => new Promise((r) => setTimeout(r, DEBOUNCE_MS * 4));
 
-/**
- * A watcher over a counting rebuild. The OS stream takes a moment to start
- * delivering, so the fixture waits before handing the watcher out.
- */
+// The OS stream takes a moment to start delivering, so the fixture waits
+// before handing the watcher out.
 async function countingWatcher(): Promise<{
   watcher: NoesisWatcher;
   rebuilds: () => number;

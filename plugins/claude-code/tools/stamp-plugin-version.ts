@@ -1,8 +1,3 @@
-// Stamps version pins from package.json, the single source of truth for the
-// plugin version: .claude-plugin/plugin.json's version and .mcp.json's
-// @noesis-vision/noesis pin (the service is released in lockstep with the
-// plugin — one version train, decision D6). Run via `bun run
-// generate`; CI's drift check enforces they stay in sync.
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 

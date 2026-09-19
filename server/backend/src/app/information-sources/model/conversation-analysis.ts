@@ -7,12 +7,7 @@ import {
 import { ConversationSchema } from './conversation';
 import { InformationFragmentRefSchema } from './information-fragment';
 
-/*
- * The payload of a conversation import: what the agent produces when it runs
- * the import-conversation skill, written to a working file and handed to the
- * import tool by path. The service validates it, writes the conversation file,
- * and creates or updates the wiki topics and decisions it names.
- */
+// The agent writes this to a working file and hands the import tool its path.
 
 export const AnalyzedDecisionSchema = z
   .object({

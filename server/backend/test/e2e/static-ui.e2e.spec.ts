@@ -1,9 +1,5 @@
-// Black-box e2e for SPA serving: spawns the real service from source (bun
-// bundles the imported index.html on the fly), then asserts the page is served
-// at /, client routes get the same page, its assets resolve, and the /ui and
-// /internal surfaces are not swallowed by the page route. The port is
-// ephemeral, so the URL is read from the service's own log line on stderr —
-// the way a person finds it too.
+// Runs the real service from source: bun bundles the imported index.html on
+// the fly.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';

@@ -1,7 +1,5 @@
-// Full-stack MCP e2e: boots the real service (src/main.ts) as a stdio MCP
-// server the way an agent host does, walks the import flow of decision D3
-// (write a working file to the session's scratch directory, validate, create)
-// and checks the scratch directory goes when the session does.
+// Walks the import flow of decision D3 against the real service over stdio,
+// the way an agent host runs it.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -40,7 +38,6 @@ const exists = (path: string) =>
     () => false,
   );
 
-/** The session scratch directory, as the instructions announce it. */
 function sessionDir(): string {
   const match = (client.getInstructions() ?? '').match(
     /scratch directory is (\S+) /,

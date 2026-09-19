@@ -1,8 +1,3 @@
-// Packs the real npm tarball and verifies what ships: file whitelist,
-// rewritten manifest, and the .mcp.json service pin staying in lockstep with
-// the plugin version (decision D6 — plugin and @noesis-vision/noesis
-// release as one version train). The MCP boot smoke test builds the service
-// from the workspace sources the pinned version will be published from.
 // Tests run in file order; the pack test seeds the state the rest assert on.
 import { afterAll, expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
@@ -67,8 +62,6 @@ test('ships exactly the expected plugin files', async () => {
   expect(missing).toEqual([]);
 
   // The marketplace catalog points at the package — it must not ship inside it.
-  // tools/ (dev/build tooling), test/, the pre-decision-33 bundled server and
-  // the pre-decision-34 validator are not part of the plugin either.
   const excluded = [
     '.claude-plugin/marketplace.json',
     'tools',
@@ -133,8 +126,7 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
 });
 
 test('the service the pin resolves to boots and lists tools', async () => {
-  // Build from the workspace sources — the same sources the pinned version is
-  // published from (the pin-consistency test above ties the versions together).
+  // The workspace sources are what the pinned version is published from.
   const build = spawnSync('bun', ['run', 'build'], {
     cwd: serviceRoot,
     encoding: 'utf8',

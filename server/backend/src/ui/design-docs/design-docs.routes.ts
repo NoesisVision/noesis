@@ -12,18 +12,11 @@ export interface DesignDocsDeps {
 }
 
 const createDesignDocSchema = z.object({
-  // The envelope only; the document itself runs the design-document contract
-  // (schema parse + integrity check) in the handler.
+  // The document itself runs the design-document contract in the handler.
   document: z.record(z.string(), z.unknown()),
 });
 
-/**
- * Mounted at `/ui/changes/:change/design-docs` — the documents of one change.
- * Reads serve the documents page; the writes are the whole-document boundary
- * of decision D4 — the route runs the design-document contract, and a
- * rejected document is a 400 naming its issues, never a stored one. A slug no
- * change has is a 404 on every route.
- */
+/** Mounted at `/ui/changes/:change/design-docs`; writes are decision D4's validation boundary. */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
 
@@ -64,8 +57,7 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         },
       )
 
-      // The demo seed: phase 2 has no editor and no agent, so this is how a
-      // reviewable document gets in at all.
+      // Demo seed: without an editor, this is how a reviewable document gets in.
       .post('/sample', async (c) => {
         return inChange(c, async (change) =>
           c.json(
@@ -99,7 +91,6 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
   );
 }
 
-/** Runs the handler for the change in the path; a missing change is a 404. */
 async function inChange<T extends Response>(
   c: Context,
   handler: (slug: ChangeSlug) => Promise<T>,

@@ -4,7 +4,6 @@ import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';
 import { Title } from '#/components/design-system/title';
 
-/** Rendered inside the shell when the URL names a change that does not exist. */
 export function ChangeNotFoundView() {
   const { changeId } = useParams({ strict: false });
   return (

@@ -3,13 +3,8 @@ import { TopicSchema } from '#backend/app/wiki/model/topic';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/**
- * The wiki: `.noesis/graph/wiki/topics/` and `.noesis/graph/wiki/decisions/`,
- * two root collections keyed by id, change-independent — the distillate
- * accumulates across every import. The topic tree is in the data
- * (`parent_id`), so both collections stay flat; `wiki/` is a grouping
- * directory, not an object (decision D2).
- */
+// The topic tree lives in `parent_id`, so both collections stay flat
+// (decision D2).
 export function createTopicsStore(noesis: NoesisDir) {
   return createNoesisStore({
     directory: noesis.resolve('graph', 'wiki', 'topics'),

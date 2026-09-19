@@ -10,7 +10,6 @@ import type {
 } from '#backend/app/changes/model/change.ts';
 import { ApiError, api } from './client';
 
-/** Where a change failed to be created, as the service reports it. */
 export class DuplicateChangeError extends Error {
   readonly field: 'slug' | 'key';
 
@@ -62,7 +61,6 @@ export const changeById = (id: string) =>
     retry: false,
   });
 
-/** Maps only recognized conflicts; transport and other HTTP errors propagate. */
 export async function createChange(input: CreateChange): Promise<Change> {
   try {
     const data = await api.changes.$post({ json: input });
@@ -85,7 +83,6 @@ export async function createChange(input: CreateChange): Promise<Change> {
   }
 }
 
-/** Creates a change, refreshes the list and lands on the new change's Overview. */
 export function useCreateChange() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

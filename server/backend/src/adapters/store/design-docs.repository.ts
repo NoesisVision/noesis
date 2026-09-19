@@ -7,10 +7,6 @@ import type {
   NoesisChangesRepository,
 } from './changes.repository';
 
-/**
- * A change's design documents: the `design-docs` collection under the
- * change's directory, keyed by document id (decision D2).
- */
 export class NoesisDesignDocsRepository implements DesignDocsRepository {
   private readonly changes: NoesisChangesRepository;
 

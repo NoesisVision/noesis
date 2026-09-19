@@ -1,17 +1,9 @@
 import { z } from 'zod';
 
 /*
- * Addressing one place in a design document.
- *
- * The model is normalised and related by id, so an address is an id — nothing
- * more. An `element` ref names what it points at and says nothing about where
- * that thing currently sits, which is what lets it survive the element being
- * renamed, reordered inside its list, or moved to another parent.
- *
- * The exception is a place that holds no element of its own: the goal text,
- * `output.summary`, or a list addressed as the insertion point it is. Those
- * are `slot` refs — an owner id plus field names — and they are the only refs
- * a schema rename can invalidate.
+ * An `element` ref survives its target being renamed, reordered or moved to
+ * another parent. A `slot` ref also addresses a list as an insertion point,
+ * and is the only kind a schema rename can invalidate.
  */
 
 export const ElementRefSchema = z

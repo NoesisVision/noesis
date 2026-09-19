@@ -57,7 +57,6 @@ const SCHEMES: {
   { value: 'auto', label: 'System', icon: IconDeviceDesktop },
 ];
 
-/** A menu of the three schemes; the trigger shows the one in effect. */
 function ColorSchemeToggle() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computed = useComputedColorScheme('light');

@@ -1,30 +1,14 @@
 import { z } from 'zod';
 
 /*
- * The portable design-document specification.
+ * No baseline diff against the system model yet (decision D4).
  *
- * Shape follows section 3 of docs/work/features/design-doc/plan.md: a
- * normalised accepted model with stable ids, replacing the previous tree of
- * `added/removed/modified` change sets (specification §14.7). Codebase-relative
- * state (the baseline diff against the system model) is deferred
- * and re-decided together with locked fields once the system model exists
- * (decision D4).
- *
- * Every addressable element carries a stable `id`, unique across the whole
- * document. Ids are what references point at (see `design-doc-ref.ts`), and
- * what survives the reordering and renaming the editor allows, so no element
- * the document renders as its own block is addressed by position. Ids are
- * document-wide unique, non-empty, and every `*Id` field must name an element
- * that exists and is of the expected kind — the service checks this on every
- * write (`design-doc.md` lists the rules).
+ * Ids are non-empty and unique across the whole document, and every `*Id`
+ * field must name an existing element of the expected kind; the service
+ * checks this on every write.
  */
 
-/* -------------------------------------------------------------- vocabulary */
-
-/**
- * Whole-document lifecycle (specification §5). Individual use cases, building
- * blocks and scenarios have no separate workflow state.
- */
+/** Only the whole document has a status; its elements have none. */
 export const DesignDocumentStatusSchema = z
   .enum(['draft', 'implemented'])
   .describe(
@@ -32,11 +16,6 @@ export const DesignDocumentStatusSchema = z
   );
 export type DesignDocumentStatus = z.infer<typeof DesignDocumentStatusSchema>;
 
-/**
- * Who wrote a piece of prose (specification §6.5). Shown as a quiet `person`
- * tag on the element rather than a badge on every field, and used by the agent
- * to decide what it may rewrite unasked.
- */
 export const AuthorshipSchema = z
   .enum(['human', 'agent'])
   .describe(
@@ -91,13 +70,6 @@ export type DesignedBuildingBlockType = z.infer<
   typeof DesignedBuildingBlockTypeSchema
 >;
 
-/* -------------------------------------------------------- leaf design types */
-
-/**
- * One typed field, in one list per direction (plan §3.4). `label` is the
- * business wording and `name`/`type` the structural truth; both readerships
- * read the same row.
- */
 export const DesignedFieldSchema = z
   .object({
     id: z.string().describe('Unique across the document.'),
@@ -112,11 +84,6 @@ export const DesignedFieldSchema = z
   .describe('One input or output field of a use case.');
 export type DesignedField = z.infer<typeof DesignedFieldSchema>;
 
-/**
- * A property of a building block — the structural half of the Technical lens.
- * Distinct from `DesignedField`, which is a use case's input or output: a field
- * carries business wording for the Product reader, a property does not.
- */
 export const DesignedPropertySchema = z
   .object({
     id: z.string().describe('Unique across the document.'),
@@ -167,8 +134,6 @@ export type DesignedQualityAttribute = z.infer<
   typeof DesignedQualityAttributeSchema
 >;
 
-/* ----------------------------------------------------------------- Gherkin */
-
 export const GherkinKeywordSchema = z
   .enum(['Given', 'When', 'Then', 'And', 'But'])
   .describe('The Gherkin step keyword.');
@@ -211,15 +176,8 @@ export const GherkinExamplesSchema = z
 export type GherkinExamples = z.infer<typeof GherkinExamplesSchema>;
 
 /**
- * A Gherkin scenario. One shape serves both places the product writes them: a
- * use case's acceptance scenarios and a building-block behaviour's behavioural
- * scenarios (specification §14.3, §11.1). Ownership is what distinguishes them,
- * not structure — the Gherkin is the same Gherkin.
- *
- * `background` sits on the scenario rather than on its owner because that is
- * how the document renders it — a Background block immediately above the
- * scenario it sets up — and Background is a presentation of shared setup, not
- * an independently addressable element in this product.
+ * `background` sits on the scenario, not its owner, because the document
+ * renders it directly above the scenario it sets up.
  */
 export const DesignedScenarioSchema = z
   .object({
@@ -252,14 +210,9 @@ export const DesignedScenarioSchema = z
   .describe('A Gherkin scenario, owned by a use case or a behaviour.');
 export type DesignedScenario = z.infer<typeof DesignedScenarioSchema>;
 
-/**
- * A Gherkin scenario owned by a use case.
- * @alias
- */
+/** @alias */
 export const DesignedAcceptanceScenarioSchema = DesignedScenarioSchema;
 export type DesignedAcceptanceScenario = DesignedScenario;
-
-/* ---------------------------------------------------- document-level fields */
 
 export const BusinessContextParagraphSchema = z
   .object({
@@ -305,14 +258,6 @@ export const DesignedScopeSchema = z
   .describe('The scope section.');
 export type DesignedScope = z.infer<typeof DesignedScopeSchema>;
 
-/* --------------------------------------------------------------- structure */
-
-/**
- * Actors stay minimal in this iteration (plan §3.2): identity, name, kind and
- * description, listed as a document section. Use cases reference them by id —
- * the many-to-many relationship the old `actor: string | null` could not carry
- * (specification §14.2).
- */
 export const DesignedActorSchema = z
   .object({
     id: z.string().describe('Unique across the document.'),
@@ -340,11 +285,7 @@ export type DesignedBoundedContext = z.infer<
   typeof DesignedBoundedContextSchema
 >;
 
-/**
- * An optional grouping of building blocks inside a bounded context. The
- * document view does not read it — use cases group by application service —
- * but the Technical lens and the scanners do.
- */
+/** The document view ignores modules; the Technical lens and scanners use them. */
 export const DesignedDomainModuleSchema = z
   .object({
     id: z.string().describe('Unique across the document.'),
@@ -358,14 +299,8 @@ export const DesignedDomainModuleSchema = z
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModuleSchema>;
 
 /**
- * A building block: aggregate, entity, repository, application service and the
- * rest of the tactical vocabulary.
- *
- * There is no separate application-service record. An application service is a
- * building block whose `type` is `application_service`, so
- * `UseCase.applicationServiceId` and `DesignedBehaviour.buildingBlockId` name
- * the same thing in one id space; the integrity check enforces that a use
- * case's `applicationServiceId` resolves to a block of that type.
+ * There is no separate application-service record: an application service is a
+ * building block of type `application_service`.
  */
 export const DesignedBuildingBlockSchema = z
   .object({
@@ -401,13 +336,8 @@ export const DesignedBuildingBlockSchema = z
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlockSchema>;
 
 /**
- * One behaviour of one building block — `SlotHold.place()`, `BookAppointment`,
- * `AppointmentBooked`. Behaviours are the nodes of the invocation graph that
- * behaviour relationships connect (specification §14.4), which is why they
- * exist at every level and not only where a use case does.
- *
- * A behaviour that is a use case's entry point names it in `useCaseId`, and the
- * use case names the behaviour back in `behaviourId`; the pair must agree.
+ * Behaviours are the nodes of the invocation graph, so they exist on any block,
+ * not only where a use case enters.
  */
 export const DesignedBehaviourSchema = z
   .object({
@@ -456,11 +386,6 @@ export const DesignedOutputSchema = z
   .describe('What a use case produces.');
 export type DesignedOutput = z.infer<typeof DesignedOutputSchema>;
 
-/**
- * A first-class use case (specification §14.1): stable identity, one owning
- * application service, a Command/Query/Event type, actor references, and
- * ownership of its rules, fields, scenarios and quality attributes.
- */
 export const DesignedUseCaseSchema = z
   .object({
     id: z.string().describe('Unique across the document.'),
@@ -515,13 +440,7 @@ export const DesignedUseCaseSchema = z
   .describe('A use case of the design.');
 export type DesignedUseCase = z.infer<typeof DesignedUseCaseSchema>;
 
-/* ---------------------------------------------------------------- document */
-
-/**
- * The whole portable specification, in the order the document reads: goal,
- * business context, target outcomes, scope, actors, then use cases grouped by
- * bounded context and application service (plan §1).
- */
+/** Fields follow the order the document reads. */
 export const DesignDocumentSchema = z
   .object({
     id: z

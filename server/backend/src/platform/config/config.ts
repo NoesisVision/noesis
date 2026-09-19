@@ -5,33 +5,21 @@ import {
   parseLogLevel,
 } from '#backend/platform/logging/logging';
 
-// Server configuration is read from the environment and zod-validated at
-// bootstrap, failing fast on garbage (archived decision 10's pattern). The
-// service serves the one repository `NOESIS_ROOT` names — or, when unset, the
-// checkout it was started in (the walk to `.git` lives in
-// `files/repository-root.ts`).
-//
-// There is little else to configure: the service runs locally inside a single
-// checkout, one process per agent session, so it has no identity provider, no
-// tenant scoping and no public URL, and its graph is an
-// in-memory cache with no data directory (decision D1). The HTTP port is
-// ephemeral; `PORT` pins it only for a stable URL during development
-// (`bun run dev`), and is not part of the plugin's launch — two agent sessions
-// must not collide.
+// `PORT` pins the otherwise ephemeral port only for a stable URL under
+// `bun run dev`; the plugin's launch never sets it, so two agent sessions
+// cannot collide.
 const envSchema = z.object({
   NOESIS_ROOT: z.string().min(1).optional(),
   /** `0` keeps the browser closed — headless runs and tests. */
   NOESIS_OPEN_BROWSER: z.string().optional(),
   PORT: z.coerce.number().int().min(0).max(65535).default(0),
-  /** The lowest level logged; `info` unless set (docs/logging.md). */
   NOESIS_LOG_LEVEL: z.string().optional(),
 });
 
 export interface ServerConfig {
-  /** The repository root, when set explicitly; otherwise found from cwd. */
+  /** Unset: found by walking up from cwd to `.git`. */
   root: string | undefined;
   openBrowser: boolean;
-  /** `0` for an ephemeral port. */
   port: number;
   logLevel: LogLevel;
 }

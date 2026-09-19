@@ -15,9 +15,7 @@ export class ChangeNotFoundError extends Error {
 export type DuplicateChangeField = 'slug' | 'key';
 
 export class DuplicateChangeError extends Error {
-  /** The slug or key that was taken, as `field` says. */
   readonly value: string;
-  /** Which of the two unique things was taken. */
   readonly field: DuplicateChangeField;
 
   constructor(value: string, field: DuplicateChangeField = 'slug') {
@@ -32,12 +30,6 @@ export class DuplicateChangeError extends Error {
   }
 }
 
-/**
- * The changes of this checkout: the `changes` collection under
- * `.noesis/graph/`, one `data.json` per change. Creation derives the slug
- * from the name and refuses a slug or key that is taken; the list is newest
- * first.
- */
 export class ChangesService {
   private readonly changes: ChangesRepository;
 
@@ -45,7 +37,6 @@ export class ChangesService {
     this.changes = changes;
   }
 
-  /** Newest first, then by slug for a stable order between equal stamps. */
   async list(): Promise<Change[]> {
     const changes = await Array.fromAsync(this.changes.values());
     return changes.sort(
@@ -83,7 +74,6 @@ export class ChangesService {
     return change;
   }
 
-  /** Resolves to nothing, or throws `ChangeNotFoundError`. */
   async assertExists(slug: ChangeSlug): Promise<void> {
     if ((await this.changes.read(slug)) === null) {
       throw new ChangeNotFoundError(slug);

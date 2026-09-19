@@ -10,10 +10,8 @@ import { TopicSchema } from '#backend/app/wiki/model/topic';
 import { designDocumentContract } from './design-document';
 
 /**
- * Every file contract the agent can validate against, keyed by the name the
- * `validate` tool takes. A contract is the zod schema from a feature's
- * `model/` folder plus, where the service has one, the whole-document check it runs
- * on write — so what `validate` says and what a write rejects are the same.
+ * A contract carries the service's write-time check where there is one, so
+ * `validate` and a rejected write agree.
  */
 export const contracts = {
   'design-document': designDocumentContract,

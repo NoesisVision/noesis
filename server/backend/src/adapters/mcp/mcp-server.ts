@@ -43,15 +43,8 @@ import {
   InvalidImportError,
 } from './import.service';
 
-/**
- * What the tools may touch: the same services the HTTP surface gets, handed in
- * by the composition root. Tools call them directly — there is no REST hop
- * between the agent's process and the services (decision D3).
- */
 export interface McpDeps {
-  /** The repository root, stated in the server's `instructions`. */
   repositoryRoot: string;
-  /** This process's scratch directory; working files come and go through it. */
   session: SessionDir;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
@@ -62,9 +55,7 @@ export interface McpDeps {
 
 interface ToolDefinition<A> {
   description: string;
-  /** Validates the arguments and is advertised as the tool's JSON Schema. */
   args: ZodType<A>;
-  /** Receives arguments already validated against `args`. */
   handler: (args: A) => Promise<CallToolResult>;
 }
 
@@ -91,23 +82,13 @@ const changeSlug = z
     'The change the result belongs to: the slug of a directory under .noesis/graph/changes/.',
   );
 
-/**
- * Builds the MCP server and registers its tools; transport wiring stays in
- * main.ts. Tools are thin — parse arguments, call one service method, shape
- * the response. Payloads never travel inline: a tool takes the path of a
- * working file the agent wrote under `.noesis/tmp/`, and a result too large to
- * return inline is written there and handed back as a path.
- *
- * Validation is owned here, not by the SDK (decision D3): the SDK's built-in
- * input validation rejects bad payloads with a protocol-level InvalidParams
- * error, while the MCP spec wants tool-level failures in-band (`isError`) so
- * the calling model can read the problem and correct itself.
- */
+// Arguments are validated here, not by the SDK (decision D3): the SDK rejects
+// with a protocol-level InvalidParams error, while the MCP spec wants tool
+// failures in-band (`isError`) so the model can correct itself.
 export function createMcpServer(deps: McpDeps): Server {
   const { session, repositoryRoot } = deps;
   const rel = (path: string) => relative(repositoryRoot, path);
 
-  /** Reads and parses the working file an argument names; every failure is a message for the model. */
   async function readWorkingJson(
     input: string,
   ): Promise<
@@ -147,7 +128,7 @@ export function createMcpServer(deps: McpDeps): Server {
       ),
     );
 
-  /** The design-document boundary (decision D4): the working file must pass the contract before a service sees it. */
+  /** Validated before a service sees it (decision D4). */
   async function readDesignDocument(
     path: string,
   ): Promise<
@@ -178,7 +159,6 @@ export function createMcpServer(deps: McpDeps): Server {
     );
   };
 
-  /** Runs a write against a change, turning the known failures into in-band results. */
   async function attempt(
     run: () => Promise<CallToolResult>,
   ): Promise<CallToolResult> {
@@ -216,7 +196,6 @@ export function createMcpServer(deps: McpDeps): Server {
       'The graph picks the files up on the next re-index.',
     ].join('\n');
 
-  /** An import tool: a working file the import service validates against its contract, imported into a change. */
   const importTool = (
     description: string,
     run: (change: ChangeSlug, payload: unknown) => Promise<ImportReport>,
@@ -430,8 +409,6 @@ export function createMcpServer(deps: McpDeps): Server {
       );
     }
 
-    // The MCP counterpart of the HTTP request id: every log line the tool
-    // writes carries which tool ran and a fresh id for the call.
     return withContext(
       { requestId: randomUUID(), tool: request.params.name },
       () => tool.handler(parsed.data),

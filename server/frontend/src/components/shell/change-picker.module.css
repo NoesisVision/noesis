@@ -1,5 +1,3 @@
-/* The Select-like button of the prototype: a bordered row that lifts its
-   border on hover and shows a focus ring while the menu is open. */
 .pick.pick {
   display: block;
   width: 100%;
@@ -35,7 +33,6 @@
   box-shadow: 0 0 0 2px var(--mantine-primary-color-light);
 }
 
-/* The change's colour as a short vertical bar, as in the prototype. */
 .bar {
   flex: none;
   width: 8px;

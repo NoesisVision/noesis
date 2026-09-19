@@ -6,8 +6,6 @@ import { serverLogger } from '#backend/platform/logging/logging';
 const log = serverLogger('native');
 
 /**
- * Puts LadybugDB's native binary where its loader expects it.
- *
  * `@ladybugdb/core` ships the binary in a per-platform optional package and
  * copies it into its own directory from a postinstall script. bun runs
  * postinstall only for packages the *root* project trusts, and a `bunx

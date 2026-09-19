@@ -13,15 +13,12 @@ import { ChangePicker } from './change-picker';
 import classes from './sidebar.module.css';
 
 interface SidebarProps {
-  /** Closes the mobile drawer after a choice. */
   onNavigate: () => void;
 }
 
 /**
- * Option C of the prototype: the change picker on top, the four change-scoped
- * entries under it, and the change-independent documentation pinned at the
- * bottom. The active change is the one in the URL, else the last opened,
- * else the first in the list — so the four entries work from `/wiki` too.
+ * Off a change route the active change falls back to the last opened, else the
+ * first, so the change entries still work from `/wiki`.
  */
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { data: changes } = useSuspenseQuery(changesList);

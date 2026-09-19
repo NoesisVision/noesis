@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { InformationCategory } from './information-category';
 
-/*
- * An imported conversation: a faithful record of what was said, split into
- * turns and, within a turn, into fragments (idea units) that the wiki can
- * point at. One file per conversation under
- * `.noesis/graph/changes/<change>/conversations/`; never rewritten after import.
- */
+// Never rewritten after import.
 
 export const ConversationFragmentSchema = z
   .object({

@@ -11,9 +11,8 @@ import '#/components/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
 
-// The single browser entry point: this app is a plain SPA, so nothing here
-// runs anywhere but the browser (decision D5). The backend imports
-// `index.html`, which is how bun finds this file and bundles it.
+// The backend imports `index.html`, which is how bun finds and bundles this
+// entry (decision D5).
 configureLogging();
 const context = getContext();
 const router = getRouter(context);

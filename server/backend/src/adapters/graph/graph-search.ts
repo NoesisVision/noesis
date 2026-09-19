@@ -4,15 +4,11 @@ import type {
 } from '#backend/app/search/search.service';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 
-/** Results per kind; the palette and the tool both want a short list. */
+/** Results per kind. */
 const LIMIT = 10;
 
-/**
- * The one search provider: a case-insensitive substring match over the
- * denormalised title and summary columns of every node table the indexer
- * fills. Deterministic data access, no ranking beyond kind order — the agent
- * reads the hits and decides what they mean (architecture, "Boundaries").
- */
+// No ranking beyond kind order: the agent reads the hits and decides what they
+// mean.
 export function createGraphSearch(db: DatabaseService): SearchProvider {
   return async (query: string): Promise<SearchResult[]> => {
     const q = query.toLowerCase();

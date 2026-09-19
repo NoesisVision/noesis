@@ -7,7 +7,6 @@ import {
   type PropsWithoutRef,
 } from 'react';
 
-/** Combines ref forwarding and Mantine's polymorphic component signature. */
 export function createPolymorphicWrapper<
   DefaultComponent extends ElementType,
   Props,

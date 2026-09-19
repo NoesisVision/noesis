@@ -7,15 +7,9 @@ import {
 } from '../../design-docs/model/design-doc';
 
 /*
- * The implemented model: what the source code actually contains, projected by
- * the scanner into objects under `.noesis/graph/system-model/`. It uses the same
- * structural vocabulary as a design document — bounded contexts, modules,
- * building blocks, behaviours — so a design can be read as a diff against it,
- * and every element carries where in the code it was found.
- *
- * The scanner writes these files; nobody edits them by hand, and no field is
- * ever locked. Granularity (one file per scanned unit) is fixed by the
- * scanner pipeline.
+ * Reuses the design-doc vocabulary so a design reads as a diff against the
+ * implemented model. Only the scanner writes these files: never edited by
+ * hand, no field ever locked.
  */
 
 export const SourceLocationSchema = z

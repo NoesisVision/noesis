@@ -8,7 +8,6 @@ type LbugPreparedStatement = InstanceType<typeof lbug.PreparedStatement>;
 type LbugQueryResult = InstanceType<typeof lbug.QueryResult>;
 export type QueryParams = Record<string, LbugValue>;
 
-/** What a `transaction()` callback may do: run statements inside it. */
 export interface Transaction {
   query<Row = unknown>(cypher: string, params?: QueryParams): Promise<Row[]>;
 }
@@ -32,9 +31,8 @@ export class DatabaseService {
   private reader: Session | null = null;
   private writer: Session | null = null;
   private closing = false;
-  /** Work `close()` must wait for: every running `query()` and `transaction()`. */
   private readonly inFlight = new Set<Promise<unknown>>();
-  /** Serialises `transaction()` callers: one write transaction at a time. */
+  /** One write transaction at a time. */
   private writeQueue: Promise<unknown> = Promise.resolve();
 
   async init(): Promise<void> {
@@ -73,7 +71,7 @@ export class DatabaseService {
     await database.close();
   }
 
-  /** Runs one statement outside any transaction (auto-commit), for reads. */
+  /** Auto-commit, for reads; writes go through `transaction()`. */
   async query<Row = unknown>(
     cypher: string,
     params?: QueryParams,
@@ -82,11 +80,6 @@ export class DatabaseService {
     return this.track(reader.run<Row>(cypher, params));
   }
 
-  /**
-   * Runs `fn` inside one write transaction on the writer connection:
-   * `BEGIN TRANSACTION`, the callback's statements, `COMMIT`; `ROLLBACK`
-   * when it throws. Callers queue up, so two transactions never overlap.
-   */
   async transaction<T>(fn: (tx: Transaction) => Promise<T>): Promise<T> {
     const writer = this.open(this.writer);
     const run = this.writeQueue.then(() => runTransaction(writer, fn));
@@ -125,10 +118,8 @@ async function runTransaction<T>(
   return value;
 }
 
-// One connection plus its prepared statements. A statement is prepared once
-// per Cypher text and executed many times; the cache lives as long as the
-// connection, and the schema does not change after boot, so a plan never
-// goes stale.
+// Prepared statements are cached per Cypher text for the connection's life;
+// the schema is fixed after boot, so a plan never goes stale.
 class Session {
   private readonly connection: LbugConnection;
   private readonly prepared = new Map<string, Promise<LbugPreparedStatement>>();
@@ -172,11 +163,7 @@ class Session {
   }
 }
 
-/**
- * The rows of a result. `query()` and `execute()` return one result per
- * statement; the service runs one statement per call, and the last
- * statement's rows are the answer in the odd case of several.
- */
+/** With several statements, the last one's rows are the answer. */
 function extractRows<Row>(result: LbugQueryResult | LbugQueryResult[]): Row[] {
   const last = Array.isArray(result) ? result[result.length - 1] : result;
   if (last === undefined) return [];

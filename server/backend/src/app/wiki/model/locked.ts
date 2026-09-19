@@ -1,14 +1,7 @@
 import { z } from 'zod';
 
-/*
- * The locked-field marker.
- *
- * A field a person edited is flagged as locked in the file itself, by a
- * sibling boolean named `<field>_locked`. Skills preserve a locked field
- * instead of overwriting it, and ask before changing one. The marker is what
- * lets an import, a re-analysis or a rename run over a file without undoing
- * work a person did by hand.
- */
+// Lets an import, a re-analysis or a rename rewrite a file without undoing a
+// person's hand edits.
 
 export const Locked = z
   .boolean()

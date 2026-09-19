@@ -27,20 +27,18 @@ import { dataFileOf } from '#backend/platform/files/noesis-store';
 
 export interface ImportDeps {
   changes: ChangesService;
-  /** The sources land in the change's `conversations` and `documents`. */
   changesRepository: NoesisChangesRepository;
   topics: TopicsStore;
   decisions: DecisionsStore;
 }
 
-/** What an import did, for the tool to report. */
 export interface ImportReport {
   source: { kind: 'conversation' | 'document'; id: string; path: string };
   topics: { created: string[]; updated: string[] };
   decisions: { created: string[]; updated: string[] };
 }
 
-/** The same source was imported before; nothing was written. */
+/** Raised before anything is written. */
 export class DuplicateSourceError extends Error {
   readonly id: string;
   readonly path: string;
@@ -53,7 +51,6 @@ export class DuplicateSourceError extends Error {
   }
 }
 
-/** The payload failed the contract; carries the validator's issue list. */
 export class InvalidImportError extends Error {
   readonly contract: string;
   readonly issues: readonly ValidationIssue[];
@@ -72,18 +69,9 @@ export class InvalidImportError extends Error {
   }
 }
 
-/**
- * The service side of a knowledge import (architecture, "Flow of a knowledge
- * import", steps 5–6): validate the payload, write the source file, then
- * create or update the wiki topics and decisions the analysis names. The
- * watcher does the rest.
- *
- * Ids: the source id is a hash of its content, so the same source imported
- * twice is a duplicate, reported and not rewritten. Topics and decisions the
- * analysis creates get time-ordered ids; placeholders in the payload are
- * mapped to them, so an analysis can wire new topics to each other before the
- * ids exist. Locked fields of an existing topic or decision are kept.
- */
+// The source id hashes its content, so importing the same source twice is a
+// duplicate. Placeholder topic ids in the payload map to fresh ids, so an
+// analysis can wire new topics to each other before the ids exist.
 export class ImportService {
   private readonly deps: ImportDeps;
 
@@ -172,10 +160,8 @@ export class ImportService {
     }
   }
 
-  /**
-   * Every topic the analysis calls existing must exist — checked before the
-   * source file is written, so a rejected payload leaves nothing behind.
-   */
+  // Runs before the source file is written, so a rejected payload leaves
+  // nothing behind.
   private async assertTopicsResolve(
     contract: string,
     analyzed: AnalyzedTopic[],
@@ -291,7 +277,6 @@ function parse<T>(
   return report.value;
 }
 
-/** A locked field keeps the stored value; items are the union, in stored-then-new order. */
 function mergeTopic(stored: Topic, incoming: Topic): Topic {
   return {
     id: stored.id,

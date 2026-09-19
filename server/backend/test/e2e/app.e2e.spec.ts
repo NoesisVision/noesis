@@ -3,8 +3,6 @@ import { createApp } from '#backend/app';
 import { SearchService } from '#backend/app/search/search.service';
 import { testNoesis } from '../unit/test-noesis';
 
-// Route-surface assertions over the composed app. A throwaway `.noesis/`
-// backs the stateful services; everything else is the deps the surfaces need.
 const t = await testNoesis();
 afterAll(() => t.cleanup());
 

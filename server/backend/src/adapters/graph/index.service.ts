@@ -15,32 +15,25 @@ import { nodeTableNames } from './graph-schema';
 const log = serverLogger('indexer');
 
 export interface IndexReport {
-  /** Knowledge graph files decoded into the graph. */
   files: number;
   durationMs: number;
 }
 
 export interface IndexerSources {
-  /** The changes and, through their child collections, what they own. */
   changes: NoesisChangesRepository;
   topics: TopicsStore;
   decisions: DecisionsStore;
   systemModels: SystemModelStore;
 }
 
-/** Rows per `UNWIND` statement; one statement per file would be 5× slower. */
+/** Rows per `UNWIND`; one statement per file is 5× slower. */
 const BATCH_SIZE = 1000;
 
 type Row = Record<string, string>;
 
-/**
- * Builds the graph from the files in `.noesis/graph/`. Every rebuild is a
- * full one: the tables are emptied and reloaded from what the stores read,
- * so the graph after a rebuild is a function of the files alone — whatever
- * changed them, including a `git checkout` while the process runs. The cost
- * is measured (`test/bench`) and stays within budget without an incremental
- * path (decision D2).
- */
+// Every rebuild is a full one, so the graph is a function of the files alone,
+// even across a `git checkout`. Measured in `test/bench`: no incremental path
+// needed (decision D2).
 export class IndexService {
   private readonly db: DatabaseService;
   private readonly sources: IndexerSources;
@@ -54,8 +47,8 @@ export class IndexService {
     const started = performance.now();
     const rows = await this.collect();
 
-    // One transaction: readers see the old graph until the commit, never a
-    // half-rebuilt one (decision D3).
+    // Readers see the old graph until the commit, never a half-rebuilt one
+    // (decision D3).
     let files = 0;
     await this.db.transaction(async (tx) => {
       for (const table of nodeTableNames()) {
@@ -156,7 +149,6 @@ async function insert(
   rows: Row[],
 ): Promise<void> {
   if (rows.length === 0) return;
-  // Every row of a table has the same keys; the first row names them.
   const columns = Object.keys(rows[0] ?? {});
   const assignments = columns.map((c) => `${c}: r.${c}`).join(', ');
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -166,17 +158,14 @@ async function insert(
   }
 }
 
-/** What the walk needs of a store handle: keys, and one object per key. */
 interface Readable<T> {
   keys(): AsyncIterable<string>;
   get(key: string): Promise<T | null>;
 }
 
 /**
- * The objects of one collection, `keys()` then `get` per key (decision D2).
- * A corrupt or invalid file costs that one key, logged, not the walk; an
- * object that vanishes between the two is not an object; and a change taken
- * away under the walk — a `git checkout` — ends it with what it had.
+ * A corrupt file costs that one key, not the walk; a change removed under the
+ * walk (a `git checkout`) ends it with what it had.
  */
 async function* objects<T>(collection: Readable<T>): AsyncIterable<T> {
   try {

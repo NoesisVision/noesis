@@ -3,12 +3,7 @@ import {
   ConversationAnalysisSchema,
 } from './conversation-analysis';
 
-/*
- * A small but complete conversation import, used by the import specs: one
- * turn with one fragment, a new parent topic, a new child topic grounded in
- * the fragment, and one decision under the child. The conversation id is a
- * placeholder the service replaces with the content hash.
- */
+// `placeholder-conv` stands in for the content hash the service assigns on import.
 export const conversationAnalysisFixture: ConversationAnalysis =
   ConversationAnalysisSchema.parse({
     conversation: {

@@ -22,12 +22,8 @@ import { DesignDocsService } from '#backend/app/design-docs/design-docs.service'
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { NoesisStore } from '#backend/platform/files/noesis-store';
 
-/**
- * A throwaway repository root with an ensured `.noesis/`, plus the stores
- * and services wired over it. Each spec makes its own, so the
- * file system is the isolation — there is no shared state to reset between
- * tests.
- */
+// Each spec makes its own, so the file system is the isolation: there is no
+// shared state to reset between tests.
 export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
@@ -35,12 +31,11 @@ export interface TestNoesis {
   topics: TopicsStore;
   decisions: DecisionsStore;
   systemModels: SystemModelStore;
-  /** The stores as the indexer takes them. */
   sources: IndexerSources;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   importService: ImportService;
-  /** Writes a change under `slug` with placeholder data; answers its slug. */
+  /** Writes a change with placeholder data. */
   createChange(
     slug: string | ChangeSlug,
     overrides?: Partial<Change>,
@@ -95,7 +90,6 @@ export async function testNoesis(): Promise<TestNoesis> {
   };
 }
 
-/** Stores an entity under its own id. */
 export function put<T extends { id: string }>(
   store: Pick<NoesisStore<T, unknown, unknown>, 'set'>,
   entity: T,

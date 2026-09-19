@@ -1,12 +1,8 @@
-// Packs the real npm tarball (`prepack` builds dist/) and verifies the publish
-// invariants bunx depends on: the self-contained dist/main.js bin with a bun
-// shebang, the browser app's page and assets beside it, no readable contracts
-// copy (decision D4), and a manifest whose only dependency is the native
-// @ladybugdb/core (the @repo/* workspace deps are private — leaking them
-// would break every `bunx @noesis-vision/noesis` install). Then boots the
-// packed bin from another directory, the way bunx does, and fetches the page:
-// bun resolves the bundle manifest against the working directory, and
-// src/bundle-cwd.ts is what makes that work.
+// Publish invariants bunx depends on. No contracts copy ships (decision D4).
+// The @repo/* workspace deps are private: leaking them would break every
+// `bunx @noesis-vision/noesis` install. The bin is launched from another
+// directory because bun resolves the bundle manifest against the working
+// directory, which src/bundle-cwd.ts handles.
 import { afterAll, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
