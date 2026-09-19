@@ -56,7 +56,7 @@ export class SessionDir {
 
   async open(): Promise<void> {
     await mkdir(this.path, { recursive: true });
-    await this.sweep();
+    await this.removeStaleSessionDirs();
   }
 
   async dispose(): Promise<void> {
@@ -70,21 +70,11 @@ export class SessionDir {
    * check, so a link out of `tmp/` is refused too.
    */
   async resolveWorkingPath(input: string): Promise<WorkingPathResult> {
-    const absolute = isAbsolute(input)
-      ? normalize(input)
-      : resolve(this.noesis.root, input);
+    const absolute = this.toAbsolute(input);
     if (!isInside(this.tmpRoot, absolute)) return this.notUnderTmp(input);
-
-    let real: string;
-    try {
-      real = await realpath(absolute);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return { ok: false, message: `No file at ${absolute}.` };
-      }
-      throw error;
-    }
-    if (!isInside(await realpath(this.tmpRoot), real)) {
+    const target = await realpathIfExists(absolute);
+    if (target === null) return noFileAt(absolute);
+    if (!(await this.isInsideRealTmpRoot(target))) {
       return this.notUnderTmp(input);
     }
     return { ok: true, path: absolute };
@@ -92,11 +82,19 @@ export class SessionDir {
 
   async deliver(text: string): Promise<string> {
     const bytes = Buffer.byteLength(text);
-    if (bytes <= this.inlineResultLimit) return text;
-    this.results += 1;
-    const file = join(this.path, `result-${this.results}.txt`);
-    await writeFile(file, text);
-    return `The result is ${bytes} bytes, above the ${this.inlineResultLimit}-byte inline limit, and was written to ${file}. Read it from there.`;
+    if (this.fitsInline(bytes)) return text;
+    const file = await this.writeResultFile(text);
+    return this.readFromFileInstruction(file, bytes);
+  }
+
+  private toAbsolute(input: string): string {
+    return isAbsolute(input)
+      ? normalize(input)
+      : resolve(this.noesis.root, input);
+  }
+
+  private async isInsideRealTmpRoot(target: string): Promise<boolean> {
+    return isInside(await realpath(this.tmpRoot), target);
   }
 
   private notUnderTmp(input: string): WorkingPathResult {
@@ -106,7 +104,33 @@ export class SessionDir {
     };
   }
 
-  private async sweep(): Promise<void> {
+  private fitsInline(bytes: number): boolean {
+    return bytes <= this.inlineResultLimit;
+  }
+
+  private async writeResultFile(text: string): Promise<string> {
+    this.results += 1;
+    const file = join(this.path, `result-${this.results}.txt`);
+    await writeFile(file, text);
+    return file;
+  }
+
+  private readFromFileInstruction(file: string, bytes: number): string {
+    return `The result is ${bytes} bytes, above the ${this.inlineResultLimit}-byte inline limit, and was written to ${file}. Read it from there.`;
+  }
+
+  private async removeStaleSessionDirs(): Promise<void> {
+    const cutoff = this.now() - this.maxAgeMs;
+    let removed = 0;
+    for (const dir of await this.listOtherSessionDirs()) {
+      if (await this.removeIfStale(dir, cutoff)) removed += 1;
+    }
+    if (removed > 0) {
+      log.info('swept {swept} stale session dir(s)', { swept: removed });
+    }
+  }
+
+  private async listOtherSessionDirs(): Promise<string[]> {
     let entries: Dirent[];
     try {
       entries = await readdir(this.tmpRoot, { withFileTypes: true });
@@ -115,27 +139,25 @@ export class SessionDir {
         dir: this.tmpRoot,
         error: String(error),
       });
-      return;
+      return [];
     }
-    const cutoff = this.now() - this.maxAgeMs;
-    let swept = 0;
-    for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name === this.id) continue;
-      const dir = join(this.tmpRoot, entry.name);
-      try {
-        if ((await stat(dir)).mtimeMs > cutoff) continue;
-        await rm(dir, { recursive: true, force: true });
-        swept += 1;
-      } catch (error) {
-        // A crashed session's leftovers are never worth failing a boot over.
-        log.warn('could not sweep {dir}: {error}', {
-          dir,
-          error: String(error),
-        });
-      }
-    }
-    if (swept > 0) {
-      log.info('swept {swept} stale session dir(s)', { swept });
+    return entries
+      .filter((entry) => entry.isDirectory() && entry.name !== this.id)
+      .map((entry) => join(this.tmpRoot, entry.name));
+  }
+
+  /** A crashed session's leftovers are never worth failing a boot over. */
+  private async removeIfStale(dir: string, cutoff: number): Promise<boolean> {
+    try {
+      if ((await stat(dir)).mtimeMs > cutoff) return false;
+      await rm(dir, { recursive: true, force: true });
+      return true;
+    } catch (error) {
+      log.warn('could not sweep {dir}: {error}', {
+        dir,
+        error: String(error),
+      });
+      return false;
     }
   }
 }
@@ -144,4 +166,17 @@ export class SessionDir {
 function isInside(parent: string, child: string): boolean {
   const rel = relative(parent, child);
   return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+}
+
+async function realpathIfExists(path: string): Promise<string | null> {
+  try {
+    return await realpath(path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+function noFileAt(path: string): WorkingPathResult {
+  return { ok: false, message: `No file at ${path}.` };
 }
