@@ -13,9 +13,6 @@ validates it, writes the files and re-indexes the graph.
 
 - Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/document-analysis.ts`
   (and the files it imports beside it). Read it now, not from memory.
-- Meaning: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/information-sources.md`
-  and `${CLAUDE_PLUGIN_ROOT}/contracts/wiki/model/wiki.md`.
-- Conventions: `${CLAUDE_PLUGIN_ROOT}/contracts/conventions.md`.
 
 ## Steps
 
@@ -25,9 +22,8 @@ validates it, writes the files and re-indexes the graph.
    subjects of the document, then read the matching topic files under
    `.noesis/graph/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
    whenever one fits; create a new one only when nothing does.
-3. **Split the document** into fragments and a section tree exactly as the
-   companion document says: one fragment per block, verbatim text, headings
-   as `structural` fragments, `section_path` on every fragment, and a
+3. **Split the document** into fragments and a section tree: one fragment
+   per block, verbatim text, headings as `structural` fragments, `section_path` on every fragment, and a
    `section_tree` whose `fragment_indices` list only the fragments directly
    under each heading.
 4. **Analyse.** For each topic the document speaks to, write the summaries as

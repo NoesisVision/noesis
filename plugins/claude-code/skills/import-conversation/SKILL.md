@@ -13,9 +13,6 @@ validates it, writes the files and re-indexes the graph.
 
 - Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/conversation-analysis.ts`
   (and the files it imports beside it). Read it now, not from memory.
-- Meaning: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/information-sources.md`
-  and `${CLAUDE_PLUGIN_ROOT}/contracts/wiki/model/wiki.md`.
-- Conventions: `${CLAUDE_PLUGIN_ROOT}/contracts/conventions.md`.
 
 ## Steps
 
@@ -25,9 +22,8 @@ validates it, writes the files and re-indexes the graph.
    subjects of the conversation, then read the matching topic files under
    `.noesis/graph/wiki/topics/`. Reuse an existing topic (`is_new: false`, its id)
    whenever one fits; create a new one only when nothing does.
-3. **Split the transcript** into turns and fragments exactly as the companion
-   document says: verbatim text, every turn covered, one idea per fragment,
-   at least one category per fragment.
+3. **Split the transcript** into turns and fragments: verbatim text, every
+   turn covered, one idea per fragment, at least one category per fragment.
 4. **Analyse.** For each topic the conversation speaks to, write the summaries
    as they should read after the import. For an existing topic, read its file
    first: keep every `*_locked` field exactly as it is, and put what you

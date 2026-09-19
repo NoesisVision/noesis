@@ -14,8 +14,6 @@ mints its id, and stores it under the change.
 - Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.ts` and
   `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc-ref.ts`. Read them now, not from
   memory.
-- Meaning and the integrity rules the service enforces:
-  `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.md`.
 - A complete example: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.fixture.ts`.
 
 ## Steps
