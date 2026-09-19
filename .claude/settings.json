@@ -1,5 +1,24 @@
 {
   "permissions": {
-    "deny": ["Read(./docs/archive/**)"]
+    "deny": [
+      "Read(./docs/archive/**)",
+      "Edit(./docs/archive/**)",
+      "Edit(./bun.lock)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in \"$CLAUDE_PROJECT_DIR\"/*) ;; *) exit 0 ;; esac; cd \"$CLAUDE_PROJECT_DIR\" || exit 0; bunx oxfmt --no-error-on-unmatched-pattern \"$f\" >/dev/null 2>&1; bunx oxlint --no-error-on-unmatched-pattern \"$f\" 1>&2 || exit 2",
+            "timeout": 30,
+            "statusMessage": "oxfmt + oxlint"
+          }
+        ]
+      }
+    ]
   }
 }
