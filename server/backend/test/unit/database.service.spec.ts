@@ -146,6 +146,23 @@ describe('DatabaseService', () => {
     }
   });
 
+  it('cuts off a runaway read', async () => {
+    const service = newService();
+    await service.init();
+    try {
+      // ~10^10 rows: far beyond the read timeout, well within the writer.
+      const runaway = service.query(
+        'UNWIND RANGE(1, 100000) AS x UNWIND RANGE(1, 100000) AS y RETURN count(x + y)',
+      );
+      expect(runaway).rejects.toThrow('Interrupted');
+      await runaway.catch(() => undefined);
+      // The connection is still usable afterwards.
+      expect(await service.query('RETURN 1 AS x')).toHaveLength(1);
+    } finally {
+      await service.close();
+    }
+  }, 15_000);
+
   it('close waits for work in flight', async () => {
     const service = newService();
     await service.init();

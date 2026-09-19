@@ -15,6 +15,18 @@ export interface Transaction {
 
 const log = serverLogger('db');
 
+/**
+ * The buffer pool is the graph's whole memory: an in-memory database cannot
+ * spill to disk, so this is a hard bound rather than a cache size.
+ */
+const BUFFER_POOL_BYTES = 256 * 1024 * 1024;
+/**
+ * Reads are user-driven (search); a runaway one is cut off rather than left
+ * to hold the reader connection. Writes have no timeout: a rebuild's length
+ * follows the repository's size.
+ */
+const READ_TIMEOUT_MS = 5_000;
+
 export class DatabaseService {
   private database: LbugDatabase | null = null;
   private reader: Session | null = null;
@@ -30,9 +42,10 @@ export class DatabaseService {
       throw new Error('Database already initialized.');
     }
     const { Database, Connection } = (await import('@ladybugdb/core')).default;
-    const database = new Database(':memory:');
+    const database = new Database(':memory:', BUFFER_POOL_BYTES);
     const reader = new Connection(database);
     const writer = new Connection(database);
+    reader.setQueryTimeout(READ_TIMEOUT_MS);
     // Eager, so a broken native binary fails here at the composition root
     // rather than inside the first query.
     await database.init();
@@ -167,6 +180,9 @@ class Session {
 function extractRows<Row>(result: LbugQueryResult | LbugQueryResult[]): Row[] {
   const last = Array.isArray(result) ? result[result.length - 1] : result;
   if (last === undefined) return [];
+  // Sync on purpose: the async `getAll()` is one thread-pool round trip per
+  // row, slower than this loop for the small result sets the graph yields.
+  // Revisit if a query ever returns enough rows to stall the event loop.
   return last.getAllSync() as Row[];
 }
 

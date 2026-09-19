@@ -155,9 +155,11 @@ conventions for skills: the contracts' `.describe()` text (D4).
   errors.
 - **Search** is `GET /ui/search` and the `search-knowledge-graph` tool over a
   `SearchProvider[]` registry in `SearchService`.
-- **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:`, one
+- **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:` with a
+  256 MB buffer pool (the graph's whole memory: in-memory cannot spill), one
   `Database` with two connections owned by `DatabaseService`: a **reader**
-  behind `query()` (auto-commit, one statement per call) and a dedicated
+  behind `query()` (auto-commit, one statement per call, 5 s query timeout
+  because reads are user-driven; writes have none) and a dedicated
   **writer** behind `transaction(fn)`, which serialises callers, wraps `fn` in
   `BEGIN TRANSACTION` … `COMMIT` and rolls back on throw. Two connections
   because a transaction's scope is the connection — on a shared one every
