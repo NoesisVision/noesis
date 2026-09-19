@@ -31,7 +31,9 @@ export async function sharedTestDatabase(): Promise<DatabaseService> {
 // Call from `afterEach` so specs don't see each other's data.
 export async function resetGraph(): Promise<void> {
   if (shared === undefined) return;
-  for (const table of nodeTableNames()) {
-    await shared.query(`MATCH (n:${table}) DETACH DELETE n`);
-  }
+  await shared.transaction(async (tx) => {
+    for (const table of nodeTableNames()) {
+      await tx.query(`MATCH (n:${table}) DETACH DELETE n`);
+    }
+  });
 }

@@ -4,7 +4,10 @@ import type {
   DecisionsStore,
   TopicsStore,
 } from '#backend/adapters/store/wiki.store';
-import type { DatabaseService } from '#backend/platform/database/database.service';
+import type {
+  DatabaseService,
+  Transaction,
+} from '#backend/platform/database/database.service';
 import { NoesisStoreError } from '#backend/platform/files/noesis-store';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { nodeTableNames } from './graph-schema';
@@ -51,14 +54,18 @@ export class IndexService {
     const started = performance.now();
     const rows = await this.collect();
 
-    for (const table of nodeTableNames()) {
-      await this.db.query(`MATCH (n:${table}) DETACH DELETE n`);
-    }
+    // One transaction: readers see the old graph until the commit, never a
+    // half-rebuilt one (decision D3).
     let files = 0;
-    for (const [table, tableRows] of rows) {
-      files += tableRows.length;
-      await this.insert(table, tableRows);
-    }
+    await this.db.transaction(async (tx) => {
+      for (const table of nodeTableNames()) {
+        await tx.query(`MATCH (n:${table}) DETACH DELETE n`);
+      }
+      for (const [table, tableRows] of rows) {
+        files += tableRows.length;
+        await insert(tx, table, tableRows);
+      }
+    });
 
     const report = {
       files,
@@ -141,18 +148,21 @@ export class IndexService {
     }
     return rows;
   }
+}
 
-  private async insert(table: string, rows: Row[]): Promise<void> {
-    if (rows.length === 0) return;
-    // Every row of a table has the same keys; the first row names them.
-    const columns = Object.keys(rows[0] ?? {});
-    const assignments = columns.map((c) => `${c}: r.${c}`).join(', ');
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      await this.db.query(
-        `UNWIND $rows AS r CREATE (:${table} { ${assignments} })`,
-        { rows: rows.slice(i, i + BATCH_SIZE) },
-      );
-    }
+async function insert(
+  tx: Transaction,
+  table: string,
+  rows: Row[],
+): Promise<void> {
+  if (rows.length === 0) return;
+  // Every row of a table has the same keys; the first row names them.
+  const columns = Object.keys(rows[0] ?? {});
+  const assignments = columns.map((c) => `${c}: r.${c}`).join(', ');
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    await tx.query(`UNWIND $rows AS r CREATE (:${table} { ${assignments} })`, {
+      rows: rows.slice(i, i + BATCH_SIZE),
+    });
   }
 }
 

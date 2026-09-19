@@ -155,11 +155,24 @@ conventions for skills: the contracts' `.describe()` text (D4).
   errors.
 - **Search** is `GET /ui/search` and the `search-knowledge-graph` tool over a
   `SearchProvider[]` registry in `SearchService`.
-- **LadybugDB** is `@ladybugdb/core`, opened as `:memory:`. All access goes
-  through `DatabaseService.query()`, which returns fully materialised rows and
-  closes every `QueryResult` eagerly; the connection closes before the
-  database. It is a native module: the one `--external` of the bundle and the
-  one runtime `dependency` of the published package (with
+- **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:`, one
+  `Database` with two connections owned by `DatabaseService`: a **reader**
+  behind `query()` (auto-commit, one statement per call) and a dedicated
+  **writer** behind `transaction(fn)`, which serialises callers, wraps `fn` in
+  `BEGIN TRANSACTION` … `COMMIT` and rolls back on throw. Two connections
+  because a transaction's scope is the connection — on a shared one every
+  concurrent query joins the open transaction — and LadybugDB allows one
+  write transaction at a time while readers see the last committed
+  snapshot, so a rebuild swaps the graph atomically and a write outside
+  `transaction()` during one fails loudly rather than interleaving. Every
+  write (DDL included, which is transactional) goes through `transaction()`;
+  `query()` is for reads. Both connections keep a prepared-statement cache
+  keyed by the Cypher text (prepare once, execute many — 0.20.x's cached-plan
+  fast path), return fully materialised rows and close every `QueryResult`
+  eagerly. `init()` initialises the native handles eagerly and refuses a
+  second call; `close()` waits for in-flight work, then closes writer,
+  reader, database. It is a native module: the one `--external` of the bundle
+  and the one runtime `dependency` of the published package (with
   `trustedDependencies`, so its install script places the platform binary).
   Any future native or file-reading dependency follows the same pattern.
 - **`shutdown()` is idempotent**: a second signal must not start a second
