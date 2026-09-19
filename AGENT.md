@@ -91,6 +91,13 @@ Skills in `skills/`, contracts copy in `contracts/`, `.mcp.json` launching `${NO
 
 Keep comments to a minimum. Code should be readable and comprehensible on its own: clear names, small functions and explicit types carry the meaning, not prose beside them. Add a comment only for information that is not present in the code — the reason behind a non-obvious choice, an external constraint (a bun or LadybugDB quirk, a load-bearing build flag), a decision reference (`decision D3`). Never restate what a line does, and remove a comment that no longer says something the code cannot.
 
+Structure classes so the public surface reads as a sequence of steps (`NoesisDir` and `SessionDir` in `platform/files` are the reference):
+
+- **Public methods compose, private methods do.** A public method's body is a short sequence of calls to private methods, one per meaningful step, each named for what it achieves (`createDirectories()`, `excludeUnversionedDirsFromGit()`), not how. A public name must say what happens: `ensureInitialized()`, not `ensure()`.
+- **Instance or module.** A helper that needs `this` is a private method; one that does not is a plain function at the bottom of the module (`isInside`, `realpathIfExists`).
+- **Value objects for data with behaviour.** When a few helpers all work on the same value, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`, following `ChangeSlug`). Keep it unexported while one file uses it.
+- **No exceptions for control flow.** Prefer APIs that report absence (`Bun.file(path).exists()`) over catching `ENOENT`/`EEXIST`. Where only a throwing API exists, confine the catch to one helper that returns `null` or `boolean` and rethrows every other error code. A benign race is acceptable in exchange for plainer flow; say so in a one-line comment.
+
 ## Working conventions (decision D7)
 
 - **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. A subject starting `wip` skips the message rule and the format/lint checks (squash before `main`).
