@@ -46,7 +46,7 @@ export interface TestNoesis {
 export async function testNoesis(): Promise<TestNoesis> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-test-'));
   const noesis = new NoesisDir(root);
-  await noesis.ensure();
+  await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
   const topics = createTopicsStore(noesis);
   const decisions = createDecisionsStore(noesis);

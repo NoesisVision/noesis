@@ -25,7 +25,7 @@ let noesis: NoesisDir;
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'noesis-session-'));
   noesis = new NoesisDir(root);
-  await noesis.ensure();
+  await noesis.ensureInitialized();
 });
 
 afterEach(() => rm(root, { recursive: true, force: true }));

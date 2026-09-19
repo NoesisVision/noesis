@@ -69,7 +69,7 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
   agent and service; created at boot, deleted on clean shutdown, leftovers older
   than seven days swept), `logs/` (D10) and `sources/` (drop zone for
   transcripts, Markdown, PDFs a skill reads; the service neither reads nor
-  indexes it). `NoesisDir.ensure()` creates them and maintains
+  indexes it). `NoesisDir.ensureInitialized()` creates them and maintains
   `.noesis/.gitignore`. Everything under `graph/` is committed.
 - **`NoesisStore` is the only write path** (`server/backend/src/platform/files/`). A
   collection is a directory, a zod schema and named child collections; a handle

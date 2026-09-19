@@ -1,9 +1,9 @@
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const NOESIS_DIR_NAME = '.noesis';
-
 const UNVERSIONED_DIRS = ['tmp', 'logs'] as const;
+const GITIGNORE_LINES = UNVERSIONED_DIRS.map((dir) => `${dir}/`);
 
 export class NoesisDir {
   readonly root: string;
@@ -23,24 +23,55 @@ export class NoesisDir {
   }
 
   /** An existing `.gitignore` only gains the lines it lacks. */
-  async ensure(): Promise<void> {
+  async ensureInitialized(): Promise<void> {
+    await this.createDirectories();
+    await this.excludeUnversionedDirsFromGit();
+  }
+
+  private async createDirectories(): Promise<void> {
     await mkdir(this.path, { recursive: true });
     for (const dir of UNVERSIONED_DIRS) {
       await mkdir(this.resolve(dir), { recursive: true });
     }
-    const gitignore = this.resolve('.gitignore');
-    const wanted = UNVERSIONED_DIRS.map((dir) => `${dir}/`);
-    try {
-      await writeFile(gitignore, `${wanted.join('\n')}\n`, { flag: 'wx' });
-      return;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-    }
-    const existing = await readFile(gitignore, 'utf8');
-    const lines = new Set(existing.split(/\r?\n/).map((line) => line.trim()));
-    const missing = wanted.filter((line) => !lines.has(line));
-    if (missing.length === 0) return;
-    const separator = existing === '' || existing.endsWith('\n') ? '' : '\n';
-    await appendFile(gitignore, `${separator}${missing.join('\n')}\n`);
+  }
+
+  /** Sessions booting at once may both append; Git tolerates the duplicate lines. */
+  private async excludeUnversionedDirsFromGit(): Promise<void> {
+    const existing = await this.readGitignore();
+    const missing = MissingLines.of(GITIGNORE_LINES, existing);
+    if (missing.isEmpty) return;
+    await appendFile(this.gitignorePath, missing.appendableTo(existing));
+  }
+
+  private async readGitignore(): Promise<string> {
+    const file = Bun.file(this.gitignorePath);
+    return (await file.exists()) ? await file.text() : '';
+  }
+
+  private get gitignorePath(): string {
+    return this.resolve('.gitignore');
+  }
+}
+
+class MissingLines {
+  readonly lines: readonly string[];
+
+  private constructor(lines: readonly string[]) {
+    this.lines = lines;
+  }
+
+  static of(wanted: readonly string[], content: string): MissingLines {
+    const present = new Set(content.split(/\r?\n/).map((line) => line.trim()));
+    return new MissingLines(wanted.filter((line) => !present.has(line)));
+  }
+
+  get isEmpty(): boolean {
+    return this.lines.length === 0;
+  }
+
+  /** Starts on a fresh line even when `content` lacks a trailing newline. */
+  appendableTo(content: string): string {
+    const lineBreak = content === '' || content.endsWith('\n') ? '' : '\n';
+    return `${lineBreak}${this.lines.join('\n')}\n`;
   }
 }

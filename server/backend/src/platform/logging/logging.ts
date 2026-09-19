@@ -24,7 +24,7 @@ export function serverLogger(...segments: string[]): Logger {
 }
 
 export interface LoggingOptions {
-  /** Must already exist: created by `NoesisDir.ensure()`. */
+  /** Must already exist: created by `NoesisDir.ensureInitialized()`. */
   logDir: string;
   /** JSON on stderr when true, coloured text otherwise. */
   production: boolean;

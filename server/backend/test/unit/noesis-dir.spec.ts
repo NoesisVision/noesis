@@ -16,7 +16,7 @@ describe('NoesisDir', () => {
   it('creates .noesis/, tmp/, logs/ and a .gitignore covering both on first run', async () => {
     const noesis = new NoesisDir(root);
 
-    await noesis.ensure();
+    await noesis.ensureInitialized();
 
     expect(noesis.path).toBe(join(root, '.noesis'));
     expect(noesis.logDir).toBe(join(root, '.noesis', 'logs'));
@@ -29,10 +29,10 @@ describe('NoesisDir', () => {
 
   it('leaves a complete .gitignore alone', async () => {
     const noesis = new NoesisDir(root);
-    await noesis.ensure();
+    await noesis.ensureInitialized();
     await writeFile(noesis.resolve('.gitignore'), 'tmp/\nlogs/\nscratch/\n');
 
-    await noesis.ensure();
+    await noesis.ensureInitialized();
 
     expect(await readFile(noesis.resolve('.gitignore'), 'utf8')).toBe(
       'tmp/\nlogs/\nscratch/\n',
@@ -41,10 +41,10 @@ describe('NoesisDir', () => {
 
   it('adds the lines an older .gitignore lacks, keeping the rest', async () => {
     const noesis = new NoesisDir(root);
-    await noesis.ensure();
+    await noesis.ensureInitialized();
     await writeFile(noesis.resolve('.gitignore'), 'tmp/\nscratch/');
 
-    await noesis.ensure();
+    await noesis.ensureInitialized();
 
     expect(await readFile(noesis.resolve('.gitignore'), 'utf8')).toBe(
       'tmp/\nscratch/\nlogs/\n',

@@ -35,7 +35,7 @@ afterAll(() => db.close());
 async function syntheticNoesis(files: number): Promise<NoesisDir> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-bench-'));
   const noesis = new NoesisDir(root);
-  await noesis.ensure();
+  await noesis.ensureInitialized();
   const changes = new NoesisChangesRepository(noesis);
   const designDocs = (slug: ChangeSlug) =>
     changes.children(slug)['design-docs'];

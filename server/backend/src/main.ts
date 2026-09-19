@@ -41,7 +41,7 @@ import { ensureLadybugBinary } from './platform/native/ensure-ladybug';
 const config = loadServerConfig();
 
 const noesis = new NoesisDir(loadRepositoryRoot());
-await noesis.ensure();
+await noesis.ensureInitialized();
 const production = process.env.NODE_ENV === 'production';
 // Logging needs `.noesis/logs/`; failures before this point print and exit.
 await configureLogging({
