@@ -155,7 +155,7 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 | [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)                       |
 | [Oxlint](https://oxc.rs/docs/guide/usage/linter)                                                                  | Linting, type-aware through tsgolint; the backend's layer rules through eslint-plugin-boundaries (decision D3) |
 | [Oxfmt](https://oxc.rs/docs/guide/usage/formatter)                                                                | Formatting (TS/TSX/JS/JSON/CSS/Markdown), Prettier-compatible; sorts imports                                   |
-| Git hooks (`.githooks/`)                                                                                          | `pre-commit` runs oxfmt and oxlint on staged files; `commit-msg` enforces the commit convention                |
+| Git hooks (`.githooks/`)                                                                                          | `commit-msg` enforces the commit convention, then runs oxfmt and oxlint on staged files                        |
 | GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases                        |
 | [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                           |
 
@@ -197,7 +197,7 @@ Filter to one package: `bun run --filter=@noesis-vision/noesis build`. Package-l
 | `plugins/claude-code` | `bun run bump <version>`  | Bump plugin + service versions and the marketplace channel pin              |
 | `plugins/claude-code` | `bun run release:beta`    | Bump, generate, smoke-test the tarball, commit, tag, push                   |
 
-Commits follow Conventional Commits with the four types `feat`, `fix`, `improvement`, `chore` (decision D7); the `commit-msg` hook rejects anything else. `git commit -n` bypasses both hooks for a work-in-progress commit.
+Commits follow Conventional Commits with the four types `feat`, `fix`, `improvement`, `chore` (decision D7); the `commit-msg` hook rejects anything else. A work-in-progress commit starts its subject with `wip` to skip every check and is squashed before it reaches `main`.
 
 ### Configuration
 

@@ -1,7 +1,7 @@
 #!/bin/sh
-# Pre-commit: fast checks on staged files only (mirrors CI's format + lint jobs).
-# Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
-# script on `bun install`. Bypass for a work-in-progress commit: `git commit -n`.
+# Fast checks on staged files only (mirrors CI's format + lint jobs). Not a git
+# hook itself: commit-msg runs it, because only there is the message known and
+# a WIP commit can skip it. A pre-commit hook runs before the message exists.
 set -e
 
 # Hooks inherit the environment of whatever launched git, and a GUI client or an
@@ -13,9 +13,9 @@ if ! command -v bunx >/dev/null 2>&1; then
 fi
 
 if ! command -v bunx >/dev/null 2>&1; then
-  echo "pre-commit: bunx not found on PATH." >&2
+  echo "check-staged: bunx not found on PATH." >&2
   echo "  Install bun (https://bun.sh) or set BUN_INSTALL to its install dir." >&2
-  echo "  Skip these checks for one commit with: git commit -n" >&2
+  echo "  Skip these checks for one commit with a 'wip' subject or: git commit -n" >&2
   exit 1
 fi
 

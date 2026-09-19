@@ -1,8 +1,10 @@
 #!/bin/sh
 # Commit-msg: enforce the commit convention (decision D7) — Conventional
-# Commits v1.0.0 restricted to the types feat | fix | improvement | chore.
+# Commits v1.0.0 restricted to the types feat | fix | improvement | chore —
+# then run the staged-file checks in check-staged.
 # Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
-# script on `bun install`. Bypass for a work-in-progress commit: `git commit -n`.
+# script on `bun install`. A work-in-progress commit starts its subject with
+# `wip` and skips every check; `git commit -n` does the same for any message.
 
 # Strip comment lines the same way git will before recording the message.
 msg=$(git stripspace --strip-comments <"$1")
@@ -10,9 +12,9 @@ msg=$(git stripspace --strip-comments <"$1")
 
 subject=$(printf '%s\n' "$msg" | head -n 1)
 
-# Out of scope: merges, reverts, and autosquash commits keep git's own format.
+# WIP commits are meant to be squashed before they reach main.
 case "$subject" in
-"Merge "* | "Revert "* | "fixup! "* | "squash! "*) exit 0 ;;
+wip | "wip:"* | "wip "* | WIP | "WIP:"* | "WIP "*) exit 0 ;;
 esac
 
 fail() {
@@ -23,11 +25,19 @@ fail() {
   exit 1
 }
 
-printf '%s\n' "$subject" | grep -Eq '^(feat|fix|improvement|chore)(\([a-z0-9][a-z0-9-]*\))?!?: [^ ]' ||
-  fail "subject must be '<type>[(scope)][!]: <description>' with type feat, fix, improvement, or chore"
+# Merges, reverts, and autosquash commits keep git's own format.
+case "$subject" in
+"Merge "* | "Revert "* | "fixup! "* | "squash! "*) ;;
+*)
+  printf '%s\n' "$subject" | grep -Eq '^(feat|fix|improvement|chore)(\([a-z0-9][a-z0-9-]*\))?!?: [^ ]' ||
+    fail "subject must be '<type>[(scope)][!]: <description>' with type feat, fix, improvement, or chore"
 
-[ ${#subject} -le 72 ] || fail "subject exceeds 72 characters (${#subject})"
+  [ ${#subject} -le 72 ] || fail "subject exceeds 72 characters (${#subject})"
 
-# Body and footers, when present, are separated from the subject by a blank line.
-[ -z "$(printf '%s\n' "$msg" | sed -n '2p')" ] ||
-  fail "second line must be blank (separate subject from body with one blank line)"
+  # Body and footers, when present, are separated from the subject by a blank line.
+  [ -z "$(printf '%s\n' "$msg" | sed -n '2p')" ] ||
+    fail "second line must be blank (separate subject from body with one blank line)"
+  ;;
+esac
+
+exec "$(dirname "$0")/check-staged"

@@ -382,11 +382,16 @@ conventions for skills: the contracts' `.describe()` text (D4).
   deliberate duplicate export carries a `@alias` JSDoc tag; entry points
   Knip cannot discover (type-only tests, subprocess helpers) are listed in
   the config.
-- **Git hooks via `core.hooksPath`, no hook manager.** `.githooks/pre-commit`
-  runs `oxfmt --check` and `oxlint` on the staged files;
-  `.githooks/commit-msg` validates the subject. The root `prepare` script
-  activates them. Heavier checks are deliberately not hooked; `git commit -n`
-  is the WIP escape hatch.
+- **Git hooks via `core.hooksPath`, no hook manager.** One hook,
+  `.githooks/commit-msg`, validates the subject and then runs
+  `.githooks/check-staged` (`oxfmt --check` and `oxlint` on the staged
+  files). The root `prepare` script activates it. Heavier checks are
+  deliberately not hooked.
+- **WIP commits skip every check.** A subject starting `wip` (`wip`,
+  `wip: …`, `WIP …`) bypasses both the message rule and the staged-file
+  checks. The checks live in `commit-msg` rather than `pre-commit` for this:
+  `pre-commit` runs before the message exists. WIP commits are squashed
+  before they reach `main` — nothing enforces that yet.
 - **Commits follow Conventional Commits v1.0.0 with exactly four types:**
   `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged —
   subsumes refactor, perf, docs, tooling) and `chore` (recurring maintenance).
