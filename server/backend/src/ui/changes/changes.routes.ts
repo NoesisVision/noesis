@@ -7,7 +7,7 @@ import {
   type ChangesService,
   DuplicateChangeError,
 } from '#backend/app/changes/changes.service';
-import { CreateChangeSchema } from '#backend/shared/contracts';
+import { CreateChangeSchema } from '#backend/app/changes/model/change';
 
 export interface ChangesDeps {
   changesService: ChangesService;

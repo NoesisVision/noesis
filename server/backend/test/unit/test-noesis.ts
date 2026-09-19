@@ -17,10 +17,10 @@ import {
 } from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangesService } from '#backend/app/changes/changes.service';
+import type { Change } from '#backend/app/changes/model/change';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { NoesisStore } from '#backend/platform/files/noesis-store';
-import type { Change } from '#backend/shared/contracts';
 
 /**
  * A throwaway repository root with an ensured `.noesis/`, plus the stores

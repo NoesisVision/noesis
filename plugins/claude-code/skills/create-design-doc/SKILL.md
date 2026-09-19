@@ -11,12 +11,12 @@ mints its id, and stores it under the change.
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.ts` and
-  `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc-ref.ts`. Read them now, not from
+- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.ts` and
+  `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc-ref.ts`. Read them now, not from
   memory.
 - Meaning and the integrity rules the service enforces:
-  `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.md`.
-- A complete example: `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.fixture.ts`.
+  `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.md`.
+- A complete example: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.fixture.ts`.
 
 ## Steps
 

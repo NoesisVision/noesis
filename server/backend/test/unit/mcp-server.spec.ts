@@ -11,11 +11,11 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { ScannerService } from '#backend/adapters/scanner/scanner.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { conversationAnalysisFixture } from '#backend/app/information-sources/model/conversation-analysis.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import { contractNames } from '#backend/app/validation/contracts/registry';
 import { SessionDir } from '#backend/platform/files/session-dir';
-import { conversationAnalysisFixture } from '#backend/shared/contracts/conversation-analysis.fixture';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 import { textOf } from '../support/service-process';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
 

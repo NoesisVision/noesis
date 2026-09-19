@@ -3,7 +3,7 @@ import {
   DecisionContextSchema,
   DecisionOptionSchema,
   DecisionStatusSchema,
-} from '../decision';
+} from '../../wiki/model/decision';
 import { ConversationSchema } from './conversation';
 import { InformationFragmentRefSchema } from './information-fragment';
 

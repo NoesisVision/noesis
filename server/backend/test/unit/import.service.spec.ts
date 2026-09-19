@@ -5,12 +5,10 @@ import {
   InvalidImportError,
 } from '#backend/adapters/mcp/import.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ConversationAnalysis } from '#backend/app/information-sources/model/conversation-analysis';
+import { conversationAnalysisFixture } from '#backend/app/information-sources/model/conversation-analysis.fixture';
+import type { DocumentAnalysis } from '#backend/app/information-sources/model/document-analysis';
 import { sha256 } from '#backend/platform/crypto/content-hash';
-import type {
-  ConversationAnalysis,
-  DocumentAnalysis,
-} from '#backend/shared/contracts';
-import { conversationAnalysisFixture } from '#backend/shared/contracts/conversation-analysis.fixture';
 import { all, put, type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');

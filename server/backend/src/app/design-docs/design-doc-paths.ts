@@ -1,4 +1,5 @@
-import type { DesignDocument, ElementRef } from '#backend/shared/contracts';
+import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import type { ElementRef } from '#backend/app/design-docs/model/design-doc-ref';
 
 /*
  * Resolving element refs against a design document.

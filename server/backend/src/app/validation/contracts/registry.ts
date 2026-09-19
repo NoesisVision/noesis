@@ -1,20 +1,18 @@
+import { ChangeSchema } from '#backend/app/changes/model/change';
+import { ConversationSchema } from '#backend/app/information-sources/model/conversation';
+import { ConversationAnalysisSchema } from '#backend/app/information-sources/model/conversation-analysis';
+import { DocumentSchema } from '#backend/app/information-sources/model/document';
+import { DocumentAnalysisSchema } from '#backend/app/information-sources/model/document-analysis';
+import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
 import type { FileContract } from '#backend/app/validation/validator';
-import {
-  ChangeSchema,
-  ConversationAnalysisSchema,
-  ConversationSchema,
-  DecisionSchema,
-  DocumentAnalysisSchema,
-  DocumentSchema,
-  SystemModelSchema,
-  TopicSchema,
-} from '#backend/shared/contracts';
+import { DecisionSchema } from '#backend/app/wiki/model/decision';
+import { TopicSchema } from '#backend/app/wiki/model/topic';
 import { designDocumentContract } from './design-document';
 
 /**
  * Every file contract the agent can validate against, keyed by the name the
- * `validate` tool takes. A contract is the zod schema from the contracts
- * package plus, where the service has one, the whole-document check it runs
+ * `validate` tool takes. A contract is the zod schema from a feature's
+ * `model/` folder plus, where the service has one, the whole-document check it runs
  * on write — so what `validate` says and what a write rejects are the same.
  */
 export const contracts = {

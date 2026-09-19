@@ -21,6 +21,7 @@ import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
+import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import type { SearchService } from '#backend/app/search/search.service';
 import {
   contractNames,
@@ -35,7 +36,6 @@ import {
   validate,
 } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
-import type { DesignDocument } from '#backend/shared/contracts';
 import {
   DuplicateSourceError,
   type ImportReport,

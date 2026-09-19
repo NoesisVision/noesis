@@ -11,10 +11,10 @@ validates it, writes the files and re-indexes the graph.
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/conversation-analysis.ts`
+- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/conversation-analysis.ts`
   (and the files it imports beside it). Read it now, not from memory.
-- Meaning: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/information-sources.md`
-  and `${CLAUDE_PLUGIN_ROOT}/contracts/wiki.md`.
+- Meaning: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/information-sources.md`
+  and `${CLAUDE_PLUGIN_ROOT}/contracts/wiki/model/wiki.md`.
 - Conventions: `${CLAUDE_PLUGIN_ROOT}/contracts/conventions.md`.
 
 ## Steps

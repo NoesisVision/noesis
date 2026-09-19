@@ -1,5 +1,6 @@
-// The plugin's contracts/ directory is a build output: a copy of
-// server/backend/src/shared/contracts made by `bun run build` (decision D4).
+// The plugin's contracts/ directory is a build output: a copy of every
+// server/backend/src/app/<feature>/model/ folder made by `bun run build`
+// (decision D4).
 // Skills name a contract by this plugin-relative path, so the copy must hold
 // exactly the source files, carry the plugin version in its header, and be
 // byte-identical to the source below it. The copy is gitignored, so the test
@@ -30,7 +31,7 @@ describe('plugins/claude-code/contracts', () => {
     await copyContracts(copyDir);
   });
 
-  test('holds the README and exactly the contract files of server/backend/src/shared/contracts', async () => {
+  test('holds the README and exactly the model/ files of server/backend/src/app', async () => {
     const entries = (
       await readdir(copyDir, { recursive: true, withFileTypes: true })
     )

@@ -9,8 +9,8 @@ import {
   resolveRef,
   slotRef,
 } from '#backend/app/design-docs/design-doc-paths';
-import type { DesignDocument } from '#backend/shared/contracts';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 
 /**
  * Structured-clone the fixture so a mutation in one case cannot leak into the

@@ -7,7 +7,7 @@ import { useDisclosure } from '#/components/design-system/hooks';
 import { Menu } from '#/components/design-system/menu';
 import { Text } from '#/components/design-system/text';
 import { UnstyledButton } from '#/components/design-system/unstyled-button';
-import type { Change } from '#backend/shared/contracts/index.ts';
+import type { Change } from '#backend/app/changes/model/change.ts';
 import {
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,

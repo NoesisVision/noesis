@@ -22,12 +22,7 @@
     "boundaries/elements": [
       {
         "type": "contracts",
-        "pattern": "server/backend/src/shared/contracts/**",
-        "partialMatch": false
-      },
-      {
-        "type": "shared",
-        "pattern": "server/backend/src/shared/**",
+        "pattern": "server/backend/src/app/*/model/**",
         "partialMatch": false
       },
       {
@@ -70,8 +65,9 @@
           {
             "allow": { "to": { "module": { "origin": ["core", "external"] } } }
           },
-          // Contracts are declarative: zod and sibling contracts only, since
-          // the plugin copies them verbatim (decision D4).
+          // Contracts are the domain model in app/<feature>/model/, and
+          // declarative: zod and other contracts only, since the plugin
+          // copies them verbatim (decision D4).
           {
             "from": { "element": { "type": "contracts" } },
             "disallow": {
@@ -88,18 +84,12 @@
             "from": { "element": { "type": "contracts" } },
             "allow": { "to": { "element": { "type": "contracts" } } }
           },
-          {
-            "from": { "element": { "type": "shared" } },
-            "allow": {
-              "to": { "element": { "type": ["shared", "contracts"] } }
-            }
-          },
           // platform is generic plumbing; it knows nothing of the layers above.
           {
             "from": { "element": { "type": "platform" } },
             "allow": {
               "to": {
-                "element": { "type": ["platform", "shared", "contracts"] }
+                "element": { "type": ["platform"] }
               }
             }
           },
@@ -108,7 +98,7 @@
           {
             "from": { "element": { "type": "app" } },
             "allow": {
-              "to": { "element": { "type": ["app", "shared", "contracts"] } }
+              "to": { "element": { "type": ["app", "contracts"] } }
             }
           },
           {
@@ -116,7 +106,7 @@
             "allow": {
               "to": {
                 "element": {
-                  "type": ["adapters", "app", "platform", "shared", "contracts"]
+                  "type": ["adapters", "app", "platform", "contracts"]
                 }
               }
             }
@@ -126,7 +116,7 @@
             "allow": {
               "to": {
                 "element": {
-                  "type": ["ui", "app", "platform", "shared", "contracts"]
+                  "type": ["ui", "app", "platform", "contracts"]
                 }
               }
             }
@@ -143,7 +133,6 @@
                     "adapters",
                     "app",
                     "platform",
-                    "shared",
                     "contracts"
                   ]
                 }

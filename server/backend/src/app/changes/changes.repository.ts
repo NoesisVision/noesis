@@ -1,4 +1,4 @@
-import type { Change } from '#backend/shared/contracts';
+import type { Change } from '#backend/app/changes/model/change';
 import type { ChangeSlug } from './change-slug';
 
 /**

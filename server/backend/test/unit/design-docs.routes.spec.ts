@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
 

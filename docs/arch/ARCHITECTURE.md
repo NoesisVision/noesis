@@ -193,7 +193,7 @@ request, and a merge conflict lands in one entity rather than across the whole m
 ## Schema contracts
 
 Every knowledge graph file has a shape, and the agent authoring that file needs to know it. The
-shapes are defined once, as Zod schemas under `server/backend/src/shared/contracts/`, and that definition is the only
+shapes are defined once, as Zod schemas under `server/backend/src/app/<feature>/model/`, and that definition is the only
 one — there is no second copy written in prose, and no generated mirror to keep in step.
 
 **The agent reads the contract source from the plugin.** A skill names the contract it needs by a

@@ -77,17 +77,20 @@ src/
   bundle-cwd.ts       moves cwd to the bundle before start (the built bin resolves its
                       asset manifest against cwd, and bunx launches it from the project)
   app.ts              the Hono app: /ui and /internal
-  app/                the core: services and the ports they need; imports shared only
+  app/                the core: the domain model, services and the ports they need;
+                      imports no other layer
+    */model/          the domain model as zod file contracts (decision D4): every
+                      .noesis/ file shape and import payload, declarative, copied
+                      verbatim into the plugin
     changes/          ChangesService, the change slug, the ChangesRepository port
     design-docs/      DesignDocsService, the DesignDocsRepository port, integrity checks
+    information-sources/  imported conversations and documents (model only)
+    wiki/             topics and decisions (model only)
+    system-model/     the scanned implementation model (model only)
     search/           SearchService and its SearchProvider port
     validation/       the actionable problem list and the file-contract registry that
                       the validate tool, the ui routes and the MCP tools run
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
-  shared/
-    contracts/        the zod file contracts (decision D4): every .noesis/ file shape and
-                      import payload, declarative, copied verbatim into the plugin
-    vo/               value objects: the ids the service mints (UUIDv7, content hashes)
   platform/
     config/           env parsing (zod)
     logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context
@@ -109,39 +112,43 @@ test/
 
 The layers are checked by `bun run lint` (Oxlint with
 eslint-plugin-boundaries; rules and their reasons in the root `.oxlintrc.json`;
-decision D3): `shared` imports no
-other layer, `platform` only `shared`, `app` only `shared`; `adapters` and
+decision D3): `platform` and `app` import no other layer, and the contracts
+in `app/*/model/` import only zod and each other; `adapters` and
 `ui` build on `app` and `platform` but not on each other; nothing imports the
 composition root. A new need of `app` on files or the database is a port in
 `app` with its implementation in `adapters`.
 
 ## Contracts
 
-`src/shared/contracts` holds the knowledge graph **file contracts**: every
-shape a file under `.noesis/` can have, plus the payloads the import tools
-take, as [zod](https://zod.dev/) schemas with inferred types (decision D4).
-They are read three ways: the service imports them and validates twice (the
-`validate` tool, then the write boundary); the plugin copies the directory
-verbatim into `plugins/claude-code/contracts/` at build time for the agent
-to read as source; the frontend takes payload types from them, type-only,
-through its `#backend/*` alias.
+The domain model is the knowledge graph **file contracts**: every shape a
+file under `.noesis/` can have, plus the payloads the import tools take, as
+[zod](https://zod.dev/) schemas whose inferred types are the entities the
+services work with (decision D4). Each feature keeps its own in
+`src/app/<feature>/model/`; `app` depends on zod by design. They are read
+three ways: the service imports them and validates twice (the `validate`
+tool, then the write boundary); the plugin copies every `model/` folder
+verbatim, layout kept, into `plugins/claude-code/contracts/` at build time
+for the agent to read as source; the frontend takes payload types from
+them, type-only, through its `#backend/*` alias. Consumers import the
+contract file directly (`#backend/app/changes/model/change`); there is no
+barrel.
 
 The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
-and sibling contract files. The plugin's tests assert that. Whole-document
+and other contract files, always relative. The plugin's tests assert that. Whole-document
 rules a schema cannot express live in `src/app/validation/contracts`,
 whose registry maps the `validate` tool's contract names to these schemas.
 
-| Files                                                                                     | What they shape                                                                               |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `locked.ts`                                                                               | `*_locked` markers: a person edited the field                                                 |
-| `change.ts`                                                                               | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to       |
-| `information-sources/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | Imported conversations and documents, their fragments and categories, and the import payloads |
-| `topic.ts`, `decision.ts`                                                                 | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate                        |
-| `design-doc.ts`, `design-doc-ref.ts`                                                      | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs             |
-| `system-model.ts`                                                                         | `graph/system-model/` — the implemented model the scanner writes                              |
+| Files under `src/app/`                                                                          | What they shape                                                                               |
+| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `changes/model/change.ts`                                                                       | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to       |
+| `information-sources/model/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | Imported conversations and documents, their fragments and categories, and the import payloads |
+| `wiki/model/topic.ts`, `decision.ts`                                                            | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate                        |
+| `wiki/model/locked.ts`                                                                          | `*_locked` markers: a person edited the field                                                 |
+| `design-docs/model/design-doc.ts`, `design-doc-ref.ts`                                          | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs             |
+| `system-model/model/system-model.ts`                                                            | `graph/system-model/` — the implemented model the scanner writes                              |
 
-`index.ts` re-exports every schema; `*.fixture.ts` files are the examples
+`*.fixture.ts` files are the examples
 the tests and the plugin copy share. Specs live in `test/unit/contracts-*`.
 To change a contract: edit the schema (describe every field, keep it
 declarative), put any whole-document rule in the registry, and rebuild the
@@ -151,8 +158,8 @@ plugin; nothing else is generated or committed.
 
 The package ships `dist/` alone: the self-contained `main.js` bin plus the
 SPA's `index.html` and hashed assets, built at pack time by `prepack`. It
-carries no readable contracts copy — the service imports
-`src/shared/contracts` and `bun build` inlines the schemas; the plugin's
+carries no readable contracts copy — the service imports its
+`src/app/*/model/` contracts and `bun build` inlines the schemas; the plugin's
 `contracts/` is the one copy the agent reads (decision D4). Its only
 runtime dependency is the native `@ladybugdb/core`; workspace deps
 (`@repo/*`) never leak into the published manifest because `bun pm pack`

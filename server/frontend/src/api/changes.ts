@@ -4,7 +4,10 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import type { Change, CreateChange } from '#backend/shared/contracts/index.ts';
+import type {
+  Change,
+  CreateChange,
+} from '#backend/app/changes/model/change.ts';
 import { ApiError, api } from './client';
 
 /** Where a change failed to be created, as the service reports it. */

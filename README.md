@@ -88,10 +88,10 @@ two processes over the same files, last write wins.
 
 ### Contracts — the shapes the agent reads and the service enforces
 
-All contracts are [zod](https://zod.dev/) schemas with inferred TS types in `server/backend/src/shared/contracts`, consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and sibling files), so the agent reads the source directly (decision D4):
+All contracts are [zod](https://zod.dev/) schemas with inferred TS types, and those types are the service's domain model: each feature keeps its own in `server/backend/src/app/<feature>/model/`, consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and other contract files), so the agent reads the source directly (decision D4):
 
 ```
-server/backend/src/shared/contracts   every knowledge graph file shape + import payloads
+server/backend/src/app/*/model   every knowledge graph file shape + import payloads
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
      ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
@@ -114,7 +114,7 @@ its Hono route tree inferable, so the frontend can type its calls with Hono's
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
 - **`skills/`** — the knowledge-management skills (`import-conversation`, `import-document`, `create-design-doc`, `update-design-doc`, `search-knowledge-graph`) and the implementation skill (`implement-design-doc`); each names the contract it needs by a path under `contracts/`
-- **`contracts/`** — the contract sources, **copied** from `server/backend/src/shared/contracts` by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
+- **`contracts/`** — the contract sources, **copied** from `server/backend/src/app/*/model/` (layout kept) by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
 - **`tools/`** — dev/build tooling (copy-contracts, stamp-plugin-version, bump-version, release-beta); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}` (pin stamped by `bun run generate`; the two variables point a checkout at the service source, decision D6) with `NOESIS_ROOT` set to the project directory
 
@@ -216,7 +216,7 @@ register and nothing to authenticate against (decision D1).
 
 ### Working with contracts
 
-1. Add/edit a zod schema in `server/backend/src/shared/contracts`: describe every field and keep it declarative.
+1. Add/edit a zod schema in the owning feature's `server/backend/src/app/<feature>/model/`: describe every field and keep it declarative.
 2. For a file the `validate` tool should accept, register it in `server/backend/src/app/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 

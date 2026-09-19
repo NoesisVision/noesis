@@ -47,7 +47,8 @@ a write accepts.
 - `contracts/` — the contract sources every knowledge graph file and import
   payload must satisfy, as zod `.ts` the model reads directly. A build
   output:
-  copied from `server/backend/src/shared/contracts` by `bun run build` (which
+  copied from the service's `server/backend/src/app/<feature>/model/`
+  folders, layout kept, by `bun run build` (which
   `bun pm pack` runs as `prepack`), stamped with the plugin version, and
   asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full

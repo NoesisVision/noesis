@@ -11,9 +11,9 @@ stores it.
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.ts` and
-  `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc-ref.ts`.
-- Meaning and the integrity rules: `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.md`.
+- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.ts` and
+  `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc-ref.ts`.
+- Meaning and the integrity rules: `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.md`.
 
 ## Steps
 

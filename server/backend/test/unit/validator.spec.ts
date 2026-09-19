@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { designDocumentContract } from '#backend/app/validation/contracts/design-document';
 import {
   type FileContract,
@@ -7,7 +8,6 @@ import {
   ISSUE_CAP,
   validate,
 } from '#backend/app/validation/validator';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 const schema = z.strictObject({
   name: z.string(),

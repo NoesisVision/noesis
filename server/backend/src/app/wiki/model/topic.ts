@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { InformationFragmentRefSchema } from './information-sources/information-fragment';
+import { InformationFragmentRefSchema } from '../../information-sources/model/information-fragment';
 import { Locked } from './locked';
 
 /*

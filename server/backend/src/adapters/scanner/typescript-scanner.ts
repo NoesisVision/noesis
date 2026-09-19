@@ -1,14 +1,14 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, sep } from 'node:path';
-import { contentHashAsUuid } from '#backend/platform/crypto/content-hash';
+import type { DesignedBuildingBlockType } from '#backend/app/design-docs/model/design-doc';
 import type {
-  DesignedBuildingBlockType,
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
   SystemModel,
-} from '#backend/shared/contracts';
+} from '#backend/app/system-model/model/system-model';
+import { contentHashAsUuid } from '#backend/platform/crypto/content-hash';
 
 /*
  * The TypeScript scanner: reads a checkout and projects what it finds into

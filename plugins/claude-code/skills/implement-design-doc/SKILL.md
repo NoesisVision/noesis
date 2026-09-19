@@ -13,7 +13,7 @@ names — is the vocabulary of the code.
 
 1. **Find the document.** Call `list-changes`, then `list-design-docs` for
    the change, and read the document from its path. Read
-   `${CLAUDE_PLUGIN_ROOT}/contracts/design-doc.md` for what each section
+   `${CLAUDE_PLUGIN_ROOT}/contracts/design-docs/model/design-doc.md` for what each section
    means if it is not obvious.
 2. **Map the design onto the code.** Call `scan-system-model`, then for each
    building block find where it lives or should live: the

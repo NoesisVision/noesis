@@ -3,9 +3,9 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { isIgnored, NoesisWatcher } from '#backend/platform/files/watcher';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 

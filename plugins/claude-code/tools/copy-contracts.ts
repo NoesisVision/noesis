@@ -1,27 +1,28 @@
-// Copies the contract sources (server/backend/src/shared/contracts)
-// into the plugin's contracts/ directory, each file stamped with a header
-// naming the plugin version it ships in. Run by `bun run build` (also
-// `prepack`); the directory is gitignored except for its README. Skills name
-// contracts by a plugin-relative path, and the packed tarball carries the
-// copy. The service itself imports the contracts and bundles them into its
+// Copies the contract sources (every server/backend/src/app/<feature>/model/
+// folder, keeping the app-relative layout so the contracts' relative imports
+// still resolve) into the plugin's contracts/ directory, each file stamped
+// with a header naming the plugin version it ships in. Run by `bun run build`
+// (also `prepack`); the directory is gitignored except for its README. Skills
+// name contracts by a plugin-relative path, and the packed tarball carries
+// the copy. The service itself imports the contracts and bundles them into its
 // executable; it ships no readable copy (decision D4).
 //
 // The copy is byte-identical to the source below the header; the plugin's
 // test asserts that. `.ts` sources are shipped deliberately: compiled output
 // would keep the types and lose the `.describe()` text (decision D4).
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const CONTRACTS_SOURCE = fileURLToPath(
-  new URL('../../../server/backend/src/shared/contracts/', import.meta.url),
+  new URL('../../../server/backend/src/app/', import.meta.url),
 );
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
 
 /** The header a copied file starts with; the rest is the source, byte for byte. */
 export function contractHeader(relativePath: string, version: string): string {
-  const text = `Copied from server/backend/src/shared/contracts/${relativePath} by @noesis-vision/claude-code-plugin ${version}. Do not edit: run \`bun run build\`.`;
+  const text = `Copied from server/backend/src/app/${relativePath} by @noesis-vision/claude-code-plugin ${version}. Do not edit: run \`bun run build\`.`;
   return relativePath.endsWith('.md')
     ? `<!-- ${text} -->\n\n`
     : `// ${text}\n\n`;
@@ -30,14 +31,16 @@ export function contractHeader(relativePath: string, version: string): string {
 /** The one file a destination may hold that is not a copy. */
 export const DESTINATION_README = 'README.md';
 
+/** A `.ts` or `.md` file under a feature's `model/` folder, not a spec. */
 export function isContractFile(relativePath: string): boolean {
   return (
+    relativePath.split(sep)[1] === 'model' &&
     (relativePath.endsWith('.ts') || relativePath.endsWith('.md')) &&
     !relativePath.endsWith('.spec.ts')
   );
 }
 
-/** Every contract file, as paths relative to the source directory, sorted. */
+/** Every contract file, as paths relative to `src/app/`, sorted. */
 export async function listContractFiles(): Promise<string[]> {
   const entries = await readdir(CONTRACTS_SOURCE, {
     recursive: true,

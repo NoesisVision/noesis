@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { dataFileOf } from '#backend/platform/files/noesis-store';
-import type { DesignDocument } from '#backend/shared/contracts';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { put, type TestNoesis, testNoesis } from './test-noesis';
 

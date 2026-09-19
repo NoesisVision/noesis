@@ -1,6 +1,10 @@
 import { join } from 'node:path';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
+import { type Change, ChangeSchema } from '#backend/app/changes/model/change';
+import { DesignDocumentSchema } from '#backend/app/design-docs/model/design-doc';
+import { ConversationSchema } from '#backend/app/information-sources/model/conversation';
+import { DocumentSchema } from '#backend/app/information-sources/model/document';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type {
@@ -8,13 +12,6 @@ import type {
   NoesisStoreOf,
 } from '#backend/platform/files/noesis-store';
 import { serverLogger } from '#backend/platform/logging/logging';
-import {
-  type Change,
-  ChangeSchema,
-  ConversationSchema,
-  DesignDocumentSchema,
-  DocumentSchema,
-} from '#backend/shared/contracts';
 
 const log = serverLogger('changes');
 

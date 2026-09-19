@@ -4,7 +4,7 @@ The ten decisions in force, D1–D10. Everything here describes the tree as it
 is; if this file and the code disagree, that is a bug in one of them — say so
 rather than picking one silently.
 
-_Last updated: 2026-09-18, checked against the code on that date._
+_Last updated: 2026-09-19, checked against the code on that date._
 
 **How to use this file**
 
@@ -109,10 +109,13 @@ conventions for skills: the contracts' `.describe()` text (D4).
   lifecycle). Surfaces are factory functions taking narrow deps interfaces.
 - **Layers under `src/`, enforced by Oxlint** (`bun run lint`, through
   eslint-plugin-boundaries and `import/no-cycle`; rules in the root
-  `.oxlintrc.json`): `shared` (contracts) imports no other layer;
-  `platform` (files, database, logging, crypto) imports `shared` only; `app` is the core — services, the contract
-  registry, and the ports they need (`ChangesRepository`,
-  `DesignDocsRepository`, `SearchProvider`) — and imports `shared` only;
+  `.oxlintrc.json`): `platform` (files, database, logging, crypto) imports
+  no other layer; `app` is the core — the domain model (the contracts in
+  `app/<feature>/model/`, D4), services, the contract registry, and the
+  ports they need (`ChangesRepository`, `DesignDocsRepository`,
+  `SearchProvider`) — and imports no other layer, zod being a dependency
+  of `app` by design; the `model/` folders are their own lint element and
+  import only zod and each other;
   `adapters` implement those ports over `platform` (`store/` over
   `NoesisStore`, `graph/` over LadybugDB) or drive `app` (`mcp/`,
   `scanner/`); `ui` drives `app`. `adapters` and `ui` never import each other,
@@ -122,8 +125,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
   (`#backend/app/changes/changes.service`, tests too), relative only within a
   directory. The alias is a tsconfig `paths` entry mapping to `src/*`, and the
   frontend maps the same name to the same files, so backend source resolves
-  alike in both programs. Contracts keep relative imports throughout: the
-  plugin ships them as a standalone copy (D4).
+  alike in both programs. Consumers import a contract file directly
+  (`#backend/app/changes/model/change`); there is no contracts barrel.
+  Contracts keep relative imports among themselves: the plugin ships them
+  as a standalone copy (D4).
 - **Routes are segregated by consumer:** `/ui/*` (the SPA) and `/internal/*`
   (health and technical endpoints). The agent does not use HTTP — it reaches the
   same services over MCP on stdio. Surface routes win over the SPA's `/*` route, so a surface 404 is
@@ -165,24 +170,31 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - Test layout: `test/unit`, `test/integration`, `test/e2e`, `test/bench` in
   apps; contract specs are `test/unit/contracts-*.spec.ts`.
 
-## D4. Contracts: declarative zod in the service's `src/shared/contracts`, shipped to the agent as source
+## D4. Contracts: the domain model as declarative zod in `src/app/<feature>/model/`, shipped to the agent as source
 
-- **All contracts are zod v4 schemas with inferred types** in
-  `server/backend/src/shared/contracts`, consumed as TypeScript source (no
-  build step, no workspace package). The service imports them relatively; the
-  frontend type-only through its `#backend/*` alias; the plugin copies the
-  directory. Runtime helpers never go inside `contracts/`, so the directory
-  stays declarative and the plugin copy stays free of runtime code: time-ordered
+- **All contracts are zod v4 schemas with inferred types, and those types
+  are the domain model.** `Change`, `DesignDocument`, `Topic`, … are the
+  entities the services take; there is no second, hand-written entity type.
+  Each feature owns its contracts in `server/backend/src/app/<feature>/model/`
+  (`changes`, `design-docs`, `information-sources`, `wiki`, `system-model`),
+  consumed as TypeScript source (no build step, no workspace package). The
+  service imports them by file; the frontend type-only through its
+  `#backend/*` alias; the plugin copies every `model/` folder. Runtime
+  helpers never go inside `model/`, so it stays declarative and the plugin
+  copy stays free of runtime code: time-ordered
   ids come straight from the `uuid` package (`v7`), content-hash ids from
   `src/platform/crypto/content-hash.ts`.
 - **Contracts are declarative on purpose:** object shapes, enums, `.describe()`
-  text; no refinements, no transforms, no imports beyond zod and sibling files.
+  text; no refinements, no transforms, no imports beyond zod and other
+  contract files (relative, also across features).
   The agent reads the `.ts` source directly; what a shape cannot say goes in
   `.describe()` text. Whole-document rules live in the service's registry
   (`src/app/validation/contracts`).
 - **The plugin's `contracts/` is the one readable copy, and it is a build
-  output.** `plugins/claude-code/tools/copy-contracts.ts` copies
-  `server/backend/src/shared/contracts` with a header naming the plugin version;
+  output.** `plugins/claude-code/tools/copy-contracts.ts` copies every
+  `server/backend/src/app/<feature>/model/` folder, keeping the path relative
+  to `src/app/` so cross-feature relative imports still resolve, with a
+  header naming the plugin version;
   `bun run build` / `prepack` runs it; the directory is gitignored except its
   README. The plugin's tests assert byte-identity with the source and
   declarativeness; the tarball test asserts the copy is packed. Skills name a
@@ -238,7 +250,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `server/backend/src/app.types.ts` (the `/ui` route tree only) via the
   `#backend/*` import alias, as a **type-only** import: the frontend never
   imports backend runtime code. Payload types come from
-  `#backend/shared/contracts` the same way. The client's fetch wrapper mints `x-request-id`
+  the contract files under `#backend/app/<feature>/model/` the same way. The client's fetch wrapper mints `x-request-id`
   (D10) and raises `ApiError` carrying the service's `{ error }` text.
 - **TypeScript: one config per runtime** (the create-vite layout), checked
   with `tsc -b`: `tsconfig.app.json` (`src`, `vite/client` types only — no

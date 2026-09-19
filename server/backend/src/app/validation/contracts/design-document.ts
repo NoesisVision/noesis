@@ -2,15 +2,15 @@ import {
   checkDesignDocument,
   type DesignDocIssue,
 } from '#backend/app/design-docs/design-doc-integrity';
+import {
+  type DesignDocument,
+  DesignDocumentSchema,
+} from '#backend/app/design-docs/model/design-doc';
+import type { ElementRef } from '#backend/app/design-docs/model/design-doc-ref';
 import type {
   FileContract,
   ValidationIssue,
 } from '#backend/app/validation/validator';
-import {
-  type DesignDocument,
-  DesignDocumentSchema,
-  type ElementRef,
-} from '#backend/shared/contracts';
 
 /**
  * A design document as a whole file: decision D4's boundary pipeline

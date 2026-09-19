@@ -1,7 +1,7 @@
 import type {
   ChangeStatus,
   ChangeType,
-} from '#backend/shared/contracts/index.ts';
+} from '#backend/app/changes/model/change.ts';
 
 /** How each lifecycle status reads in the picker and future lists. */
 export const CHANGE_STATUS_META: Record<

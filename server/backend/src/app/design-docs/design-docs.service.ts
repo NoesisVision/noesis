@@ -1,8 +1,8 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocument } from '#backend/shared/contracts';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 /** What a design document looks like in a list, without its content. */

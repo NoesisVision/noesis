@@ -7,23 +7,23 @@ import type {
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import {
+  type AnalyzedTopic,
+  ConversationAnalysisSchema,
+} from '#backend/app/information-sources/model/conversation-analysis';
+import { DocumentAnalysisSchema } from '#backend/app/information-sources/model/document-analysis';
+import type { InformationFragmentRef } from '#backend/app/information-sources/model/information-fragment';
+import {
   type FileContract,
   type ValidationIssue,
   validate,
 } from '#backend/app/validation/validator';
+import type { Decision } from '#backend/app/wiki/model/decision';
+import type { Topic } from '#backend/app/wiki/model/topic';
 import {
   contentHashAsUuid,
   sha256,
 } from '#backend/platform/crypto/content-hash';
 import { dataFileOf } from '#backend/platform/files/noesis-store';
-import {
-  type AnalyzedTopic,
-  ConversationAnalysisSchema,
-  type Decision,
-  DocumentAnalysisSchema,
-  type InformationFragmentRef,
-  type Topic,
-} from '#backend/shared/contracts';
 
 export interface ImportDeps {
   changes: ChangesService;

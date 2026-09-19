@@ -1,6 +1,7 @@
+import { DecisionSchema } from '#backend/app/wiki/model/decision';
+import { TopicSchema } from '#backend/app/wiki/model/topic';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { DecisionSchema, TopicSchema } from '#backend/shared/contracts';
 
 /**
  * The wiki: `.noesis/graph/wiki/topics/` and `.noesis/graph/wiki/decisions/`,

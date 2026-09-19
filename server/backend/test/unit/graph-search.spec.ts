@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createGraphSearch } from '#backend/adapters/graph/graph-search';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import type { DatabaseService } from '#backend/platform/database/database.service';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { put, type TestNoesis, testNoesis } from './test-noesis';
 

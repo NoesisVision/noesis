@@ -5,7 +5,7 @@ import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');

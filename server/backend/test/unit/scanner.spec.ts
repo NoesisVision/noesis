@@ -7,8 +7,8 @@ import {
   findUnits,
   typeOf,
 } from '#backend/adapters/scanner/typescript-scanner';
+import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
 import { dataFileOf } from '#backend/platform/files/noesis-store';
-import { SystemModelSchema } from '#backend/shared/contracts';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;

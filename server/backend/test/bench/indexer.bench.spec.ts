@@ -15,10 +15,10 @@ import {
   createTopicsStore,
 } from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { DatabaseService } from '#backend/platform/database/database.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { dataFileOf } from '#backend/platform/files/noesis-store';
-import { designDocFixture } from '#backend/shared/contracts/design-doc.fixture';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;

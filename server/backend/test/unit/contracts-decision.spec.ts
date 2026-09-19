@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { DecisionSchema } from '#backend/shared/contracts/decision';
+import { DecisionSchema } from '#backend/app/wiki/model/decision';
 
 describe('DecisionSchema', () => {
   const minimal = {

@@ -1,8 +1,8 @@
 import type {
   DesignDocument,
   DesignedScenario,
-  ElementRef,
-} from '#backend/shared/contracts';
+} from '#backend/app/design-docs/model/design-doc';
+import type { ElementRef } from '#backend/app/design-docs/model/design-doc-ref';
 import {
   elementRef,
   type ModelPath,
