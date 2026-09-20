@@ -1,5 +1,5 @@
 import type { ChildProcess } from 'node:child_process';
-import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import type { Client } from '@modelcontextprotocol/client';
 
 // A throwaway repository root, so the run writes no `.noesis/` into the
 // checkout.

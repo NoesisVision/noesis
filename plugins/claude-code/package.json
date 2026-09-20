@@ -2,7 +2,7 @@
   "name": "@noesis-vision/claude-code-plugin",
   "version": "0.1.0-beta.4",
   "private": false,
-  "description": "Noesis Claude Code plugin — knowledge-management skills and the contract sources they read",
+  "description": "Noesis Claude Code plugin — the contract sources an agent reads and the launch config for the Noesis service",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,8 +12,7 @@
   "files": [
     ".claude-plugin/plugin.json",
     ".mcp.json",
-    "contracts",
-    "skills"
+    "contracts"
   ],
   "publishConfig": {
     "access": "public"
@@ -30,7 +29,7 @@
     "prepublishOnly": "bun run generate"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/client": "2.0.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:"

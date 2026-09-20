@@ -23,17 +23,18 @@ own machine inside one checkout (decision D1).
 
 ## Entry points
 
-- **MCP on stdio** (`src/adapters/mcp`): thin tools, one service call each —
-  `list-changes`, `list-design-docs`, `create-design-doc`,
-  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
-  take paths, not content: the agent writes a working file to the session's
-  scratch directory (`.noesis/tmp/<session>/`, named in the server's
-  `instructions`) and passes the path. There is no separate validating tool:
-  a tool that reads a working file checks it against its contract from
-  `src/app/validation/contracts` and rejects it with the actionable issue
-  list, having written nothing.
-  Design documents are written this way only: the `/ui` surface reads and
-  deletes them, and never creates one (decision D3).
+- **MCP on stdio** (`src/adapters/mcp`): the v2 SDK's `McpServer`
+  (`@modelcontextprotocol/server`), one module per tool under `tools/`, each
+  declaring its input and output schemas and making one service call —
+  `create_change`, `add_document_to_change`. `main.ts` serves it with
+  `serveStdio`, which negotiates the 2026-07-28 revision and still serves
+  2025-era hosts. Tools take paths, not content: the agent writes a working
+  file to the session's scratch directory (`.noesis/tmp/<session>/`, named in
+  the tool's `path` parameter — not in `instructions`, which the SDK's
+  throwaway era probe answers) and passes the path. There is no separate
+  validating tool: a tool that reads a working file checks it against its
+  contract from `src/app/validation/contracts` and rejects it with the
+  actionable issue list, having written nothing (decision D3).
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles
@@ -92,7 +93,7 @@ src/
     validation/       the actionable problem list and the file contracts the ui
                       routes and the MCP tools check writes against
   ui/                 the HTTP surfaces: /ui/* route apps and /internal (health);
-                      design-docs is read and delete only, the agent authors them
+                      design-docs is read and delete only, never an authoring path
   platform/
     config/           env parsing (zod)
     logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context
@@ -106,8 +107,8 @@ src/
                       store
     graph/            the graph schema, the index service (files → graph at boot and
                       on change) and the graph search provider
-    mcp/              the MCP server behind the tools
-    scanner/          the TypeScript source scanner behind scan-system-model
+    mcp/              the MCP server, its tools and their working-file reader
+    scanner/          the TypeScript source scanner, no tool in front of it yet
 test/
   unit/ e2e/ bench/
 ```

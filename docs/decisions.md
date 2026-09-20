@@ -138,10 +138,53 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - **Keep the `.route()` chains unbroken** in `app.ts` and `ui.routes.ts`: Hono
   infers the route tree from the expression, and the frontend's typed client
   depends on it (D5).
+- **The MCP surface is the v2 SDK's `McpServer`.** v2 is the split-package
+  release line — `@modelcontextprotocol/server` (and
+  `@modelcontextprotocol/client` for the tests); the monolithic
+  `@modelcontextprotocol/sdk` stopped at 1.30.0 and is not a dependency.
+  `adapters/mcp/mcp-server.ts` composes the server and one module per tool
+  under `adapters/mcp/tools/` registers itself. A tool declares a title, a
+  description, a zod `inputSchema` and a zod `outputSchema` — the domain
+  contract itself wherever one fits — and its behavioural annotations, and
+  answers with `structuredContent` that the SDK checks against that output
+  schema. Tool names are snake_case. Current tools: `create_change`,
+  `add_document_to_change`; the surface was rebuilt down to these two and
+  grows back one tool at a time.
+- **stdio is served by `serveStdio(factory)`** from
+  `@modelcontextprotocol/server/stdio`, not by connecting a
+  `StdioServerTransport` by hand: only that entry serves the **2026-07-28**
+  revision, and it serves the 2025 era from the same factory for hosts that
+  have not adopted it. The opening exchange picks the era and pins one server
+  instance to the connection. `test/e2e/mcp.e2e.spec.ts` exercises both eras
+  against the real process, because a linked `InMemoryTransport` pair — what
+  the unit spec uses — reaches the 2025 era only.
+- **`instructions` carry nothing process-specific.** On a modern stdio
+  connection the SDK probes the protocol era with a **throwaway sibling
+  process** spawned from the same command, and the client keeps that
+  process's `instructions`; the process that goes on to serve never sees the
+  probe. A session path named in `instructions` is therefore already deleted
+  when the agent reads it. Instructions name the repository root and
+  `.noesis/tmp/`; the live session directory is named in each tool's `path`
+  parameter description, which `tools/list` answers from the serving process.
+- **The service boots twice per session on a 2026-era host**, and that is
+  accepted for now. The era probe spawns a second process from the same
+  command, so the throwaway one runs the whole of `main.ts` before it can
+  answer `server/discover`: it copies the LadybugDB binary, opens the
+  database, indexes the graph, starts the watcher, binds a port and — because
+  `openBrowser` runs before `serveStdio` — **opens a browser tab**, then is
+  reaped. A session therefore costs two indexes and two tabs. The fix, when
+  it is worth making, is a two-phase boot: the probe is identified exactly
+  and without timers, because the probe process receives `server/discover`
+  and nothing else while the serving process never receives it at all, and
+  `ServeStdioOptions.transport` is the seam to observe that on. Only the ui
+  and search need the heavy half — both current tools run on the file
+  repositories alone — so the split is along an existing line.
+- **zod is pinned at `^4.2.0` or above** in the root catalog because the v2
+  SDK converts schemas through the authoring zod's `~standard.jsonSchema`:
+  below 4.2 it falls back to its own bundled copy and silently **drops every
+  `.describe()`** from the advertised JSON Schema.
 - **MCP tools are thin:** each validates its input and calls one service method
-  in-process. Current tools: `list-changes`, `list-design-docs`,
-  `create-design-doc`, `update-design-doc`, `scan-system-model`,
-  `search-knowledge-graph`.
+  in-process.
 - **Large payloads move through the temp dir.** The agent writes a working file
   under `.noesis/tmp/<session>/` and passes its path; MCP messages carry
   coordinates, not content. The server's `instructions` field names the root
@@ -158,12 +201,13 @@ conventions for skills: the contracts' `.describe()` text (D4).
   protocol errors. Unreadable JSON and a path outside the session scratch
   directory come back the same way.
 - **The ui never authors a design document.** `/ui/changes/:change/design-docs`
-  reads (`GET /`, `GET /:id`) and deletes (`DELETE /:id`); creating and
-  replacing one is the agent's, through `create-design-doc` and
-  `update-design-doc`. One authoring path means one place where the contract
-  and the integrity check run, and the browser cannot put a document in that
-  no skill produced. `documents` keeps its ui writes: a person pastes a
-  source there.
+  reads (`GET /`, `GET /:id`) and deletes (`DELETE /:id`); authoring one is the
+  agent's. One authoring path means one place where the contract and the
+  integrity check run, and the browser cannot put a document in that no skill
+  produced. Since the MCP surface was rebuilt there is no authoring tool yet,
+  so a design document cannot currently be created at all — the route stays
+  read-and-delete rather than growing a write to fill the gap. `documents`
+  keeps its ui writes: a person pastes a source there.
 - **The ui routes check their request envelope with `@hono/standard-validator`**
   (`sValidator('json', …)`), not a zod-specific adapter: the middleware speaks
   Standard Schema, so the schema library stays an implementation detail of
@@ -174,8 +218,9 @@ conventions for skills: the contracts' `.describe()` text (D4).
   The service-side `validate` is for what a schema cannot say — a
   whole-document `check` — and `design-document` is the only contract that
   has one, which is why the design-doc check lives on the MCP side alone.
-- **Search** is `GET /ui/search` and the `search-knowledge-graph` tool over a
-  `SearchProvider[]` registry in `SearchService`.
+- **Search** is `GET /ui/search` over a `SearchProvider[]` registry in
+  `SearchService`. The agent's search tool is not part of the rebuilt MCP
+  surface yet.
 - **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:` with a
   256 MB buffer pool (the graph's whole memory: in-memory cannot spill), one
   `Database` with two connections owned by `DatabaseService`: a **reader**
@@ -331,11 +376,14 @@ conventions for skills: the contracts' `.describe()` text (D4).
 
 - **`plugins/` holds what ships to agent hosts**, one folder per harness;
   `plugins/claude-code` follows the official Claude Code plugin layout
-  (`.claude-plugin/plugin.json`, `skills/`, `contracts/`, `.mcp.json`; dev
-  tooling in unshipped `tools/`, never in `scripts/` or `bin/`, which have
-  plugin semantics). The plugin is content: skills, contract sources, launch
-  config. Skills live here, versioned in this repository; nothing
-  is copied into the user's project.
+  (`.claude-plugin/plugin.json`, `contracts/`, `.mcp.json`, and `skills/` when
+  there are skills to ship; dev tooling in unshipped `tools/`, never in
+  `scripts/` or `bin/`, which have plugin semantics). The plugin is content:
+  contract sources, launch config, and the skills that drive the tools. It
+  ships no skills at present — the four that drove the first MCP surface went
+  with it — so it is the contracts and the launch config until skills for the
+  rebuilt tools are written. Skills live here, versioned in this repository;
+  nothing is copied into the user's project.
 - **Two published packages, one version train:** `@noesis-vision/noesis` (the
   service: `bin` → `dist/main.js`, `files: ["dist"]`) and
   `@noesis-vision/claude-code-plugin`. They always release together at the same
@@ -449,8 +497,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
 ## D9. Scanners: TypeScript in-process; Java is ArchUnit + Spoon; JVM/.NET integration deferred
 
 - **The TypeScript scanner is a service component**
-  (`server/backend/src/scanner`), run by the `scan-system-model` tool. It reads
-  the checkout's source and writes `.noesis/graph/system-model/`.
+  (`server/backend/src/adapters/scanner`). It reads the checkout's source and
+  writes `.noesis/graph/system-model/`. The tool that ran it is not part of the
+  rebuilt MCP surface yet, so nothing drives it from the composition root
+  meanwhile.
 - **Scanning always runs where the code is**; only derived model data is
   written, into the user's own repository.
 - **`scanners/java` is a standalone Maven tool, not yet integrated** with the

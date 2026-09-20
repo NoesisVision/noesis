@@ -6,8 +6,8 @@ import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { Client } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
 const serviceRoot = fileURLToPath(
@@ -51,10 +51,6 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/README.md',
     'contracts/design-docs/model/design-doc.ts',
     'contracts/information-sources/model/document.ts',
-    'skills/create-design-doc/SKILL.md',
-    'skills/update-design-doc/SKILL.md',
-    'skills/search-knowledge-graph/SKILL.md',
-    'skills/implement-design-doc/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -66,6 +62,7 @@ test('ships exactly the expected plugin files', async () => {
     'test',
     'servers',
     'scripts',
+    'skills',
   ];
   const leaked = excluded.filter((f) => existsSync(join(packageDir, f)));
   expect(leaked).toEqual([]);
@@ -149,8 +146,10 @@ test('the service the pin resolves to boots and lists tools', async () => {
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toContain('list-changes');
-    expect(tools.map((t) => t.name)).toContain('create-design-doc');
+    expect(tools.map((t) => t.name).sort()).toEqual([
+      'add_document_to_change',
+      'create_change',
+    ]);
   } finally {
     await client.close();
   }

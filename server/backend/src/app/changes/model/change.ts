@@ -59,13 +59,21 @@ export const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 /** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
 export const CreateChangeSchema = z
   .object({
-    name: z.string().trim().min(1).max(120),
+    name: z
+      .string()
+      .trim()
+      .min(1)
+      .max(120)
+      .describe('The human title of the change, as people say it.'),
     key: z
       .string()
       .trim()
       .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
       .or(z.literal(''))
-      .default(''),
+      .default('')
+      .describe(
+        'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',
+      ),
     type: z
       .enum(CHANGE_TYPES)
       .describe(

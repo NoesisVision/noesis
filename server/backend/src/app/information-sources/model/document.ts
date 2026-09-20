@@ -25,3 +25,13 @@ export const DocumentSchema = z
     'A document of a change: the data.json of graph/changes/<change>/documents/<id>/.',
   );
 export type Document = z.infer<typeof DocumentSchema>;
+
+/**
+ * Derived from the stored shape so the two can never drift: the service
+ * derives `document_id` from the title, so a caller adding a document does
+ * not supply one.
+ */
+export const CreateDocumentSchema = DocumentSchema.omit({
+  document_id: true,
+}).describe('The document to add to a change.');
+export type CreateDocument = z.infer<typeof CreateDocumentSchema>;

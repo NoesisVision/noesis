@@ -4,13 +4,13 @@ console.log = (...args: unknown[]) => console.error(...args);
 // Must stay the first import: it moves the working directory to the bundle
 // before the HTML import below resolves its assets.
 import './bundle-cwd';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import index from '../../frontend/index.html';
+import { version } from '../package.json';
 import { createGraphSearch } from './adapters/graph/graph-search';
 import { IndexService } from './adapters/graph/index.service';
 import { SchemaService } from './adapters/graph/schema.service';
 import { createMcpServer } from './adapters/mcp/mcp-server';
-import { ScannerService } from './adapters/scanner/scanner.service';
 import { NoesisChangesRepository } from './adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
 import { NoesisDocumentsRepository } from './adapters/store/documents.repository';
@@ -79,7 +79,6 @@ const documentsService = new DocumentsService(
   new NoesisDocumentsRepository(changesRepository),
   changesService,
 );
-const scannerService = new ScannerService(repositoryRoot, systemModels);
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
   searchService,
@@ -112,22 +111,24 @@ const url = `http://localhost:${server.port}/`;
 log.info('listening on {url}', { url });
 if (config.openBrowser) openBrowser(url);
 
-const mcp = createMcpServer({
-  repositoryRoot,
-  session,
-  changesService,
-  designDocsService,
-  searchService,
-  scannerService,
-});
-await mcp.connect(new StdioServerTransport());
-// The SDK's stdio transport does not report stdin's end, which is what ends
-// the session.
+// `serveStdio` owns the transport and the era negotiation: the opening
+// exchange picks the protocol revision and pins one server to it for the
+// connection.
+const mcp = serveStdio(() =>
+  createMcpServer({
+    version,
+    repositoryRoot,
+    session,
+    changesService,
+    documentsService,
+  }),
+);
+// The handle reports no end of stdin, which is what ends the session.
 process.stdin.once('end', () => {
   log.info('MCP stream closed — shutting down');
   void shutdown();
 });
-log.info('MCP server connected on stdio');
+log.info('MCP server serving on stdio');
 
 function loadRepositoryRoot(): string {
   const result = new RepositoryRoot({

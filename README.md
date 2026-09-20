@@ -54,9 +54,11 @@ Inside the process:
   touches the disk.
 - **Scanner** (`src/scanner`) reads the checkout's TypeScript source and
   writes `.noesis/graph/system-model/` plus its graph projection.
-- **MCP server** (`src/mcp`) exposes thin tools that call one service
-  method each: `list-changes`, `list-design-docs`, `create-design-doc`,
-  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
+- **MCP server** (`src/adapters/mcp`) is the v2 SDK's `McpServer`
+  (`@modelcontextprotocol/server`) with one module per tool, each declaring
+  its input and output schemas and calling one service method:
+  `create_change`, `add_document_to_change`. `serveStdio` serves it on the
+  2026-07-28 revision, and on the 2025 era for hosts that predate it. Tools
   never take content inline: the agent writes a working file to the session
   scratch directory and passes the path.
 - **HTTP** (`src/app.ts`) has two surfaces, `/ui` for the SPA's data and
@@ -112,12 +114,12 @@ its Hono route tree inferable, so the frontend can type its calls with Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`skills/`** — the knowledge-management skills (`create-design-doc`, `update-design-doc`, `search-knowledge-graph`) and the implementation skill (`implement-design-doc`); each names the contract it needs by a path under `contracts/`
+- **`skills/`** — none at present: the four skills that drove the first MCP surface were deleted with it, and skills for `create_change` and `add_document_to_change` are still to be written. A skill names the contract it needs by a path under `contracts/`
 - **`contracts/`** — the contract sources, **copied** from `server/backend/src/app/*/model/` (layout kept) by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
 - **`tools/`** — dev/build tooling (copy-contracts, stamp-plugin-version, bump-version, release-beta); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}` (pin stamped by `bun run generate`; the two variables point a checkout at the service source, decision D6) with `NOESIS_ROOT` set to the project directory
 
-The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts` and `skills` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
+The plugin is distributed as the npm package **`@noesis-vision/claude-code-plugin`** (only `.claude-plugin/plugin.json`, `.mcp.json` and `contracts` ship — see the `files` field). The marketplace catalog lives at `plugins/claude-code/.claude-plugin/marketplace.json` and is added by direct URL, so users never clone this monorepo.
 
 ### Shared tooling config
 
@@ -131,7 +133,7 @@ Shared dependency versions (`typescript`, `zod`, `hono`, …) are pinned once in
 
 ### Scanners (`scanners/`)
 
-The TypeScript scanner is a service component (`server/backend/src/scanner`), run by the `scan-system-model` tool; it writes `.noesis/graph/system-model/`. `scanners/java` (a Maven tool, decision D9) and the `dotnet/` stub are not integrated with the service yet — how they feed `system-model/` is a later decision.
+The TypeScript scanner is a service component (`server/backend/src/adapters/scanner`) that writes `.noesis/graph/system-model/`; the tool that ran it went with the first MCP surface, so nothing drives it meanwhile. `scanners/java` (a Maven tool, decision D9) and the `dotnet/` stub are not integrated with the service yet — how they feed `system-model/` is a later decision.
 
 ### Docs (`docs/`)
 
@@ -147,10 +149,10 @@ The TypeScript scanner is a service component (`server/backend/src/scanner`), ru
 | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner           |
 | [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7)                                            |
-| [zod](https://zod.dev/) (v4)                                                                                      | Contract schemas and env validation                                                                            |
+| [zod](https://zod.dev/) (v4, `^4.2.0` floor)                                                                      | Contract schemas and env validation; below 4.2 the MCP SDK drops `.describe()` from advertised schemas         |
 | [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend                        |
 | [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                             |
-| [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)                               | MCP server in `server/backend/src/mcp`, stdio transport                                                        |
+| [@modelcontextprotocol/server](https://github.com/modelcontextprotocol/typescript-sdk) 2 (v2 split packages)      | MCP server in `server/backend/src/adapters/mcp`, stdio via `serveStdio` (2026-07-28 and 2025 eras)             |
 | [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)                       |
 | [Oxlint](https://oxc.rs/docs/guide/usage/linter)                                                                  | Linting, type-aware through tsgolint; the backend's layer rules through eslint-plugin-boundaries (decision D3) |
 | [Oxfmt](https://oxc.rs/docs/guide/usage/formatter)                                                                | Formatting (TS/TSX/JS/JSON/CSS/Markdown), Prettier-compatible; sorts imports                                   |

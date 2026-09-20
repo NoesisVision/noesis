@@ -13,9 +13,9 @@ import type {
 } from '#backend/app/validation/validator';
 
 /**
- * The one file contract left: a design document needs a whole-document pass
- * (`check`) that a schema cannot express, so `validate` runs it where the MCP
- * tools write. Shapes a schema does cover are checked by the route middleware
+ * The only contract with a whole-document pass (`check`): a design document
+ * has rules a schema cannot express, so `validate` runs them where the agent
+ * writes. Shapes a schema does cover are checked by the route middleware
  * instead (decision D3).
  */
 export const designDocumentContract: FileContract<DesignDocument> = {

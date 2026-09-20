@@ -11,7 +11,7 @@
         "package": "@noesis-vision/claude-code-plugin",
         "version": "0.1.0"
       },
-      "description": "Noesis skills for preparing and validating MCP tool payloads"
+      "description": "Noesis knowledge graph for Claude Code: the MCP service and the contracts its tools validate against"
     },
     {
       "name": "noesis-beta",

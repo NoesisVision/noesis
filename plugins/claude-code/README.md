@@ -32,9 +32,8 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes these MCP tools: `list-changes`, `list-design-docs`,
-`create-design-doc`, `update-design-doc`, `scan-system-model` and
-`search-knowledge-graph`. Tools never take content inline. The agent writes
+The service exposes two MCP tools: `create_change` and
+`add_document_to_change`. Tools never take content inline. The agent writes
 a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
@@ -51,13 +50,13 @@ expected versus found, a one-line fix — to correct and call again.
   asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full
   copy.
-- `skills/` — the knowledge-management skills (`create-design-doc`,
-  `update-design-doc`, `search-knowledge-graph`) and the implementation skill
-  (`implement-design-doc`). Each names the contract it needs by a path under
-  `contracts/`, writes its working file to the session's scratch directory,
-  and hands the path to the tool that consumes it, correcting the file from
-  the issue list the tool returns. Skills preserve human-authored fields and
-  ask before changing one.
+- `skills/` — not present. The four skills that drove the first MCP surface
+  were deleted with it; the rebuilt service offers `create_change` and
+  `add_document_to_change`, and skills for those are still to be written. A
+  skill names the contract it needs by a path under `contracts/`, writes its
+  working file to the session's scratch directory, and hands the path to the
+  tool that consumes it, correcting the file from the issue list the tool
+  returns.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables
@@ -72,8 +71,8 @@ expected versus found, a one-line fix — to correct and call again.
 - `test/` — asserts the contracts copy is byte-identical to the source and
   that a packed tarball carries exactly the shipped files.
 
-Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/`
-are published (the `files` field in `package.json`).
+Only `.claude-plugin/plugin.json`, `.mcp.json` and `contracts/` are published
+(the `files` field in `package.json`).
 
 ## Scripts
 

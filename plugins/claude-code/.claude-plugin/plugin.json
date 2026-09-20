@@ -1,6 +1,6 @@
 {
   "name": "noesis",
-  "description": "Noesis knowledge-management skills and the contract sources they read",
+  "description": "Noesis knowledge-management: the contract sources an agent reads and the Noesis service launch config",
   "version": "0.1.0-beta.4",
   "author": {
     "name": "NoesisVision"

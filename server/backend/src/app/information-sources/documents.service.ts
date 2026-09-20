@@ -1,6 +1,9 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { Document } from '#backend/app/information-sources/model/document';
+import type {
+  CreateDocument,
+  Document,
+} from '#backend/app/information-sources/model/document';
 import { documentIdFromTitle } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
@@ -53,7 +56,10 @@ export class DocumentsService {
     this.changesService = changesService;
   }
 
-  async create(slug: ChangeSlug, document: Document): Promise<DocumentSummary> {
+  async create(
+    slug: ChangeSlug,
+    document: CreateDocument,
+  ): Promise<DocumentSummary> {
     await this.changesService.assertExists(slug);
     const id = documentIdFromTitle(document.title);
     await this.assertTitleFree(slug, id, document.title);
@@ -118,7 +124,7 @@ export class DocumentsService {
   private async store(
     slug: ChangeSlug,
     id: string,
-    document: Document,
+    document: CreateDocument,
   ): Promise<DocumentSummary> {
     const stored = { ...document, document_id: id };
     await this.docs.set(slug, id, stored);

@@ -1,22 +1,30 @@
-// Walks the import flow of decision D3 against the real service over stdio,
-// the way an agent host runs it.
+// Walks the two tools against the real service over stdio, the way an agent
+// host runs it. `serveStdio` picks the era from the client's opening, so the
+// modern revision and the 2025 fallback are both exercised here — an
+// InMemoryTransport pair cannot reach the modern era.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { Client, type ClientOptions } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { serviceEnv, textOf } from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
 
-let repoRoot: string;
-let client: Client;
+interface Service {
+  repoRoot: string;
+  client: Client;
+}
 
-beforeAll(async () => {
-  repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
-  client = new Client({ name: 'mcp-e2e-test', version: '0.0.0' });
+const started: Service[] = [];
+
+async function startService(options?: ClientOptions): Promise<Service> {
+  const repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
+  const client = new Client(
+    { name: 'mcp-e2e-test', version: '0.0.0' },
+    options,
+  );
   await client.connect(
     new StdioClientTransport({
       command: 'bun',
@@ -26,10 +34,15 @@ beforeAll(async () => {
       stderr: 'ignore',
     }),
   );
-}, 30_000);
+  const service = { repoRoot, client };
+  started.push(service);
+  return service;
+}
 
 afterAll(async () => {
-  if (repoRoot) await rm(repoRoot, { recursive: true, force: true });
+  for (const { repoRoot } of started) {
+    await rm(repoRoot, { recursive: true, force: true });
+  }
 });
 
 const exists = (path: string) =>
@@ -38,37 +51,106 @@ const exists = (path: string) =>
     () => false,
   );
 
-function sessionDir(): string {
-  const match = (client.getInstructions() ?? '').match(
-    /scratch directory is (\S+) /,
-  );
-  if (!match?.[1]) throw new Error('instructions name no scratch directory');
+/**
+ * From the tool schema, not from `instructions`: on a modern connection the
+ * instructions come from the SDK's throwaway probe process, while
+ * `tools/list` is answered by the process that serves the session.
+ */
+async function sessionDir(client: Client): Promise<string> {
+  const { tools } = await client.listTools();
+  const path = tools.find((tool) => tool.name === 'add_document_to_change')
+    ?.inputSchema.properties?.path as { description?: string } | undefined;
+  const match = /scratch directory, (\S+?),/.exec(path?.description ?? '');
+  if (!match?.[1]) throw new Error('no scratch directory in the tool schema');
   return match[1];
 }
 
-describe('MCP over stdio against the real service (e2e)', () => {
-  it('names the repository root and a scratch directory under .noesis/tmp/', async () => {
-    expect(client.getInstructions()).toContain(repoRoot);
-    const dir = sessionDir();
-    expect(dir.startsWith(join(repoRoot, '.noesis', 'tmp'))).toBe(true);
+describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
+  let service: Service;
+  let client: Client;
+
+  beforeAll(async () => {
+    service = await startService({
+      versionNegotiation: { mode: { pin: '2026-07-28' } },
+    });
+    client = service.client;
+  }, 30_000);
+
+  it('pins the modern era, with no 2025 handshake behind it', () => {
+    expect(client.getProtocolEra()).toBe('modern');
+    expect(client.getNegotiatedProtocolVersion()).toBe('2026-07-28');
+  });
+
+  it('names the repository root in its instructions', () => {
+    expect(client.getInstructions()).toContain(service.repoRoot);
+    expect(client.getInstructions()).toContain('.noesis/tmp/');
+  });
+
+  it('advertises a live scratch directory under .noesis/tmp/', async () => {
+    const dir = await sessionDir(client);
+    expect(dir.startsWith(join(service.repoRoot, '.noesis', 'tmp'))).toBe(true);
     expect(await exists(dir)).toBe(true);
   });
 
-  it('takes a working file by path and answers in-band', async () => {
-    const path = join(sessionDir(), 'design-doc.json');
-    await writeFile(path, JSON.stringify(designDocFixture));
+  it('offers the two tools it was started with', async () => {
+    const { tools } = await client.listTools();
+    expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_document_to_change',
+      'create_change',
+    ]);
+  });
 
-    const missing = await client.callTool({
-      name: 'create-design-doc',
+  it('creates a change and adds a document written to the scratch directory', async () => {
+    const created = await client.callTool({
+      name: 'create_change',
+      arguments: { name: 'Payment retry', key: 'NOE-142', type: 'feature' },
+    });
+    expect(created.isError).toBeFalsy();
+    expect(created.structuredContent).toMatchObject({ slug: 'payment-retry' });
+
+    const path = join(await sessionDir(client), 'document.json');
+    await writeFile(
+      path,
+      JSON.stringify({
+        title: 'Retry interview',
+        date: '2026-09-18',
+        content: 'Support hears about double charges after a failed retry.',
+      }),
+    );
+
+    const added = await client.callTool({
+      name: 'add_document_to_change',
+      arguments: { change: 'payment-retry', path },
+    });
+
+    expect(added.isError).toBeFalsy();
+    const stored = (added.structuredContent as { path: string }).path;
+    expect(stored.startsWith(join(service.repoRoot, '.noesis', 'graph'))).toBe(
+      true,
+    );
+    expect(await exists(stored)).toBe(true);
+  }, 15_000);
+
+  it('answers an unknown change in-band, having written nothing', async () => {
+    const path = join(await sessionDir(client), 'orphan.json');
+    await writeFile(
+      path,
+      JSON.stringify({ title: 'Orphan', date: '2026-09-18', content: 'x' }),
+    );
+
+    const result = await client.callTool({
+      name: 'add_document_to_change',
       arguments: { change: 'booking', path },
     });
-    // No change directory yet: the tool says so instead of writing anywhere.
-    expect(missing.isError).toBe(true);
-    expect(textOf(missing)).toContain('No change "booking"');
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "booking"');
+    const changes = join(service.repoRoot, '.noesis', 'graph', 'changes');
+    expect(await exists(join(changes, 'booking'))).toBe(false);
   });
 
   it('deletes the scratch directory when the session ends', async () => {
-    const dir = sessionDir();
+    const dir = await sessionDir(client);
     await client.close();
 
     // The service shuts down when stdin ends; give it a moment to do so.
@@ -78,4 +160,35 @@ describe('MCP over stdio against the real service (e2e)', () => {
     }
     expect(await exists(dir)).toBe(false);
   }, 10_000);
+});
+
+// A host that has not adopted the modern revision opens with the 2025
+// `initialize` handshake; `serveStdio` serves it from the same factory.
+describe('MCP over stdio for a 2025-era host (e2e)', () => {
+  let client: Client;
+
+  beforeAll(async () => {
+    ({ client } = await startService());
+  }, 30_000);
+
+  afterAll(async () => {
+    await client.close();
+  });
+
+  it('falls back to the legacy era and serves the same tools', async () => {
+    expect(client.getProtocolEra()).toBe('legacy');
+    expect(client.getNegotiatedProtocolVersion()).toBe('2025-11-25');
+
+    const { tools } = await client.listTools();
+    expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_document_to_change',
+      'create_change',
+    ]);
+
+    const created = await client.callTool({
+      name: 'create_change',
+      arguments: { name: 'Legacy era', type: 'chore' },
+    });
+    expect(created.structuredContent).toMatchObject({ slug: 'legacy-era' });
+  }, 15_000);
 });
