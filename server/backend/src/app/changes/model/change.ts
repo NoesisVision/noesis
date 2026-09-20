@@ -5,12 +5,7 @@ import { z } from 'zod';
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
 export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;
-export const ChangeTypeSchema = z
-  .enum(CHANGE_TYPES)
-  .describe(
-    'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
-  );
-export type ChangeType = z.infer<typeof ChangeTypeSchema>;
+export type ChangeType = (typeof CHANGE_TYPES)[number];
 
 /** Order matters: later stages sort after earlier ones. */
 export const CHANGE_STATUSES = [
@@ -19,12 +14,7 @@ export const CHANGE_STATUSES = [
   'implementation',
   'done',
 ] as const;
-export const ChangeStatusSchema = z
-  .enum(CHANGE_STATUSES)
-  .describe(
-    'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done.',
-  );
-export type ChangeStatus = z.infer<typeof ChangeStatusSchema>;
+export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
 
 export const ChangeSchema = z
   .object({
@@ -41,8 +31,16 @@ export const ChangeSchema = z
       .describe(
         'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',
       ),
-    type: ChangeTypeSchema,
-    status: ChangeStatusSchema,
+    type: z
+      .enum(CHANGE_TYPES)
+      .describe(
+        'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
+      ),
+    status: z
+      .enum(CHANGE_STATUSES)
+      .describe(
+        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done.',
+      ),
     created_at: z
       .string()
       .describe('When the change was created, ISO 8601 with offset.'),
@@ -68,7 +66,11 @@ export const CreateChangeSchema = z
       .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
       .or(z.literal(''))
       .default(''),
-    type: ChangeTypeSchema,
+    type: z
+      .enum(CHANGE_TYPES)
+      .describe(
+        'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
+      ),
   })
   .describe('The request body for creating a change.');
 export type CreateChange = z.infer<typeof CreateChangeSchema>;
