@@ -30,7 +30,7 @@
     "prepublishOnly": "bun run generate"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:"
