@@ -22,28 +22,6 @@ export const ConversationFragmentSchema = z
   .describe('One idea unit of a turn: a few sentences making one point.');
 export type ConversationFragment = z.infer<typeof ConversationFragmentSchema>;
 
-export const ConversationFragmentRefSchema = z
-  .object({
-    type: z
-      .literal('conversation_fragment_ref')
-      .describe('Marks this reference as pointing into a conversation.'),
-    conversation_id: z.string().describe('The id of the conversation file.'),
-    turn_index: z.int().describe('The `index` of the turn.'),
-    fragment_index: z
-      .int()
-      .describe('The `index` of the fragment within that turn.'),
-    source_sha: z
-      .string()
-      .optional()
-      .describe(
-        'SHA-256 of the referenced source content at ref-creation time. Used to detect stale references when the source content changes.',
-      ),
-  })
-  .describe('A pointer to one fragment of one conversation turn.');
-export type ConversationFragmentRef = z.infer<
-  typeof ConversationFragmentRefSchema
->;
-
 export const TurnSchema = z
   .object({
     index: z

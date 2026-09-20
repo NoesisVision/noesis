@@ -6,7 +6,7 @@ import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { resetGraph, sharedTestDatabase } from './test-db';
-import { put, type TestNoesis, testNoesis } from './test-noesis';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 const ALPHA = ChangeSlug.parse('alpha');
 const BETA = ChangeSlug.parse('beta');
@@ -118,7 +118,7 @@ describe('IndexService', () => {
     expect((await graphRows()).map((r) => r.id)).toEqual([designDocFixture.id]);
   });
 
-  it('projects sources and the wiki into their own tables', async () => {
+  it('projects sources into their own tables', async () => {
     await t.createChange(ALPHA);
     await t.changesRepository.children(ALPHA).conversations.set('c-1', {
       conversation_id: 'c-1',
@@ -130,41 +130,12 @@ describe('IndexService', () => {
       document_id: 'doc-1',
       title: 'Rules',
       date: '2026-09-01',
-      fragments: [],
-      section_tree: [],
-    });
-    await put(t.topics, {
-      id: 't-1',
-      parent_id: null,
-      title: 'Slots',
-      title_locked: false,
-      short_summary: 's',
-      short_summary_locked: false,
-      long_summary: 'l',
-      long_summary_locked: false,
-      items: [],
-    });
-    await put(t.decisions, {
-      id: 'd-1',
-      topic_id: 't-1',
-      title: 'Ten minutes',
-      title_locked: false,
-      status: 'accepted',
-      status_locked: false,
-      context: { text: '', text_locked: false, supporting_info: [] },
-      decision: {
-        text: '',
-        text_locked: false,
-        rationale: '',
-        rationale_locked: false,
-        supporting_info: [],
-      },
-      alternative_options: [],
+      content: '',
     });
 
     const report = await indexer.rebuild();
 
-    expect(report.files).toBe(4);
+    expect(report.files).toBe(2);
     const count = async (table: string) =>
       (
         await db.query<{ n: number | bigint }>(
@@ -173,13 +144,11 @@ describe('IndexService', () => {
       ).map((r) => Number(r.n))[0];
     expect(await count('Conversation')).toBe(1);
     expect(await count('Document')).toBe(1);
-    expect(await count('Topic')).toBe(1);
-    expect(await count('Decision')).toBe(1);
-    const [decision] = await db.query<{ topic_id: string; json: string }>(
-      'MATCH (d:Decision) RETURN d.topic_id AS topic_id, d.json AS json',
+    const [document] = await db.query<{ change: string; json: string }>(
+      'MATCH (d:Document) RETURN d.change AS change, d.json AS json',
     );
-    expect(decision?.topic_id).toBe('t-1');
-    expect(JSON.parse(decision?.json ?? '').title).toBe('Ten minutes');
+    expect(document?.change).toBe(ALPHA.value);
+    expect(JSON.parse(document?.json ?? '').title).toBe('Rules');
   });
 
   it('stores the whole document beside its denormalised columns', async () => {

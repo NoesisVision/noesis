@@ -55,11 +55,11 @@ Inside the process:
 - **Scanner** (`src/scanner`) reads the checkout's TypeScript source and
   writes `.noesis/graph/system-model/` plus its graph projection.
 - **MCP server** (`src/mcp`) exposes thin tools that call one service
-  method each: `validate`, `list-changes`, `import-conversation`,
-  `import-document`, `list-design-docs`, `create-design-doc`,
-  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
-  never take content inline: the agent writes a working file to the session
-  scratch directory, validates it, and passes the path.
+  method each: `validate`, `list-changes`, `list-design-docs`,
+  `create-design-doc`, `update-design-doc`, `scan-system-model`,
+  `search-knowledge-graph`. Tools never take content inline: the agent writes
+  a working file to the session scratch directory, validates it, and passes
+  the path.
 - **HTTP** (`src/app.ts`) has two surfaces, `/ui` for the SPA's data and
   `/internal` for health. Everything else is the SPA page, which the backend
   imports from `server/frontend/index.html` and bun bundles (on request from
@@ -78,8 +78,7 @@ lockstep with the Claude Code plugin.
 ├── tmp/<session>/        scratch space between agent and service; never versioned
 └── graph/                the knowledge graph: one <key>/data.json per object
     ├── changes/<change>/ one per change: data.json plus conversations/, documents/, design-docs/
-    ├── system-model/     the implemented model, projected from source by the scanner
-    └── wiki/             topics/ and decisions/, distilled from the imports
+    └── system-model/     the implemented model, projected from source by the scanner
 ```
 
 JSON only, one directory per object, every file committed. The files are the
@@ -91,7 +90,7 @@ two processes over the same files, last write wins.
 All contracts are [zod](https://zod.dev/) schemas with inferred TS types, and those types are the service's domain model: each feature keeps its own in `server/backend/src/app/<feature>/model/`, consumed as TypeScript source. They are declarative on purpose (object shapes, enums, `.describe()` text; no refinements, transforms or imports beyond zod and other contract files), so the agent reads the source directly (decision D4):
 
 ```
-server/backend/src/app/*/model   every knowledge graph file shape + import payloads
+server/backend/src/app/*/model   every knowledge graph file shape
      ├─▶ plugins/claude-code/contracts   build-time copy (bun run build / prepack) shipped in
      │                                   the plugin, read by skills; a test asserts byte-identity
      ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
@@ -113,7 +112,7 @@ its Hono route tree inferable, so the frontend can type its calls with Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`skills/`** — the knowledge-management skills (`import-conversation`, `import-document`, `create-design-doc`, `update-design-doc`, `search-knowledge-graph`) and the implementation skill (`implement-design-doc`); each names the contract it needs by a path under `contracts/`
+- **`skills/`** — the knowledge-management skills (`create-design-doc`, `update-design-doc`, `search-knowledge-graph`) and the implementation skill (`implement-design-doc`); each names the contract it needs by a path under `contracts/`
 - **`contracts/`** — the contract sources, **copied** from `server/backend/src/app/*/model/` (layout kept) by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
 - **`tools/`** — dev/build tooling (copy-contracts, stamp-plugin-version, bump-version, release-beta); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}` (pin stamped by `bun run generate`; the two variables point a checkout at the service source, decision D6) with `NOESIS_ROOT` set to the project directory

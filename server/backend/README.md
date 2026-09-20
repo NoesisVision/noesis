@@ -24,11 +24,10 @@ own machine inside one checkout (decision D1).
 ## Entry points
 
 - **MCP on stdio** (`src/adapters/mcp`): thin tools, one service call each —
-  `validate`, `list-changes`, `import-conversation`, `import-document`,
-  `list-design-docs`, `create-design-doc`, `update-design-doc`,
-  `scan-system-model`, `search-knowledge-graph`. Tools take paths, not
-  content: the agent writes a working file to the session's scratch
-  directory (`.noesis/tmp/<session>/`, named in the server's
+  `validate`, `list-changes`, `list-design-docs`, `create-design-doc`,
+  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
+  take paths, not content: the agent writes a working file to the session's
+  scratch directory (`.noesis/tmp/<session>/`, named in the server's
   `instructions`), validates it, and passes the path. `validate` and the
   write boundary run the same contract check from
   `src/app/validation/contracts`, so what one accepts the other accepts.
@@ -80,12 +79,11 @@ src/
   app/                the core: the domain model, services and the ports they need;
                       imports no other layer
     */model/          the domain model as zod file contracts (decision D4): every
-                      .noesis/ file shape and import payload, declarative, copied
-                      verbatim into the plugin
+                      .noesis/ file shape, declarative, copied verbatim into the
+                      plugin
     changes/          ChangesService, the change slug, the ChangesRepository port
     design-docs/      DesignDocsService, the DesignDocsRepository port, integrity checks
     information-sources/  imported conversations and documents (model only)
-    wiki/             topics and decisions (model only)
     system-model/     the scanned implementation model (model only)
     search/           SearchService and its SearchProvider port
     validation/       the actionable problem list and the file-contract registry that
@@ -100,11 +98,11 @@ src/
     database/         the LadybugDB handle, in-memory only
     native/           puts LadybugDB's native binary where its loader expects it
   adapters/
-    store/            app's repositories over NoesisStore, plus the wiki and
-                      system-model stores
+    store/            app's repositories over NoesisStore, plus the system-model
+                      store
     graph/            the graph schema, the index service (files → graph at boot and
                       on change) and the graph search provider
-    mcp/              the MCP server and the import service behind its import tools
+    mcp/              the MCP server behind the tools
     scanner/          the TypeScript source scanner behind scan-system-model
 test/
   unit/ e2e/ bench/
@@ -121,9 +119,9 @@ composition root. A new need of `app` on files or the database is a port in
 ## Contracts
 
 The domain model is the knowledge graph **file contracts**: every shape a
-file under `.noesis/` can have, plus the payloads the import tools take, as
-[zod](https://zod.dev/) schemas whose inferred types are the entities the
-services work with (decision D4). Each feature keeps its own in
+file under `.noesis/` can have, as [zod](https://zod.dev/) schemas whose
+inferred types are the entities the services work with (decision D4). Each
+feature keeps its own in
 `src/app/<feature>/model/`; `app` depends on zod by design. They are read
 three ways: the service imports them and validates twice (the `validate`
 tool, then the write boundary); the plugin copies every `model/` folder
@@ -139,14 +137,12 @@ and other contract files, always relative. The plugin's tests assert that. Whole
 rules a schema cannot express live in `src/app/validation/contracts`,
 whose registry maps the `validate` tool's contract names to these schemas.
 
-| Files under `src/app/`                                                                          | What they shape                                                                               |
-| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `changes/model/change.ts`                                                                       | `graph/changes/<change>/data.json` — the unit of work imports and design docs belong to       |
-| `information-sources/model/conversation.ts`, `document.ts`, `*-analysis.ts`, `information-*.ts` | Imported conversations and documents, their fragments and categories, and the import payloads |
-| `wiki/model/topic.ts`, `decision.ts`                                                            | `graph/wiki/topics/`, `graph/wiki/decisions/` — the curated distillate                        |
-| `wiki/model/locked.ts`                                                                          | `*_locked` markers: a person edited the field                                                 |
-| `design-docs/model/design-doc.ts`, `design-doc-ref.ts`                                          | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs             |
-| `system-model/model/system-model.ts`                                                            | `graph/system-model/` — the implemented model the scanner writes                              |
+| Files under `src/app/`                                                                | What they shape                                                                                                         |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `changes/model/change.ts`                                                             | `graph/changes/<change>/data.json` — the unit of work sources and design docs belong to                                 |
+| `information-sources/model/conversation.ts`, `document.ts`, `information-category.ts` | `graph/changes/<change>/conversations/`, `documents/` — a transcript's turns and idea units, a document's verbatim text |
+| `design-docs/model/design-doc.ts`, `design-doc-ref.ts`                                | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs                                       |
+| `system-model/model/system-model.ts`                                                  | `graph/system-model/` — the implemented model the scanner writes                                                        |
 
 `*.fixture.ts` files are the examples
 the tests and the plugin copy share. Specs live in `test/unit/contracts-*`.

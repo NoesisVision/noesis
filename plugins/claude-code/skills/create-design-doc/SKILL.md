@@ -1,6 +1,6 @@
 ---
 name: create-design-doc
-description: Write a new Noesis design document for a change — goal, context, outcomes, scope, actors, use cases, building blocks and behaviours — from the wiki, the system model and what the user says. Use when the user asks to design a change, write a design doc, or specify a feature.
+description: Write a new Noesis design document for a change — goal, context, outcomes, scope, actors, use cases, building blocks and behaviours — from the system model, the imported sources and what the user says. Use when the user asks to design a change, write a design doc, or specify a feature.
 ---
 
 # Create a design document
@@ -22,11 +22,12 @@ mints its id, and stores it under the change.
    Call `list-design-docs` for it: if a document for this design already
    exists, use the `update-design-doc` skill instead.
 2. **Ground the design.** Call `search-knowledge-graph` for the subjects
-   involved and read the matching wiki topics and decisions under
-   `.noesis/graph/wiki/`. Call `scan-system-model` when `.noesis/graph/system-model/` is
-   missing or older than the code, then read the relevant system-model files,
-   so building blocks that already exist in the code are named as they are,
-   not reinvented. Ask the user what the wiki does not answer.
+   involved and read the conversations and documents it turns up under the
+   change, so the design follows what was actually said. Call
+   `scan-system-model` when `.noesis/graph/system-model/` is missing or older
+   than the code, then read the relevant system-model files, so building
+   blocks that already exist in the code are named as they are, not
+   reinvented. Ask the user what those sources do not answer.
 3. **Write the document** in the order the schema lists its fields. Every
    element gets a short, readable id unique across the document
    (`uc-book-appointment`, `svc-booking`, `rule-hold-ten-minutes`). Every
@@ -47,5 +48,5 @@ mints its id, and stores it under the change.
 ## Rules
 
 - Never write under `.noesis/` yourself; the tool does.
-- Do not invent facts about the domain. What the wiki, the system model and
-  the user did not say is a question, not a guess.
+- Do not invent facts about the domain. What the imported sources, the system
+  model and the user did not say is a question, not a guess.

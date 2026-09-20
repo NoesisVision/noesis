@@ -1,14 +1,9 @@
 import { createHash } from 'node:crypto';
 
-// Content-hash ids for imported sources (decision D2): a re-import of the same
-// content yields the same id and is detected as a duplicate.
-
-export function sha256(content: string | Buffer): string {
-  return createHash('sha256').update(content).digest('hex');
-}
+// Content-hash ids (decision D2): the same content always yields the same id.
 
 export function contentHashAsUuid(content: string | Buffer): string {
-  const hex = sha256(content);
+  const hex = createHash('sha256').update(content).digest('hex');
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),

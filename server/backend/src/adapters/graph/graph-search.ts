@@ -44,22 +44,6 @@ interface Kind {
 
 const KINDS: Kind[] = [
   {
-    type: 'topic',
-    cypher: `MATCH (n:Topic)
-      WHERE lower(n.title) CONTAINS $q OR lower(n.short_summary) CONTAINS $q
-      RETURN n.id AS id, n.title AS title, n.short_summary AS subtitle, '' AS change
-      ORDER BY n.title LIMIT $limit`,
-    href: () => undefined,
-  },
-  {
-    type: 'decision',
-    cypher: `MATCH (n:Decision)
-      WHERE lower(n.title) CONTAINS $q
-      RETURN n.id AS id, n.title AS title, n.status AS subtitle, '' AS change
-      ORDER BY n.title LIMIT $limit`,
-    href: () => undefined,
-  },
-  {
     type: 'design-doc',
     cypher: `MATCH (n:DesignDoc)
       WHERE lower(n.name) CONTAINS $q

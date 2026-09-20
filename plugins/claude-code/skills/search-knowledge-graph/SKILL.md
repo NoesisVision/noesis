@@ -1,6 +1,6 @@
 ---
 name: search-knowledge-graph
-description: Find what the Noesis knowledge graph already knows — wiki topics and decisions, design documents, imported conversations and documents — and read the files behind the hits. Use when the user asks what was decided, what is known about something, or before importing or designing.
+description: Find what the Noesis knowledge graph already knows — design documents, the system model, imported conversations and documents — and read the files behind the hits. Use when the user asks what was decided, what is known about something, or before designing a change.
 ---
 
 # Search the knowledge graph
@@ -16,20 +16,19 @@ titles, and the files hold the substance.
 2. Try two or three different words when the first returns nothing; the
    match is literal, not semantic.
 3. Read the file behind a hit with your file tool:
-   - a topic: `.noesis/graph/wiki/topics/<id>/data.json`
-   - a decision: `.noesis/graph/wiki/decisions/<id>/data.json`
    - a design document: `.noesis/graph/changes/<change>/design-docs/<id>/data.json`
+   - a system-model file: `.noesis/graph/system-model/<id>/data.json`
    - a conversation or document: `.noesis/graph/changes/<change>/conversations/<id>/data.json`
      or `documents/<id>/data.json`
      The directory is the id itself.
-4. Follow the references: a topic's `items` point at source fragments
-   (`conversation_id` or `document_id` plus indices) that ground it; a
-   decision's `supporting_info` does the same. Quote the source when the user
-   asks why.
+4. Go to the source when the user asks why something is the way it is. The
+   imported files hold the record: a conversation keeps its turns and their
+   idea units verbatim, a document keeps its text verbatim. Quote from them
+   rather than paraphrasing.
 5. Answer from the files, and say which files the answer came from.
 
 ## Rules
 
-- Read, do not write. Changing the wiki is the import skills' job; changing a
-  design document is `update-design-doc`'s.
-- A `*_locked: true` field is a person's own words; quote it as such.
+- Read, do not write. Changing a design document is `update-design-doc`'s job.
+- Text marked `author: "human"` in a design document is a person's own words;
+  quote it as such.

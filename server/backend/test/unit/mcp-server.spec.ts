@@ -10,7 +10,6 @@ import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { ScannerService } from '#backend/adapters/scanner/scanner.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
-import { conversationAnalysisFixture } from '#backend/app/information-sources/model/conversation-analysis.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import { contractNames } from '#backend/app/validation/contracts/registry';
 import { SessionDir } from '#backend/platform/files/session-dir';
@@ -37,9 +36,8 @@ beforeEach(async () => {
     session,
     changesService: t.changesService,
     designDocsService: t.designDocsService,
-    importService: t.importService,
     searchService: new SearchService([
-      async (q) => [{ type: 'topic', id: 't-1', title: `Hit for ${q}` }],
+      async (q) => [{ type: 'design-doc', id: 'd-1', title: `Hit for ${q}` }],
     ]),
     scannerService: new ScannerService(t.root, t.systemModels),
   });
@@ -81,8 +79,6 @@ describe('createMcpServer', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create-design-doc',
-      'import-conversation',
-      'import-document',
       'list-changes',
       'list-design-docs',
       'scan-system-model',
@@ -294,55 +290,6 @@ describe('createMcpServer', () => {
     });
   });
 
-  describe('import-conversation', () => {
-    const payload = conversationAnalysisFixture;
-
-    it('writes the source and the wiki, and reports what it did', async () => {
-      const path = await working('analysis.json', payload);
-      const result = await client.callTool({
-        name: 'import-conversation',
-        arguments: { change: CHANGE, path },
-      });
-      expect(result.isError).toBeFalsy();
-      const report = textOf(result);
-      expect(report).toMatch(
-        new RegExp(
-          `Imported the conversation as .noesis/graph/changes/${CHANGE}/conversations/[0-9a-f-]{36}/data.json`,
-        ),
-      );
-      expect(report).toMatch(/Topics created: [0-9a-f-]{36}, [0-9a-f-]{36}\./);
-      expect(report).toMatch(/Decisions created: [0-9a-f-]{36}\./);
-      expect(await all(t.topics)).toHaveLength(2);
-      expect(await all(t.decisions)).toHaveLength(1);
-    });
-
-    it('reports a duplicate source in-band and writes nothing', async () => {
-      const path = await working('analysis.json', payload);
-      await client.callTool({
-        name: 'import-conversation',
-        arguments: { change: CHANGE, path },
-      });
-      const again = await client.callTool({
-        name: 'import-conversation',
-        arguments: { change: CHANGE, path },
-      });
-      expect(again.isError).toBe(true);
-      expect(textOf(again)).toContain('was imported before as .noesis/');
-      expect(await all(t.topics)).toHaveLength(2);
-    });
-
-    it('rejects a payload that fails the contract with the issue list', async () => {
-      const path = await working('analysis.json', { topics: [] });
-      const result = await client.callTool({
-        name: 'import-conversation',
-        arguments: { change: CHANGE, path },
-      });
-      expect(result.isError).toBe(true);
-      expect(textOf(result)).toContain('Invalid conversation-analysis');
-      expect(textOf(result)).toContain('$.conversation');
-    });
-  });
-
   describe('scan-system-model', () => {
     it('writes a system-model file per unit and names it', async () => {
       await mkdir(join(t.root, 'pkg', 'src'), { recursive: true });
@@ -374,7 +321,7 @@ describe('createMcpServer', () => {
         name: 'search-knowledge-graph',
         arguments: { query: 'slots' },
       });
-      expect(textOf(result)).toBe('topic  t-1  Hit for slots');
+      expect(textOf(result)).toBe('design-doc  d-1  Hit for slots');
     });
   });
 

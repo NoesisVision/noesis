@@ -6,7 +6,7 @@ import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixt
 import { SearchService } from '#backend/app/search/search.service';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { resetGraph, sharedTestDatabase } from './test-db';
-import { put, type TestNoesis, testNoesis } from './test-noesis';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 const ALPHA = ChangeSlug.parse('alpha');
 
@@ -26,76 +26,16 @@ afterEach(async () => {
 });
 
 describe('graph search', () => {
-  it('finds topics, decisions and design docs by a case-insensitive substring', async () => {
+  it('finds design docs by a case-insensitive substring', async () => {
     await t.createChange(ALPHA);
     await t.changesRepository
       .children(ALPHA)
       ['design-docs'].set(designDocFixture.id, designDocFixture);
-    await put(t.topics, {
-      id: 't-1',
-      parent_id: null,
-      title: 'Appointment slots',
-      title_locked: false,
-      short_summary: 'How slots are held.',
-      short_summary_locked: false,
-      long_summary: '',
-      long_summary_locked: false,
-      items: [],
-    });
-    await put(t.topics, {
-      id: 't-2',
-      parent_id: 't-1',
-      title: 'Payments',
-      title_locked: false,
-      short_summary: 'Paying for an appointment.',
-      short_summary_locked: false,
-      long_summary: '',
-      long_summary_locked: false,
-      items: [],
-    });
-    await put(t.decisions, {
-      id: 'd-1',
-      topic_id: 't-1',
-      title: 'Hold appointment slots for ten minutes',
-      title_locked: false,
-      status: 'accepted',
-      status_locked: false,
-      context: { text: '', text_locked: false, supporting_info: [] },
-      decision: {
-        text: '',
-        text_locked: false,
-        rationale: '',
-        rationale_locked: false,
-        supporting_info: [],
-      },
-      alternative_options: [],
-    });
     await new IndexService(db, t.sources).rebuild();
 
     const results = await search.search('APPOINTMENT');
 
     expect(results).toEqual([
-      {
-        type: 'topic',
-        id: 't-1',
-        title: 'Appointment slots',
-        subtitle: 'How slots are held.',
-        href: undefined,
-      },
-      {
-        type: 'topic',
-        id: 't-2',
-        title: 'Payments',
-        subtitle: 'Paying for an appointment.',
-        href: undefined,
-      },
-      {
-        type: 'decision',
-        id: 'd-1',
-        title: 'Hold appointment slots for ten minutes',
-        subtitle: 'accepted',
-        href: undefined,
-      },
       {
         type: 'design-doc',
         id: designDocFixture.id,

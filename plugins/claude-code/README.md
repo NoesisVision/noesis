@@ -33,34 +33,31 @@ in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
 The service exposes these MCP tools: `validate`, `list-changes`,
-`import-conversation`, `import-document`, `list-design-docs`,
-`create-design-doc`, `update-design-doc`, `scan-system-model` and
-`search-knowledge-graph`. Tools never take content inline. The agent writes
-a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
-named in the server's instructions), runs the `validate` tool against it
-until clean, and calls the tool that consumes it by path. The service runs
+`list-design-docs`, `create-design-doc`, `update-design-doc`,
+`scan-system-model` and `search-knowledge-graph`. Tools never take content
+inline. The agent writes a working file to the session's scratch directory
+(`.noesis/tmp/<session>/`, named in the server's instructions), runs the
+`validate` tool against it until clean, and calls the tool that consumes it by path. The service runs
 the same contract check again on write, so what `validate` accepts is what
 a write accepts.
 
 ## What's inside
 
-- `contracts/` — the contract sources every knowledge graph file and import
-  payload must satisfy, as zod `.ts` the model reads directly. A build
-  output:
-  copied from the service's `server/backend/src/app/<feature>/model/`
-  folders, layout kept, by `bun run build` (which
+- `contracts/` — the contract sources every knowledge graph file must
+  satisfy, as zod `.ts` the model reads directly. A build output: copied from
+  the service's `server/backend/src/app/<feature>/model/` folders, layout
+  kept, by `bun run build` (which
   `bun pm pack` runs as `prepack`), stamped with the plugin version, and
   asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full
   copy.
-- `skills/` — the knowledge-management skills (`import-conversation`,
-  `import-document`, `create-design-doc`, `update-design-doc`,
-  `search-knowledge-graph`) and the implementation skill
+- `skills/` — the knowledge-management skills (`create-design-doc`,
+  `update-design-doc`, `search-knowledge-graph`) and the implementation skill
   (`implement-design-doc`). Each names the contract it needs by a path under
   `contracts/`, writes its working file to the session's scratch directory,
   validates it with the `validate` tool until clean, and hands the path to
-  the tool that consumes it. Skills preserve locked and human-authored fields
-  and ask before changing one.
+  the tool that consumes it. Skills preserve human-authored fields and ask
+  before changing one.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables

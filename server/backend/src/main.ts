@@ -9,16 +9,11 @@ import index from '../../frontend/index.html';
 import { createGraphSearch } from './adapters/graph/graph-search';
 import { IndexService } from './adapters/graph/index.service';
 import { SchemaService } from './adapters/graph/schema.service';
-import { ImportService } from './adapters/mcp/import.service';
 import { createMcpServer } from './adapters/mcp/mcp-server';
 import { ScannerService } from './adapters/scanner/scanner.service';
 import { NoesisChangesRepository } from './adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
 import { createSystemModelStore } from './adapters/store/system-model.store';
-import {
-  createDecisionsStore,
-  createTopicsStore,
-} from './adapters/store/wiki.store';
 import { createApp } from './app';
 import { ChangesService } from './app/changes/changes.service';
 import { DesignDocsService } from './app/design-docs/design-docs.service';
@@ -62,13 +57,9 @@ await db.init();
 await new SchemaService(db).ensureSchema();
 
 const changesRepository = new NoesisChangesRepository(noesis);
-const topics = createTopicsStore(noesis);
-const decisions = createDecisionsStore(noesis);
 const systemModels = createSystemModelStore(noesis);
 const indexer = new IndexService(db, {
   changes: changesRepository,
-  topics,
-  decisions,
   systemModels,
 });
 // Watching before the first build: a file that changes during the build then
@@ -82,12 +73,6 @@ const designDocsService = new DesignDocsService(
   new NoesisDesignDocsRepository(changesRepository),
   changesService,
 );
-const importService = new ImportService({
-  changes: changesService,
-  changesRepository,
-  topics,
-  decisions,
-});
 const scannerService = new ScannerService(repositoryRoot, systemModels);
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
@@ -125,7 +110,6 @@ const mcp = createMcpServer({
   session,
   changesService,
   designDocsService,
-  importService,
   searchService,
   scannerService,
 });

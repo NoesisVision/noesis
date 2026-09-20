@@ -38,23 +38,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      json STRING,
      PRIMARY KEY(id)
    )`,
-
-  `CREATE NODE TABLE IF NOT EXISTS Topic(
-     id STRING,
-     parent_id STRING,
-     title STRING,
-     short_summary STRING,
-     json STRING,
-     PRIMARY KEY(id)
-   )`,
-  `CREATE NODE TABLE IF NOT EXISTS Decision(
-     id STRING,
-     topic_id STRING,
-     title STRING,
-     status STRING,
-     json STRING,
-     PRIMARY KEY(id)
-   )`,
 ];
 
 export function nodeTableNames(): string[] {

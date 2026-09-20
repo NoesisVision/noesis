@@ -50,9 +50,7 @@ test('ships exactly the expected plugin files', async () => {
     'README.md',
     'contracts/README.md',
     'contracts/design-docs/model/design-doc.ts',
-    'contracts/information-sources/model/conversation-analysis.ts',
-    'skills/import-conversation/SKILL.md',
-    'skills/import-document/SKILL.md',
+    'contracts/information-sources/model/conversation.ts',
     'skills/create-design-doc/SKILL.md',
     'skills/update-design-doc/SKILL.md',
     'skills/search-knowledge-graph/SKILL.md',
@@ -152,7 +150,7 @@ test('the service the pin resolves to boots and lists tools', async () => {
     await client.connect(transport);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).toContain('validate');
-    expect(tools.map((t) => t.name)).toContain('import-conversation');
+    expect(tools.map((t) => t.name)).toContain('create-design-doc');
   } finally {
     await client.close();
   }

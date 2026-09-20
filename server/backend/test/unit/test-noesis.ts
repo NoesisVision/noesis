@@ -2,19 +2,12 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { IndexerSources } from '#backend/adapters/graph/index.service';
-import { ImportService } from '#backend/adapters/mcp/import.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
 import {
   createSystemModelStore,
   type SystemModelStore,
 } from '#backend/adapters/store/system-model.store';
-import {
-  createDecisionsStore,
-  createTopicsStore,
-  type DecisionsStore,
-  type TopicsStore,
-} from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import type { Change } from '#backend/app/changes/model/change';
@@ -28,13 +21,10 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  topics: TopicsStore;
-  decisions: DecisionsStore;
   systemModels: SystemModelStore;
   sources: IndexerSources;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  importService: ImportService;
   /** Writes a change with placeholder data. */
   createChange(
     slug: string | ChangeSlug,
@@ -48,29 +38,19 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
-  const topics = createTopicsStore(noesis);
-  const decisions = createDecisionsStore(noesis);
   const systemModels = createSystemModelStore(noesis);
   const changesService = new ChangesService(changesRepository);
   return {
     root,
     noesis,
     changesRepository,
-    topics,
-    decisions,
     systemModels,
-    sources: { changes: changesRepository, topics, decisions, systemModels },
+    sources: { changes: changesRepository, systemModels },
     changesService,
     designDocsService: new DesignDocsService(
       new NoesisDesignDocsRepository(changesRepository),
       changesService,
     ),
-    importService: new ImportService({
-      changes: changesService,
-      changesRepository,
-      topics,
-      decisions,
-    }),
     createChange: async (slug, overrides = {}) => {
       const parsed = typeof slug === 'string' ? ChangeSlug.parse(slug) : slug;
       const change: Change = {
@@ -88,13 +68,6 @@ export async function testNoesis(): Promise<TestNoesis> {
     },
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
-}
-
-export function put<T extends { id: string }>(
-  store: Pick<NoesisStore<T, unknown, unknown>, 'set'>,
-  entity: T,
-): Promise<void> {
-  return store.set(entity.id, entity);
 }
 
 /** Every object of a collection, in no particular order. */

@@ -35,8 +35,8 @@ flowchart TB
 
             subgraph repo["Git repository"]
                 src["Source code"]
-                kg["Knowledge graph files<br/>changes (conversations · documents · design docs)<br/>system model · wiki"]
-                kskills["Knowledge management skills<br/>import conversation · import document<br/>create design doc · update design doc<br/>search knowledge graph"]
+                kg["Knowledge graph files<br/>changes (conversations · documents · design docs)<br/>system model"]
+                kskills["Knowledge management skills<br/>create design doc · update design doc<br/>search knowledge graph"]
                 iskills["Implementation skills<br/>implement design doc"]
             end
         end
@@ -145,24 +145,22 @@ All knowledge graph files live under `.noesis/` at the repository root, one dire
 ├── changes/              one directory per change tracked across the graph
 │   └── <change>/         the change set itself, plus everything produced while working on it
 │       ├── conversations/  imported conversation transcripts — turns and idea units
-│       ├── documents/      imported documents — content, fragments, section tree
+│       ├── documents/      imported documents — title, date and verbatim content
 │       └── design-docs/    designed models, expressed as a diff against the implemented system
-├── system-model/         the implemented model, projected from the source code by the scanner
-└── wiki/                 the curated knowledge base, distilled from the imported sources
-    ├── topics/           the topic tree — one file per topic, with summaries and item references
-    └── decisions/        decisions with their options and supporting evidence
+└── system-model/         the implemented model, projected from the source code by the scanner
 ```
 
 The split reflects provenance. `conversations/` and `documents/` are **imports** — a faithful
-record of what was said or written, never rewritten. `wiki/` is the **distillate**: what the
-imports mean, organised by subject rather than by source, and the part a person actually reads
-and edits.
+record of what was said or written, never rewritten. `design-docs/` is **authored**: what the
+imports and the code are taken to mean for the change at hand, written by the agent with the
+user, and revised in place as the design moves. `system-model/` is **derived**: the scanner
+rewrites it from the source code, so nothing there is edited by hand.
 
 Imports and design docs are **scoped to a change**: a conversation is imported because some
 change is being worked on, and a design doc describes that change. Keeping them under the change
 directory makes the unit of work the unit of review — the whole record of a change lands in one
-directory in a pull request. `system-model/` and `wiki/` are change-independent: the former
-tracks the code as it is, the latter accumulates across every change.
+directory in a pull request. `system-model/` is change-independent: it tracks the code as it is,
+whichever change is in flight.
 
 The knowledge graph is `.noesis/graph/` (decision D2): one directory per object at every depth,
 named by the object's key and holding exactly one `data.json`, written through a single typed
@@ -173,19 +171,20 @@ store. Rules that hold across every kind:
   and scratch space live outside `graph/` — `sources/`, `tmp/` — and are not graph content.
 - **Directories nest by ownership, never by classification.** A change owns its conversations,
   documents and design documents, so those are child collections under
-  `graph/changes/<change>/`; `system-model/` and `wiki/` are flat root collections. The topic
-  tree lives in the data — a topic names its parent by id, a decision names its topic — so
-  reparenting a topic is a one-field edit, not a file move.
+  `graph/changes/<change>/`; `system-model/` is a flat root collection. Where one object belongs
+  under another by classification rather than ownership, the relation lives in the data as a
+  field naming the other object's id, so re-classifying is a one-field edit, not a file move.
 - **The directory is the key.** A change's slug, the entity's id everywhere else. The service
   chooses the key; a `git diff` shows an id, and renaming an entity changes a field, not a path.
-- **Stable ids.** Imported sources are identified by the hash of their content, so re-importing
-  the same source yields the same id and is detected as a duplicate. Everything the graph
+- **Stable ids.** Imported sources are identified by the hash of their content, so the same
+  source imported twice lands under the same id rather than beside itself. Everything the graph
   authors itself gets a time-ordered id.
-- **References are ids.** One object points at another by id. A fragment ref into an imported
-  source also carries the hash of the source's JSON as imported; a source is never rewritten, so
-  a differing hash means the ref was made against other content.
-- **User edits are marked.** A field edited by a person is flagged as locked in the file itself.
-  Skills preserve locked fields instead of overwriting them, and must ask before changing one.
+- **References are ids.** One object points at another by id, never by path, and the same holds
+  inside a file: the elements of a design document address each other by id, so renaming,
+  reordering or reparenting an element leaves every reference to it intact.
+- **User edits are marked.** Text a person wrote is recorded as such in the file itself — a
+  design document marks the authorship of every piece of prose. Skills keep human-authored text
+  exactly as it stands instead of overwriting it, and must ask before changing it.
 
 Each file is self-contained and diff-friendly on purpose: the graph is reviewable in a pull
 request, and a merge conflict lands in one entity rather than across the whole model.
@@ -233,23 +232,24 @@ single-line correction. That lets the agent edit the working file in place inste
 regenerating it. The error list is capped, reporting how many further problems were suppressed,
 so one structural mistake does not bury the first real cause.
 
-## Flow of a knowledge import
+## Flow of a write to the graph
 
 1. The agent runs a knowledge management skill, and reads the contract for the file kind it is
    about to produce from the plugin.
-2. It writes its analysis to the temp dir.
+2. It writes the document it has composed to the temp dir.
 3. It calls the validation tool with the working file path, corrects what comes back, and repeats
    until the file is clean.
-4. It calls the matching MCP tool with the working directory path.
-5. The service validates, splits the analysis, and writes the knowledge graph files through the
-   repositories.
+4. It calls the matching MCP tool with the working file path.
+5. The service validates again, mints or keeps the id, and writes the knowledge graph files
+   through the repositories.
 6. The watcher picks up the change and re-indexes the graph.
 7. The UI and subsequent agent queries read the updated graph.
 
 ## Boundaries
 
-- **No LLM in the service.** All semantic reasoning — topic search, summarisation, extraction —
-  happens in the agent driving the skill. The service provides deterministic data access only.
+- **No LLM in the service.** All semantic reasoning — summarisation, extraction, deciding what a
+  source means — happens in the agent driving the skill. The service provides deterministic data
+  access only.
 - **No network.** Service, agent, browser, and repository are all local.
 - **Skills live in the plugin**, versioned in the Noesis repository and shipped with the
   contracts they reference, so every project runs the same skills at the same version.

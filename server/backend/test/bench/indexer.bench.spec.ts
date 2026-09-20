@@ -9,10 +9,6 @@ import { IndexService } from '#backend/adapters/graph/index.service';
 import { SchemaService } from '#backend/adapters/graph/schema.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { createSystemModelStore } from '#backend/adapters/store/system-model.store';
-import {
-  createDecisionsStore,
-  createTopicsStore,
-} from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { DatabaseService } from '#backend/platform/database/database.service';
@@ -75,8 +71,6 @@ async function measure(files: number): Promise<number> {
     const changes = new NoesisChangesRepository(noesis);
     const indexer = new IndexService(db, {
       changes,
-      topics: createTopicsStore(noesis),
-      decisions: createDecisionsStore(noesis),
       systemModels: createSystemModelStore(noesis),
     });
     const report = await indexer.rebuild();

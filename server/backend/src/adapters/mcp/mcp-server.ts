@@ -36,19 +36,12 @@ import {
   validate,
 } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
-import {
-  DuplicateSourceError,
-  type ImportReport,
-  type ImportService,
-  InvalidImportError,
-} from './import.service';
 
 export interface McpDeps {
   repositoryRoot: string;
   session: SessionDir;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  importService: ImportService;
   searchService: SearchService;
   scannerService: ScannerService;
 }
@@ -165,9 +158,6 @@ export function createMcpServer(deps: McpDeps): Server {
     try {
       return await run();
     } catch (error) {
-      if (error instanceof InvalidImportError) {
-        return rejected(error.contract, error.issues, error.suppressed);
-      }
       if (
         error instanceof ChangeNotFoundError ||
         error instanceof InvalidChangeSlugError
@@ -179,38 +169,9 @@ export function createMcpServer(deps: McpDeps): Server {
           `${error.message} Call list-design-docs to see the ids the change has.`,
         );
       }
-      if (error instanceof DuplicateSourceError) {
-        return errorResult(
-          `${error.message.replace(error.path, rel(error.path))} Nothing was written; the topics were not updated either. Import a different source, or edit the wiki files directly.`,
-        );
-      }
       throw error;
     }
   }
-
-  const importReport = (report: ImportReport): string =>
-    [
-      `Imported the ${report.source.kind} as ${rel(report.source.path)} (id ${report.source.id}).`,
-      `Topics created: ${listOrNone(report.topics.created)}. Topics updated: ${listOrNone(report.topics.updated)}.`,
-      `Decisions created: ${listOrNone(report.decisions.created)}. Decisions updated: ${listOrNone(report.decisions.updated)}.`,
-      'The graph picks the files up on the next re-index.',
-    ].join('\n');
-
-  const importTool = (
-    description: string,
-    run: (change: ChangeSlug, payload: unknown) => Promise<ImportReport>,
-  ) =>
-    define({
-      description,
-      args: z.object({ change: changeSlug, path: workingPath }),
-      handler: async ({ change, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) return errorResult(file.text);
-        return attempt(async () =>
-          text(importReport(await run(ChangeSlug.parse(change), file.raw))),
-        );
-      },
-    });
 
   const tools = {
     validate: define({
@@ -247,17 +208,6 @@ export function createMcpServer(deps: McpDeps): Server {
         );
       },
     }),
-
-    'import-conversation': importTool(
-      'Imports a conversation from a working file that satisfies the conversation-analysis contract: writes the conversation under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      (change, payload) =>
-        deps.importService.importConversation(change, payload),
-    ),
-
-    'import-document': importTool(
-      'Imports a document from a working file that satisfies the document-analysis contract: writes the document under the change and creates or updates the wiki topics and decisions the analysis names. Locked fields of existing topics and decisions are kept.',
-      (change, payload) => deps.importService.importDocument(change, payload),
-    ),
 
     'list-design-docs': define({
       description:
@@ -348,7 +298,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'search-knowledge-graph': define({
       description:
-        'Searches the knowledge graph — wiki topics and decisions, design documents, imported conversations and documents — by a case-insensitive substring of their titles and summaries. Returns ids to read the files by.',
+        'Searches the knowledge graph — design documents, the system model, imported conversations and documents — by a case-insensitive substring of their titles and summaries. Returns ids to read the files by.',
       args: z.object({
         query: z.string().min(1).describe('What to look for.'),
       }),
@@ -422,6 +372,3 @@ export function createMcpServer(deps: McpDeps): Server {
 function define<A>(tool: ToolDefinition<A>): ToolDefinition<unknown> {
   return tool as ToolDefinition<unknown>;
 }
-
-const listOrNone = (ids: string[]): string =>
-  ids.length === 0 ? 'none' : ids.join(', ');

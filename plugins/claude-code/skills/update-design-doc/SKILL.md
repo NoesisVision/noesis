@@ -20,7 +20,8 @@ stores it.
    the change. Read the current document from the path the tool gives (under
    `.noesis/graph/changes/<change>/design-docs/`).
 2. **Ground the revision** as for a new design: `search-knowledge-graph`, the
-   wiki, the system model, and the user.
+   imported conversations and documents behind the hits, the system model,
+   and the user.
 3. **Revise the whole document.** Keep every existing element id; add new
    elements with new ids; remove only what the user asked to remove. Text
    marked `author: "human"` or `descriptionAuthor: "human"` is a person's

@@ -1,10 +1,6 @@
 import type { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import type { SystemModelStore } from '#backend/adapters/store/system-model.store';
 import type {
-  DecisionsStore,
-  TopicsStore,
-} from '#backend/adapters/store/wiki.store';
-import type {
   DatabaseService,
   Transaction,
 } from '#backend/platform/database/database.service';
@@ -21,8 +17,6 @@ export interface IndexReport {
 
 export interface IndexerSources {
   changes: NoesisChangesRepository;
-  topics: TopicsStore;
-  decisions: DecisionsStore;
   systemModels: SystemModelStore;
 }
 
@@ -69,13 +63,11 @@ export class IndexService {
   }
 
   private async collect(): Promise<Map<string, Row[]>> {
-    const { changes, topics, decisions, systemModels } = this.sources;
+    const { changes, systemModels } = this.sources;
     const rows = new Map<string, Row[]>([
       ['DesignDoc', []],
       ['Conversation', []],
       ['Document', []],
-      ['Topic', []],
-      ['Decision', []],
       ['SystemModel', []],
     ]);
     const push = (table: string, row: Row) => rows.get(table)?.push(row);
@@ -113,30 +105,12 @@ export class IndexService {
         });
       }
     }
-    for await (const topic of objects(topics)) {
-      push('Topic', {
-        id: topic.id,
-        parent_id: topic.parent_id ?? '',
-        title: topic.title,
-        short_summary: topic.short_summary,
-        json: JSON.stringify(topic),
-      });
-    }
     for await (const model of objects(systemModels)) {
       push('SystemModel', {
         id: model.id,
         name: model.name,
         scanned_at: model.scanned_at,
         json: JSON.stringify(model),
-      });
-    }
-    for await (const decision of objects(decisions)) {
-      push('Decision', {
-        id: decision.id,
-        topic_id: decision.topic_id,
-        title: decision.title,
-        status: decision.status,
-        json: JSON.stringify(decision),
       });
     }
     return rows;
