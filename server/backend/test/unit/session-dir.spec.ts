@@ -47,7 +47,7 @@ async function leftover(name: string, ageMs: number): Promise<string> {
 
 describe('SessionDir', () => {
   it('creates its own directory under .noesis/tmp/ on open', async () => {
-    const session = new SessionDir(noesis, { id: 'abc' });
+    const session = new SessionDir(noesis, root, { id: 'abc' });
 
     await session.open();
 
@@ -58,7 +58,7 @@ describe('SessionDir', () => {
   it('sweeps directories older than the max age, keeps younger ones and its own', async () => {
     const old = await leftover('old', SESSION_MAX_AGE_MS + DAY_MS);
     const young = await leftover('young', DAY_MS);
-    const session = new SessionDir(noesis, { id: 'me' });
+    const session = new SessionDir(noesis, root, { id: 'me' });
 
     await session.open();
 
@@ -74,14 +74,14 @@ describe('SessionDir', () => {
     const when = new Date(Date.now() - SESSION_MAX_AGE_MS * 2);
     await utimes(stray, when, when);
 
-    await new SessionDir(noesis).open();
+    await new SessionDir(noesis, root).open();
 
     expect(await exists(stray)).toBe(true);
   });
 
   it('removes only its own directory on dispose', async () => {
     const other = await leftover('other', 0);
-    const session = new SessionDir(noesis);
+    const session = new SessionDir(noesis, root);
     await session.open();
     await writeFile(join(session.path, 'work.json'), '{}');
 
@@ -96,7 +96,7 @@ describe('SessionDir', () => {
     let file: string;
 
     beforeEach(async () => {
-      session = new SessionDir(noesis, { id: 's1' });
+      session = new SessionDir(noesis, root, { id: 's1' });
       await session.open();
       file = join(session.path, 'doc.json');
       await writeFile(file, '{}');
@@ -173,14 +173,14 @@ describe('SessionDir', () => {
 
   describe('deliver', () => {
     it('returns a small result inline', async () => {
-      const session = new SessionDir(noesis, { inlineResultLimit: 100 });
+      const session = new SessionDir(noesis, root, { inlineResultLimit: 100 });
       await session.open();
 
       expect(await session.deliver('short')).toBe('short');
     });
 
     it('writes a large result to the session directory and returns the path', async () => {
-      const session = new SessionDir(noesis, { inlineResultLimit: 10 });
+      const session = new SessionDir(noesis, root, { inlineResultLimit: 10 });
       await session.open();
       const big = 'x'.repeat(50);
 

@@ -26,7 +26,7 @@ let client: Client;
 
 beforeEach(async () => {
   t = await testNoesis();
-  session = new SessionDir(t.noesis);
+  session = new SessionDir(t.noesis, t.root);
   await session.open();
   await t.changesService.create({ name: CHANGE, key: '', type: 'chore' });
 

@@ -28,7 +28,7 @@ import { launchCwd } from './bundle-cwd';
 import { loadServerConfig } from './platform/config/config';
 import { DatabaseService } from './platform/database/database.service';
 import { NoesisDir } from './platform/files/noesis-dir';
-import { resolveRepositoryRoot } from './platform/files/repository-root';
+import { RepositoryRoot } from './platform/files/repository-root';
 import { SessionDir } from './platform/files/session-dir';
 import { NoesisWatcher } from './platform/files/watcher';
 import {
@@ -40,7 +40,8 @@ import { ensureLadybugBinary } from './platform/native/ensure-ladybug';
 
 const config = loadServerConfig();
 
-const noesis = new NoesisDir(loadRepositoryRoot());
+const repositoryRoot = loadRepositoryRoot();
+const noesis = new NoesisDir(repositoryRoot);
 await noesis.ensureInitialized();
 const production = process.env.NODE_ENV === 'production';
 // Logging needs `.noesis/logs/`; failures before this point print and exit.
@@ -51,7 +52,7 @@ await configureLogging({
 });
 const log = serverLogger();
 log.info('knowledge graph files in {path}', { path: noesis.path });
-const session = new SessionDir(noesis);
+const session = new SessionDir(noesis, repositoryRoot);
 await session.open();
 log.info('session scratch directory {path}', { path: session.path });
 
@@ -87,7 +88,7 @@ const importService = new ImportService({
   topics,
   decisions,
 });
-const scannerService = new ScannerService(noesis.root, systemModels);
+const scannerService = new ScannerService(repositoryRoot, systemModels);
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
   searchService,
@@ -120,7 +121,7 @@ log.info('listening on {url}', { url });
 if (config.openBrowser) openBrowser(url);
 
 const mcp = createMcpServer({
-  repositoryRoot: noesis.root,
+  repositoryRoot,
   session,
   changesService,
   designDocsService,
@@ -138,10 +139,10 @@ process.stdin.once('end', () => {
 log.info('MCP server connected on stdio');
 
 function loadRepositoryRoot(): string {
-  const result = resolveRepositoryRoot({
+  const result = new RepositoryRoot({
     root: config.root,
     cwd: launchCwd,
-  });
+  }).resolve();
   if (!result.ok) {
     console.error(`[server] ${result.message}`);
     process.exit(1);

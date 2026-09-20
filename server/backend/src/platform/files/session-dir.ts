@@ -38,14 +38,18 @@ export class SessionDir {
   readonly id: string;
   readonly path: string;
   readonly tmpRoot: string;
-  private readonly noesis: NoesisDir;
+  private readonly repositoryRoot: string;
   private readonly now: () => number;
   private readonly maxAgeMs: number;
   private readonly inlineResultLimit: number;
   private results = 0;
 
-  constructor(noesis: NoesisDir, options: SessionDirOptions = {}) {
-    this.noesis = noesis;
+  constructor(
+    noesis: NoesisDir,
+    repositoryRoot: string,
+    options: SessionDirOptions = {},
+  ) {
+    this.repositoryRoot = repositoryRoot;
     this.id = options.id ?? uuidv7();
     this.tmpRoot = noesis.resolve(TMP_DIR_NAME);
     this.path = join(this.tmpRoot, this.id);
@@ -90,7 +94,7 @@ export class SessionDir {
   private toAbsolute(input: string): string {
     return isAbsolute(input)
       ? normalize(input)
-      : resolve(this.noesis.root, input);
+      : resolve(this.repositoryRoot, input);
   }
 
   private async isInsideRealTmpRoot(target: string): Promise<boolean> {
@@ -100,7 +104,7 @@ export class SessionDir {
   private notUnderTmp(input: string): WorkingPathResult {
     return {
       ok: false,
-      message: `${input} is not under ${relative(this.noesis.root, this.tmpRoot)}/. Tools accept only paths under .noesis/tmp/; this session's directory is ${this.path}.`,
+      message: `${input} is not under ${relative(this.repositoryRoot, this.tmpRoot)}/. Tools accept only paths under .noesis/tmp/; this session's directory is ${this.path}.`,
     };
   }
 

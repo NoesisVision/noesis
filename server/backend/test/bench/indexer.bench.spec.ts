@@ -14,10 +14,10 @@ import {
   createTopicsStore,
 } from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { dataFileOf } from '#backend/platform/files/noesis-store';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { DatabaseService } from '#backend/platform/database/database.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 
 const CHANGES = 20;
 const BUDGET_MS_AT_10K = 2000;
@@ -32,7 +32,12 @@ beforeAll(async () => {
 
 afterAll(() => db.close());
 
-async function syntheticNoesis(files: number): Promise<NoesisDir> {
+interface BenchRepository {
+  root: string;
+  noesis: NoesisDir;
+}
+
+async function syntheticNoesis(files: number): Promise<BenchRepository> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-bench-'));
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
@@ -62,11 +67,11 @@ async function syntheticNoesis(files: number): Promise<NoesisDir> {
       JSON.stringify({ ...designDocFixture, id, name }, null, 2),
     );
   }
-  return noesis;
+  return { root, noesis };
 }
 
 async function measure(files: number): Promise<number> {
-  const noesis = await syntheticNoesis(files);
+  const { root, noesis } = await syntheticNoesis(files);
   try {
     const changes = new NoesisChangesRepository(noesis);
     const indexer = new IndexService(db, {
@@ -79,7 +84,7 @@ async function measure(files: number): Promise<number> {
     expect(report.files).toBe(files);
     return report.durationMs;
   } finally {
-    await rm(noesis.root, { recursive: true, force: true });
+    await rm(root, { recursive: true, force: true });
   }
 }
 
