@@ -1,4 +1,5 @@
 import type { Change, CreateChange } from '#backend/app/changes/model/change';
+import { Serial } from '#backend/app/serial';
 import { ChangeSlug } from './change-slug';
 import type { ChangesRepository } from './changes.repository';
 
@@ -32,6 +33,7 @@ export class DuplicateChangeError extends Error {
 
 export class ChangesService {
   private readonly changes: ChangesRepository;
+  private readonly writes = new Serial();
 
   constructor(changes: ChangesRepository) {
     this.changes = changes;
@@ -52,7 +54,15 @@ export class ChangesService {
     return found;
   }
 
-  async create(input: CreateChange, now = new Date()): Promise<Change> {
+  /** Check and write run as one step, so parallel creates cannot both pass the check. */
+  create(input: CreateChange, now = new Date()): Promise<Change> {
+    return this.writes.run(() => this.createUnguarded(input, now));
+  }
+
+  private async createUnguarded(
+    input: CreateChange,
+    now: Date,
+  ): Promise<Change> {
     const slug = ChangeSlug.fromName(input.name);
     await this.assertKeyFree(input.key);
     await this.assertSlugFree(slug);

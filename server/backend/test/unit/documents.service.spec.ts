@@ -54,6 +54,17 @@ describe('DocumentsService', () => {
     ).rejects.toBeInstanceOf(DuplicateDocumentError);
   });
 
+  it('lets only one of two parallel creates with the same title through', async () => {
+    const results = await Promise.allSettled([
+      service.create(CHANGE, document),
+      service.create(CHANGE, { ...document, content: 'Rewritten.' }),
+    ]);
+
+    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
+    const stored = await service.findById(CHANGE, 'booking-rules-v2');
+    expect(stored?.document.content).toBe(document.content);
+  });
+
   it('lets another change hold a document of the same title', async () => {
     const other = await t.createChange('billing');
     await service.create(CHANGE, document);

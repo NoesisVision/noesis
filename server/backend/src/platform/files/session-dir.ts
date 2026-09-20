@@ -1,6 +1,6 @@
 import type { Dirent } from 'node:fs';
 import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
-import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
+import { isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
 import { serverLogger } from '#backend/platform/logging/logging';
 import type { NoesisDir } from './noesis-dir';
@@ -74,7 +74,9 @@ export class SessionDir {
     if (realTmpRoot === null || !isInside(realTmpRoot, target)) {
       return this.notUnderTmp(input);
     }
-    return { ok: true, path: absolute };
+    // The checked path, not the spelled one: a link swapped in after the check
+    // would otherwise be read in its place.
+    return { ok: true, path: target };
   }
 
   private toAbsolute(input: string): string {
@@ -146,7 +148,9 @@ export class SessionDir {
 /** Strictly below: the parent itself does not count. */
 function isInside(parent: string, child: string): boolean {
   const rel = relative(parent, child);
-  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+  if (rel === '' || isAbsolute(rel)) return false;
+  // `..` as a whole segment climbs out; a name that merely starts with dots does not.
+  return rel !== '..' && !rel.startsWith(`..${sep}`);
 }
 
 async function realpathIfExists(path: string): Promise<string | null> {

@@ -4,6 +4,7 @@ import type {
   CreateDocument,
   Document,
 } from '#backend/app/information-sources/model/document';
+import { Serial } from '#backend/app/serial';
 import { documentIdFromTitle } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
@@ -50,13 +51,19 @@ export class DuplicateDocumentError extends Error {
 export class DocumentsService {
   private readonly docs: DocumentsRepository;
   private readonly changesService: ChangesService;
+  private readonly writes = new Serial();
 
   constructor(docs: DocumentsRepository, changesService: ChangesService) {
     this.docs = docs;
     this.changesService = changesService;
   }
 
-  async create(
+  /** Check and write run as one step, so parallel creates cannot both pass the check. */
+  create(slug: ChangeSlug, document: CreateDocument): Promise<DocumentSummary> {
+    return this.writes.run(() => this.createUnguarded(slug, document));
+  }
+
+  private async createUnguarded(
     slug: ChangeSlug,
     document: CreateDocument,
   ): Promise<DocumentSummary> {
@@ -67,7 +74,15 @@ export class DocumentsService {
   }
 
   /** Whole-document replacement; a new title moves the document to its id. */
-  async update(
+  update(
+    slug: ChangeSlug,
+    id: string,
+    document: Document,
+  ): Promise<DocumentSummary> {
+    return this.writes.run(() => this.updateUnguarded(slug, id, document));
+  }
+
+  private async updateUnguarded(
     slug: ChangeSlug,
     id: string,
     document: Document,

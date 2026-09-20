@@ -1,4 +1,7 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
+import type {
+  CallToolResult,
+  ServerContext,
+} from '@modelcontextprotocol/server';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { failure } from './tool-result';
 
@@ -13,11 +16,11 @@ const log = serverLogger('mcp');
  */
 export function logged<Input>(
   tool: string,
-  handler: (input: Input) => Promise<CallToolResult>,
-): (input: Input) => Promise<CallToolResult> {
-  return async (input) => {
+  handler: (input: Input, ctx: ServerContext) => Promise<CallToolResult>,
+): (input: Input, ctx: ServerContext) => Promise<CallToolResult> {
+  return async (input, ctx) => {
     try {
-      return await handler(input);
+      return await handler(input, ctx);
     } catch (error) {
       log.error('{tool} failed unexpectedly: {error}', {
         tool,

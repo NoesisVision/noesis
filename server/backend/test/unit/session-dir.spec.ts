@@ -112,14 +112,14 @@ describe('SessionDir', () => {
     it('accepts an absolute path under tmp/', async () => {
       expect(await session.resolveWorkingPath(file)).toEqual({
         ok: true,
-        path: file,
+        path: await realpath(file),
       });
     });
 
     it('accepts a path relative to the repository root', async () => {
       expect(await session.resolveWorkingPath(relative(root, file))).toEqual({
         ok: true,
-        path: file,
+        path: await realpath(file),
       });
     });
 
@@ -181,6 +181,25 @@ describe('SessionDir', () => {
         ok: true,
         path: resolved,
       });
+    });
+
+    it('answers the path it checked, not the link it was given', async () => {
+      const link = join(session.path, 'link.json');
+      await symlink(file, link);
+
+      expect(await session.resolveWorkingPath(link)).toEqual({
+        ok: true,
+        path: await realpath(file),
+      });
+    });
+
+    it('accepts a file whose name merely starts with two dots', async () => {
+      const dotted = join(session.path, '..draft.json');
+      await writeFile(dotted, '{}');
+
+      const result = await session.resolveWorkingPath(dotted);
+
+      expect(result.ok).toBe(true);
     });
 
     it('reports a missing file', async () => {

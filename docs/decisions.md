@@ -134,7 +134,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
   (health and technical endpoints). The agent does not use HTTP — it reaches the
   same services over MCP on stdio. Surface routes win over the SPA's `/*` route, so a surface 404 is
   never swallowed by the page. stdout belongs to the MCP transport; everything
-  else writes to stderr.
+  else writes to stderr. The `console.log` redirect lives in `stdout-guard.ts`,
+  `main.ts`'s first import, because imports are hoisted and an assignment in
+  `main.ts` would run after every dependency's import-time logging; Bun's
+  browser-console echo is on only when stdin is a terminal.
 - **Keep the `.route()` chains unbroken** in `app.ts` and `ui.routes.ts`: Hono
   infers the route tree from the expression, and the frontend's typed client
   depends on it (D5).
@@ -152,7 +155,12 @@ conventions for skills: the contracts' `.describe()` text (D4).
   grows back one tool at a time. Every handler is registered through
   `logged()` (`adapters/mcp/tool-handler.ts`): the SDK answers a thrown error
   in-band by itself but silently, so an unforeseen failure would otherwise
-  leave nothing in `.noesis/logs/` for the person whose session broke. The
+  leave nothing in `.noesis/logs/` for the person whose session broke.
+  `logged()` hands the SDK's `ServerContext` on, so a tool can reach the
+  cancellation signal without the wrapper changing. Outside a tool call,
+  `uncaughtException` and `unhandledRejection` are logged as fatal and end the
+  session through `shutdown(1)`, so the log says why and the database still
+  closes. The
   declared capability is `tools: { listChanged: false }`, which is the truth —
   the list is fixed for the connection's life and no notification ever
   follows; the SDK advertises `true` for a server that says nothing.
@@ -215,6 +223,14 @@ conventions for skills: the contracts' `.describe()` text (D4).
   line. `SessionDir` carried a `deliver()` that wrote an oversized answer to a
   `result-N.txt` beside the working files; it went with the tools that
   returned lists, and comes back with the first tool that needs it.
+- **A write that follows a uniqueness check is serialised in its service.**
+  `ChangesService.create` and `DocumentsService.create`/`update` run check and
+  write as one step through `Serial` (`app/serial.ts`, a promise chain): an
+  agent fires tool calls in parallel, the store's write is temp-file-plus-rename
+  and so overwrites, and two checks that both pass would let the second create
+  silently replace the first. In-process order is enough for the ui and the
+  agent of one session, which share the service instances; two sessions on one
+  repository are not covered.
 - **Validation happens once, where the write happens.** A tool that reads a
   working file checks it against its contract
   (`src/app/validation/contracts`) before the service sees it and rejects the

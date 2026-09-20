@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { configure, type LogRecord, reset } from '@logtape/logtape';
+import type { ServerContext } from '@modelcontextprotocol/server';
 import { logged } from '#backend/adapters/mcp/tool-handler';
 import { success } from '#backend/adapters/mcp/tool-result';
 import { textOf } from '../support/service-process';
+
+// The wrapper only hands it on, so its contents do not matter here.
+const ctx = {} as ServerContext;
 
 let records: LogRecord[];
 
@@ -24,7 +28,7 @@ describe('logged', () => {
   it('passes a result through untouched', async () => {
     const handler = logged('a_tool', async () => success('done', { ok: true }));
 
-    const result = await handler({});
+    const result = await handler({}, ctx);
 
     expect(result).toEqual({
       content: [{ type: 'text', text: 'done' }],
@@ -33,12 +37,24 @@ describe('logged', () => {
     expect(records).toEqual([]);
   });
 
+  it('hands the SDK context on to the tool', async () => {
+    let seen: ServerContext | undefined;
+    const handler = logged('a_tool', async (_input: object, given) => {
+      seen = given;
+      return success('done', {});
+    });
+
+    await handler({}, ctx);
+
+    expect(seen).toBe(ctx);
+  });
+
   it('answers an unforeseen failure in-band and logs it', async () => {
     const handler = logged('a_tool', async () => {
       throw new Error('the disk went away');
     });
 
-    const result = await handler({});
+    const result = await handler({}, ctx);
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('a_tool failed: the disk went away');

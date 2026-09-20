@@ -1,8 +1,7 @@
-// stdout carries the MCP protocol: a dependency's console.log would corrupt it.
-console.log = (...args: unknown[]) => console.error(...args);
-
-// Must stay the first import: it moves the working directory to the bundle
-// before the HTML import below resolves its assets.
+// These two stay first, in this order. The guard has to be in place before any
+// other module is evaluated; bundle-cwd moves the working directory to the
+// bundle before the HTML import below resolves its assets.
+import './stdout-guard';
 import './bundle-cwd';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import index from '../../frontend/index.html';
@@ -164,9 +163,11 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
     // HMR stays off: its client runtime mishandles a circular import inside
     // @tanstack/router-core and the page dies with "Cannot read properties of
     // null (reading 'replaceRouteChunk')" (bun 1.3.14 and 1.4.2).
+    // The browser's console is echoed only to a terminal: under a host, stdout
+    // is the MCP stream.
     development: !production && {
       hmr: false,
-      console: true,
+      console: process.stdin.isTTY === true,
     },
   });
   const url = `http://localhost:${server.port}/`;
@@ -190,7 +191,7 @@ function loadRepositoryRoot(): string {
 
 // The database closes last, deterministically, to release its native handles
 // (decision D3).
-async function shutdown(): Promise<void> {
+async function shutdown(exitCode = 0): Promise<void> {
   // Two `db.close()` calls racing on one native handle is undefined behaviour.
   if (shuttingDown) return;
   shuttingDown = true;
@@ -210,7 +211,23 @@ async function shutdown(): Promise<void> {
     await half?.db.close();
   }
   await disposeLogging();
-  process.exit(0);
+  process.exit(exitCode);
 }
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
+  process.on(signal, () => void shutdown());
+}
+
+// Nothing in the process is trusted after either of these, so the session
+// ends — but through `shutdown()`, so `.noesis/logs/` says why and the
+// database still closes.
+process.on('uncaughtException', (error) => crashed('exception', error));
+process.on('unhandledRejection', (reason) => crashed('rejection', reason));
+
+function crashed(kind: 'exception' | 'rejection', error: unknown): void {
+  log.fatal('unhandled {kind}: {error}', {
+    kind,
+    error: String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
+  void shutdown(1);
+}
