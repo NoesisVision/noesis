@@ -5,7 +5,11 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { listeningUrl, serviceEnv } from '../support/service-process';
+import {
+  listeningUrl,
+  serviceEnv,
+  startServing,
+} from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
 
@@ -25,6 +29,7 @@ beforeAll(async () => {
     // the session and exits.
     stdio: ['pipe', 'ignore', 'pipe'],
   });
+  startServing(serverProcess);
   BASE = await listeningUrl(serverProcess, 15_000);
 }, 30_000);
 

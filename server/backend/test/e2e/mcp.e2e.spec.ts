@@ -3,11 +3,12 @@
 // modern revision and the 2025 fallback are both exercised here — an
 // InMemoryTransport pair cannot reach the modern era.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client, type ClientOptions } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { LOG_FILE_NAME } from '#backend/platform/logging/logging';
 import { serviceEnv, textOf } from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
@@ -44,6 +45,19 @@ afterAll(async () => {
     await rm(repoRoot, { recursive: true, force: true });
   }
 });
+
+const occurrences = (text: string, needle: string) =>
+  text.split(needle).length - 1;
+
+async function until(
+  condition: () => Promise<boolean>,
+  timeoutMs = 15_000,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!(await condition()) && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
 
 const exists = (path: string) =>
   stat(path).then(
@@ -191,4 +205,35 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
     });
     expect(created.structuredContent).toMatchObject({ slug: 'legacy-era' });
   }, 15_000);
+});
+
+// The heavy half — database, graph index, watcher, page — waits for a session,
+// so the SDK's throwaway era probe never pays for one.
+describe('the graph and ui half (e2e)', () => {
+  let service: Service;
+
+  beforeAll(async () => {
+    service = await startService({
+      versionNegotiation: { mode: { pin: '2026-07-28' } },
+    });
+  }, 30_000);
+
+  afterAll(() => service.client.close());
+
+  const logText = () =>
+    readFile(join(service.repoRoot, '.noesis', 'logs', LOG_FILE_NAME), 'utf8');
+
+  it('starts on the first request that is not the era probe, in the serving process alone', async () => {
+    // Both processes serve MCP: the throwaway probe and the one that stays.
+    await until(
+      async () =>
+        occurrences(await logText(), 'MCP server serving on stdio') === 2,
+    );
+    expect(await logText()).not.toContain('listening on');
+
+    await service.client.listTools();
+
+    await until(async () => (await logText()).includes('listening on'));
+    expect(occurrences(await logText(), 'listening on')).toBe(1);
+  }, 30_000);
 });

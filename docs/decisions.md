@@ -172,19 +172,31 @@ conventions for skills: the contracts' `.describe()` text (D4).
   when the agent reads it. Instructions name the repository root and
   `.noesis/tmp/`; the live session directory is named in each tool's `path`
   parameter description, which `tools/list` answers from the serving process.
-- **The service boots twice per session on a 2026-era host**, and that is
-  accepted for now. The era probe spawns a second process from the same
-  command, so the throwaway one runs the whole of `main.ts` before it can
-  answer `server/discover`: it copies the LadybugDB binary, opens the
-  database, indexes the graph, starts the watcher, binds a port and — because
-  `openBrowser` runs before `serveStdio` — **opens a browser tab**, then is
-  reaped. A session therefore costs two indexes and two tabs. The fix, when
-  it is worth making, is a two-phase boot: the probe is identified exactly
-  and without timers, because the probe process receives `server/discover`
-  and nothing else while the serving process never receives it at all, and
-  `ServeStdioOptions.transport` is the seam to observe that on. Only the ui
-  and search need the heavy half — both current tools run on the file
-  repositories alone — so the split is along an existing line.
+- **Boot is in two halves, because a 2026-era host starts the process twice.**
+  The era probe spawns a throwaway sibling from the same command, so whatever
+  `main.ts` does before it can answer `server/discover` is paid for twice per
+  session — once by a process that is reaped seconds later. The first half is
+  the MCP surface and costs milliseconds: config, `.noesis/`, logging, the
+  session directory, the file repositories, `serveStdio`. The second half is
+  the LadybugDB binary, the database, the graph index, the watcher and the
+  page, and it starts on the first inbound message that is not
+  `server/discover` — `ServingTransport`
+  (`adapters/mcp/serving-transport.ts`) is `StdioServerTransport` with that
+  one thing observed, passed in as `ServeStdioOptions.transport`. The signal
+  is exact and needs no timer: the probe receives `server/discover` and
+  nothing else, and the process that serves never receives it at all, since
+  on the modern era the client takes the era, the capabilities and the
+  instructions from the probe's answer and sends no `initialize`. A host that
+  probes in place reaches the same conclusion one message later, a 2025-era
+  host on `initialize`. Nothing awaits the second half — both tools run on the
+  file repositories alone, so a session's first request is answered while the
+  page comes up behind it, and a database that will not open leaves the tools
+  serving instead of killing the session. A terminal on stdin (`bun run dev`,
+  the bin started by hand) means no host is speaking MCP, and the page is the
+  point of that run, so it starts at once. `shutdown()` awaits the half if it
+  is still coming up, or nothing knows what holds the database and the port.
+  What is left of the probe: two log files' worth of lines, and a session
+  directory it creates and deletes.
 - **zod is pinned at `^4.2.0` or above** in the root catalog because the v2
   SDK converts schemas through the authoring zod's `~standard.jsonSchema`:
   below 4.2 it falls back to its own bundled copy and silently **drops every
