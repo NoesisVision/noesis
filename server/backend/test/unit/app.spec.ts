@@ -11,6 +11,7 @@ describe('app', () => {
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
+    documentsService: t.documentsService,
   });
 
   it('echoes an incoming x-request-id on the response', async () => {

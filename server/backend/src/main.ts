@@ -13,10 +13,12 @@ import { createMcpServer } from './adapters/mcp/mcp-server';
 import { ScannerService } from './adapters/scanner/scanner.service';
 import { NoesisChangesRepository } from './adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
+import { NoesisDocumentsRepository } from './adapters/store/documents.repository';
 import { createSystemModelStore } from './adapters/store/system-model.store';
 import { createApp } from './app';
 import { ChangesService } from './app/changes/changes.service';
 import { DesignDocsService } from './app/design-docs/design-docs.service';
+import { DocumentsService } from './app/information-sources/documents.service';
 import { SearchService } from './app/search/search.service';
 import { openBrowser } from './browser';
 import { launchCwd } from './bundle-cwd';
@@ -73,12 +75,17 @@ const designDocsService = new DesignDocsService(
   new NoesisDesignDocsRepository(changesRepository),
   changesService,
 );
+const documentsService = new DocumentsService(
+  new NoesisDocumentsRepository(changesRepository),
+  changesService,
+);
 const scannerService = new ScannerService(repositoryRoot, systemModels);
 const searchService = new SearchService([createGraphSearch(db)]);
 const app = createApp({
   searchService,
   changesService,
   designDocsService,
+  documentsService,
 });
 
 // Bun matches routes by specificity, so `/ui/*` beats `/*` and a surface 404

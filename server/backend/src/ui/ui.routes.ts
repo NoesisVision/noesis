@@ -1,15 +1,18 @@
 import { Hono } from 'hono';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import type { SearchService } from '#backend/app/search/search.service';
 import { createChangesApp } from './changes/changes.routes';
 import { createDesignDocsApp } from './design-docs/design-docs.routes';
+import { createDocumentsApp } from './documents/documents.routes';
 import { createSearchApp } from './search/search.routes';
 
 export interface UiDeps {
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
+  documentsService: DocumentsService;
 }
 
 export function createUiApp(deps: UiDeps) {
@@ -23,5 +26,9 @@ export function createUiApp(deps: UiDeps) {
     .route(
       '/changes/:change/design-docs',
       createDesignDocsApp({ designDocsService: deps.designDocsService }),
+    )
+    .route(
+      '/changes/:change/documents',
+      createDocumentsApp({ documentsService: deps.documentsService }),
     );
 }

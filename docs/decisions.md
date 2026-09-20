@@ -4,7 +4,7 @@ The ten decisions in force, D1–D10. Everything here describes the tree as it
 is; if this file and the code disagree, that is a bug in one of them — say so
 rather than picking one silently.
 
-_Last updated: 2026-09-19, checked against the code on that date._
+_Last updated: 2026-09-20, checked against the code on that date._
 
 **How to use this file**
 
@@ -83,10 +83,11 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
 - **Concurrency is last write wins over atomic whole-file writes.** No locks, no
   coordinator, no hash preconditions. A lost update within the same seconds is
   accepted for a single user and shows in `git diff`.
-- **Ids.** Imported sources get a content hash (re-import is a duplicate, not a
-  copy); entities the graph authors get a time-ordered id the service mints. A
-  reference is the target's id; a fragment ref into an imported source also
-  carries `source_sha`.
+- **Ids.** A document is keyed by its title as a slug, unique within its
+  change: the title is the identity, the content is free to be revised, and a
+  retitle moves the object. Entities the graph authors get a time-ordered id
+  the service mints; a scanned system model hashes its name. A reference is
+  the target's id.
 - **Changes.** A change is `graph/changes/<slug>/`; its `data.json` carries
   `slug`, `name`, `key`, `type`, `status`, `created_at`, `description`. The
   service derives the slug from the name, starts status at `discovery`, refuses

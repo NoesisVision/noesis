@@ -1,8 +1,8 @@
 import { ChangeSchema } from '#backend/app/changes/model/change';
-import { DocumentSchema } from '#backend/app/information-sources/model/document';
 import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
 import type { FileContract } from '#backend/app/validation/validator';
 import { designDocumentContract } from './design-document';
+import { documentContract } from './document';
 
 /**
  * A contract carries the service's write-time check where there is one, so
@@ -14,10 +14,7 @@ export const contracts = {
     description: 'The data.json of a change under .noesis/graph/changes/.',
     schema: ChangeSchema,
   },
-  document: {
-    description: 'An imported document file.',
-    schema: DocumentSchema,
-  },
+  document: documentContract,
   'system-model': {
     description: 'A system-model file written by the scanner.',
     schema: SystemModelSchema,

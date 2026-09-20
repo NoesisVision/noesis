@@ -11,6 +11,7 @@ describe('Route surfaces (e2e)', () => {
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
+    documentsService: t.documentsService,
   });
 
   it('/ui/changes (GET) — ui surface', async () => {

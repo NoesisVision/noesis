@@ -87,6 +87,7 @@ export class IndexService {
       }
       for await (const document of objects(owned.documents)) {
         push('Document', {
+          key: `${change}/${document.document_id}`,
           id: document.document_id,
           change,
           title: document.title,

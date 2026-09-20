@@ -1,0 +1,132 @@
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { Document } from '#backend/app/information-sources/model/document';
+import { documentIdFromTitle } from './document-id';
+import type { DocumentsRepository } from './documents.repository';
+
+export interface DocumentSummary {
+  id: string;
+  title: string;
+  date: string;
+  /** Absolute; the agent reads the document from there. */
+  path: string;
+}
+
+export interface DocumentDetail {
+  summary: DocumentSummary;
+  document: Document;
+}
+
+export class DocumentNotFoundError extends Error {
+  readonly id: string;
+
+  constructor(slug: ChangeSlug, id: string) {
+    super(`No document ${JSON.stringify(id)} in change ${slug.value}.`);
+    this.name = 'DocumentNotFoundError';
+    this.id = id;
+  }
+}
+
+export class DuplicateDocumentError extends Error {
+  readonly title: string;
+
+  constructor(slug: ChangeSlug, title: string) {
+    super(
+      `Change ${slug.value} already has a document titled ${JSON.stringify(title)}.`,
+    );
+    this.name = 'DuplicateDocumentError';
+    this.title = title;
+  }
+}
+
+/**
+ * Callers validate before calling in (decision D4). The title identifies the
+ * document within its change, so the service derives the id from it and
+ * replaces whatever the input carries.
+ */
+export class DocumentsService {
+  private readonly docs: DocumentsRepository;
+  private readonly changesService: ChangesService;
+
+  constructor(docs: DocumentsRepository, changesService: ChangesService) {
+    this.docs = docs;
+    this.changesService = changesService;
+  }
+
+  async create(slug: ChangeSlug, document: Document): Promise<DocumentSummary> {
+    await this.changesService.assertExists(slug);
+    const id = documentIdFromTitle(document.title);
+    await this.assertTitleFree(slug, id, document.title);
+    return this.store(slug, id, document);
+  }
+
+  /** Whole-document replacement; a new title moves the document to its id. */
+  async update(
+    slug: ChangeSlug,
+    id: string,
+    document: Document,
+  ): Promise<DocumentSummary> {
+    await this.changesService.assertExists(slug);
+    await this.assertExists(slug, id);
+    const retitled = documentIdFromTitle(document.title);
+    if (retitled === id) return this.store(slug, id, document);
+    await this.assertTitleFree(slug, retitled, document.title);
+    const summary = await this.store(slug, retitled, document);
+    await this.docs.delete(slug, id);
+    return summary;
+  }
+
+  async list(slug: ChangeSlug): Promise<DocumentSummary[]> {
+    await this.changesService.assertExists(slug);
+    const documents = await Array.fromAsync(this.docs.values(slug));
+    return documents
+      .sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) || a.title.localeCompare(b.title),
+      )
+      .map((document) => this.summarize(slug, document));
+  }
+
+  async findById(slug: ChangeSlug, id: string): Promise<DocumentDetail | null> {
+    await this.changesService.assertExists(slug);
+    const document = await this.docs.get(slug, id);
+    if (document === null) return null;
+    return { summary: this.summarize(slug, document), document };
+  }
+
+  async delete(slug: ChangeSlug, id: string): Promise<boolean> {
+    await this.changesService.assertExists(slug);
+    return this.docs.delete(slug, id);
+  }
+
+  private async assertExists(slug: ChangeSlug, id: string): Promise<void> {
+    if ((await this.docs.get(slug, id)) === null) {
+      throw new DocumentNotFoundError(slug, id);
+    }
+  }
+
+  private async assertTitleFree(
+    slug: ChangeSlug,
+    id: string,
+    title: string,
+  ): Promise<void> {
+    if ((await this.docs.get(slug, id)) !== null) {
+      throw new DuplicateDocumentError(slug, title);
+    }
+  }
+
+  private async store(
+    slug: ChangeSlug,
+    id: string,
+    document: Document,
+  ): Promise<DocumentSummary> {
+    const stored = { ...document, document_id: id };
+    await this.docs.set(slug, id, stored);
+    return this.summarize(slug, stored);
+  }
+
+  private summarize(slug: ChangeSlug, document: Document): DocumentSummary {
+    const { document_id: id, title, date } = document;
+    return { id, title, date, path: this.docs.pathOf(slug, id) };
+  }
+}

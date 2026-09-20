@@ -14,13 +14,16 @@ export const GRAPH_SCHEMA: readonly string[] = [
      PRIMARY KEY(id)
    )`,
 
+  // A document id is the title's slug, unique only inside its change, so the
+  // key carries the change too.
   `CREATE NODE TABLE IF NOT EXISTS Document(
+     key STRING,
      id STRING,
      change STRING,
      title STRING,
      date STRING,
      json STRING,
-     PRIMARY KEY(id)
+     PRIMARY KEY(key)
    )`,
 
   `CREATE NODE TABLE IF NOT EXISTS SystemModel(

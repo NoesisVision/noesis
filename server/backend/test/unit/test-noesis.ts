@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import type { IndexerSources } from '#backend/adapters/graph/index.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
+import { NoesisDocumentsRepository } from '#backend/adapters/store/documents.repository';
 import {
   createSystemModelStore,
   type SystemModelStore,
@@ -12,6 +13,7 @@ import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import type { Change } from '#backend/app/changes/model/change';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { NoesisStore } from '#backend/platform/files/noesis-store';
 
@@ -25,6 +27,7 @@ export interface TestNoesis {
   sources: IndexerSources;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
+  documentsService: DocumentsService;
   /** Writes a change with placeholder data. */
   createChange(
     slug: string | ChangeSlug,
@@ -49,6 +52,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     changesService,
     designDocsService: new DesignDocsService(
       new NoesisDesignDocsRepository(changesRepository),
+      changesService,
+    ),
+    documentsService: new DocumentsService(
+      new NoesisDocumentsRepository(changesRepository),
       changesService,
     ),
     createChange: async (slug, overrides = {}) => {
