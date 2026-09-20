@@ -1,6 +1,5 @@
-import { zValidator } from '@hono/zod-validator';
+import { flattenErrors, sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import {
   ChangeNotFoundError,
@@ -24,9 +23,12 @@ export function createChangesApp(deps: ChangesDeps) {
 
     .post(
       '/',
-      zValidator('json', CreateChangeSchema, (result, c) => {
+      sValidator('json', CreateChangeSchema, (result, c) => {
         if (!result.success) {
-          return c.json({ error: z.prettifyError(result.error) }, 400);
+          return c.json(
+            { error: 'invalid_body', issues: flattenErrors(result.error) },
+            400,
+          );
         }
       }),
       async (c) => {

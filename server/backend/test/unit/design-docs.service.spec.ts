@@ -37,7 +37,7 @@ describe('DesignDocsService', () => {
   });
 
   it('replaces a document whole under its id, ignoring the id in the input', async () => {
-    const created = await service.createSample(CHANGE);
+    const created = await service.create(CHANGE, designDocFixture);
 
     const updated = await service.update(CHANGE, created.id, {
       ...designDocFixture,
@@ -59,11 +59,11 @@ describe('DesignDocsService', () => {
     ).rejects.toBeInstanceOf(DesignDocNotFoundError);
   });
 
-  it('creates the sample document dated today', async () => {
-    const summary = await service.createSample(CHANGE);
+  it('summarises what it stored, and lists it under the change', async () => {
+    const summary = await service.create(CHANGE, designDocFixture);
 
     expect(summary.name).toBe('Appointment booking');
-    expect(summary.date).toBe(new Date().toISOString().slice(0, 10));
+    expect(summary.date).toBe(designDocFixture.date);
     const listed = await service.list(CHANGE);
     expect(listed.map((d) => d.id)).toEqual([summary.id]);
   });

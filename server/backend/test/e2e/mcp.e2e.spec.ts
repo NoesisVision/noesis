@@ -54,15 +54,9 @@ describe('MCP over stdio against the real service (e2e)', () => {
     expect(await exists(dir)).toBe(true);
   });
 
-  it('validates and imports a working file in-process', async () => {
+  it('takes a working file by path and answers in-band', async () => {
     const path = join(sessionDir(), 'design-doc.json');
     await writeFile(path, JSON.stringify(designDocFixture));
-
-    const validated = await client.callTool({
-      name: 'validate',
-      arguments: { contract: 'design-document', path },
-    });
-    expect(textOf(validated)).toBe('Valid design-document: no issues.');
 
     const missing = await client.callTool({
       name: 'create-design-doc',

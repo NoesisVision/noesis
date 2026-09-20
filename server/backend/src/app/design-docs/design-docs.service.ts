@@ -2,7 +2,6 @@ import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 export interface DesignDocSummary {
@@ -49,13 +48,6 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     return this.store(slug, document, uuidv7());
-  }
-
-  async createSample(slug: ChangeSlug): Promise<DesignDocSummary> {
-    return this.create(slug, {
-      ...designDocFixture,
-      date: new Date().toISOString().slice(0, 10),
-    });
   }
 
   /** Whole-document replacement (decision D4). */

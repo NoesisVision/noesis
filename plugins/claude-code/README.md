@@ -32,14 +32,14 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes these MCP tools: `validate`, `list-changes`,
-`list-design-docs`, `create-design-doc`, `update-design-doc`,
-`scan-system-model` and `search-knowledge-graph`. Tools never take content
-inline. The agent writes a working file to the session's scratch directory
-(`.noesis/tmp/<session>/`, named in the server's instructions), runs the
-`validate` tool against it until clean, and calls the tool that consumes it by path. The service runs
-the same contract check again on write, so what `validate` accepts is what
-a write accepts.
+The service exposes these MCP tools: `list-changes`, `list-design-docs`,
+`create-design-doc`, `update-design-doc`, `scan-system-model` and
+`search-knowledge-graph`. Tools never take content inline. The agent writes
+a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
+named in the server's instructions) and calls the tool that consumes it by
+path. That tool checks the file against its contract before writing
+anything: a file that does not fit comes back as an issue list — path,
+expected versus found, a one-line fix — to correct and call again.
 
 ## What's inside
 
@@ -55,9 +55,9 @@ a write accepts.
   `update-design-doc`, `search-knowledge-graph`) and the implementation skill
   (`implement-design-doc`). Each names the contract it needs by a path under
   `contracts/`, writes its working file to the session's scratch directory,
-  validates it with the `validate` tool until clean, and hands the path to
-  the tool that consumes it. Skills preserve human-authored fields and ask
-  before changing one.
+  and hands the path to the tool that consumes it, correcting the file from
+  the issue list the tool returns. Skills preserve human-authored fields and
+  ask before changing one.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables

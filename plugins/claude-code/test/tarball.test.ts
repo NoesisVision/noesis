@@ -149,7 +149,7 @@ test('the service the pin resolves to boots and lists tools', async () => {
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toContain('validate');
+    expect(tools.map((t) => t.name)).toContain('list-changes');
     expect(tools.map((t) => t.name)).toContain('create-design-doc');
   } finally {
     await client.close();

@@ -100,6 +100,15 @@ describe('ui changes routes', () => {
     expect((await post({ name: 'x', key: 'bad', type: 'fix' })).status).toBe(
       400,
     );
-    expect((await post({})).status).toBe(400);
+
+    // The envelope check names the offending fields (decision D3).
+    const empty = await post({});
+    expect(empty.status).toBe(400);
+    const body = (await empty.json()) as {
+      error: string;
+      issues: { fieldErrors: Record<string, string[]> };
+    };
+    expect(body.error).toBe('invalid_body');
+    expect(Object.keys(body.issues.fieldErrors)).toContain('name');
   });
 });

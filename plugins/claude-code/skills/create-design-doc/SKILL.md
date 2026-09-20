@@ -38,12 +38,12 @@ mints its id, and stores it under the change.
    verbatim is `"human"`.
 4. **Write the working file** to the session scratch directory named in the
    server instructions, for example `.noesis/tmp/<session>/design-doc.json`.
-5. **Validate** with `validate` (`contract: "design-document"`, the path).
-   Fix each issue in place — the list gives the path, what was expected, what
-   it found and a one-line fix — and validate again until clean.
-6. **Create** with `create-design-doc` (`change`, the path). Tell the user the
-   document's id and path from the tool's answer; the browser ui shows it
-   after the next re-index.
+5. **Create** with `create-design-doc` (`change`, the path). An invalid file
+   is rejected and nothing is written: fix each issue in place — the list
+   gives the path, what was expected, what it found and a one-line fix — and
+   call the tool again until it succeeds. Tell the user the document's id and
+   path from the tool's answer; the browser ui shows it after the next
+   re-index.
 
 ## Rules
 

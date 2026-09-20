@@ -55,11 +55,10 @@ Inside the process:
 - **Scanner** (`src/scanner`) reads the checkout's TypeScript source and
   writes `.noesis/graph/system-model/` plus its graph projection.
 - **MCP server** (`src/mcp`) exposes thin tools that call one service
-  method each: `validate`, `list-changes`, `list-design-docs`,
-  `create-design-doc`, `update-design-doc`, `scan-system-model`,
-  `search-knowledge-graph`. Tools never take content inline: the agent writes
-  a working file to the session scratch directory, validates it, and passes
-  the path.
+  method each: `list-changes`, `list-design-docs`, `create-design-doc`,
+  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
+  never take content inline: the agent writes a working file to the session
+  scratch directory and passes the path.
 - **HTTP** (`src/app.ts`) has two surfaces, `/ui` for the SPA's data and
   `/internal` for health. Everything else is the SPA page, which the backend
   imports from `server/frontend/index.html` and bun bundles (on request from
@@ -95,9 +94,9 @@ server/backend/src/app/*/model   every knowledge graph file shape
      │                                   the plugin, read by skills; a test asserts byte-identity
      ├─▶ server/backend/dist/main.js     imported by the service and bundled into it
      └─▶ server/frontend                 type-only imports via the #backend/* alias
-server/backend/src/app/validation/contracts   the file-contract registry: schema + the
+server/backend/src/app/validation/contracts   the file contracts: schema + the
                                    whole-document check the ui routes and MCP tools run
-                                   before a service write; backs the validate tool
+                                   before a service write
 ```
 
 The service package ships no readable copy; the plugin's `contracts/` is the one copy and `tools/copy-contracts.ts` lives beside it (decision D4).
@@ -216,7 +215,7 @@ register and nothing to authenticate against (decision D1).
 ### Working with contracts
 
 1. Add/edit a zod schema in the owning feature's `server/backend/src/app/<feature>/model/`: describe every field and keep it declarative.
-2. For a file the `validate` tool should accept, register it in `server/backend/src/app/validation/contracts/registry.ts` (with the service's whole-document check, if it has one).
+2. For a file a tool or route writes, add its contract in `server/backend/src/app/validation/contracts/` (the schema, plus the service's whole-document check if it has one) and check the write against it there.
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 
 ### Using the Claude Code plugin
@@ -263,7 +262,7 @@ The `Release` workflow (`.github/workflows/release.yml`) runs the verify steps, 
 
 > Local fallback: `bun publish` / `bun run publish:beta` (never raw `npm publish` from the workspace — only the bun pack pipeline rewrites `workspace:*`/`catalog:` versions in the manifest).
 
-Payload validation happens twice in the service (decision D3): the `validate` tool checks a working file against its contract and reports actionable errors (path, expected versus found, a one-line correction, capped list), and every write runs the same check again at the boundary, so what `validate` says and what a write rejects are the same.
+Payload validation happens once, at the write boundary (decision D3): the tool that consumes a working file checks it against its contract and, when it does not fit, rejects the call in-band with actionable errors (path, expected versus found, a one-line correction, capped list) having written nothing. There is no separate validating tool — one check, in the place that would otherwise be corrupted.
 
 ### CI
 

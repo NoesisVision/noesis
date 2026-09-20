@@ -23,13 +23,8 @@ import {
 } from '#backend/app/design-docs/design-docs.service';
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import type { SearchService } from '#backend/app/search/search.service';
+import { designDocumentContract } from '#backend/app/validation/contracts/design-document';
 import {
-  contractNames,
-  contracts,
-  designDocumentContract,
-} from '#backend/app/validation/contracts';
-import {
-  type FileContract,
   formatReport,
   singleIssue,
   type ValidationIssue,
@@ -84,19 +79,15 @@ export function createMcpServer(deps: McpDeps): Server {
 
   async function readWorkingJson(
     input: string,
-  ): Promise<
-    { ok: true; raw: unknown } | { ok: false; text: string; report: boolean }
-  > {
+  ): Promise<{ ok: true; raw: unknown } | { ok: false; text: string }> {
     const resolved = await session.resolveWorkingPath(input);
-    if (!resolved.ok)
-      return { ok: false, text: resolved.message, report: false };
+    if (!resolved.ok) return { ok: false, text: resolved.message };
     const source = await readFile(resolved.path, 'utf8');
     try {
       return { ok: true, raw: JSON.parse(source) };
     } catch (error) {
       return {
         ok: false,
-        report: true,
         text: formatReport(
           'JSON',
           singleIssue({
@@ -174,27 +165,6 @@ export function createMcpServer(deps: McpDeps): Server {
   }
 
   const tools = {
-    validate: define({
-      description:
-        'Validates a working file against a Noesis contract and returns an actionable issue list (path, expected versus found, one-line fix). Run it until the file is clean before calling the tool that consumes it.',
-      args: z.object({
-        contract: z
-          .enum(contractNames)
-          .describe('The contract the file must satisfy.'),
-        path: workingPath,
-      }),
-      handler: async ({ contract, path }) => {
-        const file = await readWorkingJson(path);
-        if (!file.ok) {
-          return file.report ? text(file.text) : errorResult(file.text);
-        }
-        // The registry is a union of typed contracts; the tool only reports.
-        const fileContract: FileContract = contracts[contract];
-        const report = validate(fileContract, file.raw);
-        return text(await session.deliver(formatReport(contract, report)));
-      },
-    }),
-
     'list-changes': define({
       description:
         'Lists the changes of this repository: the directories under .noesis/graph/changes/. Imports and design documents belong to a change.',
@@ -234,7 +204,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'create-design-doc': define({
       description:
-        'Creates a design document in a change from a working file that satisfies the design-document contract. The service validates the file again and rejects it with the same issue list the validate tool gives.',
+        'Creates a design document in a change from a working file that satisfies the design-document contract. An invalid file is rejected with an actionable issue list (path, expected versus found, one-line fix) and nothing is written; correct the file and call again.',
       args: z.object({ change: changeSlug, path: workingPath }),
       handler: async ({ change, path }) => {
         const document = await readDesignDocument(path);
@@ -253,7 +223,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'update-design-doc': define({
       description:
-        'Replaces a design document of a change with the working file, whole; the id stays. Read the current document from its file first and keep human-authored text as it is.',
+        'Replaces a design document of a change with the working file, whole; the id stays. Read the current document from its file first and keep human-authored text as it is. An invalid file is rejected with an actionable issue list and nothing is written.',
       args: z.object({
         change: changeSlug,
         id: z.string().min(1).describe('The id of the document to replace.'),

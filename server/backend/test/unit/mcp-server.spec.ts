@@ -11,7 +11,6 @@ import { ScannerService } from '#backend/adapters/scanner/scanner.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
-import { contractNames } from '#backend/app/validation/contracts/registry';
 import { SessionDir } from '#backend/platform/files/session-dir';
 import { textOf } from '../support/service-process';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
@@ -84,85 +83,60 @@ describe('createMcpServer', () => {
       'scan-system-model',
       'search-knowledge-graph',
       'update-design-doc',
-      'validate',
     ]);
-    const validate = tools.find((tool) => tool.name === 'validate');
-    if (!validate) throw new Error('validate is not advertised');
-    expect(validate.inputSchema.required).toEqual(['contract', 'path']);
-    const properties = validate.inputSchema.properties as Record<
-      string,
-      { enum?: string[] }
-    >;
-    expect(properties.contract?.enum).toEqual(contractNames);
+    const create = tools.find((tool) => tool.name === 'create-design-doc');
+    if (!create) throw new Error('create-design-doc is not advertised');
+    expect(create.inputSchema.required).toEqual(['change', 'path']);
   });
 
-  describe('validate', () => {
-    it('passes a clean file', async () => {
-      const path = await working('doc.json', designDocFixture);
-      const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'design-document', path },
-      });
-      expect(result.isError).toBeFalsy();
-      expect(textOf(result)).toBe('Valid design-document: no issues.');
-    });
-
-    it('accepts a path relative to the repository root', async () => {
-      const path = await working('doc.json', designDocFixture);
-      const result = await client.callTool({
-        name: 'validate',
-        arguments: {
-          contract: 'design-document',
-          path: relative(t.root, path),
-        },
-      });
-      expect(textOf(result)).toBe('Valid design-document: no issues.');
-    });
-
-    it('lists shape issues with path, expected, found and fix', async () => {
+  // The validating tool was dropped (decision D3): every tool that reads a
+  // working file reports its own issues, so there is nothing to run first.
+  describe('working files', () => {
+    it('lists shape issues with path, expected, found and fix, and writes nothing', async () => {
       const path = await working('doc.json', {
         ...designDocFixture,
         useCases: 'not-a-list',
       });
       const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'design-document', path },
+        name: 'create-design-doc',
+        arguments: { change: CHANGE, path },
       });
-      // A file with issues is a successful validation, not a tool failure.
-      expect(result.isError).toBeFalsy();
+      expect(result.isError).toBe(true);
       const text = textOf(result);
       expect(text).toContain('Invalid design-document: 1 issue.');
       expect(text).toContain('$.useCases');
       expect(text).toContain('expected: array');
       expect(text).toContain('found:    "not-a-list"');
       expect(text).toContain('Replace "$.useCases" with an array');
-    });
-
-    it('lists integrity issues once the shape parses', async () => {
-      const path = await working('doc.json', brokenFixture);
-      const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'design-document', path },
-      });
-      expect(textOf(result)).toContain('svc-booking');
+      expect(await t.designDocsService.list(SLUG)).toEqual([]);
     });
 
     it('reports unreadable JSON as an issue at the document root', async () => {
       const path = await working('doc.json', '{ not json');
       const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'design-document', path },
+        name: 'create-design-doc',
+        arguments: { change: CHANGE, path },
+      });
+      expect(result.isError).toBe(true);
+      expect(textOf(result)).toContain('expected: a valid JSON document');
+    });
+
+    it('accepts a path relative to the repository root', async () => {
+      const path = await working('doc.json', designDocFixture);
+      const result = await client.callTool({
+        name: 'create-design-doc',
+        arguments: { change: CHANGE, path: relative(t.root, path) },
       });
       expect(result.isError).toBeFalsy();
-      expect(textOf(result)).toContain('expected: a valid JSON document');
+      expect(await t.designDocsService.list(SLUG)).toHaveLength(1);
     });
 
     it('refuses a file outside .noesis/tmp/', async () => {
       const outside = join(t.root, 'doc.json');
       await writeFile(outside, JSON.stringify(designDocFixture));
       const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'design-document', path: outside },
+        name: 'create-design-doc',
+        arguments: { change: CHANGE, path: outside },
       });
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain(session.path);
@@ -170,24 +144,11 @@ describe('createMcpServer', () => {
 
     it('refuses a missing file', async () => {
       const result = await client.callTool({
-        name: 'validate',
-        arguments: {
-          contract: 'design-document',
-          path: join(session.path, 'nope.json'),
-        },
+        name: 'create-design-doc',
+        arguments: { change: CHANGE, path: join(session.path, 'nope.json') },
       });
       expect(result.isError).toBe(true);
       expect(textOf(result)).toContain('No file at');
-    });
-
-    it('rejects an unknown contract name in-band', async () => {
-      const path = await working('doc.json', designDocFixture);
-      const result = await client.callTool({
-        name: 'validate',
-        arguments: { contract: 'no-such-contract', path },
-      });
-      expect(result.isError).toBe(true);
-      expect(textOf(result)).toContain('contract');
     });
   });
 
@@ -206,7 +167,7 @@ describe('createMcpServer', () => {
       expect(textOf(result)).toContain(listed[0]?.id ?? 'no id');
     });
 
-    it('rejects an invalid file with the same issue list validate gives, and writes nothing', async () => {
+    it('rejects a file whose integrity is broken, and writes nothing', async () => {
       const path = await working('doc.json', brokenFixture);
       const result = await client.callTool({
         name: 'create-design-doc',
@@ -236,7 +197,7 @@ describe('createMcpServer', () => {
       arguments: {},
     });
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('Available tools: validate, list-changes');
+    expect(textOf(result)).toContain('Available tools: list-changes');
   });
 
   describe('list-changes / list-design-docs', () => {
@@ -249,7 +210,7 @@ describe('createMcpServer', () => {
     });
 
     it('lists design documents with id and relative path', async () => {
-      await t.designDocsService.createSample(SLUG);
+      await t.designDocsService.create(SLUG, designDocFixture);
       const result = await client.callTool({
         name: 'list-design-docs',
         arguments: { change: CHANGE },
@@ -262,7 +223,7 @@ describe('createMcpServer', () => {
 
   describe('update-design-doc', () => {
     it('replaces the document under its id', async () => {
-      const created = await t.designDocsService.createSample(SLUG);
+      const created = await t.designDocsService.create(SLUG, designDocFixture);
       const path = await working('doc.json', {
         ...designDocFixture,
         name: 'Renamed booking',
@@ -326,7 +287,10 @@ describe('createMcpServer', () => {
   });
 
   it('returns a descriptive in-band error for missing arguments', async () => {
-    const result = await client.callTool({ name: 'validate', arguments: {} });
+    const result = await client.callTool({
+      name: 'create-design-doc',
+      arguments: {},
+    });
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('path');
   });

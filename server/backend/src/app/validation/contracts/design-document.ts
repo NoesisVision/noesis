@@ -12,7 +12,7 @@ import type {
   ValidationIssue,
 } from '#backend/app/validation/validator';
 
-/** One contract so the `validate` tool and the write path run the same checks (decision D4). */
+/** One contract behind every write path — the MCP tools and the ui routes check the same way (decision D4). */
 export const designDocumentContract: FileContract<DesignDocument> = {
   description:
     'A design document: goal, use cases, building blocks and their relations, scoped to one change.',

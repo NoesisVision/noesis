@@ -24,13 +24,16 @@ own machine inside one checkout (decision D1).
 ## Entry points
 
 - **MCP on stdio** (`src/adapters/mcp`): thin tools, one service call each —
-  `validate`, `list-changes`, `list-design-docs`, `create-design-doc`,
+  `list-changes`, `list-design-docs`, `create-design-doc`,
   `update-design-doc`, `scan-system-model`, `search-knowledge-graph`. Tools
   take paths, not content: the agent writes a working file to the session's
   scratch directory (`.noesis/tmp/<session>/`, named in the server's
-  `instructions`), validates it, and passes the path. `validate` and the
-  write boundary run the same contract check from
-  `src/app/validation/contracts`, so what one accepts the other accepts.
+  `instructions`) and passes the path. There is no separate validating tool:
+  a tool that reads a working file checks it against its contract from
+  `src/app/validation/contracts` and rejects it with the actionable issue
+  list, having written nothing.
+  Design documents are written this way only: the `/ui` surface reads and
+  deletes them, and never creates one (decision D3).
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles
@@ -86,9 +89,10 @@ src/
     information-sources/  imported documents (model only)
     system-model/     the scanned implementation model (model only)
     search/           SearchService and its SearchProvider port
-    validation/       the actionable problem list and the file-contract registry that
-                      the validate tool, the ui routes and the MCP tools run
-  ui/                 the HTTP surfaces: /ui/* route apps and /internal (health)
+    validation/       the actionable problem list and the file contracts the ui
+                      routes and the MCP tools check writes against
+  ui/                 the HTTP surfaces: /ui/* route apps and /internal (health);
+                      design-docs is read and delete only, the agent authors them
   platform/
     config/           env parsing (zod)
     logging/          LogTape setup: stderr + .noesis/logs/noesis.log, request context
@@ -123,8 +127,8 @@ file under `.noesis/` can have, as [zod](https://zod.dev/) schemas whose
 inferred types are the entities the services work with (decision D4). Each
 feature keeps its own in
 `src/app/<feature>/model/`; `app` depends on zod by design. They are read
-three ways: the service imports them and validates twice (the `validate`
-tool, then the write boundary); the plugin copies every `model/` folder
+three ways: the service imports them and checks every write against them at
+the write boundary; the plugin copies every `model/` folder
 verbatim, layout kept, into `plugins/claude-code/contracts/` at build time
 for the agent to read as source; the frontend takes payload types from
 them, type-only, through its `#backend/*` alias. Consumers import the
@@ -134,8 +138,8 @@ barrel.
 The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
 and other contract files, always relative. The plugin's tests assert that. Whole-document
-rules a schema cannot express live in `src/app/validation/contracts`,
-whose registry maps the `validate` tool's contract names to these schemas.
+rules a schema cannot express live in `src/app/validation/contracts`, which
+pairs each schema with the service's whole-document check.
 
 | Files under `src/app/`                                 | What they shape                                                                         |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |

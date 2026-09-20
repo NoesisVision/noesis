@@ -1,4 +1,4 @@
-import { zValidator } from '@hono/zod-validator';
+import { flattenErrors, sValidator } from '@hono/standard-validator';
 import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
@@ -35,9 +35,12 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
       .post(
         '/',
-        zValidator('json', writeDocumentSchema, (result, c) => {
+        sValidator('json', writeDocumentSchema, (result, c) => {
           if (!result.success) {
-            return c.json({ error: z.prettifyError(result.error) }, 400);
+            return c.json(
+              { error: 'invalid_body', issues: flattenErrors(result.error) },
+              400,
+            );
           }
         }),
         async (c) => {
@@ -75,9 +78,12 @@ export function createDocumentsApp(deps: DocumentsDeps) {
       // A new title moves the document to a new id, which the summary carries.
       .put(
         '/:id',
-        zValidator('json', writeDocumentSchema, (result, c) => {
+        sValidator('json', writeDocumentSchema, (result, c) => {
           if (!result.success) {
-            return c.json({ error: z.prettifyError(result.error) }, 400);
+            return c.json(
+              { error: 'invalid_body', issues: flattenErrors(result.error) },
+              400,
+            );
           }
         }),
         async (c) => {

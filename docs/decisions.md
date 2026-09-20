@@ -103,7 +103,7 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
 The store's full contract: `docs/work/improvements/noesis-store.md`. File
 conventions for skills: the contracts' `.describe()` text (D4).
 
-## D3. Service internals: Hono on `Bun.serve`, surfaces by consumer, thin MCP tools, validate-then-write
+## D3. Service internals: Hono on `Bun.serve`, surfaces by consumer, thin MCP tools, validation at the write boundary
 
 - **`server/backend` is a Hono app on `Bun.serve` with an explicit composition
   root** (`main.ts` constructs services, wires `createApp(deps)`, owns
@@ -112,7 +112,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   eslint-plugin-boundaries and `import/no-cycle`; rules in the root
   `.oxlintrc.json`): `platform` (files, database, logging, crypto) imports
   no other layer; `app` is the core — the domain model (the contracts in
-  `app/<feature>/model/`, D4), services, the contract registry, and the
+  `app/<feature>/model/`, D4), services, the file contracts, and the
   ports they need (`ChangesRepository`, `DesignDocsRepository`,
   `SearchProvider`) — and imports no other layer, zod being a dependency
   of `app` by design; the `model/` folders are their own lint element and
@@ -139,21 +139,39 @@ conventions for skills: the contracts' `.describe()` text (D4).
   infers the route tree from the expression, and the frontend's typed client
   depends on it (D5).
 - **MCP tools are thin:** each validates its input and calls one service method
-  in-process. Every tool is defined against a contract in
-  `src/app/validation/contracts/registry.ts`; there is deliberately no way to register a
-  tool without one. Current tools: `list-changes`, `import-conversation`,
-  `import-document`, `list-design-docs`, `create-design-doc`,
-  `update-design-doc`, `scan-system-model`, `search-knowledge-graph`,
-  `validate`.
+  in-process. Current tools: `list-changes`, `list-design-docs`,
+  `create-design-doc`, `update-design-doc`, `scan-system-model`,
+  `search-knowledge-graph`.
 - **Large payloads move through the temp dir.** The agent writes a working file
   under `.noesis/tmp/<session>/` and passes its path; MCP messages carry
   coordinates, not content. The server's `instructions` field names the root
   and the session directory.
-- **Validation happens twice with the same schemas:** the `validate` tool
-  against the working file, and again at the write boundary. Errors are
-  actionable — path, expected versus found, a one-line correction — capped, and
-  returned in-band (`isError` results the model can read), never as protocol
-  errors.
+- **Validation happens once, where the write happens.** A tool that reads a
+  working file checks it against its contract
+  (`src/app/validation/contracts`) before the service sees it and rejects the
+  call having written nothing; there is deliberately **no separate
+  `validate` tool**. A pre-flight tool only asked the agent to pay for the
+  same check twice and let the two answers drift; the rejection the write
+  returns is the one answer, and it arrives where it matters. Errors are
+  actionable — path, expected versus found, a one-line correction — capped,
+  and returned in-band (`isError` results the model can read), never as
+  protocol errors. Unreadable JSON and a path outside the session scratch
+  directory come back the same way.
+- **The ui never authors a design document.** `/ui/changes/:change/design-docs`
+  reads (`GET /`, `GET /:id`) and deletes (`DELETE /:id`); creating and
+  replacing one is the agent's, through `create-design-doc` and
+  `update-design-doc`. One authoring path means one place where the contract
+  and the integrity check run, and the browser cannot put a document in that
+  no skill produced. `documents` keeps its ui writes: a person pastes a
+  source there.
+- **The ui routes check their request envelope with `@hono/standard-validator`**
+  (`sValidator('json', …)`), not a zod-specific adapter: the middleware speaks
+  Standard Schema, so the schema library stays an implementation detail of
+  `app/<feature>/model/`. A malformed envelope is
+  `400 {error:'invalid_body', issues}` from the package's `flattenErrors`; a
+  body that parses but does not satisfy its file contract is
+  `400 {error:'invalid_document', issues}` from the validator, the same list
+  the MCP tools return.
 - **Search** is `GET /ui/search` and the `search-knowledge-graph` tool over a
   `SearchProvider[]` registry in `SearchService`.
 - **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:` with a
@@ -204,8 +222,9 @@ conventions for skills: the contracts' `.describe()` text (D4).
   text; no refinements, no transforms, no imports beyond zod and other
   contract files (relative, also across features).
   The agent reads the `.ts` source directly; what a shape cannot say goes in
-  `.describe()` text. Whole-document rules live in the service's registry
-  (`src/app/validation/contracts`).
+  `.describe()` text. Whole-document rules live beside the schema in the
+  file contract (`src/app/validation/contracts`), which every write boundary
+  checks against.
 - **The plugin's `contracts/` is the one readable copy, and it is a build
   output.** `plugins/claude-code/tools/copy-contracts.ts` copies every
   `server/backend/src/app/<feature>/model/` folder, keeping the path relative

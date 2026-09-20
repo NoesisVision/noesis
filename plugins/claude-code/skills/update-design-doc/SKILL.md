@@ -30,10 +30,9 @@ stores it.
    it was (the service ignores it anyway).
 4. **Write the working file** to the session scratch directory named in the
    server instructions.
-5. **Validate** with `validate` (`contract: "design-document"`, the path)
-   until clean.
-6. **Update** with `update-design-doc` (`change`, `id`, the path). Tell the
-   user what changed.
+5. **Update** with `update-design-doc` (`change`, `id`, the path). An invalid
+   file is rejected and nothing is written: fix each issue the tool lists in
+   place and call it again until it succeeds. Tell the user what changed.
 
 ## Rules
 
