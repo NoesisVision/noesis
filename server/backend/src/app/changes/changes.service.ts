@@ -54,13 +54,8 @@ export class ChangesService {
 
   async create(input: CreateChange, now = new Date()): Promise<Change> {
     const slug = ChangeSlug.fromName(input.name);
-    if (input.key !== '') {
-      const taken = (await this.list()).some((c) => c.key === input.key);
-      if (taken) throw new DuplicateChangeError(input.key, 'key');
-    }
-    if ((await this.changes.read(slug)) !== null) {
-      throw new DuplicateChangeError(slug.value, 'slug');
-    }
+    await this.assertKeyFree(input.key);
+    await this.assertSlugFree(slug);
     const change: Change = {
       slug: slug.value,
       name: input.name,
@@ -72,6 +67,19 @@ export class ChangesService {
     };
     await this.changes.write(change);
     return change;
+  }
+
+  /** An empty key means the team tracks the change nowhere, so any number of changes may have one. */
+  private async assertKeyFree(key: string): Promise<void> {
+    if (key === '') return;
+    const taken = (await this.list()).some((c) => c.key === key);
+    if (taken) throw new DuplicateChangeError(key, 'key');
+  }
+
+  private async assertSlugFree(slug: ChangeSlug): Promise<void> {
+    if ((await this.changes.read(slug)) !== null) {
+      throw new DuplicateChangeError(slug.value, 'slug');
+    }
   }
 
   async assertExists(slug: ChangeSlug): Promise<void> {
