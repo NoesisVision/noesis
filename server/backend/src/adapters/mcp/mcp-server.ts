@@ -298,7 +298,7 @@ export function createMcpServer(deps: McpDeps): Server {
 
     'search-knowledge-graph': define({
       description:
-        'Searches the knowledge graph — design documents, the system model, imported conversations and documents — by a case-insensitive substring of their titles and summaries. Returns ids to read the files by.',
+        'Searches the knowledge graph — design documents, the system model and imported documents — by a case-insensitive substring of their titles and summaries. Returns ids to read the files by.',
       args: z.object({
         query: z.string().min(1).describe('What to look for.'),
       }),

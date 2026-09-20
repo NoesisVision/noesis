@@ -3,7 +3,6 @@ import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
 import { type Change, ChangeSchema } from '#backend/app/changes/model/change';
 import { DesignDocumentSchema } from '#backend/app/design-docs/model/design-doc';
-import { ConversationSchema } from '#backend/app/information-sources/model/conversation';
 import { DocumentSchema } from '#backend/app/information-sources/model/document';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -15,11 +14,9 @@ import { serverLogger } from '#backend/platform/logging/logging';
 
 const log = serverLogger('changes');
 
-// Each is keyed by the contract's own id: `id`, `conversation_id`,
-// `document_id`.
+// Each is keyed by the contract's own id: `id`, `document_id`.
 const CHANGE_CHILDREN = {
   'design-docs': DesignDocumentSchema,
-  conversations: ConversationSchema,
   documents: DocumentSchema,
 } as const;
 

@@ -14,14 +14,6 @@ export const GRAPH_SCHEMA: readonly string[] = [
      PRIMARY KEY(id)
    )`,
 
-  `CREATE NODE TABLE IF NOT EXISTS Conversation(
-     id STRING,
-     change STRING,
-     title STRING,
-     time STRING,
-     json STRING,
-     PRIMARY KEY(id)
-   )`,
   `CREATE NODE TABLE IF NOT EXISTS Document(
      id STRING,
      change STRING,

@@ -66,7 +66,6 @@ export class IndexService {
     const { changes, systemModels } = this.sources;
     const rows = new Map<string, Row[]>([
       ['DesignDoc', []],
-      ['Conversation', []],
       ['Document', []],
       ['SystemModel', []],
     ]);
@@ -84,15 +83,6 @@ export class IndexService {
           status,
           date,
           document: JSON.stringify(document),
-        });
-      }
-      for await (const conversation of objects(owned.conversations)) {
-        push('Conversation', {
-          id: conversation.conversation_id,
-          change,
-          title: conversation.main_topic,
-          time: conversation.time,
-          json: JSON.stringify(conversation),
         });
       }
       for await (const document of objects(owned.documents)) {

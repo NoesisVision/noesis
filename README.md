@@ -2,7 +2,7 @@
 
 A pure [bun](https://bun.sh/) workspaces monorepo containing the Noesis service and AI-harness plugins (Claude Code today; Codex, OpenCode, pi planned).
 
-Noesis turns conversations and design drafts into a queryable knowledge graph kept as JSON files inside the user's repository, and drives design and implementation work from it. Everything runs on the user's machine; there is no server component.
+Noesis turns documents and design drafts into a queryable knowledge graph kept as JSON files inside the user's repository, and drives design and implementation work from it. Everything runs on the user's machine; there is no server component.
 
 ## 1. Architecture
 
@@ -77,7 +77,7 @@ lockstep with the Claude Code plugin.
 ├── .gitignore            written by the service on first run; contains `tmp/`
 ├── tmp/<session>/        scratch space between agent and service; never versioned
 └── graph/                the knowledge graph: one <key>/data.json per object
-    ├── changes/<change>/ one per change: data.json plus conversations/, documents/, design-docs/
+    ├── changes/<change>/ one per change: data.json plus documents/, design-docs/
     └── system-model/     the implemented model, projected from source by the scanner
 ```
 

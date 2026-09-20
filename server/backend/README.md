@@ -83,7 +83,7 @@ src/
                       plugin
     changes/          ChangesService, the change slug, the ChangesRepository port
     design-docs/      DesignDocsService, the DesignDocsRepository port, integrity checks
-    information-sources/  imported conversations and documents (model only)
+    information-sources/  imported documents (model only)
     system-model/     the scanned implementation model (model only)
     search/           SearchService and its SearchProvider port
     validation/       the actionable problem list and the file-contract registry that
@@ -137,12 +137,12 @@ and other contract files, always relative. The plugin's tests assert that. Whole
 rules a schema cannot express live in `src/app/validation/contracts`,
 whose registry maps the `validate` tool's contract names to these schemas.
 
-| Files under `src/app/`                                                                | What they shape                                                                                                         |
-| ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `changes/model/change.ts`                                                             | `graph/changes/<change>/data.json` — the unit of work sources and design docs belong to                                 |
-| `information-sources/model/conversation.ts`, `document.ts`, `information-category.ts` | `graph/changes/<change>/conversations/`, `documents/` — a transcript's turns and idea units, a document's verbatim text |
-| `design-docs/model/design-doc.ts`, `design-doc-ref.ts`                                | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs                                       |
-| `system-model/model/system-model.ts`                                                  | `graph/system-model/` — the implemented model the scanner writes                                                        |
+| Files under `src/app/`                                 | What they shape                                                                         |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `changes/model/change.ts`                              | `graph/changes/<change>/data.json` — the unit of work sources and design docs belong to |
+| `information-sources/model/document.ts`                | `graph/changes/<change>/documents/` — a document's title, date and verbatim text        |
+| `design-docs/model/design-doc.ts`, `design-doc-ref.ts` | `graph/changes/<change>/design-docs/` — the normalised design-doc model, its refs       |
+| `system-model/model/system-model.ts`                   | `graph/system-model/` — the implemented model the scanner writes                        |
 
 `*.fixture.ts` files are the examples
 the tests and the plugin copy share. Specs live in `test/unit/contracts-*`.

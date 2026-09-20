@@ -60,14 +60,6 @@ const KINDS: Kind[] = [
     href: () => undefined,
   },
   {
-    type: 'conversation',
-    cypher: `MATCH (n:Conversation)
-      WHERE lower(n.title) CONTAINS $q
-      RETURN n.id AS id, n.title AS title, n.time AS subtitle, n.change AS change
-      ORDER BY n.time DESC LIMIT $limit`,
-    href: () => undefined,
-  },
-  {
     type: 'document',
     cypher: `MATCH (n:Document)
       WHERE lower(n.title) CONTAINS $q

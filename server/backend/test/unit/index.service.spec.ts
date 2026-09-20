@@ -118,14 +118,8 @@ describe('IndexService', () => {
     expect((await graphRows()).map((r) => r.id)).toEqual([designDocFixture.id]);
   });
 
-  it('projects sources into their own tables', async () => {
+  it('projects imported documents into their own table', async () => {
     await t.createChange(ALPHA);
-    await t.changesRepository.children(ALPHA).conversations.set('c-1', {
-      conversation_id: 'c-1',
-      time: '2026-09-12T10:00:00Z',
-      main_topic: 'Slots',
-      turns: [],
-    });
     await t.changesRepository.children(ALPHA).documents.set('doc-1', {
       document_id: 'doc-1',
       title: 'Rules',
@@ -135,14 +129,13 @@ describe('IndexService', () => {
 
     const report = await indexer.rebuild();
 
-    expect(report.files).toBe(2);
+    expect(report.files).toBe(1);
     const count = async (table: string) =>
       (
         await db.query<{ n: number | bigint }>(
           `MATCH (x:${table}) RETURN count(x) AS n`,
         )
       ).map((r) => Number(r.n))[0];
-    expect(await count('Conversation')).toBe(1);
     expect(await count('Document')).toBe(1);
     const [document] = await db.query<{ change: string; json: string }>(
       'MATCH (d:Document) RETURN d.change AS change, d.json AS json',

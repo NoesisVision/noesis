@@ -62,9 +62,6 @@ describe('NoesisChangesRepository', () => {
     expect(children['design-docs'].directory).toBe(
       t.noesis.resolve('graph', 'changes', 'real', 'design-docs'),
     );
-    expect(children.conversations.directory).toBe(
-      t.noesis.resolve('graph', 'changes', 'real', 'conversations'),
-    );
     expect(children.documents.directory).toBe(
       t.noesis.resolve('graph', 'changes', 'real', 'documents'),
     );

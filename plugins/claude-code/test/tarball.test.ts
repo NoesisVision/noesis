@@ -50,7 +50,7 @@ test('ships exactly the expected plugin files', async () => {
     'README.md',
     'contracts/README.md',
     'contracts/design-docs/model/design-doc.ts',
-    'contracts/information-sources/model/conversation.ts',
+    'contracts/information-sources/model/document.ts',
     'skills/create-design-doc/SKILL.md',
     'skills/update-design-doc/SKILL.md',
     'skills/search-knowledge-graph/SKILL.md',

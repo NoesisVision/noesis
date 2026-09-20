@@ -22,8 +22,8 @@ mints its id, and stores it under the change.
    Call `list-design-docs` for it: if a document for this design already
    exists, use the `update-design-doc` skill instead.
 2. **Ground the design.** Call `search-knowledge-graph` for the subjects
-   involved and read the conversations and documents it turns up under the
-   change, so the design follows what was actually said. Call
+   involved and read the documents it turns up under the change, so the
+   design follows what was actually written. Call
    `scan-system-model` when `.noesis/graph/system-model/` is missing or older
    than the code, then read the relevant system-model files, so building
    blocks that already exist in the code are named as they are, not

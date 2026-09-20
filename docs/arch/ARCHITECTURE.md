@@ -4,7 +4,7 @@ Target architecture. The flowchart below is the diagram. Decision D1 in
 `docs/decisions.md` records the adoption, and D2 to D10 the points settled
 after this document was written.
 
-Noesis turns conversations and design drafts into a queryable knowledge graph, and drives
+Noesis turns documents and design drafts into a queryable knowledge graph, and drives
 design and implementation work from it. Everything runs on the user's machine — there is no
 server component and no network dependency.
 
@@ -35,7 +35,7 @@ flowchart TB
 
             subgraph repo["Git repository"]
                 src["Source code"]
-                kg["Knowledge graph files<br/>changes (conversations · documents · design docs)<br/>system model"]
+                kg["Knowledge graph files<br/>changes (documents · design docs)<br/>system model"]
                 kskills["Knowledge management skills<br/>create design doc · update design doc<br/>search knowledge graph"]
                 iskills["Implementation skills<br/>implement design doc"]
             end
@@ -144,19 +144,18 @@ All knowledge graph files live under `.noesis/` at the repository root, one dire
 │                         one subdirectory per service process, removed when it exits
 ├── changes/              one directory per change tracked across the graph
 │   └── <change>/         the change set itself, plus everything produced while working on it
-│       ├── conversations/  imported conversation transcripts — turns and idea units
 │       ├── documents/      imported documents — title, date and verbatim content
 │       └── design-docs/    designed models, expressed as a diff against the implemented system
 └── system-model/         the implemented model, projected from the source code by the scanner
 ```
 
-The split reflects provenance. `conversations/` and `documents/` are **imports** — a faithful
-record of what was said or written, never rewritten. `design-docs/` is **authored**: what the
+The split reflects provenance. `documents/` holds **imports** — a faithful record of what was
+written, never rewritten. `design-docs/` is **authored**: what the
 imports and the code are taken to mean for the change at hand, written by the agent with the
 user, and revised in place as the design moves. `system-model/` is **derived**: the scanner
 rewrites it from the source code, so nothing there is edited by hand.
 
-Imports and design docs are **scoped to a change**: a conversation is imported because some
+Imports and design docs are **scoped to a change**: a document is imported because some
 change is being worked on, and a design doc describes that change. Keeping them under the change
 directory makes the unit of work the unit of review — the whole record of a change lands in one
 directory in a pull request. `system-model/` is change-independent: it tracks the code as it is,
@@ -169,8 +168,8 @@ store. Rules that hold across every kind:
 - **Store-managed only.** Under `graph/`, an object is a directory with a `data.json`; a
   directory without one is not an object, and nothing sits beside the data. Notes, source files
   and scratch space live outside `graph/` — `sources/`, `tmp/` — and are not graph content.
-- **Directories nest by ownership, never by classification.** A change owns its conversations,
-  documents and design documents, so those are child collections under
+- **Directories nest by ownership, never by classification.** A change owns its documents and
+  design documents, so those are child collections under
   `graph/changes/<change>/`; `system-model/` is a flat root collection. Where one object belongs
   under another by classification rather than ownership, the relation lives in the data as a
   field naming the other object's id, so re-classifying is a one-field edit, not a file move.
