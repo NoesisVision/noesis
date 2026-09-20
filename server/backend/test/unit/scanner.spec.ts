@@ -8,7 +8,6 @@ import {
   typeOf,
 } from '#backend/adapters/scanner/typescript-scanner';
 import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -28,7 +27,7 @@ afterEach(() => t.cleanup());
 async function filesOf(store: TestNoesis['systemModels']) {
   const ids = (await Array.fromAsync(store.keys())).sort();
   return Promise.all(
-    ids.map(async (id) => [id, await readFile(dataFileOf(store, id), 'utf8')]),
+    ids.map(async (id) => [id, await readFile(store.dataFile(id), 'utf8')]),
   );
 }
 

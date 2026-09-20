@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import type { z } from 'zod';
 
 /**
@@ -10,16 +9,7 @@ import type { z } from 'zod';
  */
 
 export const DATA_FILE_NAME = 'data.json';
-
-export function dataFileOf(
-  store: Pick<NoesisStore<unknown, unknown, unknown>, 'directory'>,
-  key: string,
-): string {
-  return join(store.directory, key, DATA_FILE_NAME);
-}
-
 export const KEY_PATTERN = /^[a-z0-9][a-z0-9_-]{0,127}$/;
-
 export const COLLECTION_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
 
 type ChildDefinition = z.ZodType | NestedDefinition;
@@ -74,6 +64,9 @@ export interface DeleteOptions {
 export interface NoesisStore<Input, Output, Children> {
   /** Absolute. */
   readonly directory: string;
+
+  /** Absolute path of the object's `data.json`. Touches no file. */
+  dataFile(key: string): string;
 
   get(key: string): Promise<Output | null>;
 

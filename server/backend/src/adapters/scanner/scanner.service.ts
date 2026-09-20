@@ -1,5 +1,4 @@
 import type { SystemModelStore } from '#backend/adapters/store/system-model.store';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { findSources, findUnits, scanUnit } from './typescript-scanner';
 
@@ -44,7 +43,7 @@ export class ScannerService {
       written.add(model.id);
       report.units.push({
         name: model.name,
-        path: dataFileOf(this.systemModels, model.id),
+        path: this.systemModels.dataFile(model.id),
         buildingBlocks: model.buildingBlocks.length,
       });
     }

@@ -14,7 +14,6 @@ import {
   createTopicsStore,
 } from '#backend/adapters/store/wiki.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { DatabaseService } from '#backend/platform/database/database.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -63,7 +62,7 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
     const slug = ChangeSlug.parse(`change-${i % CHANGES}`);
     await mkdir(join(designDocs(slug).directory, id));
     await writeFile(
-      dataFileOf(designDocs(slug), id),
+      designDocs(slug).dataFile(id),
       JSON.stringify({ ...designDocFixture, id, name }, null, 2),
     );
   }

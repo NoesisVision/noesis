@@ -1,7 +1,6 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 import type {
   ChangeChildren,
   NoesisChangesRepository,
@@ -31,7 +30,7 @@ export class NoesisDesignDocsRepository implements DesignDocsRepository {
   }
 
   pathOf(slug: ChangeSlug, id: string): string {
-    return dataFileOf(this.docs(slug), id);
+    return this.docs(slug).dataFile(id);
   }
 
   private docs(slug: ChangeSlug): ChangeChildren['design-docs'] {

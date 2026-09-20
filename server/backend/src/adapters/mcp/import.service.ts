@@ -23,7 +23,6 @@ import {
   contentHashAsUuid,
   sha256,
 } from '#backend/platform/crypto/content-hash';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 
 export interface ImportDeps {
   changes: ChangesService;
@@ -107,7 +106,7 @@ export class ImportService {
       source: {
         kind: 'conversation',
         id,
-        path: dataFileOf(conversations, id),
+        path: conversations.dataFile(id),
       },
       ...(await this.applyTopics(topics, refs)),
     };
@@ -139,7 +138,7 @@ export class ImportService {
       source: {
         kind: 'document',
         id,
-        path: dataFileOf(documents, id),
+        path: documents.dataFile(id),
       },
       ...(await this.applyTopics(topics, refs)),
     };
@@ -155,7 +154,7 @@ export class ImportService {
       const slug = ChangeSlug.parse(change.slug);
       const sources = this.deps.changesRepository.children(slug)[collection];
       if ((await sources.get(id)) !== null) {
-        throw new DuplicateSourceError(kind, id, dataFileOf(sources, id));
+        throw new DuplicateSourceError(kind, id, sources.dataFile(id));
       }
     }
   }

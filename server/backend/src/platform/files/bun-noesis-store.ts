@@ -130,6 +130,10 @@ class BunNoesisStore implements NoesisStore<
     }
   }
 
+  dataFile(key: string): string {
+    return this.locate(key).dataFile;
+  }
+
   children(key: string): Record<string, unknown> {
     assertKey(key, 'children');
     const location = this.locate(key);

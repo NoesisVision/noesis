@@ -5,7 +5,6 @@ import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
-import { dataFileOf } from '#backend/platform/files/noesis-store';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { put, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -111,7 +110,7 @@ describe('IndexService', () => {
     await writeDoc(ALPHA, designDocFixture);
     await writeDoc(ALPHA, { ...designDocFixture, id: 'junk' });
     await writeFile(
-      dataFileOf(t.changesRepository.children(ALPHA)['design-docs'], 'junk'),
+      t.changesRepository.children(ALPHA)['design-docs'].dataFile('junk'),
       '{',
     );
 
