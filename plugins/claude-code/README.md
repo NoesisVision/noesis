@@ -50,13 +50,13 @@ expected versus found, a one-line fix — to correct and call again.
   asserted byte-identical by the plugin's tests (decision D4). Only
   `contracts/README.md` is committed; the published plugin carries the full
   copy.
-- `skills/` — not present. The four skills that drove the first MCP surface
-  were deleted with it; the rebuilt service offers `create_change` and
-  `add_document_to_change`, and skills for those are still to be written. A
-  skill names the contract it needs by a path under `contracts/`, writes its
-  working file to the session's scratch directory, and hands the path to the
-  tool that consumes it, correcting the file from the issue list the tool
-  returns.
+- `skills/` — the skills that drive the tools, one folder per skill.
+  `create-change` opens a change through `create_change`; a skill for
+  `add_document_to_change` is still to be written. A skill names the contract
+  it needs by a path under `contracts/`. Where the tool takes a file, the
+  skill writes its working file to the session's scratch directory and hands
+  the path to the tool that consumes it, correcting the file from the issue
+  list the tool returns.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables
@@ -69,9 +69,9 @@ expected versus found, a one-line fix — to correct and call again.
   `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
   shipped.
 - `test/` — asserts the contracts copy is byte-identical to the source and
-  that a packed tarball carries exactly the shipped files.
+  that a packed tarball carries exactly the shipped files, skills included.
 
-Only `.claude-plugin/plugin.json`, `.mcp.json` and `contracts/` are published
+Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
 (the `files` field in `package.json`).
 
 ## Scripts

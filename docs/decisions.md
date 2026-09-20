@@ -425,10 +425,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
   (`.claude-plugin/plugin.json`, `contracts/`, `.mcp.json`, and `skills/` when
   there are skills to ship; dev tooling in unshipped `tools/`, never in
   `scripts/` or `bin/`, which have plugin semantics). The plugin is content:
-  contract sources, launch config, and the skills that drive the tools. It
-  ships no skills at present — the four that drove the first MCP surface went
-  with it — so it is the contracts and the launch config until skills for the
-  rebuilt tools are written. Skills live here, versioned in this repository;
+  contract sources, launch config, and the skills that drive the tools. The
+  four skills that drove the first MCP surface went with it; skills come back
+  one per rebuilt tool, starting with `create-change` for `create_change`.
+  Skills live here, versioned in this repository;
   nothing is copied into the user's project.
 - **Two published packages, one version train:** `@noesis-vision/noesis` (the
   service: `bin` → `dist/main.js`, `files: ["dist"]`) and

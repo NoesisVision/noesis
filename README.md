@@ -114,7 +114,7 @@ its Hono route tree inferable, so the frontend can type its calls with Hono's
 
 One folder per AI harness. `plugins/claude-code` is a [Claude Code plugin](https://code.claude.com/docs/en/plugins) and a workspace member:
 
-- **`skills/`** — none at present: the four skills that drove the first MCP surface were deleted with it, and skills for `create_change` and `add_document_to_change` are still to be written. A skill names the contract it needs by a path under `contracts/`
+- **`skills/`** — the skills that drive the tools: `create-change` opens a change through `create_change`; a skill for `add_document_to_change` is still to be written. A skill names the contract it needs by a path under `contracts/`
 - **`contracts/`** — the contract sources, **copied** from `server/backend/src/app/*/model/` (layout kept) by `bun run build` with a version header and shipped in the tarball; gitignored except its README (decision D4)
 - **`tools/`** — dev/build tooling (copy-contracts, stamp-plugin-version, bump-version, release-beta); not shipped
 - **`.mcp.json`** — launches the service as a stdio MCP server via `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}` (pin stamped by `bun run generate`; the two variables point a checkout at the service source, decision D6) with `NOESIS_ROOT` set to the project directory

@@ -51,6 +51,7 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/README.md',
     'contracts/design-docs/model/design-doc.ts',
     'contracts/information-sources/model/document.ts',
+    'skills/create-change/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -62,7 +63,6 @@ test('ships exactly the expected plugin files', async () => {
     'test',
     'servers',
     'scripts',
-    'skills',
   ];
   const leaked = excluded.filter((f) => existsSync(join(packageDir, f)));
   expect(leaked).toEqual([]);

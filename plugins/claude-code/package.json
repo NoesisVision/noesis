@@ -12,7 +12,8 @@
   "files": [
     ".claude-plugin/plugin.json",
     ".mcp.json",
-    "contracts"
+    "contracts",
+    "skills"
   ],
   "publishConfig": {
     "access": "public"
