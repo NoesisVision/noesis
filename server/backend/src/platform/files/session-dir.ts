@@ -1,12 +1,5 @@
 import type { Dirent } from 'node:fs';
-import {
-  mkdir,
-  readdir,
-  realpath,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
 import { serverLogger } from '#backend/platform/logging/logging';
@@ -17,13 +10,11 @@ const log = serverLogger('session');
 const TMP_DIR_NAME = 'tmp';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const INLINE_RESULT_LIMIT = 8 * 1024;
 
 export interface SessionDirOptions {
   id?: string;
   now?: () => number;
   maxAgeMs?: number;
-  inlineResultLimit?: number;
 }
 
 export type WorkingPathResult =
@@ -41,8 +32,6 @@ export class SessionDir {
   private readonly repositoryRoot: string;
   private readonly now: () => number;
   private readonly maxAgeMs: number;
-  private readonly inlineResultLimit: number;
-  private results = 0;
 
   constructor(
     noesis: NoesisDir,
@@ -55,7 +44,6 @@ export class SessionDir {
     this.path = join(this.tmpRoot, this.id);
     this.now = options.now ?? Date.now;
     this.maxAgeMs = options.maxAgeMs ?? SESSION_MAX_AGE_MS;
-    this.inlineResultLimit = options.inlineResultLimit ?? INLINE_RESULT_LIMIT;
   }
 
   async open(): Promise<void> {
@@ -89,13 +77,6 @@ export class SessionDir {
     return { ok: true, path: absolute };
   }
 
-  async deliver(text: string): Promise<string> {
-    const bytes = Buffer.byteLength(text);
-    if (this.fitsInline(bytes)) return text;
-    const file = await this.writeResultFile(text);
-    return this.readFromFileInstruction(file, bytes);
-  }
-
   private toAbsolute(input: string): string {
     return isAbsolute(input)
       ? normalize(input)
@@ -117,21 +98,6 @@ export class SessionDir {
       ok: false,
       message: `${input} is not under ${relative(this.repositoryRoot, this.tmpRoot)}/. Tools accept only paths under .noesis/tmp/; this session's directory is ${this.path}.`,
     };
-  }
-
-  private fitsInline(bytes: number): boolean {
-    return bytes <= this.inlineResultLimit;
-  }
-
-  private async writeResultFile(text: string): Promise<string> {
-    this.results += 1;
-    const file = join(this.path, `result-${this.results}.txt`);
-    await writeFile(file, text);
-    return file;
-  }
-
-  private readFromFileInstruction(file: string, bytes: number): string {
-    return `The result is ${bytes} bytes, above the ${this.inlineResultLimit}-byte inline limit, and was written to ${file}. Read it from there.`;
   }
 
   private async removeStaleSessionDirs(): Promise<void> {

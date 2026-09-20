@@ -210,7 +210,11 @@ conventions for skills: the contracts' `.describe()` text (D4).
   that large, so such a path is the wrong one and reading it would pull it
   into memory before the shape is known. A path is accepted under either
   spelling of the scratch root — as configured, and as it resolves — because
-  an agent that resolves paths itself passes the second.
+  an agent that resolves paths itself passes the second. The traffic is
+  one-way for now: nothing spills outbound, because both tools answer in one
+  line. `SessionDir` carried a `deliver()` that wrote an oversized answer to a
+  `result-N.txt` beside the working files; it went with the tools that
+  returned lists, and comes back with the first tool that needs it.
 - **Validation happens once, where the write happens.** A tool that reads a
   working file checks it against its contract
   (`src/app/validation/contracts`) before the service sees it and rejects the

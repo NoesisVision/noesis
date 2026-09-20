@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   mkdir,
   mkdtemp,
-  readFile,
   rm,
   stat,
   symlink,
@@ -192,29 +191,6 @@ describe('SessionDir', () => {
         ok: false,
         message: `No file at ${join(session.path, 'nope.json')}.`,
       });
-    });
-  });
-
-  describe('deliver', () => {
-    it('returns a small result inline', async () => {
-      const session = new SessionDir(noesis, root, { inlineResultLimit: 100 });
-      await session.open();
-
-      expect(await session.deliver('short')).toBe('short');
-    });
-
-    it('writes a large result to the session directory and returns the path', async () => {
-      const session = new SessionDir(noesis, root, { inlineResultLimit: 10 });
-      await session.open();
-      const big = 'x'.repeat(50);
-
-      const answer = await session.deliver(big);
-
-      const file = join(session.path, 'result-1.txt');
-      expect(answer).toContain(file);
-      expect(answer).toContain('50 bytes');
-      expect(await readFile(file, 'utf8')).toBe(big);
-      expect(await session.deliver(big)).toContain('result-2.txt');
     });
   });
 });
