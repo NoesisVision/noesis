@@ -27,7 +27,7 @@ const inputSchemaFor = (session: SessionDir) =>
       change: z
         .string()
         .describe(
-          'The slug of the change the document belongs to, as create_change returned it, e.g. "payment-retry".',
+          'The slug of the change the document belongs to, as create_change returned it or list_changes lists it, e.g. "payment-retry".',
         ),
       path: z
         .string()

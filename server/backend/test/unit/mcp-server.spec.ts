@@ -69,11 +69,12 @@ describe('the MCP surface', () => {
     expect(path.description).toContain(session.path);
   });
 
-  it('offers exactly the two tools, each with an input and an output schema', async () => {
+  it('offers exactly the three tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_document_to_change',
       'create_change',
+      'list_changes',
     ]);
     for (const tool of tools) {
       expect(tool.inputSchema.type).toBe('object');
@@ -133,6 +134,47 @@ describe('create_change', () => {
 
     expect(clash.isError).toBe(true);
     expect(textOf(clash)).toContain('NOE-142');
+  });
+});
+
+describe('list_changes', () => {
+  it('answers an empty list when there is no change yet', async () => {
+    const result = await client.callTool({ name: 'list_changes' });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ changes: [] });
+    expect(textOf(result)).toContain('create_change');
+  });
+
+  it('lists every change with its slug, in the text as well', async () => {
+    await client.callTool({
+      name: 'create_change',
+      arguments: { name: 'Payment retry', key: 'NOE-142', type: 'feature' },
+    });
+    await client.callTool({
+      name: 'create_change',
+      arguments: { name: 'Refund rounding', type: 'fix' },
+    });
+
+    const result = await client.callTool({ name: 'list_changes' });
+
+    expect(result.isError).toBeFalsy();
+    const { changes } = result.structuredContent as {
+      changes: { slug: string }[];
+    };
+    expect(changes.map((change) => change.slug).sort()).toEqual([
+      'payment-retry',
+      'refund-rounding',
+    ]);
+    expect(changes).toEqual(await noesis.changesService.list());
+    expect(textOf(result)).toContain('payment-retry [NOE-142]: Payment retry');
+    expect(textOf(result)).toContain('refund-rounding: Refund rounding');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const list = tools.find((tool) => tool.name === 'list_changes');
+    expect(list?.annotations?.readOnlyHint).toBe(true);
   });
 });
 

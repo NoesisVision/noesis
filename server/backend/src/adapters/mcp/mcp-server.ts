@@ -4,6 +4,7 @@ import type { DocumentsService } from '#backend/app/information-sources/document
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { registerAddDocumentToChange } from './tools/add-document-to-change.tool';
 import { registerCreateChange } from './tools/create-change.tool';
+import { registerListChanges } from './tools/list-changes.tool';
 
 export interface McpServerDeps {
   version: string;
@@ -30,6 +31,7 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
     },
   );
   registerCreateChange(server, deps.changesService);
+  registerListChanges(server, deps.changesService);
   registerAddDocumentToChange(server, deps.documentsService, deps.session);
   return server;
 }

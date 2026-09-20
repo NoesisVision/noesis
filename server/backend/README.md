@@ -26,7 +26,8 @@ own machine inside one checkout (decision D1).
 - **MCP on stdio** (`src/adapters/mcp`): the v2 SDK's `McpServer`
   (`@modelcontextprotocol/server`), one module per tool under `tools/`, each
   declaring its input and output schemas and making one service call —
-  `create_change`, `add_document_to_change`. `main.ts` serves it with
+  `create_change`, `list_changes`, `add_document_to_change`. `main.ts` serves
+  it with
   `serveStdio`, which negotiates the 2026-07-28 revision and still serves
   2025-era hosts. Tools take paths, not content: the agent writes a working
   file to the session's scratch directory (`.noesis/tmp/<session>/`, named in

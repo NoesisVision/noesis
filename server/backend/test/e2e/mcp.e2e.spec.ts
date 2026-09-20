@@ -106,11 +106,12 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     expect(await exists(dir)).toBe(true);
   });
 
-  it('offers the two tools it was started with', async () => {
+  it('offers the three tools it was started with', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_document_to_change',
       'create_change',
+      'list_changes',
     ]);
   });
 
@@ -197,6 +198,7 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_document_to_change',
       'create_change',
+      'list_changes',
     ]);
 
     const created = await client.callTool({

@@ -149,6 +149,7 @@ test('the service the pin resolves to boots and lists tools', async () => {
     expect(tools.map((t) => t.name).sort()).toEqual([
       'add_document_to_change',
       'create_change',
+      'list_changes',
     ]);
   } finally {
     await client.close();
