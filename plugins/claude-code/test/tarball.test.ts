@@ -51,6 +51,8 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/README.md',
     'contracts/design-docs/model/design-doc.ts',
     'contracts/information-sources/model/document.ts',
+    'skills/add-document-to-change/SKILL.md',
+    'skills/add-document-to-change/scripts/write-working-file.ts',
     'skills/create-change/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));

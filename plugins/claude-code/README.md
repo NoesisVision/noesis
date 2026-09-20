@@ -32,7 +32,7 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes two MCP tools: `create_change` and
+The service exposes three MCP tools: `create_change`, `list_changes` and
 `add_document_to_change`. Tools never take content inline. The agent writes
 a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
@@ -51,9 +51,12 @@ expected versus found, a one-line fix — to correct and call again.
   `contracts/README.md` is committed; the published plugin carries the full
   copy.
 - `skills/` — the skills that drive the tools, one folder per skill.
-  `create-change` opens a change through `create_change`; a skill for
-  `add_document_to_change` is still to be written. A skill names the contract
-  it needs by a path under `contracts/`. Where the tool takes a file, the
+  `create-change` opens a change through `create_change`;
+  `add-document-to-change` takes a Markdown file, asks which change from
+  `list_changes` it belongs to and adds it through `add_document_to_change`, building the working file with its
+  `scripts/write-working-file.ts` so the text is copied, not retyped. A skill
+  names the contract it needs by a path under `contracts/`. Where the tool
+  takes a file, the
   skill writes its working file to the session's scratch directory and hands
   the path to the tool that consumes it, correcting the file from the issue
   list the tool returns.
@@ -69,7 +72,8 @@ expected versus found, a one-line fix — to correct and call again.
   `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
   shipped.
 - `test/` — asserts the contracts copy is byte-identical to the source and
-  that a packed tarball carries exactly the shipped files, skills included.
+  that a packed tarball carries exactly the shipped files, skills included,
+  and that the working-file script copies its source verbatim.
 
 Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
 (the `files` field in `package.json`).

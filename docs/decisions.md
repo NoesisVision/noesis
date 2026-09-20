@@ -151,8 +151,10 @@ conventions for skills: the contracts' `.describe()` text (D4).
   contract itself wherever one fits — and its behavioural annotations, and
   answers with `structuredContent` that the SDK checks against that output
   schema. Tool names are snake_case. Current tools: `create_change`,
-  `add_document_to_change`; the surface was rebuilt down to these two and
-  grows back one tool at a time. Every handler is registered through
+  `list_changes`, `add_document_to_change`; the surface was rebuilt down to
+  two and grows back one tool at a time. A listing tool takes no arguments,
+  is annotated read-only, and repeats the slugs in its text for hosts that
+  read only that. Every handler is registered through
   `logged()` (`adapters/mcp/tool-handler.ts`): the SDK answers a thrown error
   in-band by itself but silently, so an unforeseen failure would otherwise
   leave nothing in `.noesis/logs/` for the person whose session broke.
@@ -427,8 +429,11 @@ conventions for skills: the contracts' `.describe()` text (D4).
   `scripts/` or `bin/`, which have plugin semantics). The plugin is content:
   contract sources, launch config, and the skills that drive the tools. The
   four skills that drove the first MCP surface went with it; skills come back
-  one per rebuilt tool, starting with `create-change` for `create_change`.
-  Skills live here, versioned in this repository;
+  one per rebuilt tool: `create-change` for `create_change` and
+  `add-document-to-change` for `add_document_to_change`. A skill that turns a
+  user's file into a working file does it with a script in its own `scripts/`
+  folder, run with `bun`, so the text is copied byte for byte and never
+  retyped by the model. Skills live here, versioned in this repository;
   nothing is copied into the user's project.
 - **Two published packages, one version train:** `@noesis-vision/noesis` (the
   service: `bin` → `dist/main.js`, `files: ["dist"]`) and
