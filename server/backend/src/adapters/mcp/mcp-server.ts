@@ -22,7 +22,10 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer(
     { name: 'noesis', title: 'Noesis', version: deps.version },
     {
-      capabilities: { tools: { listChanged: true } },
+      // `false` is the truth: the tool list is fixed for the connection's
+      // life, so no `notifications/tools/list_changed` ever follows. Left
+      // unsaid, the SDK advertises `listChanged: true` for us.
+      capabilities: { tools: { listChanged: false } },
       instructions: instructions(deps),
     },
   );

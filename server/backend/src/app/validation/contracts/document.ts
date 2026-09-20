@@ -1,3 +1,4 @@
+import { titleYieldsId } from '#backend/app/information-sources/document-id';
 import {
   type CreateDocument,
   CreateDocumentSchema,
@@ -5,13 +6,27 @@ import {
 import type { FileContract } from '#backend/app/validation/validator';
 
 /**
- * Schema only: a document has no whole-document rule beyond its shape. It is
- * a contract rather than a bare schema because the MCP tool reads it from a
- * working file and owes the agent the actionable report `validate` produces
+ * One rule beyond the shape: the id is the title as a slug, so a title the
+ * slug empties — punctuation, or a script with no ASCII in it — would land on
+ * the one fallback id, where the next such title looks like a duplicate of
+ * the first. The schema cannot say that declaratively (decision D4 keeps the
+ * contracts free of `refine`), so it is checked here, where the MCP tool
+ * reads the working file and owes the agent the report `validate` produces
  * (decision D3).
  */
 export const documentContract: FileContract<CreateDocument> = {
   description:
     'A document of a change: its title, the date it was written, and its text.',
   schema: CreateDocumentSchema,
+  check: (document) =>
+    titleYieldsId(document.title)
+      ? []
+      : [
+          {
+            path: '$.title',
+            expected: 'a title with a letter or a digit in it',
+            found: JSON.stringify(document.title),
+            fix: 'Retitle the document so an id can be derived from it',
+          },
+        ],
 };

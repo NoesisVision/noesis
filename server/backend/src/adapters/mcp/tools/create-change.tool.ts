@@ -9,6 +9,7 @@ import {
   type CreateChange,
   CreateChangeSchema,
 } from '#backend/app/changes/model/change';
+import { logged } from '../tool-handler';
 import { failure, success } from '../tool-result';
 
 export const CREATE_CHANGE = 'create_change';
@@ -32,7 +33,7 @@ export function registerCreateChange(
         openWorldHint: false,
       },
     },
-    (input) => create(changes, input),
+    logged(CREATE_CHANGE, (input: CreateChange) => create(changes, input)),
   );
 }
 

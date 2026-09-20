@@ -149,7 +149,13 @@ conventions for skills: the contracts' `.describe()` text (D4).
   answers with `structuredContent` that the SDK checks against that output
   schema. Tool names are snake_case. Current tools: `create_change`,
   `add_document_to_change`; the surface was rebuilt down to these two and
-  grows back one tool at a time.
+  grows back one tool at a time. Every handler is registered through
+  `logged()` (`adapters/mcp/tool-handler.ts`): the SDK answers a thrown error
+  in-band by itself but silently, so an unforeseen failure would otherwise
+  leave nothing in `.noesis/logs/` for the person whose session broke. The
+  declared capability is `tools: { listChanged: false }`, which is the truth —
+  the list is fixed for the connection's life and no notification ever
+  follows; the SDK advertises `true` for a server that says nothing.
 - **stdio is served by `serveStdio(factory)`** from
   `@modelcontextprotocol/server/stdio`, not by connecting a
   `StdioServerTransport` by hand: only that entry serves the **2026-07-28**
@@ -187,8 +193,12 @@ conventions for skills: the contracts' `.describe()` text (D4).
   in-process.
 - **Large payloads move through the temp dir.** The agent writes a working file
   under `.noesis/tmp/<session>/` and passes its path; MCP messages carry
-  coordinates, not content. The server's `instructions` field names the root
-  and the session directory.
+  coordinates, not content. A working file above
+  `MAX_WORKING_FILE_BYTES` (4 MiB) is refused unread: one document is never
+  that large, so such a path is the wrong one and reading it would pull it
+  into memory before the shape is known. A path is accepted under either
+  spelling of the scratch root — as configured, and as it resolves — because
+  an agent that resolves paths itself passes the second.
 - **Validation happens once, where the write happens.** A tool that reads a
   working file checks it against its contract
   (`src/app/validation/contracts`) before the service sees it and rejects the
@@ -199,7 +209,8 @@ conventions for skills: the contracts' `.describe()` text (D4).
   actionable — path, expected versus found, a one-line correction — capped,
   and returned in-band (`isError` results the model can read), never as
   protocol errors. Unreadable JSON and a path outside the session scratch
-  directory come back the same way.
+  directory come back the same way, as does a working file above the size
+  cap.
 - **The ui never authors a design document.** `/ui/changes/:change/design-docs`
   reads (`GET /`, `GET /:id`) and deletes (`DELETE /:id`); authoring one is the
   agent's. One authoring path means one place where the contract and the
@@ -216,8 +227,11 @@ conventions for skills: the contracts' `.describe()` text (D4).
   a body that does not fit never reaches the handler; the answer is
   `400 {error:'invalid_body', issues}` from the package's `flattenErrors`.
   The service-side `validate` is for what a schema cannot say — a
-  whole-document `check` — and `design-document` is the only contract that
-  has one, which is why the design-doc check lives on the MCP side alone.
+  whole-document `check`. `design-document` has one (its integrity pass) and
+  so does `document`: its id is the title as a slug, so a title the slug
+  empties is refused rather than sharing the one fallback id. Both checks
+  therefore run on the MCP side alone; the ui's document writes get the
+  schema pass only.
 - **Search** is `GET /ui/search` over a `SearchProvider[]` registry in
   `SearchService`. The agent's search tool is not part of the rebuilt MCP
   surface yet.

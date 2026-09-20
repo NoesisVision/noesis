@@ -9,6 +9,7 @@ import {
   utimes,
   writeFile,
 } from 'node:fs/promises';
+import { realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -21,6 +22,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 let root: string;
 let noesis: NoesisDir;
+/** Directories a single test makes outside the repository root. */
+let extra: string[] = [];
 
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'noesis-session-'));
@@ -28,7 +31,12 @@ beforeEach(async () => {
   await noesis.ensureInitialized();
 });
 
-afterEach(() => rm(root, { recursive: true, force: true }));
+afterEach(async () => {
+  for (const dir of [root, ...extra]) {
+    await rm(dir, { recursive: true, force: true });
+  }
+  extra = [];
+});
 
 const exists = (path: string) =>
   stat(path).then(
@@ -158,6 +166,22 @@ describe('SessionDir', () => {
       const result = await session.resolveWorkingPath(link);
 
       expect(result.ok).toBe(false);
+    });
+
+    it('accepts the resolved spelling when the repository root is a symlink', async () => {
+      const parent = await mkdtemp(join(tmpdir(), 'noesis-link-'));
+      extra.push(parent);
+      const link = join(parent, 'repo');
+      await symlink(root, link);
+      const linked = new SessionDir(new NoesisDir(link), link, { id: 's3' });
+      await linked.open();
+      const resolved = join(await realpath(linked.path), 'doc.json');
+      await writeFile(resolved, '{}');
+
+      expect(await linked.resolveWorkingPath(resolved)).toEqual({
+        ok: true,
+        path: resolved,
+      });
     });
 
     it('reports a missing file', async () => {

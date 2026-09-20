@@ -10,6 +10,7 @@ import {
 import { documentContract } from '#backend/app/validation/contracts/document';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
+import { logged } from '../tool-handler';
 import { failure, success } from '../tool-result';
 import { readWorkingFile } from '../working-file';
 import { CREATE_CHANGE } from './create-change.tool';
@@ -71,7 +72,9 @@ export function registerAddDocumentToChange(
         openWorldHint: false,
       },
     },
-    (input) => add(documents, session, input),
+    logged(ADD_DOCUMENT_TO_CHANGE, (input: AddDocumentInput) =>
+      add(documents, session, input),
+    ),
   );
 }
 

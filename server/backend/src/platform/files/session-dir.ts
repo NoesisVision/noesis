@@ -71,14 +71,19 @@ export class SessionDir {
    * Any session's directory is accepted: skills may write under `tmp/`
    * without knowing the id. Relative paths resolve against the repository
    * root, where the agent's own tools run. Symlinks are followed before the
-   * check, so a link out of `tmp/` is refused too.
+   * check, so a link out of `tmp/` is refused too — and both spellings of
+   * `tmp/` count, the configured one and the one it resolves to, because an
+   * agent that resolves paths itself passes the latter.
    */
   async resolveWorkingPath(input: string): Promise<WorkingPathResult> {
     const absolute = this.toAbsolute(input);
-    if (!isInside(this.tmpRoot, absolute)) return this.notUnderTmp(input);
+    const realTmpRoot = await realpathIfExists(this.tmpRoot);
+    if (!this.isUnderTmpRoot(absolute, realTmpRoot)) {
+      return this.notUnderTmp(input);
+    }
     const target = await realpathIfExists(absolute);
     if (target === null) return noFileAt(absolute);
-    if (!(await this.isInsideRealTmpRoot(target))) {
+    if (realTmpRoot === null || !isInside(realTmpRoot, target)) {
       return this.notUnderTmp(input);
     }
     return { ok: true, path: absolute };
@@ -97,8 +102,14 @@ export class SessionDir {
       : resolve(this.repositoryRoot, input);
   }
 
-  private async isInsideRealTmpRoot(target: string): Promise<boolean> {
-    return isInside(await realpath(this.tmpRoot), target);
+  private isUnderTmpRoot(
+    absolute: string,
+    realTmpRoot: string | null,
+  ): boolean {
+    return (
+      isInside(this.tmpRoot, absolute) ||
+      (realTmpRoot !== null && isInside(realTmpRoot, absolute))
+    );
   }
 
   private notUnderTmp(input: string): WorkingPathResult {

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
+import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
 import { SessionDir } from '#backend/platform/files/session-dir';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -215,6 +216,54 @@ describe('add_document_to_change', () => {
     expect(text).toContain('$.date');
     expect(text).toContain('$.content');
     expect(text).toContain('fix:');
+  });
+
+  it('refuses a working file above the size limit without reading it', async () => {
+    await noesis.createChange('payment-retry');
+    const path = await workingFile(
+      'huge.json',
+      'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
+    );
+
+    const result = await client.callTool({
+      name: 'add_document_to_change',
+      arguments: { change: 'payment-retry', path },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(String(MAX_WORKING_FILE_BYTES));
+  });
+
+  it('refuses a date that is not an ISO 8601 date', async () => {
+    await noesis.createChange('payment-retry');
+    const path = await workingFile('document.json', {
+      ...document,
+      date: 'last Tuesday',
+    });
+
+    const result = await client.callTool({
+      name: 'add_document_to_change',
+      arguments: { change: 'payment-retry', path },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('$.date');
+  });
+
+  it('refuses a title the id cannot be derived from', async () => {
+    await noesis.createChange('payment-retry');
+    const path = await workingFile('document.json', {
+      ...document,
+      title: '???',
+    });
+
+    const result = await client.callTool({
+      name: 'add_document_to_change',
+      arguments: { change: 'payment-retry', path },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('$.title');
   });
 
   it('answers a file that is not JSON in-band', async () => {

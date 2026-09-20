@@ -6,7 +6,21 @@ const MAX_LENGTH = 128;
  * title as a slug and a retitle is a move.
  */
 export function documentIdFromTitle(title: string): string {
-  const id = title
+  return slugify(title) || 'untitled';
+}
+
+/**
+ * False for a title the derivation empties — punctuation or a script with no
+ * ASCII in it. Every such title would share the one fallback id, so the
+ * contract refuses them instead of letting the second one look like a
+ * duplicate of the first.
+ */
+export function titleYieldsId(title: string): boolean {
+  return slugify(title) !== '';
+}
+
+function slugify(title: string): string {
+  return title
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
@@ -14,5 +28,4 @@ export function documentIdFromTitle(title: string): string {
     .replace(/^-+|-+$/g, '')
     .slice(0, MAX_LENGTH)
     .replace(/-+$/, '');
-  return id || 'untitled';
 }

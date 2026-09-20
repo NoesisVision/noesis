@@ -1,0 +1,51 @@
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { configure, type LogRecord, reset } from '@logtape/logtape';
+import { logged } from '#backend/adapters/mcp/tool-handler';
+import { success } from '#backend/adapters/mcp/tool-result';
+import { textOf } from '../support/service-process';
+
+let records: LogRecord[];
+
+beforeEach(async () => {
+  records = [];
+  await configure({
+    reset: true,
+    sinks: { memory: (record) => records.push(record) },
+    loggers: [
+      { category: 'noesis', sinks: ['memory'], lowestLevel: 'debug' },
+      { category: ['logtape', 'meta'], sinks: [], lowestLevel: 'warning' },
+    ],
+  });
+});
+
+afterEach(() => reset());
+
+describe('logged', () => {
+  it('passes a result through untouched', async () => {
+    const handler = logged('a_tool', async () => success('done', { ok: true }));
+
+    const result = await handler({});
+
+    expect(result).toEqual({
+      content: [{ type: 'text', text: 'done' }],
+      structuredContent: { ok: true },
+    });
+    expect(records).toEqual([]);
+  });
+
+  it('answers an unforeseen failure in-band and logs it', async () => {
+    const handler = logged('a_tool', async () => {
+      throw new Error('the disk went away');
+    });
+
+    const result = await handler({});
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('a_tool failed: the disk went away');
+    expect(textOf(result)).toContain('.noesis/logs/');
+    const [record] = records;
+    expect(record?.level).toBe('error');
+    expect(record?.properties).toMatchObject({ tool: 'a_tool' });
+    expect(String(record?.properties.error)).toContain('the disk went away');
+  });
+});

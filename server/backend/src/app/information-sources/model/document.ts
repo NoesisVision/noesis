@@ -9,13 +9,15 @@ export const DocumentSchema = z
       ),
     title: z
       .string()
+      .trim()
+      .min(1)
       .describe(
-        'The document title, unique within the change: it is what identifies the document.',
+        'The document title, unique within the change: it is what identifies the document, and the id is derived from it.',
       ),
-    date: z
-      .string()
+    date: z.iso
+      .date()
       .describe(
-        'When the document was written or last revised, ISO 8601 date.',
+        'When the document was written or last revised, ISO 8601 date (YYYY-MM-DD): the document list sorts on it.',
       ),
     content: z
       .string()
