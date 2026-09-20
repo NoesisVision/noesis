@@ -139,7 +139,9 @@ The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
 and other contract files, always relative. The plugin's tests assert that. Whole-document
 rules a schema cannot express live in `src/app/validation/contracts`, which
-pairs each schema with the service's whole-document check.
+pairs the schema with that check; `design-document` is the only one that
+needs it, so the other write boundaries check their schema in the route
+middleware.
 
 | Files under `src/app/`                                 | What they shape                                                                         |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |

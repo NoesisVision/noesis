@@ -12,7 +12,12 @@ import type {
   ValidationIssue,
 } from '#backend/app/validation/validator';
 
-/** One contract behind every write path — the MCP tools and the ui routes check the same way (decision D4). */
+/**
+ * The one file contract left: a design document needs a whole-document pass
+ * (`check`) that a schema cannot express, so `validate` runs it where the MCP
+ * tools write. Shapes a schema does cover are checked by the route middleware
+ * instead (decision D3).
+ */
 export const designDocumentContract: FileContract<DesignDocument> = {
   description:
     'A design document: goal, use cases, building blocks and their relations, scoped to one change.',

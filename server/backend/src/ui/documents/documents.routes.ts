@@ -8,17 +8,15 @@ import {
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { documentContract } from '#backend/app/validation/contracts/document';
-import { validate } from '#backend/app/validation/validator';
+import { DocumentSchema } from '#backend/app/information-sources/model/document';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;
 }
 
-const writeDocumentSchema = z.object({
-  // The document itself runs the document contract in the handler.
-  document: z.record(z.string(), z.unknown()),
-});
+// The document's own contract, not an opaque object: one pass in the
+// middleware is the whole check a document needs (decision D3).
+const writeDocumentSchema = z.object({ document: DocumentSchema });
 
 /** Mounted at `/ui/changes/:change/documents`; writes are decision D4's validation boundary. */
 export function createDocumentsApp(deps: DocumentsDeps) {
@@ -44,21 +42,9 @@ export function createDocumentsApp(deps: DocumentsDeps) {
           }
         }),
         async (c) => {
-          const report = validate(
-            documentContract,
-            c.req.valid('json').document,
-          );
-          if (!report.ok) {
-            return c.json(
-              { error: 'invalid_document', issues: report.issues },
-              400,
-            );
-          }
+          const { document: input } = c.req.valid('json');
           return inChange(c, async (change) => {
-            const document = await documentsService.create(
-              change,
-              report.value,
-            );
+            const document = await documentsService.create(change, input);
             return c.json({ document }, 201);
           });
         },
@@ -87,21 +73,12 @@ export function createDocumentsApp(deps: DocumentsDeps) {
           }
         }),
         async (c) => {
-          const report = validate(
-            documentContract,
-            c.req.valid('json').document,
-          );
-          if (!report.ok) {
-            return c.json(
-              { error: 'invalid_document', issues: report.issues },
-              400,
-            );
-          }
+          const { document: input } = c.req.valid('json');
           return inChange(c, async (change) => {
             const document = await documentsService.update(
               change,
               c.req.param('id'),
-              report.value,
+              input,
             );
             return c.json({ document });
           });

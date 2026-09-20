@@ -167,11 +167,13 @@ conventions for skills: the contracts' `.describe()` text (D4).
 - **The ui routes check their request envelope with `@hono/standard-validator`**
   (`sValidator('json', …)`), not a zod-specific adapter: the middleware speaks
   Standard Schema, so the schema library stays an implementation detail of
-  `app/<feature>/model/`. A malformed envelope is
-  `400 {error:'invalid_body', issues}` from the package's `flattenErrors`; a
-  body that parses but does not satisfy its file contract is
-  `400 {error:'invalid_document', issues}` from the validator, the same list
-  the MCP tools return.
+  `app/<feature>/model/`. The schema the middleware takes is the file's own
+  contract, not an opaque object, so a write route validates in one pass and
+  a body that does not fit never reaches the handler; the answer is
+  `400 {error:'invalid_body', issues}` from the package's `flattenErrors`.
+  The service-side `validate` is for what a schema cannot say — a
+  whole-document `check` — and `design-document` is the only contract that
+  has one, which is why the design-doc check lives on the MCP side alone.
 - **Search** is `GET /ui/search` and the `search-knowledge-graph` tool over a
   `SearchProvider[]` registry in `SearchService`.
 - **LadybugDB** is `@ladybugdb/core` (0.20.x), opened as `:memory:` with a

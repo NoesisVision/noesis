@@ -19,8 +19,8 @@ export type ValidationReport<T = unknown> =
 export interface FileContract<T = unknown> {
   description: string;
   schema: ZodType<T>;
-  // Method syntax on purpose: it is bivariant, so a `FileContract<Doc>` fits a
-  // `Record<string, FileContract>` registry (a property would not).
+  // Method syntax on purpose: it is bivariant, so a `FileContract<Doc>` is
+  // assignable to `FileContract` (a property declaration would not be).
   check?(value: T): ValidationIssue[];
 }
 

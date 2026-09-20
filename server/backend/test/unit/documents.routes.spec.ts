@@ -75,8 +75,15 @@ describe('ui documents routes', () => {
   it('rejects a document the contract refuses, before anything is written', async () => {
     const res = await post(BASE, { document: { title: 'No date' } });
 
+    // The document's own contract runs in the middleware (decision D3), so a
+    // body that does not satisfy it never reaches the handler.
     expect(res.status).toBe(400);
-    expect(await res.json()).toMatchObject({ error: 'invalid_document' });
+    const body = (await res.json()) as {
+      error: string;
+      issues: { fieldErrors: Record<string, string[]> };
+    };
+    expect(body.error).toBe('invalid_body');
+    expect(body.issues.fieldErrors.document?.length).toBeGreaterThan(0);
     expect((await app.request(BASE)).status).toBe(200);
     const { documents } = (await (await app.request(BASE)).json()) as {
       documents: unknown[];
