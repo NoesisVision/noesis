@@ -24,8 +24,7 @@ Channels:
 
 ## How it runs
 
-Every Claude Code session starts its own Noesis service process over stdio
-(decision D1). The service serves the project Claude Code runs in
+Every Claude Code session starts its own Noesis service process over stdio. The service serves the project Claude Code runs in
 (`NOESIS_ROOT` is set to the project directory by `.mcp.json`), keeps the
 knowledge graph as JSON files in `.noesis/` at its root, and opens the
 browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
@@ -42,14 +41,14 @@ and message — to correct and call again.
 
 ## What's inside
 
-- `contracts/` — the contract sources every knowledge graph file must
-  satisfy, as zod `.ts` the model reads directly. A build output: copied from
-  the service's `server/backend/src/app/<feature>/model/` folders, layout
-  kept, by `bun run build` (which
-  `bun pm pack` runs as `prepack`), stamped with the plugin version, and
-  asserted byte-identical by the plugin's tests (decision D4). Only
-  `contracts/README.md` is committed; the published plugin carries the full
-  copy.
+- `contracts/` — the contracts every knowledge graph file must satisfy, as
+  JSON Schema the model reads directly, with an example beside the larger
+  ones. A build output: the service generates it from its zod schemas
+  (`bun run contracts <dir>` in `server/backend`), and `bun run build` here
+  (which `bun pm pack` runs as `prepack`) empties the directory and calls
+  that. Only the schemas ship, not the domain objects they sit next to. Only
+  `contracts/README.md` is committed; the published plugin carries the
+  generated files.
 - `skills/` — the skills that drive the tools, one folder per skill.
   `create-change` opens a change through `create_change`;
   `add-document-to-change` takes a Markdown file, asks which change from
@@ -63,16 +62,15 @@ and message — to correct and call again.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables
-  replace the command and its one argument; unset, the defaults apply
-  (decision D6). The pin is stamped by `bun run generate`.
+  replace the command and its one argument; unset, the defaults apply. The pin is stamped by `bun run generate`.
 - `.claude-plugin/plugin.json` — the plugin manifest, its version stamped by
   `bun run generate`; `marketplace.json` beside it is the catalog users add
   by URL, with one entry per channel pinned to a published npm version.
-- `tools/` — `copy-contracts.ts`, `stamp-plugin-version.ts`,
+- `tools/` — `build-contracts.ts`, `stamp-plugin-version.ts`,
   `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
   shipped.
-- `test/` — asserts the contracts copy is byte-identical to the source and
-  that a packed tarball carries exactly the shipped files, skills included,
+- `test/` — asserts a build leaves only fresh contracts, that every
+  contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills included,
   and that the working-file script copies its source verbatim.
 
 Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
@@ -82,9 +80,9 @@ Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are p
 
 | Script                 | What it does                                                       |
 | ---------------------- | ------------------------------------------------------------------ |
-| `bun run build`        | Copy the contracts into `contracts/` (also runs as `prepack`)      |
+| `bun run build`        | Generate the contracts into `contracts/` (also runs as `prepack`)  |
 | `bun run generate`     | Stamp the version into `plugin.json` and the `.mcp.json` pin       |
-| `bun test`             | Contracts byte-identity + tarball contents                         |
+| `bun test`             | Contracts build + tarball contents                                 |
 | `bun run check-types`  | `tsc --noEmit`                                                     |
 | `bun run bump <v>`     | Bump plugin + service versions and the matching marketplace pin    |
 | `bun run release:beta` | Bump, generate, smoke-test the tarball, commit, tag, push          |
@@ -96,7 +94,7 @@ Load the plugin from the source folder into a session in another repository
 (the sample app you exercise it on), with the service running from the
 checkout's source instead of the published bin.
 
-Once in the checkout, and again after every contract change, copy the
+Once in the checkout, and again after every contract change, generate the
 contracts into the plugin:
 
 ```
@@ -112,7 +110,7 @@ claude --plugin-dir /path/to/noesis/plugins/claude-code
 ```
 
 The service runs from `src/main.ts` with no build (the page is bundled on
-request, decision D5) and serves the repository Claude Code started in. The local plugin
+request) and serves the repository Claude Code started in. The local plugin
 takes precedence over an installed `noesis` for that session. After editing
 a skill or the service, run `/reload-plugins`. Set the two variables in the
 sample app's `.claude/settings.local.json` under `env` to skip typing them.
@@ -128,9 +126,9 @@ bun run release:beta 0.2.0-beta.1   # explicit target prerelease
 
 The script verifies a clean, up-to-date `main`, bumps the plugin +
 `@noesis-vision/noesis` `package.json`s and the beta marketplace pin (one
-version train — decision D6), regenerates stamped artifacts (the
+version train), regenerates stamped artifacts (the
 `.mcp.json` service pin), smoke-tests the packed tarball (whose `prepack`
-copies `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
+generates `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
 workflow (`.github/workflows/release.yml`), which re-runs the verify steps,
 checks the stamped pins are committed, verifies the tag against both package
 versions, packs with `bun pm pack` and publishes both packages to npm via

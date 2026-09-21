@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-// Content-hash ids (decision D2): the same content always yields the same id.
+// Content-hash ids: the same content always yields the same id.
 
 export function contentHashAsUuid(content: string | Buffer): string {
   const hex = createHash('sha256').update(content).digest('hex');

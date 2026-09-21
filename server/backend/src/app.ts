@@ -7,8 +7,7 @@ import type { SearchService } from './app/search/search.service';
 import { createInternalApp } from './ui/internal.routes';
 import { createUiApp } from './ui/ui.routes';
 
-// No surface is guarded: the server runs on the developer's own machine
-// (decision D1).
+// No surface is guarded: the server runs on the developer's own machine.
 export interface AppDeps {
   searchService: SearchService;
   changesService: ChangesService;
@@ -21,8 +20,7 @@ export interface AppDeps {
 export function createApp(deps: AppDeps) {
   return (
     new Hono()
-      // `context: true` gives every log line in the request its request id
-      // (decision D10).
+      // `context: true` gives every log line in the request its request id.
       .use(
         honoLogger({
           category: ['noesis', 'server', 'http'],

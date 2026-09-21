@@ -22,7 +22,7 @@ export type WorkingPathResult =
   | { ok: false; message: string };
 
 /**
- * Decision D2: MCP messages carry paths into this scratch area, not content.
+ * MCP messages carry paths into this scratch area, not content.
  * The watcher ignores `tmp/`, so nothing written here reaches the graph.
  */
 export class SessionDir {

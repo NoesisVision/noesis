@@ -1,9 +1,9 @@
 import { join } from 'node:path';
+import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
-import { type Change, ChangeSchema } from '#backend/app/changes/model/change';
-import { DesignDocumentSchema } from '#backend/app/design-docs/model/design-doc';
-import { DocumentSchema } from '#backend/app/information-sources/model/document';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DocumentSchema } from '#backend/app/information-sources/document';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type {

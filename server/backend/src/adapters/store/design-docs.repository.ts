@@ -1,6 +1,6 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { DesignDocument } from '#backend/app/design-docs/design-doc';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
-import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
 import type {
   ChangeChildren,
   NoesisChangesRepository,

@@ -1,11 +1,8 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type {
-  CreateDocument,
-  Document,
-} from '#backend/app/information-sources/model/document';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import { Serial } from '#backend/app/serial';
+import type { CreateDocument, Document } from './document';
+import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
 export interface DocumentSummary {
@@ -44,7 +41,7 @@ export class DuplicateDocumentError extends Error {
 }
 
 /**
- * Callers validate before calling in (decision D4). The title identifies the
+ * Callers validate before calling in. The title identifies the
  * document within its change, so the service derives the id from it; a title
  * no id can be derived from is a `TitleWithoutIdError`.
  */

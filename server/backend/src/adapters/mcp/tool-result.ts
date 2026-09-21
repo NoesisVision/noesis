@@ -2,7 +2,7 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 
 /**
  * Everything a tool can foresee going wrong comes back in-band, as a result
- * the model reads and acts on, never as a protocol error (decision D3).
+ * the model reads and acts on, never as a protocol error.
  */
 export function failure(...paragraphs: string[]): CallToolResult {
   return {

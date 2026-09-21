@@ -21,8 +21,7 @@ Full documentation: <https://logtape.org/>. The site's index for agents is
 copied beside this file as `references/llms.txt`; each entry there is a
 markdown page under <https://logtape.org/> to fetch when the question goes
 past this skill. This copy is the `skills/logtape/SKILL.md` shipped inside
-`@logtape/logtape` 2.3.4; refresh it from `node_modules` on an upgrade. The
-project's own conventions are in `docs/logging.md`.
+`@logtape/logtape` 2.3.4; refresh it from `node_modules` on an upgrade.
 
 
 Getting a logger

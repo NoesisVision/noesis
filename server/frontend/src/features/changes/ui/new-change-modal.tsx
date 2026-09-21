@@ -10,7 +10,7 @@ import {
   CHANGE_KEY_PATTERN,
   CHANGE_TYPES,
   type CreateChange,
-} from '#backend/app/changes/model/change.ts';
+} from '#backend/app/changes/change.ts';
 import { DuplicateChangeError, useCreateChange } from '../changes.api.ts';
 import { CHANGE_TYPE_META } from '../changes.model.ts';
 

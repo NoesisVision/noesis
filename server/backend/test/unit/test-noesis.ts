@@ -9,9 +9,9 @@ import {
   createSystemModelStore,
   type SystemModelStore,
 } from '#backend/adapters/store/system-model.store';
+import type { Change } from '#backend/app/changes/change';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangesService } from '#backend/app/changes/changes.service';
-import type { Change } from '#backend/app/changes/model/change';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';

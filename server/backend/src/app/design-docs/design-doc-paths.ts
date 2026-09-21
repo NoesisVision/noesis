@@ -1,5 +1,5 @@
-import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
-import type { ElementRef } from '#backend/app/design-docs/model/design-doc-ref';
+import type { DesignDocument } from './design-doc';
+import type { ElementRef } from './design-doc-ref';
 
 export const elementRef = (id: string): ElementRef => ({ kind: 'element', id });
 

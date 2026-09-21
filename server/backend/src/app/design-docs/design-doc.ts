@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /*
- * No baseline diff against the system model yet (decision D4).
+ * No baseline diff against the system model yet.
  *
  * Ids are non-empty and unique across the whole document, and every `*Id`
  * field must name an existing element of the expected kind; the service

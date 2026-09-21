@@ -48,7 +48,7 @@ describe('DatabaseService', () => {
     const service = newService();
     await service.init();
 
-    // Writes go through a transaction (decision D3); reads through query().
+    // Writes go through a transaction; reads through query().
     await service.transaction(async (tx) => {
       await tx.query(THING_TABLE);
       await tx.query("CREATE (t:Thing {id: 'b', label: 'beta'})");

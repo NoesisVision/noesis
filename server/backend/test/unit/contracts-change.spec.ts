@@ -4,7 +4,7 @@ import {
   CHANGE_TYPES,
   ChangeSchema,
   CreateChangeSchema,
-} from '#backend/app/changes/model/change';
+} from '#backend/app/changes/change';
 
 describe('ChangeSchema', () => {
   const minimal = {

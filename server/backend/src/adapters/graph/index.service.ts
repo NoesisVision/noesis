@@ -27,7 +27,7 @@ type Row = Record<string, string>;
 
 // Every rebuild is a full one, so the graph is a function of the files alone,
 // even across a `git checkout`. Measured in `test/bench`: no incremental path
-// needed (decision D2).
+// needed.
 export class IndexService {
   private readonly db: DatabaseService;
   private readonly sources: IndexerSources;
@@ -41,8 +41,7 @@ export class IndexService {
     const started = performance.now();
     const rows = await this.collect();
 
-    // Readers see the old graph until the commit, never a half-rebuilt one
-    // (decision D3).
+    // Readers see the old graph until the commit, never a half-rebuilt one.
     let files = 0;
     await this.db.transaction(async (tx) => {
       for (const table of nodeTableNames()) {

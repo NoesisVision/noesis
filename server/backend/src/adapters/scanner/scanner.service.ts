@@ -10,7 +10,7 @@ export interface ScanReport {
   durationMs: number;
 }
 
-// Writes files only; the watcher re-indexes them (decision D1).
+// Writes files only; the watcher re-indexes them.
 export class ScannerService {
   private readonly root: string;
   private readonly systemModels: SystemModelStore;

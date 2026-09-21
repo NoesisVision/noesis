@@ -1,6 +1,6 @@
-import type { Change, CreateChange } from '#backend/app/changes/model/change';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import { Serial } from '#backend/app/serial';
+import type { Change, CreateChange } from './change';
 import { ChangeSlug } from './change-slug';
 import type { ChangesRepository } from './changes.repository';
 

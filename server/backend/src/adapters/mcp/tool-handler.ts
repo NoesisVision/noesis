@@ -8,8 +8,8 @@ import { failure } from './tool-result';
 const log = serverLogger('mcp');
 
 /**
- * The last resort around a tool. What a tool foresees it answers itself
- * (decision D3); what it does not, the SDK would turn into an in-band error
+ * The last resort around a tool. What a tool foresees it answers itself;
+ * what it does not, the SDK would turn into an in-band error
  * silently, leaving nothing in `.noesis/logs/` for the person whose session
  * just failed. Every handler is registered through here, so the server keeps
  * the record and the agent still gets an answer it can read.

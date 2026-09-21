@@ -1,4 +1,4 @@
-// Publish invariants bunx depends on. No contracts copy ships (decision D4).
+// Publish invariants bunx depends on. No contracts copy ships.
 // The @repo/* workspace deps are private: leaking them would break every
 // `bunx @noesis-vision/noesis` install. The bin is launched from another
 // directory because bun resolves the bundle manifest against the working
@@ -50,7 +50,6 @@ test('the packed tarball is bunx-installable: one bin, the ui, one native dep', 
     .map((e) => join(e.parentPath.slice(packageDir.length + 1), e.name))
     .sort();
   expect(shipped).toContain('LICENSE');
-  expect(shipped).toContain('README.md');
   expect(shipped).toContain('dist/main.js');
   expect(shipped).toContain('dist/index.html');
   expect(shipped.some((f) => /^dist\/index-\w+\.js$/.test(f))).toBe(true);

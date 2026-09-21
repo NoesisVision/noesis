@@ -14,7 +14,7 @@ import type { SessionDir } from '#backend/platform/files/session-dir';
 export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 /**
- * Decision D3: an MCP message carries a path into `.noesis/tmp/<session>/`,
+ * An MCP message carries a path into `.noesis/tmp/<session>/`,
  * never the payload itself, and the payload is checked once — here, before
  * any service sees it.
  */

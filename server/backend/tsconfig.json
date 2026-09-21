@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     // Same alias the frontend uses for this source, so backend files resolve
-    // alike in both programs (decision D3).
+    // alike in both programs.
     "paths": {
       "#backend/*": ["./src/*"]
     }

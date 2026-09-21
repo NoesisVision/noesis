@@ -7,7 +7,7 @@ import type {
   DesignDocument,
   DesignedField,
   DesignedScenario,
-} from '#backend/app/design-docs/model/design-doc.ts';
+} from '#backend/app/design-docs/design-doc.ts';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (

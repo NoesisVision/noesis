@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import type { DesignDocument } from './design-doc';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 export interface DesignDocSummary {
@@ -29,7 +29,7 @@ export interface DesignDocDetail {
 }
 
 /**
- * Callers validate before calling in (decision D4). The server mints the id and
+ * Callers validate before calling in. The server mints the id and
  * replaces whatever the input carries, so an agent inventing a colliding id
  * cannot overwrite another document.
  */
@@ -50,7 +50,7 @@ export class DesignDocsService {
     return this.store(slug, document, uuidv7());
   }
 
-  /** Whole-document replacement (decision D4). */
+  /** Whole-document replacement. */
   async update(
     slug: ChangeSlug,
     id: string,

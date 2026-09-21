@@ -1,6 +1,6 @@
 import type { ZodType, z } from 'zod';
 
-/** Decision D3: what a rejected write answers with, in-band. */
+/** What a rejected write answers with, in-band. */
 export interface ValidationIssue {
   /** JSONPath (`$.useCases[0].name`), or an element id (`#svc-booking`) for integrity issues. */
   path: string;

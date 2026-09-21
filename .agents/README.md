@@ -88,8 +88,7 @@ Check with `npx skills list` — the skill should list `Claude Code` among its a
 
 The LogTape skill ships inside the `@logtape/logtape` package, not in a skills repository, so
 it is not in `skills-lock.json`. The vendored copy carries local additions: a paragraph
-under "Full documentation" in `SKILL.md` (pointing at `references/llms.txt` and
-`docs/logging.md`) and `references/llms.txt` itself (the index from logtape.org).
+under "Full documentation" in `SKILL.md` (pointing at `references/llms.txt`) and `references/llms.txt` itself (the index from logtape.org).
 
 After upgrading LogTape, refresh `SKILL.md` from the installed package and re-apply the local
 paragraph:

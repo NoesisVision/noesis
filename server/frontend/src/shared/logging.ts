@@ -6,7 +6,7 @@ import {
 } from '@logtape/logtape';
 
 // Mirrors the service's `["noesis", "server", ...]` categories so a log line
-// says which process wrote it (decision D10).
+// says which process wrote it.
 export function uiLogger(...segments: string[]): Logger {
   return getLogger(['noesis', 'ui', ...segments]);
 }

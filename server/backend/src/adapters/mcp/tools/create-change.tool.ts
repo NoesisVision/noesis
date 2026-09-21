@@ -1,14 +1,14 @@
 import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
 import {
-  type ChangesService,
-  DuplicateChangeError,
-} from '#backend/app/changes/changes.service';
-import {
   type Change,
   ChangeSchema,
   type CreateChange,
   CreateChangeSchema,
-} from '#backend/app/changes/model/change';
+} from '#backend/app/changes/change';
+import {
+  type ChangesService,
+  DuplicateChangeError,
+} from '#backend/app/changes/changes.service';
 import { logged } from '../tool-handler';
 import { failure, success } from '../tool-result';
 

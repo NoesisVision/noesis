@@ -49,8 +49,8 @@ test('ships exactly the expected plugin files', async () => {
     'LICENSE',
     'README.md',
     'contracts/README.md',
-    'contracts/design-docs/model/design-doc.ts',
-    'contracts/information-sources/model/document.ts',
+    'contracts/design-document.schema.json',
+    'contracts/create-document.schema.json',
     'skills/add-document-to-change/SKILL.md',
     'skills/add-document-to-change/scripts/write-working-file.ts',
     'skills/create-change/SKILL.md',
@@ -106,7 +106,7 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
 
   const service = mcp.mcpServers.noesis;
   if (!service) throw new Error('.mcp.json has no noesis server entry');
-  // Both are `${VAR:-default}` expansions (decision D6): installed plugins run
+  // Both are `${VAR:-default}` expansions: installed plugins run
   // the published bin through bunx; a checkout points them at the source.
   expect(service.command).toBe('${NOESIS_SERVICE_COMMAND:-bunx}');
   expect(service.args).toEqual([

@@ -1,6 +1,6 @@
 import { afterAll, afterEach, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture.ts';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture.ts';
 import {
   designDocById,
   designDocsList,

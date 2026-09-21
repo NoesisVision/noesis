@@ -3,13 +3,13 @@ import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { CreateDocumentSchema } from '#backend/app/information-sources/document';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
   DocumentNotFoundError,
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { CreateDocumentSchema } from '#backend/app/information-sources/model/document';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;
@@ -17,10 +17,10 @@ export interface DocumentsDeps {
 
 // The document's own contract, not an opaque object, and without the id: the
 // service derives that from the title. One pass in the middleware checks the
-// shape, the title pattern that guarantees an id included (decision D3).
+// shape, the title pattern that guarantees an id included.
 const writeDocumentSchema = z.object({ document: CreateDocumentSchema });
 
-/** Mounted at `/ui/changes/:change/documents`; writes are decision D4's validation boundary. */
+/** Mounted at `/ui/changes/:change/documents`; writes are validated here. */
 export function createDocumentsApp(deps: DocumentsDeps) {
   const { documentsService } = deps;
 

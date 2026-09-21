@@ -1,6 +1,6 @@
 # Java Scanner — Design Doc
 
-Status: **Decided** — ArchUnit importer as the engine, Spoon for source fidelity (`docs/decisions.md` D9); graph schema is variant B modified — messages + behaviour-level invocation (D9, §9.4).
+Status: **Decided** — ArchUnit importer as the engine, Spoon for source fidelity; graph schema is variant B modified — messages + behaviour-level invocation (§9.4).
 Date: 2026-06-10
 
 ## 1. Goal
@@ -11,7 +11,7 @@ A Java code scanner that extracts a graph from a codebase:
 - **Behaviours** — method calls, constructor calls (instantiations), field reads/writes, method references.
 - **Relations** — inheritance (`extends`/`implements`), containment (package → class → member), dependencies (field/parameter/return/throws/annotation types).
 
-The scanner runs inside the user's build as a **Maven plugin and a Gradle plugin**, serializes the graph to JSON conforming to a Noesis contract schema, and ships it to the backend (`POST` to `apps/server` REST API), which loads it into the embedded graph DB (see archived decision 17). The scanner never talks to the DB directly. (superseded: integration with the service is undecided, see D9)
+The scanner runs inside the user's build as a **Maven plugin and a Gradle plugin**, serializes the graph to JSON conforming to a Noesis contract schema, and ships it to the backend (`POST` to `apps/server` REST API), which loads it into the embedded graph DB (see archived decision 17). The scanner never talks to the DB directly. (superseded: integration with the service is undecided)
 
 ## 2. Requirements
 
@@ -129,10 +129,10 @@ Rules of the pattern:
 - **The engine choice is invisible above `scanner-core`** — the Maven/Gradle adapters only gather inputs and invoke the core. Swapping ArchUnit for ASM/Spoon later doesn't touch the plugins.
 - Both plugins run the scan in an **isolated classloader/worker** (SpotBugs Worker-API style) so the engine never clashes with the build tool's classpath. ArchUnit's fully-shaded JAR makes this easy.
 - Scan binds **after compilation** (Maven: `verify`-adjacent phase after `compile`; Gradle: task wired `dependsOn(classes)`).
-- Output: JSON file (`build/noesis/graph.json` / `target/noesis/graph.json`) + optional direct upload to the Noesis server (URL/token via plugin config) (superseded: integration with the service is undecided, see D9). The JSON contract is the same one the .NET scanner will use — defined as zod schemas in `packages/` per the existing contract pattern, with a JSON Schema export for the Java side to validate against.
+- Output: JSON file (`build/noesis/graph.json` / `target/noesis/graph.json`) + optional direct upload to the Noesis server (URL/token via plugin config) (superseded: integration with the service is undecided). The JSON contract is the same one the .NET scanner will use — defined as zod schemas in `packages/` per the existing contract pattern, with a JSON Schema export for the Java side to validate against.
 - Releases: tag-driven GitHub Actions to Maven Central + Gradle Plugin Portal, mirroring the npm plugin release flow.
 
-## 7. Decision (decisions.md D9)
+## 7. Decision
 
 **ArchUnit's `ClassFileImporter` is the primary engine inside `scanner-core`** — best effort-to-coverage ratio: Apache-2.0, single shaded dependency, `@PublicAPI`-stable, proven standalone by Spring Modulith, and its metamodel maps directly onto our objects/behaviours/relations.
 
@@ -235,7 +235,7 @@ Two node layers in one graph, jQAssistant/CPG-style. Layer 0 is the raw code gra
 
 Recommendation was Variant B with C's `evidence` field borrowed (optional `evidence: string[]` on derived edges — human-readable code references, not layer-0 node ids): strongest contract and smallest payload for the stated visualization purpose, with a clean upgrade path (layer 0 can be added later as a separate contract). **Decided — see §9.4.**
 
-### 9.4 Decided schema — Variant B, modified (decisions.md D9)
+### 9.4 Decided schema — Variant B, modified
 
 Variant B as above, with three modifications:
 
@@ -290,7 +290,7 @@ A **block** is a node backed by a single annotated class — the structural ster
 
 **Payload note:** behaviours multiply node count by roughly the average number of public methods per block (~5–10×) — still orders of magnitude below variant C's class-level graph; R5 unaffected.
 
-## 10. Open questions (for decisions.md once resolved)
+## 10. Open questions (once resolved)
 
 1. **Derivation details** — `SENDS` beyond constructor calls (dispatcher/bus invocation patterns); how ambiguous access targets (0..n resolution) affect `INVOKES`; whether non-public methods ever become behaviours (e.g. private event listeners).
 2. **Multi-module builds** — one graph per module with cross-module linking server-side, or aggregate in the plugin (Maven aggregator mojo / Gradle root task)?

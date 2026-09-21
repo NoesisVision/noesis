@@ -16,8 +16,7 @@ export interface McpServerDeps {
 
 /**
  * The agent's surface onto the same services the ui calls. Tools stay thin —
- * each registers its schemas and hands one call to one service method
- * (decision D3).
+ * each registers its schemas and hands one call to one service method.
  */
 export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer(

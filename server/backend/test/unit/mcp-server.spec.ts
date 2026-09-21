@@ -5,7 +5,7 @@ import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SessionDir } from '#backend/platform/files/session-dir';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -38,7 +38,7 @@ afterEach(async () => {
   await noesis.cleanup();
 });
 
-/** The working file the agent writes before adding a document (decision D3). */
+/** The working file the agent writes before adding a document. */
 async function workingFile(name: string, contents: unknown): Promise<string> {
   const path = join(session.path, name);
   await writeFile(

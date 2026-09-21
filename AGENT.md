@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents (Claude Code and others) when wo
 
 ## What this is
 
-A pure bun-workspaces monorepo for **Noesis**: a local service that keeps a knowledge graph as JSON files under `.noesis/` in a user's repository, plus the Claude Code plugin that drives it. [`README.md`](README.md) is the full tour, [`docs/stack.md`](docs/stack.md) lists what the backend and the frontend depend on and why; `docs/decisions.md` (D1–D10) is the only decision record and every non-obvious choice cites one — read the relevant D-entry before changing anything it covers.
+A pure bun-workspaces monorepo for **Noesis**: a local service that keeps a knowledge graph as JSON files under `.noesis/` in a user's repository, plus the Claude Code plugin that drives it.
 
 Workspaces: `server/backend` (`@noesis-vision/noesis`, the service), `server/frontend` (SPA, bundled by the backend), `plugins/claude-code` (`@noesis-vision/claude-code-plugin`). `scanners/java` is a standalone Maven tool; `scanners/dotnet` is a stub.
 
@@ -24,7 +24,7 @@ bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace
 bun run test:e2e            # service boot, MCP session, SPA from source
-bun run build               # service bundle + plugin contracts copy
+bun run build               # service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins; CI fails if the result is not committed
 ```
 
@@ -45,32 +45,31 @@ Filter a root script to one package: `bun run --filter=@noesis-vision/noesis bui
 
 The agent host starts **one stdio MCP process per session** (`server/backend/src/main.ts` is the composition root). That process locates the repo (`NOESIS_ROOT`, else nearest `.git`), owns `.noesis/` (`graph/` = one `<key>/data.json` per object, `tmp/<session>/` scratch, `logs/`), indexes the files into an **in-memory LadybugDB graph that is only a cache** (rebuilt at boot and by a file watcher on every change, including ones Noesis did not make), serves the SPA and `/ui` + `/internal` routes on an ephemeral loopback port, and exits when the host closes stdin. stdout is the MCP transport — never log to it. Files are the source of truth; last write wins across sessions.
 
-### Backend layers (`server/backend/src`, enforced by Oxlint — decision D3)
+### Backend layers (`server/backend/src`, enforced by Oxlint)
 
-| Layer     | Folder                                                                                 | May import                                                       |
-| --------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| contracts | `app/<feature>/model/`                                                                 | zod and other contracts only (relative imports among themselves) |
-| platform  | `platform/` (files, database, logging, crypto, config, native)                         | platform only                                                    |
-| app       | `app/` (services, ports, file contracts)                                               | app, contracts                                                   |
-| adapters  | `adapters/` (`store/` over `NoesisStore`, `graph/` over LadybugDB, `mcp/`, `scanner/`) | adapters, app, platform, contracts                               |
-| ui        | `ui/` (Hono `/ui` and `/internal` routes)                                              | ui, app, platform, contracts                                     |
-| root      | `src/*.ts`                                                                             | everything; nothing imports it                                   |
+| Layer    | Folder                                                                                 | May import                     |
+| -------- | -------------------------------------------------------------------------------------- | ------------------------------ |
+| platform | `platform/` (files, database, logging, crypto, config, native)                         | platform only                  |
+| app      | `app/` (the domain model and its zod schemas, services, ports, file contracts)         | app                            |
+| adapters | `adapters/` (`store/` over `NoesisStore`, `graph/` over LadybugDB, `mcp/`, `scanner/`) | adapters, app, platform        |
+| ui       | `ui/` (Hono `/ui` and `/internal` routes)                                              | ui, app, platform              |
+| root     | `src/*.ts`                                                                             | everything; nothing imports it |
 
-`adapters` and `ui` never import each other; `import/no-cycle` is an error. Cross-directory imports use the `#backend/*` alias (extensionless), relative only within a directory. There is no contracts barrel — import `#backend/app/<feature>/model/<file>` directly.
+`adapters` and `ui` never import each other; `import/no-cycle` is an error. Cross-directory imports use the `#backend/*` alias (extensionless), relative only within a directory. There is no contracts barrel — import `#backend/app/<feature>/<file>` directly.
 
-Services own use-case orchestration; both entry points (MCP tools in `adapters/mcp`, HTTP routes in `ui/`) call them and nothing bypasses them. The MCP surface is the **v2** SDK's `McpServer` (`@modelcontextprotocol/server`; the monolithic `@modelcontextprotocol/sdk` is gone) composed in `adapters/mcp/mcp-server.ts`, with one module per tool under `adapters/mcp/tools/`; a tool declares a title, a description, zod input and output schemas and its annotations, then makes one service call and answers with `structuredContent`. It currently offers `create_change`, `list_changes` and `add_document_to_change` and grows back one tool at a time. stdio goes through `serveStdio(factory)`, which serves the 2026-07-28 revision and the 2025 era from the same factory. Nothing process-specific belongs in `instructions`: the SDK probes the era on a throwaway sibling process and the client keeps _its_ instructions, so the live session directory is named in the tool's `path` description instead (decision D3). The `ui/design-docs` surface reads and deletes, it has no create or update route, and no tool authors a design document yet either. Large payloads never travel inline — the agent writes a file under `.noesis/tmp/<session>/` and passes the path. A tool that reads such a file checks it against its contract in `app/validation/contracts/` before the service sees it; there is no separate validating tool. Errors the server can foresee are returned in-band (`isError`), never as protocol errors, and carry a capped issue list (path and message); the SDK still rejects arguments that do not fit a tool's declared input schema with a protocol error of its own.
+Services own use-case orchestration; both entry points (MCP tools in `adapters/mcp`, HTTP routes in `ui/`) call them and nothing bypasses them. The MCP surface is the **v2** SDK's `McpServer` (`@modelcontextprotocol/server`; the monolithic `@modelcontextprotocol/sdk` is gone) composed in `adapters/mcp/mcp-server.ts`, with one module per tool under `adapters/mcp/tools/`; a tool declares a title, a description, zod input and output schemas and its annotations, then makes one service call and answers with `structuredContent`. It currently offers `create_change`, `list_changes` and `add_document_to_change` and grows back one tool at a time. stdio goes through `serveStdio(factory)`, which serves the 2026-07-28 revision and the 2025 era from the same factory. Nothing process-specific belongs in `instructions`: the SDK probes the era on a throwaway sibling process and the client keeps _its_ instructions, so the live session directory is named in the tool's `path` description instead. The `ui/design-docs` surface reads and deletes, it has no create or update route, and no tool authors a design document yet either. Large payloads never travel inline — the agent writes a file under `.noesis/tmp/<session>/` and passes the path. A tool that reads such a file checks it against its contract in `app/validation/contracts/` before the service sees it; there is no separate validating tool. Errors the server can foresee are returned in-band (`isError`), never as protocol errors, and carry a capped issue list (path and message); the SDK still rejects arguments that do not fit a tool's declared input schema with a protocol error of its own.
 
 Keep the `.route()` chains in `app.ts` and `ui.routes.ts` unbroken: `app.types.ts` exports the inferred `/ui` route tree as `AppType`, which the frontend's `hc<AppType>('/ui')` client depends on.
 
-### Contracts (decision D4)
+### Contracts
 
-Every knowledge-graph file shape is a zod schema in `server/backend/src/app/<feature>/model/`, and its inferred type is the domain model. They must stay **declarative** (object shapes, enums, `.describe()`; no refinements, transforms, or non-zod imports) because `bun run build` copies them verbatim into `plugins/claude-code/contracts/` (gitignored, byte-identity asserted by a test) where an agent reads them as source. Contract specs live in `test/unit/contracts-*.spec.ts`. A route that writes a file gives its schema to `sValidator`; a file with whole-document rules a schema cannot express gets a `FileContract` in `app/validation/contracts/` (schema + `check`) run by `validate` at the write boundary. None exists today: the design document's, and the integrity pass it ran, went with its authoring tool and come back with it.
+Every knowledge-graph file shape is a zod schema in its feature folder, `server/backend/src/app/<feature>/`, next to the services and domain objects that use it; no folder is reserved for schemas, and its inferred type is the domain model. They must stay **declarative** (object shapes, enums, `.describe()`; no refinements or transforms) because the JSON Schema an agent reads is generated from them, and JSON Schema would drop a refinement or transform silently (`test/unit/contracts-json-schema.spec.ts` refuses one). The contracts that ship are listed in `server/backend/tools/contracts.ts`, by the name they ship under; add a line there when a skill needs a new one. `bun run contracts <dir>` writes them, and the plugin's `bun run build` calls it into `plugins/claude-code/contracts/` (gitignored). Only schemas ship; a domain object beside them, like `DocumentId`, stays in the service. Contract specs live in `test/unit/contracts-*.spec.ts`. A route that writes a file gives its schema to `sValidator`; a file with whole-document rules a schema cannot express gets a `FileContract` in `app/validation/contracts/` (schema + `check`) run by `validate` at the write boundary. None exists today: the design document's, and the integrity pass it ran, went with its authoring tool and come back with it.
 
 Backend code reachable from `AppType` (routes, services, contracts) must be runtime-neutral (ECMAScript + Web APIs only) because the frontend type-checks it without Bun/Node types — e.g. ids come from `uuid` v7, not `Bun.randomUUIDv7()`; `node:crypto` hashing lives in `platform/crypto` and only adapters import it.
 
-### Frontend (`server/frontend`, decision D5)
+### Frontend (`server/frontend`)
 
-Client-only React SPA; [`docs/stack.md`](docs/stack.md) lists every dependency and why it is there, and a new one is added there when something imports it. Rules the linter enforces:
+Client-only React SPA. Rules the linter enforces:
 
 - Partitioned by domain, enforced by `boundaries`: `src/features/<domain>/` (`<domain>.api.ts`, `<domain>.model.ts`, `ui/`), `src/shell/` (chrome and navigation), `src/shared/` (client, design system, routing ids), `src/routes/` (wiring only).
 - The shell composes features; no feature imports the shell. A feature is reached through its `*.api.ts` / `*.model.ts`, never its `ui/` — inside a feature, import siblings relatively; `#/` means crossing a module.
@@ -79,19 +78,19 @@ Client-only React SPA; [`docs/stack.md`](docs/stack.md) lists every dependency a
 - Backend imports are **type-only** via `#backend/*` (`AppType`, contract types); never backend runtime code.
 - `tsconfig.app.json` has no Bun/Node globals on purpose; tests use `tsconfig.test.json`.
 
-The backend imports `../../frontend/index.html` and bun's fullstack mode bundles it; the `bun build` flags and `src/bundle-cwd.ts` are load-bearing. The bundler and dev-server split (bun ships, Vite only serves in development) is described in [`docs/stack.md`](docs/stack.md).
+The backend imports `../../frontend/index.html` and bun's fullstack mode bundles it; the `bun build` flags and `src/bundle-cwd.ts` are load-bearing.
 
-### Logging (decision D10, `docs/logging.md`)
+### Logging
 
 LogTape everywhere. Get loggers via `serverLogger('<module>')` / `uiLogger('<module>')`, never by spelling the category array; only `platform/logging/logging.ts` and `frontend/src/logging.ts` call `configure()`. Messages use named placeholders with a properties object (`log.info('indexed {files} files', { files })`), no string interpolation. Service logs go to stderr and `.noesis/logs/noesis.log`; `NOESIS_LOG_LEVEL` sets the level.
 
-### Plugin (`plugins/claude-code`, decision D6)
+### Plugin (`plugins/claude-code`)
 
-Contracts copy in `contracts/`, `.mcp.json` launching `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`. Plugin and service release in lockstep (`bun run bump`, `bun run release:beta` from the plugin dir); version pins are stamped by `bun run generate` and must be committed. To develop the plugin against this checkout from another repo: `bun run build:plugin`, then `NOESIS_SERVICE_COMMAND=bun NOESIS_SERVICE_ENTRY=/path/to/server/backend/src/main.ts claude --plugin-dir /path/to/plugins/claude-code`.
+Generated JSON Schema contracts in `contracts/`, `.mcp.json` launching `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`. Plugin and service release in lockstep (`bun run bump`, `bun run release:beta` from the plugin dir); version pins are stamped by `bun run generate` and must be committed. To develop the plugin against this checkout from another repo: `bun run build:plugin`, then `NOESIS_SERVICE_COMMAND=bun NOESIS_SERVICE_ENTRY=/path/to/server/backend/src/main.ts claude --plugin-dir /path/to/plugins/claude-code`.
 
 ## Code style
 
-Keep comments to a minimum. Code should be readable and comprehensible on its own: clear names, small functions and explicit types carry the meaning, not prose beside them. Add a comment only for information that is not present in the code — the reason behind a non-obvious choice, an external constraint (a bun or LadybugDB quirk, a load-bearing build flag), a decision reference (`decision D3`). Never restate what a line does, and remove a comment that no longer says something the code cannot.
+Keep comments to a minimum. Code should be readable and comprehensible on its own: clear names, small functions and explicit types carry the meaning, not prose beside them. Add a comment only for information that is not present in the code — the reason behind a non-obvious choice or an external constraint (a bun or LadybugDB quirk, a load-bearing build flag). Never restate what a line does, and remove a comment that no longer says something the code cannot.
 
 Structure classes so the public surface reads as a sequence of steps (`NoesisDir` and `SessionDir` in `platform/files` are the reference):
 
@@ -100,12 +99,11 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 - **Value objects for data with behaviour.** When a few helpers all work on the same value, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`, following `ChangeSlug`). Keep it unexported while one file uses it.
 - **No exceptions for control flow.** Prefer APIs that report absence (`Bun.file(path).exists()`) over catching `ENOENT`/`EEXIST`. Where only a throwing API exists, confine the catch to one helper that returns `null` or `boolean` and rethrows every other error code. A benign race is acceptable in exchange for plainer flow; say so in a one-line comment.
 
-## Working conventions (decision D7)
+## Working conventions
 
 - **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. A subject starting `wip` skips the message rule and the format/lint checks (squash before `main`).
-- **Changing a decision:** edit the D-entry in place so it states only the new truth, bump the date at the top, move the displaced text to `docs/archive/`. New themes become D11, D12, … Never read `docs/archive/**` (denied in `.claude/settings.json`) unless a person asks for history.
 - **Do not edit `bun.lock` by hand** (denied). Shared versions (`typescript`, `zod`, `hono`, `@types/*`) live in the root `package.json` catalog; single-consumer deps stay inline.
 - A `PostToolUse` hook runs `oxfmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
 - Knip: a deliberate duplicate export carries an `@alias` JSDoc tag; entry points Knip cannot discover are listed in `knip.json`.
-- Skills live in `.agents/skills/`; `.claude/skills/<name>` is always a relative symlink, never a real directory. Third-party skills are hash-locked in `skills-lock.json` — do not hand-edit them; manage with `npx skills` (see `.agents/README.md`).
+- Skills live in `.agents/skills/`; `.claude/skills/<name>` is always a relative symlink, never a real directory. Third-party skills are hash-locked in `skills-lock.json` — do not hand-edit them; manage with `npx skills`.
 - Configuration is exactly `NOESIS_ROOT`, `NOESIS_OPEN_BROWSER=0`, `NOESIS_LOG_LEVEL`, `PORT` (dev only), `NODE_ENV=production` (build). Do not add env vars without a decision.

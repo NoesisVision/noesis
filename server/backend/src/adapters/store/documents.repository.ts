@@ -1,10 +1,10 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import {
   type Document,
   DocumentSchema,
-} from '#backend/app/information-sources/model/document';
-import type { DocumentId } from '#backend/app/information-sources/model/document-id';
+} from '#backend/app/information-sources/document';
+import type { DocumentId } from '#backend/app/information-sources/document-id';
+import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import type {
   ChangeChildren,
   NoesisChangesRepository,

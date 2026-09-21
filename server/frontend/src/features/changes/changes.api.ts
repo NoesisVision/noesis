@@ -6,10 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { ApiError, api } from '#/shared/api/client.ts';
-import type {
-  Change,
-  CreateChange,
-} from '#backend/app/changes/model/change.ts';
+import type { Change, CreateChange } from '#backend/app/changes/change.ts';
 import { useChangeId } from './current-change.ts';
 
 export class DuplicateChangeError extends Error {

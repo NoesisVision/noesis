@@ -1,6 +1,6 @@
 import { createTheme, localStorageColorSchemeManager } from '@mantine/core';
 
-/** The noesis.vision palette (decision D5). */
+/** The noesis.vision palette. */
 export const theme = createTheme({
   primaryColor: 'brand',
   primaryShade: { light: 7, dark: 6 },

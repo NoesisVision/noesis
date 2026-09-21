@@ -1,5 +1,5 @@
 #!/bin/sh
-# Commit-msg: enforce the commit convention (decision D7) — Conventional
+# Commit-msg: enforce the commit convention — Conventional
 # Commits v1.0.0 restricted to the types feat | fix | improvement | chore —
 # then run the staged-file checks in check-staged.
 # Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
@@ -21,7 +21,7 @@ fail() {
   echo "commit-msg: $1" >&2
   echo "  subject: $subject" >&2
   echo "  format:  <feat|fix|improvement|chore>[(scope)][!]: <description>  (<= 72 chars)" >&2
-  echo "  see docs/decisions.md (decision D7) and .claude/skills/commit-message/SKILL.md" >&2
+  echo "  see .claude/skills/commit-message/SKILL.md" >&2
   exit 1
 }
 

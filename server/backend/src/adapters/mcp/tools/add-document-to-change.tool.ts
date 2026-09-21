@@ -2,12 +2,12 @@ import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { CreateDocumentSchema } from '#backend/app/information-sources/document';
 import {
   type DocumentsService,
   type DocumentSummary,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { CreateDocumentSchema } from '#backend/app/information-sources/model/document';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { logged } from '../tool-handler';

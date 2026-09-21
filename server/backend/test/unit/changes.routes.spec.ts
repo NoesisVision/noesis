@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '#backend/app/changes/model/change';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import type { Change } from '#backend/app/changes/change';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -144,7 +144,7 @@ describe('ui changes routes', () => {
       400,
     );
 
-    // The envelope check names the offending fields (decision D3).
+    // The envelope check names the offending fields.
     const empty = await post({});
     expect(empty.status).toBe(400);
     const body = (await empty.json()) as {
