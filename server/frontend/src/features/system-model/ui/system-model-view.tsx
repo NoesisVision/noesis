@@ -1,5 +1,5 @@
-import { ViewHeader } from '#/shell/view-header.tsx';
+import { Text } from '#/shared/design-system/text';
 
 export function SystemModelView() {
-  return <ViewHeader />;
+  return <Text c="dimmed">The scanned system model will appear here.</Text>;
 }

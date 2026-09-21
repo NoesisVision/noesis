@@ -1,5 +1,5 @@
-import { ViewHeader } from '#/shell/view-header.tsx';
+import { Text } from '#/shared/design-system/text';
 
 export function DocumentsView() {
-  return <ViewHeader />;
+  return <Text c="dimmed">Imported documents will appear here.</Text>;
 }

@@ -42,7 +42,7 @@ const OVERVIEW_NAV = {
   exact: true,
 } satisfies NavItem;
 
-export const DOCUMENTS_NAV = {
+const DOCUMENTS_NAV = {
   to: '/changes/$changeId/documents',
   routeId: DOCUMENTS_ROUTE_ID,
   label: 'Documents',

@@ -3,7 +3,6 @@ import { getRouteApi, Link } from '@tanstack/react-router';
 import { Card } from '#/shared/design-system/card';
 import { Stack } from '#/shared/design-system/stack';
 import { Text } from '#/shared/design-system/text';
-import { ViewHeader } from '#/shell/view-header.tsx';
 import { designDocsList } from '../design-docs.api.ts';
 import { DesignDocsLoadError } from './design-docs-load-error.tsx';
 
@@ -13,7 +12,6 @@ export function DesignDocsView() {
   const { changeId } = route.useParams();
   return (
     <Stack>
-      <ViewHeader />
       <DesignDocList changeId={changeId} />
     </Stack>
   );

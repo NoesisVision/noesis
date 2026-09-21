@@ -3,6 +3,7 @@ import { AppShell } from '#/shared/design-system/app-shell';
 import { useDisclosure } from '#/shared/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
+import { ViewHeader } from './view-header';
 
 export function ShellLayout() {
   const [navbarOpened, navbar] = useDisclosure(false);
@@ -27,6 +28,7 @@ export function ShellLayout() {
         <Sidebar onNavigate={navbar.close} />
       </AppShell.Navbar>
       <AppShell.Main bg="var(--mantine-color-gray-0)">
+        <ViewHeader />
         <Outlet />
       </AppShell.Main>
     </AppShell>

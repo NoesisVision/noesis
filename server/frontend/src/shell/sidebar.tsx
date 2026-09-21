@@ -1,6 +1,6 @@
-import { getRouteApi, Link } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
-import { useChangeId } from '#/features/changes/current-change.ts';
+import { useChangeNavigation } from '#/features/changes/changes.api.ts';
 import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import { Box } from '#/shared/design-system/box';
@@ -64,15 +64,9 @@ function ChangeNavHeading({
 }
 
 /** Change navigation and child groups for the current or last opened change. */
-const routeApi = getRouteApi('/_shell');
-
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const changes = routeApi.useLoaderData();
+  const { changes, activeChange } = useChangeNavigation();
   const { isActive } = useActiveRoute();
-  const { changeId } = useChangeId();
-
-  const activeChange =
-    changes.find((c) => c.slug === changeId) ?? changes[0] ?? null;
 
   return (
     <>

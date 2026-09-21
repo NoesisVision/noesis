@@ -6,18 +6,17 @@ import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 
 export function ViewHeader() {
   const { activeItem } = useActiveRoute();
-  const title = activeItem?.label ?? 'Noesis';
-  const description = activeItem?.description;
+  if (!activeItem) return null;
 
   return (
     <Stack gap="xs" mb="lg">
       <Box>
         <Title order={2} mb={0}>
-          {title}
+          {activeItem.label}
         </Title>
-        {!!description && (
+        {!!activeItem.description && (
           <Text size="sm" c="gray">
-            {description}
+            {activeItem.description}
           </Text>
         )}
       </Box>

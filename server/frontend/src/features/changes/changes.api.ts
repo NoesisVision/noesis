@@ -1,6 +1,7 @@
 import {
   queryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -9,6 +10,7 @@ import type {
   Change,
   CreateChange,
 } from '#backend/app/changes/model/change.ts';
+import { useChangeId } from './current-change.ts';
 
 export class DuplicateChangeError extends Error {
   readonly field: 'slug' | 'key';
@@ -105,4 +107,17 @@ export function useCreateChange() {
       });
     },
   });
+}
+
+/**
+ * The open change and the list it came from. The `_shell` loader primes the
+ * query, so this is a cache read: the shell gets the change and what hangs
+ * under it without binding itself to a route's loader data.
+ */
+export function useChangeNavigation() {
+  const { changeId } = useChangeId();
+  const { data: changes } = useQuery(changesNavigationList);
+  const activeChange =
+    changes?.find((change) => change.slug === changeId) ?? changes?.[0] ?? null;
+  return { changes: changes ?? [], activeChange };
 }

@@ -1,5 +1,5 @@
-import { ViewHeader } from '#/shell/view-header.tsx';
+import { Text } from '#/shared/design-system/text';
 
 export function WikiView() {
-  return <ViewHeader />;
+  return <Text c="dimmed">Topics and decisions will appear here.</Text>;
 }
