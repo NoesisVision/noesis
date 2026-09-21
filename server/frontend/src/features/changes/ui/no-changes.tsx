@@ -1,11 +1,11 @@
 import { IconPlus } from '@tabler/icons-react';
-import { NewChangeModal } from '#/features/changes/ui/new-change-modal.tsx';
 import { Button } from '#/shared/design-system/button';
 import { Center } from '#/shared/design-system/center';
 import { useDisclosure } from '#/shared/design-system/hooks';
 import { Stack } from '#/shared/design-system/stack';
 import { Text } from '#/shared/design-system/text';
 import { Title } from '#/shared/design-system/title';
+import { NewChangeModal } from './new-change-modal.tsx';
 
 export function NoChangesView() {
   const [opened, modal] = useDisclosure(false);

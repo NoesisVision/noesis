@@ -1,7 +1,3 @@
-import {
-  DuplicateChangeError,
-  useCreateChange,
-} from '#/features/changes/changes.api.ts';
 import { Alert } from '#/shared/design-system/alert';
 import { Button } from '#/shared/design-system/button';
 import { useForm } from '#/shared/design-system/form';
@@ -15,6 +11,7 @@ import {
   CHANGE_TYPES,
   type CreateChange,
 } from '#backend/app/changes/model/change.ts';
+import { DuplicateChangeError, useCreateChange } from '../changes.api.ts';
 import { CHANGE_TYPE_META } from '../changes.model.ts';
 
 interface NewChangeModalProps {

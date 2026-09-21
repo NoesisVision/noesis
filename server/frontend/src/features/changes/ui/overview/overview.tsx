@@ -1,9 +1,9 @@
 import { IconFiles, IconPencilBolt } from '@tabler/icons-react';
-import { useChangeNavigation } from '#/features/changes/changes.api.ts';
-import { ChangesLink } from '#/features/changes/ui/changes-link.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
+import { useChangeNavigation } from '../../changes.api.ts';
+import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
 import { OverviewStat } from './overview-stat.tsx';
 
