@@ -10,6 +10,19 @@ export class DocumentId {
   static readonly PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   /** As long as a store key may be (`KEY_PATTERN`). */
   static readonly MAX_LENGTH = 128;
+  /**
+   * What a title must match for an id to be derivable from it: one ASCII
+   * letter or digit is what the derivation is sure to keep. Narrower than the
+   * derivation itself — `É` alone would slug to `e` — so that the rule is one
+   * a schema can state.
+   */
+  static readonly TITLE_PATTERN = /[A-Za-z0-9]/;
+  /**
+   * The id's own limit, so the derivation does not cut a title short and two
+   * long titles cannot meet in one id. The cut in `tryFromTitle` stays for the
+   * few characters NFKD expands (`ﬁ` becomes `fi`).
+   */
+  static readonly TITLE_MAX_LENGTH = DocumentId.MAX_LENGTH;
 
   readonly value: string;
 
@@ -40,7 +53,8 @@ export class DocumentId {
   /**
    * Null for a title the derivation empties — punctuation or a script with no
    * ASCII in it. There is no fallback id: every such title would share it, and
-   * the second one would look like a duplicate of the first.
+   * the second one would look like a duplicate of the first. Never null for a
+   * title matching `TITLE_PATTERN`.
    */
   static tryFromTitle(title: string): DocumentId | null {
     const slug = title

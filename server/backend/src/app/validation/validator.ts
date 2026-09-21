@@ -17,7 +17,6 @@ export type ValidationReport<T = unknown> =
   | { ok: false; issues: ValidationIssue[]; suppressed: number };
 
 export interface FileContract<T = unknown> {
-  description: string;
   schema: ZodType<T>;
   // Method syntax on purpose: it is bivariant, so a `FileContract<Doc>` is
   // assignable to `FileContract` (a property declaration would not be).

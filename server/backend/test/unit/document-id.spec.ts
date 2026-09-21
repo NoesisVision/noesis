@@ -24,6 +24,19 @@ describe('DocumentId', () => {
     expect(DocumentId.tryFromTitle('Notes')?.value).toBe('notes');
   });
 
+  it('derives an id from every title its pattern admits', () => {
+    const admitted = ['a', 'Z', '7', '!!!x', '日本語 2', `${'-'.repeat(300)}q`];
+    for (const title of admitted) {
+      expect(DocumentId.TITLE_PATTERN.test(title)).toBe(true);
+      const id = DocumentId.tryFromTitle(title);
+      expect(id).not.toBeNull();
+      expect(DocumentId.tryParse(id?.value ?? '')).not.toBeNull();
+    }
+    for (const refused of ['', '!!!', '   ', '日本語', 'É']) {
+      expect(DocumentId.TITLE_PATTERN.test(refused)).toBe(false);
+    }
+  });
+
   it('parses a slug and nothing else', () => {
     expect(DocumentId.parse('ok-id-1').value).toBe('ok-id-1');
     for (const bad of ['', 'Upper', 'a--b', '-lead', 'trail-', 'a/b', '..']) {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DocumentIdSchema } from './document-id';
+import { DocumentId, DocumentIdSchema } from './document-id';
 
 export const DocumentSchema = z
   .object({
@@ -9,9 +9,13 @@ export const DocumentSchema = z
     title: z
       .string()
       .trim()
-      .min(1)
+      .max(DocumentId.TITLE_MAX_LENGTH)
+      .regex(
+        DocumentId.TITLE_PATTERN,
+        'a title with a letter or a digit (A-Z, a-z, 0-9) in it',
+      )
       .describe(
-        'The document title, unique within the change: it is what identifies the document, and the id is derived from it.',
+        'The document title, unique within the change: it is what identifies the document, and the id is derived from it, so it needs an ASCII letter or digit.',
       ),
     date: z.iso
       .date()

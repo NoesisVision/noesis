@@ -7,7 +7,7 @@ import {
   type DocumentSummary,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { documentContract } from '#backend/app/validation/contracts/document';
+import { CreateDocumentSchema } from '#backend/app/information-sources/model/document';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { logged } from '../tool-handler';
@@ -86,7 +86,13 @@ async function add(
   const slug = ChangeSlug.tryParse(input.change);
   if (slug === null) return notASlug(input.change);
 
-  const report = await readWorkingFile(session, documentContract, input.path);
+  // The shape is the whole contract: the title's pattern guarantees an id,
+  // so a document has no whole-document `check`.
+  const report = await readWorkingFile(
+    session,
+    { schema: CreateDocumentSchema },
+    input.path,
+  );
   if (!report.ok) return failure(formatReport('document', report));
 
   try {

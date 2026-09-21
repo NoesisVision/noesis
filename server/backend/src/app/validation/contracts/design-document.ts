@@ -13,14 +13,12 @@ import type {
 } from '#backend/app/validation/validator';
 
 /**
- * The only contract with a whole-document pass (`check`): a design document
- * has rules a schema cannot express, so `validate` runs them where the agent
- * writes. Shapes a schema does cover are checked by the route middleware
- * instead (decision D3).
+ * The only file contract: a design document has rules a schema cannot
+ * express, so `validate` runs a whole-document pass (`check`) where the agent
+ * writes. A file whose schema is its whole contract is checked against the
+ * schema alone, by the route middleware or by its tool (decision D3).
  */
 export const designDocumentContract: FileContract<DesignDocument> = {
-  description:
-    'A design document: goal, use cases, building blocks and their relations, scoped to one change.',
   schema: DesignDocumentSchema,
   check: (document) =>
     checkDesignDocument(document)

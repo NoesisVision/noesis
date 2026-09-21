@@ -16,10 +16,7 @@ const schema = z.strictObject({
   nested: z.object({ count: z.number() }).optional(),
 });
 
-const contract: FileContract<z.infer<typeof schema>> = {
-  description: 'a test contract',
-  schema,
-};
+const contract: FileContract<z.infer<typeof schema>> = { schema };
 
 const valid = { name: 'x', kind: 'note' as const, tags: ['a'] };
 

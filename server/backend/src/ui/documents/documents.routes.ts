@@ -9,10 +9,7 @@ import {
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { CreateDocumentSchema } from '#backend/app/information-sources/model/document';
-import {
-  DocumentId,
-  TitleWithoutIdError,
-} from '#backend/app/information-sources/model/document-id';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;
@@ -20,8 +17,7 @@ export interface DocumentsDeps {
 
 // The document's own contract, not an opaque object, and without the id: the
 // service derives that from the title. One pass in the middleware checks the
-// shape; the one rule a shape cannot say — a title an id can be derived from —
-// is the service's, answered in `inChange` (decision D3).
+// shape, the title pattern that guarantees an id included (decision D3).
 const writeDocumentSchema = z.object({ document: CreateDocumentSchema });
 
 /** Mounted at `/ui/changes/:change/documents`; writes are decision D4's validation boundary. */
@@ -114,9 +110,6 @@ async function inChange<T extends Response>(
     }
     if (error instanceof DocumentNotFoundError) {
       return c.json({ error: 'not_found' }, 404);
-    }
-    if (error instanceof TitleWithoutIdError) {
-      return c.json({ error: 'title_without_id', title: error.title }, 400);
     }
     if (error instanceof DuplicateDocumentError) {
       return c.json({ error: 'duplicate_document', title: error.title }, 409);

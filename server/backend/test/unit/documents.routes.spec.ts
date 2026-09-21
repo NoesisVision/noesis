@@ -96,11 +96,19 @@ describe('ui documents routes', () => {
       document: { ...document, title: '!!!' },
     });
 
+    // The title pattern is part of the contract, so the middleware answers.
     expect(created.status).toBe(400);
-    expect(await created.json()).toEqual({
-      error: 'title_without_id',
-      title: '!!!',
+    expect(await created.json()).toMatchObject({ error: 'invalid_body' });
+
+    // Longer than an id, so the derivation would have to cut it short.
+    const tooLong = await post(BASE, {
+      document: { ...document, title: 'x'.repeat(129) },
     });
+    expect(tooLong.status).toBe(400);
+    const longest = await post(BASE, {
+      document: { ...document, title: 'x'.repeat(128) },
+    });
+    expect(longest.status).toBe(201);
 
     await post(BASE, { document });
     const retitled = await put(`${BASE}/booking-rules`, {

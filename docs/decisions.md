@@ -233,8 +233,9 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   agent of one session, which share the service instances; two sessions on one
   repository are not covered.
 - **Validation happens once, where the write happens.** A tool that reads a
-  working file checks it against its contract
-  (`src/app/validation/contracts`) before the service sees it and rejects the
+  working file checks it against its contract — the schema, plus the file
+  contract in `src/app/validation/contracts` where there are whole-document
+  rules — before the service sees it and rejects the
   call having written nothing; there is deliberately **no separate
   `validate` tool**. A pre-flight tool only asked the agent to pay for the
   same check twice and let the two answers drift; the rejection the write
@@ -260,14 +261,19 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   a body that does not fit never reaches the handler; the answer is
   `400 {error:'invalid_body', issues}` from the package's `flattenErrors`.
   The service-side `validate` is for what a schema cannot say — a
-  whole-document `check`. `design-document` has one (its integrity pass) and
-  so does `document`: its id is the title as a slug, so a title the slug
-  empties is refused; there is no fallback id for such titles to share. The
-  checks run on the MCP side, where they owe the agent a report. The title
-  rule is also the service's own: `DocumentId.fromTitle` throws
-  `TitleWithoutIdError`, so the ui's document writes — the schema pass over
-  `CreateDocumentSchema`, the id being the service's to derive — answer
-  `400 {error:'title_without_id', title}` instead of storing under a shared id.
+  whole-document `check`. `design-document` has one (its integrity pass),
+  run on the MCP side, where it owes the agent a report. `document` needs
+  none, so it has no file contract and its tool passes `CreateDocumentSchema`
+  alone: its id is the title as a slug, and the schema's title pattern
+  (`DocumentId.TITLE_PATTERN`, an ASCII letter or digit) guarantees the slug
+  is not empty, so the ui and the MCP tool refuse such a title in the one
+  schema pass and the JSON Schema states the rule. The pattern is narrower
+  than the derivation (`É` alone would slug to `e`) — the price of a rule a
+  schema can say. The title is also capped at the id's length
+  (`DocumentId.TITLE_MAX_LENGTH`), so the derivation does not cut it short and
+  two long titles cannot meet in one id. There is no fallback id for such titles to share;
+  `DocumentId.fromTitle` still throws `TitleWithoutIdError` for a caller that
+  skipped validation.
 - **Search** is `GET /ui/search` over a `SearchProvider[]` registry in
   `SearchService`. The agent's search tool is not part of the rebuilt MCP
   surface yet.
@@ -320,8 +326,8 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   contract files (relative, also across features).
   The agent reads the `.ts` source directly; what a shape cannot say goes in
   `.describe()` text. Whole-document rules live beside the schema in the
-  file contract (`src/app/validation/contracts`), which every write boundary
-  checks against.
+  file contract (`src/app/validation/contracts`), which the write boundary of
+  a file that has such rules checks against.
 - **Value objects are part of the model and the schemas use them.** A value
   object is a class in `model/` that exists only in valid form (private
   constructor, `parse`/`tryParse`, its derivations, `equals`, `toJSON`), and
