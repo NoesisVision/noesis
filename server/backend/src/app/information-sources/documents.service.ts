@@ -4,12 +4,12 @@ import type {
   CreateDocument,
   Document,
 } from '#backend/app/information-sources/model/document';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import { Serial } from '#backend/app/serial';
-import { documentIdFromTitle } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
 export interface DocumentSummary {
-  id: string;
+  id: DocumentId;
   title: string;
   date: string;
   /** Absolute; the agent reads the document from there. */
@@ -22,10 +22,10 @@ export interface DocumentDetail {
 }
 
 export class DocumentNotFoundError extends Error {
-  readonly id: string;
+  readonly id: DocumentId;
 
-  constructor(slug: ChangeSlug, id: string) {
-    super(`No document ${JSON.stringify(id)} in change ${slug.value}.`);
+  constructor(slug: ChangeSlug, id: DocumentId) {
+    super(`No document ${JSON.stringify(id.value)} in change ${slug.value}.`);
     this.name = 'DocumentNotFoundError';
     this.id = id;
   }
@@ -68,7 +68,7 @@ export class DocumentsService {
     document: CreateDocument,
   ): Promise<DocumentSummary> {
     await this.changesService.assertExists(slug);
-    const id = documentIdFromTitle(document.title);
+    const id = DocumentId.fromTitle(document.title);
     await this.assertTitleFree(slug, id, document.title);
     return this.store(slug, id, document);
   }
@@ -76,7 +76,7 @@ export class DocumentsService {
   /** Whole-document replacement; a new title moves the document to its id. */
   update(
     slug: ChangeSlug,
-    id: string,
+    id: DocumentId,
     document: Document,
   ): Promise<DocumentSummary> {
     return this.writes.run(() => this.updateUnguarded(slug, id, document));
@@ -84,13 +84,13 @@ export class DocumentsService {
 
   private async updateUnguarded(
     slug: ChangeSlug,
-    id: string,
+    id: DocumentId,
     document: Document,
   ): Promise<DocumentSummary> {
     await this.changesService.assertExists(slug);
     await this.assertExists(slug, id);
-    const retitled = documentIdFromTitle(document.title);
-    if (retitled === id) return this.store(slug, id, document);
+    const retitled = DocumentId.fromTitle(document.title);
+    if (retitled.equals(id)) return this.store(slug, id, document);
     await this.assertTitleFree(slug, retitled, document.title);
     const summary = await this.store(slug, retitled, document);
     await this.docs.delete(slug, id);
@@ -108,19 +108,22 @@ export class DocumentsService {
       .map((document) => this.summarize(slug, document));
   }
 
-  async findById(slug: ChangeSlug, id: string): Promise<DocumentDetail | null> {
+  async findById(
+    slug: ChangeSlug,
+    id: DocumentId,
+  ): Promise<DocumentDetail | null> {
     await this.changesService.assertExists(slug);
     const document = await this.docs.get(slug, id);
     if (document === null) return null;
     return { summary: this.summarize(slug, document), document };
   }
 
-  async delete(slug: ChangeSlug, id: string): Promise<boolean> {
+  async delete(slug: ChangeSlug, id: DocumentId): Promise<boolean> {
     await this.changesService.assertExists(slug);
     return this.docs.delete(slug, id);
   }
 
-  private async assertExists(slug: ChangeSlug, id: string): Promise<void> {
+  private async assertExists(slug: ChangeSlug, id: DocumentId): Promise<void> {
     if ((await this.docs.get(slug, id)) === null) {
       throw new DocumentNotFoundError(slug, id);
     }
@@ -128,7 +131,7 @@ export class DocumentsService {
 
   private async assertTitleFree(
     slug: ChangeSlug,
-    id: string,
+    id: DocumentId,
     title: string,
   ): Promise<void> {
     if ((await this.docs.get(slug, id)) !== null) {
@@ -138,7 +141,7 @@ export class DocumentsService {
 
   private async store(
     slug: ChangeSlug,
-    id: string,
+    id: DocumentId,
     document: CreateDocument,
   ): Promise<DocumentSummary> {
     const stored = { ...document, document_id: id };

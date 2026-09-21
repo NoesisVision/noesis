@@ -4,7 +4,7 @@ The ten decisions in force, D1–D10. Everything here describes the tree as it
 is; if this file and the code disagree, that is a bug in one of them — say so
 rather than picking one silently.
 
-_Last updated: 2026-09-20, checked against the code on that date._
+_Last updated: 2026-09-21, checked against the code on that date._
 
 **How to use this file**
 
@@ -308,8 +308,8 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   consumed as TypeScript source (no build step, no workspace package). The
   service imports them by file; the frontend type-only through its
   `#backend/*` alias; the plugin copies every `model/` folder. Runtime
-  helpers never go inside `model/`, so it stays declarative and the plugin
-  copy stays free of runtime code: time-ordered
+  helpers that are not part of the model never go inside `model/`, so the
+  plugin copy carries nothing but the model: time-ordered
   ids come straight from the `uuid` package (`v7`), content-hash ids from
   `src/platform/crypto/content-hash.ts`.
 - **Contracts are declarative on purpose:** object shapes, enums, `.describe()`
@@ -319,6 +319,21 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   `.describe()` text. Whole-document rules live beside the schema in the
   file contract (`src/app/validation/contracts`), which every write boundary
   checks against.
+- **Value objects are part of the model and the schemas use them.** A value
+  object is a class in `model/` that exists only in valid form (private
+  constructor, `parse`/`tryParse`, its derivations, `equals`, `toJSON`), and
+  it exports a `z.codec` beside itself: the JSON side is a declarative string
+  schema carrying the whole rule (`max`, `regex`), the other side the class.
+  A contract names that codec for the field, so the inferred entity holds the
+  value object while disk, HTTP and the advertised JSON Schema keep the plain
+  string, and the file stays within the rule above (zod only, no `transform`).
+  The store parses what `set` is given and writes the encoded side; the
+  repository adapter encodes the entity before handing it over; a route
+  parses a path parameter with `tryParse` and answers 404 for a malformed
+  one; an MCP tool unwraps `.value` into `structuredContent`. `DocumentId`
+  (`information-sources/model/document-id.ts`, the `document_id` of
+  `DocumentSchema`) is the first; `ChangeSlug` still sits beside its service
+  with a plain-string `slug` in `ChangeSchema` and is to follow.
 - **The plugin's `contracts/` is the one readable copy, and it is a build
   output.** `plugins/claude-code/tools/copy-contracts.ts` copies every
   `server/backend/src/app/<feature>/model/` folder, keeping the path relative

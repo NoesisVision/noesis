@@ -7,13 +7,14 @@ import {
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import type { Document } from '#backend/app/information-sources/model/document';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');
 const NOPE = ChangeSlug.parse('nope');
 
 const document: Document = {
-  document_id: 'whatever-the-caller-sent',
+  document_id: DocumentId.parse('whatever-the-caller-sent'),
   title: 'Booking Rules — v2',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -34,7 +35,7 @@ describe('DocumentsService', () => {
   it('stores a document under the slug of its title and reads it back whole', async () => {
     const summary = await service.create(CHANGE, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id.value).toBe('booking-rules-v2');
     expect(summary.path).toEndWith(
       '/graph/changes/booking/documents/booking-rules-v2/data.json',
     );
@@ -42,7 +43,7 @@ describe('DocumentsService', () => {
     const detail = await service.findById(CHANGE, summary.id);
     expect(detail?.document).toEqual({
       ...document,
-      document_id: 'booking-rules-v2',
+      document_id: DocumentId.parse('booking-rules-v2'),
     });
   });
 
@@ -61,7 +62,10 @@ describe('DocumentsService', () => {
     ]);
 
     expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
-    const stored = await service.findById(CHANGE, 'booking-rules-v2');
+    const stored = await service.findById(
+      CHANGE,
+      DocumentId.parse('booking-rules-v2'),
+    );
     expect(stored?.document.content).toBe(document.content);
   });
 
@@ -71,7 +75,7 @@ describe('DocumentsService', () => {
 
     const summary = await service.create(other, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id.value).toBe('booking-rules-v2');
   });
 
   it('replaces the content under the same id', async () => {
@@ -82,7 +86,7 @@ describe('DocumentsService', () => {
       content: 'A slot may be booked twice.',
     });
 
-    expect(updated.id).toBe(created.id);
+    expect(updated.id).toEqual(created.id);
     expect((await service.findById(CHANGE, created.id))?.document.content).toBe(
       'A slot may be booked twice.',
     );
@@ -97,9 +101,9 @@ describe('DocumentsService', () => {
       title: 'Booking rules v3',
     });
 
-    expect(renamed.id).toBe('booking-rules-v3');
+    expect(renamed.id.value).toBe('booking-rules-v3');
     expect(await service.findById(CHANGE, created.id)).toBe(null);
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
+    expect((await service.list(CHANGE)).map((d) => d.id.value)).toEqual([
       'booking-rules-v3',
     ]);
   });
@@ -117,9 +121,9 @@ describe('DocumentsService', () => {
   });
 
   it('refuses to update a document the change does not have', async () => {
-    expect(service.update(CHANGE, 'missing', document)).rejects.toBeInstanceOf(
-      DocumentNotFoundError,
-    );
+    expect(
+      service.update(CHANGE, DocumentId.parse('missing'), document),
+    ).rejects.toBeInstanceOf(DocumentNotFoundError);
   });
 
   it('lists newest first, then by title', async () => {
@@ -147,8 +151,12 @@ describe('DocumentsService', () => {
   });
 
   it('answers null for a document that does not exist and false when deleting it', async () => {
-    expect(await service.findById(CHANGE, 'missing')).toBe(null);
-    expect(await service.delete(CHANGE, 'missing')).toBe(false);
+    expect(await service.findById(CHANGE, DocumentId.parse('missing'))).toBe(
+      null,
+    );
+    expect(await service.delete(CHANGE, DocumentId.parse('missing'))).toBe(
+      false,
+    );
   });
 
   it('deletes a document it has', async () => {
@@ -165,11 +173,11 @@ describe('DocumentsService', () => {
     await expect(service.create(NOPE, document)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    await expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
-    await expect(service.delete(NOPE, 'x')).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(
+      service.findById(NOPE, DocumentId.parse('x')),
+    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+    await expect(
+      service.delete(NOPE, DocumentId.parse('x')),
+    ).rejects.toBeInstanceOf(ChangeNotFoundError);
   });
 });

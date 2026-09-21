@@ -5,6 +5,7 @@ import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import { SessionDir } from '#backend/platform/files/session-dir';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -197,7 +198,7 @@ describe('add_document_to_change', () => {
     });
     const stored = await noesis.documentsService.findById(
       change,
-      'retry-interview',
+      DocumentId.parse('retry-interview'),
     );
     expect(stored?.document.content).toBe(document.content);
   });

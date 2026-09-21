@@ -9,6 +9,7 @@ import {
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { DocumentSchema } from '#backend/app/information-sources/model/document';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;
@@ -52,10 +53,9 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
       .get('/:id', async (c) => {
         return inChange(c, async (change) => {
-          const detail = await documentsService.findById(
-            change,
-            c.req.param('id'),
-          );
+          const id = DocumentId.tryParse(c.req.param('id'));
+          if (id === null) return c.json({ error: 'not_found' }, 404);
+          const detail = await documentsService.findById(change, id);
           if (detail === null) return c.json({ error: 'not_found' }, 404);
           return c.json(detail);
         });
@@ -75,11 +75,9 @@ export function createDocumentsApp(deps: DocumentsDeps) {
         async (c) => {
           const { document: input } = c.req.valid('json');
           return inChange(c, async (change) => {
-            const document = await documentsService.update(
-              change,
-              c.req.param('id'),
-              input,
-            );
+            const id = DocumentId.tryParse(c.req.param('id'));
+            if (id === null) return c.json({ error: 'not_found' }, 404);
+            const document = await documentsService.update(change, id, input);
             return c.json({ document });
           });
         },
@@ -87,10 +85,9 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
       .delete('/:id', async (c) => {
         return inChange(c, async (change) => {
-          const deleted = await documentsService.delete(
-            change,
-            c.req.param('id'),
-          );
+          const id = DocumentId.tryParse(c.req.param('id'));
+          if (id === null) return c.json({ error: 'not_found' }, 404);
+          const deleted = await documentsService.delete(change, id);
           if (!deleted) return c.json({ error: 'not_found' }, 404);
           return c.body(null, 204);
         });

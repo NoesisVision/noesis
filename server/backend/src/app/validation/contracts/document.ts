@@ -1,8 +1,8 @@
-import { titleYieldsId } from '#backend/app/information-sources/document-id';
 import {
   type CreateDocument,
   CreateDocumentSchema,
 } from '#backend/app/information-sources/model/document';
+import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import type { FileContract } from '#backend/app/validation/validator';
 
 /**
@@ -19,7 +19,7 @@ export const documentContract: FileContract<CreateDocument> = {
     'A document of a change: its title, the date it was written, and its text.',
   schema: CreateDocumentSchema,
   check: (document) =>
-    titleYieldsId(document.title)
+    DocumentId.tryFromTitle(document.title) !== null
       ? []
       : [
           {

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Document } from '#backend/app/information-sources/model/document';
+import type { z } from 'zod';
+import type { DocumentSchema } from '#backend/app/information-sources/model/document';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -10,7 +11,7 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 const CHANGE = 'booking';
 const BASE = `/changes/${CHANGE}/documents`;
 
-const document: Document = {
+const document: z.input<typeof DocumentSchema> = {
   document_id: 'whatever-the-caller-sent',
   title: 'Booking Rules',
   date: '2026-09-18',
@@ -70,6 +71,7 @@ describe('ui documents routes', () => {
     });
 
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
+    expect((await app.request(`${BASE}/Not_An_Id`)).status).toBe(404);
   });
 
   it('rejects a document the contract refuses, before anything is written', async () => {

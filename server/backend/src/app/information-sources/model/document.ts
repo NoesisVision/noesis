@@ -1,12 +1,11 @@
 import { z } from 'zod';
+import { DocumentIdSchema } from './document-id';
 
 export const DocumentSchema = z
   .object({
-    document_id: z
-      .string()
-      .describe(
-        'The document id: the title as a slug, so it is unique within the change. The service derives it; retitling the document moves it to a new id.',
-      ),
+    document_id: DocumentIdSchema.describe(
+      'The document id: the title as a slug, so it is unique within the change. The service derives it; retitling the document moves it to a new id.',
+    ),
     title: z
       .string()
       .trim()

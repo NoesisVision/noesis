@@ -469,7 +469,9 @@ async function encodeObject(
   location: ObjectLocation,
 ): Promise<string> {
   const parsed = await validate(schema, value, 'set', key, location);
-  return serializeObject(parsed, key, location);
+  // A schema may decode into a value object (a codec); what is stored is the
+  // JSON side of it, which `get` decodes again.
+  return serializeObject(await schema.encodeAsync(parsed), key, location);
 }
 
 /**
