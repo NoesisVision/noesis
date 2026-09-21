@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { Box } from '#/components/design-system/box.tsx';
-import { Card } from '#/components/design-system/card.tsx';
-import { Grid } from '#/components/design-system/grid.tsx';
-import { Text } from '#/components/design-system/text.tsx';
-import { Title } from '#/components/design-system/title.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Card } from '#/shared/design-system/card.tsx';
+import { Grid } from '#/shared/design-system/grid.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
+import { Title } from '#/shared/design-system/title.tsx';
 
 interface OverviewSectionItem {
   id: string;

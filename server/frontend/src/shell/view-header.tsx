@@ -1,7 +1,7 @@
-import { Box } from '#/components/design-system/box.tsx';
-import { Stack } from '#/components/design-system/stack';
-import { Text } from '#/components/design-system/text';
-import { Title } from '#/components/design-system/title';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Stack } from '#/shared/design-system/stack';
+import { Text } from '#/shared/design-system/text';
+import { Title } from '#/shared/design-system/title';
 import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 
 export function ViewHeader() {

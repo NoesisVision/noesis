@@ -5,8 +5,8 @@ import type {
   ReactNode,
   RefAttributes,
 } from 'react';
-import { Group } from '#/components/design-system/group.tsx';
-import { Text } from '#/components/design-system/text.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import classes from './overview-stat.module.css';
 
 interface OverviewStatProps extends PropsWithChildren {

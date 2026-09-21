@@ -1,11 +1,8 @@
 import { Link } from '@tanstack/react-router';
 import type { PropsWithChildren } from 'react';
-import {
-  Anchor,
-  type AnchorProps,
-} from '#/components/design-system/anchor.tsx';
 import { useChangeId } from '#/features/changes/current-change.ts';
 import type { FileRoutesByFullPath } from '#/routeTree.gen.ts';
+import { Anchor, type AnchorProps } from '#/shared/design-system/anchor.tsx';
 import type { ChangeRoutePaths } from '#/shared/routing/route-ids.ts';
 
 type ChangeParams<TTo extends ChangeRoutePaths> = Omit<

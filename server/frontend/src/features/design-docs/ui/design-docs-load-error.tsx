@@ -1,6 +1,6 @@
-import { Alert } from '#/components/design-system/alert.tsx';
-import { Button } from '#/components/design-system/button.tsx';
-import { Text } from '#/components/design-system/text.tsx';
+import { Alert } from '#/shared/design-system/alert.tsx';
+import { Button } from '#/shared/design-system/button.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 
 export function DesignDocsLoadError({ retry }: { retry: () => void }) {
   return (

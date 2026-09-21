@@ -1,5 +1,5 @@
 import { getRouteApi, Link } from '@tanstack/react-router';
-import { Stack } from '#/components/design-system/stack';
+import { Stack } from '#/shared/design-system/stack';
 import { ViewHeader } from '#/shell/view-header.tsx';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 

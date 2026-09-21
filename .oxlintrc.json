@@ -157,7 +157,7 @@
             "patterns": [
               {
                 "group": ["@mantine/*"],
-                "message": "Import from #/components/design-system instead. Mantine is private to the design system."
+                "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
               }
             ]
           }
@@ -174,11 +174,8 @@
       }
     },
     {
-      // The design system wraps Mantine; types/ extends its theme types.
-      "files": [
-        "server/frontend/src/components/design-system/**",
-        "server/frontend/src/types/**"
-      ],
+      // The design system wraps Mantine, theme augmentation included.
+      "files": ["server/frontend/src/shared/design-system/**"],
       "rules": { "no-restricted-imports": "off" }
     },
     {

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { Card } from '#/components/design-system/card.tsx';
-import { Stack } from '#/components/design-system/stack.tsx';
-import { Text } from '#/components/design-system/text.tsx';
-import { Title } from '#/components/design-system/title.tsx';
+import { Card } from '#/shared/design-system/card.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
+import { Title } from '#/shared/design-system/title.tsx';
 import type {
   DesignDocument,
   DesignedField,

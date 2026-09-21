@@ -1,11 +1,11 @@
 import { expect, it } from 'bun:test';
 import { createRef } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { AppShell } from '../src/components/design-system/app-shell';
-import { Button } from '../src/components/design-system/button';
-import { Menu } from '../src/components/design-system/menu';
-import { MantineProvider } from '../src/components/design-system/provider';
-import { TextInput } from '../src/components/design-system/text-input';
+import { AppShell } from '../src/shared/design-system/app-shell';
+import { Button } from '../src/shared/design-system/button';
+import { Menu } from '../src/shared/design-system/menu';
+import { MantineProvider } from '../src/shared/design-system/provider';
+import { TextInput } from '../src/shared/design-system/text-input';
 
 it('preserves polymorphic props, refs, and Mantine styling', () => {
   const html = renderToStaticMarkup(

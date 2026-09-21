@@ -1,12 +1,12 @@
 import { IconPlus, IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
-import { Badge } from '#/components/design-system/badge';
-import { Box } from '#/components/design-system/box';
-import { Group } from '#/components/design-system/group';
-import { useDisclosure } from '#/components/design-system/hooks';
-import { Menu } from '#/components/design-system/menu';
-import { Text } from '#/components/design-system/text';
-import { UnstyledButton } from '#/components/design-system/unstyled-button';
+import { Badge } from '#/shared/design-system/badge';
+import { Box } from '#/shared/design-system/box';
+import { Group } from '#/shared/design-system/group';
+import { useDisclosure } from '#/shared/design-system/hooks';
+import { Menu } from '#/shared/design-system/menu';
+import { Text } from '#/shared/design-system/text';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button';
 import type { Change } from '#backend/app/changes/model/change.ts';
 import {
   CHANGE_STATUS_META,

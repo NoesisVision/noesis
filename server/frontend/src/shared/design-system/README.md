@@ -4,7 +4,7 @@ This folder owns all Mantine imports, including the provider, theme, styles,
 hooks, and form helpers. Shells and views import individual modules:
 
 ```tsx
-import { Button } from '#/components/design-system/button';
+import { Button } from '#/shared/design-system/button';
 ```
 
 Each component has its own wrapper module for future customization. The shared

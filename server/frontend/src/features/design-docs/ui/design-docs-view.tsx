@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
-import { Card } from '#/components/design-system/card';
-import { Stack } from '#/components/design-system/stack';
-import { Text } from '#/components/design-system/text';
+import { Card } from '#/shared/design-system/card';
+import { Stack } from '#/shared/design-system/stack';
+import { Text } from '#/shared/design-system/text';
 import { ViewHeader } from '#/shell/view-header.tsx';
 import { designDocsList } from '../design-docs.api.ts';
 import { DesignDocsLoadError } from './design-docs-load-error.tsx';

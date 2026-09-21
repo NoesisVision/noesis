@@ -1,6 +1,6 @@
 import { Outlet } from '@tanstack/react-router';
-import { AppShell } from '#/components/design-system/app-shell';
-import { useDisclosure } from '#/components/design-system/hooks';
+import { AppShell } from '#/shared/design-system/app-shell';
+import { useDisclosure } from '#/shared/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
 

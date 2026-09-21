@@ -1,8 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router';
-import { Button } from '#/components/design-system/button';
-import { Stack } from '#/components/design-system/stack';
-import { Text } from '#/components/design-system/text';
-import { Title } from '#/components/design-system/title';
+import { Button } from '#/shared/design-system/button';
+import { Stack } from '#/shared/design-system/stack';
+import { Text } from '#/shared/design-system/text';
+import { Title } from '#/shared/design-system/title';
 
 export function ChangeNotFoundView() {
   const { changeId } = useParams({ strict: false });
