@@ -1,8 +1,8 @@
 import { afterAll, afterEach, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
 import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture.ts';
-import { ApiError } from '../src/api/client';
 import { designDocById, designDocsList } from '../src/api/design-docs';
+import { ApiError } from '../src/shared/api/client';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
 const cache = new QueryClient({

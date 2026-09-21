@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { ApiError } from '#/api/client';
 import { designDocById } from '#/api/design-docs';
 import { Alert } from '#/components/design-system/alert';
 import { Text } from '#/components/design-system/text';
+import { ApiError } from '#/shared/api/client.ts';
 import { DesignDocsLoadError } from './design-doc/design-docs-load-error.tsx';
 import { DesignDocumentContent } from './design-doc/design-document-content.tsx';
 

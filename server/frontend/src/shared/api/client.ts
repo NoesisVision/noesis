@@ -1,5 +1,5 @@
 import { hc } from 'hono/client';
-import { uiLogger } from '#/logging';
+import { uiLogger } from '#/shared/logging.ts';
 import type { AppType } from '#backend/app.types.ts';
 
 const log = uiLogger('api');

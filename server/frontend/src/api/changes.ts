@@ -4,11 +4,11 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
+import { ApiError, api } from '#/shared/api/client.ts';
 import type {
   Change,
   CreateChange,
 } from '#backend/app/changes/model/change.ts';
-import { ApiError, api } from './client';
 
 export class DuplicateChangeError extends Error {
   readonly field: 'slug' | 'key';

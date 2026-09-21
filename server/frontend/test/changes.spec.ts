@@ -7,7 +7,7 @@ import {
   createChange,
   DuplicateChangeError,
 } from '../src/api/changes';
-import { ApiError, api } from '../src/api/client';
+import { ApiError, api } from '../src/shared/api/client';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
 afterAll(() => fetchSpy.mockRestore());

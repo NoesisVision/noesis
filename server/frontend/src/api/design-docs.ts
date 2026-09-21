@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
-import { api } from './client';
+import { api } from '#/shared/api/client.ts';
 
 export const designDocsList = (change: string | null) =>
   queryOptions({
