@@ -38,7 +38,7 @@ import { ensureLadybugBinary } from './platform/native/ensure-ladybug';
 // Boot is in two halves. This one is the MCP surface and costs milliseconds,
 // because on the modern era the SDK spawns a throwaway sibling process from
 // the same command to probe the protocol, and that process must not pay for a
-// session it will never serve (decision D3).
+// session it will never serve.
 
 const config = loadServerConfig();
 
@@ -189,8 +189,7 @@ function loadRepositoryRoot(): string {
   return result.root;
 }
 
-// The database closes last, deterministically, to release its native handles
-// (decision D3).
+// The database closes last, deterministically, to release its native handles.
 async function shutdown(exitCode = 0): Promise<void> {
   // Two `db.close()` calls racing on one native handle is undefined behaviour.
   if (shuttingDown) return;

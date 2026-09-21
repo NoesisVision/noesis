@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
-/** No root found is a refusal to start, not a default (decision D2). */
+/** No root found is a refusal to start, not a default. */
 export type RootResult =
   | { ok: true; root: string }
   | { ok: false; message: string };

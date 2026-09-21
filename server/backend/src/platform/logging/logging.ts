@@ -13,7 +13,6 @@ import {
   type Sink,
 } from '@logtape/logtape';
 
-// Decision D10; categories and sinks are described in docs/logging.md.
 // stdout is the MCP transport and is never written to.
 
 const ROOT_CATEGORY = 'noesis';

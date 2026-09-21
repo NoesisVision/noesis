@@ -12,7 +12,7 @@ import '@fontsource-variable/raleway';
 import '#/styles.css';
 
 // The backend imports `index.html`, which is how bun finds and bundles this
-// entry (decision D5).
+// entry.
 configureLogging();
 const context = getContext();
 const router = getRouter(context);

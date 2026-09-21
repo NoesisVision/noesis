@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // The change's directory also collects its imported conversations, documents
-// and design docs (decision D2).
+// and design docs.
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
 export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;

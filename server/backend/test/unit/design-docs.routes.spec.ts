@@ -7,8 +7,8 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/design-docs`), which is what is under test.
-// The surface reads and deletes; documents get in through the MCP tools
-// (decision D3), so the tests seed them through the service.
+// The surface reads and deletes; documents get in through the MCP tools,
+// so the tests seed them through the service.
 
 const CHANGE = 'booking';
 const BASE = `/changes/${CHANGE}/design-docs`;

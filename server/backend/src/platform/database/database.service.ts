@@ -60,7 +60,7 @@ export class DatabaseService {
     if (this.database === null) return;
     this.closing = true;
     // Let running statements finish; a native handle closed under a query
-    // is what decision D3's shutdown ordering exists to avoid.
+    // is what the shutdown ordering exists to avoid.
     await Promise.allSettled([...this.inFlight, this.writeQueue]);
     const { database, reader, writer } = this;
     this.database = null;

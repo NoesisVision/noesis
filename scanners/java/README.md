@@ -4,13 +4,12 @@ A Maven build that extracts a DDD building-block graph from compiled Java
 code: aggregates, entities, services, ports, adapters, the commands, queries
 and events they exchange, and the behaviours (public methods) that invoke
 one another. The research and the schema are in
-[`design-doc.md`](design-doc.md); decision D9 in
-[`docs/decisions.md`](../../docs/decisions.md) records the engine and the
+[`design-doc.md`](design-doc.md), which records the engine and the
 graph vocabulary.
 
 **Status: standalone, not yet integrated with the service.** The scanner
 writes a JSON graph file; how that file feeds `.noesis/graph/system-model/` is a
-later decision, once the file format settles (decision D9). The TypeScript scanner inside `server/backend` is the only one the
+later decision, once the file format settles. The TypeScript scanner inside `server/backend` is the only one the
 service runs today.
 
 ## Modules
@@ -18,7 +17,7 @@ service runs today.
 | Module          | Artifact                      | What it is                                                                                                                                                                                                                                                                  |
 | --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `annotations/`  | `noesis-annotations`          | The stereotype annotations a team can put on its classes: `@AggregateRoot`, `@Entity`, `@ValueObject`, `@Identifier`, `@DomainService`, `@ApplicationService`, `@Repository`, `@Factory`, `@Port` (with `Direction`), `@Adapter`, `@Module`, `@Command`, `@Query`, `@Event` |
-| `core/`         | `noesis-scanner-core`         | The engine: ArchUnit's `ClassFileImporter` over a classes directory, stereotype detection through a configurable annotation mapping (decision D9), derivers for modules, behaviours, invocations, message edges and port bindings, and a Jackson JSON writer                |
+| `core/`         | `noesis-scanner-core`         | The engine: ArchUnit's `ClassFileImporter` over a classes directory, stereotype detection through a configurable annotation mapping, derivers for modules, behaviours, invocations, message edges and port bindings, and a Jackson JSON writer                              |
 | `maven-plugin/` | `noesis-scanner-maven-plugin` | The `noesis:scan` goal; gathers the project's inputs and calls the core                                                                                                                                                                                                     |
 
 Group id `vision.noesis`, Java 17, version `0.1.0-SNAPSHOT`; nothing is
@@ -26,7 +25,7 @@ published to a repository yet.
 
 ## The graph
 
-Decision D9's typed vocabulary (design-doc §9.4), as the `NodeType` and
+The typed vocabulary (design-doc §9.4), as the `NodeType` and
 `EdgeType` enums in `core`:
 
 - **Nodes** — grouping: `BOUNDED_CONTEXT`, `MODULE`; blocks: `AGGREGATE_ROOT`,
@@ -42,7 +41,7 @@ All communication goes through message nodes; block-to-block usage is
 meant to be derived downstream by lifting `INVOKES` through `CONTAINS`. The
 scanner ships facts, not aggregations.
 
-Not implemented yet from decision D9: the Spoon source-fidelity pass
+Not implemented yet: the Spoon source-fidelity pass
 (positions, Javadoc, parameter names) and the Gradle plugin. `core` depends
 on ArchUnit and Jackson only.
 
@@ -74,7 +73,7 @@ each module writes its own graph.
 
 ## Building
 
-Not a bun workspace member; Maven owns this directory (decision D7).
+Not a bun workspace member; Maven owns this directory.
 
 ```sh
 mvn -B verify      # build all three modules and run the core tests

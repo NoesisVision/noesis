@@ -1,4 +1,4 @@
-// The service package is released in lockstep with the plugin (decision D6).
+// The service package is released in lockstep with the plugin.
 // Marketplace npm sources only document exact-semver pins (no dist-tags), so
 // each channel entry stays pinned: beta to a prerelease, stable to a stable
 // release.

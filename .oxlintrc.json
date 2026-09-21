@@ -14,7 +14,7 @@
     "docs/**/prototypes/**"
   ],
   "settings": {
-    // The backend's layers (decision D3). A file belongs to the first
+    // The backend's layers. A file belongs to the first
     // element whose folder contains it; `root` catches what is directly in
     // `src/` — the composition root.
     "boundaries/include": ["server/backend/src/**/*.ts"],
@@ -66,7 +66,7 @@
           },
           // Contracts are the domain model in app/<feature>/model/, and
           // declarative: zod and other contracts only, since the plugin
-          // copies them verbatim (decision D4).
+          // copies them verbatim.
           {
             "from": { "element": { "type": "contracts" } },
             "disallow": {

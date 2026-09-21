@@ -1,4 +1,4 @@
-// Boot re-index cost (decision D2). Not part of `bun test test/unit`: run with
+// Boot re-index cost. Not part of `bun test test/unit`: run with
 // `bun run test:bench`.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';

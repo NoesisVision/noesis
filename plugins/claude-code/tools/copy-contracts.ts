@@ -1,6 +1,6 @@
 // The app-relative layout is kept so the contracts' relative imports still
 // resolve. `.ts` sources ship deliberately: compiled output would keep the
-// types and lose the `.describe()` text (decision D4).
+// types and lose the `.describe()` text.
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';

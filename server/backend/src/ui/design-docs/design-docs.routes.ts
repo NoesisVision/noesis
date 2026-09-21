@@ -9,7 +9,7 @@ export interface DesignDocsDeps {
 
 /**
  * Mounted at `/ui/changes/:change/design-docs`, read and delete only: design
- * documents are written by the agent through the MCP tools (decision D3), so
+ * documents are written by the agent through the MCP tools, so
  * the browser surface never authors one.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {

@@ -10,7 +10,7 @@
       // Type-only tests are checked by tsc and never imported; the store
       // writer runs as a subprocess of noesis-store.spec.ts. The contracts
       // in app/*/model/ are public API: the agent reads every export from
-      // the plugin's copy (decision D4).
+      // the plugin's copy.
       "entry": [
         "src/main.ts",
         "src/app/*/model/*.ts",

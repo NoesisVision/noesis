@@ -1,4 +1,4 @@
-// contracts/ is a gitignored build output (decision D4), so the test builds it
+// contracts/ is a gitignored build output, so the test builds it
 // before asserting on it.
 import { beforeAll, describe, expect, test } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';

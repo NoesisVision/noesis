@@ -75,7 +75,7 @@ describe('ui documents routes', () => {
   it('rejects a document the contract refuses, before anything is written', async () => {
     const res = await post(BASE, { document: { title: 'No date' } });
 
-    // The document's own contract runs in the middleware (decision D3), so a
+    // The document's own contract runs in the middleware, so a
     // body that does not satisfy it never reaches the handler.
     expect(res.status).toBe(400);
     const body = (await res.json()) as {

@@ -7,7 +7,7 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname } from 'node:path';
 import { parseArgs } from 'node:util';
 
-/** The service refuses a larger working file (decision D3). */
+/** The service refuses a larger working file. */
 export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 export interface WorkingFile {

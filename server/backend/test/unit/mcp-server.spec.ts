@@ -38,7 +38,7 @@ afterEach(async () => {
   await noesis.cleanup();
 });
 
-/** The working file the agent writes before adding a document (decision D3). */
+/** The working file the agent writes before adding a document. */
 async function workingFile(name: string, contents: unknown): Promise<string> {
   const path = join(session.path, name);
   await writeFile(

@@ -1,7 +1,7 @@
 // No migrations: the indexer rebuilds every table from the files at boot, so
-// the statements only need to be valid on an empty database (decision D1).
-// No file-time column: a `git checkout` rewrites it (decision D2). No `version`
-// column: the single writer needs no optimistic concurrency (decision D1).
+// the statements only need to be valid on an empty database.
+// No file-time column: a `git checkout` rewrites it. No `version`
+// column: the single writer needs no optimistic concurrency.
 export const GRAPH_SCHEMA: readonly string[] = [
   // `document`, not `json`, holds the whole `DesignDocument`.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(

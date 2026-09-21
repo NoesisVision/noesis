@@ -101,7 +101,7 @@ describe('ui changes routes', () => {
       400,
     );
 
-    // The envelope check names the offending fields (decision D3).
+    // The envelope check names the offending fields.
     const empty = await post({});
     expect(empty.status).toBe(400);
     const body = (await empty.json()) as {

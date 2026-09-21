@@ -1,8 +1,6 @@
 # Noesis — architecture
 
-Target architecture. The flowchart below is the diagram. Decision D1 in
-`docs/decisions.md` records the adoption, and D2 to D10 the points settled
-after this document was written.
+Target architecture. The flowchart below is the diagram.
 
 Noesis turns documents and design drafts into a queryable knowledge graph, and drives
 design and implementation work from it. Everything runs on the user's machine — there is no
@@ -161,7 +159,7 @@ directory makes the unit of work the unit of review — the whole record of a ch
 directory in a pull request. `system-model/` is change-independent: it tracks the code as it is,
 whichever change is in flight.
 
-The knowledge graph is `.noesis/graph/` (decision D2): one directory per object at every depth,
+The knowledge graph is `.noesis/graph/`: one directory per object at every depth,
 named by the object's key and holding exactly one `data.json`, written through a single typed
 store. Rules that hold across every kind:
 

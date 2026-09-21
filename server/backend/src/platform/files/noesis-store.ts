@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 
 /**
- * The only door to `.noesis/graph/` (decision D2). No locks: the atomic
+ * The only door to `.noesis/graph/`. No locks: the atomic
  * rename of `data.json` is the whole guarantee, so the last complete write
  * wins, across processes too. A directory without `data.json` is garbage from
  * an interrupted write or delete: `keys()` skips it, `get` answers `null` and
