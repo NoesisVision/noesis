@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { designDocById } from '#/api/design-docs';
 import { Alert } from '#/components/design-system/alert';
 import { Text } from '#/components/design-system/text';
 import { ApiError } from '#/shared/api/client.ts';
-import { DesignDocsLoadError } from './design-doc/design-docs-load-error.tsx';
-import { DesignDocumentContent } from './design-doc/design-document-content.tsx';
+import { designDocById } from '../design-docs.api.ts';
+import { DesignDocsLoadError } from './design-docs-load-error.tsx';
+import { DesignDocumentContent } from './design-document-content.tsx';
 
-export function DocumentDetail({
+export function DesignDocDetail({
   changeId,
   id,
 }: {

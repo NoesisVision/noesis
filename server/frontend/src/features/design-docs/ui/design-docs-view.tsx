@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi, Link } from '@tanstack/react-router';
-import { designDocsList } from '#/api/design-docs';
 import { Card } from '#/components/design-system/card';
 import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';
 import { ViewHeader } from '#/shell/view-header.tsx';
-import { DesignDocsLoadError } from './design-doc/design-docs-load-error.tsx';
-import { DocumentDetail } from './document-detail';
+import { designDocsList } from '../design-docs.api.ts';
+import { DesignDocsLoadError } from './design-docs-load-error.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs');
 
@@ -15,27 +14,12 @@ export function DesignDocsView() {
   return (
     <Stack>
       <ViewHeader />
-      <DocumentList changeId={changeId} />
+      <DesignDocList changeId={changeId} />
     </Stack>
   );
 }
 
-export function DesignDocDetailView() {
-  const { changeId, docId } = getRouteApi(
-    '/_shell/changes/$changeId/design-docs/$docId',
-  ).useParams();
-  return (
-    <Stack>
-      <ViewHeader />
-      <Link to="/changes/$changeId/design-docs" params={{ changeId }}>
-        Back to design docs
-      </Link>
-      <DocumentDetail changeId={changeId} id={docId} />
-    </Stack>
-  );
-}
-
-function DocumentList({ changeId }: { changeId: string }) {
+function DesignDocList({ changeId }: { changeId: string }) {
   const query = useQuery(designDocsList(changeId));
   if (query.isPending)
     return <Text component="output">Loading design docs…</Text>;

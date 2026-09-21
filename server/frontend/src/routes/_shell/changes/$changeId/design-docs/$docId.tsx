@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { DesignDocDetailView } from '#/components/views/design-docs';
+import { DesignDocView } from '#/features/design-docs/ui/design-doc-view.tsx';
 
 export const Route = createFileRoute(
   '/_shell/changes/$changeId/design-docs/$docId',
 )({
-  component: DesignDocDetailView,
+  component: DesignDocView,
 });

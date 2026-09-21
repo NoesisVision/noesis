@@ -1,11 +1,11 @@
 import { IconFiles, IconPencilBolt } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import { designDocsList } from '#/api/design-docs.ts';
 import { Box } from '#/components/design-system/box.tsx';
 import { Card } from '#/components/design-system/card.tsx';
 import { Grid } from '#/components/design-system/grid.tsx';
 import { useChangeId } from '#/features/changes/current-change.ts';
 import { ChangesLink } from '#/features/changes/ui/changes-link.tsx';
+import { designDocsList } from '#/features/design-docs/design-docs.api.ts';
 import {
   DESIGN_DOCS_NAV,
   DOCUMENTS_NAV,
