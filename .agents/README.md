@@ -24,7 +24,7 @@ the same file).
 
 | Skill | Origin | Tracked in `skills-lock.json` |
 | --- | --- | --- |
-| `commit-message`, `domain-stories`, `system-requirements` | Written in this repo | No |
+| `commit-message` | Written in this repo | No |
 | `hono` | `yusukebe/hono-skill` | Yes |
 | `mantine-combobox`, `mantine-custom-components`, `mantine-form` | `mantinedev/skills` | Yes |
 | `tanstack-query`, `tanstack-router` | `tanstack-skills/tanstack-skills` | Yes |
