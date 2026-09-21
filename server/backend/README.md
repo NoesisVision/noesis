@@ -87,7 +87,7 @@ src/
                       .noesis/ file shape, declarative, copied verbatim into the
                       plugin
     changes/          ChangesService, the change slug, the ChangesRepository port
-    design-docs/      DesignDocsService, the DesignDocsRepository port, integrity checks
+    design-docs/      DesignDocsService, the DesignDocsRepository port, element refs
     information-sources/  imported documents (model only)
     system-model/     the scanned implementation model (model only)
     search/           SearchService and its SearchProvider port
@@ -141,9 +141,9 @@ The schemas are **declarative on purpose**: object shapes, enums, defaults
 and `.describe()` text; no refinements, no transforms, no imports beyond zod
 and other contract files, always relative. The plugin's tests assert that. Whole-document
 rules a schema cannot express live in `src/app/validation/contracts`, which
-pairs the schema with that check; `design-document` is the only one that
-needs it, so the other write boundaries check their schema in the route
-middleware.
+pairs the schema with that check. No file has one today: a design document
+needs it, but no tool authors one yet, and the other write boundaries check
+their schema in the route middleware.
 
 | Files under `src/app/`                                 | What they shape                                                                         |
 | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |

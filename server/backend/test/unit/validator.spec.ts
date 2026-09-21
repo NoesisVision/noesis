@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
-import { designDocumentContract } from '#backend/app/validation/contracts/design-document';
 import {
   type FileContract,
   formatReport,
@@ -62,20 +60,27 @@ describe('validate', () => {
   });
 
   it('runs the integrity check only when the shape parses', () => {
-    const report = validate(designDocumentContract, designDocFixture);
-    expect(report.ok).toBe(true);
-
-    const broken = {
-      ...designDocFixture,
-      buildingBlocks: designDocFixture.buildingBlocks.filter(
-        (b) => b.id !== 'svc-booking',
-      ),
+    let checked = 0;
+    const checking: FileContract<z.infer<typeof schema>> = {
+      schema,
+      check: (value) => {
+        checked += 1;
+        return value.tags.includes('b')
+          ? []
+          : [{ path: '#b', message: 'tag b is missing' }];
+      },
     };
-    const rejected = validate(designDocumentContract, broken);
+
+    expect(validate(checking, { ...valid, tags: ['a', 'b'] }).ok).toBe(true);
+
+    const rejected = validate(checking, valid);
     expect(rejected.ok).toBe(false);
-    const [issue] = rejected.issues;
-    expect(issue?.path.startsWith('#')).toBe(true);
-    expect(issue?.message).toContain('svc-booking');
+    expect(rejected.issues).toEqual([
+      { path: '#b', message: 'tag b is missing' },
+    ]);
+
+    expect(validate(checking, { kind: 'note', tags: ['a'] }).ok).toBe(false);
+    expect(checked).toBe(2);
   });
 });
 

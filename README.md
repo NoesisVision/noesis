@@ -217,7 +217,7 @@ register and nothing to authenticate against (decision D1).
 ### Working with contracts
 
 1. Add/edit a zod schema in the owning feature's `server/backend/src/app/<feature>/model/`: describe every field and keep it declarative.
-2. A route that writes the file passes its schema to `sValidator` and is done. A file with whole-document rules a schema cannot express gets a contract in `server/backend/src/app/validation/contracts/` (schema + `check`), run by `validate` at the write boundary — that is how the MCP tools check a design document.
+2. A route that writes the file passes its schema to `sValidator` and is done. A file with whole-document rules a schema cannot express gets a contract in `server/backend/src/app/validation/contracts/` (schema + `check`), run by `validate` at the write boundary. No file has one today; the design document gets one when a tool authors it.
 3. Nothing to regenerate or commit: the plugin copies the sources into `contracts/` on `bun run build` and on pack, and its tests assert the copy matches.
 
 ### Using the Claude Code plugin

@@ -41,8 +41,7 @@ export function valueAtModelPath(
 
 /**
  * Rebuilt per call; callers resolving many refs should build it once and pass
- * it in. A duplicate id resolves to the first in document order; the integrity
- * check reports the collision.
+ * it in. A duplicate id resolves to the first in document order.
  */
 export function elementIndex(document: DesignDocument): Map<string, ModelPath> {
   const index = new Map<string, ModelPath>();

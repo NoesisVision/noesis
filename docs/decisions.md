@@ -266,8 +266,11 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   a body that does not fit never reaches the handler; the answer is
   `400 {error:'invalid_body', issues}` from the package's `flattenErrors`.
   The service-side `validate` is for what a schema cannot say — a
-  whole-document `check`. `design-document` has one (its integrity pass),
-  run on the MCP side, where it owes the agent a report. `document` needs
+  whole-document `check`. `design-document` needs one (its integrity pass),
+  run on the MCP side, where it owes the agent a report; the pass and its
+  file contract were removed while no tool authors one and come back with
+  that tool.
+  `document` needs
   none, so it has no file contract and its tool passes `CreateDocumentSchema`
   alone: its id is the title as a slug, and the schema's title pattern
   (`DocumentId.TITLE_PATTERN`, an ASCII letter or digit) guarantees the slug
@@ -370,8 +373,9 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   `{kind:'slot', ownerId, path}`); there is no string form. A use case and a
   behaviour are separate types naming each other; an application service is a
   building block of type `application_service`. Referential integrity is a
-  separate whole-document pass (`checkDesignDocument`), since zod validates one
-  object at a time.
+  separate whole-document pass, since zod validates one object at a time; the
+  pass (`checkDesignDocument`) was removed while no tool authors a design
+  document and comes back with that tool.
 - **`DesignDocument` is the interchange format and the validated write
   boundary.** Every write is whole-document replacement, written as a file.
   There is no server-side edit path; an editor is a new decision.
