@@ -15,6 +15,7 @@
     "test:e2e": "bun run --filter '*' test:e2e",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "fix": "bun run lint:fix && bun run format && knip --fix",
     "check-types": "tsc --noEmit && bun run --filter '*' check-types",
     "generate": "bun run --filter '*' generate",
     "prepare": "git config core.hooksPath .githooks || true",
