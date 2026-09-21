@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '#backend/app/changes/model/change';
+import type { Change } from '#backend/app/changes/change';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -24,6 +25,48 @@ const post = (body: unknown) =>
   });
 
 describe('ui changes routes', () => {
+  it('returns an empty navigation list when there are no changes', async () => {
+    const response = await app.request('/navigation');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ changes: [] });
+  });
+
+  it('lists each change with its design documents, scoped to it', async () => {
+    const older = await t.createChange('older', { name: 'Older change' });
+    await t.createChange('newer', {
+      name: 'Newer change',
+      created_at: '2026-09-14T00:00:00.000Z',
+    });
+    const document = await t.designDocsService.create(older, designDocFixture);
+
+    const response = await app.request('/navigation');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      changes: [
+        {
+          slug: 'newer',
+          name: 'Newer change',
+          key: '',
+          type: 'chore',
+          status: 'discovery',
+          created_at: '2026-09-14T00:00:00.000Z',
+          description: '',
+          designDocs: [],
+        },
+        {
+          slug: 'older',
+          name: 'Older change',
+          key: '',
+          type: 'chore',
+          status: 'discovery',
+          created_at: '2026-09-13T00:00:00.000Z',
+          description: '',
+          designDocs: [{ id: document.id, name: document.name }],
+        },
+      ],
+    });
+  });
+
   it('creates a change from its name, writes its data.json and lists it', async () => {
     const created = await post({
       name: 'Payment retry',

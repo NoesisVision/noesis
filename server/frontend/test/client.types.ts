@@ -1,4 +1,4 @@
-import type { api } from '../src/api/client';
+import type { api } from '../src/shared/api/client';
 
 // Compile-only checks for request and unwrapped success types.
 export async function checkJsonClient(client: typeof api) {

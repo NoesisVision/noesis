@@ -1,7 +1,7 @@
 import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
+import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import { type Change, ChangeSchema } from '#backend/app/changes/model/change';
 import { logged } from '../tool-handler';
 import { success } from '../tool-result';
 import { CREATE_CHANGE } from './create-change.tool';

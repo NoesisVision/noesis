@@ -1,7 +1,12 @@
-import type { Change, CreateChange } from '#backend/app/changes/model/change';
+import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import { Serial } from '#backend/app/serial';
+import type { Change, CreateChange } from './change';
 import { ChangeSlug } from './change-slug';
 import type { ChangesRepository } from './changes.repository';
+
+export interface ChangeNavigationItem extends Change {
+  designDocs: { id: string; name: string }[];
+}
 
 export class ChangeNotFoundError extends Error {
   readonly slug: ChangeSlug;
@@ -33,10 +38,12 @@ export class DuplicateChangeError extends Error {
 
 export class ChangesService {
   private readonly changes: ChangesRepository;
+  private readonly designDocs: DesignDocsRepository;
   private readonly writes = new Serial();
 
-  constructor(changes: ChangesRepository) {
+  constructor(changes: ChangesRepository, designDocs: DesignDocsRepository) {
     this.changes = changes;
+    this.designDocs = designDocs;
   }
 
   async list(): Promise<Change[]> {
@@ -52,6 +59,20 @@ export class ChangesService {
     const found = await this.changes.read(slug);
     if (found === null) throw new ChangeNotFoundError(slug);
     return found;
+  }
+
+  /** What the sidebar renders: every change, each naming the documents under it. */
+  async listNavigation(): Promise<ChangeNavigationItem[]> {
+    const changes = await this.list();
+    return Promise.all(changes.map((change) => this.withDesignDocs(change)));
+  }
+
+  private async withDesignDocs(change: Change): Promise<ChangeNavigationItem> {
+    const designDocs = await Array.fromAsync(
+      this.designDocs.values(ChangeSlug.parse(change.slug)),
+      ({ id, name }) => ({ id, name }),
+    );
+    return { ...change, designDocs: designDocs.sort(byName) };
   }
 
   /** Check and write run as one step, so parallel creates cannot both pass the check. */
@@ -97,4 +118,11 @@ export class ChangesService {
       throw new ChangeNotFoundError(slug);
     }
   }
+}
+
+function byName(
+  a: { id: string; name: string },
+  b: { id: string; name: string },
+): number {
+  return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
 }

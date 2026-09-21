@@ -1,7 +1,7 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import type { DesignDocument } from './design-doc';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 export interface DesignDocSummary {

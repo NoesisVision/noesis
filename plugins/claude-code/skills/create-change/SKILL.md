@@ -12,9 +12,9 @@ service derives the slug, starts the change in `discovery`, stamps
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/changes/model/change.ts`. Read it
-  now, not from memory. `CreateChangeSchema` is what you send; `ChangeSchema`
-  is what comes back.
+- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/create-change.schema.json` is what
+  you send; `change.schema.json` beside it is what comes back. Both are JSON
+  Schema. Read them now, not from memory.
 
 ## Steps
 

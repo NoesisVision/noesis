@@ -7,7 +7,7 @@ import {
   findUnits,
   typeOf,
 } from '#backend/adapters/scanner/typescript-scanner';
-import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
+import { SystemModelSchema } from '#backend/app/system-model/system-model';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;

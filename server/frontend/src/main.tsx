@@ -2,12 +2,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MantineProvider } from '#/components/design-system/provider';
-import { colorSchemeManager, theme } from '#/components/design-system/theme';
-import { getContext } from '#/integrations/tanstack-query/root-provider';
-import { configureLogging } from '#/logging';
 import { getRouter } from '#/router';
-import '#/components/design-system/styles';
+import { MantineProvider } from '#/shared/design-system/provider';
+import { colorSchemeManager, theme } from '#/shared/design-system/theme';
+import { configureLogging } from '#/shared/logging.ts';
+import { getContext } from '#/shared/query/query-client.tsx';
+import '#/shared/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
 

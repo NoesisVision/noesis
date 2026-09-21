@@ -3,13 +3,13 @@ import { type Context, Hono } from 'hono';
 import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { CreateDocumentSchema } from '#backend/app/information-sources/document';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
   DocumentNotFoundError,
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { CreateDocumentSchema } from '#backend/app/information-sources/model/document';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;

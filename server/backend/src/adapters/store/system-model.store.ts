@@ -1,4 +1,4 @@
-import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
+import { SystemModelSchema } from '#backend/app/system-model/system-model';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
