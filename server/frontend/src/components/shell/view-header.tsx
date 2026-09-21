@@ -1,13 +1,13 @@
-import { useActiveRoute } from '#/components/core/use-active-route.ts';
 import { Box } from '#/components/design-system/box.tsx';
 import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';
 import { Title } from '#/components/design-system/title';
+import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 
 export function ViewHeader() {
-  const { activeRoute } = useActiveRoute();
-  const title = activeRoute?.label ?? 'Noesis';
-  const description = activeRoute?.description;
+  const { activeItem } = useActiveRoute();
+  const title = activeItem?.label ?? 'Noesis';
+  const description = activeItem?.description;
 
   return (
     <Stack gap="xs" mb="lg">

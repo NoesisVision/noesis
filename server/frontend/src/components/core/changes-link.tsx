@@ -5,8 +5,8 @@ import {
   Anchor,
   type AnchorProps,
 } from '#/components/design-system/anchor.tsx';
-import type { ChangeRoutePaths } from '#/routes/routes.ts';
 import type { FileRoutesByFullPath } from '#/routeTree.gen.ts';
+import type { ChangeRoutePaths } from '#/shared/routing/route-ids.ts';
 
 type ChangeParams<TTo extends ChangeRoutePaths> = Omit<
   FileRoutesByFullPath[TTo]['types']['allParams'],
@@ -17,7 +17,8 @@ type ChangesLinkProps = Omit<AnchorProps, 'component'> &
   PropsWithChildren &
   (
     | {
-        // biome-ignore lint/complexity/noBannedTypes: `{} extends T` is the test for "T has no required property", which decides whether `params` may be omitted.
+        // `{} extends T` tests whether T has any required property, which is
+        // what decides if `params` may be omitted.
         [TTo in ChangeRoutePaths]: { to: TTo } & ({} extends ChangeParams<TTo>
           ? { params?: ChangeParams<TTo> }
           : { params: ChangeParams<TTo> });

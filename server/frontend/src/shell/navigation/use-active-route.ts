@@ -1,7 +1,8 @@
 import { useMatches } from '@tanstack/react-router';
-import { APP_PUBLIC_ROUTES, type AppRouteIds } from '#/routes/routes.ts';
+import type { AppRouteIds } from '#/shared/routing/route-ids.ts';
+import { APP_PUBLIC_NAV } from './nav-items.ts';
 
-const allRoutes = Object.values(APP_PUBLIC_ROUTES).flat();
+const allItems = Object.values(APP_PUBLIC_NAV).flat();
 
 export function useActiveRoute() {
   const matches = useMatches();
@@ -11,13 +12,13 @@ export function useActiveRoute() {
   const isActive = (routeId: AppRouteIds, exact = false) =>
     exact ? leafId === routeId : activeIds.has(routeId);
 
-  const activeRoute = [...matches]
+  const activeItem = [...matches]
     .reverse()
-    .map((match) => allRoutes.find((route) => route.routeId === match.routeId))
-    .find((route) => route !== undefined);
+    .map((match) => allItems.find((item) => item.routeId === match.routeId))
+    .find((item) => item !== undefined);
 
   return {
     isActive,
-    activeRoute,
+    activeItem,
   };
 }

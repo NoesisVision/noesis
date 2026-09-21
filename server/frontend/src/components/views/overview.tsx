@@ -10,10 +10,10 @@ import { ViewHeader } from '#/components/shell/view-header';
 import { OverviewSection } from '#/components/views/overview/overview-section.tsx';
 import { OverviewStat } from '#/components/views/overview/overview-stat.tsx';
 import {
-  CONVERSATIONS_ROUTE,
-  DESIGN_DOCS_ROUTE,
-  DOCUMENTS_ROUTE,
-} from '#/routes/routes.ts';
+  CONVERSATIONS_NAV,
+  DESIGN_DOCS_NAV,
+  DOCUMENTS_NAV,
+} from '#/shell/navigation/nav-items.ts';
 
 export function OverviewView() {
   const { changeId } = useChangeId();
@@ -29,17 +29,17 @@ export function OverviewView() {
               <Grid>
                 <Grid.Col span={4}>
                   <OverviewStat title="Documents" Icon={IconFiles}>
-                    <ChangesLink to={DOCUMENTS_ROUTE.to}>0</ChangesLink>
+                    <ChangesLink to={DOCUMENTS_NAV.to}>0</ChangesLink>
                   </OverviewStat>
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <OverviewStat title="Conversations" Icon={IconMessages}>
-                    <ChangesLink to={CONVERSATIONS_ROUTE.to}>0</ChangesLink>
+                    <ChangesLink to={CONVERSATIONS_NAV.to}>0</ChangesLink>
                   </OverviewStat>
                 </Grid.Col>
                 <Grid.Col span={4}>
                   <OverviewStat title="Design Docs" Icon={IconPencilBolt}>
-                    <ChangesLink to={DESIGN_DOCS_ROUTE.to}>
+                    <ChangesLink to={DESIGN_DOCS_NAV.to}>
                       {designDocsListQuery.data?.length ?? 0}
                     </ChangesLink>
                   </OverviewStat>

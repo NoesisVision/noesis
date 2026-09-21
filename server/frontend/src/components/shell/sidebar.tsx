@@ -1,13 +1,17 @@
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
-import { useActiveRoute } from '#/components/core/use-active-route.ts';
 import { useChangeId } from '#/components/core/use-change-id.ts';
 import { AppShell } from '#/components/design-system/app-shell';
 import { Box } from '#/components/design-system/box';
 import { NavLink } from '#/components/design-system/nav-link';
 import { ScrollArea } from '#/components/design-system/scroll-area';
 import { Text } from '#/components/design-system/text';
-import { APP_PUBLIC_ROUTES, DESIGN_DOCS_ROUTE } from '#/routes/routes.ts';
+import {
+  APP_PUBLIC_NAV,
+  DESIGN_DOCS_NAV,
+  type NavItem,
+} from '#/shell/navigation/nav-items.ts';
+import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 import { ChangePicker } from './change-picker';
 import classes from './sidebar.module.css';
 
@@ -15,10 +19,8 @@ interface SidebarProps {
   onNavigate: () => void;
 }
 
-type ChangeRouteEntry = (typeof APP_PUBLIC_ROUTES.changes)[number];
-
 interface ChangeNavHeadingProps {
-  entry: ChangeRouteEntry;
+  entry: NavItem;
   params: { changeId: string };
   /** No change is open, or the group this heading owns is empty. */
   disabled: boolean;
@@ -82,9 +84,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         />
       </AppShell.Section>
       <AppShell.Section grow component={ScrollArea} px="xs">
-        {APP_PUBLIC_ROUTES.changes.map((entry) => {
+        {APP_PUBLIC_NAV.changes.map((entry) => {
           const params = { changeId: activeChange?.slug ?? '' };
-          if (entry.to !== DESIGN_DOCS_ROUTE.to) {
+          if (entry.to !== DESIGN_DOCS_NAV.to) {
             return (
               <ChangeNavHeading
                 key={entry.to}
@@ -145,7 +147,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             Documentation
           </Text>
         </Box>
-        {APP_PUBLIC_ROUTES.documentation.map((entry) => (
+        {APP_PUBLIC_NAV.documentation.map((entry) => (
           <NavLink
             key={entry.to}
             label={entry.label}
