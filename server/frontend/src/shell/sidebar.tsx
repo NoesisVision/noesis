@@ -1,12 +1,12 @@
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
-import { useChangeId } from '#/components/core/use-change-id.ts';
 import { AppShell } from '#/components/design-system/app-shell';
 import { Box } from '#/components/design-system/box';
 import { NavLink } from '#/components/design-system/nav-link';
 import { ScrollArea } from '#/components/design-system/scroll-area';
 import { Text } from '#/components/design-system/text';
-import { ChangePicker } from '#/components/shell/change-picker.tsx';
+import { useChangeId } from '#/features/changes/current-change.ts';
+import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
 import {
   APP_PUBLIC_NAV,
   DESIGN_DOCS_NAV,

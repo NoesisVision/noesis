@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { changesNavigationList } from '#/api/changes';
+import { changesNavigationList } from '#/features/changes/changes.api.ts';
 import { ShellLayout } from '#/shell/shell-layout.tsx';
 
 // The pathless layout every view lives under. The change list is loaded here

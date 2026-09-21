@@ -5,7 +5,7 @@ import { useDisclosure } from '#/components/design-system/hooks';
 import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';
 import { Title } from '#/components/design-system/title';
-import { NewChangeModal } from '#/components/shell/new-change-modal';
+import { NewChangeModal } from '#/features/changes/ui/new-change-modal.tsx';
 
 export function NoChangesView() {
   const [opened, modal] = useDisclosure(false);

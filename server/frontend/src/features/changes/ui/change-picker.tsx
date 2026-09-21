@@ -12,7 +12,7 @@ import {
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,
   changeSwatch,
-} from './change-status';
+} from '../changes.model.ts';
 import { NewChangeModal } from './new-change-modal';
 import classes from './change-picker.module.css';
 

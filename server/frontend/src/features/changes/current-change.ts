@@ -1,4 +1,15 @@
+import { useParams } from '@tanstack/react-router';
+
 const KEY = 'noesis.shell.lastChangeId';
+
+/**
+ * Which change is open. Off a change route there is no parameter, so the last
+ * opened one stands in and the change views keep working from `/wiki`.
+ */
+export function useChangeId() {
+  const { changeId } = useParams({ strict: false });
+  return { changeId: changeId ?? readLastChange() ?? null };
+}
 
 export function readLastChange(): string | null {
   try {

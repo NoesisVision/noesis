@@ -1,4 +1,3 @@
-import { DuplicateChangeError, useCreateChange } from '#/api/changes';
 import { Alert } from '#/components/design-system/alert';
 import { Button } from '#/components/design-system/button';
 import { useForm } from '#/components/design-system/form';
@@ -8,11 +7,15 @@ import { SegmentedControl } from '#/components/design-system/segmented-control';
 import { Stack } from '#/components/design-system/stack';
 import { TextInput } from '#/components/design-system/text-input';
 import {
+  DuplicateChangeError,
+  useCreateChange,
+} from '#/features/changes/changes.api.ts';
+import {
   CHANGE_KEY_PATTERN,
   CHANGE_TYPES,
   type CreateChange,
 } from '#backend/app/changes/model/change.ts';
-import { CHANGE_TYPE_META } from './change-status';
+import { CHANGE_TYPE_META } from '../changes.model.ts';
 
 interface NewChangeModalProps {
   opened: boolean;

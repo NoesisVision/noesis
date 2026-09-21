@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router';
 import type { PropsWithChildren } from 'react';
-import { useChangeId } from '#/components/core/use-change-id.ts';
 import {
   Anchor,
   type AnchorProps,
 } from '#/components/design-system/anchor.tsx';
+import { useChangeId } from '#/features/changes/current-change.ts';
 import type { FileRoutesByFullPath } from '#/routeTree.gen.ts';
 import type { ChangeRoutePaths } from '#/shared/routing/route-ids.ts';
 

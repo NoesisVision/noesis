@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { changesList } from '#/api/changes';
-import { readLastChange } from '#/components/core/last-change.ts';
-import { NoChangesView } from '#/components/views/no-changes';
+import { changesList } from '#/features/changes/changes.api.ts';
+import { readLastChange } from '#/features/changes/current-change.ts';
+import { NoChangesView } from '#/features/changes/ui/no-changes.tsx';
 
 // `/` lands on the last-opened change when it still exists, else the first
 // in the list; with no change at all it is the empty state.

@@ -6,7 +6,7 @@ import {
   changesList,
   createChange,
   DuplicateChangeError,
-} from '../src/api/changes';
+} from '../src/features/changes/changes.api';
 import { ApiError, api } from '../src/shared/api/client';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
