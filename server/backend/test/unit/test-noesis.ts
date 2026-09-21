@@ -41,8 +41,14 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
+  const designDocsRepository = new NoesisDesignDocsRepository(
+    changesRepository,
+  );
   const systemModels = createSystemModelStore(noesis);
-  const changesService = new ChangesService(changesRepository);
+  const changesService = new ChangesService(
+    changesRepository,
+    designDocsRepository,
+  );
   return {
     root,
     noesis,
@@ -51,7 +57,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     sources: { changes: changesRepository, systemModels },
     changesService,
     designDocsService: new DesignDocsService(
-      new NoesisDesignDocsRepository(changesRepository),
+      designDocsRepository,
       changesService,
     ),
     documentsService: new DocumentsService(

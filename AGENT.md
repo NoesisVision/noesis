@@ -71,8 +71,10 @@ Backend code reachable from `AppType` (routes, services, contracts) must be runt
 
 Client-only React SPA. Rules the linter enforces:
 
-- Route files export `Route` and nothing else; view components live in `src/components/`.
-- `@mantine/*` is private to `src/components/design-system/`; everything else imports from `#/components/design-system`.
+- Partitioned by domain, enforced by `boundaries`: `src/features/<domain>/` (`<domain>.api.ts`, `<domain>.model.ts`, `ui/`), `src/shell/` (chrome and navigation), `src/shared/` (client, design system, routing ids), `src/routes/` (wiring only).
+- The shell composes features; no feature imports the shell. A feature is reached through its `*.api.ts` / `*.model.ts`, never its `ui/` — inside a feature, import siblings relatively; `#/` means crossing a module.
+- Route files export `Route` and nothing else, with a **literal** route id (`tsr generate` rejects an imported constant); the typed ids live in `src/shared/routing/route-ids.ts`.
+- `@mantine/*` is private to `src/shared/design-system/`; everything else imports from `#/shared/design-system`.
 - Backend imports are **type-only** via `#backend/*` (`AppType`, contract types); never backend runtime code.
 - `tsconfig.app.json` has no Bun/Node globals on purpose; tests use `tsconfig.test.json`.
 

@@ -1,0 +1,119 @@
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+  font-weight: 600;
+  transition: background-color 0.1s ease-in-out;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-brand-0),
+      var(--mantine-color-dark-5)
+    );
+  }
+
+  &[data-active],
+  &[aria-current='page'] {
+    &,
+    &:hover {
+      background-color: var(--mantine-color-brand-9);
+      color: var(--mantine-color-brand-0);
+    }
+  }
+
+  /* A group with nothing in it, or no change open: a label, not a target. */
+  &[data-inert] {
+    &,
+    &:hover {
+      color: var(--mantine-color-dimmed);
+      background-color: transparent;
+      cursor: default;
+    }
+  }
+}
+
+/*
+ * The items of a group hang off a rail that starts under their heading's icon,
+ * so a nested link reads as belonging to the view above it. Each item draws
+ * its own segment of that rail, which is what lets the last one stop halfway.
+ */
+.subGroup {
+  --rail-x: calc(-1 * var(--mantine-spacing-sm));
+  --rail-color: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+
+  margin-left: calc(var(--mantine-spacing-sm) + 11px);
+  padding-left: var(--mantine-spacing-sm);
+}
+
+.subLink {
+  position: relative;
+  padding-left: 23px;
+  font-weight: var(--mantine-font-weight-regular);
+
+  /* This row's length of rail; it stays neutral whichever row is open. */
+  &::before {
+    content: '';
+    position: absolute;
+    left: var(--rail-x);
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    transform: translateX(-50%);
+    border-radius: 1px;
+    background-color: var(--rail-color);
+  }
+
+  /* The row's own mark on the rail, level with its label. */
+  &::after {
+    content: '';
+    position: absolute;
+    left: var(--rail-x);
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background-color: var(--rail-color);
+    transition: background-color 0.1s ease-in-out;
+  }
+
+  /* Nothing hangs below the last item, so its rail ends on its dot. */
+  &:last-child::before {
+    bottom: 50%;
+  }
+
+  /*
+   * A child of an already lit heading, so the open row is marked rather than
+   * filled: the dot carries it, the row itself only tints and takes the
+   * brand's text colour. The rail never changes.
+   */
+  &[data-active],
+  &[aria-current='page'] {
+    &,
+    &:hover {
+      background-color: light-dark(
+        var(--mantine-color-brand-0),
+        var(--mantine-color-dark-6)
+      );
+      color: light-dark(
+        var(--mantine-color-brand-9),
+        var(--mantine-color-brand-2)
+      );
+    }
+
+    &::after {
+      background-color: light-dark(
+        var(--mantine-color-brand-9),
+        var(--mantine-color-brand-4)
+      );
+    }
+  }
+}

@@ -59,7 +59,11 @@ await session.open();
 log.info('session scratch directory {path}', { path: session.path });
 
 const changesRepository = new NoesisChangesRepository(noesis);
-const changesService = new ChangesService(changesRepository);
+const designDocsRepository = new NoesisDesignDocsRepository(changesRepository);
+const changesService = new ChangesService(
+  changesRepository,
+  designDocsRepository,
+);
 const documentsService = new DocumentsService(
   new NoesisDocumentsRepository(changesRepository),
   changesService,
@@ -143,7 +147,7 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
     searchService: new SearchService([createGraphSearch(db)]),
     changesService,
     designDocsService: new DesignDocsService(
-      new NoesisDesignDocsRepository(changesRepository),
+      designDocsRepository,
       changesService,
     ),
     documentsService,

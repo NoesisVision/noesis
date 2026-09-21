@@ -48,6 +48,10 @@ export function createChangesApp(deps: ChangesDeps) {
       },
     )
 
+    .get('/navigation', async (c) => {
+      return c.json({ changes: await changesService.listNavigation() });
+    })
+
     .get('/:id', async (c) => {
       const slug = ChangeSlug.tryParse(c.req.param('id'));
       if (slug === null) return c.json({ error: 'change_not_found' }, 404);

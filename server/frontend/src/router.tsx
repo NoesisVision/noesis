@@ -1,6 +1,6 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
-import type { RouterContext } from '#/integrations/tanstack-query/root-provider';
 import { routeTree } from '#/routeTree.gen';
+import type { RouterContext } from '#/shared/query/query-client.tsx';
 
 // The caller shares the context with the QueryClientProvider so loaders and
 // components read one QueryClient.

@@ -1,0 +1,27 @@
+import { IconPlus } from '@tabler/icons-react';
+import { Button } from '#/shared/design-system/button';
+import { Center } from '#/shared/design-system/center';
+import { useDisclosure } from '#/shared/design-system/hooks';
+import { Stack } from '#/shared/design-system/stack';
+import { Text } from '#/shared/design-system/text';
+import { Title } from '#/shared/design-system/title';
+import { NewChangeModal } from './new-change-modal.tsx';
+
+export function NoChangesView() {
+  const [opened, modal] = useDisclosure(false);
+  return (
+    <Center mih="60vh">
+      <Stack align="center" gap="sm" maw={420} ta="center">
+        <Title order={2}>No changes yet</Title>
+        <Text c="dimmed">
+          A change is the unit of work Noesis tracks: imported documents and
+          design documents all hang under one. Create the first to get started.
+        </Text>
+        <Button leftSection={<IconPlus size={16} />} onClick={modal.open}>
+          Create your first change
+        </Button>
+        <NewChangeModal opened={opened} onClose={modal.close} />
+      </Stack>
+    </Center>
+  );
+}

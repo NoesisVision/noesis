@@ -17,7 +17,11 @@
     // The backend's layers. A file belongs to the first
     // element whose folder contains it; `root` catches what is directly in
     // `src/` — the composition root.
-    "boundaries/include": ["server/backend/src/**/*.ts"],
+    "boundaries/include": [
+      "server/backend/src/**/*.ts",
+      "server/frontend/src/**/*.ts",
+      "server/frontend/src/**/*.tsx"
+    ],
     "boundaries/elements": [
       {
         "type": "platform",
@@ -39,7 +43,34 @@
         "pattern": "server/backend/src/ui/**",
         "partialMatch": false
       },
-      { "type": "root", "pattern": "server/backend/src" }
+      { "type": "root", "pattern": "server/backend/src" },
+      {
+        "type": "feature-ui",
+        "pattern": "server/frontend/src/features/*/ui/**",
+        "capture": ["feature"],
+        "partialMatch": false
+      },
+      {
+        "type": "feature-api",
+        "pattern": "server/frontend/src/features/*",
+        "capture": ["feature"]
+      },
+      {
+        "type": "fe-shell",
+        "pattern": "server/frontend/src/shell/**",
+        "partialMatch": false
+      },
+      {
+        "type": "fe-shared",
+        "pattern": "server/frontend/src/shared/**",
+        "partialMatch": false
+      },
+      {
+        "type": "fe-routes",
+        "pattern": "server/frontend/src/routes/**",
+        "partialMatch": false
+      },
+      { "type": "fe-root", "pattern": "server/frontend/src" }
     ],
     "import/resolver": {
       "oxc": { "tsconfig": { "configFile": "./server/backend/tsconfig.json" } }
@@ -91,6 +122,93 @@
               }
             }
           },
+          // The frontend reads the backend's model and route types only.
+          // `fe-root` is where the generated route tree sits, so anything
+          // typed against routes imports it.
+          {
+            "from": {
+              "element": {
+                "type": [
+                  "feature-api",
+                  "feature-ui",
+                  "fe-shell",
+                  "fe-shared",
+                  "fe-routes",
+                  "fe-root"
+                ]
+              }
+            },
+            "allow": {
+              "to": { "element": { "type": ["app", "root", "fe-root"] } }
+            }
+          },
+          // shared is the kernel: the client, the design system, routing ids.
+          {
+            "from": { "element": { "type": "fe-shared" } },
+            "allow": { "to": { "element": { "type": "fe-shared" } } }
+          },
+          // A feature's data access sees the kernel and its own module.
+          {
+            "from": { "element": { "type": "feature-api" } },
+            "allow": {
+              "to": {
+                "element": [
+                  { "type": "fe-shared" },
+                  { "type": "feature-api" },
+                  {
+                    "type": "feature-ui",
+                    "capture": { "feature": "{{from.feature}}" }
+                  }
+                ]
+              }
+            }
+          },
+          // A feature's components see the kernel, any feature's api, and
+          // their own feature's components — never another feature's ui.
+          {
+            "from": { "element": { "type": "feature-ui" } },
+            "allow": {
+              "to": {
+                "element": [
+                  { "type": "fe-shared" },
+                  { "type": "feature-api" },
+                  {
+                    "type": "feature-ui",
+                    "capture": { "feature": "{{from.feature}}" }
+                  }
+                ]
+              }
+            }
+          },
+          // The shell composes features; no feature may look back at it.
+          {
+            "from": { "element": { "type": "fe-shell" } },
+            "allow": {
+              "to": {
+                "element": {
+                  "type": ["fe-shell", "fe-shared", "feature-api", "feature-ui"]
+                }
+              }
+            }
+          },
+          // Route files are the wiring: they may reach anything.
+          {
+            "from": { "element": { "type": ["fe-routes", "fe-root"] } },
+            "allow": {
+              "to": {
+                "element": {
+                  "type": [
+                    "fe-routes",
+                    "fe-root",
+                    "fe-shell",
+                    "fe-shared",
+                    "feature-api",
+                    "feature-ui"
+                  ]
+                }
+              }
+            }
+          },
           // Only the composition root wires everything; nothing imports it.
           {
             "from": { "element": { "type": "root" } },
@@ -121,7 +239,7 @@
             "patterns": [
               {
                 "group": ["@mantine/*"],
-                "message": "Import from #/components/design-system instead. Mantine is private to the design system."
+                "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
               }
             ]
           }
@@ -138,11 +256,37 @@
       }
     },
     {
-      // The design system wraps Mantine; types/ extends its theme types.
-      "files": [
-        "server/frontend/src/components/design-system/**",
-        "server/frontend/src/types/**"
-      ],
+      // A feature's own files are siblings, reached relatively; the `#/`
+      // alias means crossing into another module, and only a feature's api
+      // may be crossed into. `boundaries` states the same rule but cannot
+      // compare captured values through oxlint's plugin bridge, so the
+      // cross-feature case is enforced here.
+      "files": ["server/frontend/src/features/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@mantine/*"],
+                "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
+              },
+              {
+                "group": ["#/features/*/ui/**"],
+                "message": "A feature's components are private to it: import its `*.api.ts` or `*.model.ts` instead, and its own files relatively."
+              },
+              {
+                "group": ["#/shell/**"],
+                "message": "Features must not depend on the shell; the shell composes them."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // The design system wraps Mantine, theme augmentation included.
+      "files": ["server/frontend/src/shared/design-system/**"],
       "rules": { "no-restricted-imports": "off" }
     },
     {
