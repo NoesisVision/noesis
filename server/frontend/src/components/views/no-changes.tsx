@@ -14,7 +14,7 @@ export function NoChangesView() {
       <Stack align="center" gap="sm" maw={420} ta="center">
         <Title order={2}>No changes yet</Title>
         <Text c="dimmed">
-          A change is the unit of work Noesis tracks: imports, conversations and
+          A change is the unit of work Noesis tracks: imported documents and
           design documents all hang under one. Create the first to get started.
         </Text>
         <Button leftSection={<IconPlus size={16} />} onClick={modal.open}>
