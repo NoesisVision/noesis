@@ -1,5 +1,4 @@
 import {
-  IconBook,
   IconFiles,
   IconLayoutDashboard,
   IconPencilBolt,
@@ -13,7 +12,6 @@ import {
   DOCUMENTS_ROUTE_ID,
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
-  WIKI_ROUTE_ID,
 } from '#/shared/routing/route-ids.ts';
 
 interface IconProps {
@@ -67,16 +65,8 @@ const SYSTEM_MODEL_NAV = {
   icon: IconTopologyStar3,
 } satisfies NavItem;
 
-const WIKI_NAV = {
-  to: '/wiki',
-  routeId: WIKI_ROUTE_ID,
-  label: 'Wiki',
-  description: 'Topics and decisions',
-  icon: IconBook,
-} satisfies NavItem;
-
 /** The two groups the sidebar renders, in the order it renders them. */
 export const APP_PUBLIC_NAV = {
   changes: [OVERVIEW_NAV, DOCUMENTS_NAV, DESIGN_DOCS_NAV],
-  documentation: [SYSTEM_MODEL_NAV, WIKI_NAV],
+  documentation: [SYSTEM_MODEL_NAV],
 } satisfies { changes: NavItem[]; documentation: NavItem[] };

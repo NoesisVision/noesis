@@ -40,7 +40,7 @@ src/
     changes/                # the aggregate root: changes.api.ts, changes.model.ts,
                             #   current-change.ts, ui/ (picker, modal, Overview, empty states)
     design-docs/            # design-docs.api.ts, ui/ (list, detail, document content)
-    documents/  system-model/  wiki/
+    documents/  system-model/
   shell/                    # the chrome: layout, header, sidebar, view header
     navigation/             # the nav items the shell names views with, and useActiveRoute
   shared/                   # the kernel every feature uses and none owns
@@ -65,7 +65,7 @@ The frontend is partitioned by domain, not by layer, and Oxlint's
 The shell is change-scoped (decision D5): the sidebar's picker names the
 current change, the entries under it are that change's views — Design docs
 listing the change's documents beneath it — and the pinned documentation
-zone holds the change-independent ones. `/` lands on the last-opened change
+zone holds the change-independent System model. `/` lands on the last-opened change
 (`localStorage` `noesis.shell.lastChangeId`), the first one, or the empty
 state. The shell renders the view header once, above the outlet.
 

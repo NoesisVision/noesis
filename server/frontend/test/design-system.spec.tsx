@@ -10,8 +10,12 @@ import { TextInput } from '../src/shared/design-system/text-input';
 it('preserves polymorphic props, refs, and Mantine styling', () => {
   const html = renderToStaticMarkup(
     <MantineProvider>
-      <Button component="a" href="/wiki" ref={createRef<HTMLAnchorElement>()}>
-        Wiki
+      <Button
+        component="a"
+        href="/system-model"
+        ref={createRef<HTMLAnchorElement>()}
+      >
+        System model
       </Button>
       <TextInput
         label="Name"
@@ -20,7 +24,7 @@ it('preserves polymorphic props, refs, and Mantine styling', () => {
       />
     </MantineProvider>,
   );
-  expect(html).toContain('href="/wiki"');
+  expect(html).toContain('href="/system-model"');
   expect(html).toContain('mantine-Button-root');
   expect(html).toContain('value="Retry"');
 });

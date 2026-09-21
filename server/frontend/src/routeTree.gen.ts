@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as ShellSystemModelRouteImport } from './routes/_shell/system-model'
-import { Route as ShellWikiRouteImport } from './routes/_shell/wiki'
 import { Route as ShellChangesChangeIdRouteImport } from './routes/_shell/changes/$changeId'
 import { Route as ShellChangesChangeIdIndexRouteImport } from './routes/_shell/changes/$changeId/index'
 import { Route as ShellChangesChangeIdDesignDocsRouteImport } from './routes/_shell/changes/$changeId/design-docs'
@@ -32,11 +31,6 @@ const ShellIndexRoute = ShellIndexRouteImport.update({
 const ShellSystemModelRoute = ShellSystemModelRouteImport.update({
   id: '/system-model',
   path: '/system-model',
-  getParentRoute: () => ShellRoute,
-} as any)
-const ShellWikiRoute = ShellWikiRouteImport.update({
-  id: '/wiki',
-  path: '/wiki',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellChangesChangeIdRoute = ShellChangesChangeIdRouteImport.update({
@@ -78,7 +72,6 @@ const ShellChangesChangeIdDesignDocsDocIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
   '/system-model': typeof ShellSystemModelRoute
-  '/wiki': typeof ShellWikiRoute
   '/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
   '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRouteWithChildren
   '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute
@@ -88,7 +81,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/system-model': typeof ShellSystemModelRoute
-  '/wiki': typeof ShellWikiRoute
   '/': typeof ShellIndexRoute
   '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRoute
   '/changes/$changeId': typeof ShellChangesChangeIdIndexRoute
@@ -99,7 +91,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shell': typeof ShellRouteWithChildren
   '/_shell/system-model': typeof ShellSystemModelRoute
-  '/_shell/wiki': typeof ShellWikiRoute
   '/_shell/': typeof ShellIndexRoute
   '/_shell/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
   '/_shell/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRouteWithChildren
@@ -113,7 +104,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/system-model'
-    | '/wiki'
     | '/changes/$changeId'
     | '/changes/$changeId/design-docs'
     | '/changes/$changeId/documents'
@@ -123,7 +113,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/system-model'
-    | '/wiki'
     | '/'
     | '/changes/$changeId/documents'
     | '/changes/$changeId'
@@ -133,7 +122,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_shell'
     | '/_shell/system-model'
-    | '/_shell/wiki'
     | '/_shell/'
     | '/_shell/changes/$changeId'
     | '/_shell/changes/$changeId/design-docs'
@@ -168,13 +156,6 @@ declare module '@tanstack/react-router' {
       path: '/system-model'
       fullPath: '/system-model'
       preLoaderRoute: typeof ShellSystemModelRouteImport
-      parentRoute: typeof ShellRoute
-    }
-    '/_shell/wiki': {
-      id: '/_shell/wiki'
-      path: '/wiki'
-      fullPath: '/wiki'
-      preLoaderRoute: typeof ShellWikiRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/changes/$changeId': {
@@ -258,14 +239,12 @@ const ShellChangesChangeIdRouteWithChildren =
 
 interface ShellRouteChildren {
   ShellSystemModelRoute: typeof ShellSystemModelRoute
-  ShellWikiRoute: typeof ShellWikiRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellChangesChangeIdRoute: typeof ShellChangesChangeIdRouteWithChildren
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
   ShellSystemModelRoute: ShellSystemModelRoute,
-  ShellWikiRoute: ShellWikiRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellChangesChangeIdRoute: ShellChangesChangeIdRouteWithChildren,
 }

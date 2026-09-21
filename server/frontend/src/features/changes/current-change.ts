@@ -4,7 +4,8 @@ const KEY = 'noesis.shell.lastChangeId';
 
 /**
  * Which change is open. Off a change route there is no parameter, so the last
- * opened one stands in and the change views keep working from `/wiki`.
+ * opened one stands in and the change views keep working from
+ * `/system-model`.
  */
 export function useChangeId() {
   const { changeId } = useParams({ strict: false });
