@@ -37,8 +37,8 @@ The service exposes three MCP tools: `create_change`, `list_changes` and
 a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
-anything: a file that does not fit comes back as an issue list — path,
-expected versus found, a one-line fix — to correct and call again.
+anything: a file that does not fit comes back as an issue list — path
+and message — to correct and call again.
 
 ## What's inside
 

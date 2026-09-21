@@ -1,15 +1,10 @@
 import type { ZodType, z } from 'zod';
 
-/**
- * Written to be acted on (decision D3): the agent edits the working file in
- * place from it instead of regenerating it.
- */
+/** Decision D3: what a rejected write answers with, in-band. */
 export interface ValidationIssue {
   /** JSONPath (`$.useCases[0].name`), or an element id (`#svc-booking`) for integrity issues. */
   path: string;
-  expected: string;
-  found: string;
-  fix: string;
+  message: string;
 }
 
 export type ValidationReport<T = unknown> =
@@ -32,7 +27,7 @@ export function validate<T>(
 ): ValidationReport<T> {
   const parsed = contract.schema.safeParse(raw);
   if (!parsed.success) {
-    return capped(parsed.error.issues.flatMap((i) => fromZodIssue(i, raw)));
+    return capped(parsed.error.issues.map(fromZodIssue));
   }
   const issues = contract.check?.(parsed.data) ?? [];
   if (issues.length > 0) return capped(issues);
@@ -55,10 +50,9 @@ export function formatReport(
       : ''
   }.`;
   const body = report.issues.map(
-    (issue, i) =>
-      `${i + 1}. ${issue.path}\n   expected: ${issue.expected}\n   found:    ${issue.found}\n   fix:      ${issue.fix}`,
+    (issue, i) => `${i + 1}. ${issue.path}: ${issue.message}`,
   );
-  return [head, ...body].join('\n\n');
+  return [head, ...body].join('\n');
 }
 
 function capped(issues: ValidationIssue[]): ValidationReport<never> {
@@ -69,80 +63,8 @@ function capped(issues: ValidationIssue[]): ValidationReport<never> {
   };
 }
 
-function fromZodIssue(
-  issue: z.core.$ZodIssue,
-  raw: unknown,
-): ValidationIssue[] {
-  const path = jsonPath(issue.path);
-  const value = valueAt(raw, issue.path);
-  const found = describe(value);
-
-  switch (issue.code) {
-    case 'invalid_type':
-      return [
-        {
-          path,
-          expected: issue.expected,
-          found,
-          fix:
-            value === undefined
-              ? `Add "${path}" as ${anOf(issue.expected)}`
-              : `Replace "${path}" with ${anOf(issue.expected)}`,
-        },
-      ];
-    case 'invalid_value':
-      return [
-        {
-          path,
-          expected: `one of ${issue.values.map((v) => JSON.stringify(v)).join(', ')}`,
-          found,
-          fix: `Set "${path}" to one of the listed values`,
-        },
-      ];
-    case 'unrecognized_keys':
-      return issue.keys.map((key) => ({
-        path: jsonPath([...issue.path, key]),
-        expected: 'no such field',
-        found: 'a field the contract does not declare',
-        fix: `Remove "${jsonPath([...issue.path, key])}"`,
-      }));
-    case 'too_small':
-      return [
-        {
-          path,
-          expected: `${issue.origin} of at least ${issue.minimum}`,
-          found,
-          fix: `Extend "${path}" to at least ${issue.minimum}`,
-        },
-      ];
-    case 'too_big':
-      return [
-        {
-          path,
-          expected: `${issue.origin} of at most ${issue.maximum}`,
-          found,
-          fix: `Shorten "${path}" to at most ${issue.maximum}`,
-        },
-      ];
-    case 'invalid_union':
-      return [
-        {
-          path,
-          expected: 'a value matching one of the alternatives at this position',
-          found,
-          fix: `Rewrite "${path}" to match exactly one alternative in the contract`,
-        },
-      ];
-    default:
-      return [
-        {
-          path,
-          expected: issue.message,
-          found,
-          fix: `Correct "${path}": ${issue.message}`,
-        },
-      ];
-  }
+function fromZodIssue(issue: z.core.$ZodIssue): ValidationIssue {
+  return { path: jsonPath(issue.path), message: issue.message };
 }
 
 function jsonPath(segments: readonly PropertyKey[]): string {
@@ -153,40 +75,4 @@ function jsonPath(segments: readonly PropertyKey[]): string {
         : `${acc}.${String(segment)}`,
     '$',
   );
-}
-
-function valueAt(raw: unknown, segments: readonly PropertyKey[]): unknown {
-  let current = raw;
-  for (const segment of segments) {
-    if (current === null || typeof current !== 'object') return undefined;
-    current = (current as Record<PropertyKey, unknown>)[segment];
-  }
-  return current;
-}
-
-const PREVIEW_LENGTH = 60;
-
-function describe(value: unknown): string {
-  if (value === undefined) return 'nothing (the field is missing)';
-  if (value === null) return 'null';
-  if (Array.isArray(value)) return `an array of ${value.length}`;
-  if (typeof value === 'object') {
-    const keys = Object.keys(value);
-    const shown = keys.slice(0, 5).join(', ');
-    return `an object with keys ${shown}${keys.length > 5 ? ', …' : ''}`;
-  }
-  if (typeof value === 'string') {
-    const quoted = JSON.stringify(value);
-    return quoted.length > PREVIEW_LENGTH
-      ? `${quoted.slice(0, PREVIEW_LENGTH)}…" (${value.length} chars)`
-      : quoted;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return `${value} (${typeof value})`;
-  }
-  return typeof value;
-}
-
-function anOf(noun: string): string {
-  return /^[aeiou]/i.test(noun) ? `an ${noun}` : `a ${noun}`;
 }

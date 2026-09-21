@@ -31,55 +31,27 @@ describe('validate', () => {
     });
   });
 
-  it('names a missing field with an "add" fix', () => {
+  it("names a missing field by its JSON path, with zod's message", () => {
     const report = validate(contract, { kind: 'note', tags: ['a'] });
     expect(report.ok).toBe(false);
     expect(report.issues).toEqual([
       {
         path: '$.name',
-        expected: 'string',
-        found: 'nothing (the field is missing)',
-        fix: 'Add "$.name" as a string',
+        message: 'Invalid input: expected string, received undefined',
       },
     ]);
   });
 
-  it('names a wrong type with what it found and a "replace" fix', () => {
-    const report = validate(contract, { ...valid, name: 42 });
-    expect(report.issues).toEqual([
-      {
-        path: '$.name',
-        expected: 'string',
-        found: '42 (number)',
-        fix: 'Replace "$.name" with a string',
-      },
-    ]);
-  });
-
-  it('lists the allowed values for an enum', () => {
-    const [issue] = validate(contract, { ...valid, kind: 'memo' }).issues;
-    expect(issue?.path).toBe('$.kind');
-    expect(issue?.expected).toBe('one of "note", "task"');
-    expect(issue?.found).toBe('"memo"');
-  });
-
-  it('turns each unrecognised key into its own "remove" issue', () => {
+  it('reports unrecognised keys at the object that holds them', () => {
     const report = validate(contract, { ...valid, extra: 1, more: 2 });
-    expect(report.issues.map((i) => i.fix)).toEqual([
-      'Remove "$.extra"',
-      'Remove "$.more"',
+    expect(report.issues).toEqual([
+      { path: '$', message: 'Unrecognized keys: "extra", "more"' },
     ]);
   });
 
   it('addresses array elements by index', () => {
     const [issue] = validate(contract, { ...valid, tags: ['a', 7] }).issues;
     expect(issue?.path).toBe('$.tags[1]');
-  });
-
-  it('describes a too-small array', () => {
-    const [issue] = validate(contract, { ...valid, tags: [] }).issues;
-    expect(issue?.expected).toBe('array of at least 1');
-    expect(issue?.found).toBe('an array of 0');
   });
 
   it('caps the list and counts the rest', () => {
@@ -103,9 +75,7 @@ describe('validate', () => {
     expect(rejected.ok).toBe(false);
     const [issue] = rejected.issues;
     expect(issue?.path.startsWith('#')).toBe(true);
-    expect(issue?.expected).toBe('no unresolved reference');
-    expect(issue?.found).toContain('svc-booking');
-    expect(issue?.fix).toContain('add the missing element');
+    expect(issue?.message).toContain('svc-booking');
   });
 });
 
@@ -116,7 +86,7 @@ describe('formatReport', () => {
     );
   });
 
-  it('numbers the issues with path, expected, found and fix', () => {
+  it('numbers the issues with path and message', () => {
     const text = formatReport(
       'test',
       validate(contract, { kind: 'note', tags: ['a'] }),
@@ -124,8 +94,8 @@ describe('formatReport', () => {
     expect(text).toBe(
       [
         'Invalid test: 1 issue.',
-        '1. $.name\n   expected: string\n   found:    nothing (the field is missing)\n   fix:      Add "$.name" as a string',
-      ].join('\n\n'),
+        '1. $.name: Invalid input: expected string, received undefined',
+      ].join('\n'),
     );
   });
 

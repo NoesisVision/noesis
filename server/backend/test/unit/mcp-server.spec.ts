@@ -258,7 +258,6 @@ describe('add_document_to_change', () => {
     const text = textOf(result);
     expect(text).toContain('$.date');
     expect(text).toContain('$.content');
-    expect(text).toContain('fix:');
   });
 
   it('refuses a working file above the size limit without reading it', async () => {

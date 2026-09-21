@@ -59,9 +59,9 @@ from the title and stores it under the change.
 ## When the tool refuses
 
 - **The working file does not fit the contract.** Nothing was written. The
-  issue list gives the path, what was expected, what it found and a one-line
-  fix. Run the script again with the corrected `--title` or `--date` and call
-  the tool again.
+  issue list gives the path of each problem and what is wrong there. Run the
+  script again with the corrected `--title` or `--date` and call the tool
+  again.
 - **A document with that title exists in the change.** Tell the user and ask
   for a different title; do not pick one yourself. No tool updates a document
   yet.

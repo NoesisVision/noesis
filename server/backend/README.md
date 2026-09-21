@@ -35,7 +35,7 @@ own machine inside one checkout (decision D1).
   throwaway era probe answers) and passes the path. There is no separate
   validating tool: a tool that reads a working file checks it against its
   contract from `src/app/validation/contracts` and rejects it with the
-  actionable issue list, having written nothing (decision D3).
+  issue list, having written nothing (decision D3).
 - **HTTP** (`src/app.ts`): two Hono surfaces, `/ui` (the SPA's data) and
   `/internal` (health). Every other path is the SPA page: `main.ts` imports
   `../../frontend/index.html` and hands it to `Bun.serve`, so bun bundles

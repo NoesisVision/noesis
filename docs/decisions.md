@@ -239,10 +239,15 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   call having written nothing; there is deliberately **no separate
   `validate` tool**. A pre-flight tool only asked the agent to pay for the
   same check twice and let the two answers drift; the rejection the write
-  returns is the one answer, and it arrives where it matters. Errors are
-  actionable — path, expected versus found, a one-line correction — capped,
-  and returned in-band (`isError` results the model can read), never as
-  protocol errors. Unreadable JSON and a path outside the session scratch
+  returns is the one answer, and it arrives where it matters. Errors are a
+  capped list of path plus message — zod's own message for a schema issue
+  (4.x already says "expected string, received number"), the integrity
+  check's for a whole-document one — returned in-band (`isError` results the
+  model can read), never as protocol errors. A richer report (expected,
+  found, a one-line fix per issue) was built for design documents large
+  enough to be edited in place rather than regenerated, and removed while no
+  tool authors one: the only working file is a three-field document. It
+  comes back with that tool if zod's messages prove too thin for it. Unreadable JSON and a path outside the session scratch
   directory come back the same way, as does a working file above the size
   cap.
 - **The ui never authors a design document.** `/ui/changes/:change/design-docs`

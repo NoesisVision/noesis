@@ -220,27 +220,27 @@ that have no representation in the type. The schema is the shape; the companion 
 meaning. Neither restates the other.
 
 **Validation is the enforcement point.** In an interactive session nothing constrains what the
-agent writes to disk, so the contract is guidance and validation is the guarantee. Validation is
-its own MCP tool, callable against a working file before any write to the graph is attempted, and
-the service validates again on write — a failed save is never how the agent discovers a shape
-error.
+agent writes to disk, so the contract is guidance and validation is the guarantee. It happens
+once, where the write happens: the tool that consumes a working file checks it against its
+contract before the service sees it, and rejects the call having written nothing. There is no
+separate validation tool — a pre-flight check would only run the same check twice and let the two
+answers drift.
 
-Validation errors are written to be acted on rather than read: each one names the offending
-location by path into the document, states what was expected against what was found, and gives a
-single-line correction. That lets the agent edit the working file in place instead of
-regenerating it. The error list is capped, reporting how many further problems were suppressed,
-so one structural mistake does not bury the first real cause.
+A rejection is returned in-band, as a result the agent can read: a list of issues, each naming the
+offending location by path into the document with a message saying what is wrong there. The list
+is capped, reporting how many further problems were suppressed, so one structural mistake does
+not bury the first real cause.
 
 ## Flow of a write to the graph
 
 1. The agent runs a knowledge management skill, and reads the contract for the file kind it is
    about to produce from the plugin.
 2. It writes the document it has composed to the temp dir.
-3. It calls the validation tool with the working file path, corrects what comes back, and repeats
-   until the file is clean.
-4. It calls the matching MCP tool with the working file path.
-5. The service validates again, mints or keeps the id, and writes the knowledge graph files
-   through the repositories.
+3. It calls the matching MCP tool with the working file path.
+4. The tool validates the file. If it does not fit, the agent corrects what comes back and calls
+   again; nothing was written.
+5. The service mints or keeps the id, and writes the knowledge graph files through the
+   repositories.
 6. The watcher picks up the change and re-indexes the graph.
 7. The UI and subsequent agent queries read the updated graph.
 

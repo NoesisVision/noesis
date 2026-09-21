@@ -27,27 +27,21 @@ export async function readWorkingFile<T>(
   if (!resolved.ok) {
     return singleIssue({
       path: '$',
-      expected: 'a path to a working file under .noesis/tmp/',
-      found: resolved.message,
-      fix: `Write the file under ${session.path} and pass that path`,
+      message: `${resolved.message} Write the file under ${session.path} and pass that path.`,
     });
   }
   const size = Bun.file(resolved.path).size;
   if (size > MAX_WORKING_FILE_BYTES) {
     return singleIssue({
       path: '$',
-      expected: `a working file of at most ${MAX_WORKING_FILE_BYTES} bytes`,
-      found: `${size} bytes at ${resolved.path}`,
-      fix: 'Pass the path of the document you wrote, or split it into documents of their own',
+      message: `${resolved.path} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
     });
   }
   const json = await readJson(resolved.path);
   if (!json.ok) {
     return singleIssue({
       path: '$',
-      expected: 'a JSON file',
-      found: json.message,
-      fix: 'Rewrite the file as JSON, then call the tool again',
+      message: `${json.message}. Rewrite the file as JSON, then call the tool again.`,
     });
   }
   return validate(contract, json.value);
@@ -60,6 +54,6 @@ async function readJson(path: string): Promise<JsonResult> {
   try {
     return { ok: true, value: await Bun.file(path).json() };
   } catch (error) {
-    return { ok: false, message: `unreadable JSON — ${String(error)}` };
+    return { ok: false, message: `Unreadable JSON — ${String(error)}` };
   }
 }
