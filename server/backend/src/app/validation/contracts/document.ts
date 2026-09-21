@@ -7,12 +7,11 @@ import type { FileContract } from '#backend/app/validation/validator';
 
 /**
  * One rule beyond the shape: the id is the title as a slug, so a title the
- * slug empties — punctuation, or a script with no ASCII in it — would land on
- * the one fallback id, where the next such title looks like a duplicate of
- * the first. The schema cannot say that declaratively (decision D4 keeps the
- * contracts free of `refine`), so it is checked here, where the MCP tool
- * reads the working file and owes the agent the report `validate` produces
- * (decision D3).
+ * slug empties — punctuation, or a script with no ASCII in it — has no id.
+ * The schema cannot say that declaratively (decision D4 keeps the contracts
+ * free of `refine`) and the service refuses such a title anyway, so it is
+ * checked here first, where the MCP tool reads the working file and owes the
+ * agent the report `validate` produces (decision D3).
  */
 export const documentContract: FileContract<CreateDocument> = {
   description:

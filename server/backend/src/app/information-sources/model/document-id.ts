@@ -10,7 +10,6 @@ export class DocumentId {
   static readonly PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   /** As long as a store key may be (`KEY_PATTERN`). */
   static readonly MAX_LENGTH = 128;
-  static readonly FALLBACK = 'untitled';
 
   readonly value: string;
 
@@ -33,16 +32,15 @@ export class DocumentId {
   }
 
   static fromTitle(title: string): DocumentId {
-    return (
-      DocumentId.tryFromTitle(title) ?? new DocumentId(DocumentId.FALLBACK)
-    );
+    const id = DocumentId.tryFromTitle(title);
+    if (id === null) throw new TitleWithoutIdError(title);
+    return id;
   }
 
   /**
    * Null for a title the derivation empties — punctuation or a script with no
-   * ASCII in it. Every such title would share the one fallback id, so the
-   * contract refuses them instead of letting the second one look like a
-   * duplicate of the first.
+   * ASCII in it. There is no fallback id: every such title would share it, and
+   * the second one would look like a duplicate of the first.
    */
   static tryFromTitle(title: string): DocumentId | null {
     const slug = title
@@ -76,6 +74,18 @@ export class InvalidDocumentIdError extends Error {
     super(`Not a document id: ${JSON.stringify(value)}`);
     this.name = 'InvalidDocumentIdError';
     this.value = value;
+  }
+}
+
+export class TitleWithoutIdError extends Error {
+  readonly title: string;
+
+  constructor(title: string) {
+    super(
+      `No document id can be derived from the title ${JSON.stringify(title)}: it needs a letter or a digit.`,
+    );
+    this.name = 'TitleWithoutIdError';
+    this.title = title;
   }
 }
 

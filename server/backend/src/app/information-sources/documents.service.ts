@@ -45,8 +45,8 @@ export class DuplicateDocumentError extends Error {
 
 /**
  * Callers validate before calling in (decision D4). The title identifies the
- * document within its change, so the service derives the id from it and
- * replaces whatever the input carries.
+ * document within its change, so the service derives the id from it; a title
+ * no id can be derived from is a `TitleWithoutIdError`.
  */
 export class DocumentsService {
   private readonly docs: DocumentsRepository;
@@ -77,7 +77,7 @@ export class DocumentsService {
   update(
     slug: ChangeSlug,
     id: DocumentId,
-    document: Document,
+    document: CreateDocument,
   ): Promise<DocumentSummary> {
     return this.writes.run(() => this.updateUnguarded(slug, id, document));
   }
@@ -85,7 +85,7 @@ export class DocumentsService {
   private async updateUnguarded(
     slug: ChangeSlug,
     id: DocumentId,
-    document: Document,
+    document: CreateDocument,
   ): Promise<DocumentSummary> {
     await this.changesService.assertExists(slug);
     await this.assertExists(slug, id);

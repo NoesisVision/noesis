@@ -6,15 +6,17 @@ import {
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import type { Document } from '#backend/app/information-sources/model/document';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
+import type { CreateDocument } from '#backend/app/information-sources/model/document';
+import {
+  DocumentId,
+  TitleWithoutIdError,
+} from '#backend/app/information-sources/model/document-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');
 const NOPE = ChangeSlug.parse('nope');
 
-const document: Document = {
-  document_id: DocumentId.parse('whatever-the-caller-sent'),
+const document: CreateDocument = {
   title: 'Booking Rules — v2',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -45,6 +47,18 @@ describe('DocumentsService', () => {
       ...document,
       document_id: DocumentId.parse('booking-rules-v2'),
     });
+  });
+
+  it('refuses a title no id can be derived from, on create and on retitle', async () => {
+    expect(
+      service.create(CHANGE, { ...document, title: '!!!' }),
+    ).rejects.toBeInstanceOf(TitleWithoutIdError);
+
+    const created = await service.create(CHANGE, document);
+    expect(
+      service.update(CHANGE, created.id, { ...document, title: '日本語' }),
+    ).rejects.toBeInstanceOf(TitleWithoutIdError);
+    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
   it('refuses a second document with the same title in the change', async () => {

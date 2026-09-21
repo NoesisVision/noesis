@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { z } from 'zod';
-import type { DocumentSchema } from '#backend/app/information-sources/model/document';
+import type { CreateDocument } from '#backend/app/information-sources/model/document';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -11,8 +10,7 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 const CHANGE = 'booking';
 const BASE = `/changes/${CHANGE}/documents`;
 
-const document: z.input<typeof DocumentSchema> = {
-  document_id: 'whatever-the-caller-sent',
+const document: CreateDocument = {
   title: 'Booking Rules',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -91,6 +89,26 @@ describe('ui documents routes', () => {
       documents: unknown[];
     };
     expect(documents).toEqual([]);
+  });
+
+  it('400s a title no id can be derived from, on create and on retitle', async () => {
+    const created = await post(BASE, {
+      document: { ...document, title: '!!!' },
+    });
+
+    expect(created.status).toBe(400);
+    expect(await created.json()).toEqual({
+      error: 'title_without_id',
+      title: '!!!',
+    });
+
+    await post(BASE, { document });
+    const retitled = await put(`${BASE}/booking-rules`, {
+      document: { ...document, title: '日本語' },
+    });
+
+    expect(retitled.status).toBe(400);
+    expect((await app.request(`${BASE}/booking-rules`)).status).toBe(200);
   });
 
   it('409s a second document with the same title', async () => {

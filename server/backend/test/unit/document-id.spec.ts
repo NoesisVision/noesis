@@ -4,6 +4,7 @@ import {
   DocumentId,
   DocumentIdSchema,
   InvalidDocumentIdError,
+  TitleWithoutIdError,
 } from '#backend/app/information-sources/model/document-id';
 
 describe('DocumentId', () => {
@@ -15,10 +16,10 @@ describe('DocumentId', () => {
     expect(DocumentId.fromTitle('x'.repeat(200)).value).toHaveLength(128);
   });
 
-  it('falls back for a title the derivation empties, and says so when asked', () => {
+  it('refuses a title the derivation empties', () => {
     for (const empty of ['!!!', '   ', '日本語']) {
       expect(DocumentId.tryFromTitle(empty)).toBeNull();
-      expect(DocumentId.fromTitle(empty).value).toBe('untitled');
+      expect(() => DocumentId.fromTitle(empty)).toThrow(TitleWithoutIdError);
     }
     expect(DocumentId.tryFromTitle('Notes')?.value).toBe('notes');
   });

@@ -262,9 +262,12 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   The service-side `validate` is for what a schema cannot say — a
   whole-document `check`. `design-document` has one (its integrity pass) and
   so does `document`: its id is the title as a slug, so a title the slug
-  empties is refused rather than sharing the one fallback id. Both checks
-  therefore run on the MCP side alone; the ui's document writes get the
-  schema pass only.
+  empties is refused; there is no fallback id for such titles to share. The
+  checks run on the MCP side, where they owe the agent a report. The title
+  rule is also the service's own: `DocumentId.fromTitle` throws
+  `TitleWithoutIdError`, so the ui's document writes — the schema pass over
+  `CreateDocumentSchema`, the id being the service's to derive — answer
+  `400 {error:'title_without_id', title}` instead of storing under a shared id.
 - **Search** is `GET /ui/search` over a `SearchProvider[]` registry in
   `SearchService`. The agent's search tool is not part of the rebuilt MCP
   surface yet.
