@@ -11,8 +11,7 @@
   "ignorePatterns": [
     "server/frontend/src/routeTree.gen.ts",
     "docs/**/prior-art/**",
-    "docs/**/prototypes/**",
-    "docs/work/**/*.html"
+    "docs/**/prototypes/**"
   ],
   "settings": {
     // The backend's layers (decision D3). A file belongs to the first

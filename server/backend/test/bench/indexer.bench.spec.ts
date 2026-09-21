@@ -1,6 +1,5 @@
 // Boot re-index cost (decision D2). Not part of `bun test test/unit`: run with
-// `bun run test:bench` and record the numbers in
-// docs/work/chores/target-architecture-migration.md.
+// `bun run test:bench`.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

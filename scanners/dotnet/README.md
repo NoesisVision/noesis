@@ -24,5 +24,3 @@ Constraints already settled that apply here when work starts:
 - **Engine and enrichment**: open. Decision D9's split (a bytecode-level
   importer for structure, a source-level pass for positions and comments)
   is the pattern to weigh, not a given.
-
-The work starts as a task doc under `docs/work/features/` (decision D7).

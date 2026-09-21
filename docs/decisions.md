@@ -100,8 +100,7 @@ a shared process. The target design is `docs/arch/ARCHITECTURE.md`.
   10k files; working budget 2 s at 10k). An on-disk cache is a follow-up only if
   that budget is exceeded.
 
-The store's full contract: `docs/work/improvements/noesis-store.md`. File
-conventions for skills: the contracts' `.describe()` text (D4).
+File conventions for skills: the contracts' `.describe()` text (D4).
 
 ## D3. Service internals: Hono on `Bun.serve`, surfaces by consumer, thin MCP tools, validation at the write boundary
 
@@ -370,7 +369,7 @@ conventions for skills: the contracts' `.describe()` text (D4).
   hashed assets. The frontend package has no production build of its own. The
   build flags (`--entry-naming '[name].[ext]'`, `--public-path /`, explicit
   `NODE_ENV=production`) and `src/bundle-cwd.ts` are load-bearing; re-check them
-  on a bun upgrade (`docs/work/chores/bun-fullstack-spike.md`).
+  on a bun upgrade.
 - **Development: Vite is the dev server only.** Root `bun run dev`
   (`server/scripts/dev.ts`) runs the backend on `:3001` (watch, browser not opened) and
   Vite on `127.0.0.1:3000` with React Fast Refresh, proxying `/ui` and
@@ -518,10 +517,6 @@ conventions for skills: the contracts' `.describe()` text (D4).
   subsumes refactor, perf, docs, tooling) and `chore` (recurring maintenance).
   Cadence decides improvement versus chore. The `commit-message` skill
   generates messages.
-- **Work starts as a task doc** under the narrowest scope's `docs/work/<type>/`
-  folder, created by the `init-task` skill. A task doc is problem-space only;
-  what solutioning decides belongs in this file. The task's `scope` doubles as
-  the commit scope.
 
 ## D8. CI and dependency automation
 

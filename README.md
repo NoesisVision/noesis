@@ -141,7 +141,6 @@ The TypeScript scanner is a service component (`server/backend/src/adapters/scan
 - [`docs/decisions.md`](docs/decisions.md) — the ten current architecture decisions, D1–D10; every non-obvious choice in this README cites one by id. The chronological history is frozen in `docs/archive/decisions-archive.md`, which agents do not read
 - [`docs/arch/ARCHITECTURE.md`](docs/arch/ARCHITECTURE.md) — the target architecture and its diagram
 - [`docs/stack.md`](docs/stack.md) — the frontend's dependency list and why each is there
-- `docs/work/{features,fixes,chores}/` — one task doc per unit of work, created by the `init-task` skill (decision D7); the migration plans live here
 - `docs/examples/` — sample domain material used to exercise the skills
 
 ## 2. Tools
