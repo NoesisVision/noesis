@@ -56,6 +56,8 @@ The dependencies:
   brand theme from `src/theme.ts`, `@mantine/core/styles.css` imported from
   `main.tsx`, `styles.css` keeps only what Mantine does not set
 - **@tabler/icons-react** — the icon set Mantine's own docs use
+- **clsx** (`cx`) — joins CSS module class names where a component takes
+  more than one, as the sidebar's nested links do
 - **Raleway** (`@fontsource-variable/raleway`) — the brand typeface,
   imported from `main.tsx`; bun inlines the font files into the page's CSS
 - **Hono's typed RPC client** (`hono/client`) — `hc<AppType>('/ui')` in

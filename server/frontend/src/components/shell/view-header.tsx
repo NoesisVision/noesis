@@ -1,4 +1,4 @@
-import { useActiveRoute } from '#/components/core/useActiveRoute.ts';
+import { useActiveRoute } from '#/components/core/use-active-route.ts';
 import { Box } from '#/components/design-system/box.tsx';
 import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';

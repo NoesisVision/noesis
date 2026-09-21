@@ -2,8 +2,11 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { changesList } from '#/api/changes';
 import { readLastChange } from '#/components/core/last-change.ts';
 import { NoChangesView } from '#/components/views/no-changes';
+import { SHELL_ROUTE_ID } from '#/routes/routes.ts';
 
-export const Route = createFileRoute('/_shell/')({
+// `/` lands on the last-opened change when it still exists, else the first
+// in the list; with no change at all it is the empty state.
+export const Route = createFileRoute(`${SHELL_ROUTE_ID}/`)({
   beforeLoad: async ({ context }) => {
     const changes = await context.queryClient.query(changesList);
     const last = readLastChange();

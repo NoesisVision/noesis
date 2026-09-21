@@ -1,26 +1,19 @@
 import type { IconProps } from '@tabler/icons-react';
-import { Link } from '@tanstack/react-router';
-import type { PropsWithChildren, ReactNode } from 'react';
+import type {
+  ForwardRefExoticComponent,
+  PropsWithChildren,
+  ReactNode,
+  RefAttributes,
+} from 'react';
 import { Group } from '#/components/design-system/group.tsx';
 import { Text } from '#/components/design-system/text.tsx';
-import type { AppRoutePaths } from '#/components/shell/sidebar.routes.ts';
 import classes from './overview-stat.module.css';
 
 interface OverviewStatProps extends PropsWithChildren {
-  changeId: string | null;
   title: ReactNode;
-  Icon: React.ForwardRefExoticComponent<
-    IconProps & React.RefAttributes<SVGSVGElement>
-  >;
-  to: AppRoutePaths;
+  Icon: ForwardRefExoticComponent<IconProps & RefAttributes<SVGSVGElement>>;
 }
-export function OverviewStat({
-  changeId,
-  children,
-  Icon,
-  title,
-  to,
-}: OverviewStatProps) {
+export function OverviewStat({ children, Icon, title }: OverviewStatProps) {
   return (
     <Group>
       <Icon size={40} stroke={1} className={classes.icon} />
@@ -29,20 +22,7 @@ export function OverviewStat({
           {title}
         </Text>
         <Text fw={700} size="xl">
-          {changeId ? (
-            <Link
-              className={classes.link}
-              to={to as string}
-              params={{
-                changeId,
-              }}
-              activeOptions={{ exact: true }}
-            >
-              {children}
-            </Link>
-          ) : (
-            children
-          )}
+          {children}
         </Text>
       </div>
     </Group>

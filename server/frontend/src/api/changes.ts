@@ -40,6 +40,15 @@ export const changesList = queryOptions({
   },
 });
 
+export const changesNavigationList = queryOptions({
+  staleTime: 'static',
+  queryKey: ['changes', 'navigation'] as const,
+  queryFn: async ({ signal }) => {
+    const data = await api.changes.navigation.$get({}, { init: { signal } });
+    return data.changes;
+  },
+});
+
 export const changeById = (id: string) =>
   queryOptions({
     staleTime: 'static',
