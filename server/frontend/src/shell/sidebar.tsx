@@ -6,13 +6,13 @@ import { Box } from '#/components/design-system/box';
 import { NavLink } from '#/components/design-system/nav-link';
 import { ScrollArea } from '#/components/design-system/scroll-area';
 import { Text } from '#/components/design-system/text';
+import { ChangePicker } from '#/components/shell/change-picker.tsx';
 import {
   APP_PUBLIC_NAV,
   DESIGN_DOCS_NAV,
   type NavItem,
 } from '#/shell/navigation/nav-items.ts';
 import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
-import { ChangePicker } from './change-picker';
 import classes from './sidebar.module.css';
 
 interface SidebarProps {

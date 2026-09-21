@@ -6,13 +6,13 @@ import { useChangeId } from '#/components/core/use-change-id.ts';
 import { Box } from '#/components/design-system/box.tsx';
 import { Card } from '#/components/design-system/card.tsx';
 import { Grid } from '#/components/design-system/grid.tsx';
-import { ViewHeader } from '#/components/shell/view-header';
 import { OverviewSection } from '#/components/views/overview/overview-section.tsx';
 import { OverviewStat } from '#/components/views/overview/overview-stat.tsx';
 import {
   DESIGN_DOCS_NAV,
   DOCUMENTS_NAV,
 } from '#/shell/navigation/nav-items.ts';
+import { ViewHeader } from '#/shell/view-header.tsx';
 
 export function OverviewView() {
   const { changeId } = useChangeId();

@@ -4,7 +4,7 @@ import { designDocsList } from '#/api/design-docs';
 import { Card } from '#/components/design-system/card';
 import { Stack } from '#/components/design-system/stack';
 import { Text } from '#/components/design-system/text';
-import { ViewHeader } from '#/components/shell/view-header';
+import { ViewHeader } from '#/shell/view-header.tsx';
 import { DesignDocsLoadError } from './design-doc/design-docs-load-error.tsx';
 import { DocumentDetail } from './document-detail';
 
