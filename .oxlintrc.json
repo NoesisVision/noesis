@@ -65,8 +65,8 @@
             "allow": { "to": { "module": { "origin": ["core", "external"] } } }
           },
           // Contracts are the domain model in app/<feature>/model/, and
-          // declarative: zod and other contracts only, since the plugin
-          // copies them verbatim.
+          // declarative: zod and other contracts only, since the JSON
+          // Schema the plugin ships is generated from them.
           {
             "from": { "element": { "type": "contracts" } },
             "disallow": {

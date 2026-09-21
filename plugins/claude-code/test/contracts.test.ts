@@ -1,66 +1,50 @@
 // contracts/ is a gitignored build output, so the test builds it
-// before asserting on it.
+// before asserting on it. What the files hold is the service's to assert,
+// in server/backend/test/unit/contracts-json-schema.spec.ts.
 import { beforeAll, describe, expect, test } from 'bun:test';
-import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { existsSync } from 'node:fs';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  CONTRACTS_SOURCE,
-  contractHeader,
-  copyContracts,
+  buildContracts,
   DESTINATION_README,
-  isContractFile,
-  listContractFiles,
-} from '../tools/copy-contracts.js';
+} from '../tools/build-contracts.js';
 
 const pluginRoot = fileURLToPath(new URL('../', import.meta.url));
-const copyDir = join(pluginRoot, 'contracts');
-const pluginVersion = (
-  JSON.parse(await readFile(join(pluginRoot, 'package.json'), 'utf8')) as {
-    version: string;
-  }
-).version;
+const contractsDir = join(pluginRoot, 'contracts');
+const skillsDir = join(pluginRoot, 'skills');
 
 describe('plugins/claude-code/contracts', () => {
   beforeAll(async () => {
-    await copyContracts(copyDir);
+    // Leftovers of an earlier build, which a fresh one must clear.
+    await mkdir(join(contractsDir, 'stale'), { recursive: true });
+    await writeFile(join(contractsDir, 'stale', 'gone.schema.json'), '{}\n');
+    await buildContracts(contractsDir);
   });
 
-  test('holds the README and exactly the model/ files of server/backend/src/app', async () => {
-    const entries = (
-      await readdir(copyDir, { recursive: true, withFileTypes: true })
-    )
-      .filter((e) => e.isFile())
-      .map((e) => relative(copyDir, join(e.parentPath, e.name)))
-      .sort();
+  test('holds the README and the generated JSON, and nothing left over', async () => {
+    const entries = await readdir(contractsDir, { recursive: true });
     expect(entries).toContain(DESTINATION_README);
-    const copied = entries.filter((f) => f !== DESTINATION_README);
-    expect(copied).toEqual(await listContractFiles());
-    expect(copied.every(isContractFile)).toBe(true);
+    const generated = entries.filter((f) => f !== DESTINATION_README);
+    expect(generated.length).toBeGreaterThan(0);
+    expect(
+      generated.filter((f) => !/^[a-z-]+\.(schema|example)\.json$/.test(f)),
+    ).toEqual([]);
   });
 
-  test('each copy is the source below a header naming the plugin version', async () => {
-    for (const file of await listContractFiles()) {
-      const header = contractHeader(file, pluginVersion);
-      const copy = await readFile(join(copyDir, file), 'utf8');
-      const source = await readFile(join(CONTRACTS_SOURCE, file), 'utf8');
-      expect(copy.startsWith(header)).toBe(true);
-      expect(copy.slice(header.length)).toBe(source);
+  test('every contract a skill names is there to read', async () => {
+    const skills = (await readdir(skillsDir, { recursive: true })).filter((f) =>
+      f.endsWith('SKILL.md'),
+    );
+    const named: string[] = [];
+    for (const skill of skills) {
+      const text = await readFile(join(skillsDir, skill), 'utf8');
+      // Bare file names count too: a skill names a second contract as
+      // "beside" the first.
+      named.push(...(text.match(/[a-z-]+\.(schema|example)\.json/g) ?? []));
     }
-  });
-
-  test('the sources are declarative: zod and sibling contract files only', async () => {
-    for (const file of await listContractFiles()) {
-      if (!file.endsWith('.ts')) continue;
-      const source = await readFile(join(CONTRACTS_SOURCE, file), 'utf8');
-      const imports = [...source.matchAll(/^import .* from '([^']+)';$/gm)].map(
-        (m) => m[1] ?? '',
-      );
-      for (const specifier of imports) {
-        expect(specifier === 'zod' || specifier.startsWith('.')).toBe(true);
-      }
-      expect(source).not.toMatch(/\.(refine|superRefine|transform|check)\(/);
-      expect(source).not.toMatch(/\.default\(\(\)/);
-    }
+    expect(named.length).toBeGreaterThan(0);
+    expect(named.filter((f) => !existsSync(join(contractsDir, f)))).toEqual([]);
   });
 });

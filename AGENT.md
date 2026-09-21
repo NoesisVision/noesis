@@ -24,7 +24,7 @@ bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace
 bun run test:e2e            # service boot, MCP session, SPA from source
-bun run build               # service bundle + plugin contracts copy
+bun run build               # service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins; CI fails if the result is not committed
 ```
 
@@ -64,7 +64,7 @@ Keep the `.route()` chains in `app.ts` and `ui.routes.ts` unbroken: `app.types.t
 
 ### Contracts
 
-Every knowledge-graph file shape is a zod schema in `server/backend/src/app/<feature>/model/`, and its inferred type is the domain model. They must stay **declarative** (object shapes, enums, `.describe()`; no refinements, transforms, or non-zod imports) because `bun run build` copies them verbatim into `plugins/claude-code/contracts/` (gitignored, byte-identity asserted by a test) where an agent reads them as source. Contract specs live in `test/unit/contracts-*.spec.ts`. A route that writes a file gives its schema to `sValidator`; a file with whole-document rules a schema cannot express gets a `FileContract` in `app/validation/contracts/` (schema + `check`) run by `validate` at the write boundary. None exists today: the design document's, and the integrity pass it ran, went with its authoring tool and come back with it.
+Every knowledge-graph file shape is a zod schema in `server/backend/src/app/<feature>/model/`, and its inferred type is the domain model. They must stay **declarative** (object shapes, enums, `.describe()`; no refinements, transforms, or non-zod imports) because the JSON Schema an agent reads is generated from them, and JSON Schema would drop a refinement or transform silently (`test/unit/contracts-json-schema.spec.ts` refuses one). The contracts that ship are listed in `server/backend/tools/contracts.ts`, by the name they ship under; add a line there when a skill needs a new one. `bun run contracts <dir>` writes them, and the plugin's `bun run build` calls it into `plugins/claude-code/contracts/` (gitignored). Only schemas ship; a domain object in `model/`, like `DocumentId`, stays in the service. Contract specs live in `test/unit/contracts-*.spec.ts`. A route that writes a file gives its schema to `sValidator`; a file with whole-document rules a schema cannot express gets a `FileContract` in `app/validation/contracts/` (schema + `check`) run by `validate` at the write boundary. None exists today: the design document's, and the integrity pass it ran, went with its authoring tool and come back with it.
 
 Backend code reachable from `AppType` (routes, services, contracts) must be runtime-neutral (ECMAScript + Web APIs only) because the frontend type-checks it without Bun/Node types — e.g. ids come from `uuid` v7, not `Bun.randomUUIDv7()`; `node:crypto` hashing lives in `platform/crypto` and only adapters import it.
 
@@ -85,7 +85,7 @@ LogTape everywhere. Get loggers via `serverLogger('<module>')` / `uiLogger('<mod
 
 ### Plugin (`plugins/claude-code`)
 
-Contracts copy in `contracts/`, `.mcp.json` launching `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`. Plugin and service release in lockstep (`bun run bump`, `bun run release:beta` from the plugin dir); version pins are stamped by `bun run generate` and must be committed. To develop the plugin against this checkout from another repo: `bun run build:plugin`, then `NOESIS_SERVICE_COMMAND=bun NOESIS_SERVICE_ENTRY=/path/to/server/backend/src/main.ts claude --plugin-dir /path/to/plugins/claude-code`.
+Generated JSON Schema contracts in `contracts/`, `.mcp.json` launching `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`. Plugin and service release in lockstep (`bun run bump`, `bun run release:beta` from the plugin dir); version pins are stamped by `bun run generate` and must be committed. To develop the plugin against this checkout from another repo: `bun run build:plugin`, then `NOESIS_SERVICE_COMMAND=bun NOESIS_SERVICE_ENTRY=/path/to/server/backend/src/main.ts claude --plugin-dir /path/to/plugins/claude-code`.
 
 ## Code style
 

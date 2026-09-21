@@ -190,27 +190,32 @@ request, and a merge conflict lands in one entity rather than across the whole m
 
 Every knowledge graph file has a shape, and the agent authoring that file needs to know it. The
 shapes are defined once, as Zod schemas under `server/backend/src/app/<feature>/model/`, and that definition is the only
-one — there is no second copy written in prose, and no generated mirror to keep in step.
+one — there is no second copy written in prose, and nothing kept in step by hand.
 
-**The agent reads the contract source from the plugin.** A skill names the contract it needs by a
-path relative to the plugin root, and the agent reads that `.ts` file with its own file-reading
-tool, at the step that produces the file and not before. Contracts do not travel over MCP at all:
+**The agent reads the contract from the plugin, as JSON Schema.** A skill names the contract it
+needs by a path relative to the plugin root, and the agent reads that `.schema.json` file with its
+own file-reading tool, at the step that produces the file and not before. Contracts do not travel over MCP at all:
 they are static reference material with a known location, so a tool call to discover them would
 buy nothing and add a round trip to every authoring step.
 
 The service imports the contracts and bundles them into its executable, while the skills ship in
-the plugin. A **build step copies the contract sources into the plugin**, which is what keeps the
-path the skills reference stable regardless of how the package is installed or hoisted. The copy is
-safe precisely because it is made at build time: it is deterministic, it ships in the same version
-as the code it mirrors, and a test asserts it is byte-identical to the source it was copied from,
-so the two cannot drift apart unnoticed. Each copy carries the package version in a header comment,
-so a stale one is visible on sight. The `.ts` sources are published deliberately — compiled output
-would keep the types and lose the `.describe()` text, which is the part worth reading.
+the plugin. A **build step generates JSON Schema from the Zod schemas into the plugin**, which is
+what keeps the path the skills reference stable regardless of how the package is installed or
+hoisted. The service owns the generation: it lists the contracts that ship, importing each schema
+from wherever it lives, so nothing depends on a folder layout, and the plugin's build only says
+where the files land. Only schemas ship: the domain objects defined next to them stay in the
+service. The generated file is safe precisely because it is made at build time: it is
+deterministic, it ships in the same version as the code it mirrors, and it is never committed, so
+the two cannot drift apart unnoticed. Each file carries the package version in its `$comment`, so
+a stale one is visible on sight. JSON Schema is larger than the Zod source, but it states each
+shape whole — nothing to import, no `.omit()` or `.extend()` to resolve, a codec shown as the
+string the agent writes — and it keeps the `.describe()` text, which is the part worth reading.
+The larger contracts ship an example beside the schema, checked against it by a test.
 
-The contracts are written to be read this way. They are declarative — object shapes, enums, and
-change-set combinators, with no refinements, transforms, or imports beyond Zod itself — which
-makes them self-contained and substantially cheaper to read than the equivalent expanded JSON
-Schema. Fields carry `.describe()` text so the contract explains its own vocabulary.
+The Zod schemas are written to be generated from. They are declarative — object shapes, enums, and
+change-set combinators, with no refinements or transforms, which JSON Schema cannot state and would
+drop silently; a test refuses them. Fields carry `.describe()` text so the contract explains its
+own vocabulary.
 
 What a schema cannot express stays in a companion document next to it: how to recognise
 model-describing content in a draft, how to choose between change-set slots, and the conventions

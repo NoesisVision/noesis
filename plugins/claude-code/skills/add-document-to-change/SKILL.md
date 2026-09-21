@@ -14,9 +14,9 @@ from the title and stores it under the change.
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/information-sources/model/document.ts`.
-  Read it now, not from memory. `CreateDocumentSchema` is the working file:
-  `title`, `date` and `content`, with no `document_id`.
+- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/create-document.schema.json`, a
+  JSON Schema. Read it now, not from memory. It is the working file: `title`,
+  `date` and `content`, with no `document_id`.
 
 ## Steps
 
