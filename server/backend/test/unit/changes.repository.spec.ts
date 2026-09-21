@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { NoesisStoreError } from '#backend/platform/files/noesis-store';
 import { type TestNoesis, testNoesis } from './test-noesis';
 

@@ -1,6 +1,6 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { Document } from '#backend/app/information-sources/model/document';
-import type { DocumentId } from '#backend/app/information-sources/model/document-id';
+import type { Document } from './document';
+import type { DocumentId } from './document-id';
 
 export interface DocumentsRepository {
   get(slug: ChangeSlug, id: DocumentId): Promise<Document | null>;

@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import type { CreateDocument } from '#backend/app/information-sources/document';
+import {
+  DocumentId,
+  TitleWithoutIdError,
+} from '#backend/app/information-sources/document-id';
 import {
   DocumentNotFoundError,
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import type { CreateDocument } from '#backend/app/information-sources/model/document';
-import {
-  DocumentId,
-  TitleWithoutIdError,
-} from '#backend/app/information-sources/model/document-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');

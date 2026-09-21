@@ -9,7 +9,7 @@ import { SchemaService } from '#backend/adapters/graph/schema.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { createSystemModelStore } from '#backend/adapters/store/system-model.store';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { DatabaseService } from '#backend/platform/database/database.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 

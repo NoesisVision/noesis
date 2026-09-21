@@ -1,12 +1,12 @@
 import { flattenErrors, sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
+import { CreateChangeSchema } from '#backend/app/changes/change';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import {
   ChangeNotFoundError,
   type ChangesService,
   DuplicateChangeError,
 } from '#backend/app/changes/changes.service';
-import { CreateChangeSchema } from '#backend/app/changes/model/change';
 
 export interface ChangesDeps {
   changesService: ChangesService;

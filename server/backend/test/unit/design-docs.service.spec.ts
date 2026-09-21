@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');

@@ -5,7 +5,7 @@ import {
   DocumentIdSchema,
   InvalidDocumentIdError,
   TitleWithoutIdError,
-} from '#backend/app/information-sources/model/document-id';
+} from '#backend/app/information-sources/document-id';
 
 describe('DocumentId', () => {
   it('derives an id from a title', () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { CreateDocument } from '#backend/app/information-sources/model/document';
+import type { CreateDocument } from '#backend/app/information-sources/document';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';

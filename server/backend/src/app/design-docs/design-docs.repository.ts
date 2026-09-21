@@ -1,5 +1,5 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { DesignDocument } from '#backend/app/design-docs/model/design-doc';
+import type { DesignDocument } from './design-doc';
 
 export interface DesignDocsRepository {
   get(slug: ChangeSlug, id: string): Promise<DesignDocument | null>;

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';

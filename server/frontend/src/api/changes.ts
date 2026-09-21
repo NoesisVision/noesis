@@ -4,10 +4,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import type {
-  Change,
-  CreateChange,
-} from '#backend/app/changes/model/change.ts';
+import type { Change, CreateChange } from '#backend/app/changes/change.ts';
 import { ApiError, api } from './client';
 
 export class DuplicateChangeError extends Error {

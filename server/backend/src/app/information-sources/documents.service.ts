@@ -1,11 +1,8 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type {
-  CreateDocument,
-  Document,
-} from '#backend/app/information-sources/model/document';
-import { DocumentId } from '#backend/app/information-sources/model/document-id';
 import { Serial } from '#backend/app/serial';
+import type { CreateDocument, Document } from './document';
+import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
 export interface DocumentSummary {

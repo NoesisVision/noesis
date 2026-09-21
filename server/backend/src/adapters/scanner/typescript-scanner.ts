@@ -1,13 +1,13 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, sep } from 'node:path';
-import type { DesignedBuildingBlockType } from '#backend/app/design-docs/model/design-doc';
+import type { DesignedBuildingBlockType } from '#backend/app/design-docs/design-doc';
 import type {
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
   SystemModel,
-} from '#backend/app/system-model/model/system-model';
+} from '#backend/app/system-model/system-model';
 import { contentHashAsUuid } from '#backend/platform/crypto/content-hash';
 
 // Extraction is deliberately line-based: good enough to give a design document

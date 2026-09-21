@@ -20,11 +20,6 @@
     "boundaries/include": ["server/backend/src/**/*.ts"],
     "boundaries/elements": [
       {
-        "type": "contracts",
-        "pattern": "server/backend/src/app/*/model/**",
-        "partialMatch": false
-      },
-      {
         "type": "platform",
         "pattern": "server/backend/src/platform/**",
         "partialMatch": false
@@ -58,31 +53,7 @@
       "error",
       {
         "default": "disallow",
-        // Also judge npm and node: imports, so contracts can be held to zod.
-        "checkAllOrigins": true,
         "policies": [
-          {
-            "allow": { "to": { "module": { "origin": ["core", "external"] } } }
-          },
-          // Contracts are the domain model in app/<feature>/model/, and
-          // declarative: zod and other contracts only, since the JSON
-          // Schema the plugin ships is generated from them.
-          {
-            "from": { "element": { "type": "contracts" } },
-            "disallow": {
-              "to": { "module": { "origin": ["core", "external"] } }
-            }
-          },
-          {
-            "from": { "element": { "type": "contracts" } },
-            "allow": {
-              "to": { "module": { "origin": "external", "source": "zod" } }
-            }
-          },
-          {
-            "from": { "element": { "type": "contracts" } },
-            "allow": { "to": { "element": { "type": "contracts" } } }
-          },
           // platform is generic plumbing; it knows nothing of the layers above.
           {
             "from": { "element": { "type": "platform" } },
@@ -97,7 +68,7 @@
           {
             "from": { "element": { "type": "app" } },
             "allow": {
-              "to": { "element": { "type": ["app", "contracts"] } }
+              "to": { "element": { "type": ["app"] } }
             }
           },
           {
@@ -105,7 +76,7 @@
             "allow": {
               "to": {
                 "element": {
-                  "type": ["adapters", "app", "platform", "contracts"]
+                  "type": ["adapters", "app", "platform"]
                 }
               }
             }
@@ -115,7 +86,7 @@
             "allow": {
               "to": {
                 "element": {
-                  "type": ["ui", "app", "platform", "contracts"]
+                  "type": ["ui", "app", "platform"]
                 }
               }
             }
@@ -126,14 +97,7 @@
             "allow": {
               "to": {
                 "element": {
-                  "type": [
-                    "root",
-                    "ui",
-                    "adapters",
-                    "app",
-                    "platform",
-                    "contracts"
-                  ]
+                  "type": ["root", "ui", "adapters", "app", "platform"]
                 }
               }
             }

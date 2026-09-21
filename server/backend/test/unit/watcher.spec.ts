@@ -3,7 +3,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { isIgnored, NoesisWatcher } from '#backend/platform/files/watcher';
 import { resetGraph, sharedTestDatabase } from './test-db';

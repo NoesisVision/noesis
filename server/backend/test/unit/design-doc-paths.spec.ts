@@ -9,8 +9,8 @@ import {
   slotRef,
   valueAtModelPath,
 } from '#backend/app/design-docs/design-doc-paths';
-import { ElementRefSchema } from '#backend/app/design-docs/model/design-doc-ref';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { ElementRefSchema } from '#backend/app/design-docs/design-doc-ref';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 
 const doc = designDocFixture;
 

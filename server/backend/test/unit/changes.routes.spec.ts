@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '#backend/app/changes/model/change';
+import type { Change } from '#backend/app/changes/change';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
 

@@ -2,17 +2,14 @@
 // when a skill needs a new one; what a schema is built from is inlined, so
 // only the shapes an agent writes or reads back belong in the list.
 import type { z } from 'zod';
-import {
-  ChangeSchema,
-  CreateChangeSchema,
-} from '#backend/app/changes/model/change';
-import { DesignDocumentSchema } from '#backend/app/design-docs/model/design-doc';
-import { designDocFixture } from '#backend/app/design-docs/model/design-doc.fixture';
+import { ChangeSchema, CreateChangeSchema } from '#backend/app/changes/change';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import {
   CreateDocumentSchema,
   DocumentSchema,
-} from '#backend/app/information-sources/model/document';
-import { SystemModelSchema } from '#backend/app/system-model/model/system-model';
+} from '#backend/app/information-sources/document';
+import { SystemModelSchema } from '#backend/app/system-model/system-model';
 
 export const CONTRACTS = {
   change: { schema: ChangeSchema },

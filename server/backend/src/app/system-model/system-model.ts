@@ -4,7 +4,7 @@ import {
   DesignedBoundedContextSchema,
   DesignedBuildingBlockSchema,
   DesignedDomainModuleSchema,
-} from '../../design-docs/model/design-doc';
+} from '#backend/app/design-docs/design-doc';
 
 /*
  * Reuses the design-doc vocabulary so a design reads as a diff against the

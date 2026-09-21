@@ -1,4 +1,4 @@
-import type { Change } from '#backend/app/changes/model/change';
+import type { Change } from './change';
 import type { ChangeSlug } from './change-slug';
 
 export interface ChangesRepository {
