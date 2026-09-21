@@ -431,8 +431,8 @@ File conventions for skills: the contracts' `.describe()` text (D4).
   `defaultRadius: 'sm'`. Colour scheme `auto` by default, persisted under
   `noesis.shell.colorScheme`; `index.html` inlines the scheme bootstrap so a
   dark reload does not flash.
-- `docs/stack.md` lists only what the frontend actually depends on; a library
-  is added there when something imports it, not before.
+- `docs/stack.md` lists only what the backend and the frontend actually depend
+  on; a library is added there when something imports it, not before.
 
 ## D6. Plugin, npm distribution and releases
 

@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents (Claude Code and others) when wo
 
 ## What this is
 
-A pure bun-workspaces monorepo for **Noesis**: a local service that keeps a knowledge graph as JSON files under `.noesis/` in a user's repository, plus the Claude Code plugin that drives it. `README.md` is the full tour; `docs/decisions.md` (D1–D10) is the only decision record and every non-obvious choice cites one — read the relevant D-entry before changing anything it covers.
+A pure bun-workspaces monorepo for **Noesis**: a local service that keeps a knowledge graph as JSON files under `.noesis/` in a user's repository, plus the Claude Code plugin that drives it. [`README.md`](README.md) is the full tour, [`docs/stack.md`](docs/stack.md) lists what the backend and the frontend depend on and why; `docs/decisions.md` (D1–D10) is the only decision record and every non-obvious choice cites one — read the relevant D-entry before changing anything it covers.
 
 Workspaces: `server/backend` (`@noesis-vision/noesis`, the service), `server/frontend` (SPA, bundled by the backend), `plugins/claude-code` (`@noesis-vision/claude-code-plugin`). `scanners/java` is a standalone Maven tool; `scanners/dotnet` is a stub.
 
@@ -70,14 +70,14 @@ Backend code reachable from `AppType` (routes, services, contracts) must be runt
 
 ### Frontend (`server/frontend`, decision D5)
 
-Client-only React 19 SPA: TanStack Router (file-based, `src/routeTree.gen.ts` generated and committed), TanStack Query, Mantine. Rules the linter enforces:
+Client-only React SPA; [`docs/stack.md`](docs/stack.md) lists every dependency and why it is there, and a new one is added there when something imports it. Rules the linter enforces:
 
 - Route files export `Route` and nothing else; view components live in `src/components/`.
 - `@mantine/*` is private to `src/components/design-system/`; everything else imports from `#/components/design-system`.
 - Backend imports are **type-only** via `#backend/*` (`AppType`, contract types); never backend runtime code.
 - `tsconfig.app.json` has no Bun/Node globals on purpose; tests use `tsconfig.test.json`.
 
-Production has no frontend build of its own: the backend imports `../../frontend/index.html` and bun's fullstack mode bundles it (`bun build` flags and `src/bundle-cwd.ts` are load-bearing). Vite is a dev server only.
+The backend imports `../../frontend/index.html` and bun's fullstack mode bundles it; the `bun build` flags and `src/bundle-cwd.ts` are load-bearing. The bundler and dev-server split (bun ships, Vite only serves in development) is described in [`docs/stack.md`](docs/stack.md).
 
 ### Logging (decision D10, `docs/logging.md`)
 

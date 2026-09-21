@@ -24,10 +24,10 @@ agent host (Claude Code) ──stdio/MCP──► @noesis-vision/noesis ◄─�
 
 ### Apps
 
-| App               | Stack                                 | Purpose                                                     |
-| ----------------- | ------------------------------------- | ----------------------------------------------------------- |
-| `server/backend`  | Hono on `Bun.serve`, MCP SDK on stdio | The service: MCP tools for the agent, `/ui` for the SPA     |
-| `server/frontend` | React 19 + TanStack Router + Mantine  | Web UI (client-only SPA), bundled and served by the service |
+| App               | Stack                                                                  | Purpose                                                     |
+| ----------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `server/backend`  | Hono on `Bun.serve`, MCP SDK on stdio ([stack](docs/stack.md#backend)) | The service: MCP tools for the agent, `/ui` for the SPA     |
+| `server/frontend` | React SPA ([stack](docs/stack.md#frontend))                            | Web UI (client-only SPA), bundled and served by the service |
 
 ### The service (`server/backend`)
 
@@ -140,25 +140,24 @@ The TypeScript scanner is a service component (`server/backend/src/adapters/scan
 
 - [`docs/decisions.md`](docs/decisions.md) — the ten current architecture decisions, D1–D10; every non-obvious choice in this README cites one by id. The chronological history is frozen in `docs/archive/decisions-archive.md`, which agents do not read
 - [`docs/arch/ARCHITECTURE.md`](docs/arch/ARCHITECTURE.md) — the target architecture and its diagram
-- [`docs/stack.md`](docs/stack.md) — the frontend's dependency list and why each is there
+- [`docs/stack.md`](docs/stack.md) — what the backend and the frontend depend on and why each is there; repo-wide tooling is the Tools table below
 - `docs/examples/` — sample domain material used to exercise the skills
 
 ## 2. Tools
 
-| Tool                                                                                                              | Role                                                                                                           |
-| ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| [bun](https://bun.sh/)                                                                                            | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner           |
-| [TypeScript](https://www.typescriptlang.org/) 7                                                                   | Everything is TS, checked by the native (Go) compiler (decision D7)                                            |
-| [zod](https://zod.dev/) (v4, `^4.2.0` floor)                                                                      | Contract schemas and env validation; below 4.2 the MCP SDK drops `.describe()` from advertised schemas         |
-| [Hono](https://hono.dev/) 4                                                                                       | The service's HTTP surfaces on `Bun.serve`; `hc` typed client available to the frontend                        |
-| [React](https://react.dev/) 19 + [TanStack Router](https://tanstack.com/router) + [Mantine](https://mantine.dev/) | The SPA; bun's fullstack mode bundles and serves it from the backend (decision D5)                             |
-| [@modelcontextprotocol/server](https://github.com/modelcontextprotocol/typescript-sdk) 2 (v2 split packages)      | MCP server in `server/backend/src/adapters/mcp`, stdio via `serveStdio` (2026-07-28 and 2025 eras)             |
-| [LadybugDB](https://www.npmjs.com/package/@ladybugdb/core)                                                        | Embedded graph database, in-memory only, the cache over `.noesis/` (decisions D1 and D3)                       |
-| [Oxlint](https://oxc.rs/docs/guide/usage/linter)                                                                  | Linting, type-aware through tsgolint; the backend's layer rules through eslint-plugin-boundaries (decision D3) |
-| [Oxfmt](https://oxc.rs/docs/guide/usage/formatter)                                                                | Formatting (TS/TSX/JS/JSON/CSS/Markdown), Prettier-compatible; sorts imports                                   |
-| Git hooks (`.githooks/`)                                                                                          | `commit-msg` enforces the commit convention, then runs oxfmt and oxlint on staged files                        |
-| GitHub Actions                                                                                                    | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases                        |
-| [Renovate](https://docs.renovatebot.com/)                                                                         | Weekly dependency PRs (`renovate.json`, decision D8)                                                           |
+Repo-wide tooling. The libraries the two apps depend on, and why each is
+there, are in [`docs/stack.md`](docs/stack.md): [backend](docs/stack.md#backend)
+and [frontend](docs/stack.md#frontend).
+
+| Tool                                               | Role                                                                                                           |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [bun](https://bun.sh/)                             | Package manager, TS runtime (apps run TS directly), bundler for the service and the SPA, test runner           |
+| [TypeScript](https://www.typescriptlang.org/) 7    | Everything is TS, checked by the native (Go) compiler (decision D7)                                            |
+| [Oxlint](https://oxc.rs/docs/guide/usage/linter)   | Linting, type-aware through tsgolint; the backend's layer rules through eslint-plugin-boundaries (decision D3) |
+| [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) | Formatting (TS/TSX/JS/JSON/CSS/Markdown), Prettier-compatible; sorts imports                                   |
+| Git hooks (`.githooks/`)                           | `commit-msg` enforces the commit convention, then runs oxfmt and oxlint on staged files                        |
+| GitHub Actions                                     | CI (format, verify, generated-artifact drift, Java scanner) and tag-driven npm releases                        |
+| [Renovate](https://docs.renovatebot.com/)          | Weekly dependency PRs (`renovate.json`, decision D8)                                                           |
 
 ## 3. Getting started
 
