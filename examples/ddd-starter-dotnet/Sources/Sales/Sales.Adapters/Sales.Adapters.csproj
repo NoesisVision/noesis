@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.Sales.Adapters</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.Sales</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Marten" Version="7.13.1" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+      <PackageReference Include="Npgsql" Version="8.0.3" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+      <PackageReference Include="RepoDb" Version="1.13.1" />
+      <PackageReference Include="RepoDb.PostgreSql" Version="1.13.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Payments\Payments.ProcessModel\Payments.ProcessModel.csproj" />
+      <ProjectReference Include="..\..\RiskManagement\RiskManagement.ProcessModel\RiskManagement.ProcessModel.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud.Ef\TechnicalStuff.Crud.Ef.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Ef\TechnicalStuff.Ef.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Outbox.Kafka\TechnicalStuff.Outbox.Kafka.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Outbox.Postgres\TechnicalStuff.Outbox.Postgres.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Persistence.RepoDb\TechnicalStuff.Persistence.RepoDb.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Persistence\TechnicalStuff.Persistence.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Postgres\TechnicalStuff.Postgres.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.ProcessModel\TechnicalStuff.ProcessModel.csproj" />
+      <ProjectReference Include="..\Sales.DeepModel\Sales.DeepModel.csproj" />
+      <ProjectReference Include="..\Sales.ProcessModel\Sales.ProcessModel.csproj" />
+    </ItemGroup>
+
+</Project>

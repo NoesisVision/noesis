@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+        <AssemblyName>MyCompany.ECommerce.ProductsDelivery.Adapters.Out</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.ProductsDelivery</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ProductsDelivery.DeepModel\ProductsDelivery.DeepModel.csproj" />
+      <ProjectReference Include="..\ProductsDelivery.ProcessModel\ProductsDelivery.ProcessModel.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>
+
+</Project>

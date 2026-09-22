@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.Sales.DeepModel</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.Sales</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud\TechnicalStuff.Crud.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff\TechnicalStuff.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+      <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+      <PackageReference Include="TaskTupleAwaiter" Version="2.1.0" />
+    </ItemGroup>
+
+</Project>

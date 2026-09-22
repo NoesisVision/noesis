@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.Nuke.DockerCompose</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.Nuke.DockerCompose</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+      <PackageReference Include="Nuke.Common" Version="8.0.0" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,243 @@
+{
+  "boundedContexts": [
+    {
+      "name": "discounts",
+      "modules": [
+        {
+          "name": "calculation",
+          "fullPath": "discounts.calculation",
+          "modules": [],
+          "buildingBlocks": [
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java:Conditions",
+              "name": "Conditions",
+              "type": "ValueObject",
+              "behaviors": []
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:Discount",
+              "name": "Discount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:Discount:apply",
+                  "name": "apply",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java:DiscountAmount",
+              "name": "DiscountAmount",
+              "type": "ValueObject",
+              "behaviors": []
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java:DiscountCalculation",
+              "name": "DiscountCalculation",
+              "type": "ApplicationService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java:DiscountCalculation:calculate",
+                  "name": "calculate",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java:DiscountConfig",
+              "name": "DiscountConfig",
+              "type": "ValueObject",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java:DiscountConfig:getDiscountsForConditions",
+                  "name": "getDiscountsForConditions",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java:DiscountedOffer",
+              "name": "DiscountedOffer",
+              "type": "ValueObject",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java:DiscountedOffer:applyDiscount",
+                  "name": "applyDiscount",
+                  "actor": null
+                },
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java:DiscountedOffer:createFrom",
+                  "name": "createFrom",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java:DiscountedProduct",
+              "name": "DiscountedProduct",
+              "type": "ValueObject",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java:DiscountedProduct:applyDiscount",
+                  "name": "applyDiscount",
+                  "actor": null
+                },
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java:DiscountedProduct:from",
+                  "name": "from",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java:DiscountPolicyFactory",
+              "name": "DiscountPolicyFactory",
+              "type": "Factory",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java:DiscountPolicyFactory:get",
+                  "name": "get",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java:DiscountsConfigProvider",
+              "name": "DiscountsConfigProvider",
+              "type": "Repository",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java:DiscountsConfigProvider:getDiscountsConfig",
+                  "name": "getDiscountsConfig",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:ExclusiveOfferLevelDiscount",
+              "name": "ExclusiveOfferLevelDiscount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:ExclusiveOfferLevelDiscount:apply",
+                  "name": "apply",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:FixedDiscount",
+              "name": "FixedDiscount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:FixedDiscount:apply",
+                  "name": "apply",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialDiscount",
+              "name": "PotentialDiscount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialDiscount:getDiscount",
+                  "name": "getDiscount",
+                  "actor": null
+                },
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialDiscount:isApplicableFor",
+                  "name": "isApplicableFor",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialVipUserDiscount",
+              "name": "PotentialVipUserDiscount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialVipUserDiscount:getDiscount",
+                  "name": "getDiscount",
+                  "actor": null
+                },
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java:PotentialVipUserDiscount:isApplicableFor",
+                  "name": "isApplicableFor",
+                  "actor": null
+                }
+              ]
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:ProductDiscount",
+              "name": "ProductDiscount",
+              "type": "DomainService",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java:ProductDiscount:apply",
+                  "name": "apply",
+                  "actor": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "offers",
+          "fullPath": "discounts.offers",
+          "modules": [],
+          "buildingBlocks": [
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java:Offer",
+              "name": "Offer",
+              "type": "ValueObject",
+              "behaviors": []
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/offers/Product.java:Product",
+              "name": "Product",
+              "type": "ValueObject",
+              "behaviors": []
+            }
+          ]
+        },
+        {
+          "name": "users",
+          "fullPath": "discounts.users",
+          "modules": [],
+          "buildingBlocks": [
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/users/UserId.java:UserId",
+              "name": "UserId",
+              "type": "Identifier",
+              "behaviors": []
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/users/UserStatus.java:UserStatus",
+              "name": "UserStatus",
+              "type": "ValueObject",
+              "behaviors": []
+            },
+            {
+              "id": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java:UserStatusProvider",
+              "name": "UserStatusProvider",
+              "type": "Adapter",
+              "behaviors": [
+                {
+                  "id": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java:UserStatusProvider:getFor",
+                  "name": "getFor",
+                  "actor": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "buildingBlocks": []
+    }
+  ]
+}

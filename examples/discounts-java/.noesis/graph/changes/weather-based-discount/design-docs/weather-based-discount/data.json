@@ -1,0 +1,592 @@
+{
+  "id": "weather-based-discount",
+  "name": {
+    "value": "Weather-based discount",
+    "reviewedByHuman": false
+  },
+  "description": {
+    "value": "Adds a 10 percent offer-level discount granted when it is currently raining or snowing in Warsaw, read from the Open-Meteo API through a new weather module, and prepares the extension points for further weather-based discounts (temperature, wind, cloud cover, humidity, UV index).",
+    "reviewedByHuman": false
+  },
+  "modules": {
+    "added": [
+      {
+        "id": "module|discounts.weather",
+        "description": {
+          "value": "Current weather at the shop's fixed location (Warsaw) as an input to discount decisions: the weather snapshot value object and the port through which it is obtained. Mirrors the users module, which pairs UserStatus with UserStatusProvider.",
+          "reviewedByHuman": false
+        }
+      },
+      {
+        "id": "module|discounts.weather.openmeteo",
+        "description": {
+          "value": "Open-Meteo realisation of the weather port: an HTTP adapter that calls the Open-Meteo forecast endpoint for the current weather at Warsaw and maps the JSON response to the Weather snapshot.",
+          "reviewedByHuman": false
+        }
+      }
+    ]
+  },
+  "buildingBlocks": {
+    "added": [
+      {
+        "id": "building_block|discounts.weather.Weather",
+        "type": {
+          "value": "value_object",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Snapshot of the current weather at the configured location. Holds precipitation in millimetres. Future weather parameters (temperature, wind speed, cloud cover, humidity, UV index) are added as further fields on this same object so that every weather-based discount reads from one snapshot.",
+          "reviewedByHuman": false
+        },
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "precipitation",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "Double",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Current precipitation in millimetres as reported by the weather provider (rain or snow). 0 means dry weather.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "Weather snapshot carries precipitation in millimetres",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Structure",
+              "description": {
+                "value": "The snapshot describes the current weather at the configured location; precipitation is a numeric value in millimetres exactly as reported by the provider, without rounding. Future weather parameters become further fields on this same snapshot so every weather discount reads from one object taken at one moment.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "building_block|discounts.weather.WeatherProvider",
+        "type": {
+          "value": "external_integration",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Secondary port (interface) through which the calculation obtains the current weather. Returns an optional Weather: an empty result means the weather is unknown and must be treated as no weather-based discount applicable. Implemented by OpenMeteoWeatherProvider; stubbed in unit tests of DiscountPolicyFactory.",
+          "reviewedByHuman": false
+        }
+      },
+      {
+        "id": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+        "type": {
+          "value": "external_integration",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Secondary adapter implementing WeatherProvider with the Open-Meteo API. Performs an HTTP GET on https://api.open-meteo.com/v1/forecast?latitude=52.2297&longitude=21.0122&current=precipitation using java.net.http.HttpClient, parses the JSON body with Jackson and maps current.precipitation to Weather. The base URL is injectable so tests can point the adapter at a local HTTP stub. Warsaw coordinates and the list of requested current parameters are adapter configuration constants; adding a weather parameter means extending that list and the mapping.",
+          "reviewedByHuman": false
+        },
+        "implements": [
+          "building_block|discounts.weather.WeatherProvider"
+        ]
+      },
+      {
+        "id": "building_block|discounts.calculation.PercentageDiscount",
+        "type": {
+          "value": "domain_service",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Offer-level discount expressed as a percentage of the offer value. Structurally the counterpart of FixedDiscount: applying it appends one DiscountAmount that references this discount to the offer-level discounts. No money math is performed in this iteration because offers carry no prices yet; the percentage is kept so that the amount can be computed once prices exist.",
+          "reviewedByHuman": false
+        },
+        "implements": [
+          "building_block|discounts.calculation.Discount"
+        ],
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "percentage",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "Integer",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Discount percentage of the whole offer; 10 for the precipitation discount.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "Percentage discount is an offer-level discount recorded as a discount amount",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Structure",
+              "description": {
+                "value": "A percentage discount holds a percentage value and, when applied, appends exactly one DiscountAmount referencing itself to the offer-level discounts of the DiscountedOffer, leaving product-level discounts untouched. It follows the same shape as FixedDiscount; no money computation happens in this iteration.",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "Weather discounts stack with other discounts",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Consistency",
+              "description": {
+                "value": "A weather-based discount neither excludes any other discount nor is excluded by one; a VIP user in the rain receives both the VIP fixed discount and the precipitation discount. Exclusivity is only introduced if a configurator wraps the discount in the existing ExclusiveOfferLevelDiscount.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "type": {
+          "value": "domain_service",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Potential discount that becomes applicable when the current weather carries precipitation above zero (rain or snow). Holds the PercentageDiscount to grant. First member of the family of weather-based potential discounts; the next ones (temperature, wind speed, cloud cover, humidity, UV index) follow the same shape and are registered next to it in DiscountsConfigProvider.",
+          "reviewedByHuman": false
+        },
+        "implements": [
+          "building_block|discounts.calculation.PotentialDiscount"
+        ],
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "discount",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "PercentageDiscount",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "The discount granted when the precipitation condition holds; configured as 10 percent.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "modified": [
+      {
+        "id": "building_block|discounts.calculation.Conditions",
+        "description": {
+          "value": "Change note: gains an optional weather snapshot next to the user status. Conditions remains the single value object that DiscountConfig hands to every PotentialDiscount, so weather-based potential discounts read the weather from here instead of consulting the provider themselves. The field is optional because the weather provider may fail; an absent snapshot means unknown weather.",
+          "reviewedByHuman": false
+        },
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "weather",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "Weather",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Current weather snapshot, absent when the weather provider could not deliver one (Option<Weather>).",
+                "reviewedByHuman": false
+              },
+              "nullable": true
+            }
+          ]
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "description": {
+          "value": "Change note: receives a WeatherProvider as a third collaborator (next to DiscountsConfigProvider and UserStatusProvider) and, inside get, reads the current weather once and places it into Conditions. No new behaviours; the public shape of get(UserId) is unchanged.",
+          "reviewedByHuman": false
+        },
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "weatherProvider",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "WeatherProvider",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Port used to read the current weather once per policy resolution.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountsConfigProvider",
+        "description": {
+          "value": "Change note: getDiscountsConfig now registers PotentialPrecipitationDiscount wrapping a PercentageDiscount of 10 percent next to the existing PotentialVipUserDiscount. This is the registration point for every future weather-based potential discount.",
+          "reviewedByHuman": false
+        }
+      }
+    ]
+  },
+  "behaviours": {
+    "added": [
+      {
+        "id": "behavior|discounts.weather.WeatherProvider.getCurrent",
+        "description": {
+          "value": "Returns the current weather snapshot for the shop's fixed location, or an empty result when the weather cannot be determined. The port has no parameters: the location (Warsaw, latitude 52.2297, longitude 21.0122) is a configuration concern of the adapter, not a domain input, because all discounts in this iteration are evaluated for one shop location. Callers never see an exception from this behaviour; any failure on the provider side is expressed as an empty result, which the calculation interprets as unknown weather. DiscountPolicyFactory calls it exactly once per policy resolution and puts the result into Conditions.",
+          "reviewedByHuman": false
+        },
+        "type": {
+          "value": "Query",
+          "reviewedByHuman": false
+        },
+        "output": {
+          "added": [
+            "Weather"
+          ]
+        },
+        "isPublic": false
+      },
+      {
+        "id": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
+        "description": {
+          "value": "Calls the Open-Meteo forecast endpoint for the configured location requesting the current precipitation, and maps the response to a Weather snapshot. On HTTP 200 with a body of the form {\"current\":{\"precipitation\":0.5}} it returns Weather with precipitation 0.5. On any network error, on a request timeout, on a non-2xx HTTP status or on a body that cannot be parsed or lacks current.precipitation, it returns an empty result and logs nothing that would interrupt processing. The request is bounded by an explicit timeout so a slow API cannot block discount calculation. The adapter performs no caching and no retries in this iteration.",
+          "reviewedByHuman": false
+        },
+        "type": {
+          "value": "Query",
+          "reviewedByHuman": false
+        },
+        "output": {
+          "added": [
+            "Weather"
+          ]
+        },
+        "usedBuildingBlocks": {
+          "added": [
+            "building_block|discounts.weather.Weather"
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "Provider failure means unknown weather",
+                "reviewedByHuman": false
+              },
+              "ruleType": "State change",
+              "description": {
+                "value": "Any network error, timeout, non-2xx HTTP status or unparsable response body results in an empty result, i.e. weather unknown. The adapter never propagates an exception into discount calculation; missing weather is a normal outcome, not an error.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "scenarios": {
+          "added": [
+            {
+              "name": {
+                "value": "Weather API failure does not break discount calculation",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Covers HTTP 500, a timeout and malformed JSON from the weather API; each must degrade to unknown weather.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "the weather API responds with HTTP 500, or does not respond within the request timeout, or returns a body that is not valid JSON",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "the current weather is requested",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the result is empty, no exception is thrown, and a subsequent discount calculation completes with no weather discount",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "Open-Meteo response is mapped to a weather snapshot",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Integration test of the adapter against a local HTTP stub standing in for Open-Meteo.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "a local HTTP stub answering {\"current\":{\"precipitation\":0.5}} and the adapter pointed at that stub",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "the current weather is requested",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the result is a Weather with precipitation 0.5",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "isPublic": false
+      },
+      {
+        "id": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "description": {
+          "value": "Applies the percentage discount to a DiscountedOffer and returns the new DiscountedOffer. The product list is passed through unchanged; the offer-level discount list is extended with one new DiscountAmount whose applied discount is this PercentageDiscount, exactly as FixedDiscount does for a fixed amount. The behaviour is pure: it does not mutate the input, so repeated application yields repeated DiscountAmount entries, which is the existing convention of the calculation module. Because DiscountAmount currently carries no monetary value, the percentage is not yet turned into money here; that happens once offers have prices.",
+          "reviewedByHuman": false
+        },
+        "type": {
+          "value": "Command",
+          "reviewedByHuman": false
+        },
+        "input": {
+          "added": [
+            "DiscountedOffer"
+          ]
+        },
+        "output": {
+          "added": [
+            "DiscountedOffer"
+          ]
+        },
+        "usedBuildingBlocks": {
+          "added": [
+            "building_block|discounts.calculation.DiscountAmount"
+          ]
+        },
+        "isPublic": false
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "description": {
+          "value": "Decides whether the precipitation discount applies to the given Conditions. Reads the optional Weather from the conditions: when a weather snapshot is present and its precipitation is strictly greater than 0 mm the discount is applicable; when precipitation is 0 the weather is dry and the discount does not apply; when the conditions carry no weather at all (the provider could not deliver a snapshot) the discount does not apply either, because unknown weather is never treated as rain. The check is a pure function of the Conditions value and does not consult the weather provider itself.",
+          "reviewedByHuman": false
+        },
+        "type": {
+          "value": "Query",
+          "reviewedByHuman": false
+        },
+        "input": {
+          "added": [
+            "Conditions"
+          ]
+        },
+        "usedBuildingBlocks": {
+          "added": [
+            "building_block|discounts.weather.Weather"
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "Precipitation above zero makes the precipitation discount applicable",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Computation",
+              "description": {
+                "value": "The discount is applicable exactly when the conditions carry a known weather snapshot whose precipitation is strictly greater than 0 mm. Precipitation equal to 0 is dry weather and yields no discount. The threshold is a business constant of this discount, not of the weather provider.",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "Unknown weather never grants a weather discount",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Computation",
+              "description": {
+                "value": "When the weather provider could not deliver a snapshot and the conditions carry no weather, every weather-based potential discount reports itself as not applicable. Missing data is treated as no rain, never as an error and never as rain.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "scenarios": {
+          "added": [
+            {
+              "name": {
+                "value": "Rain grants the precipitation discount",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Happy path for a non-VIP user during rain.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "conditions whose weather has precipitation 0.5 mm",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "applicability of the precipitation discount is checked",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the discount is applicable and getDiscount returns the configured PercentageDiscount of 10 percent",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "Dry weather grants no precipitation discount",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Boundary at zero precipitation.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "conditions whose weather has precipitation 0 mm",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "applicability of the precipitation discount is checked",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the discount is not applicable",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "Unknown weather grants no precipitation discount",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Domain-side half of the API failure case.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "conditions without any weather because the provider returned an empty result",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "applicability of the precipitation discount is checked",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the discount is not applicable",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "isPublic": false
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
+        "description": {
+          "value": "Returns the PercentageDiscount configured for this potential discount, which DiscountConfig collects into the list of discounts to apply once isApplicableFor has answered positively. The behaviour has no side effects and always returns the same configured instance; the percentage value (10) is decided at configuration time in DiscountsConfigProvider, not here. It mirrors PotentialVipUserDiscount.getDiscount, which returns the configured FixedDiscount, so that DiscountConfig can treat every potential discount uniformly.",
+          "reviewedByHuman": false
+        },
+        "type": {
+          "value": "Query",
+          "reviewedByHuman": false
+        },
+        "output": {
+          "added": [
+            "PercentageDiscount"
+          ]
+        },
+        "isPublic": false
+      }
+    ],
+    "modified": [
+      {
+        "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "description": {
+          "value": "Resolves the list of discounts applicable to a user. In addition to the user status it now reads the current weather once through WeatherProvider and places the optional snapshot into Conditions before asking DiscountConfig for the applicable discounts.\n\n```mermaid\nsequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>\n```",
+          "reviewedByHuman": false
+        },
+        "usedBuildingBlocks": {
+          "added": [
+            "building_block|discounts.weather.WeatherProvider",
+            "building_block|discounts.weather.Weather"
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "Weather is read once per policy resolution",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Consistency",
+              "description": {
+                "value": "A single call to get(userId) queries the weather provider exactly once and places the result into Conditions, so every potential discount evaluated in that call sees the same weather snapshot taken at the same moment.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "scenarios": {
+          "added": [
+            {
+              "name": {
+                "value": "VIP user during rain receives both discounts",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Verifies stacking of the VIP discount and the precipitation discount within one resolution.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "a VIP user and a weather provider returning precipitation above 0",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "discounts are resolved for the user",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the list contains both the VIP FixedDiscount and the PercentageDiscount",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "isPublic": false
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
+        "description": {
+          "value": "Builds the DiscountConfig. Now registers PotentialPrecipitationDiscount holding a PercentageDiscount of 10 next to the existing PotentialVipUserDiscount; future weather-based potential discounts are registered here as well.",
+          "reviewedByHuman": false
+        },
+        "usedBuildingBlocks": {
+          "added": [
+            "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+            "building_block|discounts.calculation.PercentageDiscount"
+          ]
+        },
+        "isPublic": false
+      }
+    ]
+  },
+  "implemented": true
+}
