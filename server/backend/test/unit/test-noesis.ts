@@ -44,10 +44,12 @@ export async function testNoesis(): Promise<TestNoesis> {
   const designDocsRepository = new NoesisDesignDocsRepository(
     changesRepository,
   );
+  const documentsRepository = new NoesisDocumentsRepository(changesRepository);
   const systemModels = createSystemModelStore(noesis);
   const changesService = new ChangesService(
     changesRepository,
     designDocsRepository,
+    documentsRepository,
   );
   return {
     root,
@@ -60,10 +62,7 @@ export async function testNoesis(): Promise<TestNoesis> {
       designDocsRepository,
       changesService,
     ),
-    documentsService: new DocumentsService(
-      new NoesisDocumentsRepository(changesRepository),
-      changesService,
-    ),
+    documentsService: new DocumentsService(documentsRepository, changesService),
     createChange: async (slug, overrides = {}) => {
       const parsed = typeof slug === 'string' ? ChangeSlug.parse(slug) : slug;
       const change: Change = {

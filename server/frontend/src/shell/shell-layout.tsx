@@ -3,7 +3,6 @@ import { AppShell } from '#/shared/design-system/app-shell';
 import { useDisclosure } from '#/shared/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
-import { ViewHeader } from './view-header';
 import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
@@ -29,7 +28,6 @@ export function ShellLayout() {
         <Sidebar onNavigate={navbar.close} />
       </AppShell.Navbar>
       <AppShell.Main className={classes.main}>
-        <ViewHeader />
         <Outlet />
       </AppShell.Main>
     </AppShell>

@@ -40,12 +40,13 @@ const OVERVIEW_NAV = {
   exact: true,
 } satisfies NavItem;
 
-const DOCUMENTS_NAV = {
+export const DOCUMENTS_NAV = {
   to: '/changes/$changeId/documents',
   routeId: DOCUMENTS_ROUTE_ID,
   label: 'Documents',
   description: 'Imported material that informs the change',
   icon: IconFiles,
+  exact: true,
 } satisfies NavItem;
 
 export const DESIGN_DOCS_NAV = {

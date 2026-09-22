@@ -60,12 +60,14 @@ log.info('session scratch directory {path}', { path: session.path });
 
 const changesRepository = new NoesisChangesRepository(noesis);
 const designDocsRepository = new NoesisDesignDocsRepository(changesRepository);
+const documentsRepository = new NoesisDocumentsRepository(changesRepository);
 const changesService = new ChangesService(
   changesRepository,
   designDocsRepository,
+  documentsRepository,
 );
 const documentsService = new DocumentsService(
-  new NoesisDocumentsRepository(changesRepository),
+  documentsRepository,
   changesService,
 );
 

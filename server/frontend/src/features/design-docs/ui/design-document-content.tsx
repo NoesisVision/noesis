@@ -1,8 +1,10 @@
+import { IconPencilBolt } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
+import { DetailHeader } from '#/shared/ui/detail-header.tsx';
 import type {
   DesignDocument,
   DesignedField,
@@ -135,7 +137,7 @@ export function DesignDocumentContent({
     id ? (names.get(id) ?? id) : 'Not assigned';
   return (
     <Stack component="article" maw={1000}>
-      <Title order={2}>{doc.name}</Title>
+      <DetailHeader title={doc.name} icon={IconPencilBolt} />
       <Text c="dimmed">
         {doc.status} · {doc.date}
       </Text>

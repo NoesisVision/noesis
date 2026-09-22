@@ -31,13 +31,18 @@ describe('ui changes routes', () => {
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with its design documents, scoped to it', async () => {
+  it('lists each change with the documents under it, scoped to it', async () => {
     const older = await t.createChange('older', { name: 'Older change' });
     await t.createChange('newer', {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const document = await t.designDocsService.create(older, designDocFixture);
+    const designDoc = await t.designDocsService.create(older, designDocFixture);
+    const document = await t.documentsService.create(older, {
+      title: 'Stakeholder interview',
+      date: '2026-09-12',
+      content: 'What they said.',
+    });
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
@@ -51,6 +56,7 @@ describe('ui changes routes', () => {
           status: 'discovery',
           created_at: '2026-09-14T00:00:00.000Z',
           description: '',
+          documents: [],
           designDocs: [],
         },
         {
@@ -61,10 +67,32 @@ describe('ui changes routes', () => {
           status: 'discovery',
           created_at: '2026-09-13T00:00:00.000Z',
           description: '',
-          designDocs: [{ id: document.id, name: document.name }],
+          documents: [{ id: document.id.value, name: document.title }],
+          designDocs: [{ id: designDoc.id, name: designDoc.name }],
         },
       ],
     });
+  });
+
+  it('names the documents of a change in title order', async () => {
+    const change = await t.createChange('older');
+    for (const title of ['Zoning rules', 'Appointment booking', 'Glossary']) {
+      await t.documentsService.create(change, {
+        title,
+        date: '2026-09-12',
+        content: '',
+      });
+    }
+
+    const response = await app.request('/navigation');
+    const { changes } = (await response.json()) as {
+      changes: { documents: { name: string }[] }[];
+    };
+    expect(changes[0]?.documents.map((d) => d.name)).toEqual([
+      'Appointment booking',
+      'Glossary',
+      'Zoning rules',
+    ]);
   });
 
   it('creates a change from its name, writes its data.json and lists it', async () => {

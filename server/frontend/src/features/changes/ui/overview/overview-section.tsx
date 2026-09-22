@@ -7,17 +7,24 @@ import { Title } from '#/shared/design-system/title.tsx';
 
 interface OverviewSectionItem {
   id: string;
-  title: string;
+  title: ReactNode;
   content?: ReactNode;
 }
 
 interface OverviewSectionProps {
   title: string;
   items: OverviewSectionItem[];
+  /** Shown in place of the cards: loading, a failure, or nothing there yet. */
+  empty?: ReactNode;
   mt?: number;
 }
 
-export function OverviewSection({ title, mt, items }: OverviewSectionProps) {
+export function OverviewSection({
+  title,
+  mt,
+  items,
+  empty = 'No items',
+}: OverviewSectionProps) {
   return (
     <Box mt={mt}>
       <Title order={3} mb={8}>
@@ -36,7 +43,7 @@ export function OverviewSection({ title, mt, items }: OverviewSectionProps) {
             </Grid.Col>
           );
         })}
-        {!items.length && <Text>No items</Text>}
+        {!items.length && <Text>{empty}</Text>}
       </Grid>
     </Box>
   );
