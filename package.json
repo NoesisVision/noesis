@@ -7,6 +7,7 @@
     "build": "bun run --filter '*' build",
     "build:plugin": "bun run --cwd plugins/claude-code build",
     "dev": "bun run server/scripts/dev.ts",
+    "preview": "bun run build && PORT=3000 bun run --cwd server/backend start",
     "start:debug": "bun run --cwd server/backend start:debug",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",

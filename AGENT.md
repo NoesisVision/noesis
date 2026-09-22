@@ -15,6 +15,7 @@ All from the repo root unless noted. bun 1.4 is pinned via `packageManager`.
 ```sh
 bun install                 # also wires .githooks/ via `prepare`
 bun run dev                 # Vite on :3000 (HMR) + watched backend on :3001
+bun run preview             # build, then serve the production artifacts on :3000
 bun run start:debug         # backend only on :3000 with bun's inspector
 
 bun run ci                  # the one definition of "verified": lint, knip, format:check, check-types, test, test:e2e, build
