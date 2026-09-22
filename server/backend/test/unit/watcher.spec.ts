@@ -3,9 +3,9 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { isIgnored, NoesisWatcher } from '#backend/platform/files/watcher';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -100,7 +100,7 @@ describe('NoesisWatcher', () => {
     await t.changesRepository.children(ALPHA)['design-docs'].set('a1', {
       ...designDocFixture,
       id: 'a1',
-      name: 'Before',
+      name: { value: 'Before' },
     });
     await indexer.rebuild();
     watcher = new NoesisWatcher(t.noesis, () => indexer.rebuild(), {
@@ -126,7 +126,11 @@ describe('NoesisWatcher', () => {
     await mkdir(other, { recursive: true });
     await writeFile(
       `${other}/data.json`,
-      JSON.stringify({ ...designDocFixture, id: 'b1', name: 'After' }),
+      JSON.stringify({
+        ...designDocFixture,
+        id: 'b1',
+        name: { value: 'After' },
+      }),
     );
     await waitFor(async () => (await ids()).join() === 'b1');
 

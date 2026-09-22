@@ -36,7 +36,7 @@ function DesignDocList({ changeId }: { changeId: string }) {
             {doc.name}
           </Link>
           <Text size="sm" c="dimmed">
-            {doc.status} · {doc.date}
+            {doc.implemented ? 'Implemented' : 'Draft'}
           </Text>
         </Card>
       ))}

@@ -1,11 +1,11 @@
 import { afterAll, afterEach, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture.ts';
 import {
   designDocById,
   designDocsList,
 } from '../src/features/design-docs/design-docs.api';
 import { ApiError } from '../src/shared/api/client';
+import { designDocFixture } from './fixtures/design-doc.fixture';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
 const cache = new QueryClient({
@@ -27,13 +27,13 @@ it('requests the change-scoped list and forwards cancellation', async () => {
 it('unwraps the selected document and isolates documents between changes', async () => {
   fetchSpy.mockResolvedValueOnce(Response.json({ document: designDocFixture }));
   expect(
-    await cache.fetchQuery(designDocById('test-2', 'doc-appointments')),
+    await cache.fetchQuery(designDocById('test-2', designDocFixture.id)),
   ).toEqual(designDocFixture);
   expect(fetchSpy.mock.calls[0]?.[0]).toBe(
-    '/ui/changes/test-2/design-docs/doc-appointments',
+    `/ui/changes/test-2/design-docs/${designDocFixture.id}`,
   );
   expect(
-    cache.getQueryData(designDocById('test', 'doc-appointments').queryKey),
+    cache.getQueryData(designDocById('test', designDocFixture.id).queryKey),
   ).toBeUndefined();
 });
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { CreateDocument } from '#backend/app/information-sources/document';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
@@ -6,6 +7,8 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/documents`), which is what is under test.
+// The surface only reads; documents get in through the MCP tools, so the
+// tests seed them through the service.
 
 const CHANGE = 'booking';
 const BASE = `/changes/${CHANGE}/documents`;
@@ -17,11 +20,12 @@ const document: CreateDocument = {
 };
 
 let t: TestNoesis;
+let slug: ChangeSlug;
 let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.createChange(CHANGE);
+  slug = await t.createChange(CHANGE);
   app = createUiApp({
     searchService: new SearchService(),
     changesService: t.changesService,
@@ -32,23 +36,9 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const send = (method: string, path: string, body: unknown) =>
-  app.request(path, {
-    method,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-const post = (path: string, body: unknown) => send('POST', path, body);
-const put = (path: string, body: unknown) => send('PUT', path, body);
-
 describe('ui documents routes', () => {
-  it('creates a document under the slug of its title and lists it', async () => {
-    const created = await post(BASE, { document });
-    expect(created.status).toBe(201);
-    expect(await created.json()).toMatchObject({
-      document: { id: 'booking-rules', title: 'Booking Rules' },
-    });
+  it('lists the stored documents of the change', async () => {
+    await t.documentsService.create(slug, document);
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -59,7 +49,7 @@ describe('ui documents routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    await post(BASE, { document });
+    await t.documentsService.create(slug, document);
 
     const res = await app.request(`${BASE}/booking-rules`);
     expect(res.status).toBe(200);
@@ -72,118 +62,28 @@ describe('ui documents routes', () => {
     expect((await app.request(`${BASE}/Not_An_Id`)).status).toBe(404);
   });
 
-  it('rejects a document the contract refuses, before anything is written', async () => {
-    const res = await post(BASE, { document: { title: 'No date' } });
+  // Adding, revising and removing are the agent's, through the MCP tools.
+  it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
+    await t.documentsService.create(slug, document);
+    const send = (method: string, path: string) =>
+      app.request(path, {
+        method,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ document }),
+      });
 
-    // The document's own contract runs in the middleware, so a
-    // body that does not satisfy it never reaches the handler.
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as {
-      error: string;
-      issues: { fieldErrors: Record<string, string[]> };
-    };
-    expect(body.error).toBe('invalid_body');
-    expect(body.issues.fieldErrors.document?.length).toBeGreaterThan(0);
-    expect((await app.request(BASE)).status).toBe(200);
-    const { documents } = (await (await app.request(BASE)).json()) as {
-      documents: unknown[];
-    };
-    expect(documents).toEqual([]);
-  });
-
-  it('400s a title no id can be derived from, on create and on retitle', async () => {
-    const created = await post(BASE, {
-      document: { ...document, title: '!!!' },
-    });
-
-    // The title pattern is part of the contract, so the middleware answers.
-    expect(created.status).toBe(400);
-    expect(await created.json()).toMatchObject({ error: 'invalid_body' });
-
-    // Longer than an id, so the derivation would have to cut it short.
-    const tooLong = await post(BASE, {
-      document: { ...document, title: 'x'.repeat(129) },
-    });
-    expect(tooLong.status).toBe(400);
-    const longest = await post(BASE, {
-      document: { ...document, title: 'x'.repeat(128) },
-    });
-    expect(longest.status).toBe(201);
-
-    await post(BASE, { document });
-    const retitled = await put(`${BASE}/booking-rules`, {
-      document: { ...document, title: '日本語' },
-    });
-
-    expect(retitled.status).toBe(400);
-    expect((await app.request(`${BASE}/booking-rules`)).status).toBe(200);
-  });
-
-  it('409s a second document with the same title', async () => {
-    await post(BASE, { document });
-
-    const res = await post(BASE, { document });
-
-    expect(res.status).toBe(409);
-    expect(await res.json()).toMatchObject({
-      error: 'duplicate_document',
-      title: 'Booking Rules',
-    });
-  });
-
-  it('replaces the content under the same id', async () => {
-    await post(BASE, { document });
-
-    const res = await put(`${BASE}/booking-rules`, {
-      document: { ...document, content: 'A slot may be booked twice.' },
-    });
-
-    expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({
-      document: { id: 'booking-rules' },
-    });
+    expect((await send('POST', BASE)).status).toBe(404);
+    expect((await send('PUT', `${BASE}/booking-rules`)).status).toBe(404);
+    expect((await send('DELETE', `${BASE}/booking-rules`)).status).toBe(404);
     expect(
-      await (await app.request(`${BASE}/booking-rules`)).json(),
-    ).toMatchObject({ document: { content: 'A slot may be booked twice.' } });
-  });
-
-  it('moves the document when the title changes', async () => {
-    await post(BASE, { document });
-
-    const res = await put(`${BASE}/booking-rules`, {
-      document: { ...document, title: 'Booking rules v2' },
-    });
-
-    expect(await res.json()).toMatchObject({
-      document: { id: 'booking-rules-v2' },
-    });
-    expect((await app.request(`${BASE}/booking-rules`)).status).toBe(404);
-    expect((await app.request(`${BASE}/booking-rules-v2`)).status).toBe(200);
-  });
-
-  it('404s an update of a document the change does not have', async () => {
-    const res = await put(`${BASE}/missing`, { document });
-
-    expect(res.status).toBe(404);
-    expect(await res.json()).toMatchObject({ error: 'not_found' });
-  });
-
-  it('deletes a document, then 404s the second delete', async () => {
-    await post(BASE, { document });
-
-    expect(
-      (await app.request(`${BASE}/booking-rules`, { method: 'DELETE' })).status,
-    ).toBe(204);
-    expect(
-      (await app.request(`${BASE}/booking-rules`, { method: 'DELETE' })).status,
-    ).toBe(404);
+      (await t.documentsService.list(slug)).map((d) => d.id.value),
+    ).toEqual(['booking-rules']);
   });
 
   it('404s every route of a change that does not exist', async () => {
     const other = '/changes/nope/documents';
 
     expect((await app.request(other)).status).toBe(404);
-    expect((await post(other, { document })).status).toBe(404);
     expect((await app.request(`${other}/booking-rules`)).status).toBe(404);
   });
 });

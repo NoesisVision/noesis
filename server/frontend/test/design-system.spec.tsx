@@ -5,7 +5,6 @@ import { AppShell } from '../src/shared/design-system/app-shell';
 import { Button } from '../src/shared/design-system/button';
 import { Menu } from '../src/shared/design-system/menu';
 import { MantineProvider } from '../src/shared/design-system/provider';
-import { TextInput } from '../src/shared/design-system/text-input';
 
 it('preserves polymorphic props, refs, and Mantine styling', () => {
   const html = renderToStaticMarkup(
@@ -17,16 +16,10 @@ it('preserves polymorphic props, refs, and Mantine styling', () => {
       >
         System model
       </Button>
-      <TextInput
-        label="Name"
-        defaultValue="Retry"
-        ref={createRef<HTMLInputElement>()}
-      />
     </MantineProvider>,
   );
   expect(html).toContain('href="/system-model"');
   expect(html).toContain('mantine-Button-root');
-  expect(html).toContain('value="Retry"');
 });
 
 it('renders wrapped compound components with their shared context', () => {

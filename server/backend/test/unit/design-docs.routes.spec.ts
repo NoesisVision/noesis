@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/design-docs`), which is what is under test.
-// The surface reads and deletes; documents get in through the MCP tools,
-// so the tests seed them through the service.
+// The surface only reads; documents get in through the MCP tools, so the
+// tests seed them through the service.
 
 const CHANGE = 'booking';
 const BASE = `/changes/${CHANGE}/design-docs`;
@@ -39,7 +39,9 @@ describe('ui design-docs routes', () => {
     const { designDocs } = (await listed.json()) as {
       designDocs: { name: string }[];
     };
-    expect(designDocs.map((d) => d.name)).toEqual(['Appointment booking']);
+    expect(designDocs.map((d) => d.name)).toEqual([
+      'Partial refunds for orders',
+    ]);
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
@@ -49,40 +51,41 @@ describe('ui design-docs routes', () => {
     expect(res.status).toBe(200);
     const detail = (await res.json()) as {
       summary: { id: string };
-      document: { goal: string; useCases: unknown[] };
+      document: {
+        description: { value: string };
+        buildingBlocks: { added: { id: string }[] };
+      };
     };
     expect(detail.summary.id).toBe(created.id);
-    expect(detail.document.goal).toBe(designDocFixture.goal);
-    expect(detail.document.useCases).toHaveLength(2);
+    expect(detail.document.description.value).toBe(
+      designDocFixture.description.value,
+    );
+    // Element ids travel as the strings they are written as.
+    expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
+      'building_block|sales.refunds.Refund',
+      'building_block|sales.refunds.RefundIssued',
+      'building_block|sales.refunds.RefundRepository',
+    ]);
 
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
-  // Authoring is the agent's through `create-design-doc` / `update-design-doc`.
-  it('does not create documents: POST is not a route of this surface', async () => {
-    const post = (path: string) =>
+  // Authoring and removal are the agent's, through the MCP tools.
+  it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
+    const created = await t.designDocsService.create(slug, designDocFixture);
+    const send = (method: string, path: string) =>
       app.request(path, {
-        method: 'POST',
+        method,
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ document: designDocFixture }),
       });
 
-    expect((await post(BASE)).status).toBe(404);
-    expect((await post(`${BASE}/sample`)).status).toBe(404);
-    expect(await t.designDocsService.list(slug)).toEqual([]);
-  });
-
-  it('deletes a document, 404s the second attempt', async () => {
-    const created = await t.designDocsService.create(slug, designDocFixture);
-
-    const first = await app.request(`${BASE}/${created.id}`, {
-      method: 'DELETE',
-    });
-    expect(first.status).toBe(204);
-    const second = await app.request(`${BASE}/${created.id}`, {
-      method: 'DELETE',
-    });
-    expect(second.status).toBe(404);
+    expect((await send('POST', BASE)).status).toBe(404);
+    expect((await send('PUT', `${BASE}/${created.id}`)).status).toBe(404);
+    expect((await send('DELETE', `${BASE}/${created.id}`)).status).toBe(404);
+    expect((await t.designDocsService.list(slug)).map((d) => d.id)).toEqual([
+      created.id,
+    ]);
   });
 
   it('404s every route of a change that does not exist', async () => {
@@ -90,7 +93,6 @@ describe('ui design-docs routes', () => {
     for (const res of [
       await app.request(missing),
       await app.request(`${missing}/x`),
-      await app.request(`${missing}/x`, { method: 'DELETE' }),
     ]) {
       expect(res.status).toBe(404);
       expect(await res.json()).toEqual({ error: 'change_not_found' });
