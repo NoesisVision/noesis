@@ -1,3 +1,4 @@
+import { IconPencilBolt } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
@@ -5,6 +6,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
+import { DetailHeader } from '#/shared/ui/detail-header.tsx';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -324,9 +326,7 @@ export function DesignDocumentContent({
 }) {
   return (
     <Stack component="article" maw={1000}>
-      <Title order={2}>
-        <Field field={doc.name} />
-      </Title>
+      <DetailHeader title={<Field field={doc.name} />} icon={IconPencilBolt} />
       <Text c="dimmed">{doc.implemented ? 'Implemented' : 'Draft'}</Text>
       <Text>
         <Field field={doc.description} />
