@@ -1,0 +1,7 @@
+/* The page behind the views: a shade off the surfaces sitting on it. */
+.main {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-gray-9)
+  );
+}
