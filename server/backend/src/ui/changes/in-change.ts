@@ -1,23 +1,37 @@
 import type { Context } from 'hono';
+import type { ChangeNotFound } from '#backend/app/changes/change-errors';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import type { DesignDocNotFound } from '#backend/app/design-docs/design-doc-errors';
+import type { DocumentNotFound } from '#backend/app/information-sources/document-errors';
+
+export type NotFound = ChangeNotFound | DesignDocNotFound | DocumentNotFound;
 
 /**
- * Runs `handler` for the change named by the `:change` route param, answering
- * `change_not_found` when the slug is malformed or the change does not exist.
+ * Runs `handler` for the change named by the `param` route param (`:change`
+ * unless said otherwise), answering `change_not_found` when it is no slug.
  */
-export async function inChange<T extends Response>(
+export function inChange<T>(
   c: Context,
   handler: (slug: ChangeSlug) => Promise<T>,
+  param = 'change',
 ) {
-  const slug = ChangeSlug.tryCreate(c.req.param('change') ?? '');
-  if (slug.isErr()) return c.json({ error: 'change_not_found' }, 404);
-  try {
-    return await handler(slug.value);
-  } catch (error) {
-    if (error instanceof ChangeNotFoundError) {
-      return c.json({ error: 'change_not_found' }, 404);
-    }
-    throw error;
+  return ChangeSlug.tryCreate(c.req.param(param) ?? '').match(
+    handler,
+    async () => changeNotFound(c),
+  );
+}
+
+/** Every kind answers 404; a missing change says so in its own code. */
+export function notFound(c: Context, error: NotFound) {
+  switch (error.kind) {
+    case 'change-not-found':
+      return changeNotFound(c);
+    case 'design-doc-not-found':
+    case 'document-not-found':
+      return c.json({ error: 'not_found' }, 404);
   }
+}
+
+function changeNotFound(c: Context) {
+  return c.json({ error: 'change_not_found' }, 404);
 }

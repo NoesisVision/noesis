@@ -5,10 +5,8 @@ import {
   type CreateChange,
   CreateChangeSchema,
 } from '#backend/app/changes/change';
-import {
-  type ChangesService,
-  DuplicateChangeError,
-} from '#backend/app/changes/changes.service';
+import type { DuplicateChange } from '#backend/app/changes/change-errors';
+import type { ChangesService } from '#backend/app/changes/changes.service';
 import { APPEND, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
@@ -24,20 +22,8 @@ export function createChangeTool(changes: ChangesService): ToolRegistration {
       outputSchema: ChangeSchema,
       annotations: APPEND,
     },
-    (input) => create(changes, input),
+    (input: CreateChange) => changes.create(input).match(created, duplicate),
   );
-}
-
-async function create(
-  changes: ChangesService,
-  input: CreateChange,
-): Promise<CallToolResult> {
-  try {
-    return created(await changes.create(input));
-  } catch (error) {
-    if (error instanceof DuplicateChangeError) return duplicate(error);
-    throw error;
-  }
 }
 
 function created(change: Change): CallToolResult {
@@ -47,7 +33,7 @@ function created(change: Change): CallToolResult {
   );
 }
 
-function duplicate(error: DuplicateChangeError): CallToolResult {
+function duplicate(error: DuplicateChange): CallToolResult {
   return failure(
     error.message,
     error.field === 'key'

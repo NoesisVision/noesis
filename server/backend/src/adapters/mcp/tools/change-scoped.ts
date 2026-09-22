@@ -1,7 +1,7 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
+import type { ChangeNotFound } from '#backend/app/changes/change-errors';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { failure } from '../tool-result';
@@ -11,9 +11,9 @@ const SLUG_EXAMPLE = '"payment-retry"';
 /**
  * The input of a tool that adds one working file to a change. The slug is a
  * plain string on purpose: whether it names a change is domain knowledge,
- * answered in-band by `withChange`, so a shape check adds nothing. The scratch
- * directory is named here rather than in the server's instructions because
- * this description is served by the process that owns it.
+ * answered in-band, so a shape check adds nothing. The scratch directory is
+ * named here rather than in the server's instructions because this
+ * description is served by the process that owns it.
  */
 export function addToChangeInput(
   session: SessionDir,
@@ -37,39 +37,29 @@ export function addToChangeInput(
 }
 
 /**
- * Runs `run` for the change named by `raw`, answering in-band when `raw` is
- * not a slug or names no change. The MCP twin of the ui's `inChange`.
+ * Runs `run` for the slug `raw` spells, answering in-band when it spells
+ * none. The MCP twin of the ui's `inChange`.
  */
-export async function withChange(
+export function withSlug(
   raw: string,
-  subject: string,
   run: (slug: ChangeSlug) => Promise<CallToolResult>,
 ): Promise<CallToolResult> {
-  const slug = ChangeSlug.tryCreate(raw);
-  if (slug.isErr()) return notASlug(raw);
-  try {
-    return await run(slug.value);
-  } catch (error) {
-    if (error instanceof ChangeNotFoundError) {
-      return noSuchChange(error, subject);
-    }
-    throw error;
-  }
+  return ChangeSlug.tryCreate(raw).match(run, async () => notASlug(raw));
+}
+
+export function noSuchChange(
+  error: ChangeNotFound,
+  subject: string,
+): CallToolResult {
+  return failure(
+    error.message,
+    `Create it with ${CREATE_CHANGE} first, then add the ${subject} to the slug it returns.`,
+  );
 }
 
 function notASlug(value: string): CallToolResult {
   return failure(
     `${JSON.stringify(value)} is not a change slug.`,
     `A slug is lower-case kebab-case, as ${CREATE_CHANGE} returned it, e.g. ${SLUG_EXAMPLE}.`,
-  );
-}
-
-function noSuchChange(
-  error: ChangeNotFoundError,
-  subject: string,
-): CallToolResult {
-  return failure(
-    error.message,
-    `Create it with ${CREATE_CHANGE} first, then add the ${subject} to the slug it returns.`,
   );
 }

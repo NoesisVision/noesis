@@ -75,7 +75,7 @@ export class IndexService {
       const owned = changes.children(slug);
       for await (const document of objects(owned['design-docs'])) {
         push('DesignDoc', {
-          id: document.id,
+          id: document.id.value,
           change,
           name: document.name.value,
           implemented: document.implemented,

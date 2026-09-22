@@ -1,8 +1,12 @@
-import { v7 as uuidv7 } from 'uuid';
+import { err, ok, ResultAsync } from 'neverthrow';
 import { z } from 'zod';
+import type { ChangeNotFound } from '#backend/app/changes/change-errors';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { ChangesRepository } from '#backend/app/changes/changes.repository';
+import { existingChange } from '#backend/app/changes/existing-change';
 import type { CreateDesignDocument, DesignDocument } from './design-doc';
+import { type DesignDocNotFound, designDocNotFound } from './design-doc-errors';
+import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
@@ -20,16 +24,6 @@ export const DesignDocSummarySchema = z.object({
 });
 export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 
-export class DesignDocNotFoundError extends Error {
-  readonly id: string;
-
-  constructor(slug: ChangeSlug, id: string) {
-    super(`No design document ${JSON.stringify(id)} in change ${slug.value}.`);
-    this.name = 'DesignDocNotFoundError';
-    this.id = id;
-  }
-}
-
 export interface DesignDocDetail {
   summary: DesignDocSummary;
   document: DesignDocument;
@@ -42,65 +36,83 @@ export interface DesignDocDetail {
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
-  private readonly changesService: ChangesService;
+  private readonly changes: ChangesRepository;
 
-  constructor(docs: DesignDocsRepository, changesService: ChangesService) {
+  constructor(docs: DesignDocsRepository, changes: ChangesRepository) {
     this.docs = docs;
-    this.changesService = changesService;
+    this.changes = changes;
   }
 
-  async create(
+  create(
     slug: ChangeSlug,
     document: CreateDesignDocument,
-  ): Promise<DesignDocSummary> {
-    await this.changesService.assertExists(slug);
-    return this.store(slug, document, uuidv7());
+  ): ResultAsync<DesignDocSummary, ChangeNotFound> {
+    return existingChange(this.changes, slug).andThen(() =>
+      this.store(slug, DesignDocId.mint(), document),
+    );
   }
 
   /** Whole-document replacement. */
-  async update(
+  update(
     slug: ChangeSlug,
-    id: string,
+    id: DesignDocId,
     document: CreateDesignDocument,
-  ): Promise<DesignDocSummary> {
-    await this.changesService.assertExists(slug);
-    if ((await this.docs.get(slug, id)) === null) {
-      throw new DesignDocNotFoundError(slug, id);
-    }
-    return this.store(slug, document, id);
+  ): ResultAsync<DesignDocSummary, ChangeNotFound | DesignDocNotFound> {
+    return this.existing(slug, id).andThen(() =>
+      this.store(slug, id, document),
+    );
   }
 
-  async list(slug: ChangeSlug): Promise<DesignDocSummary[]> {
-    await this.changesService.assertExists(slug);
-    const documents = await Array.fromAsync(this.docs.values(slug));
-    return documents
-      .map((document) => this.summarize(slug, document))
-      .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+  list(slug: ChangeSlug): ResultAsync<DesignDocSummary[], ChangeNotFound> {
+    return existingChange(this.changes, slug).map(async () => {
+      const documents = await Array.fromAsync(this.docs.values(slug));
+      return documents
+        .map((document) => this.summarize(slug, document))
+        .sort(
+          (a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id),
+        );
+    });
   }
 
-  async findById(
+  findById(
     slug: ChangeSlug,
-    id: string,
-  ): Promise<DesignDocDetail | null> {
-    await this.changesService.assertExists(slug);
-    const document = await this.docs.get(slug, id);
-    if (document === null) return null;
-    return { summary: this.summarize(slug, document), document };
+    id: DesignDocId,
+  ): ResultAsync<DesignDocDetail, ChangeNotFound | DesignDocNotFound> {
+    return this.existing(slug, id).map((document) => ({
+      summary: this.summarize(slug, document),
+      document,
+    }));
   }
 
-  async delete(slug: ChangeSlug, id: string): Promise<boolean> {
-    await this.changesService.assertExists(slug);
-    return this.docs.delete(slug, id);
-  }
-
-  private async store(
+  delete(
     slug: ChangeSlug,
+    id: DesignDocId,
+  ): ResultAsync<void, ChangeNotFound | DesignDocNotFound> {
+    return this.existing(slug, id).map(async () => {
+      await this.docs.delete(slug, id);
+    });
+  }
+
+  private existing(
+    slug: ChangeSlug,
+    id: DesignDocId,
+  ): ResultAsync<DesignDocument, ChangeNotFound | DesignDocNotFound> {
+    return existingChange(this.changes, slug)
+      .map(() => this.docs.get(slug, id))
+      .andThen((document) =>
+        document === null ? err(designDocNotFound(slug, id)) : ok(document),
+      );
+  }
+
+  private store(
+    slug: ChangeSlug,
+    id: DesignDocId,
     document: CreateDesignDocument,
-    id: string,
-  ): Promise<DesignDocSummary> {
+  ): ResultAsync<DesignDocSummary, never> {
     const stored: DesignDocument = { ...document, id };
-    await this.docs.set(slug, id, stored);
-    return this.summarize(slug, stored);
+    return ResultAsync.fromSafePromise(this.docs.set(slug, id, stored)).map(
+      () => this.summarize(slug, stored),
+    );
   }
 
   private summarize(
@@ -108,7 +120,7 @@ export class DesignDocsService {
     { id, name, implemented }: DesignDocument,
   ): DesignDocSummary {
     return {
-      id,
+      id: id.value,
       name: name.value,
       implemented,
       path: this.docs.pathOf(slug, id),

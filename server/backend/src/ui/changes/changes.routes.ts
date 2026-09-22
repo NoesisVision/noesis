@@ -1,9 +1,6 @@
 import { Hono } from 'hono';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
-import {
-  ChangeNotFoundError,
-  type ChangesService,
-} from '#backend/app/changes/changes.service';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import { inChange, notFound } from './in-change';
 
 export interface ChangesDeps {
   changesService: ChangesService;
@@ -24,15 +21,14 @@ export function createChangesApp(deps: ChangesDeps) {
     })
 
     .get('/:id', async (c) => {
-      const slug = ChangeSlug.tryCreate(c.req.param('id'));
-      if (slug.isErr()) return c.json({ error: 'change_not_found' }, 404);
-      try {
-        return c.json({ change: await changesService.findById(slug.value) });
-      } catch (error) {
-        if (error instanceof ChangeNotFoundError) {
-          return c.json({ error: 'change_not_found' }, 404);
-        }
-        throw error;
-      }
+      return inChange(
+        c,
+        (slug) =>
+          changesService.findById(slug).match(
+            (change) => c.json({ change }),
+            (error) => notFound(c, error),
+          ),
+        'id',
+      );
     });
 }

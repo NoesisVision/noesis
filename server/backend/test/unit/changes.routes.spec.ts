@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
 import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
+import { okOf } from '../support/result';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -25,7 +26,7 @@ const post = (body: unknown) =>
   });
 
 const create = (name: string, key = '', type: Change['type'] = 'feature') =>
-  t.changesService.create({ name, key, type });
+  okOf(t.changesService.create({ name, key, type }));
 
 describe('ui changes routes', () => {
   it('returns an empty navigation list when there are no changes', async () => {
@@ -40,9 +41,8 @@ describe('ui changes routes', () => {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const document = await t.designDocsService.create(
-      older,
-      decodedDesignDocFixture,
+    const document = await okOf(
+      t.designDocsService.create(older, decodedDesignDocFixture),
     );
 
     const response = await app.request('/navigation');
@@ -91,13 +91,17 @@ describe('ui changes routes', () => {
   });
 
   it('lists newest first', async () => {
-    await t.changesService.create(
-      { name: 'Older', key: '', type: 'chore' },
-      new Date('2026-09-01T00:00:00Z'),
+    await okOf(
+      t.changesService.create(
+        { name: 'Older', key: '', type: 'chore' },
+        new Date('2026-09-01T00:00:00Z'),
+      ),
     );
-    await t.changesService.create(
-      { name: 'Newer', key: '', type: 'fix' },
-      new Date('2026-09-02T00:00:00Z'),
+    await okOf(
+      t.changesService.create(
+        { name: 'Newer', key: '', type: 'fix' },
+        new Date('2026-09-02T00:00:00Z'),
+      ),
     );
     const { changes } = (await (await app.request('/')).json()) as {
       changes: Change[];

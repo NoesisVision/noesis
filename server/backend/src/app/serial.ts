@@ -8,7 +8,7 @@
 export class Serial {
   private tail: Promise<unknown> = Promise.resolve();
 
-  run<T>(task: () => Promise<T>): Promise<T> {
+  run<T>(task: () => PromiseLike<T>): Promise<T> {
     const result = this.tail.then(task, task);
     // A failed task must not poison the ones queued behind it.
     this.tail = result.catch(() => undefined);

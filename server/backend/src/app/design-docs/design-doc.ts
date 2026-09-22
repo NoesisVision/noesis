@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DesignDocIdSchema } from './design-doc-id';
 import {
   BehaviorId,
   BuildingBlockId,
@@ -197,7 +198,7 @@ export type DesignedBehaviourChangeSet = z.infer<
 >;
 
 export const DesignDocumentSchema = z.object({
-  id: z.string(),
+  id: DesignDocIdSchema,
   name: reviewableFieldSchema(z.string()),
   description: reviewableFieldSchema(z.string()),
   modules: DesignedDomainModuleChangeSetSchema.prefault({}),

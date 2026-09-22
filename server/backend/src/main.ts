@@ -66,11 +66,11 @@ const changesService = new ChangesService(
 );
 const designDocsService = new DesignDocsService(
   designDocsRepository,
-  changesService,
+  changesRepository,
 );
 const documentsService = new DocumentsService(
   new NoesisDocumentsRepository(changesRepository),
-  changesService,
+  changesRepository,
 );
 
 // `serveStdio` owns the transport and the era negotiation: the opening

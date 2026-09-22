@@ -12,7 +12,7 @@ import { APPEND, defineTool, type ToolRegistration } from '../tool';
 import { ADD_DESIGN_DOC_TO_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { readWorkingFile } from '../working-file';
-import { addToChangeInput, withChange } from './change-scoped';
+import { addToChangeInput, noSuchChange, withSlug } from './change-scoped';
 
 const SUBJECT = 'design document';
 
@@ -37,7 +37,7 @@ export function addDesignDocToChangeTool(
       annotations: APPEND,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (slug) =>
+      withSlug(input.change, (slug) =>
         add(designDocs, session, slug, input.path),
       ),
   );
@@ -57,7 +57,10 @@ async function add(
   if (document.isErr()) {
     return failure(formatReport(SUBJECT, document.error));
   }
-  return added(slug, await designDocs.create(slug, document.value));
+  return designDocs.create(slug, document.value).match(
+    (summary) => added(slug, summary),
+    (error) => noSuchChange(error, SUBJECT),
+  );
 }
 
 function added(slug: ChangeSlug, summary: DesignDocSummary): CallToolResult {

@@ -58,11 +58,11 @@ export async function testNoesis(): Promise<TestNoesis> {
     changesService,
     designDocsService: new DesignDocsService(
       designDocsRepository,
-      changesService,
+      changesRepository,
     ),
     documentsService: new DocumentsService(
       new NoesisDocumentsRepository(changesRepository),
-      changesService,
+      changesRepository,
     ),
     createChange: async (slug, overrides = {}) => {
       const parsed = typeof slug === 'string' ? ChangeSlug.create(slug) : slug;

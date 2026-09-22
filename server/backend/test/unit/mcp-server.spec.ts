@@ -5,9 +5,11 @@ import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
+import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SessionDir } from '#backend/platform/files/session-dir';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
+import { okOf } from '../support/result';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -199,11 +201,13 @@ describe('add_document_to_change', () => {
       date: document.date,
       path: expect.stringContaining('payment-retry'),
     });
-    const stored = await noesis.documentsService.findById(
-      change,
-      DocumentId.create('retry-interview'),
+    const stored = await okOf(
+      noesis.documentsService.findById(
+        change,
+        DocumentId.create('retry-interview'),
+      ),
     );
-    expect(stored?.document.content).toBe(document.content);
+    expect(stored.document.content).toBe(document.content);
   });
 
   it('reports an unknown change in-band and writes nothing', async () => {
@@ -364,8 +368,10 @@ describe('add_design_doc_to_change', () => {
       path: expect.stringContaining('payment-retry'),
     });
     expect(textOf(result)).toContain(id);
-    const stored = await noesis.designDocsService.findById(change, id);
-    expect(stored?.summary.name).toBe(designDoc.name.value);
+    const stored = await okOf(
+      noesis.designDocsService.findById(change, DesignDocId.create(id)),
+    );
+    expect(stored.summary.name).toBe(designDoc.name.value);
   });
 
   it('ignores an id the working file carries', async () => {
@@ -445,6 +451,6 @@ describe('add_design_doc_to_change', () => {
     const text = textOf(result);
     expect(text).toContain('$.name');
     expect(text).toContain('$.buildingBlocks');
-    expect(await noesis.designDocsService.list(change)).toEqual([]);
+    expect(await okOf(noesis.designDocsService.list(change))).toEqual([]);
   });
 });

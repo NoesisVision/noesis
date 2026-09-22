@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ChangeSlug } from './change-slug';
 
 // The change's directory also collects its imported conversations, documents
 // and design docs.
@@ -82,3 +83,24 @@ export const CreateChangeSchema = z
   })
   .describe('The request body for creating a change.');
 export type CreateChange = z.infer<typeof CreateChangeSchema>;
+
+/**
+ * A new change: it starts in discovery, stamped with when it was created, with
+ * no description yet. The slug is the caller's, derived from the name and
+ * already checked to be free.
+ */
+export function startChange(
+  slug: ChangeSlug,
+  input: CreateChange,
+  now: Date,
+): Change {
+  return {
+    slug: slug.value,
+    name: input.name,
+    key: input.key,
+    type: input.type,
+    status: 'discovery',
+    created_at: now.toISOString(),
+    description: '',
+  };
+}

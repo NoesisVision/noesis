@@ -1,11 +1,12 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
+import type { ChangeNotFound } from '#backend/app/changes/change-errors';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import { CreateDocumentSchema } from '#backend/app/information-sources/document';
+import type { DuplicateDocument } from '#backend/app/information-sources/document-errors';
 import {
   type DocumentsService,
   type DocumentSummary,
   DocumentSummarySchema,
-  DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
@@ -13,7 +14,7 @@ import { APPEND, defineTool, type ToolRegistration } from '../tool';
 import { ADD_DOCUMENT_TO_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { readWorkingFile } from '../working-file';
-import { addToChangeInput, withChange } from './change-scoped';
+import { addToChangeInput, noSuchChange, withSlug } from './change-scoped';
 
 const SUBJECT = 'document';
 
@@ -38,7 +39,7 @@ export function addDocumentToChangeTool(
       annotations: APPEND,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (slug) =>
+      withSlug(input.change, (slug) =>
         add(documents, session, slug, input.path),
       ),
   );
@@ -56,12 +57,9 @@ async function add(
     return failure(formatReport(SUBJECT, document.error));
   }
 
-  try {
-    return added(slug, await documents.create(slug, document.value));
-  } catch (error) {
-    if (error instanceof DuplicateDocumentError) return duplicate(error);
-    throw error;
-  }
+  return documents
+    .create(slug, document.value)
+    .match((summary) => added(slug, summary), refused);
 }
 
 function added(slug: ChangeSlug, summary: DocumentSummary): CallToolResult {
@@ -71,9 +69,14 @@ function added(slug: ChangeSlug, summary: DocumentSummary): CallToolResult {
   );
 }
 
-function duplicate(error: DuplicateDocumentError): CallToolResult {
-  return failure(
-    error.message,
-    'Give this document a different title, or update the existing one.',
-  );
+function refused(error: ChangeNotFound | DuplicateDocument): CallToolResult {
+  switch (error.kind) {
+    case 'change-not-found':
+      return noSuchChange(error, SUBJECT);
+    case 'duplicate-document':
+      return failure(
+        error.message,
+        'Give this document a different title, or update the existing one.',
+      );
+  }
 }

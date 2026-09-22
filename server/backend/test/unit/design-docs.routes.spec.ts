@@ -6,6 +6,7 @@ import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { okOf } from '../support/result';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
@@ -35,7 +36,7 @@ afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.designDocsService.create(slug, decodedDesignDocFixture);
+    await okOf(t.designDocsService.create(slug, decodedDesignDocFixture));
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -48,9 +49,8 @@ describe('ui design-docs routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    const created = await t.designDocsService.create(
-      slug,
-      decodedDesignDocFixture,
+    const created = await okOf(
+      t.designDocsService.create(slug, decodedDesignDocFixture),
     );
 
     const res = await app.request(`${BASE}/${created.id}`);
@@ -78,9 +78,8 @@ describe('ui design-docs routes', () => {
 
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    const created = await t.designDocsService.create(
-      slug,
-      decodedDesignDocFixture,
+    const created = await okOf(
+      t.designDocsService.create(slug, decodedDesignDocFixture),
     );
     const send = (method: string, path: string) =>
       app.request(path, {
@@ -92,9 +91,8 @@ describe('ui design-docs routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/${created.id}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${created.id}`)).status).toBe(404);
-    expect((await t.designDocsService.list(slug)).map((d) => d.id)).toEqual([
-      created.id,
-    ]);
+    const listed = await okOf(t.designDocsService.list(slug));
+    expect(listed.map((d) => d.id)).toEqual([created.id]);
   });
 
   it('404s every route of a change that does not exist', async () => {

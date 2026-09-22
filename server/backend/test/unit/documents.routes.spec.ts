@@ -3,6 +3,7 @@ import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { CreateDocument } from '#backend/app/information-sources/document';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
+import { okOf } from '../support/result';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
@@ -38,7 +39,7 @@ afterEach(() => t.cleanup());
 
 describe('ui documents routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.documentsService.create(slug, document);
+    await okOf(t.documentsService.create(slug, document));
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -49,7 +50,7 @@ describe('ui documents routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    await t.documentsService.create(slug, document);
+    await okOf(t.documentsService.create(slug, document));
 
     const res = await app.request(`${BASE}/booking-rules`);
     expect(res.status).toBe(200);
@@ -64,7 +65,7 @@ describe('ui documents routes', () => {
 
   // Adding, revising and removing are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    await t.documentsService.create(slug, document);
+    await okOf(t.documentsService.create(slug, document));
     const send = (method: string, path: string) =>
       app.request(path, {
         method,
@@ -75,9 +76,8 @@ describe('ui documents routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/booking-rules`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/booking-rules`)).status).toBe(404);
-    expect((await t.documentsService.list(slug)).map((d) => d.id)).toEqual([
-      'booking-rules',
-    ]);
+    const listed = await okOf(t.documentsService.list(slug));
+    expect(listed.map((d) => d.id)).toEqual(['booking-rules']);
   });
 
   it('404s every route of a change that does not exist', async () => {
