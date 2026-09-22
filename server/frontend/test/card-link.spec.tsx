@@ -44,6 +44,6 @@ it('is one link over the whole card, not a link inside one', async () => {
   expect(html).toContain('mantine-Card-root');
 });
 
-it('titles the card an h3, under the h2 the view is headed with', async () => {
-  expect(await render(card)).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
+it('titles the card an h2, under the h1 the view is headed with', async () => {
+  expect(await render(card)).toMatch(/<h2[^>]*>Payment retry policy<\/h2>/);
 });

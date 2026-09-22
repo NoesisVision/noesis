@@ -19,19 +19,27 @@ a disable needs a comment saying why (`sidebar.tsx` has the only one).
 
 ### Headings carry the outline (1.3.1, 2.4.6)
 
-Levels nest and never skip. The shell gives every page one heading through
-`IconHeading` at `order={2}`, so:
+Levels nest and never skip, and every page has exactly one `h1`. That `h1` is
+`IconHeading`: the view's name on a list page, the item's name on a detail
+page. So:
 
 | Where                                     | Level         |
 | ----------------------------------------- | ------------- |
-| `ViewHeader` / the item on a detail view  | `h2`          |
-| a card in a list, a section of a document | `h3`          |
-| below that                                | `h4`, `h5`, … |
+| `ViewHeader` / the item on a detail view  | `h1`          |
+| a card in a list, a section of a document | `h2`          |
+| below that                                | `h3`, `h4`, … |
+
+A view that renders nothing else — `/system-model`, the not-found views —
+still needs its heading, so its route wraps with `withViewHeader`.
+
+`order` sets the tag; `size` sets the type scale. Use `size` to keep the design
+when a level moves: `<Title order={1} size="h2">` is the page heading, semantic
+`h1`, styled as the app's `h2`.
 
 Markdown from the graph is authored as its own document, starting at `#`.
 `Markdown` shifts every level so the document nests under the page heading
-(`headingLevel`, `3` by default) — never render it unshifted, or a document's
-`#` opens a second outline above the page's own heading.
+(`headingLevel`, `2` by default) — never render it unshifted, or a document's
+`#` opens a second `h1` beside the page's own.
 
 ### Icons are decorative (1.1.1)
 

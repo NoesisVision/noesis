@@ -27,7 +27,7 @@ export function OverviewSection({
 }: OverviewSectionProps) {
   return (
     <Box mt={mt}>
-      <Title order={3} mb={8}>
+      <Title order={2} size="h3" mb={8}>
         {title}
       </Title>
       <Grid>
@@ -35,7 +35,7 @@ export function OverviewSection({
           return (
             <Grid.Col key={item.id} span={{ base: 12, md: 6, lg: 4 }}>
               <Card padding="lg" radius="md" withBorder>
-                <Title order={4} mb={8}>
+                <Title order={3} size="h4" mb={8}>
                   {item.title}
                 </Title>
                 <Text size="sm">{item.content}</Text>

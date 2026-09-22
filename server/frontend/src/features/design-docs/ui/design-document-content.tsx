@@ -70,7 +70,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card component="section" withBorder padding="lg">
       <Stack gap="sm">
-        <Title order={3}>{title}</Title>
+        <Title order={2} size="h3">
+          {title}
+        </Title>
         {children}
       </Stack>
     </Card>
@@ -147,7 +149,9 @@ function Parts<Item extends { name: ReviewableInput }>({
   if (set === undefined) return null;
   return (
     <>
-      <Title order={5}>{title}</Title>
+      <Title order={4} size="h5">
+        {title}
+      </Title>
       <Changes
         set={set}
         keyOf={(item) => item.name.value ?? ''}
@@ -167,7 +171,9 @@ function Strings({
   if (set === undefined) return null;
   return (
     <>
-      <Title order={5}>{title}</Title>
+      <Title order={4} size="h5">
+        {title}
+      </Title>
       <Changes
         set={set}
         keyOf={(item) => item}
@@ -237,7 +243,7 @@ function Scenario({ scenario }: { scenario: DesignedScenarioInput }) {
 function Module({ module }: { module: DesignedDomainModuleInput }) {
   return (
     <Stack gap="xs">
-      <Title order={4}>
+      <Title order={3} size="h4">
         <code>{addressOf(module.id)}</code>
       </Title>
       <Text>
@@ -250,7 +256,7 @@ function Module({ module }: { module: DesignedDomainModuleInput }) {
 function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
   return (
     <Stack gap="xs">
-      <Title order={4}>
+      <Title order={3} size="h4">
         <code>{addressOf(block.id)}</code>
       </Title>
       <Text size="sm" c="dimmed">
@@ -290,7 +296,7 @@ function Behaviour({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   return (
     <Stack gap="xs">
       <Group gap="xs">
-        <Title order={4}>
+        <Title order={3} size="h4">
           <code>{addressOf(behaviour.id)}</code>
         </Title>
         {behaviour.isPublic && <Badge variant="outline">public</Badge>}

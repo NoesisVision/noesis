@@ -38,7 +38,7 @@ function CardLinkBase({
     >
       <Stack gap={4}>
         {/* The view's heading is an h2, so a card under it is an h3. */}
-        <Title order={3} mb={0}>
+        <Title order={2} size="h3" mb={0}>
           {title}
         </Title>
         {!!description && (

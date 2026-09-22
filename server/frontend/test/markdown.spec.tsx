@@ -40,12 +40,12 @@ it('nests a document under the heading of the page it is shown on', () => {
       {'# Payment retry policy\n\n## The problem\n\n### Detail'}
     </Markdown>,
   );
-  // The page heading is an h2, so the document's own `#` is an h3 and never
-  // an h1 opening a second outline above it.
+  // The page heading is the h1, so the document's own `#` is an h2 and never
+  // a second h1 beside it.
   expect(html).not.toContain('<h1');
-  expect(html).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
-  expect(html).toMatch(/<h4[^>]*>The problem<\/h4>/);
-  expect(html).toMatch(/<h5[^>]*>Detail<\/h5>/);
+  expect(html).toMatch(/<h2[^>]*>Payment retry policy<\/h2>/);
+  expect(html).toMatch(/<h3[^>]*>The problem<\/h3>/);
+  expect(html).toMatch(/<h4[^>]*>Detail<\/h4>/);
 });
 
 it('never shifts a heading past h6', () => {

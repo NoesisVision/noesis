@@ -34,7 +34,7 @@ export function IconHeading({
         <Icon size={22} stroke={1.6} />
       </ThemeIcon>
       <Box>
-        <Title order={2} mb={0}>
+        <Title order={1} size="h2" mb={0}>
           {title}
         </Title>
         {!!description && (

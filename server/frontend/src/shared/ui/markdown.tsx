@@ -24,7 +24,7 @@ type HeadingTag = `h${HeadingDepth}`;
  */
 export function Markdown({
   children,
-  headingLevel = 3,
+  headingLevel = 2,
 }: {
   children: string;
   /**

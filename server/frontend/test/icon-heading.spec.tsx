@@ -7,12 +7,12 @@ import { IconHeading } from '../src/shared/ui/icon-heading';
 const render = (markup: React.ReactNode) =>
   renderToStaticMarkup(<MantineProvider>{markup}</MantineProvider>);
 
-it('names the item as the page heading', () => {
+it('names the item as the page heading, which is the h1', () => {
   const html = render(
     <IconHeading title="Payment retry policy" icon={IconFiles} />,
   );
   expect(html).toContain('Payment retry policy');
-  expect(html).toMatch(/<h2[^>]*>Payment retry policy<\/h2>/);
+  expect(html).toMatch(/<h1[^>]*>Payment retry policy<\/h1>/);
 });
 
 it('draws the icon of the kind it was given', () => {
