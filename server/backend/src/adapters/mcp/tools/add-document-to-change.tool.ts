@@ -50,17 +50,14 @@ async function add(
   slug: ChangeSlug,
   path: string,
 ): Promise<CallToolResult> {
-  // The shape is the whole contract: the title's pattern guarantees an id,
-  // so a document has no whole-document `check`.
-  const report = await readWorkingFile(
-    session,
-    { schema: CreateDocumentSchema },
-    path,
-  );
-  if (!report.ok) return failure(formatReport(SUBJECT, report));
+  // The shape is the whole contract: the title's pattern guarantees an id.
+  const document = await readWorkingFile(session, CreateDocumentSchema, path);
+  if (document.isErr()) {
+    return failure(formatReport(SUBJECT, document.error));
+  }
 
   try {
-    return added(slug, await documents.create(slug, report.value));
+    return added(slug, await documents.create(slug, document.value));
   } catch (error) {
     if (error instanceof DuplicateDocumentError) return duplicate(error);
     throw error;

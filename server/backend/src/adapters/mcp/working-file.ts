@@ -1,8 +1,9 @@
+import { err, ok, type Result, ResultAsync } from 'neverthrow';
+import type { ZodType } from 'zod';
 import {
-  type FileContract,
-  singleIssue,
-  type ValidationReport,
+  type ValidationFailure,
   validate,
+  wholeFileIssue,
 } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 
@@ -18,42 +19,35 @@ export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
  * never the payload itself, and the payload is checked once — here, before
  * any service sees it.
  */
-export async function readWorkingFile<T>(
+export function readWorkingFile<T>(
   session: SessionDir,
-  contract: FileContract<T>,
+  schema: ZodType<T>,
   path: string,
-): Promise<ValidationReport<T>> {
-  const resolved = await session.resolveWorkingPath(path);
-  if (!resolved.ok) {
-    return singleIssue({
-      path: '$',
-      message: `${resolved.message} Write the file under ${session.path} and pass that path.`,
-    });
-  }
-  const size = Bun.file(resolved.path).size;
-  if (size > MAX_WORKING_FILE_BYTES) {
-    return singleIssue({
-      path: '$',
-      message: `${resolved.path} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
-    });
-  }
-  const json = await readJson(resolved.path);
-  if (!json.ok) {
-    return singleIssue({
-      path: '$',
-      message: `${json.message}. Rewrite the file as JSON, then call the tool again.`,
-    });
-  }
-  return validate(contract, json.value);
+): ResultAsync<T, ValidationFailure> {
+  return new ResultAsync(session.resolveWorkingPath(path))
+    .mapErr(
+      (message) =>
+        `${message} Write the file under ${session.path} and pass that path.`,
+    )
+    .andThen(withinSizeLimit)
+    .andThen(readJson)
+    .mapErr(wholeFileIssue)
+    .andThen((json) => validate(schema, json));
 }
 
-type JsonResult = { ok: true; value: unknown } | { ok: false; message: string };
+function withinSizeLimit(path: string): Result<string, string> {
+  const size = Bun.file(path).size;
+  return size > MAX_WORKING_FILE_BYTES
+    ? err(
+        `${path} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
+      )
+    : ok(path);
+}
 
-/** The only throwing call in the flow, confined so the rest reads as steps. */
-async function readJson(path: string): Promise<JsonResult> {
-  try {
-    return { ok: true, value: await Bun.file(path).json() };
-  } catch (error) {
-    return { ok: false, message: `Unreadable JSON — ${String(error)}` };
-  }
+function readJson(path: string): ResultAsync<unknown, string> {
+  return ResultAsync.fromPromise(
+    Bun.file(path).json(),
+    (error) =>
+      `Unreadable JSON — ${String(error)}. Rewrite the file as JSON, then call the tool again.`,
+  );
 }

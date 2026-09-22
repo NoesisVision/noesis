@@ -49,13 +49,15 @@ async function add(
   slug: ChangeSlug,
   path: string,
 ): Promise<CallToolResult> {
-  const report = await readWorkingFile(
+  const document = await readWorkingFile(
     session,
-    { schema: CreateDesignDocumentSchema },
+    CreateDesignDocumentSchema,
     path,
   );
-  if (!report.ok) return failure(formatReport(SUBJECT, report));
-  return added(slug, await designDocs.create(slug, report.value));
+  if (document.isErr()) {
+    return failure(formatReport(SUBJECT, document.error));
+  }
+  return added(slug, await designDocs.create(slug, document.value));
 }
 
 function added(slug: ChangeSlug, summary: DesignDocSummary): CallToolResult {

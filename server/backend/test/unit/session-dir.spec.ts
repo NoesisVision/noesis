@@ -11,6 +11,7 @@ import {
 import { realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
+import { err, ok } from 'neverthrow';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   SESSION_MAX_AGE_MS,
@@ -110,17 +111,15 @@ describe('SessionDir', () => {
     });
 
     it('accepts an absolute path under tmp/', async () => {
-      expect(await session.resolveWorkingPath(file)).toEqual({
-        ok: true,
-        path: await realpath(file),
-      });
+      expect(await session.resolveWorkingPath(file)).toEqual(
+        ok(await realpath(file)),
+      );
     });
 
     it('accepts a path relative to the repository root', async () => {
-      expect(await session.resolveWorkingPath(relative(root, file))).toEqual({
-        ok: true,
-        path: await realpath(file),
-      });
+      expect(await session.resolveWorkingPath(relative(root, file))).toEqual(
+        ok(await realpath(file)),
+      );
     });
 
     it("accepts another session's file — skills need not know the id", async () => {
@@ -128,7 +127,7 @@ describe('SessionDir', () => {
       const result = await session.resolveWorkingPath(
         join(other, 'draft.json'),
       );
-      expect(result.ok).toBe(true);
+      expect(result.isOk()).toBe(true);
     });
 
     it('refuses a path outside tmp/, naming the session directory', async () => {
@@ -137,23 +136,22 @@ describe('SessionDir', () => {
 
       const result = await session.resolveWorkingPath(outside);
 
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.message).toContain('.noesis/tmp/');
-        expect(result.message).toContain(session.path);
-      }
+      expect(result.isErr()).toBe(true);
+      const message = result._unsafeUnwrapErr();
+      expect(message).toContain('.noesis/tmp/');
+      expect(message).toContain(session.path);
     });
 
     it('refuses a path that climbs out of tmp/ with ..', async () => {
       const result = await session.resolveWorkingPath(
         join('.noesis', 'tmp', 's1', '..', '..', '.gitignore'),
       );
-      expect(result.ok).toBe(false);
+      expect(result.isErr()).toBe(true);
     });
 
     it('refuses the tmp/ directory itself', async () => {
       const result = await session.resolveWorkingPath(session.tmpRoot);
-      expect(result.ok).toBe(false);
+      expect(result.isErr()).toBe(true);
     });
 
     it('follows a symlink and refuses one that leaves tmp/', async () => {
@@ -164,7 +162,7 @@ describe('SessionDir', () => {
 
       const result = await session.resolveWorkingPath(link);
 
-      expect(result.ok).toBe(false);
+      expect(result.isErr()).toBe(true);
     });
 
     it('accepts the resolved spelling when the repository root is a symlink', async () => {
@@ -177,20 +175,16 @@ describe('SessionDir', () => {
       const resolved = join(await realpath(linked.path), 'doc.json');
       await writeFile(resolved, '{}');
 
-      expect(await linked.resolveWorkingPath(resolved)).toEqual({
-        ok: true,
-        path: resolved,
-      });
+      expect(await linked.resolveWorkingPath(resolved)).toEqual(ok(resolved));
     });
 
     it('answers the path it checked, not the link it was given', async () => {
       const link = join(session.path, 'link.json');
       await symlink(file, link);
 
-      expect(await session.resolveWorkingPath(link)).toEqual({
-        ok: true,
-        path: await realpath(file),
-      });
+      expect(await session.resolveWorkingPath(link)).toEqual(
+        ok(await realpath(file)),
+      );
     });
 
     it('accepts a file whose name merely starts with two dots', async () => {
@@ -199,17 +193,16 @@ describe('SessionDir', () => {
 
       const result = await session.resolveWorkingPath(dotted);
 
-      expect(result.ok).toBe(true);
+      expect(result.isOk()).toBe(true);
     });
 
     it('reports a missing file', async () => {
       const result = await session.resolveWorkingPath(
         join(session.path, 'nope.json'),
       );
-      expect(result).toEqual({
-        ok: false,
-        message: `No file at ${join(session.path, 'nope.json')}.`,
-      });
+      expect(result).toEqual(
+        err(`No file at ${join(session.path, 'nope.json')}.`),
+      );
     });
   });
 });
