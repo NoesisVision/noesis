@@ -106,6 +106,14 @@ describe('SPA serving (e2e)', () => {
     expect(await res.json()).toEqual({ status: 'ok' });
   });
 
+  it('does not swallow a missing asset into the SPA fallback', async () => {
+    const res = await fetch(`${BASE}/assets/does-not-exist-AAAAAAAA.js`);
+    expect(res.status).toBe(404);
+    // The page here arrives where the browser asked for JavaScript, and the
+    // error it reports names the syntax rather than the missing chunk.
+    expect(await res.text()).not.toContain(INDEX_MARKER);
+  });
+
   it('does not swallow surface 404s into the SPA fallback', async () => {
     const res = await fetch(`${BASE}/ui/no-such-endpoint`);
     expect(res.status).toBe(404);

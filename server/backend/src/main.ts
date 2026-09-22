@@ -173,10 +173,7 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
       '/internal/*': app.fetch,
       // A built file, or the page itself: every client route renders the SPA,
       // which then reads the path it was opened at.
-      '/*': async (request: Request) =>
-        (await ui.serve(request)) ??
-        (await ui.serveIndex(request)) ??
-        new Response('The page has not been built.', { status: 503 }),
+      '/*': (request: Request) => ui.respond(request),
     },
     fetch: app.fetch,
   });

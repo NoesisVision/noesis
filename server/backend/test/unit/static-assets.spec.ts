@@ -81,4 +81,30 @@ describe('static assets', () => {
     expect(await ui.exists()).toBe(true);
     expect(await new StaticAssets(join(root, 'nope')).exists()).toBe(false);
   });
+
+  it('answers a missing file with 404, never with the page', async () => {
+    const missing = await ui.respond(
+      new Request('http://localhost/assets/gone-BBBBBBBB.js'),
+    );
+    expect(missing.status).toBe(404);
+    // The page here reaches the browser as HTML where it asked for
+    // JavaScript, and the error it reports names the syntax rather than the
+    // chunk that is missing.
+    expect(await missing.text()).not.toContain('<title>Noesis</title>');
+  });
+
+  it('answers a client route with the page', async () => {
+    const page = await ui.respond(
+      new Request('http://localhost/changes/test-2/documents/payment-retry'),
+    );
+    expect(page.status).toBe(200);
+    expect(await page.text()).toContain('<title>Noesis</title>');
+  });
+
+  it('says so plainly when no page has been built', async () => {
+    const empty = new StaticAssets(join(root, 'nope'));
+    expect((await empty.respond(new Request('http://localhost/'))).status).toBe(
+      503,
+    );
+  });
 });

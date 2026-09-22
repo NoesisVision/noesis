@@ -32,19 +32,38 @@ export class StaticAssets {
     this.indexPath = join(this.root, 'index.html');
   }
 
+  /**
+   * The built file, the page for a client route, or a 404 — never the page
+   * where a file was asked for. A missing chunk answered with `index.html`
+   * reaches the browser as HTML it tries to parse as JavaScript, and the
+   * error names the wrong thing entirely.
+   */
+  async respond(request: Request): Promise<Response> {
+    const file = await this.serve(request);
+    if (file !== null) return file;
+
+    if (namesAFile(new URL(request.url).pathname)) {
+      return new Response('Not found', { status: 404 });
+    }
+    return (
+      (await this.serveIndex(request)) ??
+      new Response('The page has not been built.', { status: 503 })
+    );
+  }
+
   /** `null` when the request names a file that is not there. */
   async serve(request: Request): Promise<Response | null> {
     const path = new URL(request.url).pathname;
     const asset = await this.read(path);
     if (asset === null) return null;
-    return this.respond(asset, request.headers.get('accept-encoding') ?? '');
+    return this.asResponse(asset, request.headers.get('accept-encoding') ?? '');
   }
 
   /** The page itself, for a client-side route that names no file. */
   async serveIndex(request: Request): Promise<Response | null> {
     const asset = await this.load(this.indexPath, false);
     if (asset === null) return null;
-    return this.respond(asset, request.headers.get('accept-encoding') ?? '');
+    return this.asResponse(asset, request.headers.get('accept-encoding') ?? '');
   }
 
   async exists(): Promise<boolean> {
@@ -84,7 +103,7 @@ export class StaticAssets {
     return file.startsWith(this.root + sep) ? file : null;
   }
 
-  private respond(asset: Asset, acceptEncoding: string): Response {
+  private asResponse(asset: Asset, acceptEncoding: string): Response {
     const headers = new Headers({
       'content-type': asset.type,
       'cache-control': asset.immutable
@@ -98,6 +117,15 @@ export class StaticAssets {
     }
     return new Response(asset.bytes, { headers });
   }
+}
+
+/**
+ * A last segment with a suffix in it. No client route has one: a change slug,
+ * a document id and a design document's uuid are all free of `.`.
+ */
+function namesAFile(pathname: string): boolean {
+  const last = pathname.split('/').at(-1) ?? '';
+  return last.includes('.');
 }
 
 function worthGzipping(type: string, bytes: Uint8Array): boolean {
