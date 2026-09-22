@@ -1,0 +1,29 @@
+/*
+ * The whole card is the link, so the hit area is the card and the border is
+ * what answers to hover and focus — an inner anchor would leave most of the
+ * surface dead.
+ */
+.card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.1s ease-in-out,
+    background-color 0.1s ease-in-out;
+
+  &:hover {
+    border-color: light-dark(
+      var(--mantine-color-brand-4),
+      var(--mantine-color-brand-7)
+    );
+    background-color: light-dark(
+      var(--mantine-color-brand-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-6);
+    outline-offset: 2px;
+  }
+}

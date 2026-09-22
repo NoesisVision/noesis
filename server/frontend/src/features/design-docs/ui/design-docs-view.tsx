@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { getRouteApi, Link } from '@tanstack/react-router';
-import { Card } from '#/shared/design-system/card';
+import { getRouteApi } from '@tanstack/react-router';
+import { Grid } from '#/shared/design-system/grid.tsx';
 import { Stack } from '#/shared/design-system/stack';
 import { Text } from '#/shared/design-system/text';
+import { CardLink } from '#/shared/ui/card-link.tsx';
 import { designDocsList } from '../design-docs.api.ts';
 import { DesignDocsLoadError } from './design-docs-load-error.tsx';
 
@@ -26,20 +27,17 @@ function DesignDocList({ changeId }: { changeId: string }) {
   if (!query.data?.length)
     return <Text>No design documents yet for this change.</Text>;
   return (
-    <Stack>
+    <Grid>
       {query.data.map((doc) => (
-        <Card key={doc.id} withBorder padding="lg">
-          <Link
+        <Grid.Col key={doc.id} span={{ sm: 12, md: 6, lg: 4 }}>
+          <CardLink
             to="/changes/$changeId/design-docs/$docId"
             params={{ changeId, docId: doc.id }}
-          >
-            {doc.name}
-          </Link>
-          <Text size="sm" c="dimmed">
-            {doc.implemented ? 'Implemented' : 'Draft'}
-          </Text>
-        </Card>
+            title={doc.name}
+            description={doc.implemented ? 'Implemented' : 'Draft'}
+          />
+        </Grid.Col>
       ))}
-    </Stack>
+    </Grid>
   );
 }
