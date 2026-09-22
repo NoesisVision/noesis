@@ -80,10 +80,10 @@ export class StaticAssets {
     const held = this.cache.get(file);
     if (held !== undefined) return held;
 
-    const handle = Bun.file(file);
-    if (!(await handle.exists())) return null;
+    const bytes = await read(file);
+    if (bytes === null) return null;
 
-    const bytes = new Uint8Array(await handle.arrayBuffer());
+    const handle = Bun.file(file);
     const type = handle.type || 'application/octet-stream';
     const asset: Asset = {
       bytes,
@@ -138,9 +138,40 @@ function acceptsGzip(header: string): boolean {
     .some((part) => part.trim().split(';')[0]?.trim() === 'gzip');
 }
 
-/** Vite names a built asset `<name>-<hash>.<ext>`; `index.html` is not one. */
+/**
+ * The bytes, or `null` for anything this process cannot read as a file — it is
+ * absent as far as a reader is concerned. A path off the request line need not
+ * be one the filesystem will even look at: too long a name is an error, not a
+ * miss, and it would otherwise leave the route with nothing to answer.
+ */
+async function read(file: string): Promise<Uint8Array<ArrayBuffer> | null> {
+  try {
+    const handle = Bun.file(file);
+    return (await handle.exists())
+      ? new Uint8Array(await handle.arrayBuffer())
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** As long as the shortest hash vite emits. */
+const HASH_MIN_LENGTH = 8;
+/** Anchored on both ends around one class, so it cannot backtrack. */
+const BASE64URL = /^[A-Za-z0-9_-]+$/;
+
+/**
+ * Vite names a built asset `<name>-<hash>.<ext>`; `index.html` is not one.
+ * Found by index rather than matched: the path comes off the request line,
+ * and a pattern whose leading `-` is also inside its own class backtracks.
+ */
 function isHashed(pathname: string): boolean {
-  return /-[A-Za-z0-9_-]{8,}\.[a-z0-9]+$/.test(pathname);
+  const name = pathname.slice(pathname.lastIndexOf('/') + 1);
+  const dot = name.lastIndexOf('.');
+  const dash = dot <= 0 ? -1 : name.lastIndexOf('-', dot);
+  if (dash <= 0) return false;
+  const hash = name.slice(dash + 1, dot);
+  return hash.length >= HASH_MIN_LENGTH && BASE64URL.test(hash);
 }
 
 function safeDecode(pathname: string): string | null {

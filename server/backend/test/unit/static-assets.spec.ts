@@ -77,6 +77,19 @@ describe('static assets', () => {
     await rm(join(root, '..', 'noesis-ui-secret.txt'), { force: true });
   });
 
+  it('reads a hash off the name without a pattern that can backtrack', async () => {
+    // Immutability is decided per name, and the name comes off the request.
+    const immutable = async (path: string) =>
+      (await get(path))?.headers.get('cache-control')?.includes('immutable');
+    expect(await immutable(HASHED)).toBe(true);
+    expect(await immutable('/index.html')).toBe(false);
+
+    const pathological = `/assets/${'-'.repeat(40_000)}x`;
+    const started = Bun.nanoseconds();
+    await get(pathological);
+    expect((Bun.nanoseconds() - started) / 1e6).toBeLessThan(50);
+  });
+
   it('knows whether a page was built at all', async () => {
     expect(await ui.exists()).toBe(true);
     expect(await new StaticAssets(join(root, 'nope')).exists()).toBe(false);

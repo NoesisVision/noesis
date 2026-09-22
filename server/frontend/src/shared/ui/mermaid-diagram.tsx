@@ -90,8 +90,33 @@ export function MermaidDiagram({ chart }: { chart: string }) {
  * diagram is all the source says.
  */
 function diagramName(chart: string): string {
-  const declared = /^\s*accTitle\s*:\s*(.+)$/m.exec(chart)?.[1]?.trim();
-  if (declared) return declared;
-  const kind = chart.trim().split(/[\s\n]/)[0] ?? 'mermaid';
-  return `${kind.replace(/-v\d+$/, '')} diagram`;
+  const lines = chart.split('\n');
+  for (const line of lines) {
+    const declared = accessibleTitle(line);
+    if (declared !== null) return declared;
+  }
+  return `${diagramKind(lines)} diagram`;
+}
+
+const ACC_TITLE = 'accTitle:';
+/** Mermaid's accessibility directives, which never name the kind. */
+const ACC_PREFIX = 'acc';
+
+/** Read off the line rather than matched: a document's text is unbounded. */
+function accessibleTitle(line: string): string | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith(ACC_TITLE)) return null;
+  const declared = trimmed.slice(ACC_TITLE.length).trim();
+  return declared === '' ? null : declared;
+}
+
+/** The first word that declares a diagram, past any directive above it. */
+function diagramKind(lines: string[]): string {
+  for (const line of lines) {
+    const word = line.trim().split(/\s/)[0] ?? '';
+    if (word !== '' && !word.startsWith(ACC_PREFIX)) {
+      return word.replace(/-v\d+$/, '');
+    }
+  }
+  return 'mermaid';
 }
