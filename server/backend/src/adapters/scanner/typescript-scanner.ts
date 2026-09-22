@@ -126,9 +126,7 @@ export async function scanUnit(
           name: method.name,
           type: null,
           buildingBlockId: blockId,
-          useCaseId: null,
           description: '',
-          scenarios: [],
           source: { path, line: method.line },
         });
       }

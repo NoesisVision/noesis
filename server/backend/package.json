@@ -37,7 +37,6 @@
     "@ladybugdb/core"
   ],
   "devDependencies": {
-    "@hono/standard-validator": "^0.4.0",
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",
     "@logtape/logtape": "^2.3.4",
@@ -46,6 +45,7 @@
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "hono": "catalog:",
+    "neverthrow": "^8.2.0",
     "typescript": "catalog:",
     "uuid": "^14.0.2",
     "zod": "catalog:"

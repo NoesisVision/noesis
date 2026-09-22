@@ -1,27 +1,7 @@
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { queryOptions, useQuery } from '@tanstack/react-query';
 import { ApiError, api } from '#/shared/api/client.ts';
-import type { Change, CreateChange } from '#backend/app/changes/change.ts';
+import type { Change } from '#backend/app/changes/change.ts';
 import { useChangeId } from './current-change.ts';
-
-export class DuplicateChangeError extends Error {
-  readonly field: 'slug' | 'key';
-
-  constructor(field: 'slug' | 'key') {
-    super(
-      field === 'key'
-        ? 'A change with this key already exists.'
-        : 'A change with this name already exists.',
-    );
-    this.name = 'DuplicateChangeError';
-    this.field = field;
-  }
-}
 
 export class ChangeNotFoundError extends Error {
   constructor(id: string) {
@@ -68,43 +48,6 @@ export const changeById = (id: string) =>
     },
     retry: false,
   });
-
-export async function createChange(input: CreateChange): Promise<Change> {
-  try {
-    const data = await api.changes.$post({ json: input });
-    return data.change;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 409) {
-      const body = error.body;
-      if (
-        typeof body === 'object' &&
-        body !== null &&
-        'error' in body &&
-        body.error === 'duplicate_change' &&
-        'field' in body &&
-        (body.field === 'slug' || body.field === 'key')
-      ) {
-        throw new DuplicateChangeError(body.field);
-      }
-    }
-    throw error;
-  }
-}
-
-export function useCreateChange() {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  return useMutation({
-    mutationFn: createChange,
-    onSuccess: async (change) => {
-      await queryClient.invalidateQueries({ queryKey: changesList.queryKey });
-      await navigate({
-        to: '/changes/$changeId',
-        params: { changeId: change.slug },
-      });
-    },
-  });
-}
 
 /**
  * The open change and the list it came from. The `_shell` loader primes the

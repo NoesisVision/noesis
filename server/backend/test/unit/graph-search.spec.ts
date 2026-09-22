@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createGraphSearch } from '#backend/adapters/graph/graph-search';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { SearchService } from '#backend/app/search/search.service';
 import type { DatabaseService } from '#backend/platform/database/database.service';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -33,13 +33,13 @@ describe('graph search', () => {
       ['design-docs'].set(designDocFixture.id, designDocFixture);
     await new IndexService(db, t.sources).rebuild();
 
-    const results = await search.search('APPOINTMENT');
+    const results = await search.search('REFUNDS');
 
     expect(results).toEqual([
       {
         type: 'design-doc',
         id: designDocFixture.id,
-        title: 'Appointment booking',
+        title: 'Partial refunds for orders',
         subtitle: 'draft',
         href: `/changes/alpha/design-docs/${designDocFixture.id}`,
       },

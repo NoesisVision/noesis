@@ -1,17 +1,15 @@
-import { flattenErrors, sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
-import { CreateChangeSchema } from '#backend/app/changes/change';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import {
   ChangeNotFoundError,
   type ChangesService,
-  DuplicateChangeError,
 } from '#backend/app/changes/changes.service';
 
 export interface ChangesDeps {
   changesService: ChangesService;
 }
 
+/** Mounted at `/ui/changes`, read only: a change is created by the agent through the MCP tools. */
 export function createChangesApp(deps: ChangesDeps) {
   const { changesService } = deps;
 
@@ -20,33 +18,6 @@ export function createChangesApp(deps: ChangesDeps) {
     .get('/', async (c) => {
       return c.json({ changes: await changesService.list() });
     })
-
-    .post(
-      '/',
-      sValidator('json', CreateChangeSchema, (result, c) => {
-        if (!result.success) {
-          return c.json(
-            { error: 'invalid_body', issues: flattenErrors(result.error) },
-            400,
-          );
-        }
-      }),
-      async (c) => {
-        const data = c.req.valid('json');
-        try {
-          const change = await changesService.create(data);
-          return c.json({ change }, 201);
-        } catch (error) {
-          if (error instanceof DuplicateChangeError) {
-            return c.json(
-              { error: 'duplicate_change', field: error.field },
-              409,
-            );
-          }
-          throw error;
-        }
-      },
-    )
 
     .get('/navigation', async (c) => {
       return c.json({ changes: await changesService.listNavigation() });

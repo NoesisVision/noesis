@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -23,6 +23,9 @@ const post = (body: unknown) =>
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+
+const create = (name: string, key = '', type: Change['type'] = 'feature') =>
+  t.changesService.create({ name, key, type });
 
 describe('ui changes routes', () => {
   it('returns an empty navigation list when there are no changes', async () => {
@@ -67,28 +70,21 @@ describe('ui changes routes', () => {
     });
   });
 
-  it('creates a change from its name, writes its data.json and lists it', async () => {
-    const created = await post({
-      name: 'Payment retry',
-      key: 'NOE-142',
-      type: 'feature',
-    });
-    expect(created.status).toBe(201);
-    const { change } = (await created.json()) as { change: Change };
-    expect(change).toMatchObject({
-      slug: 'payment-retry',
-      name: 'Payment retry',
-      key: 'NOE-142',
-      type: 'feature',
-      status: 'discovery',
-      description: '',
-    });
-    expect(Date.parse(change.created_at)).not.toBeNaN();
+  it('lists what the service created, whole', async () => {
+    const change = await create('Payment retry', 'NOE-142');
 
     const listed = await app.request('/');
     expect(listed.status).toBe(200);
     expect(await listed.json()).toEqual({ changes: [change] });
     expect(await slugs()).toEqual(['payment-retry']);
+  });
+
+  // Creation is the agent's, through the `create-change` tool.
+  it('writes nothing: POST is not a route of this surface', async () => {
+    const res = await post({ name: 'Payment retry', type: 'feature' });
+
+    expect(res.status).toBe(404);
+    expect(await slugs()).toEqual([]);
   });
 
   it('lists newest first', async () => {
@@ -107,7 +103,7 @@ describe('ui changes routes', () => {
   });
 
   it('reads one change by slug and 404s an unknown or unsafe one', async () => {
-    await post({ name: 'Audit log', type: 'improvement' });
+    await create('Audit log', '', 'improvement');
     const found = await app.request('/audit-log');
     expect(found.status).toBe(200);
     expect(((await found.json()) as { change: Change }).change.name).toBe(
@@ -118,40 +114,5 @@ describe('ui changes routes', () => {
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ error: 'change_not_found' });
     expect((await app.request('/Not%20A%20Slug')).status).toBe(404);
-  });
-
-  it('409s a taken slug or key, naming the field, and 400s a bad body', async () => {
-    await post({ name: 'Once', key: 'NOE-1', type: 'fix' });
-
-    const sameSlug = await post({ name: 'once', key: 'NOE-2', type: 'fix' });
-    expect(sameSlug.status).toBe(409);
-    expect(await sameSlug.json()).toEqual({
-      error: 'duplicate_change',
-      field: 'slug',
-    });
-
-    const sameKey = await post({ name: 'Other', key: 'NOE-1', type: 'fix' });
-    expect(sameKey.status).toBe(409);
-    expect(await sameKey.json()).toEqual({
-      error: 'duplicate_change',
-      field: 'key',
-    });
-    expect(await slugs()).toEqual(['once']);
-
-    expect((await post({ name: '', type: 'fix' })).status).toBe(400);
-    expect((await post({ name: 'x', type: 'feat' })).status).toBe(400);
-    expect((await post({ name: 'x', key: 'bad', type: 'fix' })).status).toBe(
-      400,
-    );
-
-    // The envelope check names the offending fields.
-    const empty = await post({});
-    expect(empty.status).toBe(400);
-    const body = (await empty.json()) as {
-      error: string;
-      issues: { fieldErrors: Record<string, string[]> };
-    };
-    expect(body.error).toBe('invalid_body');
-    expect(Object.keys(body.issues.fieldErrors)).toContain('name');
   });
 });

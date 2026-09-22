@@ -8,8 +8,7 @@ export const GRAPH_SCHEMA: readonly string[] = [
      id STRING,
      change STRING,
      name STRING,
-     status STRING,
-     date STRING,
+     implemented BOOLEAN,
      document STRING,
      PRIMARY KEY(id)
    )`,

@@ -23,7 +23,7 @@ export interface IndexerSources {
 /** Rows per `UNWIND`; one statement per file is 5× slower. */
 const BATCH_SIZE = 1000;
 
-type Row = Record<string, string>;
+type Row = Record<string, string | boolean>;
 
 // Every rebuild is a full one, so the graph is a function of the files alone,
 // even across a `git checkout`. Measured in `test/bench`: no incremental path
@@ -74,13 +74,12 @@ export class IndexService {
       const change = slug.value;
       const owned = changes.children(slug);
       for await (const document of objects(owned['design-docs'])) {
-        const { id, name, status, date } = document;
         push('DesignDoc', {
-          id,
+          id: document.id,
           change,
-          name,
-          status,
-          date,
+          name: document.name.value,
+          implemented: document.implemented,
+          // Element ids serialise as the strings they decode from.
           document: JSON.stringify(document),
         });
       }

@@ -1,10 +1,15 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { DesignDocument } from './design-doc';
+import type { DesignDocument, DesignDocumentInput } from './design-doc';
 
 export interface DesignDocsRepository {
   get(slug: ChangeSlug, id: string): Promise<DesignDocument | null>;
 
-  set(slug: ChangeSlug, id: string, document: DesignDocument): Promise<void>;
+  /** Takes the JSON form; the store validates and decodes on read. */
+  set(
+    slug: ChangeSlug,
+    id: string,
+    document: DesignDocumentInput,
+  ): Promise<void>;
 
   /** `false` when there was nothing to remove. */
   delete(slug: ChangeSlug, id: string): Promise<boolean>;

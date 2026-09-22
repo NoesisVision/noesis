@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');
@@ -23,17 +24,16 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 describe('DesignDocsService', () => {
-  it('stores a valid document under a server-minted id and reads it back whole', async () => {
+  it('stores a valid document under a server-minted id and reads it back decoded', async () => {
     const summary = await service.create(CHANGE, designDocFixture);
 
     expect(summary.id).not.toBe(designDocFixture.id);
-    expect(summary.name).toBe('Appointment booking');
+    expect(summary.name).toBe('Partial refunds for orders');
 
     const detail = await service.findById(CHANGE, summary.id);
-    expect(detail?.document).toEqual({
-      ...designDocFixture,
-      id: summary.id,
-    });
+    expect(detail?.document).toEqual(
+      DesignDocumentSchema.parse({ ...designDocFixture, id: summary.id }),
+    );
   });
 
   it('replaces a document whole under its id, ignoring the id in the input', async () => {
@@ -42,15 +42,15 @@ describe('DesignDocsService', () => {
     const updated = await service.update(CHANGE, created.id, {
       ...designDocFixture,
       id: 'ignored',
-      name: 'Renamed',
+      name: { value: 'Renamed' },
     });
 
     expect(updated.id).toBe(created.id);
     expect(updated.name).toBe('Renamed');
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
-    expect((await service.findById(CHANGE, created.id))?.document.name).toBe(
-      'Renamed',
-    );
+    expect(
+      (await service.findById(CHANGE, created.id))?.document.name.value,
+    ).toBe('Renamed');
   });
 
   it('refuses to update a document the change does not have', async () => {
@@ -59,13 +59,20 @@ describe('DesignDocsService', () => {
     ).rejects.toBeInstanceOf(DesignDocNotFoundError);
   });
 
-  it('summarises what it stored, and lists it under the change', async () => {
+  it('summarises what it stored, and lists it under the change by name', async () => {
     const summary = await service.create(CHANGE, designDocFixture);
+    const other = await service.create(CHANGE, {
+      ...designDocFixture,
+      name: { value: 'Another design' },
+      implemented: true,
+    });
 
-    expect(summary.name).toBe('Appointment booking');
-    expect(summary.date).toBe(designDocFixture.date);
+    expect(summary.name).toBe('Partial refunds for orders');
+    expect(summary.implemented).toBe(false);
+    expect(other.implemented).toBe(true);
+    expect(summary.path).toEndWith(`/${summary.id}/data.json`);
     const listed = await service.list(CHANGE);
-    expect(listed.map((d) => d.id)).toEqual([summary.id]);
+    expect(listed.map((d) => d.id)).toEqual([other.id, summary.id]);
   });
 
   it('answers null for a document that does not exist', async () => {

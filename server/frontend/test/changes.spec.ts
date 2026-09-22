@@ -4,8 +4,6 @@ import {
   ChangeNotFoundError,
   changeById,
   changesList,
-  createChange,
-  DuplicateChangeError,
 } from '../src/features/changes/changes.api';
 import { ApiError, api } from '../src/shared/api/client';
 
@@ -18,8 +16,6 @@ afterEach(() => {
   cache.clear();
   cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 });
-
-const input = { name: 'Retry', key: '', type: 'feature' as const };
 
 describe('change API errors', () => {
   it('resolves an empty list only on success and passes the abort signal', async () => {
@@ -65,28 +61,6 @@ describe('change API errors', () => {
     });
   });
 
-  it.each(['slug', 'key'] as const)(
-    'maps a duplicate %s to a field error',
-    async (field) => {
-      fetchSpy.mockResolvedValueOnce(
-        Response.json({ error: 'duplicate_change', field }, { status: 409 }),
-      );
-      await expect(createChange(input)).rejects.toBeInstanceOf(
-        DuplicateChangeError,
-      );
-    },
-  );
-
-  it('preserves unrecognized conflicts', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      Response.json(
-        { error: 'duplicate_change', field: 'unexpected' },
-        { status: 409 },
-      ),
-    );
-    await expect(createChange(input)).rejects.toBeInstanceOf(ApiError);
-  });
-
   it('retains HTTP status when an error body is malformed JSON', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response('{', {
@@ -94,28 +68,16 @@ describe('change API errors', () => {
         headers: { 'content-type': 'application/json' },
       }),
     );
-    await expect(createChange(input)).rejects.toMatchObject({
+    await expect(cache.fetchQuery(changeById('retry'))).rejects.toMatchObject({
       status: 502,
       body: null,
     });
   });
-
-  it('returns the created change on success', async () => {
-    const change = {
-      ...input,
-      slug: 'retry',
-      status: 'discovery' as const,
-      created_at: '2026-09-14',
-      description: '',
-    };
-    fetchSpy.mockResolvedValueOnce(Response.json({ change }, { status: 201 }));
-    expect(await createChange(input)).toEqual(change);
-  });
 });
 
-it('unwraps nested routes and handles empty DELETE responses', async () => {
+it('unwraps nested routes and handles empty responses', async () => {
   fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
-  const result = await api.changes[':change']['design-docs'][':id'].$delete({
+  const result = await api.changes[':change']['design-docs'][':id'].$get({
     param: { change: 'retry', id: 'doc-1' },
   });
   expect(result).toBeNull();

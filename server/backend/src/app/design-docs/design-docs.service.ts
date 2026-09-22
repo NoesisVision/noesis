@@ -1,14 +1,13 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocument } from './design-doc';
+import type { DesignDocument, DesignDocumentInput } from './design-doc';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 export interface DesignDocSummary {
   id: string;
   name: string;
-  status: string;
-  date: string;
+  implemented: boolean;
   /** Absolute; the agent reads the document from there. */
   path: string;
 }
@@ -28,6 +27,9 @@ export interface DesignDocDetail {
   document: DesignDocument;
 }
 
+/** What a summary is read from: the JSON form or the decoded document. */
+type Summarizable = Pick<DesignDocumentInput, 'id' | 'name' | 'implemented'>;
+
 /**
  * Callers validate before calling in. The server mints the id and
  * replaces whatever the input carries, so an agent inventing a colliding id
@@ -44,7 +46,7 @@ export class DesignDocsService {
 
   async create(
     slug: ChangeSlug,
-    document: DesignDocument,
+    document: DesignDocumentInput,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     return this.store(slug, document, uuidv7());
@@ -54,7 +56,7 @@ export class DesignDocsService {
   async update(
     slug: ChangeSlug,
     id: string,
-    document: DesignDocument,
+    document: DesignDocumentInput,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     if ((await this.docs.get(slug, id)) === null) {
@@ -67,10 +69,8 @@ export class DesignDocsService {
     await this.changesService.assertExists(slug);
     const documents = await Array.fromAsync(this.docs.values(slug));
     return documents
-      .sort(
-        (a, b) => b.date.localeCompare(a.date) || a.name.localeCompare(b.name),
-      )
-      .map((document) => this.summarize(slug, document));
+      .map((document) => this.summarize(slug, document))
+      .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   }
 
   async findById(
@@ -90,7 +90,7 @@ export class DesignDocsService {
 
   private async store(
     slug: ChangeSlug,
-    document: DesignDocument,
+    document: DesignDocumentInput,
     id: string,
   ): Promise<DesignDocSummary> {
     const stored = { ...document, id };
@@ -100,9 +100,13 @@ export class DesignDocsService {
 
   private summarize(
     slug: ChangeSlug,
-    document: DesignDocument,
+    { id, name, implemented }: Summarizable,
   ): DesignDocSummary {
-    const { id, name, status, date } = document;
-    return { id, name, status, date, path: this.docs.pathOf(slug, id) };
+    return {
+      id,
+      name: name.value,
+      implemented: implemented ?? false,
+      path: this.docs.pathOf(slug, id),
+    };
   }
 }
