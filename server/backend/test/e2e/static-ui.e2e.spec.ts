@@ -66,6 +66,19 @@ describe('SPA serving (e2e)', () => {
     expect(css.headers.get('content-type')).toContain('text/css');
   });
 
+  it('ships colours the browser can resolve', async () => {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const style = /<link[^>]+href="([^"]+\.css)"/.exec(html)?.[1] ?? '';
+    const css = await (await fetch(`${BASE}${style}`)).text();
+
+    // Below the `light-dark()` baseline, LightningCSS rewrites it to a pair
+    // of toggle variables it then never defines, and every colour in that
+    // declaration is dropped. Native `light-dark()` also follows Mantine's
+    // scheme attribute, where the polyfill would follow the OS.
+    expect(css).not.toContain('--lightningcss-');
+    expect(css).toContain('light-dark(');
+  });
+
   it('compresses what it serves, and says so', async () => {
     const html = await (await fetch(`${BASE}/`)).text();
     const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1] ?? '';
