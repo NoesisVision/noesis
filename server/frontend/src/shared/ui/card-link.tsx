@@ -19,12 +19,18 @@ interface CardLinkProps extends Omit<
   description?: ReactNode;
   /** Whatever else belongs on the card, under the two lines above. */
   content?: ReactNode;
+  /**
+   * What the card's title is, in the outline of the page it sits on: an `h2`
+   * directly under the view's heading, an `h3` inside a section of its own.
+   */
+  headingLevel?: 2 | 3 | 4;
 }
 
 function CardLinkBase({
   title,
   description,
   content,
+  headingLevel = 2,
   className,
   ...props
 }: CardLinkProps) {
@@ -37,8 +43,8 @@ function CardLinkBase({
       {...props}
     >
       <Stack gap={4}>
-        {/* The view's heading is an h2, so a card under it is an h3. */}
-        <Title order={2} size="h3" mb={0}>
+        {/* `size` holds the type scale steady while the level moves. */}
+        <Title order={headingLevel} size={`h${headingLevel + 1}`} mb={0}>
           {title}
         </Title>
         {!!description && (

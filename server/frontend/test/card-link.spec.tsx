@@ -47,3 +47,16 @@ it('is one link over the whole card, not a link inside one', async () => {
 it('titles the card an h2, under the h1 the view is headed with', async () => {
   expect(await render(card)).toMatch(/<h2[^>]*>Payment retry policy<\/h2>/);
 });
+
+it('takes the level it sits at, keeping the type scale', async () => {
+  const html = await render(() => (
+    <CardLink
+      to="/changes/$changeId/documents/$documentId"
+      params={{ changeId: 'test-2', documentId: 'payment-retry-policy' }}
+      title="Payment retry policy"
+      headingLevel={3}
+    />
+  ));
+  // Inside a section of its own, a card is an h3, not an h2.
+  expect(html).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
+});

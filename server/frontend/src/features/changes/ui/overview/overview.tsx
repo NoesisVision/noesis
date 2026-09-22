@@ -5,6 +5,7 @@ import { documentsList } from '#/features/documents/documents.api.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
+import { CardLink } from '#/shared/ui/card-link.tsx';
 import { useChangeId } from '../../current-change.ts';
 import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
@@ -45,35 +46,43 @@ export function OverviewView() {
         mt={16}
         title="Documents"
         empty={emptyText(documents, 'documents')}
-        items={(documents.data ?? []).map((document) => ({
-          id: document.id,
-          title: (
-            <ChangesLink
-              to="/changes/$changeId/documents/$documentId"
-              params={{ documentId: document.id }}
-            >
-              {document.title}
-            </ChangesLink>
-          ),
-          content: document.date,
-        }))}
+        items={
+          changeId === null
+            ? []
+            : (documents.data ?? []).map((document) => ({
+                id: document.id,
+                card: (
+                  <CardLink
+                    to="/changes/$changeId/documents/$documentId"
+                    params={{ changeId, documentId: document.id }}
+                    title={document.title}
+                    description={document.date}
+                    headingLevel={3}
+                  />
+                ),
+              }))
+        }
       />
       <OverviewSection
         mt={16}
         title="Design Docs"
         empty={emptyText(designDocs, 'design documents')}
-        items={(designDocs.data ?? []).map((doc) => ({
-          id: doc.id,
-          title: (
-            <ChangesLink
-              to="/changes/$changeId/design-docs/$docId"
-              params={{ docId: doc.id }}
-            >
-              {doc.name}
-            </ChangesLink>
-          ),
-          content: doc.implemented ? 'Implemented' : 'Draft',
-        }))}
+        items={
+          changeId === null
+            ? []
+            : (designDocs.data ?? []).map((doc) => ({
+                id: doc.id,
+                card: (
+                  <CardLink
+                    to="/changes/$changeId/design-docs/$docId"
+                    params={{ changeId, docId: doc.id }}
+                    title={doc.name}
+                    description={doc.implemented ? 'Implemented' : 'Draft'}
+                    headingLevel={3}
+                  />
+                ),
+              }))
+        }
       />
     </Box>
   );
