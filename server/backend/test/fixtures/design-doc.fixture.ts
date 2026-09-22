@@ -10,6 +10,9 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc';
 const reviewed = <const T>(value: T) => ({ value, reviewedByHuman: true });
 const unreviewed = <const T>(value: T) => ({ value, reviewedByHuman: false });
 
+const REFUND_OUTCOME =
+  "a refund for that line's amount is issued and the second line stays refundable";
+
 export const designDocFixture = {
   id: 'refund-partial-orders',
   name: reviewed('Partial refunds for orders'),
@@ -90,9 +93,7 @@ export const designDocFixture = {
               when: unreviewed('support refunds the first line'),
               // Gherkin's word; the fixture is never awaited.
               // oxlint-disable-next-line unicorn/no-thenable
-              then: unreviewed(
-                "a refund for that line's amount is issued and the second line stays refundable",
-              ),
+              then: unreviewed(REFUND_OUTCOME), // NOSONAR
             },
           ],
           removed: [],

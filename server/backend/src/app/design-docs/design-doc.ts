@@ -99,7 +99,7 @@ export const DesignedScenarioSchema = z.object({
   // Gherkin's own word, and the shape the document renders. A parsed
   // scenario is never awaited, so its `then` field is never called.
   // oxlint-disable-next-line unicorn/no-thenable
-  then: reviewableFieldSchema(z.string()),
+  then: reviewableFieldSchema(z.string()), // NOSONAR
 });
 export type DesignedScenario = z.infer<typeof DesignedScenarioSchema>;
 
