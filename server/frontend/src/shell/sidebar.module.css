@@ -9,6 +9,7 @@
   border-radius: var(--mantine-radius-md);
   font-weight: 600;
   transition: background-color 0.1s ease-in-out;
+  margin-top: calc(var(--mantine-spacing-xs) - 8px);
 
   &:hover {
     background-color: light-dark(
@@ -38,6 +39,15 @@
 }
 
 /*
+ * A heading stops being active the moment one of its items opens, so the icon
+ * carries what the row no longer can: the group is open, one of these is the
+ * one you are on.
+ */
+.navGroup:has(.subLink[aria-current='page']) > .link svg {
+  color: light-dark(var(--mantine-color-brand-9), var(--mantine-color-brand-2));
+}
+
+/*
  * The items of a group hang off a rail that starts under their heading's icon,
  * so a nested link reads as belonging to the view above it. Each item draws
  * its own segment of that rail, which is what lets the last one stop halfway.
@@ -55,8 +65,13 @@
 
 .subLink {
   position: relative;
+  margin-top: 0;
   padding-left: 23px;
+  transition:
+    background-color 0.1s ease-in-out,
+    color 0.1s ease-in-out;
   font-weight: var(--mantine-font-weight-regular);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
 
   /* This row's length of rail; it stays neutral whichever row is open. */
   &::before {
@@ -69,50 +84,44 @@
     transform: translateX(-50%);
     border-radius: 1px;
     background-color: var(--rail-color);
-  }
-
-  /* The row's own mark on the rail, level with its label. */
-  &::after {
-    content: '';
-    position: absolute;
-    left: var(--rail-x);
-    top: 50%;
-    width: 5px;
-    height: 5px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background-color: var(--rail-color);
     transition: background-color 0.1s ease-in-out;
   }
 
-  /* Nothing hangs below the last item, so its rail ends on its dot. */
-  &:last-child::before {
-    bottom: 50%;
+  &:hover {
+    color: light-dark(
+      var(--mantine-color-brand-9),
+      var(--mantine-color-dark-0)
+    );
+    background-color: transparent;
+    &::before {
+      background-color: light-dark(
+        var(--mantine-color-brand-3),
+        var(--mantine-color-dark-2)
+      );
+    }
   }
 
   /*
    * A child of an already lit heading, so the open row is marked rather than
-   * filled: the dot carries it, the row itself only tints and takes the
-   * brand's text colour. The rail never changes.
+   * filled: its rail and its label take the brand colour and the label turns
+   * bold, with no background of its own.
    */
   &[data-active],
   &[aria-current='page'] {
     &,
     &:hover {
-      background-color: light-dark(
-        var(--mantine-color-brand-0),
-        var(--mantine-color-dark-6)
-      );
+      font-weight: var(--mantine-font-weight-bold);
+      background-color: transparent;
       color: light-dark(
         var(--mantine-color-brand-9),
         var(--mantine-color-brand-2)
       );
     }
 
-    &::after {
+    &::before {
       background-color: light-dark(
         var(--mantine-color-brand-9),
-        var(--mantine-color-brand-4)
+        var(--mantine-color-brand-2)
       );
     }
   }

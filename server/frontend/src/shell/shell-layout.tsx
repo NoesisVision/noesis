@@ -4,6 +4,7 @@ import { useDisclosure } from '#/shared/design-system/hooks';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
 import { ViewHeader } from './view-header';
+import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
   const [navbarOpened, navbar] = useDisclosure(false);
@@ -27,7 +28,7 @@ export function ShellLayout() {
       <AppShell.Navbar>
         <Sidebar onNavigate={navbar.close} />
       </AppShell.Navbar>
-      <AppShell.Main bg="var(--mantine-color-gray-0)">
+      <AppShell.Main className={classes.main}>
         <ViewHeader />
         <Outlet />
       </AppShell.Main>

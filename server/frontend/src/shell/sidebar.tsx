@@ -95,10 +95,15 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           const items = activeChange?.designDocs ?? [];
 
           return (
-            // A labelled ARIA group: none of the tags the lint rule suggests
-            // describes navigation.
-            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-            <Box key={entry.to} role="group" aria-label={entry.label}>
+            <Box
+              key={entry.to}
+              // A labelled ARIA group: none of the tags the lint rule suggests
+              // describes navigation.
+              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+              role="group"
+              aria-label={entry.label}
+              className={classes.navGroup}
+            >
               <ChangeNavHeading
                 entry={entry}
                 params={params}
