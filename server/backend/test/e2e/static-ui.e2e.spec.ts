@@ -1,5 +1,6 @@
-// Runs the real service from source: bun bundles the imported index.html on
-// the fly.
+// Runs the real service from source. The page is vite's build output, which
+// `test:e2e` produces before this runs — the service serves it from disk and
+// no longer carries it.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -63,6 +64,34 @@ describe('SPA serving (e2e)', () => {
     const css = await fetch(`${BASE}${style}`);
     expect(css.status).toBe(200);
     expect(css.headers.get('content-type')).toContain('text/css');
+  });
+
+  it('compresses what it serves, and says so', async () => {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1] ?? '';
+
+    const plain = await fetch(`${BASE}${script}`, {
+      headers: { 'accept-encoding': 'identity' },
+    });
+    expect(plain.headers.get('content-encoding')).toBeNull();
+    const raw = (await plain.arrayBuffer()).byteLength;
+
+    const zipped = await fetch(`${BASE}${script}`, {
+      headers: { 'accept-encoding': 'gzip' },
+    });
+    expect(zipped.headers.get('content-encoding')).toBe('gzip');
+    expect(zipped.headers.get('vary')).toContain('accept-encoding');
+    // Bun decodes the body, so the saving is read off the header instead.
+    expect(Number(zipped.headers.get('content-length'))).toBeLessThan(raw / 2);
+  });
+
+  it('lets a hashed asset be cached forever and the page never', async () => {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1] ?? '';
+    const asset = await fetch(`${BASE}${script}`);
+    expect(asset.headers.get('cache-control')).toContain('immutable');
+    const page = await fetch(`${BASE}/`);
+    expect(page.headers.get('cache-control')).toBe('no-cache');
   });
 
   it('keeps the ui surface working', async () => {

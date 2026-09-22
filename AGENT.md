@@ -24,7 +24,7 @@ bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace
 bun run test:e2e            # service boot, MCP session, SPA from source
-bun run build               # service bundle + plugin contracts (JSON Schema)
+bun run build               # vite build of the SPA + service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins; CI fails if the result is not committed
 ```
 
@@ -35,6 +35,7 @@ cd server/backend && bun test test/unit/validator.spec.ts
 cd server/backend && bun test test/unit -t "rejects"
 cd server/backend && bun run test:bench          # indexer benchmark (1k/10k files)
 cd server/frontend && bun run generate-routes    # tsr generate → src/routeTree.gen.ts (committed)
+cd server/frontend && bun run build:spa          # vite build → server/frontend/dist (the page the service serves)
 ```
 
 Filter a root script to one package: `bun run --filter=@noesis-vision/noesis build`.
@@ -78,7 +79,7 @@ Client-only React SPA. Rules the linter enforces:
 - Backend imports are **type-only** via `#backend/*` (`AppType`, contract types); never backend runtime code.
 - `tsconfig.app.json` has no Bun/Node globals on purpose; tests use `tsconfig.test.json`.
 
-The backend imports `../../frontend/index.html` and bun's fullstack mode bundles it; the `bun build` flags and `src/bundle-cwd.ts` are load-bearing.
+The SPA is built by **vite** (`bun run --cwd server/frontend build:spa` → `server/frontend/dist`) and the backend serves it from disk through `platform/http/static-assets.ts`, which gzips and caches each file once and falls back to `index.html` for client routes. The backend's `build` runs the vite build first and copies its output to `dist/ui/`; nothing imports `index.html` any more, because bundling it flattened mermaid's ~80 on-demand diagram chunks into one 6.5 MB file. Only the frontend's `build:spa` builds the page — the name is deliberately not `build`, so the root's `bun run --filter '*' build` cannot start a second vite build beside the one the backend runs. A backend-only run (`start:debug`, `test:e2e`) builds the page first and serves that build, so frontend edits need a rebuild; `bun run dev` serves the page from vite on :3000 as before.
 
 ### Logging
 

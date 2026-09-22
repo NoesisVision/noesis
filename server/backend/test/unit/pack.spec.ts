@@ -51,9 +51,15 @@ test('the packed tarball is bunx-installable: one bin, the ui, one native dep', 
     .sort();
   expect(shipped).toContain('LICENSE');
   expect(shipped).toContain('dist/main.js');
-  expect(shipped).toContain('dist/index.html');
-  expect(shipped.some((f) => /^dist\/index-\w+\.js$/.test(f))).toBe(true);
-  expect(shipped.some((f) => /^dist\/index-\w+\.css$/.test(f))).toBe(true);
+  // The page ships beside the bundle rather than inside it, so its assets are
+  // the vite build's own files.
+  expect(shipped).toContain('dist/ui/index.html');
+  expect(shipped.some((f) => /^dist\/ui\/assets\/index-\w+\.js$/.test(f))).toBe(
+    true,
+  );
+  expect(
+    shipped.some((f) => /^dist\/ui\/assets\/index-\w+\.css$/.test(f)),
+  ).toBe(true);
   expect(shipped.filter((f) => f.startsWith('ui/'))).toEqual([]);
   expect(shipped.filter((f) => f.startsWith('contracts/'))).toEqual([]);
   expect(shipped.filter((f) => f.endsWith('.spec.ts'))).toEqual([]);

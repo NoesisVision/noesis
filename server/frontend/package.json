@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "build:spa": "vite build",
     "start:debug": "bun run --cwd ../backend start:debug",
     "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
