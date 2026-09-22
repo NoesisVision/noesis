@@ -91,9 +91,10 @@ export class ChangesService {
           name: title,
         }),
       ),
+      // `name` is a reviewable field now, so the sidebar gets its value.
       Array.fromAsync(this.designDocs.values(slug), ({ id, name }) => ({
         id,
-        name,
+        name: name.value,
       })),
     ]);
     return {

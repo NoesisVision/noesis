@@ -72,7 +72,7 @@ export function OverviewView() {
               {doc.name}
             </ChangesLink>
           ),
-          content: `${doc.status} · ${doc.date}`,
+          content: doc.implemented ? 'Implemented' : 'Draft',
         }))}
       />
     </Box>
