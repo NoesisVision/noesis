@@ -4,12 +4,12 @@
 import type { z } from 'zod';
 import { ChangeSchema, CreateChangeSchema } from '#backend/app/changes/change';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
 import {
   CreateDocumentSchema,
   DocumentSchema,
 } from '#backend/app/information-sources/document';
 import { SystemModelSchema } from '#backend/app/system-model/system-model';
+import designDocumentExample from './design-doc.example.json';
 
 export const CONTRACTS = {
   change: { schema: ChangeSchema },
@@ -18,7 +18,9 @@ export const CONTRACTS = {
   'create-document': { schema: CreateDocumentSchema },
   'design-document': {
     schema: DesignDocumentSchema,
-    example: designDocFixture,
+    // Decoded, as every example is: the generator encodes it back to JSON,
+    // with every default the file leaves out spelled out.
+    example: DesignDocumentSchema.parse(designDocumentExample),
   },
   'system-model': { schema: SystemModelSchema },
 } satisfies Record<string, { schema: z.ZodType; example?: unknown }>;

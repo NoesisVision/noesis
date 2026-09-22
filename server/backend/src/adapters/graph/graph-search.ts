@@ -47,7 +47,9 @@ const KINDS: Kind[] = [
     type: 'design-doc',
     cypher: `MATCH (n:DesignDoc)
       WHERE lower(n.name) CONTAINS $q
-      RETURN n.id AS id, n.name AS title, n.status AS subtitle, n.change AS change
+      RETURN n.id AS id, n.name AS title,
+        CASE WHEN n.implemented THEN 'implemented' ELSE 'draft' END AS subtitle,
+        n.change AS change
       ORDER BY n.name LIMIT $limit`,
     href: (hit) => `/changes/${hit.change}/design-docs/${hit.id}`,
   },

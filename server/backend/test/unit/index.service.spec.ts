@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
+import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc';
 import type { DatabaseService } from '#backend/platform/database/database.service';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -33,7 +33,7 @@ interface Row {
   name: string;
 }
 
-const writeDoc = (slug: ChangeSlug, document: DesignDocument) =>
+const writeDoc = (slug: ChangeSlug, document: DesignDocumentInput) =>
   t.changesRepository.children(slug)['design-docs'].set(document.id, document);
 
 const graphRows = () =>
@@ -48,17 +48,17 @@ describe('IndexService', () => {
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a1',
-      name: 'A one',
+      name: { value: 'A one' },
     });
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a2',
-      name: 'A two',
+      name: { value: 'A two' },
     });
     await writeDoc(BETA, {
       ...designDocFixture,
       id: 'b1',
-      name: 'B one',
+      name: { value: 'B one' },
     });
 
     const report = await indexer.rebuild();
@@ -78,7 +78,7 @@ describe('IndexService', () => {
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a2',
-      name: 'Two',
+      name: { value: 'Two' },
     });
     await indexer.rebuild();
 
@@ -88,12 +88,12 @@ describe('IndexService', () => {
     await writeDoc(GAMMA, {
       ...designDocFixture,
       id: 'g1',
-      name: 'Renamed',
+      name: { value: 'Renamed' },
     });
     await writeDoc(GAMMA, {
       ...designDocFixture,
       id: 'a2',
-      name: 'Renamed too',
+      name: { value: 'Renamed too' },
     });
     await indexer.rebuild();
 
@@ -151,13 +151,11 @@ describe('IndexService', () => {
 
     const [row] = await db.query<{
       document: string;
-      status: string;
-      date: string;
+      implemented: boolean;
     }>(
-      'MATCH (d:DesignDoc) RETURN d.document AS document, d.status AS status, d.date AS date',
+      'MATCH (d:DesignDoc) RETURN d.document AS document, d.implemented AS implemented',
     );
-    expect(row?.status).toBe(designDocFixture.status);
-    expect(row?.date).toBe(designDocFixture.date);
+    expect(row?.implemented).toBe(false);
     expect(JSON.parse(row?.document ?? '')).toEqual(designDocFixture);
   });
 });

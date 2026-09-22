@@ -1,13 +1,68 @@
 import type { ReactNode } from 'react';
+import { Badge } from '#/shared/design-system/badge.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import type {
-  DesignDocument,
-  DesignedField,
-  DesignedScenario,
+  DesignDocumentInput,
+  DesignedBehaviourInput,
+  DesignedBuildingBlockInput,
+  DesignedDomainModuleInput,
+  DesignedPropertyInput,
+  DesignedRuleInput,
+  DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+
+/*
+ * Renders the document as the diff it is: per kind of element, what the
+ * design adds, modifies and removes. An element is shown by its address, the
+ * part of its id after the kind; a field a human reviewed says so.
+ */
+
+interface ReviewableInput {
+  value?: string | null | undefined;
+  reviewedByHuman?: boolean | undefined;
+}
+
+interface ChangeSetInput<Item, Key> {
+  added?: Item[] | undefined;
+  removed?: Key[] | undefined;
+  modified?: Item[] | undefined;
+}
+
+const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
+const humanType = (type: string | null | undefined) =>
+  type?.replaceAll('_', ' ') ?? 'Unclassified';
+
+function Field({
+  field,
+  fallback = 'Not specified.',
+}: {
+  field: ReviewableInput | undefined;
+  fallback?: string;
+}) {
+  const value = field?.value ?? null;
+  return (
+    <>
+      {value === null ? (
+        <Text component="span" c="dimmed">
+          {fallback}
+        </Text>
+      ) : (
+        <Text component="span" style={{ whiteSpace: 'pre-wrap' }}>
+          {value}
+        </Text>
+      )}
+      {field?.reviewedByHuman && (
+        <Badge size="xs" variant="light" ml="xs">
+          reviewed
+        </Badge>
+      )}
+    </>
+  );
+}
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -20,98 +75,244 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Items({ items }: { items: { id: string; text: string }[] }) {
-  return items.length ? (
-    <ul>
-      {items.map((item) => (
-        <li key={item.id}>{item.text}</li>
-      ))}
-    </ul>
-  ) : (
-    <Text c="dimmed">None specified.</Text>
-  );
-}
-
-function Fields({ fields }: { fields: DesignedField[] }) {
-  return fields.length ? (
-    <ul>
-      {fields.map((field) => (
-        <li key={field.id}>
-          <strong>{field.label}</strong> —{' '}
-          <code>
-            {field.name}: {field.type}
-          </code>
-          {field.note ? ` — ${field.note}` : ''}
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <Text c="dimmed">No fields specified.</Text>
-  );
-}
-
-function Scenarios({ scenarios }: { scenarios: DesignedScenario[] }) {
+function Changes<Item, Key extends string>({
+  set,
+  keyOf,
+  render,
+}: {
+  set: ChangeSetInput<Item, Key> | undefined;
+  keyOf: (item: Item) => string;
+  render: (item: Item) => ReactNode;
+}) {
+  const added = set?.added ?? [];
+  const modified = set?.modified ?? [];
+  const removed = set?.removed ?? [];
+  if (!added.length && !modified.length && !removed.length) {
+    return <Text c="dimmed">No changes.</Text>;
+  }
   return (
-    <Stack>
-      {scenarios.map((scenario) => (
-        <Card key={scenario.id} withBorder padding="sm">
-          <Text fw={600}>
-            {scenario.kind === 'scenarioOutline'
-              ? 'Scenario outline'
-              : 'Scenario'}
-            : {scenario.title}
-          </Text>
-          {scenario.tags.length > 0 && (
-            <Text size="sm" c="dimmed">
-              {scenario.tags
-                .map((tag) => `@${tag.replace(/^@/, '')}`)
-                .join(' ')}
-            </Text>
-          )}
-          {scenario.background.length > 0 && (
-            <>
-              <Text fw={600}>Background</Text>
-              {scenario.background.map((step) => (
-                <Text key={step.id}>
-                  <strong>{step.keyword}</strong> {step.text}
-                </Text>
-              ))}
-            </>
-          )}
-          {scenario.steps.map((step) => (
-            <Text key={step.id}>
-              <strong>{step.keyword}</strong> {step.text}
-            </Text>
-          ))}
-          {scenario.examples && (
-            <div style={{ overflowX: 'auto' }}>
-              <table>
-                <caption>Examples</caption>
-                <thead>
-                  <tr>
-                    {scenario.examples.headers.map((header, index) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: Example columns are positional and have no IDs in the contract.
-                      <th key={`${index}-${header}`} scope="col">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {scenario.examples.rows.map((row) => (
-                    <tr key={row.id}>
-                      {row.cells.map((cell, index) => (
-                        // biome-ignore lint/suspicious/noArrayIndexKey: Cells are addressed by their column position in the contract.
-                        <td key={`${row.id}-${index}`}>{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+    <Stack gap="sm">
+      {added.map((item) => (
+        <Card key={`added:${keyOf(item)}`} withBorder padding="sm">
+          <Stack gap="xs">
+            <Badge color="green" w="fit-content">
+              added
+            </Badge>
+            {render(item)}
+          </Stack>
         </Card>
       ))}
+      {modified.map((item) => (
+        <Card key={`modified:${keyOf(item)}`} withBorder padding="sm">
+          <Stack gap="xs">
+            <Badge color="blue" w="fit-content">
+              modified
+            </Badge>
+            {render(item)}
+          </Stack>
+        </Card>
+      ))}
+      {removed.length > 0 && (
+        <Card withBorder padding="sm">
+          <Stack gap="xs">
+            <Badge color="red" w="fit-content">
+              removed
+            </Badge>
+            <ul>
+              {removed.map((key) => (
+                <li key={key}>
+                  <code>{addressOf(key)}</code>
+                </li>
+              ))}
+            </ul>
+          </Stack>
+        </Card>
+      )}
+    </Stack>
+  );
+}
+
+/** A change set of parts, shown only when the design touches it. */
+function Parts<Item extends { name: ReviewableInput }>({
+  title,
+  set,
+  render,
+}: {
+  title: string;
+  set: ChangeSetInput<Item, string> | undefined;
+  render: (item: Item) => ReactNode;
+}) {
+  if (set === undefined) return null;
+  return (
+    <>
+      <Title order={5}>{title}</Title>
+      <Changes
+        set={set}
+        keyOf={(item) => item.name.value ?? ''}
+        render={render}
+      />
+    </>
+  );
+}
+
+function Strings({
+  title,
+  set,
+}: {
+  title: string;
+  set: ChangeSetInput<string, string> | undefined;
+}) {
+  if (set === undefined) return null;
+  return (
+    <>
+      <Title order={5}>{title}</Title>
+      <Changes
+        set={set}
+        keyOf={(item) => item}
+        render={(item) => <code>{addressOf(item)}</code>}
+      />
+    </>
+  );
+}
+
+function Property({ property }: { property: DesignedPropertyInput }) {
+  return (
+    <Text>
+      <code>
+        <Field field={property.name} />:{' '}
+        <Field field={property.type} fallback="?" />
+        {property.collection ? '[]' : ''}
+        {property.nullable ? ' | null' : ''}
+      </code>
+      {property.description?.value ? (
+        <>
+          {' — '}
+          <Field field={property.description} />
+        </>
+      ) : null}
+    </Text>
+  );
+}
+
+function Rule({ rule }: { rule: DesignedRuleInput }) {
+  return (
+    <Stack gap={2}>
+      <Group gap="xs">
+        <Text fw={600} component="span">
+          <Field field={rule.name} />
+        </Text>
+        {rule.ruleType && <Badge variant="outline">{rule.ruleType}</Badge>}
+      </Group>
+      <Text>
+        <Field field={rule.description} />
+      </Text>
+    </Stack>
+  );
+}
+
+function Scenario({ scenario }: { scenario: DesignedScenarioInput }) {
+  return (
+    <Stack gap={2}>
+      <Text fw={600}>
+        <Field field={scenario.name} />
+      </Text>
+      <Text>
+        <Field field={scenario.description} />
+      </Text>
+      <Text>
+        <strong>Given</strong> <Field field={scenario.given} />
+      </Text>
+      <Text>
+        <strong>When</strong> <Field field={scenario.when} />
+      </Text>
+      <Text>
+        <strong>Then</strong> <Field field={scenario.then} />
+      </Text>
+    </Stack>
+  );
+}
+
+function Module({ module }: { module: DesignedDomainModuleInput }) {
+  return (
+    <Stack gap="xs">
+      <Title order={4}>
+        <code>{addressOf(module.id)}</code>
+      </Title>
+      <Text>
+        <Field field={module.description} />
+      </Text>
+    </Stack>
+  );
+}
+
+function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
+  return (
+    <Stack gap="xs">
+      <Title order={4}>
+        <code>{addressOf(block.id)}</code>
+      </Title>
+      <Text size="sm" c="dimmed">
+        {humanType(block.type?.value)}
+        {block.type?.reviewedByHuman && (
+          <Badge size="xs" variant="light" ml="xs">
+            reviewed
+          </Badge>
+        )}
+      </Text>
+      <Text>
+        <Field field={block.description} />
+      </Text>
+      {block.implements && block.implements.length > 0 && (
+        <Text>Implements: {block.implements.map(addressOf).join(', ')}</Text>
+      )}
+      <Parts
+        title="Properties"
+        set={block.properties}
+        render={(property) => <Property property={property} />}
+      />
+      <Parts
+        title="Rules"
+        set={block.rules}
+        render={(rule) => <Rule rule={rule} />}
+      />
+      <Parts
+        title="Scenarios"
+        set={block.scenarios}
+        render={(scenario) => <Scenario scenario={scenario} />}
+      />
+    </Stack>
+  );
+}
+
+function Behaviour({ behaviour }: { behaviour: DesignedBehaviourInput }) {
+  return (
+    <Stack gap="xs">
+      <Group gap="xs">
+        <Title order={4}>
+          <code>{addressOf(behaviour.id)}</code>
+        </Title>
+        {behaviour.isPublic && <Badge variant="outline">public</Badge>}
+      </Group>
+      <Text size="sm" c="dimmed">
+        {behaviour.type?.value ?? 'Unclassified'}
+        {behaviour.actor?.value ? ` · ${behaviour.actor.value}` : ''}
+      </Text>
+      <Text>
+        <Field field={behaviour.description} />
+      </Text>
+      <Strings title="Input" set={behaviour.input} />
+      <Strings title="Output" set={behaviour.output} />
+      <Strings title="Uses" set={behaviour.usedBuildingBlocks} />
+      <Parts
+        title="Rules"
+        set={behaviour.rules}
+        render={(rule) => <Rule rule={rule} />}
+      />
+      <Parts
+        title="Scenarios"
+        set={behaviour.scenarios}
+        render={(scenario) => <Scenario scenario={scenario} />}
+      />
     </Stack>
   );
 }
@@ -119,154 +320,37 @@ function Scenarios({ scenarios }: { scenarios: DesignedScenario[] }) {
 export function DesignDocumentContent({
   document: doc,
 }: {
-  document: DesignDocument;
+  document: DesignDocumentInput;
 }) {
-  const names = new Map(
-    [
-      ...doc.actors,
-      ...doc.boundedContexts,
-      ...doc.domainModules,
-      ...doc.buildingBlocks,
-      ...doc.useCases,
-      ...doc.behaviours,
-    ].map((item) => [item.id, item.name]),
-  );
-  const name = (id: string | null) =>
-    id ? (names.get(id) ?? id) : 'Not assigned';
   return (
     <Stack component="article" maw={1000}>
-      <Title order={2}>{doc.name}</Title>
-      <Text c="dimmed">
-        {doc.status} · {doc.date}
+      <Title order={2}>
+        <Field field={doc.name} />
+      </Title>
+      <Text c="dimmed">{doc.implemented ? 'Implemented' : 'Draft'}</Text>
+      <Text>
+        <Field field={doc.description} />
       </Text>
-      <Section title="Goal">
-        <Text>{doc.goal || 'No goal specified.'}</Text>
-      </Section>
-      <Section title="Business context">
-        {doc.businessContext.map((item) => (
-          <Text key={item.id}>{item.text}</Text>
-        ))}
-      </Section>
-      <Section title="Target outcomes">
-        {doc.outcomes.map((item) => (
-          <div key={item.id}>
-            <Text>{item.text}</Text>
-            {item.measure && (
-              <Text size="sm" c="dimmed">
-                Measure: {item.measure}
-              </Text>
-            )}
-          </div>
-        ))}
-      </Section>
-      <Section title="Scope">
-        <Title order={4}>In scope</Title>
-        <Items items={doc.scope.inScope} />
-        <Title order={4}>Out of scope</Title>
-        <Items items={doc.scope.outOfScope} />
-      </Section>
-      <Section title="Actors">
-        {doc.actors.map((actor) => (
-          <div key={actor.id}>
-            <Text fw={600}>
-              {actor.name} · {actor.kind}
-            </Text>
-            <Text>{actor.description}</Text>
-          </div>
-        ))}
-      </Section>
-      <Section title="Use cases">
-        {doc.useCases.map((uc) => (
-          <Stack key={uc.id} gap="sm">
-            <Title order={4}>{uc.name}</Title>
-            <Text size="sm" c="dimmed">
-              {uc.type ?? 'Unclassified'} · {name(uc.applicationServiceId)}
-            </Text>
-            <Text>
-              Actors: {uc.actorIds.map(name).join(', ') || 'None specified'}
-            </Text>
-            <Text>{uc.summary}</Text>
-            <Text style={{ whiteSpace: 'pre-wrap' }}>{uc.description}</Text>
-            <Title order={5}>Rules</Title>
-            <Items items={uc.rules} />
-            <Title order={5}>Input</Title>
-            <Fields fields={uc.input.fields} />
-            <Title order={5}>Output</Title>
-            <Text>{uc.output.summary}</Text>
-            <Fields fields={uc.output.fields} />
-            <Title order={5}>Acceptance scenarios</Title>
-            <Scenarios scenarios={uc.acceptanceScenarios} />
-            <Title order={5}>Quality attributes</Title>
-            {uc.qualityAttributes.map((quality) => (
-              <Text key={quality.id}>
-                <strong>{quality.name}</strong>
-                {quality.type ? ` (${quality.type})` : ''}: {quality.text}
-              </Text>
-            ))}
-          </Stack>
-        ))}
-      </Section>
-      <Section title="Bounded contexts">
-        {doc.boundedContexts.map((context) => (
-          <div key={context.id}>
-            <Text fw={600}>{context.name}</Text>
-            <Text>{context.description}</Text>
-          </div>
-        ))}
-      </Section>
-      <Section title="Domain modules">
-        {doc.domainModules.map((module) => (
-          <div key={module.id}>
-            <Text fw={600}>
-              {module.name} · {name(module.boundedContextId)}
-            </Text>
-            <Text>{module.description}</Text>
-          </div>
-        ))}
+      <Section title="Modules">
+        <Changes
+          set={doc.modules}
+          keyOf={(module) => module.id}
+          render={(module) => <Module module={module} />}
+        />
       </Section>
       <Section title="Building blocks">
-        {doc.buildingBlocks.map((block) => (
-          <Stack key={block.id} gap="xs">
-            <Title order={4}>{block.name}</Title>
-            <Text size="sm" c="dimmed">
-              {block.type?.replaceAll('_', ' ') ?? 'Unclassified'} ·{' '}
-              {name(block.boundedContextId)}
-              {block.domainModuleId ? ` · ${name(block.domainModuleId)}` : ''}
-            </Text>
-            <Text>{block.description}</Text>
-            {block.implements.length > 0 && (
-              <Text>Implements: {block.implements.map(name).join(', ')}</Text>
-            )}
-            <ul>
-              {block.properties.map((property) => (
-                <li key={property.id}>
-                  <code>
-                    {property.name}: {property.type}
-                    {property.collection ? '[]' : ''}
-                    {property.nullable ? ' | null' : ''}
-                  </code>
-                  {property.description ? ` — ${property.description}` : ''}
-                </li>
-              ))}
-            </ul>
-          </Stack>
-        ))}
+        <Changes
+          set={doc.buildingBlocks}
+          keyOf={(block) => block.id}
+          render={(block) => <BuildingBlock block={block} />}
+        />
       </Section>
       <Section title="Behaviours">
-        {doc.behaviours.map((behaviour) => (
-          <Stack key={behaviour.id} gap="xs">
-            <Title order={4}>{behaviour.name}</Title>
-            <Text size="sm" c="dimmed">
-              {name(behaviour.buildingBlockId)} ·{' '}
-              {behaviour.type ?? 'Unclassified'}
-            </Text>
-            {behaviour.useCaseId && (
-              <Text>Use case: {name(behaviour.useCaseId)}</Text>
-            )}
-            <Text>{behaviour.description}</Text>
-            <Scenarios scenarios={behaviour.scenarios} />
-          </Stack>
-        ))}
+        <Changes
+          set={doc.behaviours}
+          keyOf={(behaviour) => behaviour.id}
+          render={(behaviour) => <Behaviour behaviour={behaviour} />}
+        />
       </Section>
     </Stack>
   );

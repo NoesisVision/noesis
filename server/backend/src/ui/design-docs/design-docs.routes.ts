@@ -1,16 +1,17 @@
-import { type Context, Hono } from 'hono';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { inChange } from '../changes/in-change';
 
 export interface DesignDocsDeps {
   designDocsService: DesignDocsService;
 }
 
 /**
- * Mounted at `/ui/changes/:change/design-docs`, read and delete only: design
- * documents are written by the agent through the MCP tools, so
- * the browser surface never authors one.
+ * Mounted at `/ui/changes/:change/design-docs`, read only: design documents
+ * are written and removed by the agent through the MCP tools, so the browser
+ * surface never changes one.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
@@ -30,34 +31,12 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
           c.req.param('id'),
         );
         if (detail === null) return c.json({ error: 'not_found' }, 404);
-        return c.json(detail);
-      });
-    })
-
-    .delete('/:id', async (c) => {
-      return inChange(c, async (change) => {
-        const deleted = await designDocsService.delete(
-          change,
-          c.req.param('id'),
-        );
-        if (!deleted) return c.json({ error: 'not_found' }, 404);
-        return c.body(null, 204);
+        // Encoded, so the client's type says what the JSON holds: element
+        // ids as strings, not the value objects the service decodes them to.
+        return c.json({
+          summary: detail.summary,
+          document: z.encode(DesignDocumentSchema, detail.document),
+        });
       });
     });
-}
-
-async function inChange<T extends Response>(
-  c: Context,
-  handler: (slug: ChangeSlug) => Promise<T>,
-) {
-  const slug = ChangeSlug.tryParse(c.req.param('change') ?? '');
-  if (slug === null) return c.json({ error: 'change_not_found' }, 404);
-  try {
-    return await handler(slug);
-  } catch (error) {
-    if (error instanceof ChangeNotFoundError) {
-      return c.json({ error: 'change_not_found' }, 404);
-    }
-    throw error;
-  }
 }

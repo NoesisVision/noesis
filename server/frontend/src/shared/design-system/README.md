@@ -1,7 +1,7 @@
 # Design system
 
 This folder owns all Mantine imports, including the provider, theme, styles,
-hooks, and form helpers. Shells and views import individual modules:
+and hooks. Shells and views import individual modules:
 
 ```tsx
 import { Button } from '#/shared/design-system/button';

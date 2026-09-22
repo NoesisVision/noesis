@@ -1,9 +1,8 @@
-import { IconPlus, IconSelector } from '@tabler/icons-react';
+import { IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
 import { Badge } from '#/shared/design-system/badge';
 import { Box } from '#/shared/design-system/box';
 import { Group } from '#/shared/design-system/group';
-import { useDisclosure } from '#/shared/design-system/hooks';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button';
@@ -13,7 +12,6 @@ import {
   CHANGE_TYPE_META,
   changeSwatch,
 } from '../changes.model.ts';
-import { NewChangeModal } from './new-change-modal';
 import classes from './change-picker.module.css';
 
 interface ChangePickerProps {
@@ -38,7 +36,6 @@ export function ChangePicker({
   onNavigate,
 }: ChangePickerProps) {
   const navigate = useNavigate();
-  const [modalOpened, modal] = useDisclosure(false);
 
   const choose = async (change: Change) => {
     onNavigate?.();
@@ -93,7 +90,7 @@ export function ChangePicker({
                   </>
                 ) : (
                   <Text size="xs" c="dimmed" truncate lh={1.3}>
-                    Create one to begin
+                    Ask the agent to create one
                   </Text>
                 )}
               </Box>
@@ -130,17 +127,8 @@ export function ChangePicker({
               </Text>
             </Menu.Item>
           ))}
-          <Menu.Divider />
-          <Menu.Item
-            className={classes.item}
-            leftSection={<IconPlus size={16} />}
-            onClick={modal.open}
-          >
-            New change
-          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
-      <NewChangeModal opened={modalOpened} onClose={modal.close} />
     </Box>
   );
 }

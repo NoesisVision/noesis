@@ -2,8 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { designDocFixture } from '#backend/app/design-docs/design-doc.fixture';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import { NoesisStoreError } from '#backend/platform/files/noesis-store';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -101,7 +102,9 @@ describe('NoesisChangesRepository', () => {
     await t.changesRepository.write({ ...before, status: 'design' });
 
     expect((await t.changesRepository.read(kept))?.status).toBe('design');
-    expect(await owned.get(designDocFixture.id)).toEqual(designDocFixture);
+    expect(await owned.get(designDocFixture.id)).toEqual(
+      DesignDocumentSchema.parse(designDocFixture),
+    );
   });
 
   it('refuses data whose slug is not one, and data that is not a change', async () => {

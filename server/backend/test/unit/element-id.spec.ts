@@ -11,7 +11,7 @@ import {
   TestableElementIdSchema,
   tryCreateElementId,
   tryCreateTestableElementId,
-} from '#backend/app/element-id';
+} from '#backend/app/design-docs/element-id';
 import { ValueObjectError } from '#backend/app/vo';
 
 const BAD_NAMES = ['', ' ', ' a', 'a ', 'a.b', '.', 'a\tb ', 'a|b', '|'];
@@ -66,29 +66,13 @@ describe('ModuleId', () => {
   });
 
   describe('behavior', () => {
-    it('composes from a root and nested names', () => {
-      const root = ModuleId.root('sales');
-      const child = root.child('orders');
-      expect(root.value).toBe('module|sales');
-      expect(child.value).toBe('module|sales.orders');
+    it('knows its address, name and parent', () => {
+      const root = ModuleId.create('module|sales');
+      const child = ModuleId.create('module|sales.orders');
       expect(child.address).toBe('sales.orders');
       expect(child.name).toBe('orders');
       expect(child.parent?.equals(root)).toBe(true);
       expect(root.parent).toBeNull();
-    });
-
-    it.each(BAD_NAMES)('refuses %j as a name', (name) => {
-      expect(ModuleId.tryRoot(name).isErr()).toBe(true);
-      expect(ModuleId.root('sales').tryChild(name).isErr()).toBe(true);
-      expect(ModuleId.root('sales').tryBuildingBlock(name).isErr()).toBe(true);
-    });
-
-    it('addresses a building block within itself', () => {
-      const block = ModuleId.create('module|sales.orders').buildingBlock(
-        'Refund',
-      );
-      expect(block).toBeInstanceOf(BuildingBlockId);
-      expect(block.value).toBe('building_block|sales.orders.Refund');
     });
 
     it('equals by value, which carries the kind', () => {
@@ -146,16 +130,6 @@ describe('BuildingBlockId', () => {
     expect(block.module.equals(ModuleId.create('module|sales.orders'))).toBe(
       true,
     );
-  });
-
-  it('addresses a behavior within itself', () => {
-    const block = BuildingBlockId.create('building_block|sales.orders.Refund');
-    expect(block.behavior('issue').value).toBe(
-      'behavior|sales.orders.Refund.issue',
-    );
-    for (const name of BAD_NAMES) {
-      expect(block.tryBehavior(name).isErr()).toBe(true);
-    }
   });
 
   it('round-trips through its schema', () => {

@@ -54,7 +54,7 @@ export const ChangeSchema = z
   .describe('One change: the data.json file inside its directory.');
 export type Change = z.infer<typeof ChangeSchema>;
 
-export const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
+const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
 /** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
 export const CreateChangeSchema = z

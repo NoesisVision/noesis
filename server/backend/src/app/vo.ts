@@ -23,12 +23,14 @@ function describe(issue: VoIssue): string {
 }
 
 export class ValueObjectError extends Error {
-  constructor(
-    readonly voName: string,
-    readonly issues: VoIssue[],
-  ) {
+  readonly voName: string;
+  readonly issues: VoIssue[];
+
+  constructor(voName: string, issues: VoIssue[]) {
     super(`Invalid ${voName}: ${issues.map(describe).join('; ')}`);
     this.name = 'ValueObjectError';
+    this.voName = voName;
+    this.issues = issues;
   }
 }
 

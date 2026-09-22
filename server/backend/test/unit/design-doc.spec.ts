@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { DesignDocumentSchema } from '#backend/app/design-docs/new-design-doc';
-import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
+import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import {
+  BehaviorId,
+  BuildingBlockId,
+  ModuleId,
+} from '#backend/app/design-docs/element-id';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 
 const document = {
   id: 'doc-1',
@@ -90,6 +95,11 @@ describe('DesignDocumentSchema', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('encodes the fixture back to exactly what it was written as', () => {
+    const parsed = DesignDocumentSchema.parse(designDocFixture);
+    expect(z.encode(DesignDocumentSchema, parsed)).toEqual(designDocFixture);
   });
 
   it('encodes back to the wire form', () => {
