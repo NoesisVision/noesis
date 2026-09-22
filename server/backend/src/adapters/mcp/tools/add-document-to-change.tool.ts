@@ -1,10 +1,10 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
-import { z } from 'zod';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import { CreateDocumentSchema } from '#backend/app/information-sources/document';
 import {
   type DocumentsService,
   type DocumentSummary,
+  DocumentSummarySchema,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { formatReport } from '#backend/app/validation/validator';
@@ -16,19 +16,6 @@ import { readWorkingFile } from '../working-file';
 import { addToChangeInput, withChange } from './change-scoped';
 
 const SUBJECT = 'document';
-
-const outputSchema = z
-  .object({
-    id: z
-      .string()
-      .describe('The document id, derived from the title within the change.'),
-    title: z.string().describe('The document title, as stored.'),
-    date: z.string().describe('The date on the document, ISO 8601.'),
-    path: z
-      .string()
-      .describe('Absolute path the document was stored at under .noesis/.'),
-  })
-  .describe('Where the document now lives.');
 
 export function addDocumentToChangeTool(
   documents: DocumentsService,
@@ -45,7 +32,9 @@ export function addDocumentToChangeTool(
         SUBJECT,
         '{ "title", "date", "content" }.',
       ),
-      outputSchema,
+      outputSchema: DocumentSummarySchema.describe(
+        'Where the document now lives.',
+      ),
       annotations: APPEND,
     },
     (input) =>
@@ -80,8 +69,8 @@ async function add(
 
 function added(slug: ChangeSlug, summary: DocumentSummary): CallToolResult {
   return success(
-    `Added "${summary.title}" to ${slug.value} as ${summary.id.value}, stored at ${summary.path}.`,
-    { ...summary, id: summary.id.value },
+    `Added "${summary.title}" to ${slug.value} as ${summary.id}, stored at ${summary.path}.`,
+    summary,
   );
 }
 

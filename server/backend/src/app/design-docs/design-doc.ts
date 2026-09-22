@@ -217,9 +217,7 @@ export type DesignDocumentInput = z.input<typeof DesignDocumentSchema>;
 export const CreateDesignDocumentSchema = DesignDocumentSchema.omit({
   id: true,
 }).describe('The design document to add to a change.');
-export type CreateDesignDocumentInput = z.input<
-  typeof CreateDesignDocumentSchema
->;
+export type CreateDesignDocument = z.output<typeof CreateDesignDocumentSchema>;
 
 /* The JSON form of each element and part, for readers of the wire. */
 export type DesignedDomainModuleInput = z.input<

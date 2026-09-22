@@ -35,12 +35,15 @@ describe('DocumentsService', () => {
   it('stores a document under the slug of its title and reads it back whole', async () => {
     const summary = await service.create(CHANGE, document);
 
-    expect(summary.id.value).toBe('booking-rules-v2');
+    expect(summary.id).toBe('booking-rules-v2');
     expect(summary.path).toEndWith(
       '/graph/changes/booking/documents/booking-rules-v2/data.json',
     );
 
-    const detail = await service.findById(CHANGE, summary.id);
+    const detail = await service.findById(
+      CHANGE,
+      DocumentId.create(summary.id),
+    );
     expect(detail?.document).toEqual({
       ...document,
       document_id: DocumentId.create('booking-rules-v2'),
@@ -54,7 +57,10 @@ describe('DocumentsService', () => {
 
     const created = await service.create(CHANGE, document);
     expect(
-      service.update(CHANGE, created.id, { ...document, title: '日本語' }),
+      service.update(CHANGE, DocumentId.create(created.id), {
+        ...document,
+        title: '日本語',
+      }),
     ).rejects.toBeInstanceOf(ValueObjectError);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
@@ -87,35 +93,46 @@ describe('DocumentsService', () => {
 
     const summary = await service.create(other, document);
 
-    expect(summary.id.value).toBe('booking-rules-v2');
+    expect(summary.id).toBe('booking-rules-v2');
   });
 
   it('replaces the content under the same id', async () => {
     const created = await service.create(CHANGE, document);
 
-    const updated = await service.update(CHANGE, created.id, {
-      ...document,
-      content: 'A slot may be booked twice.',
-    });
+    const updated = await service.update(
+      CHANGE,
+      DocumentId.create(created.id),
+      {
+        ...document,
+        content: 'A slot may be booked twice.',
+      },
+    );
 
     expect(updated.id).toEqual(created.id);
-    expect((await service.findById(CHANGE, created.id))?.document.content).toBe(
-      'A slot may be booked twice.',
-    );
+    expect(
+      (await service.findById(CHANGE, DocumentId.create(created.id)))?.document
+        .content,
+    ).toBe('A slot may be booked twice.');
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
   it('moves the document to a new id when the title changes', async () => {
     const created = await service.create(CHANGE, document);
 
-    const renamed = await service.update(CHANGE, created.id, {
-      ...document,
-      title: 'Booking rules v3',
-    });
+    const renamed = await service.update(
+      CHANGE,
+      DocumentId.create(created.id),
+      {
+        ...document,
+        title: 'Booking rules v3',
+      },
+    );
 
-    expect(renamed.id.value).toBe('booking-rules-v3');
-    expect(await service.findById(CHANGE, created.id)).toBe(null);
-    expect((await service.list(CHANGE)).map((d) => d.id.value)).toEqual([
+    expect(renamed.id).toBe('booking-rules-v3');
+    expect(await service.findById(CHANGE, DocumentId.create(created.id))).toBe(
+      null,
+    );
+    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
       'booking-rules-v3',
     ]);
   });
@@ -125,11 +142,15 @@ describe('DocumentsService', () => {
     await service.create(CHANGE, { ...document, title: 'Pricing' });
 
     expect(
-      service.update(CHANGE, created.id, { ...document, title: 'Pricing' }),
+      service.update(CHANGE, DocumentId.create(created.id), {
+        ...document,
+        title: 'Pricing',
+      }),
     ).rejects.toBeInstanceOf(DuplicateDocumentError);
-    expect((await service.findById(CHANGE, created.id))?.document.title).toBe(
-      document.title,
-    );
+    expect(
+      (await service.findById(CHANGE, DocumentId.create(created.id)))?.document
+        .title,
+    ).toBe(document.title);
   });
 
   it('refuses to update a document the change does not have', async () => {
@@ -174,7 +195,9 @@ describe('DocumentsService', () => {
   it('deletes a document it has', async () => {
     const created = await service.create(CHANGE, document);
 
-    expect(await service.delete(CHANGE, created.id)).toBe(true);
+    expect(await service.delete(CHANGE, DocumentId.create(created.id))).toBe(
+      true,
+    );
     expect(await service.list(CHANGE)).toEqual([]);
   });
 

@@ -75,9 +75,9 @@ describe('ui documents routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/booking-rules`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/booking-rules`)).status).toBe(404);
-    expect(
-      (await t.documentsService.list(slug)).map((d) => d.id.value),
-    ).toEqual(['booking-rules']);
+    expect((await t.documentsService.list(slug)).map((d) => d.id)).toEqual([
+      'booking-rules',
+    ]);
   });
 
   it('404s every route of a change that does not exist', async () => {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -40,7 +40,10 @@ describe('ui changes routes', () => {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const document = await t.designDocsService.create(older, designDocFixture);
+    const document = await t.designDocsService.create(
+      older,
+      decodedDesignDocFixture,
+    );
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);

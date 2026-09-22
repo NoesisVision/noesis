@@ -1,20 +1,24 @@
 import { v7 as uuidv7 } from 'uuid';
+import { z } from 'zod';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type {
-  CreateDesignDocumentInput,
-  DesignDocument,
-  DesignDocumentInput,
-} from './design-doc';
+import type { CreateDesignDocument, DesignDocument } from './design-doc';
 import type { DesignDocsRepository } from './design-docs.repository';
 
-export interface DesignDocSummary {
-  id: string;
-  name: string;
-  implemented: boolean;
-  /** Absolute; the agent reads the document from there. */
-  path: string;
-}
+/** What callers get back: plain data, so every adapter can send it as is. */
+export const DesignDocSummarySchema = z.object({
+  id: z.string().describe('The design document id, minted by the server.'),
+  name: z.string().describe('The design document name, as stored.'),
+  implemented: z
+    .boolean()
+    .describe('Whether the design is marked as implemented.'),
+  path: z
+    .string()
+    .describe(
+      'Absolute path the design document was stored at under .noesis/; the agent reads it from there.',
+    ),
+});
+export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 
 export class DesignDocNotFoundError extends Error {
   readonly id: string;
@@ -30,9 +34,6 @@ export interface DesignDocDetail {
   summary: DesignDocSummary;
   document: DesignDocument;
 }
-
-/** What a summary is read from: the JSON form or the decoded document. */
-type Summarizable = Pick<DesignDocumentInput, 'id' | 'name' | 'implemented'>;
 
 /**
  * Callers validate before calling in. The server mints the id and
@@ -50,7 +51,7 @@ export class DesignDocsService {
 
   async create(
     slug: ChangeSlug,
-    document: CreateDesignDocumentInput,
+    document: CreateDesignDocument,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     return this.store(slug, document, uuidv7());
@@ -60,7 +61,7 @@ export class DesignDocsService {
   async update(
     slug: ChangeSlug,
     id: string,
-    document: DesignDocumentInput,
+    document: CreateDesignDocument,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     if ((await this.docs.get(slug, id)) === null) {
@@ -94,22 +95,22 @@ export class DesignDocsService {
 
   private async store(
     slug: ChangeSlug,
-    document: CreateDesignDocumentInput,
+    document: CreateDesignDocument,
     id: string,
   ): Promise<DesignDocSummary> {
-    const stored = { ...document, id };
+    const stored: DesignDocument = { ...document, id };
     await this.docs.set(slug, id, stored);
     return this.summarize(slug, stored);
   }
 
   private summarize(
     slug: ChangeSlug,
-    { id, name, implemented }: Summarizable,
+    { id, name, implemented }: DesignDocument,
   ): DesignDocSummary {
     return {
       id,
       name: name.value,
-      implemented: implemented ?? false,
+      implemented,
       path: this.docs.pathOf(slug, id),
     };
   }

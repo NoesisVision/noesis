@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
@@ -5,13 +6,20 @@ import type { CreateDocument, Document } from './document';
 import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
-export interface DocumentSummary {
-  id: DocumentId;
-  title: string;
-  date: string;
-  /** Absolute; the agent reads the document from there. */
-  path: string;
-}
+/** What callers get back: plain data, so every adapter can send it as is. */
+export const DocumentSummarySchema = z.object({
+  id: z
+    .string()
+    .describe('The document id, derived from the title within the change.'),
+  title: z.string().describe('The document title, as stored.'),
+  date: z.string().describe('The date on the document, ISO 8601.'),
+  path: z
+    .string()
+    .describe(
+      'Absolute path the document was stored at under .noesis/; the agent reads it from there.',
+    ),
+});
+export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 
 export interface DocumentDetail {
   summary: DocumentSummary;
@@ -148,6 +156,6 @@ export class DocumentsService {
 
   private summarize(slug: ChangeSlug, document: Document): DocumentSummary {
     const { document_id: id, title, date } = document;
-    return { id, title, date, path: this.docs.pathOf(slug, id) };
+    return { id: id.value, title, date, path: this.docs.pathOf(slug, id) };
   }
 }
