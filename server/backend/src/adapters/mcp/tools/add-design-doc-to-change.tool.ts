@@ -1,7 +1,6 @@
-import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
+import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import { CreateDesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import type {
   DesignDocSummary,
@@ -9,35 +8,13 @@ import type {
 } from '#backend/app/design-docs/design-docs.service';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
-import { logged } from '../tool-handler';
+import { APPEND, defineTool, type ToolRegistration } from '../tool';
+import { ADD_DESIGN_DOC_TO_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { readWorkingFile } from '../working-file';
-import { CREATE_CHANGE } from './create-change.tool';
+import { addToChangeInput, withChange } from './change-scoped';
 
-const ADD_DESIGN_DOC_TO_CHANGE = 'add_design_doc_to_change';
-
-// As in add_document_to_change: the slug is a plain string answered in-band,
-// and the scratch directory is named here because this description is served
-// by the process that owns it.
-const inputSchemaFor = (session: SessionDir) =>
-  z
-    .object({
-      change: z
-        .string()
-        .describe(
-          'The slug of the change the design document belongs to, as create_change returned it or list_changes lists it, e.g. "payment-retry".',
-        ),
-      path: z
-        .string()
-        .describe(
-          `Path to a JSON working file holding the design document: { "name", "description", "modules", "buildingBlocks", "behaviours" }, each field a { "value", "reviewedByHuman" } pair and each collection a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it. Write it yourself into this session's scratch directory, ${session.path}, which is deleted when the session ends; any path under .noesis/tmp/ is accepted. The design never travels in this call.`,
-        ),
-    })
-    .describe(
-      'The change to add to, and where its design document is written.',
-    );
-
-type AddDesignDocInput = z.infer<ReturnType<typeof inputSchemaFor>>;
+const SUBJECT = 'design document';
 
 const outputSchema = z
   .object({
@@ -54,76 +31,53 @@ const outputSchema = z
   })
   .describe('Where the design document now lives.');
 
-export function registerAddDesignDocToChange(
-  server: McpServer,
+export function addDesignDocToChangeTool(
   designDocs: DesignDocsService,
   session: SessionDir,
-): void {
-  server.registerTool(
+): ToolRegistration {
+  return defineTool(
     ADD_DESIGN_DOC_TO_CHANGE,
     {
       title: 'Add design document to change',
       description:
         'Adds a design document to a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. Write the design document to a JSON working file under the session scratch directory and pass its path.',
-      inputSchema: inputSchemaFor(session),
+      inputSchema: addToChangeInput(
+        session,
+        SUBJECT,
+        '{ "name", "description", "modules", "buildingBlocks", "behaviours" }, each field a { "value", "reviewedByHuman" } pair and each collection a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it.',
+      ),
       outputSchema,
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: false,
-      },
+      annotations: APPEND,
     },
-    logged(ADD_DESIGN_DOC_TO_CHANGE, (input: AddDesignDocInput) =>
-      add(designDocs, session, input),
-    ),
+    (input) =>
+      withChange(input.change, SUBJECT, (slug) =>
+        add(designDocs, session, slug, input.path),
+      ),
   );
 }
 
 async function add(
   designDocs: DesignDocsService,
   session: SessionDir,
-  input: AddDesignDocInput,
+  slug: ChangeSlug,
+  path: string,
 ): Promise<CallToolResult> {
-  const parsed = ChangeSlug.tryCreate(input.change);
-  if (parsed.isErr()) return notASlug(input.change);
-  const slug = parsed.value;
-
   const report = await readWorkingFile(
     session,
     { schema: CreateDesignDocumentSchema },
-    input.path,
+    path,
   );
-  if (!report.ok) return failure(formatReport('design document', report));
+  if (!report.ok) return failure(formatReport(SUBJECT, report));
 
   // The service takes the JSON form, so the checked document is encoded back
   // rather than the raw file passed on: defaults come out spelled in full.
   const document = z.encode(CreateDesignDocumentSchema, report.value);
-  try {
-    return added(slug, await designDocs.create(slug, document));
-  } catch (error) {
-    if (error instanceof ChangeNotFoundError) return noSuchChange(error);
-    throw error;
-  }
+  return added(slug, await designDocs.create(slug, document));
 }
 
 function added(slug: ChangeSlug, summary: DesignDocSummary): CallToolResult {
   return success(
     `Added design document "${summary.name}" to ${slug.value} as ${summary.id}, stored at ${summary.path}.`,
     { ...summary },
-  );
-}
-
-function notASlug(value: string): CallToolResult {
-  return failure(
-    `${JSON.stringify(value)} is not a change slug.`,
-    'A slug is lower-case kebab-case, as create_change returned it, e.g. "payment-retry".',
-  );
-}
-
-function noSuchChange(error: ChangeNotFoundError): CallToolResult {
-  return failure(
-    error.message,
-    `Create it with ${CREATE_CHANGE} first, then add the design document to the slug it returns.`,
   );
 }

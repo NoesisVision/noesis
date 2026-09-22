@@ -1,4 +1,4 @@
-import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
+import type { CallToolResult } from '@modelcontextprotocol/server';
 import {
   type Change,
   ChangeSchema,
@@ -9,16 +9,12 @@ import {
   type ChangesService,
   DuplicateChangeError,
 } from '#backend/app/changes/changes.service';
-import { logged } from '../tool-handler';
+import { APPEND, defineTool, type ToolRegistration } from '../tool';
+import { CREATE_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
 
-export const CREATE_CHANGE = 'create_change';
-
-export function registerCreateChange(
-  server: McpServer,
-  changes: ChangesService,
-): void {
-  server.registerTool(
+export function createChangeTool(changes: ChangesService): ToolRegistration {
+  return defineTool(
     CREATE_CHANGE,
     {
       title: 'Create change',
@@ -26,14 +22,9 @@ export function registerCreateChange(
         'Creates a change: the unit of work everything else in Noesis hangs off. The change is what a feature, fix, improvement or chore is called here, and it collects the documents that inform it. The server derives the slug from the name and starts the change in discovery.',
       inputSchema: CreateChangeSchema,
       outputSchema: ChangeSchema,
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: false,
-      },
+      annotations: APPEND,
     },
-    logged(CREATE_CHANGE, (input: CreateChange) => create(changes, input)),
+    (input) => create(changes, input),
   );
 }
 

@@ -1,12 +1,10 @@
-import type { CallToolResult, McpServer } from '@modelcontextprotocol/server';
+import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import { logged } from '../tool-handler';
+import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
+import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { success } from '../tool-result';
-import { CREATE_CHANGE } from './create-change.tool';
-
-const LIST_CHANGES = 'list_changes';
 
 const inputSchema = z
   .object({})
@@ -20,11 +18,8 @@ const outputSchema = z
   })
   .describe('The changes of this repository.');
 
-export function registerListChanges(
-  server: McpServer,
-  changes: ChangesService,
-): void {
-  server.registerTool(
+export function listChangesTool(changes: ChangesService): ToolRegistration {
+  return defineTool(
     LIST_CHANGES,
     {
       title: 'List changes',
@@ -32,14 +27,9 @@ export function registerListChanges(
         'Lists every change in the repository, newest first, each with its slug, name, tracker key, type and status. Use it to find the slug of a change the user refers to by name or key, or to offer the user the changes to choose from.',
       inputSchema,
       outputSchema,
-      annotations: {
-        readOnlyHint: true,
-        destructiveHint: false,
-        idempotentHint: true,
-        openWorldHint: false,
-      },
+      annotations: READ_ONLY,
     },
-    logged(LIST_CHANGES, async () => listed(await changes.list())),
+    async () => listed(await changes.list()),
   );
 }
 

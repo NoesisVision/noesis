@@ -24,7 +24,7 @@ beforeEach(async () => {
   await session.open();
   const server = createMcpServer({
     version: '0.0.0-test',
-    repositoryRoot: noesis.root,
+    noesis: noesis.noesis,
     session,
     changesService: noesis.changesService,
     designDocsService: noesis.designDocsService,

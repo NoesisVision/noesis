@@ -81,7 +81,7 @@ const mcp = serveStdio(
   () =>
     createMcpServer({
       version,
-      repositoryRoot,
+      noesis,
       session,
       changesService,
       designDocsService,
