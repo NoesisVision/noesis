@@ -1,7 +1,11 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocument, DesignDocumentInput } from './design-doc';
+import type {
+  CreateDesignDocumentInput,
+  DesignDocument,
+  DesignDocumentInput,
+} from './design-doc';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 export interface DesignDocSummary {
@@ -46,7 +50,7 @@ export class DesignDocsService {
 
   async create(
     slug: ChangeSlug,
-    document: DesignDocumentInput,
+    document: CreateDesignDocumentInput,
   ): Promise<DesignDocSummary> {
     await this.changesService.assertExists(slug);
     return this.store(slug, document, uuidv7());
@@ -90,7 +94,7 @@ export class DesignDocsService {
 
   private async store(
     slug: ChangeSlug,
-    document: DesignDocumentInput,
+    document: CreateDesignDocumentInput,
     id: string,
   ): Promise<DesignDocSummary> {
     const stored = { ...document, id };

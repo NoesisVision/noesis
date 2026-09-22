@@ -1,7 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import type { SessionDir } from '#backend/platform/files/session-dir';
+import { registerAddDesignDocToChange } from './tools/add-design-doc-to-change.tool';
 import { registerAddDocumentToChange } from './tools/add-document-to-change.tool';
 import { registerCreateChange } from './tools/create-change.tool';
 import { registerListChanges } from './tools/list-changes.tool';
@@ -11,6 +13,7 @@ export interface McpServerDeps {
   repositoryRoot: string;
   session: SessionDir;
   changesService: ChangesService;
+  designDocsService: DesignDocsService;
   documentsService: DocumentsService;
 }
 
@@ -32,6 +35,7 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
   registerCreateChange(server, deps.changesService);
   registerListChanges(server, deps.changesService);
   registerAddDocumentToChange(server, deps.documentsService, deps.session);
+  registerAddDesignDocToChange(server, deps.designDocsService, deps.session);
   return server;
 }
 
@@ -45,7 +49,7 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
  */
 function instructions(deps: McpServerDeps): string {
   return [
-    `Noesis keeps this repository's knowledge graph as files under ${deps.repositoryRoot}/.noesis/. Work is organised into changes, and a change collects the documents that inform it.`,
+    `Noesis keeps this repository's knowledge graph as files under ${deps.repositoryRoot}/.noesis/. Work is organised into changes: a change collects the documents that inform it and the design documents that describe what it does to the model.`,
     `Tools take paths, never content: write a working file under ${deps.repositoryRoot}/.noesis/tmp/ yourself — no tool call needed — and pass its path. Each tool's \`path\` parameter names the directory to write into.`,
   ].join('\n\n');
 }

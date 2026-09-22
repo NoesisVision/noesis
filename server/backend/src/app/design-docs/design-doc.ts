@@ -210,6 +210,17 @@ export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
 /** The JSON form: what an agent writes, what the store holds, what the wire carries. */
 export type DesignDocumentInput = z.input<typeof DesignDocumentSchema>;
 
+/**
+ * Derived from the stored shape so the two can never drift: the service mints
+ * the id, so a caller adding a design document does not supply one.
+ */
+export const CreateDesignDocumentSchema = DesignDocumentSchema.omit({
+  id: true,
+}).describe('The design document to add to a change.');
+export type CreateDesignDocumentInput = z.input<
+  typeof CreateDesignDocumentSchema
+>;
+
 /* The JSON form of each element and part, for readers of the wire. */
 export type DesignedDomainModuleInput = z.input<
   typeof DesignedDomainModuleSchema

@@ -7,6 +7,7 @@ import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SessionDir } from '#backend/platform/files/session-dir';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -26,6 +27,7 @@ beforeEach(async () => {
     repositoryRoot: noesis.root,
     session,
     changesService: noesis.changesService,
+    designDocsService: noesis.designDocsService,
     documentsService: noesis.documentsService,
   });
   client = new Client({ name: 'mcp-spec', version: '0.0.0' });
@@ -70,9 +72,10 @@ describe('the MCP surface', () => {
     expect(path.description).toContain(session.path);
   });
 
-  it('offers exactly the three tools, each with an input and an output schema', async () => {
+  it('offers exactly the four tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_design_doc_to_change',
       'add_document_to_change',
       'create_change',
       'list_changes',
@@ -336,5 +339,112 @@ describe('add_document_to_change', () => {
 
     expect(again.isError).toBe(true);
     expect(textOf(again)).toContain(document.title);
+  });
+});
+
+describe('add_design_doc_to_change', () => {
+  const { id: _id, ...designDoc } = designDocFixture;
+
+  it('stores the design document the working file holds, under a minted id', async () => {
+    const change = await noesis.createChange('payment-retry');
+    const path = await workingFile('design-doc.json', designDoc);
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: change.value, path },
+    });
+
+    expect(result.isError).toBeFalsy();
+    const { id } = result.structuredContent as { id: string };
+    expect(id).not.toBe(designDocFixture.id);
+    expect(result.structuredContent).toEqual({
+      id,
+      name: designDoc.name.value,
+      implemented: false,
+      path: expect.stringContaining('payment-retry'),
+    });
+    expect(textOf(result)).toContain(id);
+    const stored = await noesis.designDocsService.findById(change, id);
+    expect(stored?.summary.name).toBe(designDoc.name.value);
+  });
+
+  it('ignores an id the working file carries', async () => {
+    const change = await noesis.createChange('payment-retry');
+    const path = await workingFile('design-doc.json', designDocFixture);
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: change.value, path },
+    });
+
+    expect(result.isError).toBeFalsy();
+    const { id } = result.structuredContent as { id: string };
+    expect(id).not.toBe(designDocFixture.id);
+  });
+
+  it('advertises the live scratch directory', async () => {
+    const { tools } = await client.listTools();
+    const add = tools.find((tool) => tool.name === 'add_design_doc_to_change');
+    const path = add?.inputSchema.properties?.path as { description: string };
+    expect(path.description).toContain(session.path);
+  });
+
+  it('reports an unknown change in-band', async () => {
+    const path = await workingFile('design-doc.json', designDoc);
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: 'no-such-change', path },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "no-such-change"');
+    expect(textOf(result)).toContain('create_change');
+  });
+
+  it('reports a value that is not a slug at all', async () => {
+    const path = await workingFile('design-doc.json', designDoc);
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: 'Payment Retry', path },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('not a change slug');
+  });
+
+  it('refuses a path outside the scratch directory', async () => {
+    await noesis.createChange('payment-retry');
+    const outside = join(noesis.root, 'design-doc.json');
+    await writeFile(outside, JSON.stringify(designDoc));
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: 'payment-retry', path: outside },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('.noesis/tmp/');
+  });
+
+  it('answers a malformed design document with the issues to fix', async () => {
+    const change = await noesis.createChange('payment-retry');
+    const path = await workingFile('design-doc.json', {
+      ...designDoc,
+      name: 'Partial refunds',
+      buildingBlocks: { added: [{ id: 'not an id' }] },
+    });
+
+    const result = await client.callTool({
+      name: 'add_design_doc_to_change',
+      arguments: { change: 'payment-retry', path },
+    });
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain('$.name');
+    expect(text).toContain('$.buildingBlocks');
+    expect(await noesis.designDocsService.list(change)).toEqual([]);
   });
 });

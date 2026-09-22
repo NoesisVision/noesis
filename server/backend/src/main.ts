@@ -64,6 +64,10 @@ const changesService = new ChangesService(
   changesRepository,
   designDocsRepository,
 );
+const designDocsService = new DesignDocsService(
+  designDocsRepository,
+  changesService,
+);
 const documentsService = new DocumentsService(
   new NoesisDocumentsRepository(changesRepository),
   changesService,
@@ -80,6 +84,7 @@ const mcp = serveStdio(
       repositoryRoot,
       session,
       changesService,
+      designDocsService,
       documentsService,
     }),
   {
@@ -146,10 +151,7 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
   const app = createApp({
     searchService: new SearchService([createGraphSearch(db)]),
     changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-    ),
+    designDocsService,
     documentsService,
   });
 
