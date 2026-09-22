@@ -8,7 +8,7 @@ import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.parse('alpha');
+const ALPHA = ChangeSlug.create('alpha');
 
 let db: DatabaseService;
 let t: TestNoesis;

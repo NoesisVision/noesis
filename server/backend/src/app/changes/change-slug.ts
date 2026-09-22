@@ -1,3 +1,6 @@
+import { ok, type Result } from 'neverthrow';
+import { fail, unwrap, type VoIssue } from '#backend/app/vo';
+
 /**
  * Exists only in valid form, so a slug can never climb out of
  * `.noesis/graph/changes/`. `toJSON` keeps it serialising to the plain string
@@ -13,24 +16,25 @@ export class ChangeSlug {
     this.value = value;
   }
 
-  static parse(value: string): ChangeSlug {
-    const slug = ChangeSlug.tryParse(value);
-    if (slug === null) throw new InvalidChangeSlugError(value);
-    return slug;
+  /** Trusted input only: tests, constants, already-validated data. */
+  static create(value: string): ChangeSlug {
+    return unwrap(ChangeSlug.name, ChangeSlug.tryCreate(value));
   }
 
-  static tryParse(value: string): ChangeSlug | null {
+  static tryCreate(value: string): Result<ChangeSlug, VoIssue[]> {
     return typeof value === 'string' &&
       value.length <= ChangeSlug.MAX_LENGTH &&
       ChangeSlug.PATTERN.test(value)
-      ? new ChangeSlug(value)
-      : null;
+      ? ok(new ChangeSlug(value))
+      : fail(
+          `Not a change slug: ${JSON.stringify(value)}. Expected lower-case kebab-case of at most ${ChangeSlug.MAX_LENGTH} characters, e.g. 'payment-retry'.`,
+        );
   }
 
   static fromName(name: string): ChangeSlug {
     const slug = name
       .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
@@ -49,15 +53,5 @@ export class ChangeSlug {
 
   toJSON(): string {
     return this.value;
-  }
-}
-
-export class InvalidChangeSlugError extends Error {
-  readonly value: string;
-
-  constructor(value: string) {
-    super(`Not a change slug: ${JSON.stringify(value)}`);
-    this.name = 'InvalidChangeSlugError';
-    this.value = value;
   }
 }

@@ -30,7 +30,7 @@ describe('NoesisChangesRepository', () => {
     expect(await keys()).toEqual(['audit-log', 'payment-retry']);
     expect(await t.changesRepository.read(audit)).not.toBeNull();
     expect(
-      await t.changesRepository.read(ChangeSlug.parse('missing')),
+      await t.changesRepository.read(ChangeSlug.create('missing')),
     ).toBeNull();
   });
 
@@ -42,7 +42,9 @@ describe('NoesisChangesRepository', () => {
     await t.createChange('real');
 
     expect(await keys()).toEqual(['real']);
-    expect(await t.changesRepository.read(ChangeSlug.parse('bare'))).toBeNull();
+    expect(
+      await t.changesRepository.read(ChangeSlug.create('bare')),
+    ).toBeNull();
   });
 
   it('skips a key the store lists that is not a change slug', async () => {
@@ -55,7 +57,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('names the change directory and hands out its child collections', () => {
-    const real = ChangeSlug.parse('real');
+    const real = ChangeSlug.create('real');
     expect(t.changesRepository.dirOf(real)).toBe(
       t.noesis.resolve('graph', 'changes', 'real'),
     );
@@ -80,7 +82,7 @@ describe('NoesisChangesRepository', () => {
     };
     await t.changesRepository.write(change);
     expect(
-      await t.changesRepository.read(ChangeSlug.parse('with-file')),
+      await t.changesRepository.read(ChangeSlug.create('with-file')),
     ).toEqual(change);
     expect(
       JSON.parse(

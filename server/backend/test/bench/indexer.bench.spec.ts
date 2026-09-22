@@ -39,7 +39,7 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
   const designDocs = (slug: ChangeSlug) =>
     changes.children(slug)['design-docs'];
   for (let c = 0; c < CHANGES; c++) {
-    const slug = ChangeSlug.parse(`change-${c}`);
+    const slug = ChangeSlug.create(`change-${c}`);
     await changes.write({
       slug: slug.value,
       name: slug.value,
@@ -54,7 +54,7 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
   for (let i = 0; i < files; i++) {
     const id = `00000000-0000-7000-8000-${String(i).padStart(12, '0')}`;
     const name = `Design doc ${i}`;
-    const slug = ChangeSlug.parse(`change-${i % CHANGES}`);
+    const slug = ChangeSlug.create(`change-${i % CHANGES}`);
     await mkdir(join(designDocs(slug).directory, id));
     await writeFile(
       designDocs(slug).dataFile(id),

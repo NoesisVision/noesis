@@ -1,4 +1,6 @@
+import { ok, type Result } from 'neverthrow';
 import { z } from 'zod';
+import { fail, unwrap, voCodec, type VoIssue } from '#backend/app/vo';
 
 /**
  * The title is the document's identity within its change, so the id is that
@@ -30,33 +32,33 @@ export class DocumentId {
     this.value = value;
   }
 
-  static parse(value: string): DocumentId {
-    const id = DocumentId.tryParse(value);
-    if (id === null) throw new InvalidDocumentIdError(value);
-    return id;
+  /** Trusted input only: tests, constants, already-validated data. */
+  static create(value: string): DocumentId {
+    return unwrap(DocumentId.name, DocumentId.tryCreate(value));
   }
 
-  static tryParse(value: string): DocumentId | null {
+  static tryCreate(value: string): Result<DocumentId, VoIssue[]> {
     return typeof value === 'string' &&
       value.length <= DocumentId.MAX_LENGTH &&
       DocumentId.PATTERN.test(value)
-      ? new DocumentId(value)
-      : null;
+      ? ok(new DocumentId(value))
+      : fail(
+          `Not a document id: ${JSON.stringify(value)}. Expected lower-case kebab-case of at most ${DocumentId.MAX_LENGTH} characters, e.g. 'payment-retry'.`,
+        );
   }
 
+  /** The throwing twin of `tryFromTitle`, for a title already known to match `TITLE_PATTERN`. */
   static fromTitle(title: string): DocumentId {
-    const id = DocumentId.tryFromTitle(title);
-    if (id === null) throw new TitleWithoutIdError(title);
-    return id;
+    return unwrap(DocumentId.name, DocumentId.tryFromTitle(title));
   }
 
   /**
-   * Null for a title the derivation empties — punctuation or a script with no
-   * ASCII in it. There is no fallback id: every such title would share it, and
-   * the second one would look like a duplicate of the first. Never null for a
-   * title matching `TITLE_PATTERN`.
+   * An issue for a title the derivation empties — punctuation or a script
+   * with no ASCII in it. There is no fallback id: every such title would share
+   * it, and the second one would look like a duplicate of the first. Never an
+   * issue for a title matching `TITLE_PATTERN`.
    */
-  static tryFromTitle(title: string): DocumentId | null {
+  static tryFromTitle(title: string): Result<DocumentId, VoIssue[]> {
     const slug = title
       .normalize('NFKD')
       .replace(/[̀-ͯ]/g, '')
@@ -65,7 +67,12 @@ export class DocumentId {
       .replace(/^-+|-+$/g, '')
       .slice(0, DocumentId.MAX_LENGTH)
       .replace(/-+$/, '');
-    return slug === '' ? null : new DocumentId(slug);
+    return slug === ''
+      ? fail(
+          `No document id can be derived from the title ${JSON.stringify(title)}: it needs a letter or a digit.`,
+          ['title'],
+        )
+      : ok(new DocumentId(slug));
   }
 
   equals(other: DocumentId): boolean {
@@ -81,39 +88,15 @@ export class DocumentId {
   }
 }
 
-export class InvalidDocumentIdError extends Error {
-  readonly value: string;
-
-  constructor(value: string) {
-    super(`Not a document id: ${JSON.stringify(value)}`);
-    this.name = 'InvalidDocumentIdError';
-    this.value = value;
-  }
-}
-
-export class TitleWithoutIdError extends Error {
-  readonly title: string;
-
-  constructor(title: string) {
-    super(
-      `No document id can be derived from the title ${JSON.stringify(title)}: it needs a letter or a digit.`,
-    );
-    this.name = 'TitleWithoutIdError';
-    this.title = title;
-  }
-}
-
 /**
  * A codec, so the contract holds the value object while JSON on either side of
  * it stays a string: parsing decodes the string into a `DocumentId`, encoding
  * turns it back. The string side carries the whole rule, so decoding cannot
  * fail and the advertised JSON Schema states the pattern.
  */
-export const DocumentIdSchema = z.codec(
+export const DocumentIdSchema = voCodec(
   z.string().max(DocumentId.MAX_LENGTH).regex(DocumentId.PATTERN),
-  z.custom<DocumentId>((value) => value instanceof DocumentId),
-  {
-    decode: (value) => DocumentId.parse(value),
-    encode: (id) => id.value,
-  },
+  DocumentId,
+  (value) => DocumentId.tryCreate(value),
+  (id) => id.value,
 );

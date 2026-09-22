@@ -198,7 +198,7 @@ describe('add_document_to_change', () => {
     });
     const stored = await noesis.documentsService.findById(
       change,
-      DocumentId.parse('retry-interview'),
+      DocumentId.create('retry-interview'),
     );
     expect(stored?.document.content).toBe(document.content);
   });

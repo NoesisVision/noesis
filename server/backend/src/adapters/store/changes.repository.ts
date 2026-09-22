@@ -42,15 +42,15 @@ export class NoesisChangesRepository implements ChangesRepository {
   /** Unordered; the graph sorts. */
   async *keys(): AsyncIterable<ChangeSlug> {
     for await (const key of this.store.keys()) {
-      const slug = ChangeSlug.tryParse(key);
-      if (slug === null) {
+      const slug = ChangeSlug.tryCreate(key);
+      if (slug.isErr()) {
         log.warn('skipping {key} under {directory}: not a change slug', {
           key,
           directory: this.store.directory,
         });
         continue;
       }
-      yield slug;
+      yield slug.value;
     }
   }
 
@@ -67,7 +67,7 @@ export class NoesisChangesRepository implements ChangesRepository {
 
   /** What the change owns stays. */
   async write(change: Change): Promise<void> {
-    await this.store.set(ChangeSlug.parse(change.slug).value, change);
+    await this.store.set(ChangeSlug.create(change.slug).value, change);
   }
 
   children(slug: ChangeSlug): ChangeChildren {

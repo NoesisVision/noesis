@@ -2,19 +2,17 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import type { CreateDocument } from '#backend/app/information-sources/document';
-import {
-  DocumentId,
-  TitleWithoutIdError,
-} from '#backend/app/information-sources/document-id';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
   DocumentNotFoundError,
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
+import { ValueObjectError } from '#backend/app/vo';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const CHANGE = ChangeSlug.parse('booking');
-const NOPE = ChangeSlug.parse('nope');
+const CHANGE = ChangeSlug.create('booking');
+const NOPE = ChangeSlug.create('nope');
 
 const document: CreateDocument = {
   title: 'Booking Rules — v2',
@@ -45,19 +43,19 @@ describe('DocumentsService', () => {
     const detail = await service.findById(CHANGE, summary.id);
     expect(detail?.document).toEqual({
       ...document,
-      document_id: DocumentId.parse('booking-rules-v2'),
+      document_id: DocumentId.create('booking-rules-v2'),
     });
   });
 
   it('refuses a title no id can be derived from, on create and on retitle', async () => {
     expect(
       service.create(CHANGE, { ...document, title: '!!!' }),
-    ).rejects.toBeInstanceOf(TitleWithoutIdError);
+    ).rejects.toBeInstanceOf(ValueObjectError);
 
     const created = await service.create(CHANGE, document);
     expect(
       service.update(CHANGE, created.id, { ...document, title: '日本語' }),
-    ).rejects.toBeInstanceOf(TitleWithoutIdError);
+    ).rejects.toBeInstanceOf(ValueObjectError);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
@@ -78,7 +76,7 @@ describe('DocumentsService', () => {
     expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
     const stored = await service.findById(
       CHANGE,
-      DocumentId.parse('booking-rules-v2'),
+      DocumentId.create('booking-rules-v2'),
     );
     expect(stored?.document.content).toBe(document.content);
   });
@@ -136,7 +134,7 @@ describe('DocumentsService', () => {
 
   it('refuses to update a document the change does not have', async () => {
     expect(
-      service.update(CHANGE, DocumentId.parse('missing'), document),
+      service.update(CHANGE, DocumentId.create('missing'), document),
     ).rejects.toBeInstanceOf(DocumentNotFoundError);
   });
 
@@ -165,10 +163,10 @@ describe('DocumentsService', () => {
   });
 
   it('answers null for a document that does not exist and false when deleting it', async () => {
-    expect(await service.findById(CHANGE, DocumentId.parse('missing'))).toBe(
+    expect(await service.findById(CHANGE, DocumentId.create('missing'))).toBe(
       null,
     );
-    expect(await service.delete(CHANGE, DocumentId.parse('missing'))).toBe(
+    expect(await service.delete(CHANGE, DocumentId.create('missing'))).toBe(
       false,
     );
   });
@@ -188,10 +186,10 @@ describe('DocumentsService', () => {
       ChangeNotFoundError,
     );
     await expect(
-      service.findById(NOPE, DocumentId.parse('x')),
+      service.findById(NOPE, DocumentId.create('x')),
     ).rejects.toBeInstanceOf(ChangeNotFoundError);
     await expect(
-      service.delete(NOPE, DocumentId.parse('x')),
+      service.delete(NOPE, DocumentId.create('x')),
     ).rejects.toBeInstanceOf(ChangeNotFoundError);
   });
 });

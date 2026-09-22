@@ -69,7 +69,7 @@ export class ChangesService {
 
   private async withDesignDocs(change: Change): Promise<ChangeNavigationItem> {
     const designDocs = await Array.fromAsync(
-      this.designDocs.values(ChangeSlug.parse(change.slug)),
+      this.designDocs.values(ChangeSlug.create(change.slug)),
       ({ id, name }) => ({ id, name: name.value }),
     );
     return { ...change, designDocs: designDocs.sort(byName) };

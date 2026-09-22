@@ -83,8 +83,9 @@ async function add(
   session: SessionDir,
   input: AddDocumentInput,
 ): Promise<CallToolResult> {
-  const slug = ChangeSlug.tryParse(input.change);
-  if (slug === null) return notASlug(input.change);
+  const parsed = ChangeSlug.tryCreate(input.change);
+  if (parsed.isErr()) return notASlug(input.change);
+  const slug = parsed.value;
 
   // The shape is the whole contract: the title's pattern guarantees an id,
   // so a document has no whole-document `check`.

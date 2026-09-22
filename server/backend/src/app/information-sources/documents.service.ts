@@ -43,7 +43,7 @@ export class DuplicateDocumentError extends Error {
 /**
  * Callers validate before calling in. The title identifies the
  * document within its change, so the service derives the id from it; a title
- * no id can be derived from is a `TitleWithoutIdError`.
+ * no id can be derived from is a `ValueObjectError`.
  */
 export class DocumentsService {
   private readonly docs: DocumentsRepository;

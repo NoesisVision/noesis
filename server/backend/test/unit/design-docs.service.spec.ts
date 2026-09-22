@@ -9,8 +9,8 @@ import {
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const CHANGE = ChangeSlug.parse('booking');
-const NOPE = ChangeSlug.parse('nope');
+const CHANGE = ChangeSlug.create('booking');
+const NOPE = ChangeSlug.create('nope');
 
 let t: TestNoesis;
 let service: DesignDocsService;
@@ -90,6 +90,6 @@ describe('DesignDocsService', () => {
       ChangeNotFoundError,
     );
     // An unsafe slug never reaches the service: it is not a `ChangeSlug`.
-    expect(ChangeSlug.tryParse('../x')).toBeNull();
+    expect(ChangeSlug.tryCreate('../x').isErr()).toBe(true);
   });
 });

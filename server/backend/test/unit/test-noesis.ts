@@ -65,7 +65,7 @@ export async function testNoesis(): Promise<TestNoesis> {
       changesService,
     ),
     createChange: async (slug, overrides = {}) => {
-      const parsed = typeof slug === 'string' ? ChangeSlug.parse(slug) : slug;
+      const parsed = typeof slug === 'string' ? ChangeSlug.create(slug) : slug;
       const change: Change = {
         slug: parsed.value,
         name: parsed.value,

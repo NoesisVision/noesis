@@ -24,9 +24,9 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
     .get('/:id', async (c) => {
       return inChange(c, async (change) => {
-        const id = DocumentId.tryParse(c.req.param('id'));
-        if (id === null) return c.json({ error: 'not_found' }, 404);
-        const detail = await documentsService.findById(change, id);
+        const id = DocumentId.tryCreate(c.req.param('id'));
+        if (id.isErr()) return c.json({ error: 'not_found' }, 404);
+        const detail = await documentsService.findById(change, id.value);
         if (detail === null) return c.json({ error: 'not_found' }, 404);
         return c.json(detail);
       });
