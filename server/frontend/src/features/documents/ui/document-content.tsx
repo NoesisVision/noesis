@@ -1,4 +1,5 @@
 import { IconFiles } from '@tabler/icons-react';
+import { Card } from '#/shared/design-system/card.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
@@ -12,13 +13,15 @@ export function DocumentContent({
   document: DocumentContents;
 }) {
   return (
-    <Stack component="article" maw={1000}>
+    <Stack component="article">
       <IconHeading title={doc.title} icon={IconFiles} description={doc.date} />
-      {doc.content.trim() ? (
-        <Markdown>{doc.content}</Markdown>
-      ) : (
-        <Text c="dimmed">This document is empty.</Text>
-      )}
+      <Card withBorder>
+        {doc.content.trim() ? (
+          <Markdown>{doc.content}</Markdown>
+        ) : (
+          <Text c="dimmed">This document is empty.</Text>
+        )}
+      </Card>
     </Stack>
   );
 }

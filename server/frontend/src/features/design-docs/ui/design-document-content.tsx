@@ -333,7 +333,7 @@ export function DesignDocumentContent({
   return (
     <Stack component="article" maw={1000}>
       <IconHeading
-        title={<Field field={doc.name} />}
+        title={doc.name.value}
         icon={IconPencilBolt}
         description={doc.implemented ? 'Implemented' : 'Draft'}
       />
