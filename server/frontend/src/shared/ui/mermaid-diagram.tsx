@@ -68,12 +68,30 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
   // Mermaid hands back a finished SVG document, which is the only shape it
   // renders to; `securityLevel: 'strict'` is what keeps the input from
-  // reaching the output unescaped.
+  // reaching the output unescaped. The wrapper carries the name, because the
+  // SVG inside it is a picture and arrives without one.
   return (
     <div
       className={classes.diagram}
+      // Not an `img`: the picture is an inline SVG document mounted here, and
+      // an `img` cannot hold one. The role is what names it.
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+      role="img"
+      aria-label={diagramName(chart)}
       // oxlint-disable-next-line react/no-danger
       dangerouslySetInnerHTML={{ __html: drawing.svg }}
     />
   );
+}
+
+/**
+ * What the diagram is called. Mermaid's own `accTitle:` is the author's
+ * answer and the only one worth reading aloud; without it the kind of
+ * diagram is all the source says.
+ */
+function diagramName(chart: string): string {
+  const declared = /^\s*accTitle\s*:\s*(.+)$/m.exec(chart)?.[1]?.trim();
+  if (declared) return declared;
+  const kind = chart.trim().split(/[\s\n]/)[0] ?? 'mermaid';
+  return `${kind.replace(/-v\d+$/, '')} diagram`;
 }

@@ -33,3 +33,25 @@ it('leaves every other fence as code', () => {
   expect(html).toContain('language-ts');
   expect(html).toContain('const slots = 3;');
 });
+
+it('nests a document under the heading of the page it is shown on', () => {
+  const html = render(
+    <Markdown>
+      {'# Payment retry policy\n\n## The problem\n\n### Detail'}
+    </Markdown>,
+  );
+  // The page heading is an h2, so the document's own `#` is an h3 and never
+  // an h1 opening a second outline above it.
+  expect(html).not.toContain('<h1');
+  expect(html).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
+  expect(html).toMatch(/<h4[^>]*>The problem<\/h4>/);
+  expect(html).toMatch(/<h5[^>]*>Detail<\/h5>/);
+});
+
+it('never shifts a heading past h6', () => {
+  const html = render(
+    <Markdown headingLevel={6}>{'# One\n\n## Two'}</Markdown>,
+  );
+  expect(html).toMatch(/<h6[^>]*>One<\/h6>/);
+  expect(html).toMatch(/<h6[^>]*>Two<\/h6>/);
+});

@@ -29,7 +29,8 @@ export function IconHeading({
 }: IconHeadingProps) {
   return (
     <Group gap="sm" wrap="nowrap">
-      <ThemeIcon variant="light" size="lg" radius="md">
+      {/* Decorative: the title beside it already names the page. */}
+      <ThemeIcon variant="light" size="lg" radius="md" aria-hidden>
         <Icon size={22} stroke={1.6} />
       </ThemeIcon>
       <Box>
