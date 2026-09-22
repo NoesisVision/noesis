@@ -6,7 +6,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-import { DetailHeader } from '#/shared/ui/detail-header.tsx';
+import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -326,8 +326,11 @@ export function DesignDocumentContent({
 }) {
   return (
     <Stack component="article" maw={1000}>
-      <DetailHeader title={<Field field={doc.name} />} icon={IconPencilBolt} />
-      <Text c="dimmed">{doc.implemented ? 'Implemented' : 'Draft'}</Text>
+      <IconHeading
+        title={<Field field={doc.name} />}
+        icon={IconPencilBolt}
+        description={doc.implemented ? 'Implemented' : 'Draft'}
+      />
       <Text>
         <Field field={doc.description} />
       </Text>

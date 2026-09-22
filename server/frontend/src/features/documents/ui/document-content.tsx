@@ -1,7 +1,7 @@
 import { IconFiles } from '@tabler/icons-react';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { DetailHeader } from '#/shared/ui/detail-header.tsx';
+import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { Markdown } from '#/shared/ui/markdown.tsx';
 import type { DocumentContents } from '../documents.api.ts';
 
@@ -13,8 +13,7 @@ export function DocumentContent({
 }) {
   return (
     <Stack component="article" maw={1000}>
-      <DetailHeader title={doc.title} icon={IconFiles} />
-      <Text c="dimmed">{doc.date}</Text>
+      <IconHeading title={doc.title} icon={IconFiles} description={doc.date} />
       {doc.content.trim() ? (
         <Markdown>{doc.content}</Markdown>
       ) : (
