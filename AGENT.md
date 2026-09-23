@@ -96,7 +96,8 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 
 - **Public methods compose, private methods do.** A public method's body is a short sequence of calls to private methods, one per meaningful step, each named for what it achieves (`createDirectories()`, `excludeUnversionedDirsFromGit()`), not how. A public name must say what happens: `ensureInitialized()`, not `ensure()`.
 - **Instance or module.** A helper that needs `this` is a private method; one that does not is a plain function at the bottom of the module (`isInside`, `realpathIfExists`).
-- **Value objects for data with behaviour.** When a few helpers all work on the same value, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`, following `ChangeSlug`). Keep it unexported while one file uses it.
+- **Value objects for domain primitives.** An id, name, slug or quantity is a branded Zod schema with its factories beside it, as `app/element-id.ts` does; the `value-objects` skill has the rules.
+- **Small classes for private helper data.** When a few helpers in one file all work on the same value that never leaves it, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`). Keep it unexported.
 - **No exceptions for control flow.** Prefer APIs that report absence (`Bun.file(path).exists()`) over catching `ENOENT`/`EEXIST`. Where only a throwing API exists, confine the catch to one helper that returns `null` or `boolean` and rethrows every other error code. A benign race is acceptable in exchange for plainer flow; say so in a one-line comment.
 
 ## Working conventions

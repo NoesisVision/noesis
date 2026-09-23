@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import {
-  ELEMENT_ADDRESS_SEPARATOR,
-  ElementIdSchema,
-  ElementNameSchema,
-  type ElementId,
-} from './element-id';
+import { ElementId, ElementName } from '#backend/app/element-id';
 
 export function reviewableFieldSchema<Value extends z.ZodType>(value: Value) {
   return z.object({
@@ -24,13 +19,13 @@ export function reviewableField<T>(
   return { value, reviewedByHuman };
 }
 
-export const FieldNameSchema = ElementNameSchema.describe(
+export const FieldNameSchema = ElementName.describe(
   "The name of one field of one element, e.g. 'description'. Never empty, never padded with whitespace, and never containing the separator '.'.",
 );
 export type FieldName = z.infer<typeof FieldNameSchema>;
 
 export const AcceptedFieldSchema = z.object({
-  element: ElementIdSchema,
+  element: ElementId,
   field: FieldNameSchema,
 });
 export interface AcceptedField extends z.infer<typeof AcceptedFieldSchema> {}
@@ -40,16 +35,13 @@ type AcceptanceKey = string & { readonly [acceptanceKeyBrand]: true };
 
 /*
  * The set of (element, field) pairs whose modification the user has accepted.
- * Membership is by value, so the pair is flattened into one key: neither a
- * kind, nor an id segment, nor a field name carries the separator, so the key
- * of a pair is unique to it.
+ * Membership is by value, so the pair is flattened into one key: a field name
+ * never carries the separator, so the key of a pair is unique to it.
  */
 export type UserAcceptances = ReadonlySet<AcceptanceKey>;
 
 const acceptanceKey = (element: ElementId, field: FieldName): AcceptanceKey =>
-  [element.kind, element.value, FieldNameSchema.parse(field)].join(
-    ELEMENT_ADDRESS_SEPARATOR,
-  ) as AcceptanceKey;
+  `${element}.${FieldNameSchema.parse(field)}` as AcceptanceKey;
 
 export function userAcceptances(
   accepted: readonly AcceptedField[],
@@ -101,7 +93,7 @@ export class ReviewedFieldOverwriteError extends Error {
 
   constructor(reviewedValue: unknown, element: ElementId, field: FieldName) {
     super(
-      `A value reviewed by a human is not overwritten by an unverified write; '${field}' of '${element.value}' takes the user's acceptance.`,
+      `A value reviewed by a human is not overwritten by an unverified write; '${field}' of '${element}' takes the user's acceptance.`,
     );
     this.name = 'ReviewedFieldOverwriteError';
     this.reviewedValue = reviewedValue;

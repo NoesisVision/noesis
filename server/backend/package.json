@@ -45,7 +45,6 @@
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "hono": "catalog:",
-    "neverthrow": "^8.2.0",
     "typescript": "catalog:",
     "uuid": "^14.0.2",
     "zod": "catalog:"

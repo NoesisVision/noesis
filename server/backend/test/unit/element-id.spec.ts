@@ -3,111 +3,79 @@ import { z } from 'zod';
 import {
   BehaviorId,
   BuildingBlockId,
-  createElementId,
-  createTestableElementId,
-  ElementIdSchema,
-  ElementNameSchema,
+  ElementId,
+  ElementName,
   ModuleId,
-  TestableElementIdSchema,
-  tryCreateElementId,
-  tryCreateTestableElementId,
-} from '#backend/app/design-docs/element-id';
-import { ValueObjectError } from '#backend/app/vo';
+} from '#backend/app/element-id';
 
 const BAD_NAMES = ['', ' ', ' a', 'a ', 'a.b', '.', 'a\tb ', 'a|b', '|'];
 
-describe('ElementNameSchema', () => {
+describe('ElementName', () => {
   it('accepts a name with no separator and no padding', () => {
     for (const name of ['a', 'Refund', 'two words', 'x-y_z']) {
-      expect(ElementNameSchema.safeParse(name).success).toBe(true);
+      expect(ElementName.safeParse(name).success).toBe(true);
     }
   });
 
   it.each(BAD_NAMES)('rejects %j', (name) => {
-    expect(ElementNameSchema.safeParse(name).success).toBe(false);
+    expect(ElementName.safeParse(name).success).toBe(false);
   });
 });
 
 describe('ModuleId', () => {
-  describe('tryCreate', () => {
-    it('accepts an address of any depth with the module kind', () => {
-      for (const value of [
-        'module|sales',
-        'module|sales.orders',
-        'module|a.b.c.d',
-      ]) {
-        expect(ModuleId.tryCreate(value).isOk()).toBe(true);
-      }
-    });
-
-    it.each([
-      '',
-      'sales',
-      'module|',
-      '|sales',
-      'building_block|sales',
-      'module|sales|module',
-      'module|a.',
-      'module|.a',
-      'module|a..b',
-      'module|a. b',
-      'module| a.b',
-    ])('rejects %j with a message naming the value', (value) => {
-      const result = ModuleId.tryCreate(value);
-      expect(result.isErr()).toBe(true);
-      expect(result.isErr() && result.error[0]?.message).toContain(
-        JSON.stringify(value),
-      );
-    });
-
-    it('create throws a ValueObjectError', () => {
-      expect(() => ModuleId.create('module|a..b')).toThrow(ValueObjectError);
-    });
+  it('accepts a path of any depth with the module kind', () => {
+    for (const value of [
+      'module|sales',
+      'module|sales.orders',
+      'module|a.b.c.d',
+    ]) {
+      expect(ModuleId.safeParse(value).success).toBe(true);
+    }
   });
 
-  describe('behavior', () => {
-    it('knows its address, name and parent', () => {
-      const root = ModuleId.create('module|sales');
-      const child = ModuleId.create('module|sales.orders');
-      expect(child.address).toBe('sales.orders');
-      expect(child.name).toBe('orders');
-      expect(child.parent?.equals(root)).toBe(true);
-      expect(root.parent).toBeNull();
-    });
-
-    it('equals by value, which carries the kind', () => {
-      const id = ModuleId.create('module|sales.orders');
-      expect(id.equals(ModuleId.create('module|sales.orders'))).toBe(true);
-      expect(id.equals(ModuleId.create('module|sales'))).toBe(false);
-      expect(
-        id.equals(BuildingBlockId.create('building_block|sales.orders')),
-      ).toBe(false);
-    });
-
-    it('is its value as a string and in JSON', () => {
-      const id = ModuleId.create('module|sales.orders');
-      expect(`${id}`).toBe('module|sales.orders');
-      expect(JSON.stringify({ id })).toBe('{"id":"module|sales.orders"}');
-    });
+  it.each([
+    '',
+    'sales',
+    'module|',
+    '|sales',
+    'building_block|sales',
+    'module|sales|module',
+    'module|a.',
+    'module|.a',
+    'module|a..b',
+    'module|a. b',
+    'module| a.b',
+  ])('rejects %j', (value) => {
+    expect(ModuleId.safeParse(value).success).toBe(false);
   });
 
-  describe('schema', () => {
-    it('round-trips wire -> VO -> wire', () => {
-      const id = z.decode(ModuleId.schema, 'module|sales.orders');
-      expect(id).toBeInstanceOf(ModuleId);
-      expect(z.encode(ModuleId.schema, id)).toBe('module|sales.orders');
-    });
+  it('builds a root module and one within it', () => {
+    const root = ModuleId.root('sales');
+    expect(root).toBe(ModuleId.parse('module|sales'));
+    expect(ModuleId.within(root, 'orders')).toBe(
+      ModuleId.parse('module|sales.orders'),
+    );
+  });
 
-    it('rejects a bad value and another kind', () => {
-      expect(ModuleId.schema.safeParse('module|a..b').success).toBe(false);
-      expect(ModuleId.schema.safeParse('behavior|a.b.c').success).toBe(false);
-    });
+  it.each(BAD_NAMES)('refuses to build from the name %j', (name) => {
+    expect(() => ModuleId.root(name)).toThrow(z.ZodError);
+    expect(() => ModuleId.within(ModuleId.root('sales'), name)).toThrow(
+      z.ZodError,
+    );
+  });
 
-    it('advertises the pattern', () => {
-      expect(z.toJSONSchema(ModuleId.schema, { io: 'input' })).toMatchObject({
-        type: 'string',
-        pattern: expect.stringContaining('module'),
-      });
+  it('knows its parent and name', () => {
+    const root = ModuleId.root('sales');
+    const child = ModuleId.within(root, 'orders');
+    expect(ModuleId.parentOf(child)).toBe(root);
+    expect(ModuleId.parentOf(root)).toBeNull();
+    expect(ElementId.nameOf(child)).toBe('orders');
+  });
+
+  it('advertises the pattern', () => {
+    expect(z.toJSONSchema(ModuleId, { io: 'input' })).toMatchObject({
+      type: 'string',
+      pattern: expect.stringContaining('module'),
     });
   });
 });
@@ -115,138 +83,96 @@ describe('ModuleId', () => {
 describe('BuildingBlockId', () => {
   it('needs a module before its name', () => {
     expect(
-      BuildingBlockId.tryCreate('building_block|sales.orders.Refund').isOk(),
+      BuildingBlockId.safeParse('building_block|sales.orders.Refund').success,
     ).toBe(true);
-    expect(BuildingBlockId.tryCreate('building_block|Refund').isErr()).toBe(
-      true,
+    expect(BuildingBlockId.safeParse('building_block|Refund').success).toBe(
+      false,
     );
-    expect(BuildingBlockId.tryCreate('module|sales.Refund').isErr()).toBe(true);
-  });
-
-  it('knows its name and module', () => {
-    const block = BuildingBlockId.create('building_block|sales.orders.Refund');
-    expect(block.name).toBe('Refund');
-    expect(block.address).toBe('sales.orders.Refund');
-    expect(block.module.equals(ModuleId.create('module|sales.orders'))).toBe(
-      true,
+    expect(BuildingBlockId.safeParse('module|sales.Refund').success).toBe(
+      false,
     );
   });
 
-  it('round-trips through its schema', () => {
-    const wire = 'building_block|sales.Refund';
-    expect(
-      z.encode(BuildingBlockId.schema, z.decode(BuildingBlockId.schema, wire)),
-    ).toBe(wire);
-    expect(
-      BuildingBlockId.schema.safeParse('building_block|Refund').success,
-    ).toBe(false);
+  it('is built in its module and knows it', () => {
+    const module = ModuleId.within(ModuleId.root('sales'), 'orders');
+    const block = BuildingBlockId.within(module, 'Refund');
+    expect(block).toBe(
+      BuildingBlockId.parse('building_block|sales.orders.Refund'),
+    );
+    expect(ModuleId.containing(block)).toBe(module);
+    expect(ElementId.nameOf(block)).toBe('Refund');
+  });
+
+  it('refuses a name that would nest it one level deeper', () => {
+    expect(() => BuildingBlockId.within(ModuleId.root('sales'), 'x.y')).toThrow(
+      z.ZodError,
+    );
   });
 });
 
 describe('BehaviorId', () => {
   it('needs a building block before its name', () => {
-    expect(BehaviorId.tryCreate('behavior|sales.Refund.issue').isOk()).toBe(
+    expect(BehaviorId.safeParse('behavior|sales.Refund.issue').success).toBe(
       true,
     );
-    expect(BehaviorId.tryCreate('behavior|sales.Refund').isErr()).toBe(true);
+    expect(BehaviorId.safeParse('behavior|sales.Refund').success).toBe(false);
     expect(
-      BehaviorId.tryCreate('building_block|sales.Refund.issue').isErr(),
-    ).toBe(true);
+      BehaviorId.safeParse('building_block|sales.Refund.issue').success,
+    ).toBe(false);
   });
 
-  it('knows its name and building block', () => {
-    const behavior = BehaviorId.create('behavior|sales.orders.Refund.issue');
-    expect(behavior.name).toBe('issue');
-    expect(
-      behavior.buildingBlock.equals(
-        BuildingBlockId.create('building_block|sales.orders.Refund'),
-      ),
-    ).toBe(true);
-    expect(behavior.buildingBlock.module.value).toBe('module|sales.orders');
-  });
-
-  it('round-trips through its schema', () => {
-    const wire = 'behavior|sales.Refund.issue';
-    expect(z.encode(BehaviorId.schema, z.decode(BehaviorId.schema, wire))).toBe(
-      wire,
+  it('is built on its building block and knows it', () => {
+    const block = BuildingBlockId.parse('building_block|sales.orders.Refund');
+    const behavior = BehaviorId.within(block, 'issue');
+    expect(behavior).toBe(
+      BehaviorId.parse('behavior|sales.orders.Refund.issue'),
     );
-    expect(BehaviorId.schema.safeParse('behavior|sales.Refund').success).toBe(
-      false,
+    expect(BuildingBlockId.containing(behavior)).toBe(block);
+    expect(ModuleId.containing(behavior)).toBe(
+      ModuleId.parse('module|sales.orders'),
     );
+    expect(ElementId.nameOf(behavior)).toBe('issue');
   });
 });
 
 describe('ElementId', () => {
-  it('creates each kind as its own class', () => {
-    expect(createElementId('module|a')).toBeInstanceOf(ModuleId);
-    expect(createElementId('building_block|a.b')).toBeInstanceOf(
-      BuildingBlockId,
-    );
-    expect(createElementId('behavior|a.b.c')).toBeInstanceOf(BehaviorId);
-  });
-
-  it('rejects an unknown kind, a missing kind and a value too shallow for its kind', () => {
-    for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
-      const result = tryCreateElementId(value);
-      expect(result.isErr()).toBe(true);
-      expect(result.isErr() && result.error[0]?.message).toContain(
-        JSON.stringify(value),
-      );
+  it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
+    for (const value of ['module|a', 'building_block|a.b', 'behavior|a.b.c']) {
+      expect(ElementId.parse(value)).toBe(value as ElementId);
     }
-    expect(() => createElementId('thing|a')).toThrow(ValueObjectError);
+    for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
+      expect(ElementId.safeParse(value).success).toBe(false);
+    }
   });
 
-  it('testable ids leave modules out', () => {
-    expect(createTestableElementId('building_block|a.b')).toBeInstanceOf(
-      BuildingBlockId,
+  it('tells the kinds apart', () => {
+    const ids = ['module|a', 'building_block|a.b', 'behavior|a.b.c'].map((v) =>
+      ElementId.parse(v),
     );
-    expect(createTestableElementId('behavior|a.b.c')).toBeInstanceOf(
-      BehaviorId,
-    );
-    const result = tryCreateTestableElementId('module|a');
-    expect(result.isErr() && result.error[0]?.message).toContain(
-      'not testable',
-    );
+    expect(ids.map(ElementId.isModule)).toEqual([true, false, false]);
+    expect(ids.map(ElementId.isBuildingBlock)).toEqual([false, true, false]);
+    expect(ids.map(ElementId.isBehavior)).toEqual([false, false, true]);
+    expect(
+      ids.map((id) =>
+        ElementId.match(id, {
+          module: () => 'module',
+          buildingBlock: () => 'building block',
+          behavior: () => 'behavior',
+        }),
+      ),
+    ).toEqual(['module', 'building block', 'behavior']);
   });
 
-  describe('schema', () => {
-    it('decodes each kind and encodes it back to the same string', () => {
-      for (const wire of ['module|a', 'building_block|a.b', 'behavior|a.b.c']) {
-        const id = z.decode(ElementIdSchema, wire);
-        expect(id.value).toBe(wire);
-        expect(z.encode(ElementIdSchema, id)).toBe(wire);
-      }
-    });
+  it('reports a bad element at its path', () => {
+    const Dto = z.object({ elements: z.array(ElementId) });
+    const result = Dto.safeParse({ elements: ['module|a', 'behavior|a.b'] });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(['elements', 1]);
+  });
 
-    it('holds an array of mixed kinds', () => {
-      const Dto = z.object({ elements: z.array(ElementIdSchema) });
-      const wire = { elements: ['module|a', 'behavior|a.b.c'] };
-      const dto = Dto.parse(wire);
-      expect(dto.elements[0]).toBeInstanceOf(ModuleId);
-      expect(dto.elements[1]).toBeInstanceOf(BehaviorId);
-      expect(z.encode(Dto, dto)).toEqual(wire);
-    });
-
-    it('reports a bad element at its path', () => {
-      const Dto = z.object({ elements: z.array(ElementIdSchema) });
-      const result = Dto.safeParse({ elements: ['module|a', 'behavior|a.b'] });
-      expect(result.success).toBe(false);
-      expect(result.error?.issues[0]?.path).toEqual(['elements', 1]);
-    });
-
-    it('rejects an unknown kind on the wire', () => {
-      expect(ElementIdSchema.safeParse('thing|a').success).toBe(false);
-      expect(TestableElementIdSchema.safeParse('module|a').success).toBe(false);
-      expect(
-        z.decode(TestableElementIdSchema, 'building_block|a.b'),
-      ).toBeInstanceOf(BuildingBlockId);
-    });
-
-    it('advertises one string pattern', () => {
-      expect(z.toJSONSchema(ElementIdSchema, { io: 'input' })).toMatchObject({
-        type: 'string',
-        pattern: expect.stringContaining('behavior'),
-      });
-    });
+  it('is the same string on the wire and in the domain', () => {
+    const Dto = z.object({ elements: z.array(ElementId) });
+    const wire = { elements: ['module|a', 'behavior|a.b.c'] };
+    expect(z.encode(Dto, Dto.parse(wire))).toEqual(wire);
   });
 });

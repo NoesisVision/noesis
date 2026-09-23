@@ -15,7 +15,7 @@
       "entry": [
         "src/main.ts",
         "src/app/design-docs/design-doc.ts",
-        "src/app/design-docs/element-id.ts",
+        "src/app/element-id.ts",
         "src/app/design-docs/reviewable-field.ts",
         "src/app/system-model/system-model.ts",
         "test/**/*.types.ts",
