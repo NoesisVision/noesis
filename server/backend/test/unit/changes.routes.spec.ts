@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -34,18 +34,16 @@ describe('ui changes routes', () => {
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with the documents under it, scoped to it', async () => {
+  it('lists each change with its design documents, scoped to it', async () => {
     const older = await t.createChange('older', { name: 'Older change' });
     await t.createChange('newer', {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const designDoc = await t.designDocsService.create(older, designDocFixture);
-    const document = await t.documentsService.create(older, {
-      title: 'Stakeholder interview',
-      date: '2026-09-12',
-      content: 'What they said.',
-    });
+    const document = await t.designDocsService.create(
+      older,
+      decodedDesignDocFixture,
+    );
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);

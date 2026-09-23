@@ -3,9 +3,8 @@ import { z } from 'zod';
 import {
   DocumentId,
   DocumentIdSchema,
-  InvalidDocumentIdError,
-  TitleWithoutIdError,
 } from '#backend/app/information-sources/document-id';
+import { ValueObjectError } from '#backend/app/vo';
 
 describe('DocumentId', () => {
   it('derives an id from a title', () => {
@@ -18,10 +17,14 @@ describe('DocumentId', () => {
 
   it('refuses a title the derivation empties', () => {
     for (const empty of ['!!!', '   ', '日本語']) {
-      expect(DocumentId.tryFromTitle(empty)).toBeNull();
-      expect(() => DocumentId.fromTitle(empty)).toThrow(TitleWithoutIdError);
+      const result = DocumentId.tryFromTitle(empty);
+      expect(result.isErr()).toBe(true);
+      expect(result.isErr() && result.error[0]?.path).toEqual(['title']);
+      expect(() => DocumentId.fromTitle(empty)).toThrow(ValueObjectError);
     }
-    expect(DocumentId.tryFromTitle('Notes')?.value).toBe('notes');
+    expect(DocumentId.tryFromTitle('Notes').unwrapOr(null)?.value).toBe(
+      'notes',
+    );
   });
 
   it('derives an id from every title its pattern admits', () => {
@@ -29,8 +32,10 @@ describe('DocumentId', () => {
     for (const title of admitted) {
       expect(DocumentId.TITLE_PATTERN.test(title)).toBe(true);
       const id = DocumentId.tryFromTitle(title);
-      expect(id).not.toBeNull();
-      expect(DocumentId.tryParse(id?.value ?? '')).not.toBeNull();
+      expect(id.isOk()).toBe(true);
+      expect(id.andThen((id) => DocumentId.tryCreate(id.value)).isOk()).toBe(
+        true,
+      );
     }
     for (const refused of ['', '!!!', '   ', '日本語', 'É']) {
       expect(DocumentId.TITLE_PATTERN.test(refused)).toBe(false);
@@ -38,13 +43,17 @@ describe('DocumentId', () => {
   });
 
   it('parses a slug and nothing else', () => {
-    expect(DocumentId.parse('ok-id-1').value).toBe('ok-id-1');
+    expect(DocumentId.create('ok-id-1').value).toBe('ok-id-1');
     for (const bad of ['', 'Upper', 'a--b', '-lead', 'trail-', 'a/b', '..']) {
-      expect(DocumentId.tryParse(bad)).toBeNull();
-      expect(() => DocumentId.parse(bad)).toThrow(InvalidDocumentIdError);
+      const result = DocumentId.tryCreate(bad);
+      expect(result.isErr()).toBe(true);
+      expect(result.isErr() && result.error[0]?.message).toContain(
+        JSON.stringify(bad),
+      );
+      expect(() => DocumentId.create(bad)).toThrow(ValueObjectError);
     }
-    expect(DocumentId.tryParse('x'.repeat(128))).not.toBeNull();
-    expect(DocumentId.tryParse('x'.repeat(129))).toBeNull();
+    expect(DocumentId.tryCreate('x'.repeat(128)).isOk()).toBe(true);
+    expect(DocumentId.tryCreate('x'.repeat(129)).isErr()).toBe(true);
   });
 
   it('is a string in JSON and a value object in the contract', () => {

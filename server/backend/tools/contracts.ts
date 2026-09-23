@@ -3,7 +3,7 @@
 // only the shapes an agent writes or reads back belong in the list.
 import type { z } from 'zod';
 import { ChangeSchema, CreateChangeSchema } from '#backend/app/changes/change';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { CreateDesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import {
   CreateDocumentSchema,
   DocumentSchema,
@@ -16,11 +16,12 @@ export const CONTRACTS = {
   'create-change': { schema: CreateChangeSchema },
   document: { schema: DocumentSchema },
   'create-document': { schema: CreateDocumentSchema },
+  // What add_design_doc_to_change reads: the server mints the id.
   'design-document': {
-    schema: DesignDocumentSchema,
+    schema: CreateDesignDocumentSchema,
     // Decoded, as every example is: the generator encodes it back to JSON,
     // with every default the file leaves out spelled out.
-    example: DesignDocumentSchema.parse(designDocumentExample),
+    example: CreateDesignDocumentSchema.parse(designDocumentExample),
   },
   'system-model': { schema: SystemModelSchema },
 } satisfies Record<string, { schema: z.ZodType; example?: unknown }>;

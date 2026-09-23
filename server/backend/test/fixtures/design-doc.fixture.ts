@@ -1,4 +1,7 @@
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc';
+import {
+  DesignDocumentSchema,
+  type DesignDocumentInput,
+} from '#backend/app/design-docs/design-doc';
 
 /*
  * The JSON form, with every default spelled out, so that decoding and
@@ -193,3 +196,7 @@ export const designDocFixture = {
   },
   implemented: false,
 } satisfies DesignDocumentInput;
+
+/** The decoded form, as the service takes it. */
+export const decodedDesignDocFixture =
+  DesignDocumentSchema.decode(designDocFixture);

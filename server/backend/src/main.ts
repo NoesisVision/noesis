@@ -67,6 +67,10 @@ const changesService = new ChangesService(
   designDocsRepository,
   documentsRepository,
 );
+const designDocsService = new DesignDocsService(
+  designDocsRepository,
+  changesService,
+);
 const documentsService = new DocumentsService(
   documentsRepository,
   changesService,
@@ -80,9 +84,10 @@ const mcp = serveStdio(
   () =>
     createMcpServer({
       version,
-      repositoryRoot,
+      noesis,
       session,
       changesService,
+      designDocsService,
       documentsService,
     }),
   {
@@ -149,10 +154,7 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
   const app = createApp({
     searchService: new SearchService([createGraphSearch(db)]),
     changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-    ),
+    designDocsService,
     documentsService,
   });
 
