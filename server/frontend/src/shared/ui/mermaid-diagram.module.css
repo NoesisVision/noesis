@@ -4,7 +4,21 @@
  */
 .diagram {
   margin: 0 0 var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-sm);
   overflow-x: auto;
+  border-radius: var(--mantine-spacing-sm);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+  /* A dot grid tiled from one gradient, so the canvas costs no request. */
+  background-image: radial-gradient(
+    circle at center,
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4)) 1px,
+    transparent 0.5px
+  );
+  background-position: center;
+  background-size: 16px 16px;
 
   & svg {
     max-width: 100%;

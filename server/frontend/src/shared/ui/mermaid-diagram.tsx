@@ -1,7 +1,9 @@
 import { useEffect, useId, useState } from 'react';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import { useMantineTheme } from '#/shared/design-system/hooks.ts';
 import { Text } from '#/shared/design-system/text.tsx';
+import { diagramCss, diagramTheme } from './mermaid-diagram-theme.ts';
 import classes from './mermaid-diagram.module.css';
 
 type Drawing =
@@ -16,6 +18,7 @@ type Drawing =
  */
 export function MermaidDiagram({ chart }: { chart: string }) {
   const scheme = useComputedColorScheme('light');
+  const theme = useMantineTheme();
   const [drawing, setDrawing] = useState<Drawing>({ state: 'drawing' });
   // `useId` is stable across renders but contains colons, which are not valid
   // in the DOM id mermaid puts on the element it renders through.
@@ -33,7 +36,11 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: 'strict',
-          theme: scheme === 'dark' ? 'dark' : 'default',
+          // `base` is the theme mermaid means to be overridden; the named
+          // ones ignore most of what is handed to them.
+          theme: 'base',
+          themeVariables: diagramTheme(theme, scheme),
+          themeCSS: diagramCss(theme, scheme),
         });
         const { svg } = await mermaid.render(id, chart);
         if (live) setDrawing({ state: 'drawn', svg });
@@ -45,7 +52,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     return () => {
       live = false;
     };
-  }, [chart, id, scheme]);
+  }, [chart, id, scheme, theme]);
 
   if (drawing.state === 'drawing') {
     return (
