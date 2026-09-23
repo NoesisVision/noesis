@@ -68,7 +68,7 @@ describe('NoesisChangesRepository', () => {
 
   it('round-trips a change through graph/changes/<slug>/data.json', async () => {
     const change = {
-      slug: 'with-file',
+      slug: ChangeSlug.parse('with-file'),
       name: 'With file',
       key: 'NOE-1',
       type: 'feature' as const,
@@ -111,7 +111,10 @@ describe('NoesisChangesRepository', () => {
     if (before === null) throw new Error('the change was not written');
 
     await expect(
-      t.changesRepository.write({ ...before, slug: 'Not A Slug' }),
+      t.changesRepository.write({
+        ...before,
+        slug: 'Not A Slug',
+      } as unknown as typeof before),
     ).rejects.toThrow('Invalid ChangeSlug');
     await expect(
       t.changesRepository.write({

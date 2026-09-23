@@ -8,9 +8,7 @@ import type { DocumentsRepository } from './documents.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
 export const DocumentSummarySchema = z.object({
-  id: z
-    .string()
-    .describe('The document id, derived from the title within the change.'),
+  id: DocumentId,
   title: z.string().describe('The document title, as stored.'),
   date: z.string().describe('The date on the document, ISO 8601.'),
   path: z

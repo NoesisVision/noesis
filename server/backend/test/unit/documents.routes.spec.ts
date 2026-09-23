@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { CreateDocument } from '#backend/app/information-sources/document';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -76,7 +77,7 @@ describe('ui documents routes', () => {
     expect((await send('PUT', `${BASE}/booking-rules`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/booking-rules`)).status).toBe(404);
     expect((await t.documentsService.list(slug)).map((d) => d.id)).toEqual([
-      'booking-rules',
+      DocumentId.parse('booking-rules'),
     ]);
   });
 

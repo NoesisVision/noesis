@@ -35,7 +35,7 @@ describe('DocumentsService', () => {
   it('stores a document under the slug of its title and reads it back whole', async () => {
     const summary = await service.create(CHANGE, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
     expect(summary.path).toEndWith(
       '/graph/changes/booking/documents/booking-rules-v2/data.json',
     );
@@ -90,7 +90,7 @@ describe('DocumentsService', () => {
 
     const summary = await service.create(other, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
   });
 
   it('replaces the content under the same id', async () => {
@@ -102,10 +102,9 @@ describe('DocumentsService', () => {
     });
 
     expect(updated.id).toEqual(created.id);
-    expect(
-      (await service.findById(CHANGE, DocumentId.parse(created.id)))?.document
-        .content,
-    ).toBe('A slot may be booked twice.');
+    expect((await service.findById(CHANGE, created.id))?.document.content).toBe(
+      'A slot may be booked twice.',
+    );
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
@@ -117,12 +116,10 @@ describe('DocumentsService', () => {
       title: 'Booking rules v3',
     });
 
-    expect(renamed.id).toBe('booking-rules-v3');
-    expect(await service.findById(CHANGE, DocumentId.parse(created.id))).toBe(
-      null,
-    );
+    expect(renamed.id).toBe(DocumentId.parse('booking-rules-v3'));
+    expect(await service.findById(CHANGE, created.id)).toBe(null);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      'booking-rules-v3',
+      DocumentId.parse('booking-rules-v3'),
     ]);
   });
 
@@ -136,10 +133,9 @@ describe('DocumentsService', () => {
         title: 'Pricing',
       }),
     ).rejects.toBeInstanceOf(DuplicateDocumentError);
-    expect(
-      (await service.findById(CHANGE, DocumentId.parse(created.id)))?.document
-        .title,
-    ).toBe(document.title);
+    expect((await service.findById(CHANGE, created.id))?.document.title).toBe(
+      document.title,
+    );
   });
 
   it('refuses to update a document the change does not have', async () => {

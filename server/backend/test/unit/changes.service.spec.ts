@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { DuplicateChangeError } from '#backend/app/changes/changes.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -51,6 +52,6 @@ describe('ChangesService', () => {
       type: 'fix',
     });
 
-    expect(next.slug).toBe('two');
+    expect(next.slug).toBe(ChangeSlug.parse('two'));
   });
 });
