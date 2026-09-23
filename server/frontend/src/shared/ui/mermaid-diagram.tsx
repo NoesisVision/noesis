@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Text } from '#/shared/design-system/text.tsx';
-import classes from './markdown.module.css';
+import classes from './mermaid-diagram.module.css';
 
 type Drawing =
   | { state: 'drawing' }

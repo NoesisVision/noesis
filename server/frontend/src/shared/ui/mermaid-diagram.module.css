@@ -1,0 +1,19 @@
+/*
+ * Mermaid sizes its SVG to the viewport it was rendered against, which is not
+ * the column it ends up in, so the diagram is scaled to the column instead.
+ */
+.diagram {
+  margin: 0 0 var(--mantine-spacing-sm);
+  overflow-x: auto;
+
+  & svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.diagramSource {
+  margin: var(--mantine-spacing-xs) 0 0;
+  white-space: pre-wrap;
+  font-family: var(--mantine-font-family-monospace);
+}
