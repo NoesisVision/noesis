@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Text } from '#/shared/design-system/text';
+import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { documentById } from '../documents.api.ts';
 import { DocumentContent } from './document-content.tsx';
 
@@ -13,7 +13,6 @@ export function DocumentDetail({
   const query = useQuery(documentById(changeId, id));
   // `isSuccess` is what narrows the data; the error state throws instead of
   // rendering, so nothing else is left to be in.
-  if (!query.isSuccess)
-    return <Text component="output">Loading document…</Text>;
+  if (!query.isSuccess) return <LoadingPanel label="Loading document…" />;
   return <DocumentContent document={query.data} />;
 }

@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Stack } from '#/shared/design-system/stack';
-import { Text } from '#/shared/design-system/text';
 import { CardLink } from '#/shared/ui/card-link.tsx';
+import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { designDocsList } from '../design-docs.api.ts';
 
@@ -20,8 +20,7 @@ export function DesignDocsView() {
 
 function DesignDocList({ changeId }: { changeId: string }) {
   const query = useQuery(designDocsList(changeId));
-  if (query.isPending)
-    return <Text component="output">Loading design docs…</Text>;
+  if (query.isPending) return <LoadingPanel label="Loading design docs…" />;
   if (!query.data?.length)
     return (
       <StatusPanel

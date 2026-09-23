@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
-import { Center } from '#/shared/design-system/center.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
+import { ViewPanel } from './view-panel.tsx';
 import classes from './status-panel.module.css';
 
 interface StatusPanelProps {
@@ -16,9 +15,9 @@ interface StatusPanelProps {
   /** Retry, Back — whatever the caller offers under the text. */
   action?: ReactNode;
   /**
-   * Says the panel when it appears, for what the reader did not ask to see.
-   * The `Alert` this replaced carried `role="alert"` and a failure has to keep
-   * being announced; an empty state is an answer, and does not.
+   * Says the panel when it appears. The `Alert` this replaced carried
+   * `role="alert"` and a failure has to keep being announced; an empty state
+   * is an answer, and does not.
    */
   announce?: boolean;
   /**
@@ -29,8 +28,7 @@ interface StatusPanelProps {
 }
 
 /**
- * The one box the app says anything in the centre of a view with: a failure,
- * a missing thing, a view with nothing in it yet.
+ * How the app says a failure, a missing thing, or a view with nothing in it.
  */
 export function StatusPanel({
   code,
@@ -41,23 +39,15 @@ export function StatusPanel({
   headingLevel = 1,
 }: StatusPanelProps) {
   return (
-    <Center mih="60vh">
-      <Stack
-        align="center"
-        gap="sm"
-        maw={420}
-        ta="center"
-        role={announce ? 'alert' : undefined}
-      >
-        {/* Not a heading: the status is a label on the page, not part of its outline. */}
-        {code !== undefined && <Text className={classes.code}>{code}</Text>}
-        {/* `size` holds the type scale steady while the level moves. */}
-        <Title order={headingLevel} size={`h${headingLevel + 2}`} mb={0}>
-          {title}
-        </Title>
-        {!!description && <Text c="dimmed">{description}</Text>}
-        {!!action && <Box mt="xs">{action}</Box>}
-      </Stack>
-    </Center>
+    <ViewPanel announce={announce}>
+      {/* Not a heading: the status is a label on the page, not part of its outline. */}
+      {code !== undefined && <Text className={classes.code}>{code}</Text>}
+      {/* `size` holds the type scale steady while the level moves. */}
+      <Title order={headingLevel} size={`h${headingLevel + 2}`} mb={0}>
+        {title}
+      </Title>
+      {!!description && <Text c="dimmed">{description}</Text>}
+      {!!action && <Box mt="xs">{action}</Box>}
+    </ViewPanel>
   );
 }

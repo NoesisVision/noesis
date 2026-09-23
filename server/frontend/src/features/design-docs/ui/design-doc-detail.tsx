@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Text } from '#/shared/design-system/text';
+import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { designDocById } from '../design-docs.api.ts';
 import { DesignDocumentContent } from './design-document-content.tsx';
 
@@ -14,6 +14,6 @@ export function DesignDocDetail({
   // `isSuccess` is what narrows the data; the error state throws instead of
   // rendering, so nothing else is left to be in.
   if (!query.isSuccess)
-    return <Text component="output">Loading design document…</Text>;
+    return <LoadingPanel label="Loading design document…" />;
   return <DesignDocumentContent document={query.data} />;
 }
