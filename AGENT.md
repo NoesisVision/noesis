@@ -104,7 +104,7 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 
 ## Working conventions
 
-- **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. A subject starting `wip` skips the message rule and the format/lint checks (squash before `main`).
+- **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. Commits are not code-checked; the `pre-push` hook runs `lint`, `knip`, `format:check`, `check-types` and `test` before every push.
 - **Do not edit `bun.lock` by hand** (denied). Shared versions (`typescript`, `zod`, `hono`, `@types/*`) live in the root `package.json` catalog; single-consumer deps stay inline.
 - A `PostToolUse` hook runs `oxfmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
 - Knip: a deliberate duplicate export carries an `@alias` JSDoc tag; entry points Knip cannot discover are listed in `knip.json`.

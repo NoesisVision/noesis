@@ -1,21 +1,15 @@
 #!/bin/sh
 # Commit-msg: enforce the commit convention — Conventional
-# Commits v1.0.0 restricted to the types feat | fix | improvement | chore —
-# then run the staged-file checks in check-staged.
+# Commits v1.0.0 restricted to the types feat | fix | improvement | chore.
+# Code checks run in pre-push, so a commit may contain lint or test failures.
 # Wired by `git config core.hooksPath .githooks` — run by the root `prepare`
-# script on `bun install`. A work-in-progress commit starts its subject with
-# `wip` and skips every check; `git commit -n` does the same for any message.
+# script on `bun install`.
 
 # Strip comment lines the same way git will before recording the message.
 msg=$(git stripspace --strip-comments <"$1")
 [ -n "$msg" ] || exit 0 # git aborts empty commits itself
 
 subject=$(printf '%s\n' "$msg" | head -n 1)
-
-# WIP commits are meant to be squashed before they reach main.
-case "$subject" in
-wip | "wip:"* | "wip "* | WIP | "WIP:"* | "WIP "*) exit 0 ;;
-esac
 
 fail() {
   echo "commit-msg: $1" >&2
@@ -39,5 +33,3 @@ case "$subject" in
     fail "second line must be blank (separate subject from body with one blank line)"
   ;;
 esac
-
-exec "$(dirname "$0")/check-staged"
