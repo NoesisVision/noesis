@@ -4,9 +4,7 @@ const NAME = String.raw`[^.|\s](?:[^.|]*[^.|\s])?`;
 
 /** `{kind}|`, at least `minContainers` container names, then the element's own name. */
 const idPattern = (kind: string, minContainers: number) =>
-  new RegExp(
-    `^${kind}\\|(?:${NAME}\\.){${minContainers},}${NAME}$`,
-  );
+  new RegExp(`^${kind}\\|(?:${NAME}\\.){${minContainers},}${NAME}$`);
 
 export const ElementName = z
   .string()
@@ -43,6 +41,7 @@ export const ModuleId = Object.assign(moduleIdSchema, {
       : moduleIdSchema.parse(`${MODULE_KIND}|${parentPath}`);
   },
 });
+
 export type ModuleId = z.infer<typeof moduleIdSchema>;
 
 const BUILDING_BLOCK_KIND = 'building_block';
