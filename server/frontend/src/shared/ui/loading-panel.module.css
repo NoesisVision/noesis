@@ -1,0 +1,27 @@
+/*
+ * The service answers from loopback, so most reads are over before a spinner
+ * could mean anything and one that appears at once only flashes. `both` holds
+ * the `from` state through the delay, so the panel is simply not there until
+ * the wait is long enough to be worth saying. The line inside it stays in the
+ * accessibility tree throughout — opacity hides it from the eye, not from a
+ * screen reader.
+ */
+.delayed {
+  animation: appear 150ms linear 400ms both;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Still held back — a delay is not motion — but it arrives without the fade. */
+@media (prefers-reduced-motion: reduce) {
+  .delayed {
+    animation-duration: 1ms;
+  }
+}

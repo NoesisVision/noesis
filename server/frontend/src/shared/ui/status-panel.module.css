@@ -1,0 +1,18 @@
+/*
+ * The status the page is in, read before the heading beneath it: large enough
+ * to be the first thing seen, quiet enough not to shout. `light-dark()` is
+ * written natively so the build keeps it — see `cssTarget` in vite.config.ts.
+ */
+.code.code {
+  font-size: 8rem;
+  text-shadow:
+    -2px 2px 0
+      light-dark(var(--mantine-color-dark-2), var(--mantine-color-dark-3)),
+    -4px 4px 0
+      light-dark(var(--mantine-color-dark-1), var(--mantine-color-dark-4));
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  /* Quiet, but never under the 3:1 this size of text still has to meet. */
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+}

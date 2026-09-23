@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Stack } from '#/shared/design-system/stack';
-import { Text } from '#/shared/design-system/text';
 import { CardLink } from '#/shared/ui/card-link.tsx';
+import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
+import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { designDocsList } from '../design-docs.api.ts';
-import { DesignDocsLoadError } from './design-docs-load-error.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs');
 
@@ -20,12 +20,15 @@ export function DesignDocsView() {
 
 function DesignDocList({ changeId }: { changeId: string }) {
   const query = useQuery(designDocsList(changeId));
-  if (query.isPending)
-    return <Text component="output">Loading design docs…</Text>;
-  if (query.isError)
-    return <DesignDocsLoadError retry={() => void query.refetch()} />;
+  if (query.isPending) return <LoadingPanel label="Loading design docs…" />;
   if (!query.data?.length)
-    return <Text>No design documents yet for this change.</Text>;
+    return (
+      <StatusPanel
+        headingLevel={2}
+        title="No design documents yet"
+        description="Ask the agent to design something into this change."
+      />
+    );
   return (
     <Grid>
       {query.data.map((doc) => (

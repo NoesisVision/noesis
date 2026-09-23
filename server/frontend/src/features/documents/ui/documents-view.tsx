@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Stack } from '#/shared/design-system/stack';
-import { Text } from '#/shared/design-system/text';
 import { CardLink } from '#/shared/ui/card-link.tsx';
+import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
+import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { documentsList } from '../documents.api.ts';
-import { DocumentsLoadError } from './documents-load-error.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/documents');
 
@@ -20,12 +20,15 @@ export function DocumentsView() {
 
 function DocumentList({ changeId }: { changeId: string }) {
   const query = useQuery(documentsList(changeId));
-  if (query.isPending)
-    return <Text component="output">Loading documents…</Text>;
-  if (query.isError)
-    return <DocumentsLoadError retry={() => void query.refetch()} />;
+  if (query.isPending) return <LoadingPanel label="Loading documents…" />;
   if (!query.data?.length)
-    return <Text>No documents yet for this change.</Text>;
+    return (
+      <StatusPanel
+        headingLevel={2}
+        title="No documents yet"
+        description="Ask the agent to import the material this change is informed by."
+      />
+    );
   return (
     <Grid>
       {query.data.map((doc) => (

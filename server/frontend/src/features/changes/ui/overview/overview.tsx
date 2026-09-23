@@ -93,8 +93,8 @@ function count(query: UseQueryResult<{ length: number } | null>) {
   return query.data?.length ?? '—';
 }
 
+// A failure never reaches here: it is thrown to the route's boundary.
 function emptyText(query: UseQueryResult<unknown>, what: string): string {
   if (query.isPending) return `Loading ${what}…`;
-  if (query.isError) return `Could not load the ${what} of this change.`;
   return `No ${what} yet for this change.`;
 }
