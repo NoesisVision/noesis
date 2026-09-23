@@ -15,6 +15,7 @@ All from the repo root unless noted. bun 1.4 is pinned via `packageManager`.
 ```sh
 bun install                 # also wires .githooks/ via `prepare`
 bun run dev                 # Vite on :3000 (HMR) + watched backend on :3001
+bun run preview             # build, then serve the production artifacts on :3000
 bun run start:debug         # backend only on :3000 with bun's inspector
 
 bun run ci                  # the one definition of "verified": lint, knip, format:check, check-types, test, test:e2e, build
@@ -24,7 +25,7 @@ bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace
 bun run test:e2e            # service boot, MCP session, SPA from source
-bun run build               # service bundle + plugin contracts (JSON Schema)
+bun run build               # vite build of the SPA + service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins; CI fails if the result is not committed
 ```
 
@@ -35,6 +36,7 @@ cd server/backend && bun test test/unit/validator.spec.ts
 cd server/backend && bun test test/unit -t "rejects"
 cd server/backend && bun run test:bench          # indexer benchmark (1k/10k files)
 cd server/frontend && bun run generate-routes    # tsr generate → src/routeTree.gen.ts (committed)
+cd server/frontend && bun run build:spa          # vite build → server/frontend/dist (the page the service serves)
 ```
 
 Filter a root script to one package: `bun run --filter=@noesis-vision/noesis build`.
@@ -57,7 +59,7 @@ The agent host starts **one stdio MCP process per session** (`server/backend/src
 
 `adapters` and `ui` never import each other; `import/no-cycle` is an error. Cross-directory imports use the `#backend/*` alias (extensionless), relative only within a directory. There is no contracts barrel — import `#backend/app/<feature>/<file>` directly.
 
-Services own use-case orchestration; both entry points (MCP tools in `adapters/mcp`, HTTP routes in `ui/`) call them and nothing bypasses them. The MCP surface is the **v2** SDK's `McpServer` (`@modelcontextprotocol/server`; the monolithic `@modelcontextprotocol/sdk` is gone) composed in `adapters/mcp/mcp-server.ts`, with one module per tool under `adapters/mcp/tools/`; a tool declares a title, a description, zod input and output schemas and its annotations, then makes one service call and answers with `structuredContent`. It currently offers `create_change`, `list_changes` and `add_document_to_change` and grows back one tool at a time. stdio goes through `serveStdio(factory)`, which serves the 2026-07-28 revision and the 2025 era from the same factory. Nothing process-specific belongs in `instructions`: the SDK probes the era on a throwaway sibling process and the client keeps _its_ instructions, so the live session directory is named in the tool's `path` description instead. The `ui/design-docs` surface reads and deletes, it has no create or update route, and no tool authors a design document yet either. Large payloads never travel inline — the agent writes a file under `.noesis/tmp/<session>/` and passes the path. A tool that reads such a file checks it against its contract in `app/validation/contracts/` before the service sees it; there is no separate validating tool. Errors the server can foresee are returned in-band (`isError`), never as protocol errors, and carry a capped issue list (path and message); the SDK still rejects arguments that do not fit a tool's declared input schema with a protocol error of its own.
+Services own use-case orchestration; both entry points (MCP tools in `adapters/mcp`, HTTP routes in `ui/`) call them and nothing bypasses them. The MCP surface is the **v2** SDK's `McpServer` (`@modelcontextprotocol/server`; the monolithic `@modelcontextprotocol/sdk` is gone) composed in `adapters/mcp/mcp-server.ts`, with one module per tool under `adapters/mcp/tools/`; a tool declares a title, a description, zod input and output schemas and its annotations, then makes one service call and answers with `structuredContent`. It currently offers `create_change`, `list_changes`, `add_document_to_change` and `add_design_doc_to_change` and grows back one tool at a time. stdio goes through `serveStdio(factory)`, which serves the 2026-07-28 revision and the 2025 era from the same factory. Nothing process-specific belongs in `instructions`: the SDK probes the era on a throwaway sibling process and the client keeps _its_ instructions, so the live session directory is named in the tool's `path` description instead. The `ui/design-docs` surface reads and deletes, it has no create or update route; design documents are authored only through `add_design_doc_to_change`, which leaves the id to the service. Large payloads never travel inline — the agent writes a file under `.noesis/tmp/<session>/` and passes the path. A tool that reads such a file checks it against its contract in `app/validation/contracts/` before the service sees it; there is no separate validating tool. Errors the server can foresee are returned in-band (`isError`), never as protocol errors, and carry a capped issue list (path and message); the SDK still rejects arguments that do not fit a tool's declared input schema with a protocol error of its own.
 
 Keep the `.route()` chains in `app.ts` and `ui.routes.ts` unbroken: `app.types.ts` exports the inferred `/ui` route tree as `AppType`, which the frontend's `hc<AppType>('/ui')` client depends on.
 
@@ -78,7 +80,7 @@ Client-only React SPA. Rules the linter enforces:
 - Backend imports are **type-only** via `#backend/*` (`AppType`, contract types); never backend runtime code.
 - `tsconfig.app.json` has no Bun/Node globals on purpose; tests use `tsconfig.test.json`.
 
-The backend imports `../../frontend/index.html` and bun's fullstack mode bundles it; the `bun build` flags and `src/bundle-cwd.ts` are load-bearing.
+The SPA is built by **vite** (`bun run --cwd server/frontend build:spa` → `server/frontend/dist`) and the backend serves it from disk through `platform/http/static-assets.ts`, which gzips and caches each file once and falls back to `index.html` for client routes. The backend's `build` runs the vite build first and copies its output to `dist/ui/`; nothing imports `index.html` any more, because bundling it flattened mermaid's ~80 on-demand diagram chunks into one 6.5 MB file. Only the frontend's `build:spa` builds the page — the name is deliberately not `build`, so the root's `bun run --filter '*' build` cannot start a second vite build beside the one the backend runs. A backend-only run (`start:debug`, `test:e2e`) builds the page first and serves that build, so frontend edits need a rebuild; `bun run dev` serves the page from vite on :3000 as before.
 
 ### Logging
 

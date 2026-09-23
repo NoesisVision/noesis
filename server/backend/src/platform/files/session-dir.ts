@@ -1,6 +1,7 @@
 import type { Dirent } from 'node:fs';
 import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
+import { err, ok, type Result } from 'neverthrow';
 import { v7 as uuidv7 } from 'uuid';
 import { serverLogger } from '#backend/platform/logging/logging';
 import type { NoesisDir } from './noesis-dir';
@@ -16,10 +17,6 @@ export interface SessionDirOptions {
   now?: () => number;
   maxAgeMs?: number;
 }
-
-export type WorkingPathResult =
-  | { ok: true; path: string }
-  | { ok: false; message: string };
 
 /**
  * MCP messages carry paths into this scratch area, not content.
@@ -63,7 +60,7 @@ export class SessionDir {
    * `tmp/` count, the configured one and the one it resolves to, because an
    * agent that resolves paths itself passes the latter.
    */
-  async resolveWorkingPath(input: string): Promise<WorkingPathResult> {
+  async resolveWorkingPath(input: string): Promise<Result<string, string>> {
     const absolute = this.toAbsolute(input);
     const realTmpRoot = await realpathIfExists(this.tmpRoot);
     if (!this.isUnderTmpRoot(absolute, realTmpRoot)) {
@@ -76,7 +73,7 @@ export class SessionDir {
     }
     // The checked path, not the spelled one: a link swapped in after the check
     // would otherwise be read in its place.
-    return { ok: true, path: target };
+    return ok(target);
   }
 
   private toAbsolute(input: string): string {
@@ -95,11 +92,10 @@ export class SessionDir {
     );
   }
 
-  private notUnderTmp(input: string): WorkingPathResult {
-    return {
-      ok: false,
-      message: `${input} is not under ${relative(this.repositoryRoot, this.tmpRoot)}/. Tools accept only paths under .noesis/tmp/; this session's directory is ${this.path}.`,
-    };
+  private notUnderTmp(input: string): Result<never, string> {
+    return err(
+      `${input} is not under ${relative(this.repositoryRoot, this.tmpRoot)}/. Tools accept only paths under .noesis/tmp/; this session's directory is ${this.path}.`,
+    );
   }
 
   private async removeStaleSessionDirs(): Promise<void> {
@@ -162,6 +158,6 @@ async function realpathIfExists(path: string): Promise<string | null> {
   }
 }
 
-function noFileAt(path: string): WorkingPathResult {
-  return { ok: false, message: `No file at ${path}.` };
+function noFileAt(path: string): Result<never, string> {
+  return err(`No file at ${path}.`);
 }

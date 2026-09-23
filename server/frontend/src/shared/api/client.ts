@@ -9,8 +9,9 @@ export class ApiError extends Error {
   readonly body: unknown;
 
   constructor(status: number, body: unknown) {
-    // The surfaces answer `{ error }`: a code (`duplicate_change`) or, on a
-    // 400, zod's prettified issues. Either reads better than the status.
+    // The surfaces answer `{ error: '<code>' }`; the code names the failure
+    // for whoever catches this. `describeFailure` turns it into the sentence
+    // a page shows, so nothing renders this message.
     super(errorText(body) ?? `Request failed with status ${status}`);
     this.name = 'ApiError';
     this.status = status;

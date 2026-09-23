@@ -71,7 +71,7 @@ export class IndexService {
     const push = (table: string, row: Row) => rows.get(table)?.push(row);
 
     for await (const slug of changes.keys()) {
-      const change = slug.value;
+      const change = slug;
       const owned = changes.children(slug);
       for await (const document of objects(owned['design-docs'])) {
         push('DesignDoc', {
@@ -85,8 +85,8 @@ export class IndexService {
       }
       for await (const document of objects(owned.documents)) {
         push('Document', {
-          key: `${change}/${document.document_id.value}`,
-          id: document.document_id.value,
+          key: `${change}/${document.document_id}`,
+          id: document.document_id,
           change,
           title: document.title,
           date: document.date,

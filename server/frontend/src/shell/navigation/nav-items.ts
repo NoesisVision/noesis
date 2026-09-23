@@ -4,7 +4,6 @@ import {
   IconPencilBolt,
   IconTopologyStar3,
 } from '@tabler/icons-react';
-import type { ComponentType } from 'react';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
@@ -13,11 +12,7 @@ import {
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
 } from '#/shared/routing/route-ids.ts';
-
-interface IconProps {
-  size?: number;
-  stroke?: number;
-}
+import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
 
 /** What a view is called wherever the shell names it: sidebar, view header. */
 export interface NavItem {
@@ -26,7 +21,7 @@ export interface NavItem {
   routeId: AppRouteIds;
   label: string;
   description?: string;
-  icon: ComponentType<IconProps>;
+  icon: IconComponent;
   /** The route also matches under its children, so match the leaf exactly. */
   exact?: boolean;
 }
@@ -40,12 +35,13 @@ const OVERVIEW_NAV = {
   exact: true,
 } satisfies NavItem;
 
-const DOCUMENTS_NAV = {
+export const DOCUMENTS_NAV = {
   to: '/changes/$changeId/documents',
   routeId: DOCUMENTS_ROUTE_ID,
   label: 'Documents',
   description: 'Imported material that informs the change',
   icon: IconFiles,
+  exact: true,
 } satisfies NavItem;
 
 export const DESIGN_DOCS_NAV = {

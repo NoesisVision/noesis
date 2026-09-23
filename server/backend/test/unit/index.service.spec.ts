@@ -140,7 +140,7 @@ describe('IndexService', () => {
     const [document] = await db.query<{ change: string; json: string }>(
       'MATCH (d:Document) RETURN d.change AS change, d.json AS json',
     );
-    expect(document?.change).toBe(ALPHA.value);
+    expect(document?.change).toBe(ALPHA);
     expect(JSON.parse(document?.json ?? '').title).toBe('Rules');
   });
 

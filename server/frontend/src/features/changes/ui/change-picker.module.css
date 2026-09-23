@@ -3,9 +3,13 @@
   width: 100%;
   min-height: 40px;
   padding: 14px 12px;
-  border: 1px solid var(--mantine-color-gray-4);
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
   border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-white);
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
   box-shadow: var(--mantine-shadow-xs);
   text-align: left;
   transition:
@@ -13,19 +17,11 @@
     box-shadow 100ms ease;
 
   &:hover {
-    border-color: var(--mantine-color-gray-5);
+    border-color: light-dark(
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-2)
+    );
   }
-}
-
-/* Dark scheme by Mantine's attribute, not `light-dark()`: the bundler's
-   polyfill of that function keys on the OS preference, not on the toggle. */
-:global([data-mantine-color-scheme='dark']) .pick {
-  border-color: var(--mantine-color-dark-3);
-  background: var(--mantine-color-dark-6);
-}
-
-:global([data-mantine-color-scheme='dark']) .pick:hover {
-  border-color: var(--mantine-color-dark-2);
 }
 
 .pick[data-expanded] {

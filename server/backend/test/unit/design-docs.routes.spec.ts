@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import {
+  decodedDesignDocFixture,
+  designDocFixture,
+} from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
@@ -32,7 +35,7 @@ afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.designDocsService.create(slug, designDocFixture);
+    await t.designDocsService.create(slug, decodedDesignDocFixture);
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -45,7 +48,10 @@ describe('ui design-docs routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    const created = await t.designDocsService.create(slug, designDocFixture);
+    const created = await t.designDocsService.create(
+      slug,
+      decodedDesignDocFixture,
+    );
 
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
@@ -72,7 +78,10 @@ describe('ui design-docs routes', () => {
 
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    const created = await t.designDocsService.create(slug, designDocFixture);
+    const created = await t.designDocsService.create(
+      slug,
+      decodedDesignDocFixture,
+    );
     const send = (method: string, path: string) =>
       app.request(path, {
         method,

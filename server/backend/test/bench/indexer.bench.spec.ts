@@ -41,8 +41,8 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
   for (let c = 0; c < CHANGES; c++) {
     const slug = ChangeSlug.parse(`change-${c}`);
     await changes.write({
-      slug: slug.value,
-      name: slug.value,
+      slug: slug,
+      name: slug,
       key: '',
       type: 'chore',
       status: 'discovery',

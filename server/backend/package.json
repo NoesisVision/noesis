@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service \u2014 one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -19,14 +19,14 @@
     "access": "public"
   },
   "scripts": {
-    "build": "NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --external @ladybugdb/core --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' --public-path /",
+    "build": "bun run --cwd ../frontend build:spa && NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --external @ladybugdb/core --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' && bun run scripts/copy-ui.ts",
     "start": "bun dist/main.js",
     "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
-    "start:debug": "PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
+    "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "check-types": "tsc --noEmit",
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",
-    "test:e2e": "bun test test/e2e",
+    "test:e2e": "bun run --cwd ../frontend build:spa && bun test test/e2e",
     "test:bench": "bun test test/bench",
     "prepack": "bun run build"
   },
@@ -45,6 +45,7 @@
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "hono": "catalog:",
+    "neverthrow": "^8.2.0",
     "typescript": "catalog:",
     "uuid": "^14.0.2",
     "zod": "catalog:"

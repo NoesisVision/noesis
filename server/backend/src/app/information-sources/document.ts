@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { DocumentId, DocumentIdSchema } from './document-id';
+import { DocumentId } from './document-id';
 
 export const DocumentSchema = z
   .object({
-    document_id: DocumentIdSchema.describe(
+    document_id: DocumentId.describe(
       'The document id: the title as a slug, so it is unique within the change. The service derives it; retitling the document moves it to a new id.',
     ),
     title: z
@@ -30,6 +30,9 @@ export const DocumentSchema = z
     'A document of a change: the data.json of graph/changes/<change>/documents/<id>/.',
   );
 export type Document = z.infer<typeof DocumentSchema>;
+
+/** The JSON form: what the store holds and what the wire carries. */
+export type DocumentInput = z.input<typeof DocumentSchema>;
 
 /**
  * Derived from the stored shape so the two can never drift: the service

@@ -15,10 +15,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const keys = async () =>
-  (await Array.fromAsync(t.changesRepository.keys()))
-    .map((slug) => slug.value)
-    .sort();
+const keys = async (): Promise<string[]> =>
+  (await Array.fromAsync(t.changesRepository.keys())).sort();
 
 describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every slug written', async () => {
@@ -114,7 +112,7 @@ describe('NoesisChangesRepository', () => {
 
     await expect(
       t.changesRepository.write({ ...before, slug: 'Not A Slug' }),
-    ).rejects.toThrow('Not a change slug');
+    ).rejects.toThrow('Invalid ChangeSlug');
     await expect(
       t.changesRepository.write({
         ...before,

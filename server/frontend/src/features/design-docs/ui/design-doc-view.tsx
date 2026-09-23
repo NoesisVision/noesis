@@ -1,5 +1,4 @@
-import { getRouteApi, Link } from '@tanstack/react-router';
-import { Stack } from '#/shared/design-system/stack';
+import { getRouteApi } from '@tanstack/react-router';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
@@ -8,12 +7,5 @@ const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
 export function DesignDocView() {
   const { changeId, docId } = route.useParams();
 
-  return (
-    <Stack>
-      <Link to="/changes/$changeId/design-docs" params={{ changeId }}>
-        Back to design docs
-      </Link>
-      <DesignDocDetail changeId={changeId} id={docId} />
-    </Stack>
-  );
+  return <DesignDocDetail changeId={changeId} id={docId} />;
 }

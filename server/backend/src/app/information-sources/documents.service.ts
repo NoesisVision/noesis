@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
@@ -5,13 +6,20 @@ import type { CreateDocument, Document } from './document';
 import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
-export interface DocumentSummary {
-  id: DocumentId;
-  title: string;
-  date: string;
-  /** Absolute; the agent reads the document from there. */
-  path: string;
-}
+/** What callers get back: plain data, so every adapter can send it as is. */
+export const DocumentSummarySchema = z.object({
+  id: z
+    .string()
+    .describe('The document id, derived from the title within the change.'),
+  title: z.string().describe('The document title, as stored.'),
+  date: z.string().describe('The date on the document, ISO 8601.'),
+  path: z
+    .string()
+    .describe(
+      'Absolute path the document was stored at under .noesis/; the agent reads it from there.',
+    ),
+});
+export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 
 export interface DocumentDetail {
   summary: DocumentSummary;
@@ -22,7 +30,7 @@ export class DocumentNotFoundError extends Error {
   readonly id: DocumentId;
 
   constructor(slug: ChangeSlug, id: DocumentId) {
-    super(`No document ${JSON.stringify(id.value)} in change ${slug.value}.`);
+    super(`No document ${JSON.stringify(id)} in change ${slug}.`);
     this.name = 'DocumentNotFoundError';
     this.id = id;
   }
@@ -33,7 +41,7 @@ export class DuplicateDocumentError extends Error {
 
   constructor(slug: ChangeSlug, title: string) {
     super(
-      `Change ${slug.value} already has a document titled ${JSON.stringify(title)}.`,
+      `Change ${slug} already has a document titled ${JSON.stringify(title)}.`,
     );
     this.name = 'DuplicateDocumentError';
     this.title = title;
@@ -43,7 +51,7 @@ export class DuplicateDocumentError extends Error {
 /**
  * Callers validate before calling in. The title identifies the
  * document within its change, so the service derives the id from it; a title
- * no id can be derived from is a `TitleWithoutIdError`.
+ * no id can be derived from is a `ValueObjectError`.
  */
 export class DocumentsService {
   private readonly docs: DocumentsRepository;
@@ -87,7 +95,7 @@ export class DocumentsService {
     await this.changesService.assertExists(slug);
     await this.assertExists(slug, id);
     const retitled = DocumentId.fromTitle(document.title);
-    if (retitled.equals(id)) return this.store(slug, id, document);
+    if (retitled === id) return this.store(slug, id, document);
     await this.assertTitleFree(slug, retitled, document.title);
     const summary = await this.store(slug, retitled, document);
     await this.docs.delete(slug, id);

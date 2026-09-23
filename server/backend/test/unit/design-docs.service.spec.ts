@@ -6,7 +6,10 @@ import {
   DesignDocNotFoundError,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import {
+  decodedDesignDocFixture,
+  designDocFixture,
+} from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeSlug.parse('booking');
@@ -25,7 +28,7 @@ afterEach(() => t.cleanup());
 
 describe('DesignDocsService', () => {
   it('stores a valid document under a server-minted id and reads it back decoded', async () => {
-    const summary = await service.create(CHANGE, designDocFixture);
+    const summary = await service.create(CHANGE, decodedDesignDocFixture);
 
     expect(summary.id).not.toBe(designDocFixture.id);
     expect(summary.name).toBe('Partial refunds for orders');
@@ -37,12 +40,12 @@ describe('DesignDocsService', () => {
   });
 
   it('replaces a document whole under its id, ignoring the id in the input', async () => {
-    const created = await service.create(CHANGE, designDocFixture);
+    const created = await service.create(CHANGE, decodedDesignDocFixture);
 
     const updated = await service.update(CHANGE, created.id, {
-      ...designDocFixture,
-      id: 'ignored',
-      name: { value: 'Renamed' },
+      // Carries the fixture's own id, which the service ignores.
+      ...decodedDesignDocFixture,
+      name: { value: 'Renamed', reviewedByHuman: false },
     });
 
     expect(updated.id).toBe(created.id);
@@ -55,15 +58,15 @@ describe('DesignDocsService', () => {
 
   it('refuses to update a document the change does not have', async () => {
     expect(
-      service.update(CHANGE, 'nope', designDocFixture),
+      service.update(CHANGE, 'nope', decodedDesignDocFixture),
     ).rejects.toBeInstanceOf(DesignDocNotFoundError);
   });
 
   it('summarises what it stored, and lists it under the change by name', async () => {
-    const summary = await service.create(CHANGE, designDocFixture);
+    const summary = await service.create(CHANGE, decodedDesignDocFixture);
     const other = await service.create(CHANGE, {
-      ...designDocFixture,
-      name: { value: 'Another design' },
+      ...decodedDesignDocFixture,
+      name: { value: 'Another design', reviewedByHuman: false },
       implemented: true,
     });
 
@@ -83,13 +86,13 @@ describe('DesignDocsService', () => {
     await expect(service.list(NOPE)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    await expect(service.create(NOPE, designDocFixture)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(
+      service.create(NOPE, decodedDesignDocFixture),
+    ).rejects.toBeInstanceOf(ChangeNotFoundError);
     await expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
     // An unsafe slug never reaches the service: it is not a `ChangeSlug`.
-    expect(ChangeSlug.tryParse('../x')).toBeNull();
+    expect(ChangeSlug.safeParse('../x').success).toBe(false);
   });
 });

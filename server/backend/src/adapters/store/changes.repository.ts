@@ -36,26 +36,26 @@ export class NoesisChangesRepository implements ChangesRepository {
   }
 
   dirOf(slug: ChangeSlug): string {
-    return join(this.store.directory, slug.value);
+    return join(this.store.directory, slug);
   }
 
   /** Unordered; the graph sorts. */
   async *keys(): AsyncIterable<ChangeSlug> {
     for await (const key of this.store.keys()) {
-      const slug = ChangeSlug.tryParse(key);
-      if (slug === null) {
+      const slug = ChangeSlug.safeParse(key);
+      if (!slug.success) {
         log.warn('skipping {key} under {directory}: not a change slug', {
           key,
           directory: this.store.directory,
         });
         continue;
       }
-      yield slug;
+      yield slug.data;
     }
   }
 
   async read(slug: ChangeSlug): Promise<Change | null> {
-    return this.store.get(slug.value);
+    return this.store.get(slug);
   }
 
   async *values(): AsyncIterable<Change> {
@@ -67,10 +67,10 @@ export class NoesisChangesRepository implements ChangesRepository {
 
   /** What the change owns stays. */
   async write(change: Change): Promise<void> {
-    await this.store.set(ChangeSlug.parse(change.slug).value, change);
+    await this.store.set(ChangeSlug.parse(change.slug), change);
   }
 
   children(slug: ChangeSlug): ChangeChildren {
-    return this.store.children(slug.value);
+    return this.store.children(slug);
   }
 }

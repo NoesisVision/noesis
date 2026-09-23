@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -14,8 +14,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const slugs = async () =>
-  (await Array.fromAsync(t.changesRepository.keys())).map((s) => s.value);
+const slugs = async (): Promise<string[]> =>
+  Array.fromAsync(t.changesRepository.keys());
 
 const post = (body: unknown) =>
   app.request('/', {
@@ -34,13 +34,21 @@ describe('ui changes routes', () => {
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with its design documents, scoped to it', async () => {
+  it('lists each change with the documents under it, scoped to it', async () => {
     const older = await t.createChange('older', { name: 'Older change' });
     await t.createChange('newer', {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const document = await t.designDocsService.create(older, designDocFixture);
+    const designDoc = await t.designDocsService.create(
+      older,
+      decodedDesignDocFixture,
+    );
+    const document = await t.documentsService.create(older, {
+      title: 'Stakeholder interview',
+      date: '2026-09-12',
+      content: 'What they said.',
+    });
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
@@ -54,6 +62,7 @@ describe('ui changes routes', () => {
           status: 'discovery',
           created_at: '2026-09-14T00:00:00.000Z',
           description: '',
+          documents: [],
           designDocs: [],
         },
         {
@@ -64,10 +73,32 @@ describe('ui changes routes', () => {
           status: 'discovery',
           created_at: '2026-09-13T00:00:00.000Z',
           description: '',
-          designDocs: [{ id: document.id, name: document.name }],
+          documents: [{ id: document.id, name: document.title }],
+          designDocs: [{ id: designDoc.id, name: designDoc.name }],
         },
       ],
     });
+  });
+
+  it('names the documents of a change in title order', async () => {
+    const change = await t.createChange('older');
+    for (const title of ['Zoning rules', 'Appointment booking', 'Glossary']) {
+      await t.documentsService.create(change, {
+        title,
+        date: '2026-09-12',
+        content: '',
+      });
+    }
+
+    const response = await app.request('/navigation');
+    const { changes } = (await response.json()) as {
+      changes: { documents: { name: string }[] }[];
+    };
+    expect(changes[0]?.documents.map((d) => d.name)).toEqual([
+      'Appointment booking',
+      'Glossary',
+      'Zoning rules',
+    ]);
   });
 
   it('lists what the service created, whole', async () => {

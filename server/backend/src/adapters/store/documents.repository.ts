@@ -18,16 +18,16 @@ export class NoesisDocumentsRepository implements DocumentsRepository {
   }
 
   get(slug: ChangeSlug, id: DocumentId): Promise<Document | null> {
-    return this.documents(slug).get(id.value);
+    return this.documents(slug).get(id);
   }
 
   set(slug: ChangeSlug, id: DocumentId, document: Document): Promise<void> {
     // The store takes the JSON side of the contract and decodes it itself.
-    return this.documents(slug).set(id.value, DocumentSchema.encode(document));
+    return this.documents(slug).set(id, DocumentSchema.encode(document));
   }
 
   delete(slug: ChangeSlug, id: DocumentId): Promise<boolean> {
-    return this.documents(slug).delete(id.value);
+    return this.documents(slug).delete(id);
   }
 
   values(slug: ChangeSlug): AsyncIterable<Document> {
@@ -35,7 +35,7 @@ export class NoesisDocumentsRepository implements DocumentsRepository {
   }
 
   pathOf(slug: ChangeSlug, id: DocumentId): string {
-    return this.documents(slug).dataFile(id.value);
+    return this.documents(slug).dataFile(id);
   }
 
   private documents(slug: ChangeSlug): ChangeChildren['documents'] {

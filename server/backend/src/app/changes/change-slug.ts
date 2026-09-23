@@ -1,63 +1,31 @@
-/**
- * Exists only in valid form, so a slug can never climb out of
- * `.noesis/graph/changes/`. `toJSON` keeps it serialising to the plain string
- * the `change` contract shares with the frontend.
- */
-export class ChangeSlug {
-  static readonly PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-  static readonly MAX_LENGTH = 64;
+import { z } from 'zod';
 
-  readonly value: string;
+const MAX_LENGTH = 64;
+const changeSlugSchema = z
+  .string()
+  .max(MAX_LENGTH, `Invalid ChangeSlug: at most ${MAX_LENGTH} characters`)
+  .regex(
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+    "Invalid ChangeSlug: expected lower-case kebab-case, e.g. 'payment-retry'",
+  )
+  .describe(
+    "A change's slug: lower-case kebab-case of at most 64 characters, e.g. 'payment-retry'. It names the change's directory, so it can never climb out of `.noesis/graph/changes/`.",
+  )
+  .brand<'ChangeSlug'>();
 
-  private constructor(value: string) {
-    this.value = value;
-  }
+export const ChangeSlug = Object.assign(changeSlugSchema, {
+  fromName: (name: string) =>
+    changeSlugSchema.parse(slugify(name, MAX_LENGTH) || 'untitled'),
+});
+export type ChangeSlug = z.infer<typeof changeSlugSchema>;
 
-  static parse(value: string): ChangeSlug {
-    const slug = ChangeSlug.tryParse(value);
-    if (slug === null) throw new InvalidChangeSlugError(value);
-    return slug;
-  }
-
-  static tryParse(value: string): ChangeSlug | null {
-    return typeof value === 'string' &&
-      value.length <= ChangeSlug.MAX_LENGTH &&
-      ChangeSlug.PATTERN.test(value)
-      ? new ChangeSlug(value)
-      : null;
-  }
-
-  static fromName(name: string): ChangeSlug {
-    const slug = name
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, ChangeSlug.MAX_LENGTH)
-      .replace(/-+$/, '');
-    return new ChangeSlug(slug || 'untitled');
-  }
-
-  equals(other: ChangeSlug): boolean {
-    return this.value === other.value;
-  }
-
-  toString(): string {
-    return this.value;
-  }
-
-  toJSON(): string {
-    return this.value;
-  }
-}
-
-export class InvalidChangeSlugError extends Error {
-  readonly value: string;
-
-  constructor(value: string) {
-    super(`Not a change slug: ${JSON.stringify(value)}`);
-    this.name = 'InvalidChangeSlugError';
-    this.value = value;
-  }
+function slugify(text: string, maxLength: number): string {
+  return text
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, maxLength)
+    .replace(/-+$/, '');
 }

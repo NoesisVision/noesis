@@ -1,18 +1,26 @@
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
+import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import { Serial } from '#backend/app/serial';
 import type { Change, CreateChange } from './change';
 import { ChangeSlug } from './change-slug';
 import type { ChangesRepository } from './changes.repository';
 
+/** A child of a change as the sidebar names it. */
+interface ChangeNavigationChild {
+  id: string;
+  name: string;
+}
+
 export interface ChangeNavigationItem extends Change {
-  designDocs: { id: string; name: string }[];
+  documents: ChangeNavigationChild[];
+  designDocs: ChangeNavigationChild[];
 }
 
 export class ChangeNotFoundError extends Error {
   readonly slug: ChangeSlug;
 
   constructor(slug: ChangeSlug) {
-    super(`No change ${JSON.stringify(slug.value)}.`);
+    super(`No change ${JSON.stringify(slug)}.`);
     this.name = 'ChangeNotFoundError';
     this.slug = slug;
   }
@@ -39,11 +47,17 @@ export class DuplicateChangeError extends Error {
 export class ChangesService {
   private readonly changes: ChangesRepository;
   private readonly designDocs: DesignDocsRepository;
+  private readonly documents: DocumentsRepository;
   private readonly writes = new Serial();
 
-  constructor(changes: ChangesRepository, designDocs: DesignDocsRepository) {
+  constructor(
+    changes: ChangesRepository,
+    designDocs: DesignDocsRepository,
+    documents: DocumentsRepository,
+  ) {
     this.changes = changes;
     this.designDocs = designDocs;
+    this.documents = documents;
   }
 
   async list(): Promise<Change[]> {
@@ -64,15 +78,31 @@ export class ChangesService {
   /** What the sidebar renders: every change, each naming the documents under it. */
   async listNavigation(): Promise<ChangeNavigationItem[]> {
     const changes = await this.list();
-    return Promise.all(changes.map((change) => this.withDesignDocs(change)));
+    return Promise.all(changes.map((change) => this.withChildren(change)));
   }
 
-  private async withDesignDocs(change: Change): Promise<ChangeNavigationItem> {
-    const designDocs = await Array.fromAsync(
-      this.designDocs.values(ChangeSlug.parse(change.slug)),
-      ({ id, name }) => ({ id, name: name.value }),
-    );
-    return { ...change, designDocs: designDocs.sort(byName) };
+  private async withChildren(change: Change): Promise<ChangeNavigationItem> {
+    // Already validated: it came off a stored change.
+    const slug = ChangeSlug.parse(change.slug);
+    const [documents, designDocs] = await Promise.all([
+      Array.fromAsync(
+        this.documents.values(slug),
+        ({ document_id, title }) => ({
+          id: document_id,
+          name: title,
+        }),
+      ),
+      // `name` is a reviewable field now, so the sidebar gets its value.
+      Array.fromAsync(this.designDocs.values(slug), ({ id, name }) => ({
+        id,
+        name: name.value,
+      })),
+    ]);
+    return {
+      ...change,
+      documents: documents.sort(byName),
+      designDocs: designDocs.sort(byName),
+    };
   }
 
   /** Check and write run as one step, so parallel creates cannot both pass the check. */
@@ -88,7 +118,7 @@ export class ChangesService {
     await this.assertKeyFree(input.key);
     await this.assertSlugFree(slug);
     const change: Change = {
-      slug: slug.value,
+      slug: slug,
       name: input.name,
       key: input.key,
       type: input.type,
@@ -109,7 +139,7 @@ export class ChangesService {
 
   private async assertSlugFree(slug: ChangeSlug): Promise<void> {
     if ((await this.changes.read(slug)) !== null) {
-      throw new DuplicateChangeError(slug.value, 'slug');
+      throw new DuplicateChangeError(slug, 'slug');
     }
   }
 
@@ -120,9 +150,6 @@ export class ChangesService {
   }
 }
 
-function byName(
-  a: { id: string; name: string },
-  b: { id: string; name: string },
-): number {
+function byName(a: ChangeNavigationChild, b: ChangeNavigationChild): number {
   return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
 }
