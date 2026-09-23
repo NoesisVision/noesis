@@ -48,12 +48,12 @@ describe('DocumentsService', () => {
   });
 
   it('refuses a title no id can be derived from, on create and on retitle', async () => {
-    expect(
+    await expect(
       service.create(CHANGE, { ...document, title: '!!!' }),
     ).rejects.toBeInstanceOf(z.ZodError);
 
     const created = await service.create(CHANGE, document);
-    expect(
+    await expect(
       service.update(CHANGE, DocumentId.parse(created.id), {
         ...document,
         title: '日本語',
