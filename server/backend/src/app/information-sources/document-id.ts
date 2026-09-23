@@ -14,30 +14,9 @@ const documentIdSchema = z
   )
   .brand<'DocumentId'>();
 
-/**
- * The title is the document's identity within its change, so the id is that
- * title as a slug and a retitle is a move.
- */
 export const DocumentId = Object.assign(documentIdSchema, {
-  /**
-   * What a title must match for an id to be derivable from it: one ASCII
-   * letter or digit is what the derivation is sure to keep. Narrower than the
-   * derivation itself — `É` alone would slug to `e` — so that the rule is one
-   * a schema can state.
-   */
   TITLE_PATTERN: /[A-Za-z0-9]/,
-  /**
-   * The id's own limit, so the derivation does not cut a title short and two
-   * long titles cannot meet in one id. The cut in `fromTitle` stays for the
-   * few characters NFKD expands (`ﬁ` becomes `fi`).
-   */
   TITLE_MAX_LENGTH: MAX_LENGTH,
-  /**
-   * Throws for a title the derivation empties — punctuation or a script with
-   * no ASCII in it. There is no fallback id: every such title would share it,
-   * and the second one would look like a duplicate of the first. Never throws
-   * for a title matching `TITLE_PATTERN`.
-   */
   fromTitle: (title: string) =>
     documentIdSchema.parse(slugify(title, MAX_LENGTH)),
 });
