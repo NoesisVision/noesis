@@ -79,6 +79,18 @@ describe('SPA serving (e2e)', () => {
     expect(css).toContain('light-dark(');
   });
 
+  it('ships the pause that keeps a fast read from flashing a spinner', async () => {
+    const html = await (await fetch(`${BASE}/`)).text();
+    const style = /<link[^>]+href="([^"]+\.css)"/.exec(html)?.[1] ?? '';
+    const css = await (await fetch(`${BASE}${style}`)).text();
+
+    // The loading panel is invisible until the wait is worth saying, which is
+    // the animation's delay plus `both` holding its first frame through it.
+    // Tests cannot see a CSS module class, so the shipped rule is the check.
+    expect(css).toMatch(/animation:[^;}]*\.4s both/);
+    expect(css).toMatch(/@media \(prefers-reduced-motion:reduce\)\{\._delayed/);
+  });
+
   it('compresses what it serves, and says so', async () => {
     const html = await (await fetch(`${BASE}/`)).text();
     const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1] ?? '';

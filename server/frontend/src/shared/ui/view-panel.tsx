@@ -4,6 +4,8 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 
 interface ViewPanelProps {
   children: ReactNode;
+  /** Styling of the box itself, for a panel that needs more than the layout. */
+  className?: string;
   /**
    * Says the panel when it appears, for what the reader did not ask to see.
    * A failure is announced; an answer and a wait are not — the wait carries
@@ -17,7 +19,11 @@ interface ViewPanelProps {
  * failure, a missing thing, a view with nothing in it, a view still being
  * read. `AppShell.Main` has no height of its own, so the height is here.
  */
-export function ViewPanel({ children, announce = false }: ViewPanelProps) {
+export function ViewPanel({
+  children,
+  className,
+  announce = false,
+}: ViewPanelProps) {
   return (
     <Center mih="60vh">
       <Stack
@@ -25,6 +31,7 @@ export function ViewPanel({ children, announce = false }: ViewPanelProps) {
         gap="sm"
         maw={420}
         ta="center"
+        className={className}
         role={announce ? 'alert' : undefined}
       >
         {children}
