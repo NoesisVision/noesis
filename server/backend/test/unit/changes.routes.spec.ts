@@ -34,16 +34,21 @@ describe('ui changes routes', () => {
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with its design documents, scoped to it', async () => {
+  it('lists each change with the documents under it, scoped to it', async () => {
     const older = await t.createChange('older', { name: 'Older change' });
     await t.createChange('newer', {
       name: 'Newer change',
       created_at: '2026-09-14T00:00:00.000Z',
     });
-    const document = await t.designDocsService.create(
+    const designDoc = await t.designDocsService.create(
       older,
       decodedDesignDocFixture,
     );
+    const document = await t.documentsService.create(older, {
+      title: 'Stakeholder interview',
+      date: '2026-09-12',
+      content: 'What they said.',
+    });
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
@@ -68,7 +73,7 @@ describe('ui changes routes', () => {
           status: 'discovery',
           created_at: '2026-09-13T00:00:00.000Z',
           description: '',
-          documents: [{ id: document.id.value, name: document.title }],
+          documents: [{ id: document.id, name: document.title }],
           designDocs: [{ id: designDoc.id, name: designDoc.name }],
         },
       ],

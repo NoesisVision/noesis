@@ -82,7 +82,8 @@ export class ChangesService {
   }
 
   private async withChildren(change: Change): Promise<ChangeNavigationItem> {
-    const slug = ChangeSlug.parse(change.slug);
+    // Already validated: it came off a stored change.
+    const slug = ChangeSlug.create(change.slug);
     const [documents, designDocs] = await Promise.all([
       Array.fromAsync(
         this.documents.values(slug),
