@@ -66,7 +66,7 @@ async function add(
 
 function added(slug: ChangeSlug, summary: DocumentSummary): CallToolResult {
   return success(
-    `Added "${summary.title}" to ${slug.value} as ${summary.id}, stored at ${summary.path}.`,
+    `Added "${summary.title}" to ${slug} as ${summary.id}, stored at ${summary.path}.`,
     summary,
   );
 }

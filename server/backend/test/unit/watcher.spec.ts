@@ -9,8 +9,8 @@ import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.create('alpha');
-const BETA = ChangeSlug.create('beta');
+const ALPHA = ChangeSlug.parse('alpha');
+const BETA = ChangeSlug.parse('beta');
 
 const DEBOUNCE_MS = 50;
 

@@ -24,10 +24,10 @@ export function createChangesApp(deps: ChangesDeps) {
     })
 
     .get('/:id', async (c) => {
-      const slug = ChangeSlug.tryCreate(c.req.param('id'));
-      if (slug.isErr()) return c.json({ error: 'change_not_found' }, 404);
+      const slug = ChangeSlug.safeParse(c.req.param('id'));
+      if (!slug.success) return c.json({ error: 'change_not_found' }, 404);
       try {
-        return c.json({ change: await changesService.findById(slug.value) });
+        return c.json({ change: await changesService.findById(slug.data) });
       } catch (error) {
         if (error instanceof ChangeNotFoundError) {
           return c.json({ error: 'change_not_found' }, 404);

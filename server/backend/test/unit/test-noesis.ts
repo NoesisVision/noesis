@@ -64,10 +64,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     ),
     documentsService: new DocumentsService(documentsRepository, changesService),
     createChange: async (slug, overrides = {}) => {
-      const parsed = typeof slug === 'string' ? ChangeSlug.create(slug) : slug;
+      const parsed = ChangeSlug.parse(slug);
       const change: Change = {
-        slug: parsed.value,
-        name: parsed.value,
+        slug: parsed,
+        name: parsed,
         key: '',
         type: 'chore',
         status: 'discovery',

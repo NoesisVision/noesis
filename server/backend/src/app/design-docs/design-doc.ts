@@ -2,9 +2,9 @@ import { z } from 'zod';
 import {
   BehaviorId,
   BuildingBlockId,
-  ElementNameSchema,
+  ElementName,
   ModuleId,
-} from './element-id';
+} from '#backend/app/element-id';
 import { reviewableFieldSchema } from './reviewable-field';
 
 /*
@@ -76,7 +76,7 @@ function changeSetSchema<Item extends z.ZodType, Key extends z.ZodType>(
 /* The parts of an element. None is an element itself, so none has an id. */
 
 export const DesignedPropertySchema = z.object({
-  name: reviewableFieldSchema(ElementNameSchema),
+  name: reviewableFieldSchema(ElementName),
   type: optionalReviewableField(z.string()),
   description: optionalReviewableField(z.string()),
   nullable: z.boolean().optional(),
@@ -85,14 +85,14 @@ export const DesignedPropertySchema = z.object({
 export type DesignedProperty = z.infer<typeof DesignedPropertySchema>;
 
 export const DesignedRuleSchema = z.object({
-  name: reviewableFieldSchema(ElementNameSchema),
+  name: reviewableFieldSchema(ElementName),
   ruleType: DesignedRuleTypeSchema.nullable().default(null),
   description: optionalReviewableField(z.string()),
 });
 export type DesignedRule = z.infer<typeof DesignedRuleSchema>;
 
 export const DesignedScenarioSchema = z.object({
-  name: reviewableFieldSchema(ElementNameSchema),
+  name: reviewableFieldSchema(ElementName),
   description: reviewableFieldSchema(z.string()),
   given: reviewableFieldSchema(z.string()),
   when: reviewableFieldSchema(z.string()),
@@ -107,8 +107,8 @@ export const StringChangeSetSchema = changeSetSchema(z.string(), z.string());
 export type StringChangeSet = z.infer<typeof StringChangeSetSchema>;
 
 export const BuildingBlockIdChangeSetSchema = changeSetSchema(
-  BuildingBlockId.schema,
-  BuildingBlockId.schema,
+  BuildingBlockId,
+  BuildingBlockId,
 );
 export type BuildingBlockIdChangeSet = z.infer<
   typeof BuildingBlockIdChangeSetSchema
@@ -116,7 +116,7 @@ export type BuildingBlockIdChangeSet = z.infer<
 
 export const DesignedPropertyChangeSetSchema = changeSetSchema(
   DesignedPropertySchema,
-  ElementNameSchema,
+  ElementName,
 );
 export type DesignedPropertyChangeSet = z.infer<
   typeof DesignedPropertyChangeSetSchema
@@ -124,13 +124,13 @@ export type DesignedPropertyChangeSet = z.infer<
 
 export const DesignedRuleChangeSetSchema = changeSetSchema(
   DesignedRuleSchema,
-  ElementNameSchema,
+  ElementName,
 );
 export type DesignedRuleChangeSet = z.infer<typeof DesignedRuleChangeSetSchema>;
 
 export const DesignedScenarioChangeSetSchema = changeSetSchema(
   DesignedScenarioSchema,
-  ElementNameSchema,
+  ElementName,
 );
 export type DesignedScenarioChangeSet = z.infer<
   typeof DesignedScenarioChangeSetSchema
@@ -139,18 +139,18 @@ export type DesignedScenarioChangeSet = z.infer<
 /* The elements. Each carries the id the scanner would give it. */
 
 export const DesignedDomainModuleSchema = z.object({
-  /** Names the parent module too: `id.parent`, null for a root module. */
-  id: ModuleId.schema,
+  /** Names the parent module too: `ModuleId.parentOf(id)`, null for a root module. */
+  id: ModuleId,
   description: optionalReviewableField(z.string()),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModuleSchema>;
 
 export const DesignedBuildingBlockSchema = z.object({
-  /** Names the module too: `id.module`. */
-  id: BuildingBlockId.schema,
+  /** Names the module too: `ModuleId.containing(id)`. */
+  id: BuildingBlockId,
   type: optionalReviewableField(DesignedBuildingBlockTypeSchema),
   description: optionalReviewableField(z.string()),
-  implements: z.array(BuildingBlockId.schema).optional(),
+  implements: z.array(BuildingBlockId).optional(),
   properties: DesignedPropertyChangeSetSchema.optional(),
   rules: DesignedRuleChangeSetSchema.optional(),
   scenarios: DesignedScenarioChangeSetSchema.optional(),
@@ -158,8 +158,8 @@ export const DesignedBuildingBlockSchema = z.object({
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlockSchema>;
 
 export const DesignedBehaviourSchema = z.object({
-  /** Names the building block too: `id.buildingBlock`. */
-  id: BehaviorId.schema,
+  /** Names the building block too: `BuildingBlockId.containing(id)`, `ModuleId.containing(id)`. */
+  id: BehaviorId,
   description: optionalReviewableField(z.string()),
   type: optionalReviewableField(DesignedBehaviourTypeSchema),
   input: StringChangeSetSchema.optional(),
@@ -174,7 +174,7 @@ export type DesignedBehaviour = z.infer<typeof DesignedBehaviourSchema>;
 
 export const DesignedDomainModuleChangeSetSchema = changeSetSchema(
   DesignedDomainModuleSchema,
-  ModuleId.schema,
+  ModuleId,
 );
 export type DesignedDomainModuleChangeSet = z.infer<
   typeof DesignedDomainModuleChangeSetSchema
@@ -182,7 +182,7 @@ export type DesignedDomainModuleChangeSet = z.infer<
 
 export const DesignedBuildingBlockChangeSetSchema = changeSetSchema(
   DesignedBuildingBlockSchema,
-  BuildingBlockId.schema,
+  BuildingBlockId,
 );
 export type DesignedBuildingBlockChangeSet = z.infer<
   typeof DesignedBuildingBlockChangeSetSchema
@@ -190,7 +190,7 @@ export type DesignedBuildingBlockChangeSet = z.infer<
 
 export const DesignedBehaviourChangeSetSchema = changeSetSchema(
   DesignedBehaviourSchema,
-  BehaviorId.schema,
+  BehaviorId,
 );
 export type DesignedBehaviourChangeSet = z.infer<
   typeof DesignedBehaviourChangeSetSchema

@@ -98,12 +98,13 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 
 - **Public methods compose, private methods do.** A public method's body is a short sequence of calls to private methods, one per meaningful step, each named for what it achieves (`createDirectories()`, `excludeUnversionedDirsFromGit()`), not how. A public name must say what happens: `ensureInitialized()`, not `ensure()`.
 - **Instance or module.** A helper that needs `this` is a private method; one that does not is a plain function at the bottom of the module (`isInside`, `realpathIfExists`).
-- **Value objects for data with behaviour.** When a few helpers all work on the same value, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`, following `ChangeSlug`). Keep it unexported while one file uses it.
+- **Value objects for domain primitives.** An id, name, slug or quantity is a branded Zod schema with its factories beside it, as `app/element-id.ts` does; the `value-objects` skill has the rules.
+- **Small classes for private helper data.** When a few helpers in one file all work on the same value that never leaves it, give it a small class with a private constructor and a static factory (`MissingLines.of(...)`). Keep it unexported.
 - **No exceptions for control flow.** Prefer APIs that report absence (`Bun.file(path).exists()`) over catching `ENOENT`/`EEXIST`. Where only a throwing API exists, confine the catch to one helper that returns `null` or `boolean` and rethrows every other error code. A benign race is acceptable in exchange for plainer flow; say so in a one-line comment.
 
 ## Working conventions
 
-- **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. A subject starting `wip` skips the message rule and the format/lint checks (squash before `main`).
+- **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behaviour unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. Commits are not code-checked; the `pre-push` hook runs `lint`, `knip`, `format:check`, `check-types` and `test` before every push.
 - **Do not edit `bun.lock` by hand** (denied). Shared versions (`typescript`, `zod`, `hono`, `@types/*`) live in the root `package.json` catalog; single-consumer deps stay inline.
 - A `PostToolUse` hook runs `oxfmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
 - Knip: a deliberate duplicate export carries an `@alias` JSDoc tag; entry points Knip cannot discover are listed in `knip.json`.

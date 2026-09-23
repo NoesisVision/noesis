@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import type { CreateDocument } from '#backend/app/information-sources/document';
@@ -8,11 +9,10 @@ import {
   type DocumentsService,
   DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
-import { ValueObjectError } from '#backend/app/vo';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const CHANGE = ChangeSlug.create('booking');
-const NOPE = ChangeSlug.create('nope');
+const CHANGE = ChangeSlug.parse('booking');
+const NOPE = ChangeSlug.parse('nope');
 
 const document: CreateDocument = {
   title: 'Booking Rules — v2',
@@ -35,33 +35,30 @@ describe('DocumentsService', () => {
   it('stores a document under the slug of its title and reads it back whole', async () => {
     const summary = await service.create(CHANGE, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
     expect(summary.path).toEndWith(
       '/graph/changes/booking/documents/booking-rules-v2/data.json',
     );
 
-    const detail = await service.findById(
-      CHANGE,
-      DocumentId.create(summary.id),
-    );
+    const detail = await service.findById(CHANGE, DocumentId.parse(summary.id));
     expect(detail?.document).toEqual({
       ...document,
-      document_id: DocumentId.create('booking-rules-v2'),
+      document_id: DocumentId.parse('booking-rules-v2'),
     });
   });
 
   it('refuses a title no id can be derived from, on create and on retitle', async () => {
-    expect(
+    await expect(
       service.create(CHANGE, { ...document, title: '!!!' }),
-    ).rejects.toBeInstanceOf(ValueObjectError);
+    ).rejects.toBeInstanceOf(z.ZodError);
 
     const created = await service.create(CHANGE, document);
-    expect(
-      service.update(CHANGE, DocumentId.create(created.id), {
+    await expect(
+      service.update(CHANGE, DocumentId.parse(created.id), {
         ...document,
         title: '日本語',
       }),
-    ).rejects.toBeInstanceOf(ValueObjectError);
+    ).rejects.toBeInstanceOf(z.ZodError);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
@@ -82,7 +79,7 @@ describe('DocumentsService', () => {
     expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
     const stored = await service.findById(
       CHANGE,
-      DocumentId.create('booking-rules-v2'),
+      DocumentId.parse('booking-rules-v2'),
     );
     expect(stored?.document.content).toBe(document.content);
   });
@@ -93,47 +90,36 @@ describe('DocumentsService', () => {
 
     const summary = await service.create(other, document);
 
-    expect(summary.id).toBe('booking-rules-v2');
+    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
   });
 
   it('replaces the content under the same id', async () => {
     const created = await service.create(CHANGE, document);
 
-    const updated = await service.update(
-      CHANGE,
-      DocumentId.create(created.id),
-      {
-        ...document,
-        content: 'A slot may be booked twice.',
-      },
-    );
+    const updated = await service.update(CHANGE, DocumentId.parse(created.id), {
+      ...document,
+      content: 'A slot may be booked twice.',
+    });
 
     expect(updated.id).toEqual(created.id);
-    expect(
-      (await service.findById(CHANGE, DocumentId.create(created.id)))?.document
-        .content,
-    ).toBe('A slot may be booked twice.');
+    expect((await service.findById(CHANGE, created.id))?.document.content).toBe(
+      'A slot may be booked twice.',
+    );
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
   });
 
   it('moves the document to a new id when the title changes', async () => {
     const created = await service.create(CHANGE, document);
 
-    const renamed = await service.update(
-      CHANGE,
-      DocumentId.create(created.id),
-      {
-        ...document,
-        title: 'Booking rules v3',
-      },
-    );
+    const renamed = await service.update(CHANGE, DocumentId.parse(created.id), {
+      ...document,
+      title: 'Booking rules v3',
+    });
 
-    expect(renamed.id).toBe('booking-rules-v3');
-    expect(await service.findById(CHANGE, DocumentId.create(created.id))).toBe(
-      null,
-    );
+    expect(renamed.id).toBe(DocumentId.parse('booking-rules-v3'));
+    expect(await service.findById(CHANGE, created.id)).toBe(null);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      'booking-rules-v3',
+      DocumentId.parse('booking-rules-v3'),
     ]);
   });
 
@@ -142,20 +128,19 @@ describe('DocumentsService', () => {
     await service.create(CHANGE, { ...document, title: 'Pricing' });
 
     expect(
-      service.update(CHANGE, DocumentId.create(created.id), {
+      service.update(CHANGE, DocumentId.parse(created.id), {
         ...document,
         title: 'Pricing',
       }),
     ).rejects.toBeInstanceOf(DuplicateDocumentError);
-    expect(
-      (await service.findById(CHANGE, DocumentId.create(created.id)))?.document
-        .title,
-    ).toBe(document.title);
+    expect((await service.findById(CHANGE, created.id))?.document.title).toBe(
+      document.title,
+    );
   });
 
   it('refuses to update a document the change does not have', async () => {
     expect(
-      service.update(CHANGE, DocumentId.create('missing'), document),
+      service.update(CHANGE, DocumentId.parse('missing'), document),
     ).rejects.toBeInstanceOf(DocumentNotFoundError);
   });
 
@@ -184,10 +169,10 @@ describe('DocumentsService', () => {
   });
 
   it('answers null for a document that does not exist and false when deleting it', async () => {
-    expect(await service.findById(CHANGE, DocumentId.create('missing'))).toBe(
+    expect(await service.findById(CHANGE, DocumentId.parse('missing'))).toBe(
       null,
     );
-    expect(await service.delete(CHANGE, DocumentId.create('missing'))).toBe(
+    expect(await service.delete(CHANGE, DocumentId.parse('missing'))).toBe(
       false,
     );
   });
@@ -195,7 +180,7 @@ describe('DocumentsService', () => {
   it('deletes a document it has', async () => {
     const created = await service.create(CHANGE, document);
 
-    expect(await service.delete(CHANGE, DocumentId.create(created.id))).toBe(
+    expect(await service.delete(CHANGE, DocumentId.parse(created.id))).toBe(
       true,
     );
     expect(await service.list(CHANGE)).toEqual([]);
@@ -209,10 +194,10 @@ describe('DocumentsService', () => {
       ChangeNotFoundError,
     );
     await expect(
-      service.findById(NOPE, DocumentId.create('x')),
+      service.findById(NOPE, DocumentId.parse('x')),
     ).rejects.toBeInstanceOf(ChangeNotFoundError);
     await expect(
-      service.delete(NOPE, DocumentId.create('x')),
+      service.delete(NOPE, DocumentId.parse('x')),
     ).rejects.toBeInstanceOf(ChangeNotFoundError);
   });
 });

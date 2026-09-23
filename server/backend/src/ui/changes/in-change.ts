@@ -10,10 +10,10 @@ export async function inChange<T extends Response>(
   c: Context,
   handler: (slug: ChangeSlug) => Promise<T>,
 ) {
-  const slug = ChangeSlug.tryCreate(c.req.param('change') ?? '');
-  if (slug.isErr()) return c.json({ error: 'change_not_found' }, 404);
+  const slug = ChangeSlug.safeParse(c.req.param('change') ?? '');
+  if (!slug.success) return c.json({ error: 'change_not_found' }, 404);
   try {
-    return await handler(slug.value);
+    return await handler(slug.data);
   } catch (error) {
     if (error instanceof ChangeNotFoundError) {
       return c.json({ error: 'change_not_found' }, 404);

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ChangeSlug } from './change-slug';
 
 // The change's directory also collects its imported conversations, documents
 // and design docs.
@@ -16,18 +17,23 @@ export const CHANGE_STATUSES = [
 ] as const;
 export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
 
+const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
+
 export const ChangeSchema = z
   .object({
-    slug: z
-      .string()
-      .describe(
-        'The directory name under .noesis/graph/changes/: lower-case kebab-case, at most 64 characters, derived from the name at creation and never changed after.',
-      ),
+    slug: ChangeSlug,
     name: z
       .string()
+      .trim()
+      .min(1)
+      .max(120)
       .describe('The human title of the change, as people say it.'),
     key: z
       .string()
+      .trim()
+      .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
+      .or(z.literal(''))
+      .default('')
       .describe(
         'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',
       ),
@@ -54,31 +60,10 @@ export const ChangeSchema = z
   .describe('One change: the data.json file inside its directory.');
 export type Change = z.infer<typeof ChangeSchema>;
 
-const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
-
 /** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
-export const CreateChangeSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(1)
-      .max(120)
-      .describe('The human title of the change, as people say it.'),
-    key: z
-      .string()
-      .trim()
-      .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
-      .or(z.literal(''))
-      .default('')
-      .describe(
-        'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',
-      ),
-    type: z
-      .enum(CHANGE_TYPES)
-      .describe(
-        'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
-      ),
-  })
-  .describe('The request body for creating a change.');
+export const CreateChangeSchema = ChangeSchema.pick({
+  name: true,
+  key: true,
+  type: true,
+}).describe('The request body for creating a change.');
 export type CreateChange = z.infer<typeof CreateChangeSchema>;

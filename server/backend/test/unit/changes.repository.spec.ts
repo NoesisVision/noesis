@@ -15,10 +15,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const keys = async () =>
-  (await Array.fromAsync(t.changesRepository.keys()))
-    .map((slug) => slug.value)
-    .sort();
+const keys = async (): Promise<string[]> =>
+  (await Array.fromAsync(t.changesRepository.keys())).sort();
 
 describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every slug written', async () => {
@@ -30,7 +28,7 @@ describe('NoesisChangesRepository', () => {
     expect(await keys()).toEqual(['audit-log', 'payment-retry']);
     expect(await t.changesRepository.read(audit)).not.toBeNull();
     expect(
-      await t.changesRepository.read(ChangeSlug.create('missing')),
+      await t.changesRepository.read(ChangeSlug.parse('missing')),
     ).toBeNull();
   });
 
@@ -42,9 +40,7 @@ describe('NoesisChangesRepository', () => {
     await t.createChange('real');
 
     expect(await keys()).toEqual(['real']);
-    expect(
-      await t.changesRepository.read(ChangeSlug.create('bare')),
-    ).toBeNull();
+    expect(await t.changesRepository.read(ChangeSlug.parse('bare'))).toBeNull();
   });
 
   it('skips a key the store lists that is not a change slug', async () => {
@@ -57,7 +53,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('names the change directory and hands out its child collections', () => {
-    const real = ChangeSlug.create('real');
+    const real = ChangeSlug.parse('real');
     expect(t.changesRepository.dirOf(real)).toBe(
       t.noesis.resolve('graph', 'changes', 'real'),
     );
@@ -72,7 +68,7 @@ describe('NoesisChangesRepository', () => {
 
   it('round-trips a change through graph/changes/<slug>/data.json', async () => {
     const change = {
-      slug: 'with-file',
+      slug: ChangeSlug.parse('with-file'),
       name: 'With file',
       key: 'NOE-1',
       type: 'feature' as const,
@@ -82,7 +78,7 @@ describe('NoesisChangesRepository', () => {
     };
     await t.changesRepository.write(change);
     expect(
-      await t.changesRepository.read(ChangeSlug.create('with-file')),
+      await t.changesRepository.read(ChangeSlug.parse('with-file')),
     ).toEqual(change);
     expect(
       JSON.parse(
@@ -115,8 +111,11 @@ describe('NoesisChangesRepository', () => {
     if (before === null) throw new Error('the change was not written');
 
     await expect(
-      t.changesRepository.write({ ...before, slug: 'Not A Slug' }),
-    ).rejects.toThrow('Not a change slug');
+      t.changesRepository.write({
+        ...before,
+        slug: 'Not A Slug',
+      } as unknown as typeof before),
+    ).rejects.toThrow('Invalid ChangeSlug');
     await expect(
       t.changesRepository.write({
         ...before,

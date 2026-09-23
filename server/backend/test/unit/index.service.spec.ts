@@ -8,9 +8,9 @@ import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.create('alpha');
-const BETA = ChangeSlug.create('beta');
-const GAMMA = ChangeSlug.create('gamma');
+const ALPHA = ChangeSlug.parse('alpha');
+const BETA = ChangeSlug.parse('beta');
+const GAMMA = ChangeSlug.parse('gamma');
 
 let db: DatabaseService;
 let t: TestNoesis;
@@ -140,7 +140,7 @@ describe('IndexService', () => {
     const [document] = await db.query<{ change: string; json: string }>(
       'MATCH (d:Document) RETURN d.change AS change, d.json AS json',
     );
-    expect(document?.change).toBe(ALPHA.value);
+    expect(document?.change).toBe(ALPHA);
     expect(JSON.parse(document?.json ?? '').title).toBe('Rules');
   });
 

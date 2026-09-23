@@ -8,9 +8,7 @@ import type { DocumentsRepository } from './documents.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
 export const DocumentSummarySchema = z.object({
-  id: z
-    .string()
-    .describe('The document id, derived from the title within the change.'),
+  id: DocumentId,
   title: z.string().describe('The document title, as stored.'),
   date: z.string().describe('The date on the document, ISO 8601.'),
   path: z
@@ -30,7 +28,7 @@ export class DocumentNotFoundError extends Error {
   readonly id: DocumentId;
 
   constructor(slug: ChangeSlug, id: DocumentId) {
-    super(`No document ${JSON.stringify(id.value)} in change ${slug.value}.`);
+    super(`No document ${JSON.stringify(id)} in change ${slug}.`);
     this.name = 'DocumentNotFoundError';
     this.id = id;
   }
@@ -41,7 +39,7 @@ export class DuplicateDocumentError extends Error {
 
   constructor(slug: ChangeSlug, title: string) {
     super(
-      `Change ${slug.value} already has a document titled ${JSON.stringify(title)}.`,
+      `Change ${slug} already has a document titled ${JSON.stringify(title)}.`,
     );
     this.name = 'DuplicateDocumentError';
     this.title = title;
@@ -95,7 +93,7 @@ export class DocumentsService {
     await this.changesService.assertExists(slug);
     await this.assertExists(slug, id);
     const retitled = DocumentId.fromTitle(document.title);
-    if (retitled.equals(id)) return this.store(slug, id, document);
+    if (retitled === id) return this.store(slug, id, document);
     await this.assertTitleFree(slug, retitled, document.title);
     const summary = await this.store(slug, retitled, document);
     await this.docs.delete(slug, id);
@@ -156,6 +154,6 @@ export class DocumentsService {
 
   private summarize(slug: ChangeSlug, document: Document): DocumentSummary {
     const { document_id: id, title, date } = document;
-    return { id: id.value, title, date, path: this.docs.pathOf(slug, id) };
+    return { id, title, date, path: this.docs.pathOf(slug, id) };
   }
 }

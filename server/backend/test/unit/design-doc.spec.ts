@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
-import {
-  BehaviorId,
-  BuildingBlockId,
-  ModuleId,
-} from '#backend/app/design-docs/element-id';
+import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 
 const document = {
@@ -44,19 +40,18 @@ const document = {
 };
 
 describe('DesignDocumentSchema', () => {
-  it('decodes every element id into its id class', () => {
+  it('keeps every element id as the string it was written as', () => {
     const parsed = DesignDocumentSchema.parse(document);
 
-    expect(parsed.modules.added[0]?.id).toBeInstanceOf(ModuleId);
-    expect(parsed.buildingBlocks.added[0]?.id).toBeInstanceOf(BuildingBlockId);
-    expect(parsed.buildingBlocks.removed[0]).toBeInstanceOf(BuildingBlockId);
-    expect(parsed.buildingBlocks.added[0]?.implements?.[0]).toBeInstanceOf(
-      BuildingBlockId,
+    expect(parsed.modules.added[0]?.id).toBe(
+      ModuleId.parse('module|sales.refunds'),
     );
-    expect(parsed.behaviours.added[0]?.id).toBeInstanceOf(BehaviorId);
-    expect(
-      parsed.behaviours.added[0]?.usedBuildingBlocks?.added[0],
-    ).toBeInstanceOf(BuildingBlockId);
+    expect(parsed.buildingBlocks.removed[0]).toBe(
+      BuildingBlockId.parse('building_block|sales.orders.OrderLegacy'),
+    );
+    expect(parsed.behaviours.added[0]?.id).toBe(
+      BehaviorId.parse('behavior|sales.refunds.Refund.issue'),
+    );
   });
 
   it('names each element’s parent through its id', () => {
@@ -65,9 +60,9 @@ describe('DesignDocumentSchema', () => {
     const block = parsed.buildingBlocks.added[0]!.id;
     const behaviour = parsed.behaviours.added[0]!.id;
 
-    expect(module.parent?.value).toBe('module|sales');
-    expect(block.module.equals(module)).toBe(true);
-    expect(behaviour.buildingBlock.equals(block)).toBe(true);
+    expect(ModuleId.parentOf(module)).toBe(ModuleId.root('sales'));
+    expect(ModuleId.containing(block)).toBe(module);
+    expect(BuildingBlockId.containing(behaviour)).toBe(block);
   });
 
   it('fills absent change sets, lists and reviewable fields', () => {

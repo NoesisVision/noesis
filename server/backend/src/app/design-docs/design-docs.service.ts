@@ -24,7 +24,7 @@ export class DesignDocNotFoundError extends Error {
   readonly id: string;
 
   constructor(slug: ChangeSlug, id: string) {
-    super(`No design document ${JSON.stringify(id)} in change ${slug.value}.`);
+    super(`No design document ${JSON.stringify(id)} in change ${slug}.`);
     this.name = 'DesignDocNotFoundError';
     this.id = id;
   }

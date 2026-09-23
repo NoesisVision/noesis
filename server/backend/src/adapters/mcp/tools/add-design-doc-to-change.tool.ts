@@ -62,7 +62,7 @@ async function add(
 
 function added(slug: ChangeSlug, summary: DesignDocSummary): CallToolResult {
   return success(
-    `Added design document "${summary.name}" to ${slug.value} as ${summary.id}, stored at ${summary.path}.`,
+    `Added design document "${summary.name}" to ${slug} as ${summary.id}, stored at ${summary.path}.`,
     summary,
   );
 }

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
+import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
 import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -14,8 +15,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const slugs = async () =>
-  (await Array.fromAsync(t.changesRepository.keys())).map((s) => s.value);
+const slugs = async (): Promise<string[]> =>
+  Array.fromAsync(t.changesRepository.keys());
 
 const post = (body: unknown) =>
   app.request('/', {
@@ -130,7 +131,10 @@ describe('ui changes routes', () => {
     const { changes } = (await (await app.request('/')).json()) as {
       changes: Change[];
     };
-    expect(changes.map((c) => c.slug)).toEqual(['newer', 'older']);
+    expect(changes.map((c) => c.slug)).toEqual([
+      ChangeSlug.parse('newer'),
+      ChangeSlug.parse('older'),
+    ]);
   });
 
   it('reads one change by slug and 404s an unknown or unsafe one', async () => {

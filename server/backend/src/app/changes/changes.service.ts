@@ -20,7 +20,7 @@ export class ChangeNotFoundError extends Error {
   readonly slug: ChangeSlug;
 
   constructor(slug: ChangeSlug) {
-    super(`No change ${JSON.stringify(slug.value)}.`);
+    super(`No change ${JSON.stringify(slug)}.`);
     this.name = 'ChangeNotFoundError';
     this.slug = slug;
   }
@@ -83,12 +83,12 @@ export class ChangesService {
 
   private async withChildren(change: Change): Promise<ChangeNavigationItem> {
     // Already validated: it came off a stored change.
-    const slug = ChangeSlug.create(change.slug);
+    const slug = ChangeSlug.parse(change.slug);
     const [documents, designDocs] = await Promise.all([
       Array.fromAsync(
         this.documents.values(slug),
         ({ document_id, title }) => ({
-          id: document_id.value,
+          id: document_id,
           name: title,
         }),
       ),
@@ -118,7 +118,7 @@ export class ChangesService {
     await this.assertKeyFree(input.key);
     await this.assertSlugFree(slug);
     const change: Change = {
-      slug: slug.value,
+      slug: slug,
       name: input.name,
       key: input.key,
       type: input.type,
@@ -139,7 +139,7 @@ export class ChangesService {
 
   private async assertSlugFree(slug: ChangeSlug): Promise<void> {
     if ((await this.changes.read(slug)) !== null) {
-      throw new DuplicateChangeError(slug.value, 'slug');
+      throw new DuplicateChangeError(slug, 'slug');
     }
   }
 

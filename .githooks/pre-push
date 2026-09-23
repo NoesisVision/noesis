@@ -1,0 +1,26 @@
+#!/bin/sh
+# Pre-push: lint, Knip, format check, type check and unit/integration tests over
+# the whole repo (mirrors CI's root scripts). Commits are never blocked by these
+# checks; they run once, before the work leaves the machine.
+# `git push --no-verify` skips them.
+set -e
+
+# Hooks inherit the environment of whatever launched git, and a GUI client or an
+# IDE (notably the Flatpak VS Code, whose sandbox PATH is just /app/bin) never
+# sources the shell rc that puts bun on PATH. Fall back to bun's install dir.
+if ! command -v bun >/dev/null 2>&1; then
+  PATH="${BUN_INSTALL:-$HOME/.bun}/bin:$PATH"
+  export PATH
+fi
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "pre-push: bun not found on PATH." >&2
+  echo "  Install bun (https://bun.sh) or set BUN_INSTALL to its install dir." >&2
+  exit 1
+fi
+
+bun run lint
+bun run knip
+bun run format:check
+bun run check-types
+bun run test

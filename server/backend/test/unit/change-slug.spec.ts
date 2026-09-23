@@ -1,36 +1,34 @@
 import { describe, expect, it } from 'bun:test';
+import { z } from 'zod';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { ValueObjectError } from '#backend/app/vo';
 
 describe('ChangeSlug', () => {
   it('parses a safe directory name and nothing else', () => {
-    expect(ChangeSlug.create('ok-slug-1').value).toBe('ok-slug-1');
+    expect(ChangeSlug.parse('ok-slug-1')).toBe(ChangeSlug.parse('ok-slug-1'));
     for (const bad of ['', 'Upper', 'a--b', '-lead', 'trail-', 'a/b', 'a b']) {
-      const result = ChangeSlug.tryCreate(bad);
-      expect(result.isErr()).toBe(true);
-      expect(result.isErr() && result.error[0]?.message).toContain(
-        JSON.stringify(bad),
-      );
-      expect(() => ChangeSlug.create(bad)).toThrow(ValueObjectError);
+      expect(ChangeSlug.safeParse(bad).success).toBe(false);
+      expect(() => ChangeSlug.parse(bad)).toThrow(z.ZodError);
     }
-    expect(ChangeSlug.tryCreate('x'.repeat(64)).isOk()).toBe(true);
-    expect(ChangeSlug.tryCreate('x'.repeat(65)).isErr()).toBe(true);
+    expect(ChangeSlug.safeParse('x'.repeat(64)).success).toBe(true);
+    expect(ChangeSlug.safeParse('x'.repeat(65)).success).toBe(false);
   });
 
   it('derives a slug from a name', () => {
-    expect(ChangeSlug.fromName('Payment retry (v2)').value).toBe(
-      'payment-retry-v2',
+    expect(ChangeSlug.fromName('Payment retry (v2)')).toBe(
+      ChangeSlug.parse('payment-retry-v2'),
     );
-    expect(ChangeSlug.fromName('Été à Paris').value).toBe('ete-a-paris');
-    expect(ChangeSlug.fromName('!!!').value).toBe('untitled');
-    expect(ChangeSlug.fromName('x'.repeat(80)).value).toHaveLength(64);
+    expect(ChangeSlug.fromName('Été à Paris')).toBe(
+      ChangeSlug.parse('ete-a-paris'),
+    );
+    expect(ChangeSlug.fromName('!!!')).toBe(ChangeSlug.parse('untitled'));
+    expect(ChangeSlug.fromName('x'.repeat(80))).toHaveLength(64);
   });
 
-  it('is a value: equal by text, and the text in a string or in JSON', () => {
-    const a = ChangeSlug.create('same');
-    expect(a.equals(ChangeSlug.create('same'))).toBe(true);
-    expect(a.equals(ChangeSlug.create('other'))).toBe(false);
-    expect(`${a}`).toBe('same');
-    expect(JSON.stringify({ slug: a })).toBe('{"slug":"same"}');
+  it('advertises its rules in the JSON Schema', () => {
+    expect(z.toJSONSchema(ChangeSlug, { io: 'input' })).toMatchObject({
+      type: 'string',
+      maxLength: 64,
+      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+    });
   });
 });

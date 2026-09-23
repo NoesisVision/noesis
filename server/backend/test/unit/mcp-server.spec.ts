@@ -189,7 +189,7 @@ describe('add_document_to_change', () => {
 
     const result = await client.callTool({
       name: 'add_document_to_change',
-      arguments: { change: change.value, path },
+      arguments: { change, path },
     });
 
     expect(result.isError).toBeFalsy();
@@ -201,7 +201,7 @@ describe('add_document_to_change', () => {
     });
     const stored = await noesis.documentsService.findById(
       change,
-      DocumentId.create('retry-interview'),
+      DocumentId.parse('retry-interview'),
     );
     expect(stored?.document.content).toBe(document.content);
   });
@@ -351,7 +351,7 @@ describe('add_design_doc_to_change', () => {
 
     const result = await client.callTool({
       name: 'add_design_doc_to_change',
-      arguments: { change: change.value, path },
+      arguments: { change, path },
     });
 
     expect(result.isError).toBeFalsy();
@@ -374,7 +374,7 @@ describe('add_design_doc_to_change', () => {
 
     const result = await client.callTool({
       name: 'add_design_doc_to_change',
-      arguments: { change: change.value, path },
+      arguments: { change, path },
     });
 
     expect(result.isError).toBeFalsy();

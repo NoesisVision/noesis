@@ -45,10 +45,10 @@ export async function withChange(
   subject: string,
   run: (slug: ChangeSlug) => Promise<CallToolResult>,
 ): Promise<CallToolResult> {
-  const slug = ChangeSlug.tryCreate(raw);
-  if (slug.isErr()) return notASlug(raw);
+  const slug = ChangeSlug.safeParse(raw);
+  if (!slug.success) return notASlug(raw);
   try {
-    return await run(slug.value);
+    return await run(slug.data);
   } catch (error) {
     if (error instanceof ChangeNotFoundError) {
       return noSuchChange(error, subject);

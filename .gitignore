@@ -20,7 +20,7 @@ coverage
 
 # Build Outputs
 .next/
-out/
+/out/
 build/
 dist/
 
