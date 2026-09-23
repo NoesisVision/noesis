@@ -9,8 +9,13 @@ export function useActiveRoute() {
   const activeIds = new Set<AppRouteIds>(matches.map((match) => match.routeId));
   const leafId = matches.at(-1)?.routeId;
 
+  // A view's route id names its layout, but a list page ends on that layout's
+  // index route — the same id with a trailing slash — so an exact match has to
+  // accept both. Matching only the layout would light no heading at all.
   const isActive = (routeId: AppRouteIds, exact = false) =>
-    exact ? leafId === routeId : activeIds.has(routeId);
+    exact
+      ? leafId === routeId || leafId === `${routeId}/`
+      : activeIds.has(routeId);
 
   const activeItem = [...matches]
     .reverse()

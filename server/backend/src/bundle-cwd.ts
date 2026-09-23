@@ -1,8 +1,5 @@
-// Bun resolves a built HTML bundle's asset paths against the working
-// directory, not the bundle file, and bunx launches the bin from the user's
-// project. So this module is main.ts's first import.
+// Captured before anything else runs: bunx launches the bin from the user's
+// project, and the repository root is resolved against where the process was
+// started rather than wherever it stands later. main.ts's first import after
+// the stdout guard.
 export const launchCwd = process.cwd();
-
-if (process.env.NODE_ENV === 'production') {
-  process.chdir(import.meta.dir);
-}

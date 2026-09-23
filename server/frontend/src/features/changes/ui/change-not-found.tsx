@@ -8,7 +8,9 @@ export function ChangeNotFoundView() {
   const { changeId } = useParams({ strict: false });
   return (
     <Stack align="flex-start" gap="sm">
-      <Title order={2}>Change not found</Title>
+      <Title order={1} size="h2">
+        Change not found
+      </Title>
       <Text c="dimmed">
         There is no change "{changeId}" in this repository. Pick one from the
         sidebar, or go back to the last one you opened.

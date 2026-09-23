@@ -1,10 +1,10 @@
-// These two stay first, in this order. The guard has to be in place before any
-// other module is evaluated; bundle-cwd moves the working directory to the
-// bundle before the HTML import below resolves its assets.
+// These two stay first, in this order: the guard has to be in place before any
+// other module is evaluated, and bundle-cwd has to read the working directory
+// before anything can change it.
 import './stdout-guard';
 import './bundle-cwd';
+import { join } from 'node:path';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import index from '../../frontend/index.html';
 import { version } from '../package.json';
 import { createGraphSearch } from './adapters/graph/graph-search';
 import { IndexService } from './adapters/graph/index.service';
@@ -28,6 +28,7 @@ import { NoesisDir } from './platform/files/noesis-dir';
 import { RepositoryRoot } from './platform/files/repository-root';
 import { SessionDir } from './platform/files/session-dir';
 import { NoesisWatcher } from './platform/files/watcher';
+import { StaticAssets } from './platform/http/static-assets';
 import {
   configureLogging,
   disposeLogging,
@@ -60,16 +61,18 @@ log.info('session scratch directory {path}', { path: session.path });
 
 const changesRepository = new NoesisChangesRepository(noesis);
 const designDocsRepository = new NoesisDesignDocsRepository(changesRepository);
+const documentsRepository = new NoesisDocumentsRepository(changesRepository);
 const changesService = new ChangesService(
   changesRepository,
   designDocsRepository,
+  documentsRepository,
 );
 const designDocsService = new DesignDocsService(
   designDocsRepository,
   changesService,
 );
 const documentsService = new DocumentsService(
-  new NoesisDocumentsRepository(changesRepository),
+  documentsRepository,
   changesService,
 );
 
@@ -155,6 +158,13 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
     documentsService,
   });
 
+  const ui = new StaticAssets(uiDirectory());
+  if (!(await ui.exists())) {
+    log.warn('no built page in {path}; run the build or use `bun run dev`', {
+      path: uiDirectory(),
+    });
+  }
+
   // Bun matches routes by specificity, so `/ui/*` beats `/*` and a surface 404
   // is never swallowed by the page.
   const server = Bun.serve({
@@ -163,24 +173,29 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
     routes: {
       '/ui/*': app.fetch,
       '/internal/*': app.fetch,
-      '/*': index,
+      // A built file, or the page itself: every client route renders the SPA,
+      // which then reads the path it was opened at.
+      '/*': (request: Request) => ui.respond(request),
     },
     fetch: app.fetch,
-    // HMR stays off: its client runtime mishandles a circular import inside
-    // @tanstack/router-core and the page dies with "Cannot read properties of
-    // null (reading 'replaceRouteChunk')" (bun 1.3.14 and 1.4.2).
-    // The browser's console is echoed only to a terminal: under a host, stdout
-    // is the MCP stream.
-    development: !production && {
-      hmr: false,
-      console: process.stdin.isTTY === true,
-    },
   });
   const url = `http://localhost:${server.port}/`;
   // The e2e specs and a person alike find the UI by this line.
   log.info('listening on {url}', { url });
   if (config.openBrowser) openBrowser(url);
   return { watcher, db, server };
+}
+
+/**
+ * The SPA is built by vite, not bundled into this file: that is what keeps
+ * each mermaid diagram kind a chunk of its own, fetched when a document needs
+ * it. In a bundle the built page sits beside it; from source it is the
+ * frontend's own output.
+ */
+function uiDirectory(): string {
+  return production
+    ? join(import.meta.dir, 'ui')
+    : join(import.meta.dir, '../../frontend/dist');
 }
 
 function loadRepositoryRoot(): string {

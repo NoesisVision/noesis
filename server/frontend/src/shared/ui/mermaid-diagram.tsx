@@ -1,0 +1,122 @@
+import { useEffect, useId, useState } from 'react';
+import { Alert } from '#/shared/design-system/alert.tsx';
+import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import { Text } from '#/shared/design-system/text.tsx';
+import classes from './markdown.module.css';
+
+type Drawing =
+  | { state: 'drawing' }
+  | { state: 'drawn'; svg: string }
+  | { state: 'failed'; reason: string };
+
+/**
+ * One mermaid fence from a markdown document. Mermaid is a megabyte and needs
+ * the DOM, so it is imported the first time a diagram is on screen rather than
+ * with the bundle, and the document reads fine in the moment before it lands.
+ */
+export function MermaidDiagram({ chart }: { chart: string }) {
+  const scheme = useComputedColorScheme('light');
+  const [drawing, setDrawing] = useState<Drawing>({ state: 'drawing' });
+  // `useId` is stable across renders but contains colons, which are not valid
+  // in the DOM id mermaid puts on the element it renders through.
+  const id = `mermaid-${useId().replaceAll(':', '')}`;
+
+  // Nothing is reset here on the way in: a redraw for a new theme keeps the
+  // diagram already on screen until its replacement is ready, rather than
+  // blinking through the loading line.
+  useEffect(() => {
+    let live = true;
+
+    void (async () => {
+      try {
+        const { default: mermaid } = await import('mermaid');
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          theme: scheme === 'dark' ? 'dark' : 'default',
+        });
+        const { svg } = await mermaid.render(id, chart);
+        if (live) setDrawing({ state: 'drawn', svg });
+      } catch (error) {
+        if (live) setDrawing({ state: 'failed', reason: String(error) });
+      }
+    })();
+
+    return () => {
+      live = false;
+    };
+  }, [chart, id, scheme]);
+
+  if (drawing.state === 'drawing') {
+    return (
+      <Text component="output" c="dimmed" size="sm">
+        Drawing diagram…
+      </Text>
+    );
+  }
+
+  if (drawing.state === 'failed') {
+    return (
+      <Alert color="red" title="Could not draw this diagram">
+        <Text size="sm">{drawing.reason}</Text>
+        <Text component="pre" size="sm" className={classes.diagramSource}>
+          {chart}
+        </Text>
+      </Alert>
+    );
+  }
+
+  // Mermaid hands back a finished SVG document, which is the only shape it
+  // renders to; `securityLevel: 'strict'` is what keeps the input from
+  // reaching the output unescaped. The wrapper carries the name, because the
+  // SVG inside it is a picture and arrives without one.
+  return (
+    <div
+      className={classes.diagram}
+      // Not an `img`: the picture is an inline SVG document mounted here, and
+      // an `img` cannot hold one. The role is what names it.
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+      role="img"
+      aria-label={diagramName(chart)}
+      // oxlint-disable-next-line react/no-danger
+      dangerouslySetInnerHTML={{ __html: drawing.svg }}
+    />
+  );
+}
+
+/**
+ * What the diagram is called. Mermaid's own `accTitle:` is the author's
+ * answer and the only one worth reading aloud; without it the kind of
+ * diagram is all the source says.
+ */
+function diagramName(chart: string): string {
+  const lines = chart.split('\n');
+  for (const line of lines) {
+    const declared = accessibleTitle(line);
+    if (declared !== null) return declared;
+  }
+  return `${diagramKind(lines)} diagram`;
+}
+
+const ACC_TITLE = 'accTitle:';
+/** Mermaid's accessibility directives, which never name the kind. */
+const ACC_PREFIX = 'acc';
+
+/** Read off the line rather than matched: a document's text is unbounded. */
+function accessibleTitle(line: string): string | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith(ACC_TITLE)) return null;
+  const declared = trimmed.slice(ACC_TITLE.length).trim();
+  return declared === '' ? null : declared;
+}
+
+/** The first word that declares a diagram, past any directive above it. */
+function diagramKind(lines: string[]): string {
+  for (const line of lines) {
+    const word = line.trim().split(/\s/)[0] ?? '';
+    if (word !== '' && !word.startsWith(ACC_PREFIX)) {
+      return word.replace(/-v\d+$/, '');
+    }
+  }
+  return 'mermaid';
+}

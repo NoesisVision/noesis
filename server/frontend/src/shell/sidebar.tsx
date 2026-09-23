@@ -10,6 +10,7 @@ import { Text } from '#/shared/design-system/text';
 import {
   APP_PUBLIC_NAV,
   DESIGN_DOCS_NAV,
+  DOCUMENTS_NAV,
   type NavItem,
 } from '#/shell/navigation/nav-items.ts';
 import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
@@ -17,6 +18,48 @@ import classes from './sidebar.module.css';
 
 interface SidebarProps {
   onNavigate: () => void;
+}
+
+/** Where a named child of a change opens, one arm per group. */
+type ChangeChildLink =
+  | {
+      to: '/changes/$changeId/documents/$documentId';
+      params: { changeId: string; documentId: string };
+    }
+  | {
+      to: '/changes/$changeId/design-docs/$docId';
+      params: { changeId: string; docId: string };
+    };
+
+interface ChangeNavChild {
+  id: string;
+  name: string;
+  link: ChangeChildLink;
+}
+
+/** The views that name their own contents beneath them, by the view's path. */
+type ChangeNavChildren = Partial<Record<NavItem['to'], ChangeNavChild[]>>;
+
+function changeNavChildren(
+  change: ReturnType<typeof useChangeNavigation>['activeChange'],
+  changeId: string,
+): ChangeNavChildren {
+  return {
+    [DOCUMENTS_NAV.to]: (change?.documents ?? []).map((item) => ({
+      ...item,
+      link: {
+        to: '/changes/$changeId/documents/$documentId',
+        params: { changeId, documentId: item.id },
+      },
+    })),
+    [DESIGN_DOCS_NAV.to]: (change?.designDocs ?? []).map((item) => ({
+      ...item,
+      link: {
+        to: '/changes/$changeId/design-docs/$docId',
+        params: { changeId, docId: item.id },
+      },
+    })),
+  };
 }
 
 interface ChangeNavHeadingProps {
@@ -67,6 +110,8 @@ function ChangeNavHeading({
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { changes, activeChange } = useChangeNavigation();
   const { isActive } = useActiveRoute();
+  const params = { changeId: activeChange?.slug ?? '' };
+  const children = changeNavChildren(activeChange, params.changeId);
 
   return (
     <>
@@ -79,8 +124,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       </AppShell.Section>
       <AppShell.Section grow component={ScrollArea} px="xs">
         {APP_PUBLIC_NAV.changes.map((entry) => {
-          const params = { changeId: activeChange?.slug ?? '' };
-          if (entry.to !== DESIGN_DOCS_NAV.to) {
+          const items = children[entry.to];
+          if (!items) {
             return (
               <ChangeNavHeading
                 key={entry.to}
@@ -91,8 +136,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
               />
             );
           }
-
-          const items = activeChange?.designDocs ?? [];
 
           return (
             <Box
@@ -120,9 +163,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                       renderRoot={(props) => (
                         <Link
                           {...props}
+                          {...item.link}
                           className={clsx(classes.link, classes.subLink)}
-                          to="/changes/$changeId/design-docs/$docId"
-                          params={{ ...params, docId: item.id }}
                           activeOptions={{ exact: true }}
                         />
                       )}
