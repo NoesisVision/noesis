@@ -1,8 +1,5 @@
 #!/bin/sh
-# Pre-push: lint, Knip, format check, type check and unit/integration tests over
-# the whole repo (mirrors CI's root scripts). Commits are never blocked by these
-# checks; they run once, before the work leaves the machine.
-# `git push --no-verify` skips them.
+
 set -e
 
 # Hooks inherit the environment of whatever launched git, and a GUI client or an
