@@ -15,7 +15,7 @@ export function DocumentContent({
   return (
     <Stack component="article">
       <IconHeading title={doc.title} icon={IconFiles} description={doc.date} />
-      <Card withBorder radius="md">
+      <Card withBorder>
         {doc.content.trim() ? (
           // The editor reads its markdown once, so a different document is a
           // different editor rather than the same one told to change.
