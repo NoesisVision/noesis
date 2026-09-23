@@ -2,10 +2,11 @@
  * MDXEditor ships its own chrome and its own dark theme; only the typography
  * of the text being written is pulled back onto the app's scale.
  */
-.content {
+.content.content {
   font-family: var(--mantine-font-family);
   font-size: var(--mantine-font-size-sm);
   line-height: var(--mantine-line-height-md);
+  padding-top: 0;
 }
 
 /*
