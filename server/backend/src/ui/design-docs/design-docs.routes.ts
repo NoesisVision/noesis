@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { outlineOf } from '#backend/app/design-docs/design-doc-outline';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { inChange } from '../changes/in-change';
 
@@ -33,9 +34,12 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         if (detail === null) return c.json({ error: 'not_found' }, 404);
         // Encoded, so the client's type says what the JSON holds: element
         // ids as strings, not the value objects the service decodes them to.
+        // The outline beside it is the same document as a tree; the reader
+        // needs both at once, so they travel together.
         return c.json({
           summary: detail.summary,
           document: z.encode(DesignDocumentSchema, detail.document),
+          outline: outlineOf(detail.document),
         });
       });
     });

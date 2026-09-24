@@ -15,5 +15,5 @@ export function DesignDocDetail({
   // rendering, so nothing else is left to be in.
   if (!query.isSuccess)
     return <LoadingPanel label="Loading design document…" />;
-  return <DesignDocumentContent document={query.data} />;
+  return <DesignDocumentContent document={query.data.document} />;
 }

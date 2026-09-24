@@ -16,15 +16,18 @@ export const designDocsList = (change: string | null) =>
     },
   });
 
+/**
+ * The whole answer, not just the document: the tree the reader navigates by
+ * and the bodies it opens are one snapshot, and asking twice would give them
+ * two.
+ */
 export const designDocById = (change: string, id: string) =>
   queryOptions({
     queryKey: ['changes', change, 'design-docs', id] as const,
-    queryFn: async ({ signal }) => {
-      const data = await api.changes[':change']['design-docs'][':id'].$get(
+    queryFn: async ({ signal }) =>
+      api.changes[':change']['design-docs'][':id'].$get(
         { param: { change, id } },
         { init: { signal } },
-      );
-      return data.document;
-    },
+      ),
     retry: false,
   });
