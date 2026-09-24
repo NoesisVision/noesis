@@ -80,13 +80,15 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
    */
   useEffect(() => {
     if (selected === null) return;
-    const items = list.current?.querySelectorAll<HTMLElement>('[data-path]');
-    for (const item of items ?? []) {
-      if (item.dataset.path !== selected) continue;
-      const label = item.querySelector<HTMLElement>(':scope > [data-row]');
-      label?.scrollIntoView({ block: 'nearest' });
-      return;
-    }
+    setTimeout(() => {
+      const items = list.current?.querySelectorAll<HTMLElement>('[data-path]');
+      for (const item of items ?? []) {
+        if (item.dataset.path !== selected) continue;
+        const label = item.querySelector<HTMLElement>(':scope > [data-row]');
+        label?.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+    }, 0);
   }, [selected]);
 
   return (
