@@ -1,9 +1,4 @@
-/* Descriptions are written as prose and kept as written until they are
-   rendered as markdown. */
-.prose {
-  white-space: pre-wrap;
-}
-
+/* A long address wraps rather than pushing the panel wider than its column. */
 .breadcrumb {
   overflow-wrap: anywhere;
 }

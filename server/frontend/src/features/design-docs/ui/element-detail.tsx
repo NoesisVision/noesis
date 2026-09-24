@@ -4,6 +4,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
+import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -109,11 +110,11 @@ function Body({
     return <PartBody node={node} document={doc} />;
   }
   const module = findById(doc.modules, node.elementId);
-  if (module) return <ModuleBody module={module} />;
+  if (module) return <ModuleBody module={module} at={node.path} />;
   const block = findById(doc.buildingBlocks, node.elementId);
-  if (block) return <BuildingBlockBody block={block} />;
+  if (block) return <BuildingBlockBody block={block} at={node.path} />;
   const behaviour = findById(doc.behaviours, node.elementId);
-  if (behaviour) return <BehaviourBody behaviour={behaviour} />;
+  if (behaviour) return <BehaviourBody behaviour={behaviour} at={node.path} />;
   return (
     <Text c="dimmed">
       This design does not change it; it is here because the elements under it
@@ -122,20 +123,26 @@ function Body({
   );
 }
 
-function ModuleBody({ module }: { module: DesignedDomainModuleInput }) {
-  return (
-    <Text className={classes.prose}>
-      <Field field={module.description} />
-    </Text>
-  );
+function ModuleBody({
+  module,
+  at,
+}: {
+  module: DesignedDomainModuleInput;
+  at: string;
+}) {
+  return <Description field={module.description} at={at} />;
 }
 
-function BuildingBlockBody({ block }: { block: DesignedBuildingBlockInput }) {
+function BuildingBlockBody({
+  block,
+  at,
+}: {
+  block: DesignedBuildingBlockInput;
+  at: string;
+}) {
   return (
     <Stack gap="xs">
-      <Text className={classes.prose}>
-        <Field field={block.description} />
-      </Text>
+      <Description field={block.description} at={at} />
       {block.implements && block.implements.length > 0 && (
         <Text>Implements: {block.implements.map(addressOf).join(', ')}</Text>
       )}
@@ -143,7 +150,13 @@ function BuildingBlockBody({ block }: { block: DesignedBuildingBlockInput }) {
   );
 }
 
-function BehaviourBody({ behaviour }: { behaviour: DesignedBehaviourInput }) {
+function BehaviourBody({
+  behaviour,
+  at,
+}: {
+  behaviour: DesignedBehaviourInput;
+  at: string;
+}) {
   return (
     <Stack gap="xs">
       {(behaviour.actor?.value || behaviour.isPublic) && (
@@ -156,9 +169,7 @@ function BehaviourBody({ behaviour }: { behaviour: DesignedBehaviourInput }) {
           {behaviour.isPublic && <Badge variant="outline">public</Badge>}
         </Group>
       )}
-      <Text className={classes.prose}>
-        <Field field={behaviour.description} />
-      </Text>
+      <Description field={behaviour.description} at={at} />
       <Strings title="Input" set={behaviour.input} />
       <Strings title="Output" set={behaviour.output} />
       <Strings title="Uses" set={behaviour.usedBuildingBlocks} />
@@ -181,17 +192,25 @@ function PartBody({
 
   if (node.kind === 'property' && 'properties' in parts) {
     const property = findByName(parts.properties, node.name);
-    return property ? <PropertyBody property={property} /> : null;
+    return property ? (
+      <PropertyBody property={property} at={node.path} />
+    ) : null;
   }
   if (node.kind === 'rule') {
     const rule = findByName(parts.rules, node.name);
-    return rule ? <RuleBody rule={rule} /> : null;
+    return rule ? <RuleBody rule={rule} at={node.path} /> : null;
   }
   const scenario = findByName(parts.scenarios, node.name);
-  return scenario ? <ScenarioBody scenario={scenario} /> : null;
+  return scenario ? <ScenarioBody scenario={scenario} at={node.path} /> : null;
 }
 
-function PropertyBody({ property }: { property: DesignedPropertyInput }) {
+function PropertyBody({
+  property,
+  at,
+}: {
+  property: DesignedPropertyInput;
+  at: string;
+}) {
   return (
     <Stack gap="xs">
       <Text>
@@ -202,27 +221,25 @@ function PropertyBody({ property }: { property: DesignedPropertyInput }) {
           {property.nullable ? ' | null' : ''}
         </code>
       </Text>
-      <Text className={classes.prose}>
-        <Field field={property.description} />
-      </Text>
+      <Description field={property.description} at={at} />
     </Stack>
   );
 }
 
-function RuleBody({ rule }: { rule: DesignedRuleInput }) {
-  return (
-    <Text className={classes.prose}>
-      <Field field={rule.description} />
-    </Text>
-  );
+function RuleBody({ rule, at }: { rule: DesignedRuleInput; at: string }) {
+  return <Description field={rule.description} at={at} />;
 }
 
-function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
+function ScenarioBody({
+  scenario,
+  at,
+}: {
+  scenario: DesignedScenarioInput;
+  at: string;
+}) {
   return (
     <Stack gap="xs">
-      <Text className={classes.prose}>
-        <Field field={scenario.description} />
-      </Text>
+      <Description field={scenario.description} at={at} />
       <Text>
         <strong>Given</strong> <Field field={scenario.given} />
       </Text>
@@ -232,6 +249,38 @@ function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
       <Text>
         <strong>Then</strong> <Field field={scenario.then} />
       </Text>
+    </Stack>
+  );
+}
+
+/**
+ * A description is markdown, and the diagrams in it are drawn: it is the one
+ * field long enough to be written rather than named. The editor reads its
+ * markdown once, on mount, so another element is another editor — which is
+ * what mounting it under the element's own path says.
+ *
+ * `headingLevel` puts the document's own `#` at `h3`: the page is headed by
+ * the design, the panel by the element, and the prose nests under both.
+ */
+function Description({
+  field,
+  at,
+}: {
+  field: ReviewableInput | undefined;
+  at: string;
+}) {
+  const value = field?.value ?? null;
+  if (value === null || value.trim() === '') {
+    return <Text c="dimmed">Not specified.</Text>;
+  }
+  return (
+    <Stack gap="xs">
+      {field?.reviewedByHuman && (
+        <Badge size="xs" variant="light" w="fit-content">
+          reviewed
+        </Badge>
+      )}
+      <MarkdownEditor key={at} markdown={value} readOnly headingLevel={3} />
     </Stack>
   );
 }
