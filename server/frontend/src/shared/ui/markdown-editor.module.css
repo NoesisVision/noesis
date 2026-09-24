@@ -10,6 +10,18 @@
 }
 
 /*
+ * A document is hard-wrapped in its own file, and Lexical sets
+ * `white-space: pre-wrap` inline on the editor's root, so every newline the
+ * author typed becomes a break and the text reads at the width their editor
+ * happened to wrap at. Reading is not editing: the soft wraps collapse, the
+ * way every markdown renderer treats them, and the text fills the page.
+ * Only `!important` reaches an inline style.
+ */
+.reading.reading {
+  white-space: normal !important;
+}
+
+/*
  * A mermaid fence: its source and the picture it draws, side by side until the
  * column is too narrow to hold both.
  */

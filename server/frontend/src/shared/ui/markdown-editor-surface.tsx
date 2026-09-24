@@ -27,6 +27,7 @@ import {
   usePublisher,
 } from '@mdxeditor/editor';
 import { IconChartDots3 } from '@tabler/icons-react';
+import { clsx } from 'clsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import {
   MERMAID_LANGUAGE,
@@ -79,7 +80,10 @@ export default function MarkdownEditorSurface({
       // class, and the editor is the one part of the page Mantine does not
       // dress.
       className={scheme === 'dark' ? 'dark-theme' : undefined}
-      contentEditableClassName={classes.content}
+      contentEditableClassName={clsx(
+        classes.content,
+        readOnly && classes.reading,
+      )}
       plugins={documentPlugins(headingLevel, readOnly)}
     />
   );
