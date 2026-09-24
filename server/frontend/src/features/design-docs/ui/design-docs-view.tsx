@@ -6,6 +6,7 @@ import { CardLink } from '#/shared/ui/card-link.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { designDocsList } from '../design-docs.api.ts';
+import { DesignDocsIcon } from '../design-docs.model.ts';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs');
 
@@ -37,6 +38,7 @@ function DesignDocList({ changeId }: { changeId: string }) {
             to="/changes/$changeId/design-docs/$docId"
             params={{ changeId, docId: doc.id }}
             title={doc.name}
+            icon={DesignDocsIcon}
             description={doc.implemented ? 'Implemented' : 'Draft'}
           />
         </Grid.Col>

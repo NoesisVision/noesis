@@ -4,6 +4,7 @@ import {
   IconMoon,
   IconSun,
 } from '@tabler/icons-react';
+import noesisLogo from '#/noesis.png';
 import { ActionIcon } from '#/shared/design-system/action-icon';
 import { Burger } from '#/shared/design-system/burger';
 import {
@@ -14,7 +15,6 @@ import {
 import { Group } from '#/shared/design-system/group';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
-import { ThemeIcon } from '#/shared/design-system/theme-icon';
 
 interface ShellHeaderProps {
   navbarOpened: boolean;
@@ -35,11 +35,7 @@ export function ShellHeader({
           size="sm"
           aria-label="Toggle navigation"
         />
-        <ThemeIcon radius="sm" size="md" variant="filled">
-          <Text fw={700} size="sm" c="white">
-            N
-          </Text>
-        </ThemeIcon>
+        <img src={noesisLogo} alt="" width={28} height={28} />
         <Text fw={600}>Noesis</Text>
       </Group>
       <ColorSchemeToggle />

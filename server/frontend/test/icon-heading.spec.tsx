@@ -43,3 +43,16 @@ it('adds a line under the title only when a view needs one', () => {
   // No second line at all — `<p` would match the icon's own `<path>`.
   expect(bare).not.toContain('mantine-Text-root');
 });
+
+it('drops to the level it is given, keeping the type scale', () => {
+  const html = render(
+    <IconHeading
+      title="Payment retry policy"
+      icon={IconFiles}
+      headingLevel={3}
+    />,
+  );
+  // Heading a card inside a list, not the page the list is on.
+  expect(html).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
+  expect(html).not.toContain('<h1');
+});
