@@ -222,9 +222,14 @@ function splitOutsideBrackets(text: string, separator: RegExp): string[] {
   return parts.map((part) => part.trim()).filter((part) => part !== '');
 }
 
+/**
+ * The digits before the point are their own group and the ones after belong to
+ * the point, rather than `\d+\.?\d*` — there the two runs of digits can each
+ * claim the same characters, so a part that turns out not to be a length is
+ * re-split every way it can be before the match gives up.
+ */
+const LENGTH = /^-?(?:\d+(?:\.\d*)?|\.\d+)(?:px|rem|em|%)?$/;
+
 function isLength(part: string): boolean {
-  return (
-    part.startsWith('calc(') ||
-    /^-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em|%)?$/.test(part)
-  );
+  return part.startsWith('calc(') || LENGTH.test(part);
 }
