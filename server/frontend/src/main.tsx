@@ -7,6 +7,7 @@ import { MantineProvider } from '#/shared/design-system/provider';
 import { colorSchemeManager, theme } from '#/shared/design-system/theme';
 import { configureLogging } from '#/shared/logging.ts';
 import { getContext } from '#/shared/query/query-client.tsx';
+import { DateFormatProvider } from '#/shared/ui/date-format-provider.tsx';
 import '#/shared/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
@@ -30,7 +31,9 @@ createRoot(rootElement).render(
       colorSchemeManager={colorSchemeManager}
     >
       <QueryClientProvider client={context.queryClient}>
-        <RouterProvider router={router} />
+        <DateFormatProvider>
+          <RouterProvider router={router} />
+        </DateFormatProvider>
       </QueryClientProvider>
     </MantineProvider>
   </StrictMode>,

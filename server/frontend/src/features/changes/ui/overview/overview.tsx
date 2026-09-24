@@ -7,6 +7,7 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { CardLink } from '#/shared/ui/card-link.tsx';
+import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { useChangeId } from '../../current-change.ts';
 import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
@@ -57,7 +58,7 @@ export function OverviewView() {
                     params={{ changeId, documentId: document.id }}
                     title={document.title}
                     icon={DocumentsIcon}
-                    description={document.date}
+                    description={<FormattedDate value={document.date} />}
                     headingLevel={3}
                   />
                 ),

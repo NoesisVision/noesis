@@ -3,6 +3,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Stack } from '#/shared/design-system/stack';
 import { CardLink } from '#/shared/ui/card-link.tsx';
+import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { documentsList } from '../documents.api.ts';
@@ -39,7 +40,7 @@ function DocumentList({ changeId }: { changeId: string }) {
             params={{ changeId, documentId: doc.id }}
             title={doc.title}
             icon={DocumentsIcon}
-            description={doc.date}
+            description={<FormattedDate value={doc.date} />}
           />
         </Grid.Col>
       ))}
