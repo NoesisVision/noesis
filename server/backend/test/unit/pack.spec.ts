@@ -24,7 +24,7 @@ afterAll(async () => {
   if (workDir) await rm(workDir, { recursive: true, force: true });
 });
 
-test('the packed tarball is bunx-installable: one bin, the ui, one native dep', async () => {
+test('the packed tarball is bunx-installable: one bin, the ui, no dependencies', async () => {
   workDir = await mkdtemp(join(tmpdir(), 'noesis-service-pack-'));
 
   const pack = spawnSync('bun', ['pm', 'pack', '--destination', workDir], {
@@ -69,10 +69,8 @@ test('the packed tarball is bunx-installable: one bin, the ui, one native dep', 
   const manifest = JSON.parse(
     await readFile(join(packageDir, 'package.json'), 'utf8'),
   ) as Record<string, unknown>;
-  expect(Object.keys(manifest.dependencies as object)).toEqual([
-    '@ladybugdb/core',
-  ]);
-  expect(manifest.trustedDependencies).toEqual(['@ladybugdb/core']);
+  expect(manifest.dependencies).toBeUndefined();
+  expect(manifest.trustedDependencies).toBeUndefined();
   expect(manifest.bin).toEqual({ noesis: 'dist/main.js' });
   expect(JSON.stringify(manifest)).not.toContain('workspace:');
   expect(JSON.stringify(manifest)).not.toContain('catalog:');

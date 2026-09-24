@@ -249,9 +249,9 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
   }, 15_000);
 });
 
-// The heavy half — database, graph index, watcher, page — waits for a session,
-// so the SDK's throwaway era probe never pays for one.
-describe('the graph and ui half (e2e)', () => {
+// The ui waits for a session, so the SDK's throwaway era probe never binds a
+// port or opens a browser.
+describe('the ui half (e2e)', () => {
   let service: Service;
 
   beforeAll(async () => {

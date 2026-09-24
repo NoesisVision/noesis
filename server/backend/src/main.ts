@@ -6,15 +6,11 @@ import './bundle-cwd';
 import { join } from 'node:path';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { version } from '../package.json';
-import { createGraphSearch } from './adapters/graph/graph-search';
-import { IndexService } from './adapters/graph/index.service';
-import { SchemaService } from './adapters/graph/schema.service';
 import { createMcpServer } from './adapters/mcp/mcp-server';
 import { ServingTransport } from './adapters/mcp/serving-transport';
 import { NoesisChangesRepository } from './adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
 import { NoesisDocumentsRepository } from './adapters/store/documents.repository';
-import { createSystemModelStore } from './adapters/store/system-model.store';
 import { createApp } from './app';
 import { ChangesService } from './app/changes/changes.service';
 import { DesignDocsService } from './app/design-docs/design-docs.service';
@@ -23,23 +19,20 @@ import { SearchService } from './app/search/search.service';
 import { openBrowser } from './browser';
 import { launchCwd } from './bundle-cwd';
 import { loadServerConfig } from './platform/config/config';
-import { DatabaseService } from './platform/database/database.service';
 import { NoesisDir } from './platform/files/noesis-dir';
 import { RepositoryRoot } from './platform/files/repository-root';
 import { SessionDir } from './platform/files/session-dir';
-import { NoesisWatcher } from './platform/files/watcher';
 import { StaticAssets } from './platform/http/static-assets';
 import {
   configureLogging,
   disposeLogging,
   serverLogger,
 } from './platform/logging/logging';
-import { ensureLadybugBinary } from './platform/native/ensure-ladybug';
 
 // Boot is in two halves. This one is the MCP surface and costs milliseconds,
 // because on the modern era the SDK spawns a throwaway sibling process from
-// the same command to probe the protocol, and that process must not pay for a
-// session it will never serve.
+// the same command to probe the protocol, and that process must not bind a
+// port or open a browser for a session it will never serve.
 
 const config = loadServerConfig();
 
@@ -79,7 +72,7 @@ const documentsService = new DocumentsService(
 // `serveStdio` owns the transport and the era negotiation: the opening
 // exchange picks the protocol revision and pins one server to it for the
 // connection. The transport is ours only so that the first message that is
-// not `server/discover` can start the other half.
+// not `server/discover` can start the ui.
 const mcp = serveStdio(
   () =>
     createMcpServer({
@@ -91,7 +84,7 @@ const mcp = serveStdio(
       documentsService,
     }),
   {
-    transport: new ServingTransport(() => startGraphAndUi()),
+    transport: new ServingTransport(() => startUi()),
     onerror: (error) => {
       log.error('the MCP transport reported {error}', { error: String(error) });
     },
@@ -104,57 +97,34 @@ process.stdin.once('end', () => {
 });
 log.info('MCP server serving on stdio');
 
-interface GraphAndUi {
-  watcher: NoesisWatcher;
-  db: DatabaseService;
-  server: ReturnType<typeof Bun.serve>;
-}
+type UiServer = ReturnType<typeof Bun.serve>;
 
-// Declared before the first `startGraphAndUi()` call, which a terminal on
-// stdin makes during module evaluation.
-let graphAndUi: Promise<GraphAndUi | null> | undefined;
+// Declared before the first `startUi()` call, which a terminal on stdin makes
+// during module evaluation.
+let uiServer: Promise<UiServer | null> | undefined;
 let shuttingDown = false;
 
 // A terminal on stdin means nobody is speaking MCP — `bun run dev`, or the bin
 // started by hand — and the page is the whole point of that run.
-if (process.stdin.isTTY) startGraphAndUi();
+if (process.stdin.isTTY) startUi();
 
 /**
- * The heavy half: the database, the graph index, the watcher and the page.
- * Nothing waits on it — both tools run on the file repositories alone — so a
- * session's first request is answered while this comes up behind it, and a
- * failure here leaves the tools serving rather than killing the session.
+ * The other half: the page and its routes. Nothing waits on it — the tools run
+ * on the file repositories alone — so a session's first request is answered
+ * while this comes up behind it, and a failure here leaves the tools serving
+ * rather than killing the session.
  */
-function startGraphAndUi(): void {
+function startUi(): void {
   if (shuttingDown) return;
-  graphAndUi ??= openGraphAndUi().catch((error) => {
-    log.error('the graph and ui half did not start: {error}', {
-      error: String(error),
-    });
+  uiServer ??= openUi().catch((error) => {
+    log.error('the ui did not start: {error}', { error: String(error) });
     return null;
   });
 }
 
-async function openGraphAndUi(): Promise<GraphAndUi> {
-  ensureLadybugBinary();
-  const db = new DatabaseService();
-  await db.init();
-  await new SchemaService(db).ensureSchema();
-
-  const indexer = new IndexService(db, {
-    changes: changesRepository,
-    designDocs: designDocsRepository,
-    documents: documentsRepository,
-    systemModels: createSystemModelStore(noesis),
-  });
-  // Watching before the first build: a file that changes during the build then
-  // queues a second one, instead of slipping through the gap.
-  const watcher = new NoesisWatcher(noesis, () => indexer.rebuild());
-  watcher.start();
-  await indexer.rebuild();
-
+async function openUi(): Promise<UiServer> {
   const app = createApp({
-    searchService: new SearchService([createGraphSearch(db)]),
+    searchService: new SearchService(),
     changesService,
     designDocsService,
     documentsService,
@@ -185,7 +155,7 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
   // The e2e specs and a person alike find the UI by this line.
   log.info('listening on {url}', { url });
   if (config.openBrowser) openBrowser(url);
-  return { watcher, db, server };
+  return server;
 }
 
 /**
@@ -212,25 +182,18 @@ function loadRepositoryRoot(): string {
   return result.root;
 }
 
-// The database closes last, deterministically, to release its native handles.
 async function shutdown(exitCode = 0): Promise<void> {
-  // Two `db.close()` calls racing on one native handle is undefined behaviour.
   if (shuttingDown) return;
   shuttingDown = true;
-  // The heavy half may still be coming up; let it finish, or nothing here
-  // knows what is holding the database and the port.
-  const half = graphAndUi === undefined ? null : await graphAndUi;
-  half?.watcher.close();
+  // The ui may still be coming up; let it finish, or nothing here knows what
+  // is holding the port.
+  const server = uiServer === undefined ? null : await uiServer;
   try {
     await mcp.close();
-    await half?.server.stop();
+    await server?.stop();
     await session.dispose();
   } catch (error) {
-    log.error('shutdown failed before the database closed: {error}', {
-      error: String(error),
-    });
-  } finally {
-    await half?.db.close();
+    log.error('shutdown failed: {error}', { error: String(error) });
   }
   await disposeLogging();
   process.exit(exitCode);
@@ -240,8 +203,7 @@ for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
 }
 
 // Nothing in the process is trusted after either of these, so the session
-// ends — but through `shutdown()`, so `.noesis/logs/` says why and the
-// database still closes.
+// ends — but through `shutdown()`, so `.noesis/logs/` says why.
 process.on('uncaughtException', (error) => crashed('exception', error));
 process.on('unhandledRejection', (reason) => crashed('rejection', reason));
 

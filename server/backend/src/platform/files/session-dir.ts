@@ -25,8 +25,8 @@ export interface SessionDirOptions {
 }
 
 /**
- * MCP messages carry paths into this scratch area, not content.
- * The watcher ignores `sessions/`, so nothing written here reaches the graph.
+ * MCP messages carry paths into this scratch area, not content. Nothing
+ * written here is graph content.
  */
 export class SessionDir {
   readonly id: string;

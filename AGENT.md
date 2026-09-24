@@ -34,28 +34,25 @@ Single test: run `bun test` inside the package with a path and/or name filter, e
 ```sh
 cd server/backend && bun test test/unit/session-dir.spec.ts
 cd server/backend && bun test test/unit -t "rejects"
-cd server/backend && bun run test:bench          # indexer benchmark (1k/10k files)
 cd server/frontend && bun run generate-routes    # tsr generate → src/routeTree.gen.ts (committed)
 cd server/frontend && bun run build:spa          # vite build → server/frontend/dist (the page the service serves)
 ```
 
 Filter a root script to one package: `bun run --filter=@noesis-vision/noesis build`.
 
-`@ladybugdb/core` is a native module (`trustedDependencies`); `ensureLadybugBinary()` in `platform/native` copies the platform binary at boot when bun skipped the postinstall; it stages beside the target and renames, and re-copies a short file, because a boot killed mid-copy must not leave a truncated binary that every later boot trusts. `bun run setup:openssl` installs OpenSSL via Homebrew if the native build needs it.
-
 ## Architecture in one paragraph
 
-The agent host starts **one stdio MCP process per session** (`server/backend/src/main.ts` is the composition root). That process locates the repo (`NOESIS_ROOT`, else nearest `.git`), owns `.noesis/` (`graph/` = one `<id>.<kind>.json` per entity, a change's documents and design docs in `graph/changes/<change>/` beside `<change>.change.json`, `sessions/<session>/` scratch, `logs/`), indexes the files into an **in-memory LadybugDB graph that is only a cache** (rebuilt at boot and by a file watcher on every change, including ones Noesis did not make), serves the SPA and `/ui` + `/internal` routes on an ephemeral loopback port, and exits when the host closes stdin. stdout is the MCP transport — never log to it. Files are the source of truth; last write wins across sessions.
+The agent host starts **one stdio MCP process per session** (`server/backend/src/main.ts` is the composition root). That process locates the repo (`NOESIS_ROOT`, else nearest `.git`), owns `.noesis/` (`graph/` = one `<id>.<kind>.json` per entity, a change's documents and design docs in `graph/changes/<change>/` beside `<change>.change.json`, `sessions/<session>/` scratch, `logs/`), reads them directly on every request (no index, no watcher), serves the SPA and `/ui` + `/internal` routes on an ephemeral loopback port, and exits when the host closes stdin. stdout is the MCP transport — never log to it. Files are the source of truth; last write wins across sessions.
 
 ### Backend layers (`server/backend/src`, enforced by Oxlint)
 
-| Layer    | Folder                                                                                    | May import                     |
-| -------- | ----------------------------------------------------------------------------------------- | ------------------------------ |
-| platform | `platform/` (files, database, logging, crypto, config, native)                            | platform only                  |
-| app      | `app/` (the domain model and its zod schemas, services, ports, file contracts)            | app                            |
-| adapters | `adapters/` (`store/` over `JsonCollection`, `graph/` over LadybugDB, `mcp/`, `scanner/`) | adapters, app, platform        |
-| ui       | `ui/` (Hono `/ui` and `/internal` routes)                                                 | ui, app, platform              |
-| root     | `src/*.ts`                                                                                | everything; nothing imports it |
+| Layer    | Folder                                                                         | May import                     |
+| -------- | ------------------------------------------------------------------------------ | ------------------------------ |
+| platform | `platform/` (files, http, logging, config)                                     | platform only                  |
+| app      | `app/` (the domain model and its zod schemas, services, ports, file contracts) | app                            |
+| adapters | `adapters/` (`store/` over `JsonCollection`, `mcp/`)                           | adapters, app, platform        |
+| ui       | `ui/` (Hono `/ui` and `/internal` routes)                                      | ui, app, platform              |
+| root     | `src/*.ts`                                                                     | everything; nothing imports it |
 
 `adapters` and `ui` never import each other; `import/no-cycle` is an error. Cross-directory imports use the `#backend/*` alias (extensionless), relative only within a directory. There is no contracts barrel — import `#backend/app/<feature>/<file>` directly.
 
@@ -67,7 +64,7 @@ Keep the `.route()` chains in `app.ts` and `ui.routes.ts` unbroken: `app.types.t
 
 Every knowledge-graph file shape is a zod schema in its feature folder, `server/backend/src/app/<feature>/`, next to the services and domain objects that use it; no folder is reserved for schemas, and its inferred type is the domain model. They must stay **declarative** (object shapes, enums, `.describe()`; no refinements or transforms) because the JSON Schema an agent reads is generated from them, and JSON Schema would drop a refinement or transform silently (`test/unit/contracts-json-schema.spec.ts` refuses one). The contracts that ship are listed in `server/backend/tools/contracts.ts`, by the name they ship under; add a line there when a skill needs a new one. `bun run contracts <dir>` writes them, and the plugin's `bun run build` calls it into `plugins/claude-code/contracts/` (gitignored). Only schemas ship; a domain object beside them, like `DocumentId`, stays in the service. Contract specs live in `test/unit/contracts-*.spec.ts`. A route that writes a file gives its schema to `sValidator`. Whole-document rules a schema cannot express have no home today: the design document's integrity pass went with its authoring tool and comes back with it.
 
-Backend code reachable from `AppType` (routes, services, contracts) must be runtime-neutral (ECMAScript + Web APIs only) because the frontend type-checks it without Bun/Node types — e.g. ids come from `uuid` v7, not `Bun.randomUUIDv7()`; `node:crypto` hashing lives in `platform/crypto` and only adapters import it.
+Backend code reachable from `AppType` (routes, services, contracts) must be runtime-neutral (ECMAScript + Web APIs only) because the frontend type-checks it without Bun/Node types — e.g. ids come from `uuid` v7, not `Bun.randomUUIDv7()`.
 
 ### Frontend (`server/frontend`)
 

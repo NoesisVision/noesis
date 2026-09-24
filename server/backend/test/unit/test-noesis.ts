@@ -1,14 +1,9 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { IndexerSources } from '#backend/adapters/graph/index.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
 import { NoesisDocumentsRepository } from '#backend/adapters/store/documents.repository';
-import {
-  createSystemModelStore,
-  type SystemModelStore,
-} from '#backend/adapters/store/system-model.store';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
@@ -32,8 +27,6 @@ export interface TestNoesis {
   changesRepository: NoesisChangesRepository;
   designDocsRepository: NoesisDesignDocsRepository;
   documentsRepository: NoesisDocumentsRepository;
-  systemModels: SystemModelStore;
-  sources: IndexerSources;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: DocumentsService;
@@ -61,7 +54,6 @@ export async function testNoesis(): Promise<TestNoesis> {
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new NoesisDesignDocsRepository(noesis);
   const documentsRepository = new NoesisDocumentsRepository(noesis);
-  const systemModels = createSystemModelStore(noesis);
   const changesService = new ChangesService(
     changesRepository,
     designDocsRepository,
@@ -73,13 +65,6 @@ export async function testNoesis(): Promise<TestNoesis> {
     changesRepository,
     designDocsRepository,
     documentsRepository,
-    systemModels,
-    sources: {
-      changes: changesRepository,
-      designDocs: designDocsRepository,
-      documents: documentsRepository,
-      systemModels,
-    },
     changesService,
     designDocsService: new DesignDocsService(
       designDocsRepository,

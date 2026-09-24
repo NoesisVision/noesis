@@ -2,6 +2,11 @@
 
 Target architecture. The flowchart below is the diagram.
 
+**Not yet present:** the knowledge graph database, the file watcher and the source code scanner
+are part of the target but not of the service today; they will be added in future. Until then,
+services read the JSON files directly through the file repositories, and nothing indexes them or
+writes `system-models/`.
+
 Noesis turns documents and design drafts into a queryable knowledge graph, and drives
 design and implementation work from it. Everything runs on the user's machine — there is no
 server component and no network dependency.
@@ -104,12 +109,12 @@ Both land on the same service layer. Neither bypasses it.
   repositories, and the only component both entry points can see.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
   kind, each responsible for its own canonical paths and file format.
-- **Knowledge graph** is an embedded in-memory database used as a cache over the JSON files in
+- **Knowledge graph** _(not yet present)_ is an embedded in-memory database used as a cache over the JSON files in
   the repository. It is never authoritative: it is rebuilt from the files at every boot and
   nothing of it touches the disk.
-- **File watcher** observes the knowledge graph files and re-indexes into the graph when they
+- **File watcher** _(not yet present)_ observes the knowledge graph files and re-indexes into the graph when they
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
-- **Source code scanner** reads the project source and projects the implemented model into the
+- **Source code scanner** _(not yet present)_ reads the project source and projects the implemented model into the
   graph and into the system model files.
 
 ## Source of truth
@@ -179,8 +184,8 @@ every kind:
   not a file move.
 - **The file name is the key.** The entity's id names its file and repeats in its body; a
   mismatch is a validation failure, so a hand-renamed file never answers to two ids. Ids match
-  `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it;
-  the indexer logs it and skips that one list, so the rebuild itself never fails.
+  `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it,
+  never silently answers as absent.
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
   source imported twice lands under the same id rather than beside itself. A change, a document
   and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
@@ -261,7 +266,7 @@ that the file name matches the id.
    again; nothing was written.
 5. The service writes the knowledge graph files at the id the file carries, through the
    repositories, and answers whether it created or updated the entity.
-6. The watcher picks up the change and re-indexes the graph.
+6. The watcher picks up the change and re-indexes the graph _(not yet present)_.
 7. The UI and subsequent agent queries read the updated graph.
 
 ## Boundaries

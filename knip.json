@@ -3,8 +3,6 @@
   // Prototypes and prior art under docs/ are reference material, not code
   // (Oxlint skips them too).
   "ignore": ["docs/**/prior-art/**", "docs/**/prototypes/**"],
-  // setup:openssl calls Homebrew, which is not an npm binary.
-  "ignoreBinaries": ["brew"],
   "workspaces": {
     "server/backend": {
       // Type-only tests are checked by tsc and never imported. The design
