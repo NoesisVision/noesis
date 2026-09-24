@@ -4,7 +4,7 @@ import type { ZodType } from 'zod';
 import { JsonFileError, parseJson, writeJsonFile } from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
-const ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 /** Ids are ASCII, so code-unit order is alphabetical without a locale. */
 function byCodeUnit(a: string, b: string): number {
@@ -45,9 +45,9 @@ export class JsonCollection<T extends { id: string }> {
   }
 
   private pathOf(id: string): string {
-    if (!ID_PATTERN.test(id)) {
+    if (!FILE_NAME_PATTERN.test(id)) {
       throw new Error(
-        `Invalid id ${JSON.stringify(id)}; ids match ${ID_PATTERN}.`,
+        `Invalid id ${JSON.stringify(id)}; ids match ${FILE_NAME_PATTERN}.`,
       );
     }
     return join(this.dir, `${id}${this.suffix}`);
@@ -58,10 +58,10 @@ export class JsonCollection<T extends { id: string }> {
       name.endsWith(this.suffix),
     );
     for (const name of names) {
-      if (!ID_PATTERN.test(name.slice(0, -this.suffix.length))) {
+      if (!FILE_NAME_PATTERN.test(name.slice(0, -this.suffix.length))) {
         throw new JsonFileError(
           join(this.dir, name),
-          `the file name is not an id; ids match ${ID_PATTERN}.`,
+          `the file name is not an id; ids match ${FILE_NAME_PATTERN}.`,
         );
       }
     }
