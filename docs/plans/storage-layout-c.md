@@ -1,29 +1,35 @@
-# Plan: flat per-change storage with uuid ids
+# Plan: flat per-change storage with dated slug ids
 
 Replace the generic nested `NoesisStore` with a small `JsonCollection` over one
-JSON file per entity, key every entity by a uuidv7, and read graph files and
-session working files through one codec.
+JSON file per entity, key every change, document and design doc by its creation
+date plus a slug of its title (`2026-09-24-payment-retry`), and read graph
+files and session working files through one codec.
 
 ## Decisions
 
-| Topic           | Decision                                                                                                                                                           |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Layout          | C: one folder per change, entity kind in the file name                                                                                                             |
-| Store API       | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`                                                 |
-| Sharing         | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                                                                 |
-| Session dir     | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path                                    |
-| Ids             | uuidv7 only, for changes, documents and design docs; slugs are removed                                                                                             |
-| Who mints ids   | The writer of the file: the agent (or its skill script) puts `id` in the body. Every entity, the change included, reaches the server as a session file             |
-| Get by id       | Nested: `get(changeId, id)` reads one known path; HTTP routes stay `/changes/:changeId/documents/:id`                                                              |
-| Existing id     | Upsert within its change; the same id already stored under another change is refused                                                                               |
-| Change upsert   | The agent's file carries `name`, `key`, `type`, `description`; the server sets `status = discovery` and `created_at` on first write and keeps both on later writes |
-| Document titles | Free text up to 200 characters, duplicates allowed; `DuplicateDocumentError` and title-derived ids go away                                                         |
-| Change keys     | The tracker `key` may repeat across changes; no uniqueness check                                                                                                   |
-| Tool names      | `save_change`, `save_document`, `save_design_doc` (every write is an upsert); skills renamed to match                                                              |
-| Bad graph file  | `list()` and `get()` throw (no skipping)                                                                                                                           |
-| Scope           | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                                                            |
-| Migration       | None: old `graph/changes/<slug>/data.json` folders are dev data, deleted by hand                                                                                   |
-| HTTP            | The UI surface is read only, so no HTTP route writes; only route params change from slugs to uuids                                                                 |
+| Topic            | Decision                                                                                                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout           | C: one folder per change, entity kind in the file name                                                                                                                                                          |
+| Store API        | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`                                                                                              |
+| Sharing          | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                                                                                                              |
+| Session dir      | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path                                                                                 |
+| Ids              | `YYYY-MM-DD-<slug>`: the creation date, then a slug of the change's `name` or the document's or design doc's `title`. One shape for changes, documents and design docs; the system model keeps its content hash |
+| Id scope         | A change id is unique among changes; a document or design-doc id is unique only within its change (the same `2026-09-24-main` may exist in two changes)                                                         |
+| Why dated        | Fewer collisions than a bare slug, file names sort by creation date, and the files stay readable when edited by hand                                                                                            |
+| Who mints ids    | The writer of the file: a plugin script derives the id from the title and today's date and puts it in the body. Every entity, the change included, reaches the server as a session file                         |
+| Existing id      | Every save is an upsert: an id already on disk is an update. The same title on the same day therefore overwrites the earlier entity; the scripts warn when the target file already exists                       |
+| Id stability     | Immutable: the id is minted once, at creation, and never re-derived. A title or name change is an ordinary update at the same id; the file name keeps the original title                                        |
+| Get by id        | Nested: `get(changeId, id)` reads one known path; HTTP routes stay `/changes/:changeId/documents/:id`                                                                                                           |
+| Change upsert    | The agent's file carries `id`, `name`, `key`, `type`, `description`; the server sets `status = discovery` and `created_at` on first write and keeps both on later writes                                        |
+| Design doc title | New `title` field, default `main`. A change holds at most one design doc titled `main`, so the second design doc needs a title                                                                                  |
+| Document titles  | Free text up to 200 characters, duplicates allowed on different days; `DuplicateDocumentError` and title-only ids go away                                                                                       |
+| Change keys      | The tracker `key` may repeat across changes; no uniqueness check                                                                                                                                                |
+| Default order    | Collections list by id, so by creation date, then title                                                                                                                                                         |
+| Tool names       | `save_change`, `save_document`, `save_design_doc` (every write is an upsert); skills renamed to match                                                                                                           |
+| Bad graph file   | `list()` and `get()` throw (no skipping)                                                                                                                                                                        |
+| Scope            | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                                                                                                         |
+| Migration        | None: old `graph/changes/<slug>/` folders (`data.json`, nested documents) are dev data, deleted by hand                                                                                                         |
+| HTTP             | The UI surface is read only, so no HTTP route writes; route params become dated ids                                                                                                                             |
 
 ## Layout
 
@@ -31,10 +37,10 @@ session working files through one codec.
 .noesis/
   graph/
     changes/
-      <changeId>/
+      <changeId>/                               # 2026-09-24-payment-retry/
         change.json
-        <designDocId>.design-doc.json
-        <documentId>.document.json
+        <designDocId>.design-doc.json           # 2026-09-24-main.design-doc.json
+        <documentId>.document.json              # 2026-09-25-meeting-notes.document.json
     system-models/
       <systemModelId>.system-model.json
   sessions/
@@ -42,7 +48,8 @@ session working files through one codec.
       anything.json            # free form; the tool says which kind it is
 ```
 
-- The file name repeats the id in the body. On read, a mismatch between the
+- The file name repeats the id in the body (for `change.json`, the folder name
+  does). On read, a mismatch between the
   file name and `body.id` is a validation failure (a hand-renamed file must not
   silently answer to two ids).
 - Use case 4 (summary of a change) is one `readdir` of `changes/<changeId>/`:
@@ -52,36 +59,64 @@ session working files through one codec.
 
 ## Ids
 
-New value objects, following the `value-objects` skill (branded Zod schema plus
-factories, as `ChangeSlug` does today):
+One shape, three brands. A shared helper in `app/ids/dated-id.ts` builds the
+schema; each entity gets its own value object, following the `value-objects`
+skill:
 
 ```ts
+// app/ids/dated-id.ts
+/** Room for the date prefix inside the 64 characters a path segment gets. */
+const MAX_LENGTH = 64;
+const DATED_ID_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function datedIdSchema(subject: string) {
+  return z
+    .string()
+    .max(MAX_LENGTH)
+    .regex(
+      DATED_ID_PATTERN,
+      `Invalid ${subject} id: expected e.g. '2026-09-24-payment-retry'`,
+    )
+    .refine(
+      (id) => z.iso.date().safeParse(id.slice(0, 10)).success,
+      'Not a real date',
+    )
+    .describe(
+      `A ${subject}'s id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Names its file.`,
+    );
+}
+
 // app/changes/change-id.ts
-const changeIdSchema = z
-  .uuid({ version: 'v7' })
-  .describe(
-    "A change's id: a uuidv7, e.g. '01a0d22d-7f47-76b9-abd4-bd21d66a1d17'. Names the change's directory.",
-  )
-  .brand<'ChangeId'>();
-export const ChangeId = Object.assign(changeIdSchema, {
-  mint: () => changeIdSchema.parse(uuidv7()),
-});
+const changeIdSchema = datedIdSchema('change').brand<'ChangeId'>();
+export const ChangeId = changeIdSchema;
 export type ChangeId = z.infer<typeof changeIdSchema>;
 ```
 
-- `ChangeId` in `app/changes/change-id.ts`
+- `ChangeId` in `app/changes/change-id.ts` (replaces `ChangeSlug`)
 - `DesignDocId` in `app/design-docs/design-doc-id.ts`
 - `DocumentId` in `app/information-sources/document-id.ts` (rewritten; the
   title slugging and `TITLE_PATTERN` go)
-- A uuid is only hex digits and dashes, so it can never climb out of a
-  directory; the path-safety argument the slugs made still holds.
-- `mint()` is used only by tests and fixtures: production ids come from files.
-- The system model keeps its own id (a content hash shaped as a uuid, not v7):
-  `SystemModelSchema.id` stays a plain string, validated as a file-name-safe
-  uuid by the collection.
+- Only `[a-z0-9-]`, so an id can never climb out of a directory.
+- An id is immutable. The server never derives or changes one: it only
+  validates it, and a save at an existing id updates that entity whatever its
+  new title. Updating means reusing the stored id; the scripts take `--id` for
+  that and never re-slug the title. The file name can therefore drift from
+  the current title, by design.
+- Minting is the plugin's job. The slugify rules
+  (NFKD, strip marks, transliterate `ł`, `ß`, …, kebab-case, `untitled`
+  fallback) move to the plugin (see Plugin skills). The slug part is cut so
+  the whole id fits in 64 characters.
+- The date is the writer's local date, taken when the script mints the id. The
+  server does not compare it with `created_at` (a change created just after
+  midnight UTC may differ by a day).
+- Tests and fixtures use literal ids (`'2026-01-01-payment-retry'`); there is
+  no `mint()`.
+- The system model keeps its own id (a content hash): it has no title and is
+  never edited by hand. `SystemModelSchema.id` stays a plain string,
+  validated as a file-name-safe id by the collection.
 
 Removed: `change-slug.ts`, `ChangeSlug`, `DocumentId.fromTitle`,
-`change-slug.spec.ts`, `document-id.spec.ts` (rewritten for the uuid VO).
+`change-slug.spec.ts`, `document-id.spec.ts` (rewritten for the dated VO).
 
 ## Models
 
@@ -89,7 +124,7 @@ Removed: `change-slug.ts`, `ChangeSlug`, `DocumentId.fromTitle`,
 
 ```ts
 export const ChangeSchema = z.object({
-  id: ChangeId,
+  id: ChangeId, // was `slug`
   name,
   key,
   type,
@@ -114,13 +149,18 @@ export const ChangeFileSchema = ChangeSchema.pick({
 
 - `document_id` is renamed to `id: DocumentId`, matching the other entities.
 - `title`: `z.string().trim().min(1).max(200)`; the pattern that guaranteed a
-  slug goes.
+  slug goes (the script falls back to `untitled` for the id).
+- `date` stays: when the document was last revised, independent of the
+  creation date in its id.
 - `CreateDocumentSchema` goes: the working file is the whole `DocumentSchema`,
   id included.
 
 ### Design document (`app/design-docs/design-doc.ts`)
 
 - `id: DesignDocId` instead of `z.string()`.
+- New `title: z.string().trim().min(1).max(120).default('main')`: what the
+  change calls this design doc. It is not a reviewable field (unlike `name`,
+  which stays).
 - `CreateDesignDocumentSchema` goes: the working file is the whole
   `DesignDocumentSchema`.
 
@@ -155,7 +195,7 @@ export const ChangeEntrySchema = z.discriminatedUnion('kind', [
 a failure is a message to the agent or an exception text, so there is no
 structured issue list. `app/validation/validator.ts` and its spec are deleted;
 Zod 4's `z.prettifyError` does the formatting (issue message plus path, e.g.
-`✖ Invalid UUID → at id`).
+`✖ Invalid change id: expected e.g. '2026-09-24-payment-retry' → at id`).
 
 ```ts
 /** Unreadable file, broken JSON or schema failure, as one message. */
@@ -227,7 +267,7 @@ export function folderFiles(dir: string, fileName: string): Placement;
 export class JsonCollection<T extends { id: string }> {
   constructor(schema: ZodType<T>, placement: Placement);
   get(id: string): Promise<T | null>; // null when absent, JsonFileError when broken
-  list(): Promise<T[]>; // unordered; throws on the first broken file
+  list(): Promise<T[]>; // sorted by id; throws on the first broken file
   save(entity: T): Promise<void>; // path from entity.id
   delete(id: string): Promise<boolean>;
   pathOf(id: string): string;
@@ -237,6 +277,7 @@ export class JsonCollection<T extends { id: string }> {
 - `ids()` filters directory entries by the suffix (flat) or by the presence of
   `fileName` (folder); a directory that does not exist yields `[]`.
 - Temp files (`*.tmp`) never match the suffix, so they are never listed.
+- `list()` sorts by id, so every list is in creation-date order by default.
 - Reading a file also checks `body.id === id` from the name; a mismatch is a
   `JsonFileError` (a hand-renamed file must not answer to two ids). This is
   the only graph-side check the session side does not share.
@@ -257,8 +298,6 @@ interface DesignDocsRepository {
   get(change: ChangeId, id: DesignDocId): Promise<DesignDocument | null>;
   list(change: ChangeId): Promise<DesignDocument[]>;
   save(change: ChangeId, doc: DesignDocument): Promise<void>;
-  /** The change holding this id, if any: the cross-change upsert guard. */
-  changeOf(id: DesignDocId): Promise<ChangeId | null>;
   pathOf(change: ChangeId, id: DesignDocId): string;
 }
 
@@ -267,7 +306,6 @@ interface DesignDocsRepository {
 
 - Implementation: `new JsonCollection(schema, flatFiles(join(changesDir, changeId), 'design-doc'))`,
   built per call (it holds no state).
-- `changeOf` lists change ids and checks for the file under each: a few `stat`s.
 - `entries` reads the change folder once and delegates to both collections'
   file reads; or composes `designDocs.list` + `documents.list` (pick the
   simpler during implementation).
@@ -279,17 +317,22 @@ interface DesignDocsRepository {
 ## Services
 
 - `ChangesService`
-  - `list()`, `findById(id)`, `assertExists(id)`: as today on ids.
-  - `save(file: ChangeFile, now)`: under `Serial`. No uniqueness checks: the
-    tracker `key` may repeat across changes. Existing change: keep `status`
-    and `created_at`. New change: `status = 'discovery'`, `created_at = now`.
+  - `list()`, `findById(id)`, `assertExists(id)`: as today, on the dated id.
+  - `save(file: ChangeFile, now)`: under `Serial`, upsert by `id`. No
+    uniqueness checks: an id already on disk is an update, and the tracker
+    `key` may repeat across changes. Existing change: keep `status` and
+    `created_at`. New change: `status = 'discovery'`, `created_at = now`.
   - `entries(id)`: use case 4.
   - `listNavigation()`: `list()` plus `entries()` per change.
 - `DocumentsService` / `DesignDocsService`
-  - `save(changeId, doc)`: under `Serial`; `assertExists(changeId)`; refuse
-    when `changeOf(doc.id)` is another change (new error
-    `EntityInOtherChangeError`); otherwise write. Returns the summary.
-  - `list`, `findById`: unchanged apart from ids.
+  - `save(changeId, doc)`: under `Serial`; `assertExists(changeId)`; write.
+    Returns the summary. No cross-change check: ids are scoped to their change.
+  - `DesignDocsService.save` also refuses a second design doc titled `main`:
+    when another id in the change already has `title === 'main'` (new error
+    `DesignDocTitleRequiredError`, "this change already has a main design doc;
+    give this one a title"). A save to the existing `main` id is an update and
+    passes.
+  - `list`, `findById`: unchanged apart from the dated ids.
   - `create` / `update` / `delete` and the title checks go.
 
 ## MCP tools
@@ -298,12 +341,12 @@ Every tool takes a working-file path; nothing is passed inline.
 
 The tools are renamed after what they now do: every write creates or updates.
 
-| Today                                          | After             | Contract                                                    |
-| ---------------------------------------------- | ----------------- | ----------------------------------------------------------- |
-| `create_change` (inline `name`, `key`, `type`) | `save_change`     | `path` to a `ChangeFileSchema` file                         |
-| `add_document_to_change`                       | `save_document`   | `change` (uuid) and `path` to a `DocumentSchema` file       |
-| `add_design_doc_to_change`                     | `save_design_doc` | `change` (uuid) and `path` to a `DesignDocumentSchema` file |
-| `list_changes`                                 | `list_changes`    | lists ids instead of slugs                                  |
+| Today                                          | After             | Contract                                                  |
+| ---------------------------------------------- | ----------------- | --------------------------------------------------------- |
+| `create_change` (inline `name`, `key`, `type`) | `save_change`     | `path` to a `ChangeFileSchema` file                       |
+| `add_document_to_change`                       | `save_document`   | `change` (id) and `path` to a `DocumentSchema` file       |
+| `add_design_doc_to_change`                     | `save_design_doc` | `change` (id) and `path` to a `DesignDocumentSchema` file |
+| `list_changes`                                 | `list_changes`    | lists dated ids instead of slugs                          |
 
 - Tool files and `tool-names.ts` constants follow the new names
   (`save-change.tool.ts`, `SAVE_CHANGE`, …); the server instructions and every
@@ -327,8 +370,8 @@ The tools are renamed after what they now do: every write creates or updates.
   it. Only `resolveWorkingPath` produces one, and `readWorkingFile` takes only
   that type past step 3, so reading an unchecked agent path is a compile
   error. It is still a `string`, so it passes to `readJsonFile` as is. Graph
-  paths stay plain strings: they are built from uuid value objects and are
-  safe by construction.
+  paths stay plain strings: they are built from dated-id value objects and
+  are safe by construction.
 
   ```ts
   declare const workingFilePathBrand: unique symbol;
@@ -338,21 +381,35 @@ The tools are renamed after what they now do: every write creates or updates.
   };
   ```
 
-- `withChange` parses `ChangeId` instead of `ChangeSlug`.
-- Tool descriptions tell the agent to put a fresh uuidv7 in `id` for a new
-  entity (`bunx uuid v7`, or `Bun.randomUUIDv7()` in a script) and to reuse the
-  id to update one.
-- New in-band failures: `EntityInOtherChangeError`, id not a uuidv7.
+- Tool descriptions tell the agent to get the id of a new entity from the
+  plugin's `entity-id.ts` script and to reuse the existing id to update one.
+  An id already in use overwrites that entity, so the agent checks
+  `list_changes` (or the change's entries) first.
+- `save_design_doc` says a change's first design doc may leave `title` out
+  (`main`), and every later one must set it.
+- New in-band failures: id not a dated id, `DesignDocTitleRequiredError`.
 
 ## Plugin skills (`plugins/claude-code/`)
 
 - Skills are renamed with their tools: `create-change` becomes `save-change`,
   `add-document-to-change` becomes `save-document`.
-- `save-change` skill: write a change working file with a new uuidv7 (or the
-  existing id to update) and pass its path.
-- `save-document` skill and `scripts/write-working-file.ts`: add `id`
-  (`Bun.randomUUIDv7()`, or `--id <uuid>` to update an existing document); the
-  title stays optional-from-heading.
+- New `scripts/entity-id.ts` at the plugin root: `entityId(title, date)` and a
+  CLI (`bun entity-id.ts "<title>"` prints `2026-09-24-<slug>`). It holds the
+  slugify rules moved from `ChangeSlug.fromName` and `DocumentId.fromTitle`
+  (NFKD, strip marks, transliterate `ł`, `ß`, …, kebab-case, `untitled`
+  fallback, cut to fit 64 characters). Plugin scripts are standalone, so the
+  function is copied with its test cases, not imported from the server.
+- With `--change <id> --kind <document|design-doc|change>` the CLI also warns
+  on stderr when `.noesis/graph/…/<id>.<kind>.json` already exists (a
+  same-day, same-title save would overwrite it), and for a design doc refuses
+  to default to `main` when the change already has a design doc.
+- `save-change` skill: write the change working file with the id from
+  `entity-id.ts` (or the existing id to update) and pass its path.
+- `save-document` skill and `scripts/write-working-file.ts`: add `id` from
+  `entityId` (or `--id <id>` to update an existing document); the title stays
+  optional-from-heading.
+- Design docs: the agent writes the file itself; the tool description points
+  it at `entity-id.ts` for the id.
 - README and `test/tarball.test.ts` references follow the new tool and skill
   names.
 
@@ -363,8 +420,8 @@ The tools are renamed after what they now do: every write creates or updates.
   `objects()` skip helper and the `NoesisStoreError` checks go. A broken file
   now fails the rebuild: the watcher logs it and the previous graph stays, as
   after any failed rebuild.
-- Graph rows: `Document.key` (`<change>/<document_id>`) becomes just the id,
-  now unique by itself; `change` columns hold the change id.
+- Graph rows: `Document.key` stays `<change>/<id>` (ids are unique only within
+  a change); `change` columns hold the change id.
 - `ScannerService`: `set(model.id, model)` becomes `save(model)`, `dataFile`
   becomes `pathOf`, `values()` becomes `list()`.
 
@@ -393,22 +450,25 @@ The tools are renamed after what they now do: every write creates or updates.
 ## HTTP and frontend
 
 - `/ui/changes/:id`, `/ui/changes/:change/documents/:id`,
-  `/ui/changes/:change/design-docs/:id`: params parsed as the new VOs; routes
-  stay read only.
+  `/ui/changes/:change/design-docs/:id`: params parsed as the dated-id VOs;
+  routes stay read only.
 - New: `GET /ui/changes/:change/entries` for use case 4 (the overview can use
   it instead of two lists).
 - Frontend: `change.slug` becomes `change.id` (sidebar, change picker, last
   opened change, `_shell/index.tsx`, `$changeId.tsx`); `document_id` becomes
-  `id`. Route file names already say `$changeId` / `$documentId`.
+  `id`; the design doc shows its `title`. Lists keep the server's id order
+  instead of sorting by name. Route file names already say `$changeId` /
+  `$documentId`.
 
 ## Deletions
 
 - `platform/files/noesis-store.ts`, `platform/files/bun-noesis-store.ts`
 - `test/.../noesis-store.spec.ts`, `noesis-store.writer.ts`
-- `app/changes/change-slug.ts` and its spec
+- `app/changes/change-slug.ts` and its spec (the slugify rules move to the
+  plugin's `entity-id.ts`)
 - `app/validation/validator.ts` and `validator.spec.ts`
 - `DuplicateDocumentError`, `DuplicateChangeError` (no uniqueness rule is
-  left: ids are uuids, titles and keys may repeat)
+  left: saves are upserts by id, titles and keys may repeat)
 - The `.noesis/tmp/` session leftovers (by hand)
 - The `.noesis/changes/` leftover of an older layout, and today's
   `.noesis/graph/changes/<slug>/` dev data (by hand)
@@ -423,21 +483,23 @@ Each step leaves the root CI scripts green.
 2. Add `json-file.ts` and `json-collection.ts` with specs (temp dir: flat and
    folder placements, id/name mismatch, broken JSON, schema failure, issue
    cap, atomic write, missing dir).
-3. Add `ChangeId`, `DesignDocId`, new `DocumentId` VOs with specs.
-4. Switch the models (`id` fields, `ChangeFileSchema`, drop the create
+3. Add `datedIdSchema`, `ChangeId`, `DesignDocId` and the new `DocumentId`
+   VOs with specs.
+4. Switch the models (`id` fields, design doc `title`, `ChangeFileSchema`, drop the create
    schemas), repositories, services and indexer to the new store and ids in
    one step; move the system-model store and the scanner.
 5. Rewrite and rename the MCP tools to the path-only, upsert contract
    (`save_change`, `save_document`, `save_design_doc`); switch
    `readWorkingFile` to `readJsonFile` and delete `validator.ts` and its spec.
-6. HTTP params, `entries` route, frontend `slug` to `id`.
-7. Rename and update the plugin skills, script and tests.
+6. HTTP params, `entries` route, frontend `slug` and `document_id` to `id`.
+7. Add `entity-id.ts`; rename and update the plugin skills, scripts and tests.
 8. Delete `NoesisStore`, `ChangeSlug` and dead tests; run knip.
 9. Update `docs/arch/ARCHITECTURE.md` where it describes the store, the
    layout and `.noesis/tmp/`.
 
 ## Open questions
 
-- Should `list_changes` still show something human-typable, now that a uuid is
-  the only handle (the agent copies it, but the user may say "the payment
-  retry change")? Today it already prints the name, so probably enough.
+- Same-day, same-title saves overwrite by design (upsert). Is the script's
+  warning enough, or should the server refuse a new-looking save (for a
+  change, a differing `created_at` date) at an id already on disk? A differing
+  title alone is never a reason to refuse: it is a normal rename.
