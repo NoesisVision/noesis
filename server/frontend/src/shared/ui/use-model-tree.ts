@@ -30,9 +30,9 @@ export interface ModelTreeController {
   readonly ask: (query: string) => void;
   readonly isExpanded: (path: string) => boolean;
   readonly isVisible: (path: string) => boolean;
-  /** Selects the row, and opens or closes it when it has something under it. */
-  readonly open: (path: string) => void;
   readonly select: (path: string) => void;
+  /** Opens a row that is shut and shuts one that is open; a leaf is neither. */
+  readonly toggle: (path: string) => void;
   readonly expand: (path: string) => void;
   readonly collapse: (path: string) => void;
   readonly expandAll: () => void;
@@ -150,17 +150,11 @@ export function useModelTree(
     [query, selected, tree, onQuery, keep],
   );
 
-  /*
-   * One hit area per row, so the row is both the thing you open and the thing
-   * you read: a treeitem may not hold a control of its own without becoming
-   * two tab stops, and a chevron beside it would be exactly that.
-   */
-  const open = useCallback(
+  const toggle = useCallback(
     (path: string) => {
-      onSelect(path);
       if (tree.childrenOf(path).length > 0) setOpen(path, !isExpanded(path));
     },
-    [tree, setOpen, isExpanded, onSelect],
+    [tree, setOpen, isExpanded],
   );
 
   return {
@@ -173,8 +167,8 @@ export function useModelTree(
     ask,
     isExpanded,
     isVisible: (path) => search.visible === null || search.visible.has(path),
-    open,
     select: onSelect,
+    toggle,
     expand,
     collapse,
     expandAll,

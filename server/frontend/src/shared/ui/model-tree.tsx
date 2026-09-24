@@ -1,6 +1,7 @@
 import {
   IconBolt,
   IconChartDots3,
+  IconChevronRight,
   IconCube,
   IconFolder,
   IconListCheck,
@@ -34,9 +35,9 @@ import classes from './model-tree.module.css';
  * design document's outline and, in time, the scanned model's — it is given
  * nodes and a controller and knows nothing of either.
  *
- * A row is one hit area and one tab stop: the whole row opens and selects,
- * because a chevron of its own inside a `treeitem` would be a control inside
- * a control. Arrow keys do what the tree pattern says they do.
+ * A click reads a row; a second click on the same row, or a click on the
+ * chevron beside it, opens or shuts it. One tab stop per row either way, and
+ * the arrow keys do what the tree pattern says they do.
  */
 
 export interface ModelTreeProps {
@@ -128,8 +129,8 @@ function ModelTreeItem({
     search,
     isVisible,
     isExpanded,
-    open,
     select,
+    toggle,
     expand,
     collapse,
   } = controller;
@@ -140,10 +141,22 @@ function ModelTreeItem({
   const expanded = hasChildren && isExpanded(node.path);
   const rowId = rowIds.get(node.path);
 
+  // A pointer event lands on every row it is inside; only the innermost
+  // meant it.
   const onClick = (event: MouseEvent<HTMLLIElement>) => {
-    // A click lands on every row it is inside; only the innermost meant it.
     event.stopPropagation();
-    open(node.path);
+    select(node.path);
+  };
+
+  const onDoubleClick = (event: MouseEvent<HTMLLIElement>) => {
+    event.stopPropagation();
+    toggle(node.path);
+  };
+
+  /* The chevron only opens and shuts; reading is the row's own job. */
+  const onChevronClick = (event: MouseEvent<HTMLSpanElement>) => {
+    event.stopPropagation();
+    toggle(node.path);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLLIElement>) => {
@@ -204,11 +217,28 @@ function ModelTreeItem({
       }
       className={classes.item}
       onClick={onClick}
+      onDoubleClick={onDoubleClick}
       onKeyDown={onKeyDown}
     >
       {/* The one line of the row: what the tree scrolls to, never the item
           around it, which holds everything below it as well. */}
       <span id={rowId} data-row className={classes.row}>
+        {/*
+          A glyph the pointer can use, and nothing more: the row itself opens
+          and shuts under the arrow keys, and `aria-expanded` on it already
+          says which it is. A named control here would be a second thing to
+          hear on every row for a job the row already does, and a second thing
+          in its name.
+        */}
+        <span
+          className={classes.chevron}
+          data-opens={hasChildren || undefined}
+          data-expanded={expanded || undefined}
+          onClick={hasChildren ? onChevronClick : undefined}
+          aria-hidden
+        >
+          {hasChildren && <IconChevronRight size={13} stroke={2.2} />}
+        </span>
         <KindIcon kind={node.kind} />
         <Marked className={classes.name} tokens={search.tokens}>
           {node.name}

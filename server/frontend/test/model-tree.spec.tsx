@@ -71,6 +71,23 @@ describe('ModelTree', () => {
     expect(rowOf('legacy')).not.toContain('aria-expanded');
   });
 
+  it('gives a row that opens a chevron, and one that does not the space', () => {
+    // A leaf keeps the width so that names down a branch start together.
+    expect(html.match(/data-opens/g)).toHaveLength(3);
+    expect(rowOf('shop')).toContain('data-expanded');
+    expect(rowOf('Order')).toContain('data-opens');
+    expect(rowOf('Order')).not.toContain('data-expanded');
+    expect(rowOf('legacy')).not.toContain('data-opens');
+  });
+
+  it('keeps the chevron out of what a row is called', () => {
+    // It says nothing a reader is not told twice: the row carries
+    // `aria-expanded`, and the arrow keys work it.
+    for (const [chevron] of html.matchAll(/<span[^>]*data-opens[^>]*>/g)) {
+      expect(chevron).toContain('aria-hidden');
+    }
+  });
+
   it('owns its subtrees, so the levels nest rather than merely indent', () => {
     expect(count(/role="group"/g)).toBe(2);
   });
@@ -140,8 +157,8 @@ function searching(query: string): ModelTreeController {
     ask: nothing,
     isExpanded: (path) => search.opened.has(path),
     isVisible: (path) => search.visible === null || search.visible.has(path),
-    open: nothing,
     select: nothing,
+    toggle: nothing,
     expand: nothing,
     collapse: nothing,
     expandAll: nothing,
