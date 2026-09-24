@@ -1,4 +1,15 @@
+/*
+ * The element is named the way its address is written, above the description
+ * that is not. `Title` sets a family of its own, so the tag is named here to
+ * be the more specific of the two.
+ */
+h2.name {
+  font-family: var(--mantine-font-family-monospace);
+  overflow-wrap: anywhere;
+}
+
 /* A long address wraps rather than pushing the panel wider than its column. */
 .breadcrumb {
+  font-family: var(--mantine-font-family-monospace);
   overflow-wrap: anywhere;
 }

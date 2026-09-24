@@ -5,6 +5,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { CHANGE_COLOUR } from '#/shared/ui/outline-change.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -50,7 +51,7 @@ export function ElementDetail({
     <Stack gap="sm">
       <Breadcrumb path={path} />
       <Group gap="xs" align="baseline">
-        <Title order={2} size="h3">
+        <Title order={2} size="h3" className={classes.name}>
           {node.name}
         </Title>
         {node.patternLabel !== null && (
@@ -84,9 +85,8 @@ function Breadcrumb({ path }: { path: readonly OutlineNode[] }) {
 }
 
 function ChangeBadge({ change }: { change: OutlineNode['change'] }) {
-  if (change === 'unchanged') return null;
-  const colour =
-    change === 'added' ? 'green' : change === 'modified' ? 'blue' : 'red';
+  const colour = CHANGE_COLOUR[change];
+  if (colour === null) return null;
   return (
     <Badge color={colour} variant="light">
       {change}

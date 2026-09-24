@@ -73,6 +73,20 @@ describe('DesignDocWorkbench', () => {
     expect(html.match(/aria-selected="true"/g)).toHaveLength(1);
   });
 
+  it('marks the way down to the element in hand, but not the element', () => {
+    const html = reading('building_block|sales.refunds.Refund');
+    // Two modules stand above it, and neither is the row in hand.
+    expect(html.match(/data-ancestor/g)).toHaveLength(2);
+    const chosen = html
+      .split('<li')
+      .find((row) => row.includes('data-selected'));
+    expect(chosen).not.toContain('data-ancestor');
+  });
+
+  it('marks nothing above a row that is already at the top', () => {
+    expect(page).not.toContain('data-ancestor');
+  });
+
   it('falls back to the top when the address names nothing here', () => {
     // A design document is rewritten by the agent; a bookmark outlives the
     // element it named, and that is not a page to show an error on.

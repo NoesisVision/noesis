@@ -17,6 +17,7 @@ import type {
   OutlineKind,
   OutlineNode,
 } from '#backend/app/model-outline/model-outline.ts';
+import { CHANGE_COLOUR } from './outline-change.ts';
 import type { ModelTreeController } from './use-model-tree.ts';
 import classes from './model-tree.module.css';
 
@@ -160,6 +161,9 @@ function ModelTreeItem({
       data-kind={node.kind}
       data-change={node.change}
       data-selected={selected === node.path || undefined}
+      data-ancestor={
+        (selected !== node.path && ancestry.has(node.path)) || undefined
+      }
       data-context={
         (search.active && !search.matched.has(node.path)) || undefined
       }
@@ -230,7 +234,8 @@ function Marked({
   children: string;
 }) {
   const colour = dimmed ? 'dimmed' : undefined;
-  const size = dimmed ? 'xs' : undefined;
+  // A monospaced face reads a size larger at the same measure.
+  const size = dimmed ? 'xs' : 'sm';
   if (tokens.length === 0) {
     return (
       <Text component="span" size={size} c={colour} className={className}>
@@ -252,15 +257,8 @@ function Marked({
 }
 
 /** The colour says it at a glance; the word says it at all. */
-const CHANGE_COLOURS: Record<OutlineChange, string | null> = {
-  added: 'green',
-  modified: 'blue',
-  removed: 'red',
-  unchanged: null,
-};
-
 function ChangeBadge({ change }: { change: OutlineChange }) {
-  const colour = CHANGE_COLOURS[change];
+  const colour = CHANGE_COLOUR[change];
   if (colour === null) return null;
   return (
     <Badge size="xs" color={colour} variant="light">

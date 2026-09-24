@@ -4,6 +4,10 @@
  * stops where the branch does. The rails along the selected row's ancestry
  * take the brand colour, which is what turns "there are levels" into "you are
  * here, under that".
+ *
+ * Order matters below. A name is coloured by what the design does to it,
+ * then by whether it is on the way to the row in hand, then by being that
+ * row: each rule is as specific as the last, so the later one wins.
  */
 
 .tree {
@@ -75,28 +79,20 @@
   }
 }
 
-.item[data-selected] > .row {
-  background-color: light-dark(
-    var(--mantine-color-brand-0),
-    var(--mantine-color-dark-5)
-  );
-
-  & .name {
-    font-weight: var(--mantine-font-weight-bold);
-    color: light-dark(
-      var(--mantine-color-brand-9),
-      var(--mantine-color-brand-2)
-    );
-  }
-}
-
 .icon {
   flex: none;
   color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
 }
 
+/*
+ * An element is named by its address, so its name is set the way the address
+ * is: `Mantine`'s `Text` sets no family of its own, so the class alone does
+ * it, and the size comes down a step because a monospaced face at the same
+ * measure reads a size larger.
+ */
 .name {
   overflow: hidden;
+  font-family: var(--mantine-font-family-monospace);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -125,14 +121,69 @@
 }
 
 /*
- * Under a query, a row that is only there to hold a match says so by giving
- * way: the reader sees at a glance which rows the search found and which are
- * the path to them.
+ * What the design does to a row, in the same three colours the badge beside
+ * it carries — `outline-change.ts` names them there and cannot be read from
+ * here. Never the only thing said: the word is on the badge either way.
  */
-.item[data-context] > .row .name {
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+.item[data-change='added'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(
+      var(--mantine-color-green-9),
+      var(--mantine-color-green-4)
+    );
+  }
 }
 
+.item[data-change='modified'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(var(--mantine-color-cyan-9), var(--mantine-color-cyan-4));
+  }
+}
+
+.item[data-change='removed'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-4));
+  }
+}
+
+/*
+ * Under a query, a row that is only there to hold a match says so by giving
+ * way. Only its weight, not its colour: what the design does to it is still
+ * worth knowing while it is being searched for.
+ */
 .item[data-context]:not([data-selected]) > .row {
-  opacity: 0.85;
+  opacity: 0.75;
+}
+
+/*
+ * The way down to the row in hand, in a lighter brand blue than the row
+ * itself: a reader can follow the line from the context to where they are
+ * without mistaking any of it for where they are.
+ */
+.item[data-ancestor] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(
+      var(--mantine-color-brand-6),
+      var(--mantine-color-brand-4)
+    );
+  }
+}
+
+.item[data-selected] > .row {
+  background-color: light-dark(
+    var(--mantine-color-brand-0),
+    var(--mantine-color-dark-5)
+  );
+
+  & .name {
+    font-weight: var(--mantine-font-weight-bold);
+    color: light-dark(
+      var(--mantine-color-brand-9),
+      var(--mantine-color-brand-2)
+    );
+  }
 }
