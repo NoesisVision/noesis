@@ -1,22 +1,27 @@
 // Builds the add_document_to_change working file from a Markdown file. The
 // text is copied by this script, never retyped by the model, so `content` is
-// the source byte for byte.
+// the source byte for byte. A new document gets its id minted from the title
+// and today's date; pass `--id` to update an existing one at its stored id.
 //
-//   bun write-working-file.ts <source.md> <working-file.json> [--title <title>] [--date <YYYY-MM-DD>]
+//   bun write-working-file.ts <source.md> <working-file.json> [--id <id>] [--title <title>] [--date <YYYY-MM-DD>]
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname } from 'node:path';
 import { parseArgs } from 'node:util';
+import { entityId, isoDate } from '../../../scripts/entity-id';
 
 /** The service refuses a larger working file. */
 export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 export interface WorkingFile {
+  id: string;
   title: string;
   date: string;
   content: string;
 }
 
 export interface WorkingFileOptions {
+  /** The stored id of the document to update; left out, a new one is minted. */
+  id?: string;
   title?: string;
   date?: string;
 }
@@ -27,20 +32,17 @@ export function titleOf(content: string, sourcePath: string): string {
   return heading?.[1]?.trim() || basename(sourcePath, extname(sourcePath));
 }
 
-/** A local calendar date, since that is the day the author revised the file on. */
-export function isoDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
 export async function buildWorkingFile(
   sourcePath: string,
   options: WorkingFileOptions = {},
+  today = new Date(),
 ): Promise<WorkingFile> {
   const content = await readFile(sourcePath, 'utf8');
+  const title = options.title?.trim() || titleOf(content, sourcePath);
   return {
-    title: options.title?.trim() || titleOf(content, sourcePath),
+    id: options.id ?? entityId(title, today),
+    title,
+    // A local calendar date, since that is the day the author revised the file on.
     date: options.date ?? isoDate((await stat(sourcePath)).mtime),
     content,
   };
@@ -49,13 +51,17 @@ export async function buildWorkingFile(
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
-    options: { title: { type: 'string' }, date: { type: 'string' } },
+    options: {
+      id: { type: 'string' },
+      title: { type: 'string' },
+      date: { type: 'string' },
+    },
     allowPositionals: true,
   });
   const [sourcePath, workingPath] = positionals;
   if (!sourcePath || !workingPath || positionals.length > 2) {
     throw new Error(
-      'Usage: write-working-file.ts <source.md> <working-file.json> [--title <title>] [--date <YYYY-MM-DD>]',
+      'Usage: write-working-file.ts <source.md> <working-file.json> [--id <id>] [--title <title>] [--date <YYYY-MM-DD>]',
     );
   }
 
@@ -73,6 +79,7 @@ async function main(): Promise<void> {
   console.log(
     JSON.stringify({
       path: workingPath,
+      id: workingFile.id,
       title: workingFile.title,
       date: workingFile.date,
       contentCharacters: workingFile.content.length,

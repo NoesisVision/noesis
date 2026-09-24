@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import { DocumentSchema } from '#backend/app/information-sources/document';
@@ -14,7 +14,7 @@ import { serverLogger } from '#backend/platform/logging/logging';
 
 const log = serverLogger('changes');
 
-// Each is keyed by the contract's own id: `id`, `document_id`.
+// Each is keyed by the contract's own `id`, unique within its change.
 const CHANGE_CHILDREN = {
   'design-docs': DesignDocumentSchema,
   documents: DocumentSchema,
@@ -35,42 +35,42 @@ export class NoesisChangesRepository implements ChangesRepository {
     });
   }
 
-  dirOf(slug: ChangeSlug): string {
-    return join(this.store.directory, slug);
+  dirOf(id: ChangeId): string {
+    return join(this.store.directory, id);
   }
 
   /** Unordered; the graph sorts. */
-  async *keys(): AsyncIterable<ChangeSlug> {
+  async *keys(): AsyncIterable<ChangeId> {
     for await (const key of this.store.keys()) {
-      const slug = ChangeSlug.safeParse(key);
-      if (!slug.success) {
-        log.warn('skipping {key} under {directory}: not a change slug', {
+      const id = ChangeId.safeParse(key);
+      if (!id.success) {
+        log.warn('skipping {key} under {directory}: not a change id', {
           key,
           directory: this.store.directory,
         });
         continue;
       }
-      yield slug.data;
+      yield id.data;
     }
   }
 
-  async read(slug: ChangeSlug): Promise<Change | null> {
-    return this.store.get(slug);
+  async read(id: ChangeId): Promise<Change | null> {
+    return this.store.get(id);
   }
 
   async *values(): AsyncIterable<Change> {
-    for await (const slug of this.keys()) {
-      const change = await this.read(slug);
+    for await (const id of this.keys()) {
+      const change = await this.read(id);
       if (change !== null) yield change;
     }
   }
 
   /** What the change owns stays. */
   async write(change: Change): Promise<void> {
-    await this.store.set(ChangeSlug.parse(change.slug), change);
+    await this.store.set(change.id, change);
   }
 
-  children(slug: ChangeSlug): ChangeChildren {
-    return this.store.children(slug);
+  children(id: ChangeId): ChangeChildren {
+    return this.store.children(id);
   }
 }

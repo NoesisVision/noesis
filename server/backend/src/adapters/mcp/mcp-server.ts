@@ -5,9 +5,9 @@ import type { DocumentsService } from '#backend/app/information-sources/document
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import type { ToolRegistration } from './tool';
+import { addChangeTool } from './tools/add-change.tool';
 import { addDesignDocToChangeTool } from './tools/add-design-doc-to-change.tool';
 import { addDocumentToChangeTool } from './tools/add-document-to-change.tool';
-import { createChangeTool } from './tools/create-change.tool';
 import { listChangesTool } from './tools/list-changes.tool';
 
 export interface McpServerDeps {
@@ -40,7 +40,7 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    createChangeTool(deps.changesService),
+    addChangeTool(deps.changesService, deps.session),
     listChangesTool(deps.changesService),
     addDocumentToChangeTool(deps.documentsService, deps.session),
     addDesignDocToChangeTool(deps.designDocsService, deps.session),

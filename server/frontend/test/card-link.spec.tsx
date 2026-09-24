@@ -28,7 +28,10 @@ async function render(component: () => ReactNode): Promise<string> {
 const card = () => (
   <CardLink
     to="/changes/$changeId/documents/$documentId"
-    params={{ changeId: 'test-2', documentId: 'payment-retry-policy' }}
+    params={{
+      changeId: '2026-01-01-scheduling',
+      documentId: '2026-01-01-payment-retry-policy',
+    }}
     title="Payment retry policy"
     description="2026-09-14"
   />
@@ -37,7 +40,7 @@ const card = () => (
 it('is one link over the whole card, not a link inside one', async () => {
   const html = await render(card);
   expect(html).toContain(
-    'href="/changes/test-2/documents/payment-retry-policy"',
+    'href="/changes/2026-01-01-scheduling/documents/2026-01-01-payment-retry-policy"',
   );
   // One anchor: a card holding its own link would be two tab stops.
   expect((html.match(/<a /g) ?? []).length).toBe(1);
@@ -52,7 +55,10 @@ it('takes the level it sits at, keeping the type scale', async () => {
   const html = await render(() => (
     <CardLink
       to="/changes/$changeId/documents/$documentId"
-      params={{ changeId: 'test-2', documentId: 'payment-retry-policy' }}
+      params={{
+        changeId: '2026-01-01-scheduling',
+        documentId: '2026-01-01-payment-retry-policy',
+      }}
       title="Payment retry policy"
       headingLevel={3}
     />

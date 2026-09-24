@@ -3,43 +3,30 @@ import { DocumentId } from './document-id';
 
 export const DocumentSchema = z
   .object({
-    document_id: DocumentId.describe(
-      'The document id: the title as a slug, so it is unique within the change. The service derives it; retitling the document moves it to a new id.',
+    id: DocumentId.describe(
+      "The document id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'; unique within the change. Minted once by the writer with the plugin's entity-id.ts script and never changed, so it keeps the original title; saving at an existing id updates that document.",
     ),
     title: z
       .string()
       .trim()
-      .max(DocumentId.TITLE_MAX_LENGTH)
-      .regex(
-        DocumentId.TITLE_PATTERN,
-        'a title with a letter or a digit (A-Z, a-z, 0-9) in it',
-      )
+      .min(1)
+      .max(200)
       .describe(
-        'The document title, unique within the change: it is what identifies the document, and the id is derived from it, so it needs an ASCII letter or digit.',
+        'The document title, free text. Two documents may share one; the id tells them apart.',
       ),
     date: z.iso
       .date()
       .describe(
-        'When the document was written or last revised, ISO 8601 date (YYYY-MM-DD): the document list sorts on it.',
+        'When the document was written or last revised, ISO 8601 date (YYYY-MM-DD). Independent of the creation date in the id.',
       ),
     content: z
       .string()
       .describe('The document text, verbatim. Revised whenever it changes.'),
   })
   .describe(
-    'A document of a change: the data.json of graph/changes/<change>/documents/<id>/.',
+    'A document of a change: the working file an agent writes, and the data.json of graph/changes/<change>/documents/<id>/.',
   );
 export type Document = z.infer<typeof DocumentSchema>;
 
 /** The JSON form: what the store holds and what the wire carries. */
 export type DocumentInput = z.input<typeof DocumentSchema>;
-
-/**
- * Derived from the stored shape so the two can never drift: the service
- * derives `document_id` from the title, so a caller adding a document does
- * not supply one.
- */
-export const CreateDocumentSchema = DocumentSchema.omit({
-  document_id: true,
-}).describe('The document to add to a change.');
-export type CreateDocument = z.infer<typeof CreateDocumentSchema>;

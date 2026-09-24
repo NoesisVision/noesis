@@ -58,6 +58,6 @@ export function useChangeNavigation() {
   const { changeId } = useChangeId();
   const { data: changes } = useQuery(changesNavigationList);
   const activeChange =
-    changes?.find((change) => change.slug === changeId) ?? changes?.[0] ?? null;
+    changes?.find((change) => change.id === changeId) ?? changes?.[0] ?? null;
   return { changes: changes ?? [], activeChange };
 }

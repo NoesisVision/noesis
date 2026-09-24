@@ -1,19 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
-import {
-  DesignDocNotFoundError,
-  type DesignDocsService,
-} from '#backend/app/design-docs/design-docs.service';
+import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
+import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const CHANGE = ChangeSlug.parse('booking');
-const NOPE = ChangeSlug.parse('nope');
+const CHANGE = ChangeId.parse('2026-01-01-booking');
+const NOPE = ChangeId.parse('2026-01-01-nope');
+const ID = decodedDesignDocFixture.id;
 
 let t: TestNoesis;
 let service: DesignDocsService;
@@ -27,59 +26,62 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 describe('DesignDocsService', () => {
-  it('stores a valid document under a server-minted id and reads it back decoded', async () => {
-    const summary = await service.create(CHANGE, decodedDesignDocFixture);
+  it('stores a valid document under its own id and reads it back decoded', async () => {
+    const added = await service.add(CHANGE, decodedDesignDocFixture);
 
-    expect(summary.id).not.toBe(designDocFixture.id);
-    expect(summary.name).toBe('Partial refunds for orders');
-
-    const detail = await service.findById(CHANGE, summary.id);
-    expect(detail?.document).toEqual(
-      DesignDocumentSchema.parse({ ...designDocFixture, id: summary.id }),
+    expect(added).toEqual({
+      value: { id: ID, name: 'Partial refunds for orders', implemented: false },
+      created: true,
+    });
+    expect((await service.findById(CHANGE, ID))?.document).toEqual(
+      DesignDocumentSchema.parse(designDocFixture),
     );
   });
 
-  it('replaces a document whole under its id, ignoring the id in the input', async () => {
-    const created = await service.create(CHANGE, decodedDesignDocFixture);
+  it('replaces a document whole at an id already in the change', async () => {
+    await service.add(CHANGE, decodedDesignDocFixture);
 
-    const updated = await service.update(CHANGE, created.id, {
-      // Carries the fixture's own id, which the service ignores.
+    const updated = await service.add(CHANGE, {
       ...decodedDesignDocFixture,
       name: { value: 'Renamed', reviewedByHuman: false },
     });
 
-    expect(updated.id).toBe(created.id);
-    expect(updated.name).toBe('Renamed');
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
-    expect(
-      (await service.findById(CHANGE, created.id))?.document.name.value,
-    ).toBe('Renamed');
+    expect(updated.created).toBe(false);
+    expect(updated.value).toMatchObject({ id: ID, name: 'Renamed' });
+    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([ID]);
+    expect((await service.findById(CHANGE, ID))?.document.name.value).toBe(
+      'Renamed',
+    );
   });
 
-  it('refuses to update a document the change does not have', async () => {
-    expect(
-      service.update(CHANGE, 'nope', decodedDesignDocFixture),
-    ).rejects.toBeInstanceOf(DesignDocNotFoundError);
+  it('answers created to only one of two parallel adds at one id', async () => {
+    const results = await Promise.all([
+      service.add(CHANGE, decodedDesignDocFixture),
+      service.add(CHANGE, decodedDesignDocFixture),
+    ]);
+
+    expect(results.map((r) => r.created)).toEqual([true, false]);
   });
 
-  it('summarises what it stored, and lists it under the change by name', async () => {
-    const summary = await service.create(CHANGE, decodedDesignDocFixture);
-    const other = await service.create(CHANGE, {
+  it("lists the change's documents oldest first, by id", async () => {
+    const earlier = DesignDocId.parse('2025-12-31-another-design');
+    await service.add(CHANGE, decodedDesignDocFixture);
+    const other = await service.add(CHANGE, {
       ...decodedDesignDocFixture,
+      id: earlier,
       name: { value: 'Another design', reviewedByHuman: false },
       implemented: true,
     });
 
-    expect(summary.name).toBe('Partial refunds for orders');
-    expect(summary.implemented).toBe(false);
-    expect(other.implemented).toBe(true);
-    expect(summary.path).toEndWith(`/${summary.id}/data.json`);
+    expect(other.value.implemented).toBe(true);
     const listed = await service.list(CHANGE);
-    expect(listed.map((d) => d.id)).toEqual([other.id, summary.id]);
+    expect(listed.map((d) => d.id)).toEqual([earlier, ID]);
   });
 
   it('answers null for a document that does not exist', async () => {
-    expect(await service.findById(CHANGE, 'missing')).toBe(null);
+    expect(
+      await service.findById(CHANGE, DesignDocId.parse('2026-01-01-missing')),
+    ).toBe(null);
   });
 
   it('refuses every operation on a change that has no directory', async () => {
@@ -87,12 +89,12 @@ describe('DesignDocsService', () => {
       ChangeNotFoundError,
     );
     await expect(
-      service.create(NOPE, decodedDesignDocFixture),
+      service.add(NOPE, decodedDesignDocFixture),
     ).rejects.toBeInstanceOf(ChangeNotFoundError);
-    await expect(service.findById(NOPE, 'x')).rejects.toBeInstanceOf(
+    await expect(service.findById(NOPE, ID)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    // An unsafe slug never reaches the service: it is not a `ChangeSlug`.
-    expect(ChangeSlug.safeParse('../x').success).toBe(false);
+    // An unsafe id never reaches the service: it is not a `ChangeId`.
+    expect(ChangeId.safeParse('../x').success).toBe(false);
   });
 });

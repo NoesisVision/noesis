@@ -1,8 +1,9 @@
-import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangeId } from '#backend/app/changes/change-id';
 import {
   type DesignDocument,
   DesignDocumentSchema,
 } from '#backend/app/design-docs/design-doc';
+import type { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type {
   ChangeChildren,
@@ -16,28 +17,24 @@ export class NoesisDesignDocsRepository implements DesignDocsRepository {
     this.changes = changes;
   }
 
-  get(slug: ChangeSlug, id: string): Promise<DesignDocument | null> {
-    return this.docs(slug).get(id);
+  get(change: ChangeId, id: DesignDocId): Promise<DesignDocument | null> {
+    return this.docs(change).get(id);
   }
 
-  set(slug: ChangeSlug, id: string, document: DesignDocument): Promise<void> {
+  set(
+    change: ChangeId,
+    id: DesignDocId,
+    document: DesignDocument,
+  ): Promise<void> {
     // The store takes the JSON side of the contract and decodes it itself.
-    return this.docs(slug).set(id, DesignDocumentSchema.encode(document));
+    return this.docs(change).set(id, DesignDocumentSchema.encode(document));
   }
 
-  delete(slug: ChangeSlug, id: string): Promise<boolean> {
-    return this.docs(slug).delete(id);
+  values(change: ChangeId): AsyncIterable<DesignDocument> {
+    return this.docs(change).values();
   }
 
-  values(slug: ChangeSlug): AsyncIterable<DesignDocument> {
-    return this.docs(slug).values();
-  }
-
-  pathOf(slug: ChangeSlug, id: string): string {
-    return this.docs(slug).dataFile(id);
-  }
-
-  private docs(slug: ChangeSlug): ChangeChildren['design-docs'] {
-    return this.changes.children(slug)['design-docs'];
+  private docs(change: ChangeId): ChangeChildren['design-docs'] {
+    return this.changes.children(change)['design-docs'];
   }
 }

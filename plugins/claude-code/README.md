@@ -31,13 +31,17 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes three MCP tools: `create_change`, `list_changes` and
-`add_document_to_change`. Tools never take content inline. The agent writes
+The service exposes four MCP tools: `add_change`, `list_changes`,
+`add_document_to_change` and `add_design_doc_to_change`. Tools never take
+content inline. The agent writes
 a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
 anything: a file that does not fit comes back as an issue list — path
-and message — to correct and call again.
+and message — to correct and call again. Every working file carries its
+entity's id, minted by `scripts/entity-id.ts` from the creation date and
+the title; a save at an id already stored updates that entity, and the
+answer says whether it created or updated.
 
 ## What's inside
 
@@ -50,7 +54,7 @@ and message — to correct and call again.
   `contracts/README.md` is committed; the published plugin carries the
   generated files.
 - `skills/` — the skills that drive the tools, one folder per skill.
-  `create-change` opens a change through `create_change`;
+  `add-change` opens or updates a change through `add_change`;
   `add-document-to-change` takes a Markdown file, asks which change from
   `list_changes` it belongs to and adds it through `add_document_to_change`, building the working file with its
   `scripts/write-working-file.ts` so the text is copied, not retyped. A skill
@@ -59,6 +63,10 @@ and message — to correct and call again.
   skill writes its working file to the session's scratch directory and hands
   the path to the tool that consumes it, correcting the file from the issue
   list the tool returns.
+- `scripts/entity-id.ts` — mints the id of a new change, document or design
+  document: `bun scripts/entity-id.ts "<title>"` prints today's date and the
+  title as a slug, e.g. `2026-09-24-payment-retry`. A pure function of the
+  title and the date; it reads nothing from `.noesis/`.
 - `.mcp.json` — launches the Noesis service as a stdio MCP server via
   `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
   (same repo, released in lockstep with the plugin). The two variables
@@ -73,7 +81,7 @@ and message — to correct and call again.
   contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills included,
   and that the working-file script copies its source verbatim.
 
-Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
+Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/`, `scripts/` and `skills/` are published
 (the `files` field in `package.json`).
 
 ## Scripts

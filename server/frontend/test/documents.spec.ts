@@ -17,7 +17,7 @@ afterEach(() => {
 afterAll(() => fetchSpy.mockRestore());
 
 const documentFixture = {
-  document_id: 'payment-retry-policy',
+  id: '2026-01-01-payment-retry-policy',
   title: 'Payment retry policy',
   date: '2026-09-12',
   content: 'Retry twice, then stop.',
@@ -25,8 +25,12 @@ const documentFixture = {
 
 it('requests the change-scoped list and forwards cancellation', async () => {
   fetchSpy.mockResolvedValueOnce(Response.json({ documents: [] }));
-  expect(await cache.fetchQuery(documentsList('test-2'))).toEqual([]);
-  expect(fetchSpy.mock.calls[0]?.[0]).toBe('/ui/changes/test-2/documents');
+  expect(
+    await cache.fetchQuery(documentsList('2026-01-01-scheduling')),
+  ).toEqual([]);
+  expect(fetchSpy.mock.calls[0]?.[0]).toBe(
+    '/ui/changes/2026-01-01-scheduling/documents',
+  );
   expect(fetchSpy.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
 });
 
@@ -38,13 +42,18 @@ it('makes no request without a change open', async () => {
 it('unwraps the selected document and isolates documents between changes', async () => {
   fetchSpy.mockResolvedValueOnce(Response.json({ document: documentFixture }));
   expect(
-    await cache.fetchQuery(documentById('test-2', 'payment-retry-policy')),
+    await cache.fetchQuery(
+      documentById('2026-01-01-scheduling', '2026-01-01-payment-retry-policy'),
+    ),
   ).toEqual(documentFixture);
   expect(fetchSpy.mock.calls[0]?.[0]).toBe(
-    '/ui/changes/test-2/documents/payment-retry-policy',
+    '/ui/changes/2026-01-01-scheduling/documents/2026-01-01-payment-retry-policy',
   );
   expect(
-    cache.getQueryData(documentById('test', 'payment-retry-policy').queryKey),
+    cache.getQueryData(
+      documentById('2026-01-02-billing', '2026-01-01-payment-retry-policy')
+        .queryKey,
+    ),
   ).toBeUndefined();
 });
 
@@ -53,10 +62,12 @@ it('preserves a missing document as an error', async () => {
     Response.json({ error: 'not_found' }, { status: 404 }),
   );
   await expect(
-    cache.fetchQuery(documentById('test-2', 'missing')),
+    cache.fetchQuery(documentById('2026-01-01-scheduling', 'missing')),
   ).rejects.toBeInstanceOf(ApiError);
   expect(
-    cache.getQueryData(documentById('test-2', 'missing').queryKey),
+    cache.getQueryData(
+      documentById('2026-01-01-scheduling', 'missing').queryKey,
+    ),
   ).toBeUndefined();
 });
 
@@ -65,7 +76,9 @@ it('does not turn a failed list request into an empty list', async () => {
     Response.json({ error: 'unavailable' }, { status: 503 }),
   );
   await expect(
-    cache.fetchQuery(documentsList('test-2')),
+    cache.fetchQuery(documentsList('2026-01-01-scheduling')),
   ).rejects.toBeInstanceOf(ApiError);
-  expect(cache.getQueryData(documentsList('test-2').queryKey)).toBeUndefined();
+  expect(
+    cache.getQueryData(documentsList('2026-01-01-scheduling').queryKey),
+  ).toBeUndefined();
 });

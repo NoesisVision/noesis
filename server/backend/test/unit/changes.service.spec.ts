@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { DuplicateChangeError } from '#backend/app/changes/changes.service';
+import type { Change } from '#backend/app/changes/change';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -11,47 +11,63 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
+const change = (id: string, overrides: Partial<Change> = {}): Change => ({
+  id: ChangeId.parse(id),
+  name: 'Payment retry',
+  key: '',
+  type: 'fix',
+  status: 'discovery',
+  description: '',
+  ...overrides,
+});
+
 describe('ChangesService', () => {
-  it('lets only one of two parallel creates with the same name through', async () => {
-    const results = await Promise.allSettled([
-      t.changesService.create({ name: 'Payment retry', key: '', type: 'fix' }),
-      t.changesService.create({
-        name: 'Payment retry',
-        key: '',
-        type: 'chore',
-      }),
-    ]);
-
-    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
-    expect((results[1] as PromiseRejectedResult).reason).toBeInstanceOf(
-      DuplicateChangeError,
+  it('creates a change at a new id and updates it at an existing one', async () => {
+    const first = await t.changesService.add(
+      change('2026-01-01-payment-retry'),
     );
-    const [stored] = await t.changesService.list();
-    expect(stored?.type).toBe('fix');
+    const second = await t.changesService.add(
+      change('2026-01-01-payment-retry', {
+        name: 'Payment retries',
+        status: 'design',
+      }),
+    );
+
+    expect(first.created).toBe(true);
+    expect(second.created).toBe(false);
+    expect(await t.changesService.list()).toEqual([second.value]);
+    expect(second.value.name).toBe('Payment retries');
   });
 
-  it('lets only one of two parallel creates with the same key through', async () => {
-    const results = await Promise.allSettled([
-      t.changesService.create({ name: 'One', key: 'NOE-1', type: 'fix' }),
-      t.changesService.create({ name: 'Two', key: 'NOE-1', type: 'fix' }),
+  it('answers created to only one of two parallel adds at one id', async () => {
+    const results = await Promise.all([
+      t.changesService.add(change('2026-01-01-payment-retry')),
+      t.changesService.add(
+        change('2026-01-01-payment-retry', { type: 'chore' }),
+      ),
     ]);
 
-    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
-    expect(await t.changesService.list()).toHaveLength(1);
+    expect(results.map((r) => r.created)).toEqual([true, false]);
+    const [stored] = await t.changesService.list();
+    expect(stored?.type).toBe('chore');
   });
 
-  it('keeps serving creates after one failed', async () => {
-    await t.changesService.create({ name: 'One', key: '', type: 'fix' });
-    await t.changesService
-      .create({ name: 'One', key: '', type: 'fix' })
-      .catch(() => undefined);
+  it('lets a tracker key repeat across changes', async () => {
+    await t.changesService.add(change('2026-01-01-one', { key: 'NOE-1' }));
+    await t.changesService.add(change('2026-01-02-two', { key: 'NOE-1' }));
 
-    const next = await t.changesService.create({
-      name: 'Two',
-      key: '',
-      type: 'fix',
-    });
+    expect(await t.changesService.list()).toHaveLength(2);
+  });
 
-    expect(next.slug).toBe(ChangeSlug.parse('two'));
+  it('lists newest first, by id', async () => {
+    for (const id of ['2026-01-02-b', '2026-03-01-a', '2026-01-02-c']) {
+      await t.changesService.add(change(id));
+    }
+
+    expect((await t.changesService.list()).map((c) => c.id)).toEqual([
+      ChangeId.parse('2026-03-01-a'),
+      ChangeId.parse('2026-01-02-c'),
+      ChangeId.parse('2026-01-02-b'),
+    ]);
   });
 });

@@ -8,7 +8,7 @@ import { IndexService } from '#backend/adapters/graph/index.service';
 import { SchemaService } from '#backend/adapters/graph/schema.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { createSystemModelStore } from '#backend/adapters/store/system-model.store';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { DatabaseService } from '#backend/platform/database/database.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
@@ -36,28 +36,27 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changes = new NoesisChangesRepository(noesis);
-  const designDocs = (slug: ChangeSlug) =>
-    changes.children(slug)['design-docs'];
+  const designDocs = (change: ChangeId) =>
+    changes.children(change)['design-docs'];
   for (let c = 0; c < CHANGES; c++) {
-    const slug = ChangeSlug.parse(`change-${c}`);
+    const change = ChangeId.parse(`2026-01-01-change-${c}`);
     await changes.write({
-      slug: slug,
-      name: slug,
+      id: change,
+      name: change,
       key: '',
       type: 'chore',
       status: 'discovery',
-      created_at: '2026-09-13T00:00:00.000Z',
       description: '',
     });
-    await mkdir(designDocs(slug).directory, { recursive: true });
+    await mkdir(designDocs(change).directory, { recursive: true });
   }
   for (let i = 0; i < files; i++) {
-    const id = `00000000-0000-7000-8000-${String(i).padStart(12, '0')}`;
+    const id = `2026-01-01-design-doc-${i}`;
     const name = `Design doc ${i}`;
-    const slug = ChangeSlug.parse(`change-${i % CHANGES}`);
-    await mkdir(join(designDocs(slug).directory, id));
+    const change = ChangeId.parse(`2026-01-01-change-${i % CHANGES}`);
+    await mkdir(join(designDocs(change).directory, id));
     await writeFile(
-      designDocs(slug).dataFile(id),
+      designDocs(change).dataFile(id),
       JSON.stringify(
         { ...designDocFixture, id, name: { value: name } },
         null,

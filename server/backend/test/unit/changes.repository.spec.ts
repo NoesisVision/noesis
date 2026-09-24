@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import { NoesisStoreError } from '#backend/platform/files/noesis-store';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
@@ -19,71 +19,80 @@ const keys = async (): Promise<string[]> =>
   (await Array.fromAsync(t.changesRepository.keys())).sort();
 
 describe('NoesisChangesRepository', () => {
-  it('lists nothing before the first change, then every slug written', async () => {
+  it('lists nothing before the first change, then every id written', async () => {
     expect(await keys()).toEqual([]);
 
-    await t.createChange('payment-retry');
-    const audit = await t.createChange('audit-log');
+    await t.createChange('2026-01-01-payment-retry');
+    const audit = await t.createChange('2026-01-02-audit-log');
 
-    expect(await keys()).toEqual(['audit-log', 'payment-retry']);
+    expect(await keys()).toEqual([
+      '2026-01-01-payment-retry',
+      '2026-01-02-audit-log',
+    ]);
     expect(await t.changesRepository.read(audit)).not.toBeNull();
     expect(
-      await t.changesRepository.read(ChangeSlug.parse('missing')),
+      await t.changesRepository.read(ChangeId.parse('2026-01-01-missing')),
     ).toBeNull();
   });
 
   it('ignores files, dot entries and directories without data.json under changes/', async () => {
     const changes = t.noesis.resolve('graph', 'changes');
     await mkdir(join(changes, '.hidden'), { recursive: true });
-    await mkdir(join(changes, 'bare'), { recursive: true });
+    await mkdir(join(changes, '2026-01-01-bare'), { recursive: true });
     await writeFile(join(changes, 'README.md'), 'notes');
-    await t.createChange('real');
+    await t.createChange('2026-01-01-real');
 
-    expect(await keys()).toEqual(['real']);
-    expect(await t.changesRepository.read(ChangeSlug.parse('bare'))).toBeNull();
+    expect(await keys()).toEqual(['2026-01-01-real']);
+    expect(
+      await t.changesRepository.read(ChangeId.parse('2026-01-01-bare')),
+    ).toBeNull();
   });
 
-  it('skips a key the store lists that is not a change slug', async () => {
-    const foreign = t.noesis.resolve('graph', 'changes', 'not_a_slug');
+  it('skips a key the store lists that is not a change id', async () => {
+    const foreign = t.noesis.resolve('graph', 'changes', 'payment-retry');
     await mkdir(foreign, { recursive: true });
     await writeFile(join(foreign, 'data.json'), '{}');
-    await t.createChange('real');
+    await t.createChange('2026-01-01-real');
 
-    expect(await keys()).toEqual(['real']);
+    expect(await keys()).toEqual(['2026-01-01-real']);
   });
 
   it('names the change directory and hands out its child collections', () => {
-    const real = ChangeSlug.parse('real');
+    const real = ChangeId.parse('2026-01-01-real');
     expect(t.changesRepository.dirOf(real)).toBe(
-      t.noesis.resolve('graph', 'changes', 'real'),
+      t.noesis.resolve('graph', 'changes', '2026-01-01-real'),
     );
     const children = t.changesRepository.children(real);
     expect(children['design-docs'].directory).toBe(
-      t.noesis.resolve('graph', 'changes', 'real', 'design-docs'),
+      t.noesis.resolve('graph', 'changes', '2026-01-01-real', 'design-docs'),
     );
     expect(children.documents.directory).toBe(
-      t.noesis.resolve('graph', 'changes', 'real', 'documents'),
+      t.noesis.resolve('graph', 'changes', '2026-01-01-real', 'documents'),
     );
   });
 
-  it('round-trips a change through graph/changes/<slug>/data.json', async () => {
+  it('round-trips a change through graph/changes/<id>/data.json', async () => {
     const change = {
-      slug: ChangeSlug.parse('with-file'),
+      id: ChangeId.parse('2026-01-01-with-file'),
       name: 'With file',
       key: 'NOE-1',
       type: 'feature' as const,
       status: 'design' as const,
-      created_at: '2026-09-13T10:00:00.000Z',
       description: 'notes',
     };
     await t.changesRepository.write(change);
     expect(
-      await t.changesRepository.read(ChangeSlug.parse('with-file')),
+      await t.changesRepository.read(ChangeId.parse('2026-01-01-with-file')),
     ).toEqual(change);
     expect(
       JSON.parse(
         await readFile(
-          t.noesis.resolve('graph', 'changes', 'with-file', 'data.json'),
+          t.noesis.resolve(
+            'graph',
+            'changes',
+            '2026-01-01-with-file',
+            'data.json',
+          ),
           'utf8',
         ),
       ),
@@ -91,7 +100,9 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('replaces the data and keeps what the change owns', async () => {
-    const kept = await t.createChange('kept', { status: 'discovery' });
+    const kept = await t.createChange('2026-01-01-kept', {
+      status: 'discovery',
+    });
     const owned = t.changesRepository.children(kept)['design-docs'];
     await owned.set(designDocFixture.id, designDocFixture);
     const before = await t.changesRepository.read(kept);
@@ -105,17 +116,17 @@ describe('NoesisChangesRepository', () => {
     );
   });
 
-  it('refuses data whose slug is not one, and data that is not a change', async () => {
-    const typed = await t.createChange('typed');
+  it('refuses data whose id is not one, and data that is not a change', async () => {
+    const typed = await t.createChange('2026-01-01-typed');
     const before = await t.changesRepository.read(typed);
     if (before === null) throw new Error('the change was not written');
 
     await expect(
       t.changesRepository.write({
         ...before,
-        slug: 'Not A Slug',
+        id: 'Not An Id',
       } as unknown as typeof before),
-    ).rejects.toThrow('Invalid ChangeSlug');
+    ).rejects.toThrow();
     await expect(
       t.changesRepository.write({
         ...before,

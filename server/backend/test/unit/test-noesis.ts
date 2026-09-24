@@ -10,7 +10,7 @@ import {
   type SystemModelStore,
 } from '#backend/adapters/store/system-model.store';
 import type { Change } from '#backend/app/changes/change';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
@@ -30,9 +30,9 @@ export interface TestNoesis {
   documentsService: DocumentsService;
   /** Writes a change with placeholder data. */
   createChange(
-    slug: string | ChangeSlug,
+    id: string | ChangeId,
     overrides?: Partial<Change>,
-  ): Promise<ChangeSlug>;
+  ): Promise<ChangeId>;
   cleanup(): Promise<void>;
 }
 
@@ -63,15 +63,14 @@ export async function testNoesis(): Promise<TestNoesis> {
       changesService,
     ),
     documentsService: new DocumentsService(documentsRepository, changesService),
-    createChange: async (slug, overrides = {}) => {
-      const parsed = ChangeSlug.parse(slug);
+    createChange: async (id, overrides = {}) => {
+      const parsed = ChangeId.parse(id);
       const change: Change = {
-        slug: parsed,
+        id: parsed,
         name: parsed,
         key: '',
         type: 'chore',
         status: 'discovery',
-        created_at: '2026-09-13T00:00:00.000Z',
         description: '',
         ...overrides,
       };

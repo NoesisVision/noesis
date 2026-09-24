@@ -1,21 +1,37 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
-import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import { CreateDocumentSchema } from '#backend/app/information-sources/document';
+import { z } from 'zod';
+import type { ChangeId } from '#backend/app/changes/change-id';
+import { DocumentSchema } from '#backend/app/information-sources/document';
 import {
   type DocumentsService,
   type DocumentSummary,
   DocumentSummarySchema,
-  DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
-import { APPEND, defineTool, type ToolRegistration } from '../tool';
+import { UPSERT, defineTool, type ToolRegistration } from '../tool';
 import { ADD_DOCUMENT_TO_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { readWorkingFile } from '../working-file';
-import { addToChangeInput, withChange } from './change-scoped';
+import {
+  addToChangeInput,
+  createdOrUpdated,
+  idInstructions,
+  withChange,
+} from './change-scoped';
 
 const SUBJECT = 'document';
+
+const outputSchema = z
+  .object({
+    document: DocumentSummarySchema,
+    created: z
+      .boolean()
+      .describe(
+        'true when the id was new in the change; false when an existing document was updated in place.',
+      ),
+  })
+  .describe('The document as stored, and whether it was created or updated.');
 
 export function addDocumentToChangeTool(
   documents: DocumentsService,
@@ -26,20 +42,18 @@ export function addDocumentToChangeTool(
     {
       title: 'Add document to change',
       description:
-        'Adds a document to a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The title identifies the document within its change. Write the document to a JSON working file under the session scratch directory and pass its path.',
+        'Adds a document to a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. A document whose id is already in the change is updated in place; the answer says whether it was created or updated. Write the document to a JSON working file under the session scratch directory and pass its path.',
       inputSchema: addToChangeInput(
         session,
         SUBJECT,
-        '{ "title", "date", "content" }.',
+        `{ "id", "title", "date", "content" }. ${idInstructions(SUBJECT, 'title')}`,
       ),
-      outputSchema: DocumentSummarySchema.describe(
-        'Where the document now lives.',
-      ),
-      annotations: APPEND,
+      outputSchema,
+      annotations: UPSERT,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (slug) =>
-        add(documents, session, slug, input.path),
+      withChange(input.change, SUBJECT, (change) =>
+        add(documents, session, change, input.path),
       ),
   );
 }
@@ -47,33 +61,24 @@ export function addDocumentToChangeTool(
 async function add(
   documents: DocumentsService,
   session: SessionDir,
-  slug: ChangeSlug,
+  change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  // The shape is the whole contract: the title's pattern guarantees an id.
-  const document = await readWorkingFile(session, CreateDocumentSchema, path);
+  const document = await readWorkingFile(session, DocumentSchema, path);
   if (document.isErr()) {
     return failure(formatReport(SUBJECT, document.error));
   }
-
-  try {
-    return added(slug, await documents.create(slug, document.value));
-  } catch (error) {
-    if (error instanceof DuplicateDocumentError) return duplicate(error);
-    throw error;
-  }
+  const { value, created } = await documents.add(change, document.value);
+  return added(change, value, created);
 }
 
-function added(slug: ChangeSlug, summary: DocumentSummary): CallToolResult {
+function added(
+  change: ChangeId,
+  document: DocumentSummary,
+  created: boolean,
+): CallToolResult {
   return success(
-    `Added "${summary.title}" to ${slug} as ${summary.id}, stored at ${summary.path}.`,
-    summary,
-  );
-}
-
-function duplicate(error: DuplicateDocumentError): CallToolResult {
-  return failure(
-    error.message,
-    'Give this document a different title, or update the existing one.',
+    `${createdOrUpdated(created)} document ${document.id} ("${document.title}") in ${change}.`,
+    { document, created },
   );
 }

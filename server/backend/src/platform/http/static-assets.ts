@@ -120,8 +120,8 @@ export class StaticAssets {
 }
 
 /**
- * A last segment with a suffix in it. No client route has one: a change slug,
- * a document id and a design document's uuid are all free of `.`.
+ * A last segment with a suffix in it. No client route has one: change,
+ * document and design document ids are all free of `.`.
  */
 function namesAFile(pathname: string): boolean {
   const last = pathname.split('/').at(-1) ?? '';
@@ -155,23 +155,25 @@ async function read(file: string): Promise<Uint8Array<ArrayBuffer> | null> {
   }
 }
 
-/** As long as the shortest hash vite emits. */
-const HASH_MIN_LENGTH = 8;
+/** As long as the hash vite emits. */
+const HASH_LENGTH = 8;
 /** Anchored on both ends around one class, so it cannot backtrack. */
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
 /**
  * Vite names a built asset `<name>-<hash>.<ext>`; `index.html` is not one.
- * Found by index rather than matched: the path comes off the request line,
- * and a pattern whose leading `-` is also inside its own class backtracks.
+ * The hash is base64url, so it may hold a `-` itself (`index-v-ydJase.js`):
+ * it is the fixed-length run before the extension, not whatever follows the
+ * last `-`. Found by index rather than matched: the path comes off the
+ * request line, and a pattern whose leading `-` is also inside its own class
+ * backtracks.
  */
 function isHashed(pathname: string): boolean {
   const name = pathname.slice(pathname.lastIndexOf('/') + 1);
   const dot = name.lastIndexOf('.');
-  const dash = dot <= 0 ? -1 : name.lastIndexOf('-', dot);
-  if (dash <= 0) return false;
-  const hash = name.slice(dash + 1, dot);
-  return hash.length >= HASH_MIN_LENGTH && BASE64URL.test(hash);
+  const start = dot - HASH_LENGTH;
+  if (start < 2 || name[start - 1] !== '-') return false;
+  return BASE64URL.test(name.slice(start, dot));
 }
 
 function safeDecode(pathname: string): string | null {

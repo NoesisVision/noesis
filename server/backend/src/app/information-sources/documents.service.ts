@@ -1,8 +1,11 @@
 import { z } from 'zod';
-import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { ChangeId } from '#backend/app/changes/change-id';
+import type {
+  Added,
+  ChangesService,
+} from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
-import type { CreateDocument, Document } from './document';
+import type { Document } from './document';
 import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
@@ -11,11 +14,6 @@ export const DocumentSummarySchema = z.object({
   id: DocumentId,
   title: z.string().describe('The document title, as stored.'),
   date: z.string().describe('The date on the document, ISO 8601.'),
-  path: z
-    .string()
-    .describe(
-      'Absolute path the document was stored at under .noesis/; the agent reads it from there.',
-    ),
 });
 export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 
@@ -24,33 +22,7 @@ export interface DocumentDetail {
   document: Document;
 }
 
-export class DocumentNotFoundError extends Error {
-  readonly id: DocumentId;
-
-  constructor(slug: ChangeSlug, id: DocumentId) {
-    super(`No document ${JSON.stringify(id)} in change ${slug}.`);
-    this.name = 'DocumentNotFoundError';
-    this.id = id;
-  }
-}
-
-export class DuplicateDocumentError extends Error {
-  readonly title: string;
-
-  constructor(slug: ChangeSlug, title: string) {
-    super(
-      `Change ${slug} already has a document titled ${JSON.stringify(title)}.`,
-    );
-    this.name = 'DuplicateDocumentError';
-    this.title = title;
-  }
-}
-
-/**
- * Callers validate before calling in. The title identifies the
- * document within its change, so the service derives the id from it; a title
- * no id can be derived from is a `ValueObjectError`.
- */
+/** Callers validate before calling in; the id comes with the document. */
 export class DocumentsService {
   private readonly docs: DocumentsRepository;
   private readonly changesService: ChangesService;
@@ -61,99 +33,38 @@ export class DocumentsService {
     this.changesService = changesService;
   }
 
-  /** Check and write run as one step, so parallel creates cannot both pass the check. */
-  create(slug: ChangeSlug, document: CreateDocument): Promise<DocumentSummary> {
-    return this.writes.run(() => this.createUnguarded(slug, document));
+  /**
+   * Creates the document, or updates it when its id is already in the
+   * change. The lookup and the write run as one step, so parallel adds
+   * agree on which of them created it.
+   */
+  add(change: ChangeId, document: Document): Promise<Added<DocumentSummary>> {
+    return this.writes.run(async () => {
+      await this.changesService.assertExists(change);
+      const created = (await this.docs.get(change, document.id)) === null;
+      await this.docs.set(change, document.id, document);
+      return { value: summarize(document), created };
+    });
   }
 
-  private async createUnguarded(
-    slug: ChangeSlug,
-    document: CreateDocument,
-  ): Promise<DocumentSummary> {
-    await this.changesService.assertExists(slug);
-    const id = DocumentId.fromTitle(document.title);
-    await this.assertTitleFree(slug, id, document.title);
-    return this.store(slug, id, document);
-  }
-
-  /** Whole-document replacement; a new title moves the document to its id. */
-  update(
-    slug: ChangeSlug,
-    id: DocumentId,
-    document: CreateDocument,
-  ): Promise<DocumentSummary> {
-    return this.writes.run(() => this.updateUnguarded(slug, id, document));
-  }
-
-  private async updateUnguarded(
-    slug: ChangeSlug,
-    id: DocumentId,
-    document: CreateDocument,
-  ): Promise<DocumentSummary> {
-    await this.changesService.assertExists(slug);
-    await this.assertExists(slug, id);
-    const retitled = DocumentId.fromTitle(document.title);
-    if (retitled === id) return this.store(slug, id, document);
-    await this.assertTitleFree(slug, retitled, document.title);
-    const summary = await this.store(slug, retitled, document);
-    await this.docs.delete(slug, id);
-    return summary;
-  }
-
-  async list(slug: ChangeSlug): Promise<DocumentSummary[]> {
-    await this.changesService.assertExists(slug);
-    const documents = await Array.fromAsync(this.docs.values(slug));
-    return documents
-      .sort(
-        (a, b) =>
-          b.date.localeCompare(a.date) || a.title.localeCompare(b.title),
-      )
-      .map((document) => this.summarize(slug, document));
+  /** Oldest first: the id starts with the creation date. */
+  async list(change: ChangeId): Promise<DocumentSummary[]> {
+    await this.changesService.assertExists(change);
+    const documents = await Array.fromAsync(this.docs.values(change));
+    return documents.sort((a, b) => a.id.localeCompare(b.id)).map(summarize);
   }
 
   async findById(
-    slug: ChangeSlug,
+    change: ChangeId,
     id: DocumentId,
   ): Promise<DocumentDetail | null> {
-    await this.changesService.assertExists(slug);
-    const document = await this.docs.get(slug, id);
+    await this.changesService.assertExists(change);
+    const document = await this.docs.get(change, id);
     if (document === null) return null;
-    return { summary: this.summarize(slug, document), document };
+    return { summary: summarize(document), document };
   }
+}
 
-  async delete(slug: ChangeSlug, id: DocumentId): Promise<boolean> {
-    await this.changesService.assertExists(slug);
-    return this.docs.delete(slug, id);
-  }
-
-  private async assertExists(slug: ChangeSlug, id: DocumentId): Promise<void> {
-    if ((await this.docs.get(slug, id)) === null) {
-      throw new DocumentNotFoundError(slug, id);
-    }
-  }
-
-  private async assertTitleFree(
-    slug: ChangeSlug,
-    id: DocumentId,
-    title: string,
-  ): Promise<void> {
-    if ((await this.docs.get(slug, id)) !== null) {
-      throw new DuplicateDocumentError(slug, title);
-    }
-  }
-
-  private async store(
-    slug: ChangeSlug,
-    id: DocumentId,
-    document: CreateDocument,
-  ): Promise<DocumentSummary> {
-    const stored = { ...document, document_id: id };
-    await this.docs.set(slug, id, stored);
-    return this.summarize(slug, stored);
-  }
-
-  private summarize(slug: ChangeSlug, document: Document): DocumentSummary {
-    const { document_id: id, title, date } = document;
-    return { id, title, date, path: this.docs.pathOf(slug, id) };
-  }
+function summarize({ id, title, date }: Document): DocumentSummary {
+  return { id, title, date };
 }

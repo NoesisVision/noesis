@@ -13,6 +13,7 @@
     ".claude-plugin/plugin.json",
     ".mcp.json",
     "contracts",
+    "scripts",
     "skills"
   ],
   "publishConfig": {

@@ -16,6 +16,7 @@ beforeEach(async () => {
   await writeFile(join(root, 'index.html'), '<title>Noesis</title>');
   await writeFile(join(root, 'assets', 'index-BwkfbSeq.js'), BIG);
   await writeFile(join(root, 'assets', 'tiny-AAAAAAAA.js'), 'export {};');
+  await writeFile(join(root, 'assets', 'index-v-ydJase.js'), 'export {};');
   ui = new StaticAssets(root);
 });
 
@@ -83,6 +84,8 @@ describe('static assets', () => {
       (await get(path))?.headers.get('cache-control')?.includes('immutable');
     expect(await immutable(HASHED)).toBe(true);
     expect(await immutable('/index.html')).toBe(false);
+    // A hash may hold a `-` of its own.
+    expect(await immutable('/assets/index-v-ydJase.js')).toBe(true);
 
     const pathological = `/assets/${'-'.repeat(40_000)}x`;
     const started = Bun.nanoseconds();

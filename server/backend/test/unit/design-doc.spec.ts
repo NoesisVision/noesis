@@ -5,7 +5,7 @@ import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 
 const document = {
-  id: 'doc-1',
+  id: '2026-01-01-doc-1',
   name: { value: 'Refunds' },
   description: { value: 'Let a clerk refund an order.', reviewedByHuman: true },
   modules: {
@@ -67,7 +67,7 @@ describe('DesignDocumentSchema', () => {
 
   it('fills absent change sets, lists and reviewable fields', () => {
     const parsed = DesignDocumentSchema.parse({
-      id: 'doc-2',
+      id: '2026-01-01-doc-2',
       name: { value: 'Empty' },
       description: { value: '' },
     });

@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createGraphSearch } from '#backend/adapters/graph/graph-search';
 import { IndexService } from '#backend/adapters/graph/index.service';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { SearchService } from '#backend/app/search/search.service';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.parse('alpha');
+const ALPHA = ChangeId.parse('2026-01-01-alpha');
 
 let db: DatabaseService;
 let t: TestNoesis;
@@ -41,7 +41,7 @@ describe('graph search', () => {
         id: designDocFixture.id,
         title: 'Partial refunds for orders',
         subtitle: 'draft',
-        href: `/changes/alpha/design-docs/${designDocFixture.id}`,
+        href: `/changes/2026-01-01-alpha/design-docs/${designDocFixture.id}`,
       },
     ]);
   });

@@ -109,25 +109,40 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
   it('offers the four tools it was started with', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_change',
       'add_design_doc_to_change',
       'add_document_to_change',
-      'create_change',
       'list_changes',
     ]);
   });
 
-  it('creates a change and adds a document written to the scratch directory', async () => {
+  it('adds a change and a document, each written to the scratch directory', async () => {
+    const change = '2026-09-18-payment-retry';
+    const changeFile = join(await sessionDir(client), 'change.json');
+    await writeFile(
+      changeFile,
+      JSON.stringify({
+        id: change,
+        name: 'Payment retry',
+        key: 'NOE-142',
+        type: 'feature',
+      }),
+    );
     const created = await client.callTool({
-      name: 'create_change',
-      arguments: { name: 'Payment retry', key: 'NOE-142', type: 'feature' },
+      name: 'add_change',
+      arguments: { path: changeFile },
     });
     expect(created.isError).toBeFalsy();
-    expect(created.structuredContent).toMatchObject({ slug: 'payment-retry' });
+    expect(created.structuredContent).toMatchObject({
+      change: { id: change },
+      created: true,
+    });
 
     const path = join(await sessionDir(client), 'document.json');
     await writeFile(
       path,
       JSON.stringify({
+        id: '2026-09-18-retry-interview',
         title: 'Retry interview',
         date: '2026-09-18',
         content: 'Support hears about double charges after a failed retry.',
@@ -136,13 +151,20 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
 
     const added = await client.callTool({
       name: 'add_document_to_change',
-      arguments: { change: 'payment-retry', path },
+      arguments: { change, path },
     });
 
     expect(added.isError).toBeFalsy();
-    const stored = (added.structuredContent as { path: string }).path;
-    expect(stored.startsWith(join(service.repoRoot, '.noesis', 'graph'))).toBe(
-      true,
+    expect(added.structuredContent).toMatchObject({ created: true });
+    const stored = join(
+      service.repoRoot,
+      '.noesis',
+      'graph',
+      'changes',
+      change,
+      'documents',
+      '2026-09-18-retry-interview',
+      'data.json',
     );
     expect(await exists(stored)).toBe(true);
   }, 15_000);
@@ -151,18 +173,23 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     const path = join(await sessionDir(client), 'orphan.json');
     await writeFile(
       path,
-      JSON.stringify({ title: 'Orphan', date: '2026-09-18', content: 'x' }),
+      JSON.stringify({
+        id: '2026-09-18-orphan',
+        title: 'Orphan',
+        date: '2026-09-18',
+        content: 'x',
+      }),
     );
 
     const result = await client.callTool({
       name: 'add_document_to_change',
-      arguments: { change: 'booking', path },
+      arguments: { change: '2026-09-18-booking', path },
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('No change "booking"');
+    expect(textOf(result)).toContain('No change "2026-09-18-booking"');
     const changes = join(service.repoRoot, '.noesis', 'graph', 'changes');
-    expect(await exists(join(changes, 'booking'))).toBe(false);
+    expect(await exists(join(changes, '2026-09-18-booking'))).toBe(false);
   });
 
   it('deletes the scratch directory when the session ends', async () => {
@@ -197,17 +224,28 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
 
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_change',
       'add_design_doc_to_change',
       'add_document_to_change',
-      'create_change',
       'list_changes',
     ]);
 
+    const path = join(await sessionDir(client), 'change.json');
+    await writeFile(
+      path,
+      JSON.stringify({
+        id: '2026-09-18-legacy-era',
+        name: 'Legacy era',
+        type: 'chore',
+      }),
+    );
     const created = await client.callTool({
-      name: 'create_change',
-      arguments: { name: 'Legacy era', type: 'chore' },
+      name: 'add_change',
+      arguments: { path },
     });
-    expect(created.structuredContent).toMatchObject({ slug: 'legacy-era' });
+    expect(created.structuredContent).toMatchObject({
+      change: { id: '2026-09-18-legacy-era' },
+    });
   }, 15_000);
 });
 

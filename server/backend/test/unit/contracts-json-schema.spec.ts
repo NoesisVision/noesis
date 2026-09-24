@@ -45,16 +45,16 @@ describe('the generated JSON Schema contracts', () => {
 
   it('shows a codec as the string an agent writes, not the value object', () => {
     const { properties } = schemaOf('document') as {
-      properties: { document_id: Record<string, unknown> };
+      properties: { id: Record<string, unknown> };
     };
-    expect(properties.document_id).toMatchObject({
-      type: 'string',
-      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
-    });
+    expect(properties.id).toMatchObject({ type: 'string', maxLength: 64 });
+    const pattern = new RegExp(String(properties.id.pattern));
+    expect(pattern.test('2026-09-24-payment-retry')).toBe(true);
+    expect(pattern.test('2026-02-30-payment-retry')).toBe(false);
   });
 
   it('keeps the descriptions an agent reads', () => {
-    const { properties } = schemaOf('create-change') as {
+    const { properties } = schemaOf('change') as {
       properties: { name: { description?: string } };
     };
     expect(properties.name.description).toBeTruthy();

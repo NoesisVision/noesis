@@ -3,18 +3,19 @@
 // No file-time column: a `git checkout` rewrites it. No `version`
 // column: the single writer needs no optimistic concurrency.
 export const GRAPH_SCHEMA: readonly string[] = [
-  // `document`, not `json`, holds the whole `DesignDocument`.
+  // `document`, not `json`, holds the whole `DesignDocument`. A design doc id
+  // is unique only inside its change, so the key carries the change too.
   `CREATE NODE TABLE IF NOT EXISTS DesignDoc(
+     key STRING,
      id STRING,
      change STRING,
      name STRING,
      implemented BOOLEAN,
      document STRING,
-     PRIMARY KEY(id)
+     PRIMARY KEY(key)
    )`,
 
-  // A document id is the title's slug, unique only inside its change, so the
-  // key carries the change too.
+  // Likewise a document id is unique only inside its change.
   `CREATE NODE TABLE IF NOT EXISTS Document(
      key STRING,
      id STRING,

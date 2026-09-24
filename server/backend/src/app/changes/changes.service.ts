@@ -1,8 +1,8 @@
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import { Serial } from '#backend/app/serial';
-import type { Change, CreateChange } from './change';
-import { ChangeSlug } from './change-slug';
+import type { Change } from './change';
+import type { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
 
 /** A child of a change as the sidebar names it. */
@@ -16,31 +16,19 @@ export interface ChangeNavigationItem extends Change {
   designDocs: ChangeNavigationChild[];
 }
 
-export class ChangeNotFoundError extends Error {
-  readonly slug: ChangeSlug;
-
-  constructor(slug: ChangeSlug) {
-    super(`No change ${JSON.stringify(slug)}.`);
-    this.name = 'ChangeNotFoundError';
-    this.slug = slug;
-  }
+/** What an add answers: the entity as stored, and whether the id was new. */
+export interface Added<T> {
+  value: T;
+  created: boolean;
 }
 
-export type DuplicateChangeField = 'slug' | 'key';
+export class ChangeNotFoundError extends Error {
+  readonly id: ChangeId;
 
-export class DuplicateChangeError extends Error {
-  readonly value: string;
-  readonly field: DuplicateChangeField;
-
-  constructor(value: string, field: DuplicateChangeField = 'slug') {
-    super(
-      field === 'key'
-        ? `A change with key ${JSON.stringify(value)} already exists.`
-        : `Change ${JSON.stringify(value)} already exists.`,
-    );
-    this.name = 'DuplicateChangeError';
-    this.value = value;
-    this.field = field;
+  constructor(id: ChangeId) {
+    super(`No change ${JSON.stringify(id)}.`);
+    this.name = 'ChangeNotFoundError';
+    this.id = id;
   }
 }
 
@@ -60,18 +48,15 @@ export class ChangesService {
     this.documents = documents;
   }
 
+  /** Newest first: the id starts with the creation date. */
   async list(): Promise<Change[]> {
     const changes = await Array.fromAsync(this.changes.values());
-    return changes.sort(
-      (a, b) =>
-        b.created_at.localeCompare(a.created_at) ||
-        a.slug.localeCompare(b.slug),
-    );
+    return changes.sort((a, b) => b.id.localeCompare(a.id));
   }
 
-  async findById(slug: ChangeSlug): Promise<Change> {
-    const found = await this.changes.read(slug);
-    if (found === null) throw new ChangeNotFoundError(slug);
+  async findById(id: ChangeId): Promise<Change> {
+    const found = await this.changes.read(id);
+    if (found === null) throw new ChangeNotFoundError(id);
     return found;
   }
 
@@ -82,74 +67,45 @@ export class ChangesService {
   }
 
   private async withChildren(change: Change): Promise<ChangeNavigationItem> {
-    // Already validated: it came off a stored change.
-    const slug = ChangeSlug.parse(change.slug);
     const [documents, designDocs] = await Promise.all([
-      Array.fromAsync(
-        this.documents.values(slug),
-        ({ document_id, title }) => ({
-          id: document_id,
-          name: title,
-        }),
-      ),
+      Array.fromAsync(this.documents.values(change.id), ({ id, title }) => ({
+        id,
+        name: title,
+      })),
       // `name` is a reviewable field now, so the sidebar gets its value.
-      Array.fromAsync(this.designDocs.values(slug), ({ id, name }) => ({
+      Array.fromAsync(this.designDocs.values(change.id), ({ id, name }) => ({
         id,
         name: name.value,
       })),
     ]);
     return {
       ...change,
-      documents: documents.sort(byName),
-      designDocs: designDocs.sort(byName),
+      documents: documents.sort(byId),
+      designDocs: designDocs.sort(byId),
     };
   }
 
-  /** Check and write run as one step, so parallel creates cannot both pass the check. */
-  create(input: CreateChange, now = new Date()): Promise<Change> {
-    return this.writes.run(() => this.createUnguarded(input, now));
+  /**
+   * Creates the change, or updates it when its id is already on disk. The
+   * lookup and the write run as one step, so parallel adds agree on which
+   * of them created it.
+   */
+  add(change: Change): Promise<Added<Change>> {
+    return this.writes.run(async () => {
+      const created = (await this.changes.read(change.id)) === null;
+      await this.changes.write(change);
+      return { value: change, created };
+    });
   }
 
-  private async createUnguarded(
-    input: CreateChange,
-    now: Date,
-  ): Promise<Change> {
-    const slug = ChangeSlug.fromName(input.name);
-    await this.assertKeyFree(input.key);
-    await this.assertSlugFree(slug);
-    const change: Change = {
-      slug: slug,
-      name: input.name,
-      key: input.key,
-      type: input.type,
-      status: 'discovery',
-      created_at: now.toISOString(),
-      description: '',
-    };
-    await this.changes.write(change);
-    return change;
-  }
-
-  /** An empty key means the team tracks the change nowhere, so any number of changes may have one. */
-  private async assertKeyFree(key: string): Promise<void> {
-    if (key === '') return;
-    const taken = (await this.list()).some((c) => c.key === key);
-    if (taken) throw new DuplicateChangeError(key, 'key');
-  }
-
-  private async assertSlugFree(slug: ChangeSlug): Promise<void> {
-    if ((await this.changes.read(slug)) !== null) {
-      throw new DuplicateChangeError(slug, 'slug');
-    }
-  }
-
-  async assertExists(slug: ChangeSlug): Promise<void> {
-    if ((await this.changes.read(slug)) === null) {
-      throw new ChangeNotFoundError(slug);
+  async assertExists(id: ChangeId): Promise<void> {
+    if ((await this.changes.read(id)) === null) {
+      throw new ChangeNotFoundError(id);
     }
   }
 }
 
-function byName(a: ChangeNavigationChild, b: ChangeNavigationChild): number {
-  return a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+/** Oldest first: the id starts with the creation date. */
+function byId(a: ChangeNavigationChild, b: ChangeNavigationChild): number {
+  return a.id.localeCompare(b.id);
 }

@@ -20,20 +20,26 @@ function leafRouteId(url: string): string | undefined {
 }
 
 it('ends a list page on its view index route, not on the view itself', () => {
-  expect(leafRouteId('/changes/test-2')).toBe(`${OVERVIEW_ROUTE_ID}/`);
-  expect(leafRouteId('/changes/test-2/documents')).toBe(
+  expect(leafRouteId('/changes/2026-01-01-scheduling')).toBe(
+    `${OVERVIEW_ROUTE_ID}/`,
+  );
+  expect(leafRouteId('/changes/2026-01-01-scheduling/documents')).toBe(
     `${DOCUMENTS_ROUTE_ID}/`,
   );
-  expect(leafRouteId('/changes/test-2/design-docs')).toBe(
+  expect(leafRouteId('/changes/2026-01-01-scheduling/design-docs')).toBe(
     `${DESIGN_DOCS_ROUTE_ID}/`,
   );
 });
 
 it('ends a detail page on the detail route, so its view stops being the leaf', () => {
-  expect(leafRouteId('/changes/test-2/documents/payment-retry-policy')).toBe(
-    `${DOCUMENTS_ROUTE_ID}/$documentId`,
-  );
-  expect(leafRouteId('/changes/test-2/design-docs/01a0b349')).toBe(
-    `${DESIGN_DOCS_ROUTE_ID}/$docId`,
-  );
+  expect(
+    leafRouteId(
+      '/changes/2026-01-01-scheduling/documents/2026-01-01-payment-retry-policy',
+    ),
+  ).toBe(`${DOCUMENTS_ROUTE_ID}/$documentId`);
+  expect(
+    leafRouteId(
+      '/changes/2026-01-01-scheduling/design-docs/2026-01-01-partial-refunds',
+    ),
+  ).toBe(`${DESIGN_DOCS_ROUTE_ID}/$docId`);
 });

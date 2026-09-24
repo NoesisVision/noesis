@@ -171,11 +171,18 @@ store. Rules that hold across every kind:
   `graph/changes/<change>/`; `system-model/` is a flat root collection. Where one object belongs
   under another by classification rather than ownership, the relation lives in the data as a
   field naming the other object's id, so re-classifying is a one-field edit, not a file move.
-- **The directory is the key.** A change's slug, the entity's id everywhere else. The service
-  chooses the key; a `git diff` shows an id, and renaming an entity changes a field, not a path.
+- **The directory is the key.** The entity's id names its directory; a `git diff` shows an id,
+  and renaming an entity changes a field, not a path.
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
-  source imported twice lands under the same id rather than beside itself. Everything the graph
-  authors itself gets a time-ordered id.
+  source imported twice lands under the same id rather than beside itself. A change, a document
+  and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
+  (`2026-09-24-payment-retry`): the writer of the working file mints it once, with the plugin's
+  `entity-id.ts`, and never re-derives it, so a retitled entity keeps its id. A change id is
+  unique among changes; a document or design-doc id only within its change. Ids sort by
+  creation date.
+- **Saves are upserts.** Every add writes at the id the file carries: a new id creates, an id
+  already on disk updates in place. The tool answers which, so an agent that meant to create
+  and hit an existing id notices. No title or tracker key has to be unique.
 - **References are ids.** One object points at another by id, never by path, and the same holds
   inside a file: the elements of a design document address each other by id, so renaming,
   reordering or reparenting an element leaves every reference to it intact.
@@ -242,8 +249,8 @@ not bury the first real cause.
 3. It calls the matching MCP tool with the working file path.
 4. The tool validates the file. If it does not fit, the agent corrects what comes back and calls
    again; nothing was written.
-5. The service mints or keeps the id, and writes the knowledge graph files through the
-   repositories.
+5. The service writes the knowledge graph files at the id the file carries, through the
+   repositories, and answers whether it created or updated the entity.
 6. The watcher picks up the change and re-indexes the graph.
 7. The UI and subsequent agent queries read the updated graph.
 

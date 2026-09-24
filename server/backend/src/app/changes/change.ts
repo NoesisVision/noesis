@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChangeSlug } from './change-slug';
+import { ChangeId } from './change-id';
 
 // The change's directory also collects its imported conversations, documents
 // and design docs.
@@ -21,7 +21,9 @@ const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
 export const ChangeSchema = z
   .object({
-    slug: ChangeSlug,
+    id: ChangeId.describe(
+      "The change's id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted once by the writer with the plugin's entity-id.ts script and never changed; saving at an existing id updates that change.",
+    ),
     name: z
       .string()
       .trim()
@@ -44,12 +46,10 @@ export const ChangeSchema = z
       ),
     status: z
       .enum(CHANGE_STATUSES)
+      .default('discovery')
       .describe(
-        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done.',
+        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out; an update carries the value list_changes returned.',
       ),
-    created_at: z
-      .string()
-      .describe('When the change was created, ISO 8601 with offset.'),
     description: z
       .string()
       .default('')
@@ -59,11 +59,3 @@ export const ChangeSchema = z
   })
   .describe('One change: the data.json file inside its directory.');
 export type Change = z.infer<typeof ChangeSchema>;
-
-/** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
-export const CreateChangeSchema = ChangeSchema.pick({
-  name: true,
-  key: true,
-  type: true,
-}).describe('The request body for creating a change.');
-export type CreateChange = z.infer<typeof CreateChangeSchema>;

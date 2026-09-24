@@ -35,11 +35,23 @@ afterAll(async () => {
 });
 
 test('content is the source verbatim; title and date are derived', async () => {
-  expect(await buildWorkingFile(sourcePath)).toEqual({
-    title: 'Payment retry',
-    date: '2026-03-05',
-    content: SOURCE,
-  });
+  expect(await buildWorkingFile(sourcePath, {}, new Date(2026, 8, 24))).toEqual(
+    {
+      id: '2026-09-24-payment-retry',
+      title: 'Payment retry',
+      date: '2026-03-05',
+      content: SOURCE,
+    },
+  );
+});
+
+test('a new document gets an id minted from its title and today', async () => {
+  const { id } = await buildWorkingFile(
+    sourcePath,
+    { title: 'Zażółć notes' },
+    new Date(2026, 0, 2),
+  );
+  expect(id).toBe('2026-01-02-zazolc-notes');
 });
 
 test('a file without a heading is titled by its name', () => {
@@ -56,6 +68,8 @@ test('the script writes the working file and honours the overrides', async () =>
       script,
       sourcePath,
       workingPath,
+      '--id',
+      '2026-01-01-payment-retry',
       '--title',
       'Retry',
       '--date',
@@ -66,10 +80,12 @@ test('the script writes the working file and honours the overrides', async () =>
   expect(run.status).toBe(0);
   expect(JSON.parse(run.stdout)).toMatchObject({
     path: workingPath,
+    id: '2026-01-01-payment-retry',
     title: 'Retry',
     date: '2026-01-02',
   });
   expect(JSON.parse(await readFile(workingPath, 'utf8'))).toEqual({
+    id: '2026-01-01-payment-retry',
     title: 'Retry',
     date: '2026-01-02',
     content: SOURCE,

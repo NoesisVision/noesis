@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
 import { IndexService } from '#backend/adapters/graph/index.service';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.parse('alpha');
-const BETA = ChangeSlug.parse('beta');
-const GAMMA = ChangeSlug.parse('gamma');
+const ALPHA = ChangeId.parse('2026-01-01-alpha');
+const BETA = ChangeId.parse('2026-01-02-beta');
+const GAMMA = ChangeId.parse('2026-01-03-gamma');
 
 let db: DatabaseService;
 let t: TestNoesis;
@@ -33,8 +33,10 @@ interface Row {
   name: string;
 }
 
-const writeDoc = (slug: ChangeSlug, document: DesignDocumentInput) =>
-  t.changesRepository.children(slug)['design-docs'].set(document.id, document);
+const writeDoc = (change: ChangeId, document: DesignDocumentInput) =>
+  t.changesRepository
+    .children(change)
+    ['design-docs'].set(document.id, document);
 
 const graphRows = () =>
   db.query<Row>(
@@ -47,17 +49,17 @@ describe('IndexService', () => {
     await t.createChange(BETA);
     await writeDoc(ALPHA, {
       ...designDocFixture,
-      id: 'a1',
+      id: '2026-01-01-a1',
       name: { value: 'A one' },
     });
     await writeDoc(ALPHA, {
       ...designDocFixture,
-      id: 'a2',
+      id: '2026-01-01-a2',
       name: { value: 'A two' },
     });
     await writeDoc(BETA, {
       ...designDocFixture,
-      id: 'b1',
+      id: '2026-01-01-b1',
       name: { value: 'B one' },
     });
 
@@ -66,18 +68,32 @@ describe('IndexService', () => {
     expect(report.files).toBe(3);
     expect(report.durationMs).toBeGreaterThanOrEqual(0);
     expect(await graphRows()).toEqual([
-      { id: 'a1', change: 'alpha', name: 'A one' },
-      { id: 'a2', change: 'alpha', name: 'A two' },
-      { id: 'b1', change: 'beta', name: 'B one' },
+      { id: '2026-01-01-a1', change: '2026-01-01-alpha', name: 'A one' },
+      { id: '2026-01-01-a2', change: '2026-01-01-alpha', name: 'A two' },
+      { id: '2026-01-01-b1', change: '2026-01-02-beta', name: 'B one' },
+    ]);
+  });
+
+  it('keeps a design doc id apart in each change that holds it', async () => {
+    await t.createChange(ALPHA);
+    await t.createChange(BETA);
+    await writeDoc(ALPHA, { ...designDocFixture, name: { value: 'In alpha' } });
+    await writeDoc(BETA, { ...designDocFixture, name: { value: 'In beta' } });
+
+    await indexer.rebuild();
+
+    expect((await graphRows()).map((r) => r.name).sort()).toEqual([
+      'In alpha',
+      'In beta',
     ]);
   });
 
   it('is a function of the files alone: a rebuild drops what the files no longer hold', async () => {
     await t.createChange(ALPHA);
-    await writeDoc(ALPHA, { ...designDocFixture, id: 'a1' });
+    await writeDoc(ALPHA, { ...designDocFixture, id: '2026-01-01-a1' });
     await writeDoc(ALPHA, {
       ...designDocFixture,
-      id: 'a2',
+      id: '2026-01-01-a2',
       name: { value: 'Two' },
     });
     await indexer.rebuild();
@@ -87,19 +103,19 @@ describe('IndexService', () => {
     await t.createChange(GAMMA);
     await writeDoc(GAMMA, {
       ...designDocFixture,
-      id: 'g1',
+      id: '2026-01-01-g1',
       name: { value: 'Renamed' },
     });
     await writeDoc(GAMMA, {
       ...designDocFixture,
-      id: 'a2',
+      id: '2026-01-01-a2',
       name: { value: 'Renamed too' },
     });
     await indexer.rebuild();
 
     expect(await graphRows()).toEqual([
-      { id: 'a2', change: 'gamma', name: 'Renamed too' },
-      { id: 'g1', change: 'gamma', name: 'Renamed' },
+      { id: '2026-01-01-a2', change: '2026-01-03-gamma', name: 'Renamed too' },
+      { id: '2026-01-01-g1', change: '2026-01-03-gamma', name: 'Renamed' },
     ]);
   });
 
@@ -108,9 +124,11 @@ describe('IndexService', () => {
 
     await t.createChange(ALPHA);
     await writeDoc(ALPHA, designDocFixture);
-    await writeDoc(ALPHA, { ...designDocFixture, id: 'junk' });
+    await writeDoc(ALPHA, { ...designDocFixture, id: '2026-01-01-junk' });
     await writeFile(
-      t.changesRepository.children(ALPHA)['design-docs'].dataFile('junk'),
+      t.changesRepository
+        .children(ALPHA)
+        ['design-docs'].dataFile('2026-01-01-junk'),
       '{',
     );
 
@@ -120,12 +138,14 @@ describe('IndexService', () => {
 
   it('projects imported documents into their own table', async () => {
     await t.createChange(ALPHA);
-    await t.changesRepository.children(ALPHA).documents.set('doc-1', {
-      document_id: 'doc-1',
-      title: 'Rules',
-      date: '2026-09-01',
-      content: '',
-    });
+    await t.changesRepository
+      .children(ALPHA)
+      .documents.set('2026-09-01-rules', {
+        id: '2026-09-01-rules',
+        title: 'Rules',
+        date: '2026-09-01',
+        content: '',
+      });
 
     const report = await indexer.rebuild();
 

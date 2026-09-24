@@ -2,15 +2,15 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import type { DatabaseService } from '#backend/platform/database/database.service';
 import { isIgnored, NoesisWatcher } from '#backend/platform/files/watcher';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { resetGraph, sharedTestDatabase } from './test-db';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const ALPHA = ChangeSlug.parse('alpha');
-const BETA = ChangeSlug.parse('beta');
+const ALPHA = ChangeId.parse('2026-01-01-alpha');
+const BETA = ChangeId.parse('2026-01-02-beta');
 
 const DEBOUNCE_MS = 50;
 
@@ -97,11 +97,13 @@ describe('NoesisWatcher', () => {
     const db: DatabaseService = await sharedTestDatabase();
     const indexer = new IndexService(db, t.sources);
     await t.createChange(ALPHA);
-    await t.changesRepository.children(ALPHA)['design-docs'].set('a1', {
-      ...designDocFixture,
-      id: 'a1',
-      name: { value: 'Before' },
-    });
+    await t.changesRepository
+      .children(ALPHA)
+      ['design-docs'].set('2026-01-01-a1', {
+        ...designDocFixture,
+        id: '2026-01-01-a1',
+        name: { value: 'Before' },
+      });
     await indexer.rebuild();
     watcher = new NoesisWatcher(t.noesis, () => indexer.rebuild(), {
       debounceMs: DEBOUNCE_MS,
@@ -114,27 +116,27 @@ describe('NoesisWatcher', () => {
           'MATCH (d:DesignDoc) RETURN d.id AS id ORDER BY id',
         )
       ).map((r) => r.id);
-    expect(await ids()).toEqual(['a1']);
+    expect(await ids()).toEqual(['2026-01-01-a1']);
 
     // Behind the service's back, as `git checkout` would.
     await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
     await t.createChange(BETA);
     const other = join(
       t.changesRepository.children(BETA)['design-docs'].directory,
-      'b1',
+      '2026-01-01-b1',
     );
     await mkdir(other, { recursive: true });
     await writeFile(
       `${other}/data.json`,
       JSON.stringify({
         ...designDocFixture,
-        id: 'b1',
+        id: '2026-01-01-b1',
         name: { value: 'After' },
       }),
     );
-    await waitFor(async () => (await ids()).join() === 'b1');
+    await waitFor(async () => (await ids()).join() === '2026-01-01-b1');
 
-    expect(await ids()).toEqual(['b1']);
+    expect(await ids()).toEqual(['2026-01-01-b1']);
     await resetGraph();
   });
 });

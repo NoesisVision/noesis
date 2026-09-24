@@ -1,8 +1,8 @@
 import type { Change } from './change';
-import type { ChangeSlug } from './change-slug';
+import type { ChangeId } from './change-id';
 
 export interface ChangesRepository {
-  read(slug: ChangeSlug): Promise<Change | null>;
+  read(id: ChangeId): Promise<Change | null>;
 
   /** In no particular order. */
   values(): AsyncIterable<Change>;

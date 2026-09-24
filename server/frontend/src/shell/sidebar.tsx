@@ -110,7 +110,7 @@ function ChangeNavHeading({
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { changes, activeChange } = useChangeNavigation();
   const { isActive } = useActiveRoute();
-  const params = { changeId: activeChange?.slug ?? '' };
+  const params = { changeId: activeChange?.id ?? '' };
   const children = changeNavChildren(activeChange, params.changeId);
 
   return (

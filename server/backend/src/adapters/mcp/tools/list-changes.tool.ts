@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
-import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
+import { ADD_CHANGE, LIST_CHANGES } from '../tool-names';
 import { success } from '../tool-result';
 
 const inputSchema = z
@@ -24,7 +24,7 @@ export function listChangesTool(changes: ChangesService): ToolRegistration {
     {
       title: 'List changes',
       description:
-        'Lists every change in the repository, newest first, each with its slug, name, tracker key, type and status. Use it to find the slug of a change the user refers to by name or key, or to offer the user the changes to choose from.',
+        'Lists every change in the repository, newest first, each with its id, name, tracker key, type and status. Use it to find the id of a change the user refers to by name or key, or to offer the user the changes to choose from.',
       inputSchema,
       outputSchema,
       annotations: READ_ONLY,
@@ -37,10 +37,10 @@ function listed(changes: Change[]): CallToolResult {
   return success(summary(changes), { changes });
 }
 
-/** The slugs are in the text too, for hosts and models that read only that. */
+/** The ids are in the text too, for hosts and models that read only that. */
 function summary(changes: Change[]): string {
   if (changes.length === 0) {
-    return `There are no changes yet. Create one with ${CREATE_CHANGE}.`;
+    return `There are no changes yet. Add one with ${ADD_CHANGE}.`;
   }
   const count = changes.length === 1 ? '1 change' : `${changes.length} changes`;
   return [`${count}, newest first:`, ...changes.map(line)].join('\n');
@@ -48,5 +48,5 @@ function summary(changes: Change[]): string {
 
 function line(change: Change): string {
   const key = change.key === '' ? '' : ` [${change.key}]`;
-  return `- ${change.slug}${key}: ${change.name} (${change.type}, ${change.status})`;
+  return `- ${change.id}${key}: ${change.name} (${change.type}, ${change.status})`;
 }

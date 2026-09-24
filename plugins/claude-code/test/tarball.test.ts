@@ -50,10 +50,12 @@ test('ships exactly the expected plugin files', async () => {
     'README.md',
     'contracts/README.md',
     'contracts/design-document.schema.json',
-    'contracts/create-document.schema.json',
+    'contracts/document.schema.json',
+    'contracts/change.schema.json',
     'skills/add-document-to-change/SKILL.md',
     'skills/add-document-to-change/scripts/write-working-file.ts',
-    'skills/create-change/SKILL.md',
+    'skills/add-change/SKILL.md',
+    'scripts/entity-id.ts',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -64,7 +66,6 @@ test('ships exactly the expected plugin files', async () => {
     'tools',
     'test',
     'servers',
-    'scripts',
   ];
   const leaked = excluded.filter((f) => existsSync(join(packageDir, f)));
   expect(leaked).toEqual([]);
@@ -149,9 +150,9 @@ test('the service the pin resolves to boots and lists tools', async () => {
     await client.connect(transport);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
+      'add_change',
       'add_design_doc_to_change',
       'add_document_to_change',
-      'create_change',
       'list_changes',
     ]);
   } finally {
