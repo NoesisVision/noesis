@@ -1,9 +1,14 @@
-# Plan: flat per-change storage with dated slug ids
+# Plan: flat per-change storage
 
 Replace the generic nested `NoesisStore` with a small `JsonCollection` over one
-JSON file per entity, key every change, document and design doc by its creation
-date plus a slug of its title (`2026-09-24-payment-retry`), and read graph
-files and session working files through one codec.
+JSON file per entity, one folder per change, and read graph files and session
+working files through one codec.
+
+This plan assumes `dated-entity-ids.md` is implemented: changes, documents and
+design docs already carry dated slug ids (`ChangeId`, `DocumentId`,
+`DesignDocId`), every write is an upsert through `save_change`,
+`save_document` and `save_design_doc`, and the plugin mints ids with
+`entity-id.ts`. Nothing here changes an id, a model field or a tool contract.
 
 ## Use cases
 
@@ -26,29 +31,17 @@ performance, as there are few, small files.
 
 ## Decisions
 
-| Topic            | Decision                                                                                                                                                                                                        |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Layout           | C: one folder per change, entity kind in the file name                                                                                                                                                          |
-| Store API        | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`                                                                                              |
-| Sharing          | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                                                                                                              |
-| Session dir      | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path                                                                                 |
-| Ids              | `YYYY-MM-DD-<slug>`: the creation date, then a slug of the change's `name` or the document's or design doc's `title`. One shape for changes, documents and design docs; the system model keeps its content hash |
-| Id scope         | A change id is unique among changes; a document or design-doc id is unique only within its change (the same `2026-09-24-main` may exist in two changes)                                                         |
-| Why dated        | Fewer collisions than a bare slug, file names sort by creation date, and the files stay readable when edited by hand                                                                                            |
-| Who mints ids    | The writer of the file: a plugin script derives the id from the title and today's date and puts it in the body. Every entity, the change included, reaches the server as a session file                         |
-| Existing id      | Every save is an upsert: an id already on disk is an update. The same title on the same day therefore overwrites the earlier entity; the scripts warn when the target file already exists                       |
-| Id stability     | Immutable: the id is minted once, at creation, and never re-derived. A title or name change is an ordinary update at the same id; the file name keeps the original title                                        |
-| Get by id        | Nested: `get(changeId, id)` reads one known path; HTTP routes stay `/changes/:changeId/documents/:id`                                                                                                           |
-| Change upsert    | The agent's file carries `id`, `name`, `key`, `type`, `description`; the server sets `status = discovery` and `created_at` on first write and keeps both on later writes                                        |
-| Design doc title | New `title` field, default `main`. A change holds at most one design doc titled `main`, so the second design doc needs a title                                                                                  |
-| Document titles  | Free text up to 200 characters, duplicates allowed on different days; `DuplicateDocumentError` and title-only ids go away                                                                                       |
-| Change keys      | The tracker `key` may repeat across changes; no uniqueness check                                                                                                                                                |
-| Default order    | Collections list by id, so by creation date, then title                                                                                                                                                         |
-| Tool names       | `save_change`, `save_document`, `save_design_doc` (every write is an upsert); skills renamed to match                                                                                                           |
-| Bad graph file   | `list()` and `get()` throw (no skipping)                                                                                                                                                                        |
-| Scope            | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                                                                                                         |
-| Migration        | None: old `graph/changes/<slug>/` folders (`data.json`, nested documents) are dev data, deleted by hand                                                                                                         |
-| HTTP             | The UI surface is read only, so no HTTP route writes; route params become dated ids                                                                                                                             |
+| Topic          | Decision                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Layout         | C: one folder per change, entity kind in the file name                                                                          |
+| Store API      | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`              |
+| Sharing        | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                              |
+| Session dir    | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path |
+| File names     | The entity's id; a mismatch between the file name and `body.id` is a validation failure                                         |
+| Default order  | Collections list by id, so by creation date, then title                                                                         |
+| Bad graph file | `list()` and `get()` throw (no skipping)                                                                                        |
+| Scope          | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                         |
+| Migration      | None: the nested `graph/changes/<changeId>/` folders (`data.json`, `documents/`, `design-docs/`) are dev data, deleted by hand  |
 
 ## Layout
 
@@ -58,7 +51,7 @@ performance, as there are few, small files.
     changes/
       <changeId>/                               # 2026-09-24-payment-retry/
         change.json
-        <designDocId>.design-doc.json           # 2026-09-24-main.design-doc.json
+        <designDocId>.design-doc.json           # 2026-09-24-refund-flow.design-doc.json
         <documentId>.document.json              # 2026-09-25-meeting-notes.document.json
     system-models/
       <systemModelId>.system-model.json
@@ -68,124 +61,18 @@ performance, as there are few, small files.
 ```
 
 - The file name repeats the id in the body (for `change.json`, the folder name
-  does). On read, a mismatch between the
-  file name and `body.id` is a validation failure (a hand-renamed file must not
-  silently answer to two ids).
+  does). On read, a mismatch between the file name and `body.id` is a
+  validation failure (a hand-renamed file must not silently answer to two
+  ids).
 - Use case 4 (summary of a change) is one `readdir` of `changes/<changeId>/`:
   the suffix says the kind, and each file is read for its name.
 - `system-models/` replaces `system-model/`; the scanner writes the whole
-  directory again on the next scan, so nothing needs moving.
-
-## Ids
-
-One shape, three brands. A shared helper in `app/ids/dated-id.ts` builds the
-schema; each entity gets its own value object, following the `value-objects`
-skill:
-
-```ts
-// app/ids/dated-id.ts
-/** Room for the date prefix inside the 64 characters a path segment gets. */
-const MAX_LENGTH = 64;
-const DATED_ID_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-export function datedIdSchema(subject: string) {
-  return z
-    .string()
-    .max(MAX_LENGTH)
-    .regex(
-      DATED_ID_PATTERN,
-      `Invalid ${subject} id: expected e.g. '2026-09-24-payment-retry'`,
-    )
-    .refine(
-      (id) => z.iso.date().safeParse(id.slice(0, 10)).success,
-      'Not a real date',
-    )
-    .describe(
-      `A ${subject}'s id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Names its file.`,
-    );
-}
-
-// app/changes/change-id.ts
-const changeIdSchema = datedIdSchema('change').brand<'ChangeId'>();
-export const ChangeId = changeIdSchema;
-export type ChangeId = z.infer<typeof changeIdSchema>;
-```
-
-- `ChangeId` in `app/changes/change-id.ts` (replaces `ChangeSlug`)
-- `DesignDocId` in `app/design-docs/design-doc-id.ts`
-- `DocumentId` in `app/information-sources/document-id.ts` (rewritten; the
-  title slugging and `TITLE_PATTERN` go)
-- Only `[a-z0-9-]`, so an id can never climb out of a directory.
-- An id is immutable. The server never derives or changes one: it only
-  validates it, and a save at an existing id updates that entity whatever its
-  new title. Updating means reusing the stored id; the scripts take `--id` for
-  that and never re-slug the title. The file name can therefore drift from
-  the current title, by design.
-- Minting is the plugin's job. The slugify rules
-  (NFKD, strip marks, transliterate `ł`, `ß`, …, kebab-case, `untitled`
-  fallback) move to the plugin (see Plugin skills). The slug part is cut so
-  the whole id fits in 64 characters.
-- The date is the writer's local date, taken when the script mints the id. The
-  server does not compare it with `created_at` (a change created just after
-  midnight UTC may differ by a day).
-- Tests and fixtures use literal ids (`'2026-01-01-payment-retry'`); there is
-  no `mint()`.
-- The system model keeps its own id (a content hash): it has no title and is
-  never edited by hand. `SystemModelSchema.id` stays a plain string,
+  directory again on the next scan, so nothing needs moving. The system model
+  keeps its content-hash id; `SystemModelSchema.id` stays a plain string,
   validated as a file-name-safe id by the collection.
-
-Removed: `change-slug.ts`, `ChangeSlug`, `DocumentId.fromTitle`,
-`change-slug.spec.ts`, `document-id.spec.ts` (rewritten for the dated VO).
 
 ## Models
 
-### Change (`app/changes/change.ts`)
-
-```ts
-export const ChangeSchema = z.object({
-  id: ChangeId, // was `slug`
-  name,
-  key,
-  type,
-  status,
-  created_at,
-  description, // as today
-});
-
-/** What the agent writes: the server owns status and created_at. */
-export const ChangeFileSchema = ChangeSchema.pick({
-  id: true,
-  name: true,
-  key: true,
-  type: true,
-  description: true,
-});
-```
-
-`CreateChangeSchema` is replaced by `ChangeFileSchema`.
-
-### Document (`app/information-sources/document.ts`)
-
-- `document_id` is renamed to `id: DocumentId`, matching the other entities.
-- `title`: `z.string().trim().min(1).max(200)`; the pattern that guaranteed a
-  slug goes (the script falls back to `untitled` for the id).
-- `date` stays: when the document was last revised, independent of the
-  creation date in its id.
-- `CreateDocumentSchema` goes: the working file is the whole `DocumentSchema`,
-  id included.
-
-### Design document (`app/design-docs/design-doc.ts`)
-
-- `id: DesignDocId` instead of `z.string()`.
-- New `title: z.string().trim().min(1).max(120).default('main')`: what the
-  change calls this design doc. It is not a reviewable field (unlike `name`,
-  which stays).
-- `CreateDesignDocumentSchema` goes: the working file is the whole
-  `DesignDocumentSchema`.
-
-### Summaries
-
-`DocumentSummary` and `DesignDocSummary` stay (with `id` typed as the new VOs).
 New, for use case 4:
 
 ```ts
@@ -331,56 +218,34 @@ interface DesignDocsRepository {
 - `delete` is dropped from the document and design-doc repositories: nothing
   calls it (no MCP tool, no HTTP route). The collection keeps it for the
   scanner. Knip will confirm.
+- The `AsyncIterable` methods (`keys()`, `values()`) and `children()` go;
+  services move from `read` / `write` / `set` to `get` / `save`. The sorting
+  the services added in the ids plan moves into `list()`.
 - `SystemModelStore` becomes `new JsonCollection(SystemModelSchema, flatFiles(noesis.resolve('graph', 'system-models'), 'system-model'))`.
 
 ## Services
 
-- `ChangesService`
-  - `list()`, `findById(id)`, `assertExists(id)`: as today, on the dated id.
-  - `save(file: ChangeFile, now)`: under `Serial`, upsert by `id`. No
-    uniqueness checks: an id already on disk is an update, and the tracker
-    `key` may repeat across changes. Existing change: keep `status` and
-    `created_at`. New change: `status = 'discovery'`, `created_at = now`.
-  - `entries(id)`: use case 4.
-  - `listNavigation()`: `list()` plus `entries()` per change.
-- `DocumentsService` / `DesignDocsService`
-  - `save(changeId, doc)`: under `Serial`; `assertExists(changeId)`; write.
-    Returns the summary. No cross-change check: ids are scoped to their change.
-  - `DesignDocsService.save` also refuses a second design doc titled `main`:
-    when another id in the change already has `title === 'main'` (new error
-    `DesignDocTitleRequiredError`, "this change already has a main design doc;
-    give this one a title"). A save to the existing `main` id is an update and
-    passes.
-  - `list`, `findById`: unchanged apart from the dated ids.
-  - `create` / `update` / `delete` and the title checks go.
+- `ChangesService`: new `entries(id)` (use case 4); `listNavigation()` becomes
+  `list()` plus `entries()` per change. The rest keeps its behaviour on the
+  new repository methods.
+- `DocumentsService` / `DesignDocsService`: unchanged apart from the
+  repository method names.
 
 ## MCP tools
 
-Every tool takes a working-file path; nothing is passed inline.
+Contracts are unchanged; only how a working file is loaded changes. Each step
+answers in-band:
 
-The tools are renamed after what they now do: every write creates or updates.
+1. The MCP SDK checks the tool input shape (`change`, `path` strings).
+2. `withChange` parses `ChangeId` (not for `save_change`).
+3. `session.resolveWorkingPath(path)` resolves relative paths against the
+   repository root, follows symlinks and requires the result under
+   `.noesis/sessions/`. It returns a `WorkingFilePath`.
+4. The size limit (4 MB).
+5. `readJsonFile(path, schema)`: JSON, then the schema.
+6. The service call (`save`), whose domain errors the tool maps to failures.
+7. The collection writes through `writeJsonFile`, which validates again.
 
-| Today                                          | After             | Contract                                                  |
-| ---------------------------------------------- | ----------------- | --------------------------------------------------------- |
-| `create_change` (inline `name`, `key`, `type`) | `save_change`     | `path` to a `ChangeFileSchema` file                       |
-| `add_document_to_change`                       | `save_document`   | `change` (id) and `path` to a `DocumentSchema` file       |
-| `add_design_doc_to_change`                     | `save_design_doc` | `change` (id) and `path` to a `DesignDocumentSchema` file |
-| `list_changes`                                 | `list_changes`    | lists dated ids instead of slugs                          |
-
-- Tool files and `tool-names.ts` constants follow the new names
-  (`save-change.tool.ts`, `SAVE_CHANGE`, …); the server instructions and every
-  tool description that names another tool are updated with them.
-
-- Loading a working file, every step answering in-band:
-  1. The MCP SDK checks the tool input shape (`change`, `path` strings).
-  2. `withChange` parses `ChangeId` (not for `save_change`).
-  3. `session.resolveWorkingPath(path)` resolves relative paths against the
-     repository root, follows symlinks and requires the result under
-     `.noesis/sessions/`. It returns a `WorkingFilePath`.
-  4. The size limit (4 MB).
-  5. `readJsonFile(path, schema)`: JSON, then the schema.
-  6. The service call (`save`), whose domain errors the tool maps to failures.
-  7. The collection writes through `writeJsonFile`, which validates again.
 - `readWorkingFile` returns `ResultAsync<T, string>`; the tool answers
   ``failure(`Invalid ${SUBJECT}:\n${message}`)``. `wholeFileIssue` and
   `formatReport` go with `validator.ts`.
@@ -400,37 +265,13 @@ The tools are renamed after what they now do: every write creates or updates.
   };
   ```
 
-- Tool descriptions tell the agent to get the id of a new entity from the
-  plugin's `entity-id.ts` script and to reuse the existing id to update one.
-  An id already in use overwrites that entity, so the agent checks
-  `list_changes` (or the change's entries) first.
-- `save_design_doc` says a change's first design doc may leave `title` out
-  (`main`), and every later one must set it.
-- New in-band failures: id not a dated id, `DesignDocTitleRequiredError`.
+## Plugin
 
-## Plugin skills (`plugins/claude-code/`)
-
-- Skills are renamed with their tools: `create-change` becomes `save-change`,
-  `add-document-to-change` becomes `save-document`.
-- New `scripts/entity-id.ts` at the plugin root: `entityId(title, date)` and a
-  CLI (`bun entity-id.ts "<title>"` prints `2026-09-24-<slug>`). It holds the
-  slugify rules moved from `ChangeSlug.fromName` and `DocumentId.fromTitle`
-  (NFKD, strip marks, transliterate `ł`, `ß`, …, kebab-case, `untitled`
-  fallback, cut to fit 64 characters). Plugin scripts are standalone, so the
-  function is copied with its test cases, not imported from the server.
-- With `--change <id> --kind <document|design-doc|change>` the CLI also warns
-  on stderr when `.noesis/graph/…/<id>.<kind>.json` already exists (a
-  same-day, same-title save would overwrite it), and for a design doc refuses
-  to default to `main` when the change already has a design doc.
-- `save-change` skill: write the change working file with the id from
-  `entity-id.ts` (or the existing id to update) and pass its path.
-- `save-document` skill and `scripts/write-working-file.ts`: add `id` from
-  `entityId` (or `--id <id>` to update an existing document); the title stays
-  optional-from-heading.
-- Design docs: the agent writes the file itself; the tool description points
-  it at `entity-id.ts` for the id.
-- README and `test/tarball.test.ts` references follow the new tool and skill
-  names.
+- `entity-id.ts`: its existence check (the helper that knows the graph paths)
+  looks for `changes/<id>/change.json` and
+  `changes/<change>/<id>.<kind>.json` instead of the nested `data.json`
+  paths.
+- README and the `save-document` skill name `.noesis/sessions/<session>/`.
 
 ## Indexer and scanner
 
@@ -439,8 +280,6 @@ The tools are renamed after what they now do: every write creates or updates.
   `objects()` skip helper and the `NoesisStoreError` checks go. A broken file
   now fails the rebuild: the watcher logs it and the previous graph stays, as
   after any failed rebuild.
-- Graph rows: `Document.key` stays `<change>/<id>` (ids are unique only within
-  a change); `change` columns hold the change id.
 - `ScannerService`: `set(model.id, model)` becomes `save(model)`, `dataFile`
   becomes `pathOf`, `values()` becomes `list()`.
 
@@ -460,7 +299,6 @@ The tools are renamed after what they now do: every write creates or updates.
   `sessions/…` instead of `tmp`.
 - MCP server instructions, `readWorkingFile` and `change-scoped.ts` tool
   descriptions name `.noesis/sessions/`.
-- Plugin README and the `save-document` skill name `.noesis/sessions/<session>/`.
 - Specs: `session-dir.spec.ts`, `noesis-dir.spec.ts`, `watcher.spec.ts`,
   `mcp-server.spec.ts`, `mcp.e2e.spec.ts`.
 - A leftover `.noesis/tmp/` is not swept by the service (it only sweeps its
@@ -468,57 +306,36 @@ The tools are renamed after what they now do: every write creates or updates.
 
 ## HTTP and frontend
 
-- `/ui/changes/:id`, `/ui/changes/:change/documents/:id`,
-  `/ui/changes/:change/design-docs/:id`: params parsed as the dated-id VOs;
-  routes stay read only.
 - New: `GET /ui/changes/:change/entries` for use case 4 (the overview can use
   it instead of two lists).
-- Frontend: `change.slug` becomes `change.id` (sidebar, change picker, last
-  opened change, `_shell/index.tsx`, `$changeId.tsx`); `document_id` becomes
-  `id`; the design doc shows its `title`. Lists keep the server's id order
-  instead of sorting by name. Route file names already say `$changeId` /
-  `$documentId`.
+- The sidebar reads the rebuilt `ChangeNavigationItem`.
 
 ## Deletions
 
 - `platform/files/noesis-store.ts`, `platform/files/bun-noesis-store.ts`
 - `test/.../noesis-store.spec.ts`, `noesis-store.writer.ts`
-- `app/changes/change-slug.ts` and its spec (the slugify rules move to the
-  plugin's `entity-id.ts`)
 - `app/validation/validator.ts` and `validator.spec.ts`
-- `DuplicateDocumentError`, `DuplicateChangeError` (no uniqueness rule is
-  left: saves are upserts by id, titles and keys may repeat)
 - The `.noesis/tmp/` session leftovers (by hand)
-- The `.noesis/changes/` leftover of an older layout, and today's
-  `.noesis/graph/changes/<slug>/` dev data (by hand)
+- The `.noesis/changes/` leftover of an older layout, and the nested
+  `.noesis/graph/changes/<changeId>/` dev data (by hand)
 
 ## Steps
 
 Each step leaves the root CI scripts green.
 
 1. Rename `.noesis/tmp/` to `.noesis/sessions/` (session dir, noesis dir,
-   watcher, MCP texts, specs) and make `resolveWorkingPath` return a
-   `WorkingFilePath`. Independent of the rest, so it goes first.
+   watcher, MCP texts, plugin texts, specs) and make `resolveWorkingPath`
+   return a `WorkingFilePath`. Independent of the rest, so it goes first.
 2. Add `json-file.ts` and `json-collection.ts` with specs (temp dir: flat and
    folder placements, id/name mismatch, broken JSON, schema failure, issue
    cap, atomic write, missing dir).
-3. Add `datedIdSchema`, `ChangeId`, `DesignDocId` and the new `DocumentId`
-   VOs with specs.
-4. Switch the models (`id` fields, design doc `title`, `ChangeFileSchema`, drop the create
-   schemas), repositories, services and indexer to the new store and ids in
-   one step; move the system-model store and the scanner.
-5. Rewrite and rename the MCP tools to the path-only, upsert contract
-   (`save_change`, `save_document`, `save_design_doc`); switch
-   `readWorkingFile` to `readJsonFile` and delete `validator.ts` and its spec.
-6. HTTP params, `entries` route, frontend `slug` and `document_id` to `id`.
-7. Add `entity-id.ts`; rename and update the plugin skills, scripts and tests.
-8. Delete `NoesisStore`, `ChangeSlug` and dead tests; run knip.
-9. Update `docs/arch/ARCHITECTURE.md` where it describes the store, the
+3. Switch the repositories, services and indexer to `JsonCollection` and
+   layout C in one step; move the system-model store and the scanner; update
+   the existence check in `entity-id.ts`.
+4. Switch `readWorkingFile` to `readJsonFile`; delete `validator.ts` and its
+   spec.
+5. `ChangeEntry`, `entries` in the repository, service and HTTP route;
+   rebuild `ChangeNavigationItem` on it.
+6. Delete `NoesisStore` and dead tests; run knip.
+7. Update `docs/arch/ARCHITECTURE.md` where it describes the store, the
    layout and `.noesis/tmp/`.
-
-## Open questions
-
-- Same-day, same-title saves overwrite by design (upsert). Is the script's
-  warning enough, or should the server refuse a new-looking save (for a
-  change, a differing `created_at` date) at an id already on disk? A differing
-  title alone is never a reason to refuse: it is a normal rename.
