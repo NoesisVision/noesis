@@ -9,6 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { type KeyboardEvent, type MouseEvent, useId, useMemo } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
+import { Highlight } from '#/shared/design-system/highlight.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type {
@@ -52,11 +53,12 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
     () => new Set(selected === null ? [] : tree.ancestryOf(selected)),
     [tree, selected],
   );
-  const focusPath = selected ?? tree.roots[0]?.path ?? null;
+  const roots = tree.roots.filter((node) => controller.isVisible(node.path));
+  const focusPath = selected ?? roots[0]?.path ?? null;
 
   return (
     <ul role="tree" aria-label={label} className={classes.tree}>
-      {tree.roots.map((node) => (
+      {roots.map((node) => (
         <ModelTreeItem
           key={node.path}
           node={node}
@@ -85,9 +87,20 @@ function ModelTreeItem({
   ancestry,
   focusPath,
 }: ItemProps) {
-  const { tree, selected, isExpanded, open, select, expand, collapse } =
-    controller;
-  const children = tree.childrenOf(node.path);
+  const {
+    tree,
+    selected,
+    search,
+    isVisible,
+    isExpanded,
+    open,
+    select,
+    expand,
+    collapse,
+  } = controller;
+  const children = tree
+    .childrenOf(node.path)
+    .filter((child) => isVisible(child.path));
   const hasChildren = children.length > 0;
   const expanded = hasChildren && isExpanded(node.path);
   const rowId = rowIds.get(node.path);
@@ -147,24 +160,22 @@ function ModelTreeItem({
       data-kind={node.kind}
       data-change={node.change}
       data-selected={selected === node.path || undefined}
+      data-context={
+        (search.active && !search.matched.has(node.path)) || undefined
+      }
       className={classes.item}
       onClick={onClick}
       onKeyDown={onKeyDown}
     >
       <span id={rowId} className={classes.row}>
         <KindIcon kind={node.kind} />
-        <Text component="span" className={classes.name}>
+        <Marked className={classes.name} tokens={search.tokens}>
           {node.name}
-        </Text>
+        </Marked>
         {node.patternLabel !== null && (
-          <Text
-            component="span"
-            size="xs"
-            c="dimmed"
-            className={classes.pattern}
-          >
+          <Marked className={classes.pattern} tokens={search.tokens} dimmed>
             {node.patternLabel}
-          </Text>
+          </Marked>
         )}
         <span className={classes.trailing}>
           {node.hasDiagram && (
@@ -199,6 +210,44 @@ function ModelTreeItem({
         </ul>
       )}
     </li>
+  );
+}
+
+/**
+ * What the query found, marked in the row that holds it. `<mark>` says it in
+ * the markup rather than only in a colour, so it survives a reader who cannot
+ * see the colour and a test that cannot see the CSS.
+ */
+function Marked({
+  tokens,
+  className,
+  dimmed,
+  children,
+}: {
+  tokens: readonly string[];
+  className: string;
+  dimmed?: boolean;
+  children: string;
+}) {
+  const colour = dimmed ? 'dimmed' : undefined;
+  const size = dimmed ? 'xs' : undefined;
+  if (tokens.length === 0) {
+    return (
+      <Text component="span" size={size} c={colour} className={className}>
+        {children}
+      </Text>
+    );
+  }
+  return (
+    <Highlight
+      component="span"
+      size={size}
+      c={colour}
+      className={className}
+      highlight={[...tokens]}
+    >
+      {children}
+    </Highlight>
   );
 }
 

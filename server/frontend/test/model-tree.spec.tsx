@@ -3,7 +3,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { ModelTree } from '../src/shared/ui/model-tree';
-import { useModelTree } from '../src/shared/ui/use-model-tree';
+import { searchOutline } from '../src/shared/ui/outline-search';
+import { outlineTree } from '../src/shared/ui/outline-tree';
+import {
+  type ModelTreeController,
+  useModelTree,
+} from '../src/shared/ui/use-model-tree';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 /*
@@ -91,5 +96,57 @@ describe('ModelTree', () => {
 
   it('lights the rail down to the selected row', () => {
     expect(count(/data-in-path/g)).toBe(1);
+  });
+});
+
+/*
+ * A controller is a plain object, so a search can be put in front of the tree
+ * without driving a keyboard that `bun test` does not have.
+ */
+function searching(query: string): ModelTreeController {
+  const tree = outlineTree(outlineFixture);
+  const search = searchOutline(tree, query);
+  const nothing = () => {};
+  return {
+    tree,
+    selected: null,
+    selectedNode: null,
+    query,
+    search,
+    ask: nothing,
+    isExpanded: (path) => search.opened.has(path),
+    isVisible: (path) => search.visible === null || search.visible.has(path),
+    open: nothing,
+    select: nothing,
+    expand: nothing,
+    collapse: nothing,
+  };
+}
+
+const searched = renderToStaticMarkup(
+  <MantineProvider>
+    <ModelTree controller={searching('total')} label="Design outline" />
+  </MantineProvider>,
+);
+
+describe('ModelTree, searching', () => {
+  it('draws the match and the line down to it, and nothing else', () => {
+    expect(searched.match(/role="treeitem"/g)?.length).toBe(4);
+    expect(searched).toContain('>total<');
+    expect(searched).not.toContain('>legacy<');
+    expect(searched).not.toContain('>Orders<');
+  });
+
+  it('opens the way down to the match without opening the match', () => {
+    expect(searched).toContain('aria-expanded="true"');
+    expect(searched).not.toContain('aria-expanded="false"');
+  });
+
+  it('marks what was found, in the markup and not only in a colour', () => {
+    expect(searched).toMatch(/<mark[^>]*>total<\/mark>/);
+  });
+
+  it('says which rows are only there to hold the match', () => {
+    expect(searched.match(/data-context/g)?.length).toBe(3);
   });
 });

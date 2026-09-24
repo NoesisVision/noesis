@@ -123,3 +123,16 @@
   display: inline-flex;
   color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
 }
+
+/*
+ * Under a query, a row that is only there to hold a match says so by giving
+ * way: the reader sees at a glance which rows the search found and which are
+ * the path to them.
+ */
+.item[data-context] > .row .name {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
+.item[data-context]:not([data-selected]) > .row {
+  opacity: 0.85;
+}

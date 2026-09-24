@@ -1,12 +1,22 @@
-import { IconMaximize, IconMinimize } from '@tabler/icons-react';
+import {
+  IconMaximize,
+  IconMinimize,
+  IconSearch,
+  IconX,
+} from '@tabler/icons-react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { useFullscreenElement } from '#/shared/design-system/hooks.ts';
+import { Stack } from '#/shared/design-system/stack.tsx';
+import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { ModelTree } from '#/shared/ui/model-tree.tsx';
-import { useModelTree } from '#/shared/ui/use-model-tree.ts';
+import {
+  type ModelTreeController,
+  useModelTree,
+} from '#/shared/ui/use-model-tree.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DesignDocsIcon } from '../design-docs.model.ts';
 import { ElementDetail } from './element-detail.tsx';
@@ -57,11 +67,10 @@ export function DesignDocWorkbench({ detail }: { detail: DesignDocDetail }) {
 
       <Box className={classes.columns}>
         <Box className={classes.pane}>
-          {outline.length > 0 ? (
-            <ModelTree controller={controller} label="Design outline" />
-          ) : (
-            <Text c="dimmed">This design names no elements yet.</Text>
-          )}
+          <Stack gap="xs">
+            <OutlineSearchBox controller={controller} />
+            <Outline controller={controller} empty={outline.length === 0} />
+          </Stack>
         </Box>
         <Box className={classes.pane}>
           {selected === null ? (
@@ -80,4 +89,55 @@ export function DesignDocWorkbench({ detail }: { detail: DesignDocDetail }) {
       </Box>
     </Box>
   );
+}
+
+/**
+ * Names and patterns, never descriptions: typing `service` reaches every
+ * application service in the design without a filter control beside the box.
+ */
+function OutlineSearchBox({ controller }: { controller: ModelTreeController }) {
+  const { query, ask, search, tree } = controller;
+  return (
+    <Stack gap={4}>
+      <TextInput
+        size="sm"
+        value={query}
+        onChange={(event) => ask(event.currentTarget.value)}
+        aria-label="Search the outline"
+        placeholder="Search names and patterns"
+        leftSection={<IconSearch size={16} stroke={1.6} aria-hidden />}
+        rightSection={
+          query === '' ? null : (
+            <ActionIcon
+              variant="subtle"
+              size="sm"
+              aria-label="Clear the search"
+              onClick={() => ask('')}
+            >
+              <IconX size={14} stroke={1.6} aria-hidden />
+            </ActionIcon>
+          )
+        }
+      />
+      {search.active && (
+        <Text component="output" size="xs" c="dimmed">
+          {`${search.matched.size} of ${tree.nodes.length} elements`}
+        </Text>
+      )}
+    </Stack>
+  );
+}
+
+function Outline({
+  controller,
+  empty,
+}: {
+  controller: ModelTreeController;
+  empty: boolean;
+}) {
+  if (empty) return <Text c="dimmed">This design names no elements yet.</Text>;
+  if (controller.search.active && controller.search.matched.size === 0) {
+    return <Text c="dimmed">Nothing in this design is called that.</Text>;
+  }
+  return <ModelTree controller={controller} label="Design outline" />;
 }
