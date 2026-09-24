@@ -1,8 +1,7 @@
 import { Card } from '#/shared/design-system/card.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
 import type { DocumentContents } from '../documents.api.ts';
 import { DocumentsIcon } from '../documents.model.ts';
 
@@ -13,12 +12,7 @@ export function DocumentContent({
   document: DocumentContents;
 }) {
   return (
-    <Stack component="article">
-      <IconHeading
-        title={doc.title}
-        icon={DocumentsIcon}
-        description={doc.date}
-      />
+    <ReadingPane title={doc.title} icon={DocumentsIcon} description={doc.date}>
       <Card withBorder>
         {doc.content.trim() ? (
           // The editor reads its markdown once, so a different document is a
@@ -32,6 +26,6 @@ export function DocumentContent({
           <Text c="dimmed">This document is empty.</Text>
         )}
       </Card>
-    </Stack>
+    </ReadingPane>
   );
 }

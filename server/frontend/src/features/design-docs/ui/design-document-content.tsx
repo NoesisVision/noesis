@@ -5,7 +5,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-import { IconHeading } from '#/shared/ui/icon-heading.tsx';
+import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -331,12 +331,11 @@ export function DesignDocumentContent({
   document: DesignDocumentInput;
 }) {
   return (
-    <Stack component="article" maw={1000}>
-      <IconHeading
-        title={doc.name.value}
-        icon={DesignDocsIcon}
-        description={doc.implemented ? 'Implemented' : 'Draft'}
-      />
+    <ReadingPane
+      title={doc.name.value}
+      icon={DesignDocsIcon}
+      description={doc.implemented ? 'Implemented' : 'Draft'}
+    >
       <Text>
         <Field field={doc.description} />
       </Text>
@@ -361,6 +360,6 @@ export function DesignDocumentContent({
           render={(behaviour) => <Behaviour behaviour={behaviour} />}
         />
       </Section>
-    </Stack>
+    </ReadingPane>
   );
 }
