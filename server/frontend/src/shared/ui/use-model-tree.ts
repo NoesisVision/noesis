@@ -59,9 +59,19 @@ export function useModelTree(
 ): ModelTreeController {
   const { selected, onSelect, query, onQuery, memory = FORGETFUL } = state;
   const tree = useMemo(() => outlineTree(nodes), [nodes]);
-  const [expanded, setExpanded] = useState(
-    () => memory.recall() ?? defaultExpansion(tree),
-  );
+  /*
+   * Whatever shape the tree was left in, the row the address names has to be
+   * a row: a link into the middle of a design that opened on a closed branch
+   * would show its element in the panel and nowhere in the tree.
+   */
+  const [expanded, setExpanded] = useState(() => {
+    const shape = memory.recall() ?? defaultExpansion(tree);
+    if (selected === null) return shape;
+    for (const ancestor of tree.ancestryOf(selected)) {
+      if (ancestor !== selected) shape.add(ancestor);
+    }
+    return shape;
+  });
   const [shape, setShape] = useState<SearchShape>(UNTOUCHED);
 
   const keep = useCallback(

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { afterEach, describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocWorkbench } from '../src/features/design-docs/ui/design-doc-workbench';
 import { MantineProvider } from '../src/shared/design-system/provider';
@@ -99,5 +99,43 @@ describe('DesignDocWorkbench', () => {
     expect(html).toContain('aria-label="Clear the search"');
     expect(html).toMatch(/<mark[^>]*>aggregate<\/mark>/);
     expect(html.match(/role="treeitem"/g)).toHaveLength(3);
+  });
+});
+
+describe('DesignDocWorkbench, opened where it was left', () => {
+  const KEY = `noesis.designDocs.${designDocDetailFixture.summary.id}.expanded`;
+  const had = Object.hasOwn(globalThis, 'window');
+
+  const leftShut = () => {
+    const store = new Map([[KEY, '[]']]);
+    Object.defineProperty(globalThis, 'window', {
+      value: {
+        sessionStorage: {
+          getItem: (key: string) => store.get(key) ?? null,
+          setItem: (key: string, value: string) => store.set(key, value),
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+  };
+
+  afterEach(() => {
+    if (!had) Reflect.deleteProperty(globalThis, 'window');
+  });
+
+  it('opens the branch the address points into, however it was left', () => {
+    leftShut();
+    const html = reading('building_block|sales.refunds.Refund');
+    // Shut, the outline would be one row and the panel would be describing
+    // an element the tree does not show.
+    expect(html.match(/role="treeitem"/g)).toHaveLength(3);
+    expect(html).toContain('aria-selected="true"');
+  });
+
+  it('leaves the rest of the tree as the reader left it', () => {
+    leftShut();
+    const html = reading(null);
+    expect(html.match(/role="treeitem"/g)).toHaveLength(1);
   });
 });

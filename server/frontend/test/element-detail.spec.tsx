@@ -138,6 +138,7 @@ const show = (path: string) => {
           .map((step) => tree.byPath.get(step))
           .filter((step) => step !== undefined)}
         document={document}
+        onSelect={() => {}}
       />
     </MantineProvider>,
   );
@@ -148,15 +149,27 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
   });
 
-  it('says where in the model the element sits, without naming it twice', () => {
+  it('says where in the model the element sits, as a trail back up it', () => {
     const html = show('building_block|pay.Hold#property:amount');
-    expect(html).toContain('pay');
-    expect(html).toContain('Hold');
-    expect(html.match(/›/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Where this element sits"');
+    // The steps are a list, so their order and nesting are in the markup and
+    // not only in the chevron the stylesheet draws between them.
+    expect(html.match(/<li[^>]*>/g)).toHaveLength(2);
+    expect(html).toContain('>pay<');
+    expect(html).toContain('>Hold<');
+    // The element itself is the heading, not a step of the way to it.
+    expect(html.match(/<button[^>]*>/g)).toHaveLength(2);
+  });
+
+  it('steps back up the trail with a button, not with an ornament', () => {
+    const html = show('building_block|pay.Hold#property:amount');
+    expect(html).toMatch(/<button[^>]*>pay<\/button>/);
   });
 
   it('says nothing about the path of a node at the top', () => {
-    expect(show('module|pay')).not.toContain('›');
+    const html = show('module|pay');
+    expect(html).not.toContain('Where this element sits');
+    expect(html).not.toContain('<button');
   });
 
   it('gives a description to the markdown reader, fences and all', () => {

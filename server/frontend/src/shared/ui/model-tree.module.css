@@ -164,6 +164,10 @@
  * without mistaking any of it for where they are.
  */
 .item[data-ancestor] > .row {
+  & .name {
+    font-weight: var(--mantine-font-weight-bold);
+  }
+
   & .name,
   & .icon {
     color: light-dark(

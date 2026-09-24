@@ -118,6 +118,7 @@ export function DesignDocWorkbench({
                 .map((path) => controller.tree.byPath.get(path))
                 .filter((node) => node !== undefined)}
               document={doc}
+              onSelect={controller.select}
             />
           )
         }

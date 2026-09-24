@@ -4,6 +4,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { CHANGE_COLOUR } from '#/shared/ui/outline-change.ts';
 import type {
@@ -41,15 +42,18 @@ export function ElementDetail({
   node,
   path,
   document: doc,
+  onSelect,
 }: {
   node: OutlineNode;
   /** The line from the top of the tree down to the node, the node last. */
   path: readonly OutlineNode[];
   document: DesignDocumentInput;
+  /** Takes the reader to another element, as the tree itself would. */
+  onSelect: (path: string) => void;
 }) {
   return (
     <Stack gap="sm">
-      <Breadcrumb path={path} />
+      <Breadcrumb path={path} onSelect={onSelect} />
       <Group gap="xs" align="baseline">
         <Title order={2} size="h3" className={classes.name}>
           {node.name}
@@ -68,19 +72,37 @@ export function ElementDetail({
 
 /**
  * The path in words, under the rails that draw it: a reader who followed a
- * search result into the middle of a deep tree can still say where they are.
+ * search result into the middle of a deep tree can still say where they are,
+ * and can step back up it.
+ *
+ * A list inside a landmark, because that is what a trail is: the order and
+ * the nesting are in the markup, and the chevron between the steps is drawn
+ * by the stylesheet, where a reader who cannot see it is not made to hear it.
  */
-function Breadcrumb({ path }: { path: readonly OutlineNode[] }) {
-  if (path.length < 2) return null;
+function Breadcrumb({
+  path,
+  onSelect,
+}: {
+  path: readonly OutlineNode[];
+  onSelect: (path: string) => void;
+}) {
+  const above = path.slice(0, -1);
+  if (above.length === 0) return null;
   return (
-    <Text size="xs" c="dimmed" className={classes.breadcrumb}>
-      {path.slice(0, -1).map((step, index) => (
-        <span key={step.path}>
-          {index > 0 && <span aria-hidden> › </span>}
-          {step.name}
-        </span>
-      ))}
-    </Text>
+    <nav aria-label="Where this element sits">
+      <ol className={classes.breadcrumb}>
+        {above.map((step) => (
+          <li key={step.path}>
+            <UnstyledButton
+              className={classes.step}
+              onClick={() => onSelect(step.path)}
+            >
+              {step.name}
+            </UnstyledButton>
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
 

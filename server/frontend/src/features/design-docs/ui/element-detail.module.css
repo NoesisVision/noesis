@@ -8,8 +8,45 @@ h2.name {
   overflow-wrap: anywhere;
 }
 
-/* A long address wraps rather than pushing the panel wider than its column. */
 .breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Decorative: the list already says these are steps of one path, and a
+ * reader hearing "chevron" between every pair of them would learn nothing.
+ */
+.breadcrumb li + li::before {
+  content: '›';
+  margin-right: var(--mantine-spacing-xs);
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+}
+
+/* A long address wraps rather than pushing the panel wider than its column. */
+.step {
   font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
   overflow-wrap: anywhere;
+
+  &:hover {
+    color: light-dark(
+      var(--mantine-color-brand-7),
+      var(--mantine-color-brand-4)
+    );
+    text-decoration: underline;
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
 }
