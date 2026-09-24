@@ -5,6 +5,7 @@ import {
   IconViewportWide,
 } from '@tabler/icons-react';
 import {
+  type MouseEvent,
   type ReactNode,
   type RefObject,
   useEffect,
@@ -54,6 +55,11 @@ function toReadingWidth(stored: string | undefined): ReadingWidth {
     WIDTHS.find(({ value }) => stored === JSON.stringify(value))?.value ??
     DEFAULT_WIDTH
   );
+}
+
+/** The width the switch moves to from `width`: of two, always the other. */
+function otherWidth(width: ReadingWidth): ReadingWidth {
+  return WIDTHS.find(({ value }) => value !== width)?.value ?? DEFAULT_WIDTH;
 }
 
 interface ReadingPaneProps {
@@ -122,6 +128,23 @@ export function ReadingPane({
     // the first paint is drawn rather than corrected after it.
     getInitialValueInEffect: false,
   });
+  /**
+   * Two widths make the control a switch rather than a choice of two, so
+   * clicking the one already in force means the other. That is the one click
+   * `onChange` never hears — a radio that is already checked does not change —
+   * which is why it is read here, and why `width` is still what it was: any
+   * click that did change the radio was answered before this one bubbled.
+   *
+   * The segment is read off the input and never the label, because activating
+   * a label forwards a second click through the input it names and both reach
+   * this root — the input's is the one click the reader made.
+   */
+  const switchOnReclick = (event: MouseEvent<HTMLDivElement>) => {
+    const segment = event.target;
+    if (segment instanceof HTMLInputElement && segment.value === width) {
+      setWidth(otherWidth(width));
+    }
+  };
   const { ref, toggle, fullscreen } = useFullscreenElement<HTMLDivElement>();
   const fullscreenLabel = fullscreen ? 'Exit full screen' : 'Full screen';
   // A browser that refuses the request leaves the pane as it is, which is the
@@ -155,6 +178,7 @@ export function ReadingPane({
             size="md"
             value={width}
             onChange={setWidth}
+            onClick={switchOnReclick}
             data={WIDTHS.map(({ value, label, icon: Icon }) => ({
               value,
               // The glyph says it at a glance; the name says it to a reader

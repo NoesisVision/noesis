@@ -8,6 +8,12 @@
   --reading-controls-width: 8rem;
   /* What the shell insets its content by, which the header bleeds over. */
   --reading-gutter: var(--app-shell-padding, var(--mantine-spacing-lg));
+  /*
+   * How the column travels between the two widths. One token for the title
+   * and the document both, so the two edges arrive together rather than the
+   * heading leading the text it heads.
+   */
+  --reading-width-change: 150ms ease;
 }
 
 .surface:fullscreen {
@@ -89,11 +95,20 @@
   margin-top: 0;
 }
 
-/* The title sits over the content it heads, however wide that is. */
+/*
+ * The title sits over the content it heads, however wide that is.
+ *
+ * The full width is stated as `100%` rather than left at `none`: a transition
+ * interpolates between two lengths, and `none` is not one — from it the column
+ * would jump. Against a `width` of `100%` the two say the same thing, so the
+ * cap only ever bites in the narrower of the two.
+ */
 .headerColumn {
   width: 100%;
+  max-width: 100%;
   margin-inline: auto;
   overflow-wrap: anywhere;
+  transition: max-width var(--reading-width-change);
 }
 
 /*
@@ -129,11 +144,20 @@
 
 .column {
   width: 100%;
+  max-width: 100%;
   margin-inline: auto;
+  transition: max-width var(--reading-width-change);
 }
 
 .column[data-width='convenient'] {
   max-width: 900px;
+}
+
+/* Asked for no motion, the column is simply at the width it was switched to. */
+@media (prefers-reduced-motion: reduce) {
+  .surface {
+    --reading-width-change: 1ms;
+  }
 }
 
 /*
