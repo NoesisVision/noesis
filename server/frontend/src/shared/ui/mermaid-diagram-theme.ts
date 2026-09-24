@@ -81,15 +81,13 @@ function palette(theme: MantineTheme, scheme: 'light' | 'dark') {
   if (scheme === 'dark') {
     return {
       surface: dark[7],
-      nodeFill: dark[5],
-      nodeStroke: brand[5],
-      nodeText: dark[0],
+      nodeFill: brand[1],
+      nodeStroke: theme.white,
+      nodeText: dark[9],
       clusterFill: dark[6],
       clusterStroke: dark[4],
       line: dark[2],
-      labelFill: dark[6],
-      labelStroke: brand[5],
-      labelText: dark[0],
+      labelText: theme.white,
     };
   }
 
@@ -101,9 +99,7 @@ function palette(theme: MantineTheme, scheme: 'light' | 'dark') {
     clusterFill: gray[1],
     clusterStroke: gray[4],
     line: gray[6],
-    labelFill: brand[3],
-    labelStroke: brand[9],
-    labelText: brand[9],
+    labelText: theme.white,
   };
 }
 
@@ -128,7 +124,7 @@ export function diagramTheme(
     primaryColor: colours.nodeFill,
     primaryBorderColor: colours.nodeStroke,
     primaryTextColor: colours.nodeText,
-    secondaryColor: colours.labelFill,
+    secondaryColor: colours.line,
     tertiaryColor: colours.clusterFill,
     tertiaryBorderColor: colours.clusterStroke,
     lineColor: colours.line,
@@ -160,14 +156,16 @@ export function diagramCss(
   theme: MantineTheme,
   scheme: 'light' | 'dark',
 ): string {
-  const { labelFill, labelStroke, labelText } = palette(theme, scheme);
+  const { line, labelText } = palette(theme, scheme);
 
   return [
-    // The chip behind an edge's label. `edgeLabelBackground` cannot paint it
-    // alone: mermaid fades that colour with an alpha it hardcodes at 0.5,
-    // reading only the red, green and blue off it, so an alpha handed in is
-    // discarded and `transparent` comes back as half-black.
-    `.labelBkg.labelBkg { background: ${labelFill}; border: 1px solid ${labelStroke}; border-radius: ${theme.radius.sm}; padding: 2px 6px; }`,
+    // The chip behind an edge's label, painted the colour of the edge it
+    // labels — `.flowchart-link` is stroked with `lineColor`, the same value.
+    // `edgeLabelBackground` cannot paint it alone: mermaid fades that colour
+    // with an alpha it hardcodes at 0.5, reading only the red, green and blue
+    // off it, so an alpha handed in is discarded and `transparent` comes back
+    // as half-black. Nothing outlines the chip; the fill is the whole of it.
+    `.labelBkg.labelBkg { background: ${line}; border: none; border-radius: ${theme.radius.sm}; padding: 2px 6px; }`,
     `.edgeLabel.edgeLabel { background-color: transparent; color: ${labelText}; }`,
     '.edgeLabel.edgeLabel p { background-color: transparent; margin: 0; }',
   ].join('\n');

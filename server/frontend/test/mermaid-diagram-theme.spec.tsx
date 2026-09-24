@@ -26,6 +26,13 @@ function cssOf(scheme: 'light' | 'dark'): string[] {
     .filter((rule) => rule !== '');
 }
 
+/** The one rule the app writes for `selector`, brackets and all. */
+function ruleOf(scheme: 'light' | 'dark', selector: string): string {
+  const rule = cssOf(scheme).find((rule) => rule.startsWith(`${selector} {`));
+  expect(rule).toBeDefined();
+  return rule ?? '';
+}
+
 /** Whatever the palette produces, read off the theme the app resolves. */
 function painted<T>(paint: (theme: MantineTheme) => T): T {
   function Probe() {
@@ -164,12 +171,32 @@ it('writes colours a browser can read, never a doubled hash', () => {
   }
 });
 
-it('paints an edge label from the same palette as the nodes', () => {
-  // The chip is CSS and the nodes are theme variables, but one table feeds
-  // both — the edge label background is the palette's, not a colour of its own.
-  const light = cssOf('light').join('\n');
-  const dark = cssOf('dark').join('\n');
-  expect(light).not.toBe(dark);
-  expect(paletteOf('light').secondaryColor).toBeDefined();
-  expect(light).toContain(String(paletteOf('light').secondaryColor));
+it('paints an edge label the colour of the edge it labels', () => {
+  // Mermaid strokes `.flowchart-link` with `lineColor`, so naming that same
+  // colour is what sets the chip on the line rather than beside it.
+  for (const scheme of ['light', 'dark'] as const) {
+    const line = paletteOf(scheme).lineColor;
+    expect(line).toBeDefined();
+    expect(ruleOf(scheme, '.labelBkg.labelBkg')).toContain(
+      `background: ${line};`,
+    );
+    // Mermaid fades `edgeLabelBackground` by a hardcoded half to paint the
+    // chip itself, so the theme variable has to name the colour the CSS does.
+    expect(paletteOf(scheme).secondaryColor).toBe(line);
+  }
+  expect(cssOf('light')).not.toEqual(cssOf('dark'));
+});
+
+it('leaves the chip unoutlined, the fill being the whole of it', () => {
+  for (const scheme of ['light', 'dark'] as const) {
+    expect(ruleOf(scheme, '.labelBkg.labelBkg')).toContain('border: none;');
+  }
+});
+
+it('writes an edge label in white, on either scheme', () => {
+  // The chip is the line's colour in both, which neither text colour the
+  // palette reads well against — white is the one that carries across.
+  for (const scheme of ['light', 'dark'] as const) {
+    expect(ruleOf(scheme, '.edgeLabel.edgeLabel')).toContain('color: #fff;');
+  }
 });
