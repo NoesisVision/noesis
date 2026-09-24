@@ -6,15 +6,19 @@ description: Add a Noesis change — the unit of work a feature, fix, improvemen
 # Add a change
 
 A change is the unit of work everything else in Noesis hangs off. You write
-the change to a JSON working file — its id, name, type and tracker key — and
-hand that file's path to the `add_change` tool. The service stores it under
-`.noesis/graph/changes/<id>/`. A new change starts in `discovery`.
+the change to a JSON working file — its name, type and tracker key — and hand
+that file's path to `create_change` for a new change or to `update_change`
+for one that exists. The service stores it under `.noesis/graph/changes/`.
+The service mints a new change's id from today's date and the name; you never
+write an id into the file.
 
-## Contract
+## Contracts
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/change.schema.json`, a JSON Schema.
-  Read it now, not from memory. It is both the working file you write and
-  what the tool answers with.
+- New change: `${CLAUDE_PLUGIN_ROOT}/contracts/new-change.schema.json`.
+- Update: `${CLAUDE_PLUGIN_ROOT}/contracts/change.schema.json`, which adds
+  `status`.
+
+Both are JSON Schema. Read the one you need now, not from memory.
 
 ## Steps
 
@@ -31,44 +35,35 @@ hand that file's path to the `add_change` tool. The service stores it under
 4. **Set the key** to the tracker key the user gave, shaped like `NOE-142`
    (two to eight capital letters, a dash, a number). Leave it out when there
    is none. Never invent one.
-5. **Get the id.** For a new change, mint it from the name:
-
-   ```
-   bun "${CLAUDE_PLUGIN_ROOT}/scripts/entity-id.ts" "<name>"
-   ```
-
-   It prints today's date and the name as a slug, e.g.
-   `2026-09-24-hold-a-slot-for-ten-minutes`. To update a change, reuse its
-   id from `list_changes`, even when the name changed: an id never changes.
-
-6. **Find the scratch directory.** It is the absolute path named in the
-   description of the `path` parameter of `add_change`, of the form
+5. **Find the scratch directory.** It is the absolute path named in the
+   description of the `path` parameter of `create_change`, of the form
    `.noesis/sessions/<session>/`. Take it from there, never from memory: it
    changes every session.
-7. **Write the working file** into the scratch directory, e.g.
-   `<scratch directory>/change.json`: `id`, `name`, `type`, `key` and
-   `description` (a paragraph on what the change is about, or empty). Leave
-   `status` out for a new change; for an update, carry the `status` that
-   `list_changes` returned.
-8. **Add** with the `add_change` tool (the working file's `path`).
-9. **Report** the id and whether the tool created or updated the change.
-   Every later tool refers to the change by that id.
+6. **Write the working file** into the scratch directory, e.g.
+   `<scratch directory>/change.json`: `name`, `type`, `key` and
+   `description` (a paragraph on what the change is about, or empty). No
+   `id`. For an update, also carry the `status` that `list_changes`
+   returned, unless the user moves the change on.
+7. **Save it.** For a new change, call `create_change` with the working
+   file's `path`. For an update, call `update_change` with the change's `id`
+   and the `path`; the id stays as it was, even when the name changed.
+8. **Report** the id the tool answered with. Every later tool refers to the
+   change by that id.
 
-## When the answer surprises you
+## When the tool refuses
 
-- **It says `Updated` when you meant to create.** An existing change had the
-  same id — the same name on the same day — and has now been overwritten
-  with what you wrote. Tell the user straight away which change it was.
 - **The working file does not fit the contract** (a key that is not
-  `ABC-123`, an unknown type, an empty name, an id that is not a date and a
-  slug). Nothing was written. The issue list gives the path of each problem;
-  correct the file and call again.
+  `ABC-123`, an unknown type, an empty name). Nothing was written. The issue
+  list gives the path of each problem; correct the file and call again.
+- **`update_change` finds no such change.** The id did not come from
+  `list_changes`. Call it again and ask the user which change they meant.
 
 ## Rules
 
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the change.
-- Never derive or edit an id by hand: mint it with the script, or reuse the
-  stored one.
-- One call adds one change. Do not add a change the user did not ask for,
-  and do not split one request into several changes without asking.
+- Never write or derive an id: the service mints it, and an update takes the
+  one `list_changes` lists.
+- Every `create_change` call creates a new change, even for a name used
+  before. Do not create a change the user did not ask for, and do not split
+  one request into several changes without asking.

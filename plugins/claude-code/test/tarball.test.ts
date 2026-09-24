@@ -52,10 +52,10 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/design-document.schema.json',
     'contracts/document.schema.json',
     'contracts/change.schema.json',
+    'contracts/new-change.schema.json',
     'skills/add-document-to-change/SKILL.md',
     'skills/add-document-to-change/scripts/write-working-file.ts',
     'skills/add-change/SKILL.md',
-    'scripts/entity-id.ts',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);

@@ -10,14 +10,15 @@ A document is a piece of source material a change is informed by. The user
 gives you a Markdown file; you wrap it in a JSON working file whose `content`
 is the file's text, verbatim, and hand that file's path to the service. The
 service checks the working file against the contract and stores it under the
-change by its id: a new id adds a document, an id already in the change
-updates that document.
+change. `create_document_in_change` adds a new document and answers with the
+id the service minted for it; `update_document_in_change` replaces a document
+already in the change, named by that id.
 
 ## Contract
 
 - Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/document.schema.json`, a JSON
-  Schema. Read it now, not from memory. It is the working file: `id`,
-  `title`, `date` and `content`.
+  Schema. Read it now, not from memory. It is the working file: `title`,
+  `date` and `content`, never an id.
 
 ## Steps
 
@@ -33,7 +34,7 @@ updates that document.
    new change, or when the list is empty, use the `add-change` skill
    first and add the document to the id it returns.
 3. **Find the scratch directory.** It is the absolute path named in the
-   description of the `path` parameter of `add_document_to_change`, of the
+   description of the `path` parameter of `create_document_in_change`, of the
    form `.noesis/sessions/<session>/`. Take it from there, never from memory: it
    changes every session.
 4. **Write the working file with the script**, never by hand, so the text is
@@ -46,21 +47,18 @@ updates that document.
 
    The script puts the whole file into `content`, takes `title` from the
    first `# ` heading (the file name when there is none), `date` from the
-   file's last modification and mints `id` from the title and today's date.
-   It prints the id, title and date it chose. Pass `--id <id>` to update a
-   document already in the change, with the id it was stored under: an id
-   never changes, even when the title does. Pass
+   file's last modification. It prints the title and date it chose. Pass
    `--title "<title>"` or `--date <YYYY-MM-DD>` to override them: a title
    when the user gave one or the derived one says nothing ("Notes",
    "README"), a date when the text itself states when it was written or
    revised.
 
-5. **Add** with the `add_document_to_change` tool (`change`, the working
-   file's `path`).
-6. **Report** the document's id and whether the tool created or updated it.
-   When it says `Updated` but you meant to add a new document, a document
-   with the same title was added the same day and has now been overwritten:
-   tell the user straight away.
+5. **Save it.** For a new document, call `create_document_in_change`
+   (`change`, the working file's `path`). To replace a document you created
+   earlier in this session, call `update_document_in_change` with the `id`
+   the create answered with as well; the id stays as it was, even when the
+   title changes. Without that id, create a new document.
+6. **Report** the document's id, as the tool answered it.
 
 ## When the tool refuses
 
@@ -70,6 +68,9 @@ updates that document.
   again.
 - **There is no such change.** The id did not come from `list_changes`.
   Call it again and ask the user, as in step 2.
+- **There is no such document** (`update_document_in_change` only). The id
+  did not come from a create answer. Create the document instead, or ask the
+  user.
 - **The file is too large** (the script or the tool says so; the limit is
   4 MiB). Ask the user how to split it into documents of their own.
 
@@ -79,4 +80,6 @@ updates that document.
   translate, trim or fix it, and do not strip its front matter or heading.
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the document.
-- One call adds one document. For several files, run the steps once per file.
+- One call saves one document. Every `create_document_in_change` call adds
+  a new document, so for several files run the steps once per file, and
+  never create the same file twice.
