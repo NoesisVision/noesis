@@ -1,14 +1,16 @@
 # Plan: flat per-change storage
 
 Replace the generic nested `NoesisStore` with a small `JsonCollection` over one
-JSON file per entity, one folder per change, and read graph files and session
-working files through one codec.
+JSON file per entity, a change's documents and design docs in a folder named
+after the change, and read graph files and session working files through one
+codec.
 
 This plan assumes `dated-entity-ids.md` is implemented: changes, documents and
 design docs already carry dated slug ids (`ChangeId`, `DocumentId`,
 `DesignDocId`), every write is an upsert through `save_change`,
 `save_document` and `save_design_doc`, and the plugin mints ids with
-`entity-id.ts`. Nothing here changes an id, a model field or a tool contract.
+`entity-id.ts`. Nothing here changes an id, a model field, a tool contract or
+a UI payload.
 
 ## Use cases
 
@@ -17,7 +19,7 @@ design docs already carry dated slug ids (`ChangeId`, `DocumentId`,
 2. List all design docs within a single change: `designDocs.list(change)`.
 3. List all documents within a single change: `documents.list(change)`.
 4. List a summary of all entities (design docs and documents) within a single
-   change: `changes.entries(change)`, one `readdir` of the change folder.
+   change: `ChangesService.entries(change)`, composed from use cases 2 and 3.
 
 Documents and design docs are loaded from two places, with one shared codec:
 
@@ -31,17 +33,19 @@ performance, as there are few, small files.
 
 ## Decisions
 
-| Topic          | Decision                                                                                                                        |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Layout         | C: one folder per change, entity kind in the file name                                                                          |
-| Store API      | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`              |
-| Sharing        | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                              |
-| Session dir    | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path |
-| File names     | The entity's id; a mismatch between the file name and `body.id` is a validation failure                                         |
-| Default order  | Collections list by id, so by creation date, then title                                                                         |
-| Bad graph file | `list()` and `get()` throw (no skipping)                                                                                        |
-| Scope          | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                         |
-| Migration      | None: the nested `graph/changes/<changeId>/` folders (`data.json`, `documents/`, `design-docs/`) are dev data, deleted by hand  |
+| Topic          | Decision                                                                                                                                                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layout         | C: `changes/<id>.change.json` beside `changes/<id>/`, which holds the change's documents and design docs; the entity kind is in the file name                                                                          |
+| Store API      | `JsonCollection<T>` underneath, thin repositories on top; collections return `Promise<T[]>`, never `AsyncIterable`                                                                                                     |
+| Sharing        | R1: one codec (`readJsonFile` / `writeJsonFile`) for the graph and the session dir                                                                                                                                     |
+| Session dir    | Free form: the agent writes a working file anywhere under `.noesis/sessions/` (renamed from `.noesis/tmp/`) and passes its path                                                                                        |
+| File names     | The entity's id; a mismatch between the file name and `body.id` is a validation failure                                                                                                                                |
+| Default order  | `JsonCollection.list()` sorts by id ascending; `ChangesService.list()` reverses it (newest first), documents and design docs stay ascending, as the ids plan says                                                      |
+| Bad graph file | `list()` and `get()` throw (no skipping); a file that vanishes between `readdir` and its read is skipped. One broken file fails the whole rebuild: the UI keeps the last good graph and the watcher log names the file |
+| Ids on disk    | `/^[a-z0-9][a-z0-9-]*$/`, checked by the collection in `save` and `pathOf`: the dated ids and the system model's content hash both fit, and no id can name a path                                                      |
+| UI contract    | Unchanged: `ChangeNavigationItem` keeps its shape and no HTTP route is added                                                                                                                                           |
+| Scope          | Changes, documents, design docs **and** the system model move; `NoesisStore` is deleted                                                                                                                                |
+| Migration      | None: the nested `graph/changes/<changeId>/` folders (`data.json`, `documents/`, `design-docs/`) are dev data, deleted by hand                                                                                         |
 
 ## Layout
 
@@ -49,8 +53,8 @@ performance, as there are few, small files.
 .noesis/
   graph/
     changes/
+      <changeId>.change.json                    # 2026-09-24-payment-retry.change.json
       <changeId>/                               # 2026-09-24-payment-retry/
-        change.json
         <designDocId>.design-doc.json           # 2026-09-24-refund-flow.design-doc.json
         <documentId>.document.json              # 2026-09-25-meeting-notes.document.json
     system-models/
@@ -60,16 +64,24 @@ performance, as there are few, small files.
       anything.json            # free form; the tool says which kind it is
 ```
 
-- The file name repeats the id in the body (for `change.json`, the folder name
-  does). On read, a mismatch between the file name and `body.id` is a
-  validation failure (a hand-renamed file must not silently answer to two
-  ids).
-- Use case 4 (summary of a change) is one `readdir` of `changes/<changeId>/`:
-  the suffix says the kind, and each file is read for its name.
+- Every entity is `<dir>/<id>.<kind>.json`, the change included: one shape,
+  one collection class, no special case for a folder-held file. The change's
+  own file sits beside its folder, not inside it, so a change with no
+  documents yet has no folder at all.
+- The file name repeats the id in the body. On read, a mismatch between the
+  file name and `body.id` is a validation failure (a hand-renamed file must
+  not silently answer to two ids).
+- Use case 4 reads the change's design docs and documents (use cases 2 and
+  3): the summary needs each file's name, so a `readdir` alone answers
+  nothing.
+- A change's folder appears with its first child; `writeJsonFile` creates it.
+  A folder with no `.change.json` beside it is an orphan (a `git checkout`
+  that removed the change): the change list never sees it, and
+  `assertExists(changeId)` in the services stops new children landing in it.
 - `system-models/` replaces `system-model/`; the scanner writes the whole
   directory again on the next scan, so nothing needs moving. The system model
-  keeps its content-hash id; `SystemModelSchema.id` stays a plain string,
-  validated as a file-name-safe id by the collection.
+  keeps its content-hash id (`contentHashAsUuid`: hex and dashes), which fits
+  the collection's id pattern; `SystemModelSchema.id` stays a plain string.
 
 ## Models
 
@@ -93,7 +105,9 @@ export const ChangeEntrySchema = z.discriminatedUnion('kind', [
 ]);
 ```
 
-`ChangeNavigationItem` (the sidebar) is rebuilt on top of it.
+`ChangesService.entries` answers it. `ChangeNavigationItem` (the sidebar)
+keeps its shape and is built from the same two lists, so the UI payload does
+not change.
 
 ## Codec (R1)
 
@@ -159,31 +173,28 @@ export class JsonFileError extends Error {
 `platform/files/json-collection.ts`, about 60 lines:
 
 ```ts
-export interface Placement {
-  pathOf(id: string): string;
-  /** Ids present on disk, unordered. */
-  ids(): Promise<string[]>;
-}
+/** What may name a file: dated ids and content hashes fit, a path never does. */
+export const ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 /** `<dir>/<id>.<kind>.json` */
-export function flatFiles(dir: string, kind: string): Placement;
-/** `<dir>/<id>/<fileName>` */
-export function folderFiles(dir: string, fileName: string): Placement;
-
 export class JsonCollection<T extends { id: string }> {
-  constructor(schema: ZodType<T>, placement: Placement);
+  constructor(schema: ZodType<T>, dir: string, kind: string);
   get(id: string): Promise<T | null>; // null when absent, JsonFileError when broken
-  list(): Promise<T[]>; // sorted by id; throws on the first broken file
+  list(): Promise<T[]>; // by id ascending; skips a file gone since readdir; throws on the first broken file
   save(entity: T): Promise<void>; // path from entity.id
   delete(id: string): Promise<boolean>;
   pathOf(id: string): string;
 }
 ```
 
-- `ids()` filters directory entries by the suffix (flat) or by the presence of
-  `fileName` (folder); a directory that does not exist yields `[]`.
+- `list()` reads the directory and keeps the names ending in `.<kind>.json`;
+  a directory that does not exist yields `[]`. A name that vanishes between
+  `readdir` and its read (a `git checkout` under the walk) makes `get` answer
+  `null`, and `list()` leaves it out: absent is not broken.
 - Temp files (`*.tmp`) never match the suffix, so they are never listed.
-- `list()` sorts by id, so every list is in creation-date order by default.
+- `list()` sorts by id ascending; a caller that wants newest first reverses.
+- An id that fails `ID_PATTERN` is an `Error` from `save`, `get`, `delete`
+  and `pathOf`, before any path is built.
 - Reading a file also checks `body.id === id` from the name; a mismatch is a
   `JsonFileError` (a hand-renamed file must not answer to two ids). This is
   the only graph-side check the session side does not share.
@@ -197,7 +208,6 @@ interface ChangesRepository {
   get(id: ChangeId): Promise<Change | null>;
   list(): Promise<Change[]>;
   save(change: Change): Promise<void>; // children stay
-  entries(id: ChangeId): Promise<ChangeEntry[]>; // use case 4
 }
 
 interface DesignDocsRepository {
@@ -210,24 +220,28 @@ interface DesignDocsRepository {
 // DocumentsRepository: same shape as DesignDocsRepository.
 ```
 
-- Implementation: `new JsonCollection(schema, flatFiles(join(changesDir, changeId), 'design-doc'))`,
-  built per call (it holds no state).
-- `entries` reads the change folder once and delegates to both collections'
-  file reads; or composes `designDocs.list` + `documents.list` (pick the
-  simpler during implementation).
+- Implementation: `new JsonCollection(ChangeSchema, changesDir, 'change')`
+  for changes; `new JsonCollection(schema, join(changesDir, changeId), 'design-doc')`
+  and `'document'` for the children, built per call (it holds no state).
+- `entries` is not a repository method: it is the two child lists, so it
+  lives in `ChangesService` (see Services).
 - `delete` is dropped from the document and design-doc repositories: nothing
   calls it (no MCP tool, no HTTP route). The collection keeps it for the
   scanner. Knip will confirm.
 - The `AsyncIterable` methods (`keys()`, `values()`) and `children()` go;
-  services move from `read` / `write` / `set` to `get` / `save`. The sorting
-  the services added in the ids plan moves into `list()`.
-- `SystemModelStore` becomes `new JsonCollection(SystemModelSchema, flatFiles(noesis.resolve('graph', 'system-models'), 'system-model'))`.
+  services move from `read` / `write` / `set` to `get` / `save`. The child
+  services drop their sort (`list()` is ascending already); `ChangesService`
+  keeps its reverse.
+- `SystemModelStore` becomes `new JsonCollection(SystemModelSchema, noesis.resolve('graph', 'system-models'), 'system-model')`.
 
 ## Services
 
-- `ChangesService`: new `entries(id)` (use case 4); `listNavigation()` becomes
-  `list()` plus `entries()` per change. The rest keeps its behaviour on the
-  new repository methods.
+- `ChangesService`: new `entries(id)` (use case 4): `assertExists(id)`, then
+  `designDocs.list(id)` and `documents.list(id)` mapped to `ChangeEntry`,
+  design docs first, each kind by id. `listNavigation()` builds
+  `ChangeNavigationItem` from the same two lists, shape unchanged. `list()`
+  reverses the collection's order (newest first). The rest keeps its
+  behaviour on the new repository methods.
 - `DocumentsService` / `DesignDocsService`: unchanged apart from the
   repository method names.
 
@@ -276,8 +290,10 @@ answers in-band:
 - `IndexService.collect`: `await changes.list()`, then per change
   `designDocs.list(id)` and `documents.list(id)`; `systemModels.list()`. The
   `objects()` skip helper and the `NoesisStoreError` checks go. A broken file
-  now fails the rebuild: the watcher logs it and the previous graph stays, as
-  after any failed rebuild.
+  now fails the rebuild: `IndexService` logs the `JsonFileError` path and
+  message at error level and rethrows, the previous graph stays, as after any
+  failed rebuild, and the UI shows it until the file is fixed. Chosen over
+  skipping: a half-indexed graph would hide the entity without a trace.
 - `ScannerService`: `set(model.id, model)` becomes `save(model)`, `dataFile`
   becomes `pathOf`, `values()` becomes `list()`.
 
@@ -304,9 +320,8 @@ answers in-band:
 
 ## HTTP and frontend
 
-- New: `GET /ui/changes/:change/entries` for use case 4 (the overview can use
-  it instead of two lists).
-- The sidebar reads the rebuilt `ChangeNavigationItem`.
+Nothing changes: `ChangeNavigationItem` keeps its shape and no route is added.
+A route for `entries` waits for a view that needs it.
 
 ## Deletions
 
@@ -315,7 +330,7 @@ answers in-band:
 - `app/validation/validator.ts` and `validator.spec.ts`
 - The `.noesis/tmp/` session leftovers (by hand)
 - The `.noesis/changes/` leftover of an older layout, and the nested
-  `.noesis/graph/changes/<changeId>/` dev data (by hand)
+  `.noesis/graph/changes/<changeId>/data.json` dev data (by hand)
 
 ## Steps
 
@@ -324,15 +339,16 @@ Each step leaves the root CI scripts green.
 1. Rename `.noesis/tmp/` to `.noesis/sessions/` (session dir, noesis dir,
    watcher, MCP texts, plugin texts, specs) and make `resolveWorkingPath`
    return a `WorkingFilePath`. Independent of the rest, so it goes first.
-2. Add `json-file.ts` and `json-collection.ts` with specs (temp dir: flat and
-   folder placements, id/name mismatch, broken JSON, schema failure, issue
-   cap, atomic write, missing dir).
+2. Add `json-file.ts` and `json-collection.ts` with specs (temp dir:
+   id/name mismatch, `ID_PATTERN` rejection, a file removed between `readdir`
+   and read is skipped, broken JSON throws from `list()`, schema failure,
+   issue cap, atomic write, missing dir, ascending order).
 3. Switch the repositories, services and indexer to `JsonCollection` and
    layout C in one step; move the system-model store and the scanner.
 4. Switch `readWorkingFile` to `readJsonFile`; delete `validator.ts` and its
    spec.
-5. `ChangeEntry`, `entries` in the repository, service and HTTP route;
-   rebuild `ChangeNavigationItem` on it.
+5. `ChangeEntry` and `ChangesService.entries` with a spec; `listNavigation`
+   keeps its output.
 6. Delete `NoesisStore` and dead tests; run knip.
 7. Update `docs/arch/ARCHITECTURE.md` where it describes the store, the
    layout and `.noesis/tmp/`.
