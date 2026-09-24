@@ -1,6 +1,6 @@
 import type { z } from 'zod';
-import { datedIdSchema } from '#backend/app/ids/dated-id';
+import { slugIdSchema } from '#backend/app/slug-id.ts';
 
-const changeIdSchema = datedIdSchema('change').brand<'ChangeId'>();
+const changeIdSchema = slugIdSchema('change').brand<'ChangeId'>();
 export const ChangeId = changeIdSchema;
 export type ChangeId = z.infer<typeof changeIdSchema>;

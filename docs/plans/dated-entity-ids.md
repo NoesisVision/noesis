@@ -30,12 +30,12 @@ rework is a separate plan (`storage-layout-c.md`) that assumes this one is done.
 
 ## Ids
 
-One shape, three brands. A shared helper in `app/ids/dated-id.ts` builds the
+One shape, three brands. A shared helper in `app/ids/slug-id.ts` builds the
 schema; each entity gets its own value object, following the `value-objects`
 skill:
 
 ```ts
-// app/ids/dated-id.ts
+// app/ids/slug-id.ts
 /** Room for the date prefix inside the 64 characters a path segment gets. */
 const MAX_LENGTH = 64;
 /** Zod's own `z.iso.date()` regex, leap years included, without its anchors. */
