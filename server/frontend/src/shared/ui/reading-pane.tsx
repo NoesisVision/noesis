@@ -92,10 +92,17 @@ export function ReadingPane({
         <Box className={classes.headerColumn}>
           <IconHeading title={title} icon={icon} description={description} />
         </Box>
-        <Group gap="xs" wrap="nowrap" className={classes.controls}>
+        {/* A phone has one width to read at and no chrome worth hiding; the
+            same breakpoint the shell folds its sidebar at. */}
+        <Group
+          gap="xs"
+          wrap="nowrap"
+          visibleFrom="md"
+          className={classes.controls}
+        >
           <SegmentedControl
             aria-label="Content width"
-            size="xs"
+            size="md"
             value={width}
             onChange={setWidth}
             data={WIDTHS.map(({ value, label, icon: Icon }) => ({
@@ -104,7 +111,12 @@ export function ReadingPane({
               // who cannot see the glyph.
               label: (
                 <>
-                  <Icon size={16} stroke={1.6} aria-hidden />
+                  <Icon
+                    size={22}
+                    stroke={1.6}
+                    className={classes.segmentIcon}
+                    aria-hidden
+                  />
                   <VisuallyHidden>{label}</VisuallyHidden>
                 </>
               ),
@@ -112,15 +124,15 @@ export function ReadingPane({
           />
           <ActionIcon
             variant="default"
-            size="md"
+            size="lg"
             aria-label={fullscreenLabel}
             title={fullscreenLabel}
             onClick={toggleFullscreen}
           >
             {fullscreen ? (
-              <IconMinimize size={16} stroke={1.6} aria-hidden />
+              <IconMinimize size={22} stroke={1.6} aria-hidden />
             ) : (
-              <IconMaximize size={16} stroke={1.6} aria-hidden />
+              <IconMaximize size={22} stroke={1.6} aria-hidden />
             )}
           </ActionIcon>
         </Group>

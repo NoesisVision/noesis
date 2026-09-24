@@ -45,3 +45,8 @@ it('names the full-screen button, which is an icon on its own', () => {
   expect(pane).toContain('aria-label="Full screen"');
   expect(pane).toContain('tabler-icon-maximize');
 });
+
+it('keeps the controls off a small screen, where they say nothing', () => {
+  // The same width the shell folds its sidebar at.
+  expect(pane).toContain('mantine-visible-from-md');
+});

@@ -34,7 +34,8 @@
   top: var(--app-shell-header-offset, 0rem);
   z-index: 1;
   margin-inline: calc(-1 * var(--reading-gutter));
-  padding: var(--mantine-spacing-sm) var(--reading-gutter);
+  padding: 0 var(--mantine-spacing-sm) calc(var(--mantine-spacing-md) + 4px)
+    var(--reading-gutter);
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-gray-9)
@@ -51,13 +52,20 @@
 .headerColumn {
   width: 100%;
   margin-inline: auto;
-  /*
-   * The row ends where the controls begin. They are pinned to the view rather
-   * than to this box, so the room has to be kept here, and it is kept in both
-   * widths: a window narrower than the column puts them side by side too.
-   */
-  padding-inline-end: var(--reading-controls-width);
   overflow-wrap: anywhere;
+}
+
+/*
+ * The row ends where the controls begin. They are pinned to the view rather
+ * than to this box, so the room has to be kept here — and only from the width
+ * they appear at, which is Mantine's `md` and the width the shell folds its
+ * sidebar at. A media query cannot read `--mantine-breakpoint-md`, so the
+ * value is spelled out.
+ */
+@media (min-width: 62em) {
+  .headerColumn {
+    padding-inline-end: var(--reading-controls-width);
+  }
 }
 
 .header[data-width='convenient'] .headerColumn {
@@ -83,4 +91,14 @@
 .surface:fullscreen .column {
   padding-inline: var(--reading-gutter);
   padding-bottom: var(--reading-gutter);
+}
+
+/*
+ * A segment's label is a line of text, so an inline icon sits on its baseline
+ * and leaves the descender's gap beneath it. A block one is measured by the
+ * glyph itself, which the label's own padding then centres.
+ */
+.segmentIcon {
+  display: block;
+  margin-inline: auto;
 }
