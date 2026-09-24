@@ -1,11 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
-import { type OutlineSearch, searchOutline } from './outline-search.ts';
 import {
+  closeIn,
+  closeToMatches,
   defaultExpansion,
-  type OutlineTree,
-  outlineTree,
-} from './outline-tree.ts';
+  expandablePaths,
+  openEverything,
+  openIn,
+  type SearchShape,
+  UNTOUCHED,
+} from './outline-expansion.ts';
+import { type OutlineSearch, searchOutline } from './outline-search.ts';
+import { type OutlineTree, outlineTree } from './outline-tree.ts';
 
 /**
  * What the tree is currently showing. The outline itself never changes while
@@ -28,28 +34,9 @@ export interface ModelTreeController {
   readonly select: (path: string) => void;
   readonly expand: (path: string) => void;
   readonly collapse: (path: string) => void;
+  readonly expandAll: () => void;
+  readonly collapseAll: () => void;
 }
-
-/**
- * A search arranges the tree for the reader, and the reader arranges it back
- * while the search is on. Neither may touch what the reader had arranged
- * before they started looking, which is what they get back when they stop.
- */
-interface SearchShape {
-  readonly opened: ReadonlySet<string>;
-  readonly closed: ReadonlySet<string>;
-}
-
-const UNTOUCHED: SearchShape = { opened: new Set(), closed: new Set() };
-
-const withPath = (paths: ReadonlySet<string>, path: string) =>
-  new Set(paths).add(path);
-
-const withoutPath = (paths: ReadonlySet<string>, path: string) => {
-  const next = new Set(paths);
-  next.delete(path);
-  return next;
-};
 
 export function useModelTree(
   nodes: readonly OutlineNode[],
@@ -76,14 +63,9 @@ export function useModelTree(
   const setOpen = useCallback(
     (path: string, open: boolean) => {
       if (search.active) {
-        setShape((current) => ({
-          opened: open
-            ? withPath(current.opened, path)
-            : withoutPath(current.opened, path),
-          closed: open
-            ? withoutPath(current.closed, path)
-            : withPath(current.closed, path),
-        }));
+        setShape((current) =>
+          open ? openIn(current, path) : closeIn(current, path),
+        );
         return;
       }
       setExpanded((current) => {
@@ -102,6 +84,16 @@ export function useModelTree(
     (path: string) => setOpen(path, false),
     [setOpen],
   );
+
+  const expandAll = useCallback(() => {
+    if (search.active) setShape(openEverything(tree, search));
+    else setExpanded(expandablePaths(tree));
+  }, [tree, search]);
+
+  const collapseAll = useCallback(() => {
+    if (search.active) setShape(closeToMatches(tree, search));
+    else setExpanded(new Set());
+  }, [tree, search]);
 
   /*
    * Putting a query away puts the tree back as it was, plus the way down to
@@ -153,6 +145,8 @@ export function useModelTree(
     select: setSelected,
     expand,
     collapse,
+    expandAll,
+    collapseAll,
   };
 }
 

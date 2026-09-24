@@ -120,6 +120,8 @@ function searching(query: string): ModelTreeController {
     select: nothing,
     expand: nothing,
     collapse: nothing,
+    expandAll: nothing,
+    collapseAll: nothing,
   };
 }
 

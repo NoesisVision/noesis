@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import {
-  defaultExpansion,
-  expandablePaths,
-  outlineTree,
-} from '../src/shared/ui/outline-tree';
+import { outlineTree } from '../src/shared/ui/outline-tree';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 const tree = outlineTree(outlineFixture);
@@ -42,24 +38,5 @@ describe('outlineTree', () => {
 
   it('says nothing is under a node that holds nothing', () => {
     expect(tree.childrenOf('module|shop.legacy')).toEqual([]);
-  });
-});
-
-describe('expandablePaths', () => {
-  it('is every node with something under it', () => {
-    expect([...expandablePaths(tree)].sort()).toEqual([
-      'building_block|shop.orders.Order',
-      'module|shop',
-      'module|shop.orders',
-    ]);
-  });
-});
-
-describe('defaultExpansion', () => {
-  it('opens the modules down to the blocks, and stops there', () => {
-    expect([...defaultExpansion(tree)].sort()).toEqual([
-      'module|shop',
-      'module|shop.orders',
-    ]);
   });
 });

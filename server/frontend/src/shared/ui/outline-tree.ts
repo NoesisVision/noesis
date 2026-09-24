@@ -56,29 +56,3 @@ export function outlineTree(nodes: readonly OutlineNode[]): OutlineTree {
     },
   };
 }
-
-/** Every path with something under it: what can be expanded at all. */
-export function expandablePaths(tree: OutlineTree): Set<string> {
-  return new Set(
-    tree.nodes
-      .filter((node) => tree.childrenOf(node.path).length > 0)
-      .map((node) => node.path),
-  );
-}
-
-/**
- * What a reader who has expanded nothing sees: the modules down to the
- * building blocks they hold, and no further. That is the shape the tree is
- * for — which context, which module, what is in it — with a block's own
- * properties, rules and scenarios left folded away until asked for.
- */
-export function defaultExpansion(tree: OutlineTree): Set<string> {
-  return new Set(
-    tree.nodes
-      .filter(
-        (node) =>
-          node.kind === 'module' && tree.childrenOf(node.path).length > 0,
-      )
-      .map((node) => node.path),
-  );
-}
