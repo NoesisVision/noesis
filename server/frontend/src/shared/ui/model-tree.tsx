@@ -1,0 +1,260 @@
+import {
+  IconBolt,
+  IconChartDots3,
+  IconCube,
+  IconFolder,
+  IconListCheck,
+  IconPoint,
+  IconScale,
+} from '@tabler/icons-react';
+import { type KeyboardEvent, type MouseEvent, useId, useMemo } from 'react';
+import { Badge } from '#/shared/design-system/badge.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import type {
+  OutlineChange,
+  OutlineKind,
+  OutlineNode,
+} from '#backend/app/model-outline/model-outline.ts';
+import type { ModelTreeController } from './use-model-tree.ts';
+import classes from './model-tree.module.css';
+
+/*
+ * A model as a tree: contexts, the modules under them, the building blocks
+ * under those, and what each block is made of. The same component draws a
+ * design document's outline and, in time, the scanned model's — it is given
+ * nodes and a controller and knows nothing of either.
+ *
+ * A row is one hit area and one tab stop: the whole row opens and selects,
+ * because a chevron of its own inside a `treeitem` would be a control inside
+ * a control. Arrow keys do what the tree pattern says they do.
+ */
+
+export interface ModelTreeProps {
+  controller: ModelTreeController;
+  /** What the tree is of, for a reader who arrives at it by keyboard. */
+  label: string;
+}
+
+export function ModelTree({ controller, label }: ModelTreeProps) {
+  const baseId = useId();
+  const { tree, selected } = controller;
+
+  const rowIds = useMemo(
+    () =>
+      new Map(
+        tree.nodes.map((node, index) => [node.path, `${baseId}-${index}`]),
+      ),
+    [tree, baseId],
+  );
+  // The line from the top down to the selected row, so its rails can be lit.
+  const ancestry = useMemo(
+    () => new Set(selected === null ? [] : tree.ancestryOf(selected)),
+    [tree, selected],
+  );
+  const focusPath = selected ?? tree.roots[0]?.path ?? null;
+
+  return (
+    <ul role="tree" aria-label={label} className={classes.tree}>
+      {tree.roots.map((node) => (
+        <ModelTreeItem
+          key={node.path}
+          node={node}
+          controller={controller}
+          rowIds={rowIds}
+          ancestry={ancestry}
+          focusPath={focusPath}
+        />
+      ))}
+    </ul>
+  );
+}
+
+interface ItemProps {
+  node: OutlineNode;
+  controller: ModelTreeController;
+  rowIds: ReadonlyMap<string, string>;
+  ancestry: ReadonlySet<string>;
+  focusPath: string | null;
+}
+
+function ModelTreeItem({
+  node,
+  controller,
+  rowIds,
+  ancestry,
+  focusPath,
+}: ItemProps) {
+  const { tree, selected, isExpanded, open, select, expand, collapse } =
+    controller;
+  const children = tree.childrenOf(node.path);
+  const hasChildren = children.length > 0;
+  const expanded = hasChildren && isExpanded(node.path);
+  const rowId = rowIds.get(node.path);
+
+  const onClick = (event: MouseEvent<HTMLLIElement>) => {
+    // A click lands on every row it is inside; only the innermost meant it.
+    event.stopPropagation();
+    open(node.path);
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLLIElement>) => {
+    const row = event.currentTarget;
+    const handled = () => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    switch (event.key) {
+      case 'ArrowDown':
+        handled();
+        return focusSibling(row, 1);
+      case 'ArrowUp':
+        handled();
+        return focusSibling(row, -1);
+      case 'ArrowRight':
+        handled();
+        if (hasChildren && !expanded) return expand(node.path);
+        if (expanded) return focusSibling(row, 1);
+        return;
+      case 'ArrowLeft':
+        handled();
+        if (expanded) return collapse(node.path);
+        return focusParent(row);
+      case 'Home':
+        handled();
+        return focusEdge(row, 'first');
+      case 'End':
+        handled();
+        return focusEdge(row, 'last');
+      case 'Enter':
+      case ' ':
+        handled();
+        return select(node.path);
+      default:
+    }
+  };
+
+  return (
+    <li
+      role="treeitem"
+      aria-level={node.depth + 1}
+      aria-selected={selected === node.path}
+      aria-expanded={hasChildren ? expanded : undefined}
+      aria-labelledby={rowId}
+      tabIndex={focusPath === node.path ? 0 : -1}
+      data-depth={node.depth}
+      data-kind={node.kind}
+      data-change={node.change}
+      data-selected={selected === node.path || undefined}
+      className={classes.item}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+    >
+      <span id={rowId} className={classes.row}>
+        <KindIcon kind={node.kind} />
+        <Text component="span" className={classes.name}>
+          {node.name}
+        </Text>
+        {node.patternLabel !== null && (
+          <Text
+            component="span"
+            size="xs"
+            c="dimmed"
+            className={classes.pattern}
+          >
+            {node.patternLabel}
+          </Text>
+        )}
+        <span className={classes.trailing}>
+          {node.hasDiagram && (
+            <span className={classes.mark}>
+              <IconChartDots3 size={14} stroke={1.6} aria-hidden />
+              <VisuallyHidden>has a diagram</VisuallyHidden>
+            </span>
+          )}
+          <ChangeBadge change={node.change} />
+        </span>
+      </span>
+      {expanded && (
+        <ul
+          // The tree pattern owns its subtrees through this role; none of the
+          // tags the rule suggests is a tree, and any of them would break the
+          // relation a reader navigates by.
+          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+          role="group"
+          className={classes.group}
+          data-in-path={ancestry.has(node.path) || undefined}
+        >
+          {children.map((child) => (
+            <ModelTreeItem
+              key={child.path}
+              node={child}
+              controller={controller}
+              rowIds={rowIds}
+              ancestry={ancestry}
+              focusPath={focusPath}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+/** The colour says it at a glance; the word says it at all. */
+const CHANGE_COLOURS: Record<OutlineChange, string | null> = {
+  added: 'green',
+  modified: 'blue',
+  removed: 'red',
+  unchanged: null,
+};
+
+function ChangeBadge({ change }: { change: OutlineChange }) {
+  const colour = CHANGE_COLOURS[change];
+  if (colour === null) return null;
+  return (
+    <Badge size="xs" color={colour} variant="light">
+      {change}
+    </Badge>
+  );
+}
+
+const KIND_ICONS = {
+  module: IconFolder,
+  building_block: IconCube,
+  behaviour: IconBolt,
+  property: IconPoint,
+  rule: IconScale,
+  scenario: IconListCheck,
+} as const satisfies Record<OutlineKind, unknown>;
+
+function KindIcon({ kind }: { kind: OutlineKind }) {
+  const Icon = KIND_ICONS[kind];
+  return <Icon size={16} stroke={1.6} className={classes.icon} aria-hidden />;
+}
+
+/*
+ * A collapsed subtree is not rendered at all, so every row in the document is
+ * a row the reader can see and the order they are in is the order to move in.
+ */
+function rowsAround(row: HTMLElement): HTMLElement[] {
+  const root = row.closest('[role="tree"]');
+  return root === null
+    ? [row]
+    : [...root.querySelectorAll<HTMLElement>('[role="treeitem"]')];
+}
+
+function focusSibling(row: HTMLElement, step: number): void {
+  const rows = rowsAround(row);
+  rows[rows.indexOf(row) + step]?.focus();
+}
+
+function focusEdge(row: HTMLElement, edge: 'first' | 'last'): void {
+  const rows = rowsAround(row);
+  (edge === 'first' ? rows[0] : rows.at(-1))?.focus();
+}
+
+function focusParent(row: HTMLElement): void {
+  row.parentElement?.closest<HTMLElement>('[role="treeitem"]')?.focus();
+}

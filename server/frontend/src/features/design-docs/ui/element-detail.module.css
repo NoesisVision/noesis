@@ -1,0 +1,9 @@
+/* Descriptions are written as prose and kept as written until they are
+   rendered as markdown. */
+.prose {
+  white-space: pre-wrap;
+}
+
+.breadcrumb {
+  overflow-wrap: anywhere;
+}

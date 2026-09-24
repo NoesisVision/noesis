@@ -31,3 +31,8 @@ export const designDocById = (change: string, id: string) =>
       ),
     retry: false,
   });
+
+/** The whole of what the detail route answers: the document and its outline. */
+export type DesignDocDetail = Awaited<
+  ReturnType<NonNullable<ReturnType<typeof designDocById>['queryFn']>>
+>;

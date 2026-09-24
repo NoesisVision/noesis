@@ -1,0 +1,125 @@
+/*
+ * Depth is drawn the way the sidebar draws it: one rail per level, each row
+ * contributing its own segment, so the line is continuous down a branch and
+ * stops where the branch does. The rails along the selected row's ancestry
+ * take the brand colour, which is what turns "there are levels" into "you are
+ * here, under that".
+ */
+
+.tree {
+  --model-tree-offset: 1.25rem;
+  --model-tree-rail: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+  --model-tree-rail-lit: light-dark(
+    var(--mantine-color-brand-4),
+    var(--mantine-color-brand-7)
+  );
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  position: relative;
+  margin: 0;
+  padding-left: var(--model-tree-offset);
+  list-style: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--model-tree-offset) / 2);
+    width: 1px;
+    border-radius: 1px;
+    background-color: var(--model-tree-rail);
+    transition: background-color 0.1s ease-in-out;
+  }
+
+  &[data-in-path]::before {
+    background-color: var(--model-tree-rail-lit);
+  }
+}
+
+.item {
+  list-style: none;
+
+  &:focus-visible {
+    outline: none;
+
+    & > .row {
+      outline: 2px solid var(--mantine-color-brand-filled);
+      outline-offset: -2px;
+    }
+  }
+}
+
+.row {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 2px var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  cursor: default;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+}
+
+.item[data-selected] > .row {
+  background-color: light-dark(
+    var(--mantine-color-brand-0),
+    var(--mantine-color-dark-5)
+  );
+
+  & .name {
+    font-weight: var(--mantine-font-weight-bold);
+    color: light-dark(
+      var(--mantine-color-brand-9),
+      var(--mantine-color-brand-2)
+    );
+  }
+}
+
+.icon {
+  flex: none;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The pattern gives way first: the name is what a row is for. */
+.pattern {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Whatever the row has to say about itself, kept together on the right. */
+.trailing {
+  display: inline-flex;
+  flex: none;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  margin-left: auto;
+  padding-left: var(--mantine-spacing-xs);
+}
+
+.mark {
+  display: inline-flex;
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+}
