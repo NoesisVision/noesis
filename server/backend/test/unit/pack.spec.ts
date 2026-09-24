@@ -2,7 +2,7 @@
 // The @repo/* workspace deps are private: leaking them would break every
 // `bunx @noesis-vision/noesis` install. The bin is launched from another
 // directory because bun resolves the bundle manifest against the working
-// directory, which src/bundle-cwd.ts handles.
+// directory, which src/boot/bundle-cwd.ts handles.
 import { afterAll, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';

@@ -1,4 +1,4 @@
-import { serverLogger } from './platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/logging';
 
 const log = serverLogger('browser');
 
