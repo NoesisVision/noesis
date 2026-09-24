@@ -45,6 +45,14 @@ describe('DesignDocWorkbench', () => {
     expect(page).toContain('aggregate');
   });
 
+  it('lets the two columns be resized, by keyboard as well as by hand', () => {
+    const handle = /<[^<>]*role="separator"[^>]*>/.exec(page)?.[0] ?? '';
+    expect(handle).toContain('tabindex="0"');
+    // Mantine gives the handle no name of its own, and a separator a reader
+    // can take with the keyboard needs one.
+    expect(handle).toContain('aria-label="Resize the columns"');
+  });
+
   it('says nothing is being searched until something is', () => {
     expect(page).not.toContain('<output');
     expect(page).not.toContain('aria-label="Clear the search"');

@@ -30,12 +30,9 @@
 }
 
 .columns {
-  display: grid;
-  grid-template-columns: minmax(16rem, 2fr) minmax(20rem, 3fr);
-  gap: var(--mantine-spacing-md);
   flex: 1;
-  /* A grid row is `auto` high by default, which a scrolling child would grow
-     past; nothing scrolls until the track is allowed to be smaller. */
+  /* A flex item is as tall as its content by default, which a scrolling child
+     would grow past; nothing scrolls until the track may be smaller. */
   min-height: 0;
 }
 
@@ -53,21 +50,20 @@
 }
 
 /*
- * A phone has one column and one scroller. The same breakpoint the shell
- * folds its sidebar at, spelled out because a media query cannot read
- * `--mantine-breakpoint-md`.
+ * Stacked, the page scrolls rather than the panes: two short scrollers one
+ * above the other on a phone is worse than one long page.
+ */
+.stacked .pane {
+  overflow: visible;
+}
+
+/*
+ * The same breakpoint the shell folds its sidebar at, spelled out because a
+ * media query cannot read `--mantine-breakpoint-md`.
  */
 @media (max-width: 61.99em) {
   .surface {
     height: auto;
-  }
-
-  .columns {
-    grid-template-columns: 1fr;
-  }
-
-  .pane {
-    overflow: visible;
   }
 }
 
