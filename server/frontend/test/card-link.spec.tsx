@@ -1,4 +1,5 @@
 import { expect, it } from 'bun:test';
+import { IconFiles } from '@tabler/icons-react';
 import {
   createMemoryHistory,
   createRootRoute,
@@ -30,6 +31,7 @@ const card = () => (
     to="/changes/$changeId/documents/$documentId"
     params={{ changeId: 'test-2', documentId: 'payment-retry-policy' }}
     title="Payment retry policy"
+    icon={IconFiles}
     description="2026-09-14"
   />
 );
@@ -54,9 +56,16 @@ it('takes the level it sits at, keeping the type scale', async () => {
       to="/changes/$changeId/documents/$documentId"
       params={{ changeId: 'test-2', documentId: 'payment-retry-policy' }}
       title="Payment retry policy"
+      icon={IconFiles}
       headingLevel={3}
     />
   ));
   // Inside a section of its own, a card is an h3, not an h2.
   expect(html).toMatch(/<h3[^>]*>Payment retry policy<\/h3>/);
+});
+
+it('draws the kind it leads to, and a mark saying it is a link', async () => {
+  const html = await render(card);
+  expect(html).toContain('tabler-icon-files');
+  expect(html).toContain('tabler-icon-link');
 });

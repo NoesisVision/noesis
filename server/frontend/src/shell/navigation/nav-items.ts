@@ -1,9 +1,6 @@
-import {
-  IconFiles,
-  IconLayoutDashboard,
-  IconPencilBolt,
-  IconTopologyStar3,
-} from '@tabler/icons-react';
+import { IconLayoutDashboard, IconTopologyStar3 } from '@tabler/icons-react';
+import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
+import { DocumentsIcon } from '#/features/documents/documents.model.ts';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
@@ -40,7 +37,7 @@ export const DOCUMENTS_NAV = {
   routeId: DOCUMENTS_ROUTE_ID,
   label: 'Documents',
   description: 'Imported material that informs the change',
-  icon: IconFiles,
+  icon: DocumentsIcon,
   exact: true,
 } satisfies NavItem;
 
@@ -49,7 +46,7 @@ export const DESIGN_DOCS_NAV = {
   routeId: DESIGN_DOCS_ROUTE_ID,
   label: 'Design docs',
   description: 'The design documents of this change',
-  icon: IconPencilBolt,
+  icon: DesignDocsIcon,
   exact: true,
 } satisfies NavItem;
 

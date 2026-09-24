@@ -1,0 +1,147 @@
+/*
+ * The pane is the element asked to go full screen, so it has to be the page
+ * for as long as it is one: a fullscreen element paints on black and scrolls
+ * nothing until it is told otherwise.
+ */
+.surface {
+  /* The switch, the button and the gap between them. */
+  --reading-controls-width: 8rem;
+  /* What the shell insets its content by, which the header bleeds over. */
+  --reading-gutter: var(--app-shell-padding, var(--mantine-spacing-lg));
+}
+
+.surface:fullscreen {
+  /* Nothing insets the pane in full screen: it is the page, gutter included. */
+  --reading-gutter: var(--mantine-spacing-lg);
+
+  overflow-y: auto;
+  /*
+   * The gutter belongs to the page, never to the column inside it: a column
+   * that pads itself spends its own 900px on that padding, so the card ends
+   * up narrower than, and to the right of, the title above it — which pads
+   * nothing. Sides and foot only, so the sticky header still reaches the top.
+   */
+  padding-inline: var(--reading-gutter);
+  padding-bottom: var(--reading-gutter);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-gray-9)
+  );
+}
+
+/*
+ * One header for the page: what the document is, and the controls for how it
+ * is read. It stays as the document scrolls past its own title, so it has to
+ * be opaque, and it sticks straight under the shell's header rather than a
+ * gutter's distance below it, where the content would show through the gap.
+ * It reaches past the gutter on both sides, because a card's shadow spills
+ * over the content's own edge and must not appear beside the header.
+ */
+.header {
+  position: sticky;
+  top: var(--app-shell-header-offset, 0rem);
+  z-index: 1;
+  margin-inline: calc(-1 * var(--reading-gutter));
+  /*
+   * A gutter on every side. At the start and the end because the title is
+   * centred in this box, and a narrower end would drift it off the column
+   * beneath by half the difference; at the top because the bar pulled a
+   * gutter back above, and putting back anything else would leave the title
+   * of a document sitting higher than the title of the list it came from,
+   * which `ViewHeader` draws at exactly the shell's own padding.
+   */
+  padding: var(--reading-gutter);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-gray-9)
+  );
+  /*
+   * `AppShell.Main` pads its content down from the shell's header by exactly a
+   * gutter, and the bar takes that back — all of it, so that where it rests is
+   * where it sticks. Any other amount and the bar slides by the difference the
+   * moment the reader scrolls, then pins.
+   */
+  margin-top: calc(-1 * var(--reading-gutter));
+  transition: box-shadow 150ms ease;
+}
+
+/*
+ * Once the document runs on underneath it, the header says where it ends: a
+ * hairline and the softest lift under it. A shadow rather than a border, so
+ * nothing below moves by a pixel the moment it appears.
+ */
+.header[data-stuck] {
+  box-shadow:
+    0 1px 0 0
+      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)),
+    0 8px 12px -12px light-dark(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+}
+
+/*
+ * Nothing above it in full screen, so there is no shell padding to pull back
+ * over either. The bleed itself needs no override: it is the pane's own
+ * gutter that the header now reaches across. The pane is the element in the
+ * top layer, which is why `:fullscreen` is its and the header is reached
+ * through it.
+ */
+.surface:fullscreen .header {
+  top: 0;
+  margin-top: 0;
+}
+
+/* The title sits over the content it heads, however wide that is. */
+.headerColumn {
+  width: 100%;
+  margin-inline: auto;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The row ends where the controls begin. They are pinned to the view rather
+ * than to this box, so the room has to be kept here — and only from the width
+ * they appear at, which is Mantine's `md` and the width the shell folds its
+ * sidebar at. A media query cannot read `--mantine-breakpoint-md`, so the
+ * value is spelled out.
+ */
+@media (min-width: 62em) {
+  .headerColumn {
+    padding-inline-end: var(--reading-controls-width);
+  }
+}
+
+.header[data-width='convenient'] .headerColumn {
+  max-width: 900px;
+}
+
+/*
+ * At the view's right edge in either width, so the switch never moves, and
+ * centred in the bar by the free space above and below it: `inset-block` plus
+ * a height of its own leaves `auto` margins to share what is left, so the
+ * controls stay centred whatever height they or the title come to.
+ */
+.controls {
+  position: absolute;
+  inset-block: 0;
+  right: 17px;
+  height: fit-content;
+  margin-block: auto;
+}
+
+.column {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.column[data-width='convenient'] {
+  max-width: 900px;
+}
+
+/*
+ * A segment's label is a line of text, so an inline icon sits on its baseline
+ * and leaves the descender's gap beneath it. A block one is measured by the
+ * glyph itself, which the label's own padding then centres.
+ */
+.segmentIcon {
+  display: block;
+  margin-inline: auto;
+}
