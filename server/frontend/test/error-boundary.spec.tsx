@@ -13,13 +13,12 @@ afterAll(() => fetchSpy.mockRestore());
 // The shell loads its own navigation, and it has to stay standing: only the
 // view inside it is what failed.
 const nav = {
-  slug: 'test-2',
+  id: '2026-01-01-scheduling',
   name: 'Scheduling',
   key: 'NOE-1',
   type: 'feature',
   status: 'design',
-  documents: [],
-  designDocs: [],
+  entries: [],
 };
 const navigation = Response.json({ changes: [nav] });
 
@@ -65,7 +64,7 @@ it('draws a failed read as the status it failed with', async () => {
     () => new Response('Internal Server Error', { status: 500 }),
   );
 
-  const html = await pageAt('/changes/test-2/documents');
+  const html = await pageAt('/changes/2026-01-01-scheduling/documents');
   expect(html).toContain('500');
   expect(html).toMatch(/<h1[^>]*>The service failed<\/h1>/);
   expect(html).toContain('Try again');
@@ -97,7 +96,7 @@ it('draws an address that matches no route at all', async () => {
 it('does not blame the change for an address under it that is not a route', async () => {
   onlyNavigationAnswers(() => Response.json({ change: nav }));
 
-  const html = await pageAt('/changes/test-2/nope');
+  const html = await pageAt('/changes/2026-01-01-scheduling/nope');
   expect(html).toMatch(/<h1[^>]*>Not found<\/h1>/);
   expect(html).not.toContain('Change not found');
 });

@@ -1,17 +1,12 @@
-import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangeId } from '#backend/app/changes/change-id';
 import type { DesignDocument } from './design-doc';
+import type { DesignDocId } from './design-doc-id';
 
 export interface DesignDocsRepository {
-  get(slug: ChangeSlug, id: string): Promise<DesignDocument | null>;
+  get(change: ChangeId, id: DesignDocId): Promise<DesignDocument | null>;
 
-  set(slug: ChangeSlug, id: string, document: DesignDocument): Promise<void>;
+  /** By id ascending. */
+  list(change: ChangeId): Promise<DesignDocument[]>;
 
-  /** `false` when there was nothing to remove. */
-  delete(slug: ChangeSlug, id: string): Promise<boolean>;
-
-  /** In no particular order. */
-  values(slug: ChangeSlug): AsyncIterable<DesignDocument>;
-
-  /** Absolute; touches no file. */
-  pathOf(slug: ChangeSlug, id: string): string;
+  save(change: ChangeId, document: DesignDocument): Promise<void>;
 }

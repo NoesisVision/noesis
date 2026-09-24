@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangeId } from '#backend/app/changes/change-id';
 import { SearchService } from '#backend/app/search/search.service';
 import { createUiApp } from '#backend/ui/ui.routes';
 import {
@@ -13,16 +13,16 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 // The surface only reads; documents get in through the MCP tools, so the
 // tests seed them through the service.
 
-const CHANGE = 'booking';
+const CHANGE = '2026-01-01-booking';
 const BASE = `/changes/${CHANGE}/design-docs`;
 
 let t: TestNoesis;
-let slug: ChangeSlug;
+let change: ChangeId;
 let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  slug = await t.createChange(CHANGE);
+  change = await t.createChange(CHANGE);
   app = createUiApp({
     searchService: new SearchService(),
     changesService: t.changesService,
@@ -35,7 +35,7 @@ afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.designDocsService.create(slug, decodedDesignDocFixture);
+    await t.writeDesignDoc(change, designDocFixture);
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -48,10 +48,8 @@ describe('ui design-docs routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    const created = await t.designDocsService.create(
-      slug,
-      decodedDesignDocFixture,
-    );
+    await t.writeDesignDoc(change, designDocFixture);
+    const created = decodedDesignDocFixture;
 
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
@@ -73,15 +71,14 @@ describe('ui design-docs routes', () => {
       'building_block|sales.refunds.RefundRepository',
     ]);
 
+    expect((await app.request(`${BASE}/2026-01-01-missing`)).status).toBe(404);
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    const created = await t.designDocsService.create(
-      slug,
-      decodedDesignDocFixture,
-    );
+    await t.writeDesignDoc(change, designDocFixture);
+    const created = decodedDesignDocFixture;
     const send = (method: string, path: string) =>
       app.request(path, {
         method,
@@ -92,16 +89,16 @@ describe('ui design-docs routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/${created.id}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${created.id}`)).status).toBe(404);
-    expect((await t.designDocsService.list(slug)).map((d) => d.id)).toEqual([
+    expect((await t.designDocsService.list(change)).map((d) => d.id)).toEqual([
       created.id,
     ]);
   });
 
   it('404s every route of a change that does not exist', async () => {
-    const missing = '/changes/nope/design-docs';
+    const missing = '/changes/2026-01-01-nope/design-docs';
     for (const res of [
       await app.request(missing),
-      await app.request(`${missing}/x`),
+      await app.request(`${missing}/2026-01-01-x`),
     ]) {
       expect(res.status).toBe(404);
       expect(await res.json()).toEqual({ error: 'change_not_found' });

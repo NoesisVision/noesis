@@ -3,12 +3,9 @@
   // Prototypes and prior art under docs/ are reference material, not code
   // (Oxlint skips them too).
   "ignore": ["docs/**/prior-art/**", "docs/**/prototypes/**"],
-  // setup:openssl calls Homebrew, which is not an npm binary.
-  "ignoreBinaries": ["brew"],
   "workspaces": {
     "server/backend": {
-      // Type-only tests are checked by tsc and never imported; the store
-      // writer runs as a subprocess of noesis-store.spec.ts. The design
+      // Type-only tests are checked by tsc and never imported. The design
       // document, its element ids and reviewable fields, and the system
       // model are exported whole: a type nothing imports yet is still part
       // of the domain model.
@@ -18,8 +15,7 @@
         "src/app/element-id.ts",
         "src/app/design-docs/reviewable-field.ts",
         "src/app/system-model/system-model.ts",
-        "test/**/*.types.ts",
-        "test/integration/noesis-store.writer.ts"
+        "test/**/*.types.ts"
       ]
     },
     "server/frontend": {

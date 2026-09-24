@@ -43,18 +43,43 @@ describe('the generated JSON Schema contracts', () => {
     }
   });
 
-  it('shows a codec as the string an agent writes, not the value object', () => {
-    const { properties } = schemaOf('document') as {
-      properties: { document_id: Record<string, unknown> };
+  it('shows a value object as the string an agent writes', () => {
+    const { properties } = schemaOf('design-document') as {
+      properties: {
+        modules: {
+          properties: {
+            added: { items: { properties: { id: Record<string, unknown> } } };
+          };
+        };
+      };
     };
-    expect(properties.document_id).toMatchObject({
-      type: 'string',
-      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
-    });
+    const id = properties.modules.properties.added.items.properties.id;
+    expect(id).toMatchObject({ type: 'string' });
+    const pattern = new RegExp(String(id.pattern));
+    expect(pattern.test('module|sales.refunds')).toBe(true);
+    expect(pattern.test('sales.refunds')).toBe(false);
+  });
+
+  it('asks for no id in any working file: the server mints it', () => {
+    for (const name of [
+      'new-change',
+      'change',
+      'document',
+      'design-document',
+    ]) {
+      const { properties } = schemaOf(name) as {
+        properties: Record<string, unknown>;
+      };
+      expect(Object.keys(properties)).not.toContain('id');
+    }
+    const { properties } = schemaOf('new-change') as {
+      properties: Record<string, unknown>;
+    };
+    expect(Object.keys(properties)).not.toContain('status');
   });
 
   it('keeps the descriptions an agent reads', () => {
-    const { properties } = schemaOf('create-change') as {
+    const { properties } = schemaOf('change') as {
       properties: { name: { description?: string } };
     };
     expect(properties.name.description).toBeTruthy();

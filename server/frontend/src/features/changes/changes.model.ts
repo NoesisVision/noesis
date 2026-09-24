@@ -40,10 +40,10 @@ const SWATCH_COLORS = [
  */
 const SWATCH_HASH_MODULUS = 2_147_483_647;
 
-/** Derived from the slug; the colour is deliberately not stored. */
-export function changeSwatch(slug: string): string {
+/** Derived from the id; the colour is deliberately not stored. */
+export function changeSwatch(id: string): string {
   let hash = 0;
-  for (const char of slug) {
+  for (const char of id) {
     hash = (hash * 31 + char.charCodeAt(0)) % SWATCH_HASH_MODULUS;
   }
   const name = SWATCH_COLORS[hash % SWATCH_COLORS.length] ?? SWATCH_COLORS[0];

@@ -1,6 +1,7 @@
-// Builds the add_document_to_change working file from a Markdown file. The
-// text is copied by this script, never retyped by the model, so `content` is
-// the source byte for byte.
+// Builds the working file of create_document_in_change and
+// update_document_in_change from a Markdown file. The text is copied by this
+// script, never retyped by the model, so `content` is the source byte for
+// byte. The file carries no id: the service mints it on create.
 //
 //   bun write-working-file.ts <source.md> <working-file.json> [--title <title>] [--date <YYYY-MM-DD>]
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
@@ -39,8 +40,9 @@ export async function buildWorkingFile(
   options: WorkingFileOptions = {},
 ): Promise<WorkingFile> {
   const content = await readFile(sourcePath, 'utf8');
+  const title = options.title?.trim() || titleOf(content, sourcePath);
   return {
-    title: options.title?.trim() || titleOf(content, sourcePath),
+    title,
     date: options.date ?? isoDate((await stat(sourcePath)).mtime),
     content,
   };
@@ -49,7 +51,10 @@ export async function buildWorkingFile(
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
-    options: { title: { type: 'string' }, date: { type: 'string' } },
+    options: {
+      title: { type: 'string' },
+      date: { type: 'string' },
+    },
     allowPositionals: true,
   });
   const [sourcePath, workingPath] = positionals;

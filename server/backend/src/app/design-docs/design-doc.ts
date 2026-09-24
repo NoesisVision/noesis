@@ -5,6 +5,7 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
+import { DesignDocId } from './design-doc-id';
 import { reviewableFieldSchema } from './reviewable-field';
 
 /*
@@ -197,7 +198,9 @@ export type DesignedBehaviourChangeSet = z.infer<
 >;
 
 export const DesignDocumentSchema = z.object({
-  id: z.string(),
+  id: DesignDocId.describe(
+    "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
+  ),
   name: reviewableFieldSchema(z.string()),
   description: reviewableFieldSchema(z.string()),
   modules: DesignedDomainModuleChangeSetSchema.prefault({}),
@@ -207,17 +210,14 @@ export const DesignDocumentSchema = z.object({
 });
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
 
+/** The working file of a design document: the server mints the id of a new one; an update names it beside the file. */
+export const DesignDocumentContentSchema = DesignDocumentSchema.omit({
+  id: true,
+});
+export type DesignDocumentContent = z.infer<typeof DesignDocumentContentSchema>;
+
 /** The JSON form: what an agent writes, what the store holds, what the wire carries. */
 export type DesignDocumentInput = z.input<typeof DesignDocumentSchema>;
-
-/**
- * Derived from the stored shape so the two can never drift: the service mints
- * the id, so a caller adding a design document does not supply one.
- */
-export const CreateDesignDocumentSchema = DesignDocumentSchema.omit({
-  id: true,
-}).describe('The design document to add to a change.');
-export type CreateDesignDocument = z.output<typeof CreateDesignDocumentSchema>;
 
 /* The JSON form of each element and part, for readers of the wire. */
 export type DesignedDomainModuleInput = z.input<

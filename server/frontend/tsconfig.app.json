@@ -1,7 +1,7 @@
 {
   // Browser code. Follows the create-vite react-ts template; no Bun or Node
   // types, so runtime-only APIs fail type-checking here. The Hono RPC client
-  // type (#backend/app.types.ts) pulls backend source into this program, so
+  // type (#backend/boot/app.types.ts) pulls backend source into this program, so
   // that source must stay runtime-neutral too.
   "extends": "./tsconfig.json",
   "compilerOptions": {
