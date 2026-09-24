@@ -6,6 +6,11 @@ import { JsonFileError, parseJson, writeJsonFile } from './json-file';
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
+/** Ids are ASCII, so code-unit order is alphabetical without a locale. */
+function byCodeUnit(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 /**
  * One entity per file, `<dir>/<id>.<kind>.json`. No locks: the atomic rename
  * in `writeJsonFile` is the whole guarantee, so the last complete write wins,
@@ -29,7 +34,7 @@ export class JsonCollection<T extends { id: string }> {
 
   /** By id ascending; throws on the first broken file. */
   async list(): Promise<T[]> {
-    const ids = (await this.listIds()).sort();
+    const ids = (await this.listIds()).sort(byCodeUnit);
     const entities = await Promise.all(ids.map((id) => this.read(id)));
     return entities.filter((entity) => entity !== null);
   }
