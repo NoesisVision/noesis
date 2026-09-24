@@ -15,6 +15,14 @@
   --reading-gutter: var(--mantine-spacing-lg);
 
   overflow-y: auto;
+  /*
+   * The gutter belongs to the page, never to the column inside it: a column
+   * that pads itself spends its own 900px on that padding, so the card ends
+   * up narrower than, and to the right of, the title above it — which pads
+   * nothing. Sides and foot only, so the sticky header still reaches the top.
+   */
+  padding-inline: var(--reading-gutter);
+  padding-bottom: var(--reading-gutter);
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-gray-9)
@@ -34,18 +42,31 @@
   top: var(--app-shell-header-offset, 0rem);
   z-index: 1;
   margin-inline: calc(-1 * var(--reading-gutter));
-  padding: 0 var(--mantine-spacing-sm) calc(var(--mantine-spacing-md) + 4px)
-    var(--reading-gutter);
+  /*
+   * The title is centred in this box, so the box has to be symmetric: a
+   * narrower end than start would drift the title off the column beneath it
+   * by half the difference. The controls are pinned to the view, not to the
+   * end of this padding, so nothing else depends on it.
+   */
+  padding: var(--mantine-spacing-md) var(--reading-gutter)
+    calc(var(--mantine-spacing-md) + 4px);
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-gray-9)
   );
+  margin-top: calc((var(--mantine-spacing-md) * -1) - 4px);
 }
 
-/* Nothing above it in full screen, and no shell gutter to bleed over. */
+/*
+ * Nothing above it in full screen, so there is no shell padding to pull back
+ * over either. The bleed itself needs no override: it is the pane's own
+ * gutter that the header now reaches across. The pane is the element in the
+ * top layer, which is why `:fullscreen` is its and the header is reached
+ * through it.
+ */
 .surface:fullscreen .header {
   top: 0;
-  margin-inline: 0;
+  margin-top: 0;
 }
 
 /* The title sits over the content it heads, however wide that is. */
@@ -77,6 +98,8 @@
   position: absolute;
   inset-block: 0;
   right: var(--reading-gutter);
+  height: fit-content;
+  top: 10px;
 }
 
 .column {
@@ -86,11 +109,6 @@
 
 .column[data-width='convenient'] {
   max-width: 900px;
-}
-
-.surface:fullscreen .column {
-  padding-inline: var(--reading-gutter);
-  padding-bottom: var(--reading-gutter);
 }
 
 /*
