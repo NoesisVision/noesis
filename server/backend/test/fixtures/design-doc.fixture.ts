@@ -7,36 +7,39 @@ import {
  * The JSON form, with every default spelled out, so that decoding and
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
- * a part of each kind, fields of every status, a public behaviour.
+ * a part of each kind, changed and unchanged fields of both authors, every
+ * kind of type including a nested collection, a public behaviour. Passes
+ * `DesignDocument.validateAddedItems`.
  */
 
-const acceptedByHuman = <const T>(value: T) => ({
+const byHuman = <const T>(value: T) => ({
+  changed: true as const,
   value,
-  status: 'acceptedByHuman' as const,
+  author: 'human' as const,
 });
-const setByAgent = <const T>(value: T) => ({
+const byAgent = <const T>(value: T) => ({
+  changed: true as const,
   value,
-  status: 'setByAgent' as const,
+  author: 'agent' as const,
 });
-const setByHuman = <const T>(value: T) => ({
-  value,
-  status: 'setByHuman' as const,
-});
+const unchanged = { changed: false as const, author: 'agent' as const };
+const noChanges = { added: [], removed: [], modified: [] };
+const noAdditions = { added: [], removed: [] };
 
 const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
 
 export const designDocFixture = {
   id: 'refund-partial-orders',
-  name: acceptedByHuman('Partial refunds for orders'),
-  description: setByAgent(
+  name: 'Partial refunds for orders',
+  description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',
-  ),
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
-        description: setByAgent(
+        name: byAgent('refunds'),
+        description: byAgent(
           'Everything about giving money back to a customer.',
         ),
       },
@@ -45,7 +48,8 @@ export const designDocFixture = {
     modified: [
       {
         id: 'module|sales.orders',
-        description: acceptedByHuman(
+        name: unchanged,
+        description: byHuman(
           'Order lifecycle, now including the refundable state of each line.',
         ),
       },
@@ -55,30 +59,41 @@ export const designDocFixture = {
     added: [
       {
         id: 'building_block|sales.refunds.Refund',
-        type: acceptedByHuman('aggregate'),
-        description: setByAgent(
+        name: byHuman('Refund'),
+        type: byHuman('aggregate'),
+        description: byAgent(
           'A refund of one or more lines of a single order.',
         ),
+        implements: noAdditions,
         properties: {
           added: [
             {
-              name: acceptedByHuman('orderId'),
-              type: setByAgent('OrderId'),
-              description: setByAgent(
-                'The order the refunded lines belong to.',
-              ),
+              name: 'orderId',
+              type: byHuman('building_block|sales.orders.OrderId'),
+              description: byAgent('The order the refunded lines belong to.'),
+              optional: byAgent(false),
             },
             {
-              name: setByAgent('lines'),
-              type: setByAgent('RefundLine'),
-              description: setByAgent(null),
-              collection: true,
+              name: 'lines',
+              type: byAgent({
+                collectionOf: 'building_block|sales.refunds.RefundLine',
+              }),
+              description: byAgent('The refunded lines.'),
+              optional: byAgent(false),
             },
             {
-              name: setByAgent('issuedAt'),
-              type: setByAgent('Date'),
-              description: setByAgent(null),
-              nullable: true,
+              name: 'notes',
+              type: byAgent({
+                collectionOf: { collectionOf: { primitive: 'string' } },
+              }),
+              description: byAgent('Notes per line, several per line.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'issuedAt',
+              type: byAgent({ primitive: 'datetime' }),
+              description: byAgent('When the refund was issued.'),
+              optional: byAgent(true),
             },
           ],
           removed: [],
@@ -87,9 +102,9 @@ export const designDocFixture = {
         rules: {
           added: [
             {
-              name: acceptedByHuman('Refund never exceeds paid amount'),
-              ruleType: 'Consistency',
-              description: acceptedByHuman(
+              name: 'Refund never exceeds paid amount',
+              ruleType: byAgent('Consistency'),
+              description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
               ),
             },
@@ -100,13 +115,12 @@ export const designDocFixture = {
         scenarios: {
           added: [
             {
-              name: setByAgent('Refunding one line of a paid order'),
-              description: setByAgent('The happy path of a partial refund.'),
-              given: setByAgent('a paid order with two lines'),
-              when: setByAgent('support refunds the first line'),
-              // Gherkin's word; the fixture is never awaited.
+              name: 'Refunding one line of a paid order',
+              description: byAgent('The happy path of a partial refund.'),
+              given: byAgent('a paid order with two lines'),
+              when: byAgent('support refunds the first line'),
               // oxlint-disable-next-line unicorn/no-thenable
-              then: setByAgent(REFUND_OUTCOME), // NOSONAR
+              then: byAgent(REFUND_OUTCOME), // NOSONAR
             },
           ],
           removed: [],
@@ -115,39 +129,57 @@ export const designDocFixture = {
       },
       {
         id: 'building_block|sales.refunds.RefundIssued',
-        type: setByAgent('domain_event'),
-        description: setByAgent(null),
+        name: byAgent('RefundIssued'),
+        type: byAgent('domain_event'),
+        description: byAgent('Tells the ledger a refund went out.'),
+        implements: noAdditions,
+        properties: noChanges,
+        rules: noChanges,
+        scenarios: noChanges,
       },
       {
         id: 'building_block|sales.refunds.RefundRepository',
-        type: setByAgent('repository'),
-        description: setByAgent(null),
-        implements: ['building_block|sales.shared.Repository'],
+        name: byAgent('RefundRepository'),
+        type: byAgent('repository'),
+        description: byAgent('Stores refunds.'),
+        implements: {
+          added: ['building_block|sales.shared.Repository'],
+          removed: [],
+        },
+        properties: noChanges,
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
     removed: ['building_block|sales.credit-notes.CreditNote'],
     modified: [
       {
         id: 'building_block|sales.orders.Order',
-        type: setByAgent(null),
-        description: setByAgent(null),
+        name: unchanged,
+        type: unchanged,
+        description: unchanged,
+        implements: noAdditions,
         properties: {
           added: [
             {
-              name: setByAgent('refundedAmount'),
-              type: setByAgent('Money'),
-              description: setByAgent(null),
+              name: 'refundedAmount',
+              type: byAgent('building_block|sales.shared.Money'),
+              description: byAgent('What has been refunded so far.'),
+              optional: byAgent(false),
             },
           ],
           removed: ['creditNoteId'],
           modified: [
             {
-              name: acceptedByHuman('status'),
-              type: acceptedByHuman('OrderStatus'),
-              description: setByAgent("Gains the 'partially_refunded' state."),
+              name: 'status',
+              type: { changed: false, author: 'human' },
+              description: byAgent("Gains the 'partially_refunded' state."),
+              optional: unchanged,
             },
           ],
         },
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
   },
@@ -155,52 +187,61 @@ export const designDocFixture = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
-        description: setByAgent(
+        name: byAgent('issue'),
+        type: byHuman('Command'),
+        description: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
-        type: acceptedByHuman('Command'),
+        visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
         input: {
-          added: ['OrderId', 'RefundLine[]'],
+          added: [
+            'building_block|sales.orders.OrderId',
+            { collectionOf: 'building_block|sales.refunds.RefundLine' },
+            { primitive: 'string' },
+          ],
           removed: [],
-          modified: [],
         },
-        output: { added: ['RefundIssued'], removed: [], modified: [] },
+        output: {
+          added: ['building_block|sales.refunds.RefundIssued'],
+          removed: [],
+        },
         usedBuildingBlocks: {
           added: [
             'building_block|sales.orders.Order',
             'building_block|sales.refunds.RefundRepository',
           ],
           removed: [],
-          modified: [],
         },
         rules: {
           added: [
             {
-              name: setByAgent('Only paid orders are refundable'),
-              ruleType: 'State change',
-              description: setByAgent(null),
+              name: 'Only paid orders are refundable',
+              ruleType: byAgent('State change'),
+              description: byAgent('An unpaid order has nothing to refund.'),
             },
           ],
           removed: [],
           modified: [],
         },
-        isPublic: true,
-        actor: setByHuman('Support agent'),
+        scenarios: noChanges,
       },
     ],
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
     modified: [
       {
         id: 'behavior|sales.orders.Order.cancel',
-        description: setByAgent(null),
-        type: setByAgent(null),
+        name: unchanged,
+        type: unchanged,
+        description: unchanged,
+        visibility: byAgent({ kind: 'private' }),
+        input: noAdditions,
+        output: noAdditions,
         usedBuildingBlocks: {
           added: ['building_block|sales.refunds.Refund'],
           removed: ['building_block|sales.credit-notes.CreditNote'],
-          modified: [],
         },
-        isPublic: false,
-        actor: setByAgent(null),
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
   },

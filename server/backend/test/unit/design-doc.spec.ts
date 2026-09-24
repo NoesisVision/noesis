@@ -6,26 +6,36 @@ import { designDocFixture } from '../fixtures/design-doc.fixture';
 
 const document = {
   id: 'doc-1',
-  name: { value: 'Refunds' },
-  description: {
-    value: 'Let a clerk refund an order.',
-    status: 'acceptedByHuman',
-  },
+  name: 'Refunds',
+  description: 'Let a clerk refund an order.',
   modules: {
-    added: [{ id: 'module|sales.refunds' }],
+    added: [{ id: 'module|sales.refunds', name: { value: 'refunds' } }],
   },
   buildingBlocks: {
     added: [
       {
         id: 'building_block|sales.refunds.Refund',
+        name: { value: 'Refund' },
         type: { value: 'aggregate' },
-        implements: ['building_block|sales.orders.Payable'],
-        properties: { added: [{ name: { value: 'amount' } }] },
+        implements: { added: ['building_block|sales.orders.Payable'] },
+        properties: {
+          added: [
+            {
+              name: 'lines',
+              type: {
+                value: {
+                  collectionOf: { collectionOf: { primitive: 'string' } },
+                },
+              },
+            },
+          ],
+        },
       },
     ],
     modified: [
       {
         id: 'building_block|sales.orders.Order',
+        name: { value: 'Order' },
         properties: { removed: ['legacyFlag'] },
       },
     ],
@@ -35,7 +45,10 @@ const document = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
+        name: { value: 'issue' },
         type: { value: 'Command' },
+        visibility: { value: { kind: 'public', actors: ['Clerk'] } },
+        input: { added: ['building_block|sales.orders.Order'] },
         usedBuildingBlocks: { added: ['building_block|sales.orders.Order'] },
       },
     ],
@@ -68,28 +81,85 @@ describe('DesignDocument schema', () => {
     expect(BuildingBlockId.containing(behaviour)).toBe(block);
   });
 
-  it('fills absent change sets, lists and design doc fields', () => {
-    const parsed = DesignDocument.parse({
-      id: 'doc-2',
-      name: { value: 'Empty' },
-      description: { value: '' },
-    });
+  it('reads an absent field as unchanged and an absent change set as empty', () => {
+    const parsed = DesignDocument.parse(document);
 
-    expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
-    expect(parsed.buildingBlocks.modified).toEqual([]);
-    expect(parsed.behaviours.removed).toEqual([]);
-    expect(parsed.name.status).toBe('setByAgent');
+    expect(parsed.modules.added[0]?.name).toEqual({
+      changed: true,
+      value: 'refunds',
+      author: 'agent',
+    });
     expect(parsed.implemented).toBe(false);
 
-    const block = DesignDocument.parse(document).buildingBlocks.added[0]!;
-    expect(block.description).toEqual({ value: null, status: 'setByAgent' });
-    expect(block.properties?.removed).toEqual([]);
+    const block = parsed.buildingBlocks.added[0]!;
+    expect(block.description).toEqual({ changed: false, author: 'agent' });
+    expect(block.rules).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.behaviours.removed).toEqual([]);
+  });
+
+  it('rejects a primitive it does not know', () => {
+    const result = DesignDocument.safeParse({
+      ...document,
+      behaviours: {
+        added: [
+          {
+            id: 'behavior|sales.refunds.Refund.issue',
+            name: { value: 'issue' },
+            input: { added: [{ collectionOf: { primitive: 'money' } }] },
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('requires the document name', () => {
+    expect(
+      DesignDocument.safeParse({ ...document, name: undefined }).success,
+    ).toBe(false);
+  });
+
+  it('rejects a value on an unchanged field', () => {
+    const result = DesignDocument.safeParse({
+      ...document,
+      modules: {
+        added: [
+          {
+            id: 'module|sales.refunds',
+            name: { value: 'refunds' },
+            description: { changed: false, value: 'Money back.' },
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects an actor on a private behaviour', () => {
+    const result = DesignDocument.safeParse({
+      ...document,
+      behaviours: {
+        added: [
+          {
+            id: 'behavior|sales.refunds.Refund.issue',
+            name: { value: 'issue' },
+            visibility: { value: { kind: 'private', actors: ['Clerk'] } },
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it('rejects an id of the wrong kind', () => {
     const result = DesignDocument.safeParse({
       ...document,
-      modules: { added: [{ id: 'building_block|sales.refunds' }] },
+      modules: {
+        added: [{ id: 'building_block|sales.refunds', name: { value: 'x' } }],
+      },
     });
 
     expect(result.success).toBe(false);
@@ -115,106 +185,151 @@ describe('DesignDocument schema', () => {
 });
 
 describe('DesignDocument.validateAgentVersion', () => {
-  const existing = DesignDocument.parse({
-    id: 'doc-1',
-    name: { value: 'Refunds', status: 'setByHuman' },
-    description: { value: 'Let a clerk refund an order.' },
-    buildingBlocks: {
-      added: [
-        {
-          id: 'building_block|sales.refunds.Refund',
-          description: { value: 'Money back.', status: 'setByHuman' },
-          properties: {
-            added: [{ name: { value: 'amount', status: 'acceptedByHuman' } }],
-          },
-        },
-      ],
-    },
-  });
+  const block = 'building_block|sales.refunds.Refund';
+  const blockDescription = `buildingBlocks.added[${block}].description`;
 
-  const agentVersion = (patch: {
-    nameStatus?: string;
-    blockDescriptionStatus?: string;
-    descriptionStatus?: string;
+  const version = (patch: {
+    blockDescription?: object;
+    description?: object;
+    propertyName?: string;
   }) =>
     DesignDocument.parse({
       id: 'doc-1',
-      name: { value: 'Refunds', status: patch.nameStatus ?? 'acceptedByHuman' },
-      description: {
-        value: 'Let support refund an order.',
-        status: patch.descriptionStatus ?? 'setByAgent',
+      name: 'Refunds',
+      description: 'Let a clerk refund.',
+      modules: {
+        added: [
+          {
+            id: 'module|sales.refunds',
+            name: { value: 'refunds' },
+            description: patch.description ?? { value: 'Refunds.' },
+          },
+        ],
       },
       buildingBlocks: {
         added: [
           {
-            id: 'building_block|sales.refunds.Refund',
-            description: {
+            id: block,
+            name: { value: 'Refund' },
+            description: patch.blockDescription ?? {
               value: 'Money back.',
-              status: patch.blockDescriptionStatus ?? 'acceptedByHuman',
+              author: 'human',
             },
-            properties: { added: [{ name: { value: 'amount' } }] },
+            properties: {
+              added: [{ name: patch.propertyName ?? 'amount' }],
+            },
           },
         ],
       },
     });
 
-  it('passes when every value a human set comes back accepted', () => {
-    expect(
-      DesignDocument.validateAgentVersion(existing, agentVersion({})),
-    ).toEqual([]);
+  const existing = version({});
+
+  it('passes when every field a human wrote comes back unchanged', () => {
+    expect(DesignDocument.validateAgentVersion(existing, version({}))).toEqual(
+      [],
+    );
   });
 
-  it('reports a value a human set that does not come back accepted', () => {
+  it('reports a value a human wrote that the agent changed', () => {
     expect(
       DesignDocument.validateAgentVersion(
         existing,
-        agentVersion({ blockDescriptionStatus: 'setByAgent' }),
+        version({ blockDescription: { value: 'Refund.', author: 'human' } }),
       ),
-    ).toEqual([
-      {
-        path: 'buildingBlocks.added[building_block|sales.refunds.Refund].description',
-        reason: 'humanValueNotAccepted',
-      },
-    ]);
+    ).toEqual([{ path: blockDescription, reason: 'humanValueChanged' }]);
   });
 
-  it('reports a value a human set that the agent left out', () => {
+  it('reports a field a human wrote that the agent took over', () => {
+    expect(
+      DesignDocument.validateAgentVersion(
+        existing,
+        version({ blockDescription: { value: 'Money back.' } }),
+      ),
+    ).toEqual([{ path: blockDescription, reason: 'humanValueChanged' }]);
+  });
+
+  it('reports a field a human wrote that the agent left out', () => {
     const dropped = DesignDocument.parse({
-      ...agentVersion({}),
+      ...version({}),
       buildingBlocks: {},
     });
 
     expect(DesignDocument.validateAgentVersion(existing, dropped)).toEqual([
+      { path: blockDescription, reason: 'humanValueChanged' },
+    ]);
+  });
+
+  it('reports a field the agent claims a human wrote', () => {
+    expect(
+      DesignDocument.validateAgentVersion(
+        existing,
+        version({ description: { value: 'Refunds.', author: 'human' } }),
+      ),
+    ).toEqual([
       {
-        path: 'buildingBlocks.added[building_block|sales.refunds.Refund].description',
-        reason: 'humanValueNotAccepted',
+        path: 'modules.added[module|sales.refunds].description',
+        reason: 'humanAuthorClaimed',
       },
     ]);
   });
 
-  it('reports a field the agent claims a human set', () => {
+  it('lets the agent change what an agent wrote', () => {
     expect(
       DesignDocument.validateAgentVersion(
         existing,
-        agentVersion({ descriptionStatus: 'setByHuman' }),
+        version({ propertyName: 'total' }),
       ),
-    ).toEqual([{ path: 'description', reason: 'setByHumanClaimedByAgent' }]);
+    ).toEqual([]);
+  });
+});
+
+describe('DesignDocument.validateAddedItems', () => {
+  it('passes the fixture', () => {
+    expect(
+      DesignDocument.validateAddedItems(DesignDocument.parse(designDocFixture)),
+    ).toEqual([]);
   });
 
-  it('lets the agent change a value a human only accepted', () => {
-    const version = agentVersion({});
-    const renamed = DesignDocument.parse({
-      ...version,
+  it('reports an unchanged field of an added item, at any depth', () => {
+    const parsed = DesignDocument.parse({
+      id: 'doc-1',
+      name: 'Refunds',
+      description: 'Let a clerk refund an order.',
       buildingBlocks: {
         added: [
           {
-            ...version.buildingBlocks.added[0],
-            properties: { added: [{ name: { value: 'total' } }] },
+            id: 'building_block|sales.refunds.Refund',
+            type: { value: 'aggregate' },
+            description: { value: 'Money back.' },
+          },
+        ],
+        modified: [
+          {
+            id: 'building_block|sales.orders.Order',
+            properties: {
+              added: [
+                {
+                  name: 'refundedAmount',
+                  type: { value: { primitive: 'decimal' } },
+                  optional: { value: false },
+                },
+              ],
+            },
           },
         ],
       },
     });
 
-    expect(DesignDocument.validateAgentVersion(existing, renamed)).toEqual([]);
+    expect(DesignDocument.validateAddedItems(parsed)).toEqual([
+      {
+        path: 'buildingBlocks.added[building_block|sales.refunds.Refund].name',
+        reason: 'unchangedFieldInAddedItem',
+      },
+      {
+        path: 'buildingBlocks.modified[building_block|sales.orders.Order].properties.added[refundedAmount].description',
+        reason: 'unchangedFieldInAddedItem',
+      },
+    ]);
   });
 });

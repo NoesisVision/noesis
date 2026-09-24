@@ -1,30 +1,53 @@
 import { z } from 'zod';
 
-export const DesignDocFieldStatus = z
-  .enum(['setByAgent', 'acceptedByHuman', 'setByHuman'])
+export const DesignDocFieldAuthor = z
+  .enum(['agent', 'human'])
   .describe(
-    "Who stands behind a field's value: 'setByAgent' when an agent wrote it and no human has looked at it, 'acceptedByHuman' when a human accepted a value an agent wrote, 'setByHuman' when a human wrote it.",
+    "Who stands behind a field: 'agent' when an agent wrote it, 'human' when a human wrote or accepted it.",
   );
-export type DesignDocFieldStatus = z.infer<typeof DesignDocFieldStatus>;
+export type DesignDocFieldAuthor = z.infer<typeof DesignDocFieldAuthor>;
+
+const changedDesignDocFieldSchema = <Value extends z.ZodType>(value: Value) =>
+  z.object({
+    changed: z.literal(true).default(true),
+    value,
+    author: DesignDocFieldAuthor.default('agent'),
+  });
+
+export interface ChangedDesignDocField<T> extends z.infer<
+  ReturnType<typeof changedDesignDocFieldSchema<z.ZodType<T>>>
+> {}
+
+const unchangedDesignDocFieldSchema = z.strictObject({
+  changed: z.literal(false),
+  author: DesignDocFieldAuthor.default('agent'),
+});
+
+export type UnchangedDesignDocField = z.infer<
+  typeof unchangedDesignDocFieldSchema
+>;
 
 const designDocFieldSchema = <Value extends z.ZodType>(value: Value) =>
-  z.object({
-    value,
-    status: DesignDocFieldStatus.default('setByAgent'),
-  });
+  z
+    .discriminatedUnion('changed', [
+      changedDesignDocFieldSchema(value),
+      unchangedDesignDocFieldSchema,
+    ])
+    .prefault({ changed: false });
 
 export const DesignDocField = Object.assign(designDocFieldSchema, {
   of: <T>(
     value: T,
-    status: DesignDocFieldStatus = 'setByAgent',
-  ): DesignDocField<T> => ({ value, status }),
+    author: DesignDocFieldAuthor = 'agent',
+  ): ChangedDesignDocField<T> => ({ changed: true, value, author }),
   is: (candidate: unknown): candidate is DesignDocField<unknown> =>
     typeof candidate === 'object' &&
     candidate !== null &&
-    'value' in candidate &&
-    'status' in candidate &&
-    DesignDocFieldStatus.safeParse(candidate.status).success,
+    'changed' in candidate &&
+    typeof candidate.changed === 'boolean' &&
+    'author' in candidate &&
+    DesignDocFieldAuthor.safeParse(candidate.author).success,
 });
-export interface DesignDocField<T> extends z.infer<
-  ReturnType<typeof designDocFieldSchema<z.ZodType<T>>>
-> {}
+export type DesignDocField<T> =
+  | ChangedDesignDocField<T>
+  | UnchangedDesignDocField;

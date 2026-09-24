@@ -77,7 +77,7 @@ export class IndexService {
         push('DesignDoc', {
           id: document.id,
           change,
-          name: document.name.value,
+          name: document.name,
           implemented: document.implemented,
           // Element ids serialise as the strings they decode from.
           document: JSON.stringify(document),

@@ -7,7 +7,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
-import type { DesignDocFieldStatus } from '#backend/app/design-docs/design-doc-field.ts';
+import type { DesignDocFieldAuthor } from '#backend/app/design-docs/design-doc-field.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -17,17 +17,24 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 
 /*
  * Renders the document as the diff it is: per kind of element, what the
  * design adds, modifies and removes. An element is shown by its address, the
- * part of its id after the kind; a field a human set or accepted says so.
+ * part of its id after the kind; a field a human wrote or accepted says so.
  */
 
-interface DesignDocFieldInput {
-  value?: string | null | undefined;
-  status?: DesignDocFieldStatus | undefined;
-}
+type DesignDocFieldInput<T> =
+  | {
+      changed?: true | undefined;
+      value: T;
+      author?: DesignDocFieldAuthor | undefined;
+    }
+  | { changed: false; author?: DesignDocFieldAuthor | undefined };
+
+const valueOf = <T,>(field: DesignDocFieldInput<T> | undefined) =>
+  field !== undefined && 'value' in field ? field.value : undefined;
 
 interface ChangeSetInput<Item, Key> {
   added?: Item[] | undefined;
@@ -36,25 +43,23 @@ interface ChangeSetInput<Item, Key> {
 }
 
 const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
+const typeOf = (type: BuildingBlockRefInput): string => {
+  if (typeof type === 'string') return addressOf(type);
+  if ('primitive' in type) return type.primitive;
+  return `${typeOf(type.collectionOf)}[]`;
+};
 const humanType = (type: string | null | undefined) =>
   type?.replaceAll('_', ' ') ?? 'Unclassified';
 
-const STATUS_LABELS: Record<DesignDocFieldStatus, string | null> = {
-  setByAgent: null,
-  acceptedByHuman: 'accepted',
-  setByHuman: 'set by human',
-};
-
-function StatusBadge({
-  status = 'setByAgent',
+function AuthorBadge({
+  author = 'agent',
 }: {
-  status?: DesignDocFieldStatus | undefined;
+  author?: DesignDocFieldAuthor | undefined;
 }) {
-  const label = STATUS_LABELS[status];
   return (
-    label && (
+    author === 'human' && (
       <Badge size="xs" variant="light" ml="xs">
-        {label}
+        human
       </Badge>
     )
   );
@@ -64,13 +69,13 @@ function Field({
   field,
   fallback = 'Not specified.',
 }: {
-  field: DesignDocFieldInput | undefined;
+  field: DesignDocFieldInput<string> | undefined;
   fallback?: string;
 }) {
-  const value = field?.value ?? null;
+  const value = valueOf(field);
   return (
     <>
-      {value === null ? (
+      {value === undefined ? (
         <Text component="span" c="dimmed">
           {fallback}
         </Text>
@@ -79,7 +84,7 @@ function Field({
           {value}
         </Text>
       )}
-      <StatusBadge status={field?.status} />
+      <AuthorBadge author={field?.author} />
     </>
   );
 }
@@ -97,13 +102,15 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Changes<Item, Key extends string>({
+function Changes<Item, Key>({
   set,
   keyOf,
+  labelOf,
   render,
 }: {
   set: ChangeSetInput<Item, Key> | undefined;
   keyOf: (item: Item) => string;
+  labelOf: (key: Key) => string;
   render: (item: Item) => ReactNode;
 }) {
   const added = set?.added ?? [];
@@ -142,8 +149,8 @@ function Changes<Item, Key extends string>({
             </Badge>
             <ul>
               {removed.map((key) => (
-                <li key={key}>
-                  <code>{addressOf(key)}</code>
+                <li key={labelOf(key)}>
+                  <code>{labelOf(key)}</code>
                 </li>
               ))}
             </ul>
@@ -155,7 +162,7 @@ function Changes<Item, Key extends string>({
 }
 
 /** A change set of parts, shown only when the design touches it. */
-function Parts<Item extends { name: DesignDocFieldInput }>({
+function Parts<Item extends { name: string }>({
   title,
   set,
   render,
@@ -172,19 +179,22 @@ function Parts<Item extends { name: DesignDocFieldInput }>({
       </Title>
       <Changes
         set={set}
-        keyOf={(item) => item.name.value ?? ''}
+        keyOf={(item) => item.name}
+        labelOf={(name) => name}
         render={render}
       />
     </>
   );
 }
 
-function Strings({
+function Types({
   title,
   set,
 }: {
   title: string;
-  set: ChangeSetInput<string, string> | undefined;
+  set:
+    | ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput>
+    | undefined;
 }) {
   if (set === undefined) return null;
   return (
@@ -194,23 +204,25 @@ function Strings({
       </Title>
       <Changes
         set={set}
-        keyOf={(item) => item}
-        render={(item) => <code>{addressOf(item)}</code>}
+        keyOf={typeOf}
+        labelOf={typeOf}
+        render={(item) => <code>{typeOf(item)}</code>}
       />
     </>
   );
 }
 
 function Property({ property }: { property: DesignedPropertyInput }) {
+  const type = valueOf(property.type);
   return (
     <Text>
       <code>
-        <Field field={property.name} />:{' '}
-        <Field field={property.type} fallback="?" />
-        {property.collection ? '[]' : ''}
-        {property.nullable ? ' | null' : ''}
+        {property.name}
+        {valueOf(property.optional) ? '?' : ''}:{' '}
+        {type === undefined ? '?' : typeOf(type)}
       </code>
-      {property.description?.value ? (
+      <AuthorBadge author={property.type?.author} />
+      {valueOf(property.description) ? (
         <>
           {' — '}
           <Field field={property.description} />
@@ -225,9 +237,11 @@ function Rule({ rule }: { rule: DesignedRuleInput }) {
     <Stack gap={2}>
       <Group gap="xs">
         <Text fw={600} component="span">
-          <Field field={rule.name} />
+          {rule.name}
         </Text>
-        {rule.ruleType && <Badge variant="outline">{rule.ruleType}</Badge>}
+        {valueOf(rule.ruleType) && (
+          <Badge variant="outline">{valueOf(rule.ruleType)}</Badge>
+        )}
       </Group>
       <Text>
         <Field field={rule.description} />
@@ -239,9 +253,7 @@ function Rule({ rule }: { rule: DesignedRuleInput }) {
 function Scenario({ scenario }: { scenario: DesignedScenarioInput }) {
   return (
     <Stack gap={2}>
-      <Text fw={600}>
-        <Field field={scenario.name} />
-      </Text>
+      <Text fw={600}>{scenario.name}</Text>
       <Text>
         <Field field={scenario.description} />
       </Text>
@@ -278,15 +290,13 @@ function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
         <code>{addressOf(block.id)}</code>
       </Title>
       <Text size="sm" c="dimmed">
-        {humanType(block.type?.value)}
-        <StatusBadge status={block.type?.status} />
+        {humanType(valueOf(block.type))}
+        <AuthorBadge author={block.type?.author} />
       </Text>
       <Text>
         <Field field={block.description} />
       </Text>
-      {block.implements && block.implements.length > 0 && (
-        <Text>Implements: {block.implements.map(addressOf).join(', ')}</Text>
-      )}
+      <Types title="Implements" set={block.implements} />
       <Parts
         title="Properties"
         set={block.properties}
@@ -307,24 +317,29 @@ function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
 }
 
 function Behaviour({ behaviour }: { behaviour: DesignedBehaviourInput }) {
+  const visibility = valueOf(behaviour.visibility);
   return (
     <Stack gap="xs">
       <Group gap="xs">
         <Title order={3} size="h4">
           <code>{addressOf(behaviour.id)}</code>
         </Title>
-        {behaviour.isPublic && <Badge variant="outline">public</Badge>}
+        {visibility?.kind === 'public' && (
+          <Badge variant="outline">public</Badge>
+        )}
       </Group>
       <Text size="sm" c="dimmed">
-        {behaviour.type?.value ?? 'Unclassified'}
-        {behaviour.actor?.value ? ` · ${behaviour.actor.value}` : ''}
+        {valueOf(behaviour.type) ?? 'Unclassified'}
+        {visibility?.kind === 'public' && visibility.actors.length > 0
+          ? ` · ${visibility.actors.join(', ')}`
+          : ''}
       </Text>
       <Text>
         <Field field={behaviour.description} />
       </Text>
-      <Strings title="Input" set={behaviour.input} />
-      <Strings title="Output" set={behaviour.output} />
-      <Strings title="Uses" set={behaviour.usedBuildingBlocks} />
+      <Types title="Input" set={behaviour.input} />
+      <Types title="Output" set={behaviour.output} />
+      <Types title="Uses" set={behaviour.usedBuildingBlocks} />
       <Parts
         title="Rules"
         set={behaviour.rules}
@@ -347,17 +362,16 @@ export function DesignDocumentContent({
   return (
     <Stack component="article" maw={1000}>
       <IconHeading
-        title={doc.name.value}
+        title={doc.name}
         icon={IconPencilBolt}
         description={doc.implemented ? 'Implemented' : 'Draft'}
       />
-      <Text>
-        <Field field={doc.description} />
-      </Text>
+      <Text>{doc.description}</Text>
       <Section title="Modules">
         <Changes
           set={doc.modules}
           keyOf={(module) => module.id}
+          labelOf={addressOf}
           render={(module) => <Module module={module} />}
         />
       </Section>
@@ -365,6 +379,7 @@ export function DesignDocumentContent({
         <Changes
           set={doc.buildingBlocks}
           keyOf={(block) => block.id}
+          labelOf={addressOf}
           render={(block) => <BuildingBlock block={block} />}
         />
       </Section>
@@ -372,6 +387,7 @@ export function DesignDocumentContent({
         <Changes
           set={doc.behaviours}
           keyOf={(behaviour) => behaviour.id}
+          labelOf={addressOf}
           render={(behaviour) => <Behaviour behaviour={behaviour} />}
         />
       </Section>

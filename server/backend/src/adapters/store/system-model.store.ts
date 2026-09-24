@@ -1,4 +1,4 @@
-import { SystemModelSchema } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -6,7 +6,7 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 export function createSystemModelStore(noesis: NoesisDir) {
   return createNoesisStore({
     directory: noesis.resolve('graph', 'system-model'),
-    schema: SystemModelSchema,
+    schema: SystemModel,
   });
 }
 export type SystemModelStore = ReturnType<typeof createSystemModelStore>;

@@ -100,7 +100,7 @@ describe('NoesisWatcher', () => {
     await t.changesRepository.children(ALPHA)['design-docs'].set('a1', {
       ...designDocFixture,
       id: 'a1',
-      name: { value: 'Before' },
+      name: 'Before',
     });
     await indexer.rebuild();
     watcher = new NoesisWatcher(t.noesis, () => indexer.rebuild(), {
@@ -129,7 +129,7 @@ describe('NoesisWatcher', () => {
       JSON.stringify({
         ...designDocFixture,
         id: 'b1',
-        name: { value: 'After' },
+        name: 'After',
       }),
     );
     await waitFor(async () => (await ids()).join() === 'b1');

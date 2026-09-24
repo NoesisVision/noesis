@@ -1,8 +1,9 @@
 import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, sep } from 'node:path';
-import type { DesignedBuildingBlockType } from '#backend/app/design-docs/design-doc';
+import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
 import type {
+  BuildingBlockType,
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
@@ -78,62 +79,72 @@ export async function findSources(
 }
 
 // Ids derive from names and paths, so a re-scan of unchanged code yields the
-// same file.
+// same file. A class outside every module directory sits in a root module
+// named after the unit, because a building block always belongs to a module.
 export async function scanUnit(
   unit: ScannedUnit,
   sources: string[],
   input: ScanInput,
 ): Promise<SystemModel> {
-  const contextId = `bc:${unit.name}`;
-  const modules = new Map<string, ScannedDomainModule>();
+  const modules = new Map<ModuleId, ScannedDomainModule>();
   const buildingBlocks: ScannedBuildingBlock[] = [];
   const behaviours: ScannedBehaviour[] = [];
 
   for (const file of sources) {
     const path = relative(input.root, file).split(sep).join('/');
     const moduleName = moduleOf(relative(unit.dir, file).split(sep).join('/'));
-    let moduleId: string | null = null;
-    if (moduleName !== null) {
-      moduleId = `mod:${unit.name}/${moduleName}`;
-      if (!modules.has(moduleId)) {
-        modules.set(moduleId, {
-          id: moduleId,
-          name: moduleName,
-          boundedContextId: contextId,
-          description: '',
-          source: { path: dirnameOf(path, moduleName), line: null },
-        });
-      }
+    const name = elementName(moduleName ?? unit.name);
+    const moduleId = ModuleId.root(name);
+    if (!modules.has(moduleId)) {
+      modules.set(moduleId, {
+        id: moduleId,
+        name,
+        description: null,
+        source: {
+          path:
+            moduleName === null
+              ? unitPath(unit, input)
+              : dirnameOf(path, moduleName),
+          line: null,
+        },
+      });
     }
 
     const lines = (await readFile(file, 'utf8')).split('\n');
     for (const found of exportedClasses(lines)) {
-      const blockId = `bb:${path}#${found.name}`;
+      const blockId = BuildingBlockId.within(moduleId, found.name);
       buildingBlocks.push({
         id: blockId,
         name: found.name,
         type: typeOf(found.name),
-        boundedContextId: contextId,
-        domainModuleId: moduleId,
-        description: '',
-        implements: found.implements.map((name) => `bb:${path}#${name}`),
+        description: null,
+        implements: found.implements.map((name) =>
+          BuildingBlockId.within(moduleId, name),
+        ),
         properties: [],
+        rules: [],
+        scenarios: [],
         source: { path, line: found.line },
       });
       for (const method of found.methods) {
         behaviours.push({
-          id: `${blockId}.${method.name}`,
+          id: BehaviorId.within(blockId, method.name),
           name: method.name,
+          description: null,
           type: null,
-          buildingBlockId: blockId,
-          description: '',
+          input: [],
+          output: [],
+          usedBuildingBlocks: [],
+          rules: [],
+          scenarios: [],
+          visibility: null,
           source: { path, line: method.line },
         });
       }
     }
   }
 
-  // `implements` may name a class outside this unit or an interface; keep
+  // `implements` may name a class outside this module or an interface; keep
   // only what resolves, so the file passes its own integrity expectations.
   const known = new Set(buildingBlocks.map((b) => b.id));
   for (const block of buildingBlocks) {
@@ -145,18 +156,7 @@ export async function scanUnit(
     name: unit.name,
     scanned_at: input.now(),
     scanner: { name: SCANNER_NAME, version: SCANNER_VERSION },
-    boundedContexts: [
-      {
-        id: contextId,
-        name: unit.name,
-        description: '',
-        source: {
-          path: relative(input.root, unit.dir).split(sep).join('/') || '.',
-          line: null,
-        },
-      },
-    ],
-    domainModules: [...modules.values()],
+    modules: [...modules.values()],
     buildingBlocks,
     behaviours,
   };
@@ -207,7 +207,7 @@ export function exportedClasses(lines: string[]): FoundClass[] {
   return found;
 }
 
-export function typeOf(className: string): DesignedBuildingBlockType | null {
+export function typeOf(className: string): BuildingBlockType | null {
   if (className.endsWith('Repository')) return 'repository';
   if (className.endsWith('Service')) return 'application_service';
   if (className.endsWith('Factory')) return 'factory';
@@ -223,6 +223,15 @@ function moduleOf(relativeToUnit: string): string | null {
   const parts = relativeToUnit.split('/');
   const start = parts[0] === 'src' ? 1 : 0;
   return parts.length - start > 1 ? (parts[start] ?? null) : null;
+}
+
+/* A directory or package name as an element name: no separators, no padding. */
+function elementName(raw: string): string {
+  return raw.trim().replaceAll(/[.|]/g, '-');
+}
+
+function unitPath(unit: ScannedUnit, input: ScanInput): string {
+  return relative(input.root, unit.dir).split(sep).join('/') || '.';
 }
 
 function dirnameOf(path: string, moduleName: string): string {

@@ -109,7 +109,7 @@ export class DesignDocsService {
   ): DesignDocSummary {
     return {
       id,
-      name: name.value,
+      name,
       implemented,
       path: this.docs.pathOf(slug, id),
     };

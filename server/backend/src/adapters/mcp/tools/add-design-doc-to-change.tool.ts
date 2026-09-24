@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import { CreateDesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { CreateDesignDocument } from '#backend/app/design-docs/design-doc';
 import {
   type DesignDocSummary,
   DesignDocSummarySchema,
@@ -29,7 +29,7 @@ export function addDesignDocToChangeTool(
       inputSchema: addToChangeInput(
         session,
         SUBJECT,
-        '{ "name", "description", "modules", "buildingBlocks", "behaviours" }, each field a { "value", "status" } pair and each collection a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it.',
+        '{ "name", "description", "modules", "buildingBlocks", "behaviours" }. A field is { "value", "author" } when the design changes it, { "changed": false } or absent when it does not; each collection is a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it.',
       ),
       outputSchema: DesignDocSummarySchema.describe(
         'Where the design document now lives.',
@@ -49,11 +49,7 @@ async function add(
   slug: ChangeSlug,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await readWorkingFile(
-    session,
-    CreateDesignDocumentSchema,
-    path,
-  );
+  const document = await readWorkingFile(session, CreateDesignDocument, path);
   if (document.isErr()) {
     return failure(formatReport(SUBJECT, document.error));
   }

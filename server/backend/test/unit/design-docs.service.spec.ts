@@ -45,15 +45,15 @@ describe('DesignDocsService', () => {
     const updated = await service.update(CHANGE, created.id, {
       // Carries the fixture's own id, which the service ignores.
       ...decodedDesignDocFixture,
-      name: { value: 'Renamed', status: 'setByAgent' },
+      name: 'Renamed',
     });
 
     expect(updated.id).toBe(created.id);
     expect(updated.name).toBe('Renamed');
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
-    expect(
-      (await service.findById(CHANGE, created.id))?.document.name.value,
-    ).toBe('Renamed');
+    expect((await service.findById(CHANGE, created.id))?.document.name).toBe(
+      'Renamed',
+    );
   });
 
   it('refuses to update a document the change does not have', async () => {
@@ -66,7 +66,7 @@ describe('DesignDocsService', () => {
     const summary = await service.create(CHANGE, decodedDesignDocFixture);
     const other = await service.create(CHANGE, {
       ...decodedDesignDocFixture,
-      name: { value: 'Another design', status: 'setByAgent' },
+      name: 'Another design',
       implemented: true,
     });
 

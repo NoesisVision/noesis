@@ -58,11 +58,7 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
     await mkdir(join(designDocs(slug).directory, id));
     await writeFile(
       designDocs(slug).dataFile(id),
-      JSON.stringify(
-        { ...designDocFixture, id, name: { value: name } },
-        null,
-        2,
-      ),
+      JSON.stringify({ ...designDocFixture, id, name }, null, 2),
     );
   }
   return { root, noesis };

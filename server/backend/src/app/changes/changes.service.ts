@@ -92,10 +92,9 @@ export class ChangesService {
           name: title,
         }),
       ),
-      // `name` is a design doc field now, so the sidebar gets its value.
       Array.fromAsync(this.designDocs.values(slug), ({ id, name }) => ({
         id,
-        name: name.value,
+        name,
       })),
     ]);
     return {

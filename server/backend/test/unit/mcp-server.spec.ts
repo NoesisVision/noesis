@@ -359,13 +359,13 @@ describe('add_design_doc_to_change', () => {
     expect(id).not.toBe(designDocFixture.id);
     expect(result.structuredContent).toEqual({
       id,
-      name: designDoc.name.value,
+      name: designDoc.name,
       implemented: false,
       path: expect.stringContaining('payment-retry'),
     });
     expect(textOf(result)).toContain(id);
     const stored = await noesis.designDocsService.findById(change, id);
-    expect(stored?.summary.name).toBe(designDoc.name.value);
+    expect(stored?.summary.name).toBe(designDoc.name);
   });
 
   it('ignores an id the working file carries', async () => {
@@ -432,7 +432,7 @@ describe('add_design_doc_to_change', () => {
     const change = await noesis.createChange('payment-retry');
     const path = await workingFile('design-doc.json', {
       ...designDoc,
-      name: 'Partial refunds',
+      name: 42,
       buildingBlocks: { added: [{ id: 'not an id' }] },
     });
 

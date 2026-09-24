@@ -21,7 +21,7 @@ fail() {
 
 # Merges, reverts, and autosquash commits keep git's own format.
 case "$subject" in
-"Merge "* | "Revert "* | "fixup! "* | "squash! "*) ;;
+"Merge "* | "Revert "* | "fixup! "* | "squash! "* | "wip!"*) ;;
 *)
   printf '%s\n' "$subject" | grep -Eq '^(feat|fix|improvement|chore)(\([a-z0-9][a-z0-9-]*\))?!?: [^ ]' ||
     fail "subject must be '<type>[(scope)][!]: <description>' with type feat, fix, improvement, or chore"

@@ -77,7 +77,7 @@ export type ChangeId = z.infer<typeof changeIdSchema>;
   directory; the path-safety argument the slugs made still holds.
 - `mint()` is used only by tests and fixtures: production ids come from files.
 - The system model keeps its own id (a content hash shaped as a uuid, not v7):
-  `SystemModelSchema.id` stays a plain string, validated as a file-name-safe
+  `SystemModel.id` stays a plain string, validated as a file-name-safe
   uuid by the collection.
 
 Removed: `change-slug.ts`, `ChangeSlug`, `DocumentId.fromTitle`,
@@ -121,7 +121,7 @@ export const ChangeFileSchema = ChangeSchema.pick({
 ### Design document (`app/design-docs/design-doc.ts`)
 
 - `id: DesignDocId` instead of `z.string()`.
-- `CreateDesignDocumentSchema` goes: the working file is the whole
+- `CreateDesignDocument` goes: the working file is the whole
   `DesignDocumentSchema`.
 
 ### Summaries
@@ -274,7 +274,7 @@ interface DesignDocsRepository {
 - `delete` is dropped from the document and design-doc repositories: nothing
   calls it (no MCP tool, no HTTP route). The collection keeps it for the
   scanner. Knip will confirm.
-- `SystemModelStore` becomes `new JsonCollection(SystemModelSchema, flatFiles(noesis.resolve('graph', 'system-models'), 'system-model'))`.
+- `SystemModelStore` becomes `new JsonCollection(SystemModel, flatFiles(noesis.resolve('graph', 'system-models'), 'system-model'))`.
 
 ## Services
 

@@ -48,17 +48,17 @@ describe('IndexService', () => {
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a1',
-      name: { value: 'A one' },
+      name: 'A one',
     });
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a2',
-      name: { value: 'A two' },
+      name: 'A two',
     });
     await writeDoc(BETA, {
       ...designDocFixture,
       id: 'b1',
-      name: { value: 'B one' },
+      name: 'B one',
     });
 
     const report = await indexer.rebuild();
@@ -78,7 +78,7 @@ describe('IndexService', () => {
     await writeDoc(ALPHA, {
       ...designDocFixture,
       id: 'a2',
-      name: { value: 'Two' },
+      name: 'Two',
     });
     await indexer.rebuild();
 
@@ -88,12 +88,12 @@ describe('IndexService', () => {
     await writeDoc(GAMMA, {
       ...designDocFixture,
       id: 'g1',
-      name: { value: 'Renamed' },
+      name: 'Renamed',
     });
     await writeDoc(GAMMA, {
       ...designDocFixture,
       id: 'a2',
-      name: { value: 'Renamed too' },
+      name: 'Renamed too',
     });
     await indexer.rebuild();
 

@@ -7,7 +7,8 @@ import {
   findUnits,
   typeOf,
 } from '#backend/adapters/scanner/typescript-scanner';
-import { SystemModelSchema } from '#backend/app/system-model/system-model';
+import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import { all, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -120,33 +121,30 @@ describe('ScannerService', () => {
       ['@acme/backend', 3],
     ]);
     const [stored] = await all(t.systemModels);
-    const model = SystemModelSchema.parse(stored);
+    const model = SystemModel.parse(stored);
     expect(model.name).toBe('@acme/backend');
     expect(model.scanned_at).toBe('2026-09-12T12:00:00.000Z');
-    expect(model.boundedContexts).toEqual([
+    expect(model.modules).toEqual([
       {
-        id: 'bc:@acme/backend',
+        id: ModuleId.parse('module|booking'),
+        name: 'booking',
+        description: null,
+        source: { path: 'server/backend/src/booking', line: null },
+      },
+      {
+        id: ModuleId.parse('module|@acme/backend'),
         name: '@acme/backend',
-        description: '',
+        description: null,
         source: { path: 'server/backend', line: null },
       },
     ]);
-    expect(model.domainModules).toEqual([
-      {
-        id: 'mod:@acme/backend/booking',
-        name: 'booking',
-        boundedContextId: 'bc:@acme/backend',
-        description: '',
-        source: { path: 'server/backend/src/booking', line: null },
-      },
+    expect(model.buildingBlocks.map((b) => b.id)).toEqual([
+      BuildingBlockId.parse('building_block|booking.BookingService'),
+      BuildingBlockId.parse('building_block|booking.SlotRepository'),
+      BuildingBlockId.parse('building_block|@acme/backend.Root'),
     ]);
-    const service = model.buildingBlocks.find(
-      (b) => b.name === 'BookingService',
-    );
-    expect(service).toMatchObject({
-      id: 'bb:server/backend/src/booking/booking.service.ts#BookingService',
+    expect(model.buildingBlocks[0]).toMatchObject({
       type: 'application_service',
-      domainModuleId: 'mod:@acme/backend/booking',
       // `Booker` is an interface outside the model, so it does not resolve.
       implements: [],
       source: {
@@ -154,17 +152,12 @@ describe('ScannerService', () => {
         line: 4,
       },
     });
-    const root = model.buildingBlocks.find((b) => b.name === 'Root');
-    expect(root?.domainModuleId).toBeNull();
-    expect(model.behaviours.map((b) => b.name).sort()).toEqual([
-      'book',
-      'create',
-      'hold',
-      'run',
+    expect(model.behaviours.map((b) => b.id)).toEqual([
+      BehaviorId.parse('behavior|booking.BookingService.book'),
+      BehaviorId.parse('behavior|booking.BookingService.create'),
+      BehaviorId.parse('behavior|booking.SlotRepository.hold'),
+      BehaviorId.parse('behavior|@acme/backend.Root.run'),
     ]);
-    expect(
-      model.behaviours.find((b) => b.name === 'book')?.buildingBlockId,
-    ).toBe(service?.id ?? 'missing');
   });
 
   it('is stable across scans and drops the file of a unit that vanished', async () => {
