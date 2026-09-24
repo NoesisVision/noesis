@@ -109,6 +109,16 @@ describe('ModelTree', () => {
     expect(html.match(/data-path=/g)).toHaveLength(5);
   });
 
+  it('offers the label as what to scroll to, not the item around it', () => {
+    // A `treeitem` holds its whole subtree, so a module's is as tall as
+    // everything under it: bringing *it* into view is already done, and the
+    // reader would be taken nowhere.
+    expect(html).toMatch(
+      /<li[^>]*data-path="module\|shop"[^>]*>\s*<span[^>]*data-row/,
+    );
+    expect(html.match(/data-row/g)).toHaveLength(5);
+  });
+
   it('lights the rail down to the selected row', () => {
     expect(count(/data-in-path/g)).toBe(1);
   });

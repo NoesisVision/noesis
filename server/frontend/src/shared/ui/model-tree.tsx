@@ -71,15 +71,21 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
    * reading is a row they can see. `nearest` means a row already on screen is
    * left where it is, and how the scroll is made is the stylesheet's to say,
    * which is how a reader who asked for no motion is given none.
+   *
+   * What is brought into view is the label and never the item that holds it:
+   * a `treeitem` contains its whole subtree, so a module's is as tall as
+   * everything under it and already covers the scroller — `nearest` would
+   * rightly decide there was nothing to do and the reader would be taken
+   * nowhere.
    */
   useEffect(() => {
     if (selected === null) return;
-    const rows = list.current?.querySelectorAll<HTMLElement>('[data-path]');
-    for (const row of rows ?? []) {
-      if (row.dataset.path === selected) {
-        row.scrollIntoView({ block: 'nearest' });
-        return;
-      }
+    const items = list.current?.querySelectorAll<HTMLElement>('[data-path]');
+    for (const item of items ?? []) {
+      if (item.dataset.path !== selected) continue;
+      const label = item.querySelector<HTMLElement>(':scope > [data-row]');
+      label?.scrollIntoView({ block: 'nearest' });
+      return;
     }
   }, [selected]);
 
@@ -198,7 +204,9 @@ function ModelTreeItem({
       onClick={onClick}
       onKeyDown={onKeyDown}
     >
-      <span id={rowId} className={classes.row}>
+      {/* The one line of the row: what the tree scrolls to, never the item
+          around it, which holds everything below it as well. */}
+      <span id={rowId} data-row className={classes.row}>
         <KindIcon kind={node.kind} />
         <Marked className={classes.name} tokens={search.tokens}>
           {node.name}
