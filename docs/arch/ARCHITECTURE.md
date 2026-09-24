@@ -189,13 +189,14 @@ every kind:
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
   source imported twice lands under the same id rather than beside itself. A change, a document
   and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
-  (`2026-09-24-payment-retry`): the writer of the working file mints it once, with the plugin's
-  `entity-id.ts`, and never re-derives it, so a retitled entity keeps its id. A change id is
-  unique among changes; a document or design-doc id only within its change. Ids sort by
-  creation date.
-- **Saves are upserts.** Every add writes at the id the file carries: a new id creates, an id
-  already on disk updates in place. The tool answers which, so an agent that meant to create
-  and hit an existing id notices. No title or tracker key has to be unique.
+  (`2026-09-24-payment-retry`): the service mints it once, when the entity is created, and
+  never re-derives it, so a retitled entity keeps its id. A title already used that day gets the
+  next free suffix (`-2`, `-3`, …). A change id is unique among changes; a document or
+  design-doc id only within its change. Ids sort by creation date.
+- **Creates and updates are separate.** A working file never carries an id. A create tool mints
+  one and answers with it, so two creates of one title make two entities; an update tool takes
+  the id as an argument, replaces that entity whole and refuses an id that names nothing. No
+  title or tracker key has to be unique.
 - **References are ids.** One object points at another by id, never by path, and the same holds
   inside a file: the elements of a design document address each other by id, so renaming,
   reordering or reparenting an element leaves every reference to it intact.
@@ -264,8 +265,9 @@ that the file name matches the id.
 3. It calls the matching MCP tool with the working file path.
 4. The tool validates the file. If it does not fit, the agent corrects what comes back and calls
    again; nothing was written.
-5. The service writes the knowledge graph files at the id the file carries, through the
-   repositories, and answers whether it created or updated the entity.
+5. The service writes the knowledge graph files through the repositories: at an id it mints
+   for a create, at the id the tool was given for an update. It answers with the entity and its
+   id.
 6. The watcher picks up the change and re-indexes the graph _(not yet present)_.
 7. The UI and subsequent agent queries read the updated graph.
 
