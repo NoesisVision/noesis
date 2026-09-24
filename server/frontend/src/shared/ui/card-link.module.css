@@ -9,7 +9,9 @@
   text-decoration: none;
   transition:
     border-color 0.1s ease-in-out,
-    background-color 0.1s ease-in-out;
+    background-color 0.1s ease-in-out,
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
 
   &:hover {
     border-color: light-dark(
@@ -20,10 +22,29 @@
       var(--mantine-color-brand-0),
       var(--mantine-color-dark-5)
     );
+    transform: translateY(-1px);
+    box-shadow:
+      0 calc(0.0625rem * 1) calc(0.1875rem * 1) rgba(30, 58, 138, 0.5),
+      rgba(30, 58, 138, 0.15) 0 calc(0.625rem * 1) calc(0.9375rem * 1)
+        calc(-0.3125rem * 1),
+      rgba(30, 58, 138, 0.14) 0 calc(0.4375rem * 1) calc(0.4375rem * 1)
+        calc(-0.3125rem * 1);
   }
 
   &:focus-visible {
     outline: 2px solid var(--mantine-color-brand-6);
     outline-offset: 2px;
   }
+}
+
+/* The link mark answers to the card's own hover, not to one of its own. */
+.hint {
+  flex: 0 0 auto;
+  color: var(--mantine-color-dimmed);
+  transition: color 0.1s ease-in-out;
+}
+
+.card:hover .hint,
+.card:focus-visible .hint {
+  color: light-dark(var(--mantine-color-brand-7), var(--mantine-color-brand-4));
 }

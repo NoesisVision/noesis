@@ -1,10 +1,10 @@
-import { IconFiles } from '@tabler/icons-react';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { DocumentContents } from '../documents.api.ts';
+import { DocumentsIcon } from '../documents.model.ts';
 
 /** The document is imported material: its markdown is shown as written. */
 export function DocumentContent({
@@ -14,7 +14,11 @@ export function DocumentContent({
 }) {
   return (
     <Stack component="article">
-      <IconHeading title={doc.title} icon={IconFiles} description={doc.date} />
+      <IconHeading
+        title={doc.title}
+        icon={DocumentsIcon}
+        description={doc.date}
+      />
       <Card withBorder>
         {doc.content.trim() ? (
           // The editor reads its markdown once, so a different document is a

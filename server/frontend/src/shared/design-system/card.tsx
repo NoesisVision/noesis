@@ -4,5 +4,5 @@ import { wrapComponent } from './wrap-component';
 export const Card = wrapComponent<typeof MantineComponent, CardProps>(
   MantineComponent,
   'Card',
-  { radius: 'md' },
+  { radius: 'md', shadow: 'sm', withBorder: true },
 );

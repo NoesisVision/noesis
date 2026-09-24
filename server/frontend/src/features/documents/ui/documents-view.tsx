@@ -6,6 +6,7 @@ import { CardLink } from '#/shared/ui/card-link.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { documentsList } from '../documents.api.ts';
+import { DocumentsIcon } from '../documents.model.ts';
 
 const route = getRouteApi('/_shell/changes/$changeId/documents');
 
@@ -37,6 +38,7 @@ function DocumentList({ changeId }: { changeId: string }) {
             to="/changes/$changeId/documents/$documentId"
             params={{ changeId, documentId: doc.id }}
             title={doc.title}
+            icon={DocumentsIcon}
             description={doc.date}
           />
         </Grid.Col>

@@ -1,4 +1,3 @@
-import { IconPencilBolt } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
@@ -16,6 +15,7 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import { DesignDocsIcon } from '../design-docs.model.ts';
 
 /*
  * Renders the document as the diff it is: per kind of element, what the
@@ -334,7 +334,7 @@ export function DesignDocumentContent({
     <Stack component="article" maw={1000}>
       <IconHeading
         title={doc.name.value}
-        icon={IconPencilBolt}
+        icon={DesignDocsIcon}
         description={doc.implemented ? 'Implemented' : 'Draft'}
       />
       <Text>
