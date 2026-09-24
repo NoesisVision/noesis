@@ -1,11 +1,11 @@
 import type { Logger } from '@logtape/logtape';
+import { SessionDir } from '#backend/adapters/mcp/session-dir';
 import {
   loadServerConfig,
   type ServerConfig,
 } from '#backend/platform/config/config';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { RepositoryRoot } from '#backend/platform/files/repository-root';
-import { SessionDir } from '#backend/platform/files/session-dir';
 import {
   configureLogging,
   serverLogger,

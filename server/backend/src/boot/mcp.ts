@@ -1,8 +1,8 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { ServingTransport } from '#backend/adapters/mcp/serving-transport';
+import type { SessionDir } from '#backend/adapters/mcp/session-dir';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type { SessionDir } from '#backend/platform/files/session-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
 import type { Services } from './services';
 

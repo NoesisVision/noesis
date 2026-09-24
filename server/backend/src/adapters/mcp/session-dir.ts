@@ -3,8 +3,10 @@ import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
 import { isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
 import { v7 as uuidv7 } from 'uuid';
+import type { ZodType } from 'zod';
+import { readJsonFile } from '#backend/platform/files/json-file';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
-import type { NoesisDir } from './noesis-dir';
 
 const log = serverLogger('session');
 
@@ -17,6 +19,13 @@ export type WorkingFilePath = string & {
 const SESSIONS_DIR_NAME = 'sessions';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * A working file is one document the agent just wrote, so anything this large
+ * is the wrong path — an index, a log, a dump. Reading it would pull the whole
+ * file into memory before the shape is known.
+ */
+export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 export interface SessionDirOptions {
   id?: string;
@@ -56,6 +65,30 @@ export class SessionDir {
 
   async dispose(): Promise<void> {
     await rm(this.path, { recursive: true, force: true });
+  }
+
+  /**
+   * An MCP message carries a path into `.noesis/sessions/<session>/`,
+   * never the payload itself, and the payload is checked once — here, before
+   * any service sees it.
+   */
+  async readWorkingFile<T>(
+    schema: ZodType<T>,
+    path: string,
+  ): Promise<Result<T, string>> {
+    const resolved = await this.resolveWorkingPath(path);
+    if (resolved.isErr()) {
+      return err(
+        `${resolved.error} Write the file under ${this.path} and pass that path.`,
+      );
+    }
+    const { size } = await stat(resolved.value);
+    if (size > MAX_WORKING_FILE_BYTES) {
+      return err(
+        `${resolved.value} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
+      );
+    }
+    return readJsonFile(resolved.value, schema);
   }
 
   /**

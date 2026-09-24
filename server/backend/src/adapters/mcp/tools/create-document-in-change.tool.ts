@@ -1,5 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
+import type { SessionDir } from '#backend/adapters/mcp/session-dir';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import {
@@ -7,14 +8,12 @@ import {
   type DocumentSummary,
   DocumentSummarySchema,
 } from '#backend/app/information-sources/documents.service';
-import type { SessionDir } from '#backend/platform/files/session-dir';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
-import { readWorkingFile } from '../working-file';
 import { NO_ID, inChangeInput, withChange } from './change-scoped';
 
 const SUBJECT = 'document';
@@ -53,7 +52,7 @@ async function create(
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await readWorkingFile(session, DocumentContentSchema, path);
+  const document = await session.readWorkingFile(DocumentContentSchema, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

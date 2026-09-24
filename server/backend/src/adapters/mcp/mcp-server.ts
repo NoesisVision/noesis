@@ -1,9 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/server';
+import type { SessionDir } from '#backend/adapters/mcp/session-dir';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type { SessionDir } from '#backend/platform/files/session-dir';
 import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
 import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';

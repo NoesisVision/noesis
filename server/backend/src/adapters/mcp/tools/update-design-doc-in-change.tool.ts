@@ -1,5 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
+import type { SessionDir } from '#backend/adapters/mcp/session-dir';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
@@ -9,14 +10,12 @@ import {
   DesignDocSummarySchema,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import type { SessionDir } from '#backend/platform/files/session-dir';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
-import { readWorkingFile } from '../working-file';
 import { inChangeInput, withChange } from './change-scoped';
 import { DESIGN_DOC_SHAPE } from './create-design-doc-in-change.tool';
 
@@ -61,8 +60,7 @@ async function update(
   id: DesignDocId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await readWorkingFile(
-    session,
+  const document = await session.readWorkingFile(
     DesignDocumentContentSchema,
     path,
   );

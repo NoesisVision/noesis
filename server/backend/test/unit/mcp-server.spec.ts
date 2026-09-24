@@ -4,10 +4,12 @@ import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
-import { MAX_WORKING_FILE_BYTES } from '#backend/adapters/mcp/working-file';
+import {
+  MAX_WORKING_FILE_BYTES,
+  SessionDir,
+} from '#backend/adapters/mcp/session-dir';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { SessionDir } from '#backend/platform/files/session-dir';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';

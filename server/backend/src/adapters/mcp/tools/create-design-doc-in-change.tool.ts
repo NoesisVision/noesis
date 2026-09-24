@@ -1,5 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
+import type { SessionDir } from '#backend/adapters/mcp/session-dir';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
 import {
@@ -7,14 +8,12 @@ import {
   DesignDocSummarySchema,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import type { SessionDir } from '#backend/platform/files/session-dir';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
-import { readWorkingFile } from '../working-file';
 import { NO_ID, inChangeInput, withChange } from './change-scoped';
 
 const SUBJECT = 'design document';
@@ -57,8 +56,7 @@ async function create(
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await readWorkingFile(
-    session,
+  const document = await session.readWorkingFile(
     DesignDocumentContentSchema,
     path,
   );
