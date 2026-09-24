@@ -7,7 +7,14 @@ import {
   IconPoint,
   IconScale,
 } from '@tabler/icons-react';
-import { type KeyboardEvent, type MouseEvent, useId, useMemo } from 'react';
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+} from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Highlight } from '#/shared/design-system/highlight.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -56,9 +63,28 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
   );
   const roots = tree.roots.filter((node) => controller.isVisible(node.path));
   const focusPath = selected ?? roots[0]?.path ?? null;
+  const list = useRef<HTMLUListElement>(null);
+
+  /*
+   * The tree follows the reader wherever the choice was made — a step of the
+   * breadcrumb, a link into the middle of a design — so the row they are
+   * reading is a row they can see. `nearest` means a row already on screen is
+   * left where it is, and how the scroll is made is the stylesheet's to say,
+   * which is how a reader who asked for no motion is given none.
+   */
+  useEffect(() => {
+    if (selected === null) return;
+    const rows = list.current?.querySelectorAll<HTMLElement>('[data-path]');
+    for (const row of rows ?? []) {
+      if (row.dataset.path === selected) {
+        row.scrollIntoView({ block: 'nearest' });
+        return;
+      }
+    }
+  }, [selected]);
 
   return (
-    <ul role="tree" aria-label={label} className={classes.tree}>
+    <ul ref={list} role="tree" aria-label={label} className={classes.tree}>
       {roots.map((node) => (
         <ModelTreeItem
           key={node.path}
@@ -157,6 +183,7 @@ function ModelTreeItem({
       aria-expanded={hasChildren ? expanded : undefined}
       aria-labelledby={rowId}
       tabIndex={focusPath === node.path ? 0 : -1}
+      data-path={node.path}
       data-depth={node.depth}
       data-kind={node.kind}
       data-change={node.change}

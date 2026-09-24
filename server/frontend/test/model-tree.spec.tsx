@@ -101,6 +101,14 @@ describe('ModelTree', () => {
     expect(rowOf('Orders')).not.toContain('has a diagram');
   });
 
+  it('names each row, so the view can be taken to one', () => {
+    // What the breadcrumb and a cold address both scroll by.
+    expect(rowOf('Order')).toContain(
+      'data-path="building_block|shop.orders.Order"',
+    );
+    expect(html.match(/data-path=/g)).toHaveLength(5);
+  });
+
   it('lights the rail down to the selected row', () => {
     expect(count(/data-in-path/g)).toBe(1);
   });

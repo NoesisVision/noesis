@@ -38,6 +38,12 @@
 
 .pane {
   overflow: auto;
+  /*
+   * Whoever moves the reading position — the tree, a step of the breadcrumb,
+   * an address opened cold — asks only to be brought into view; the manner of
+   * it is decided here, once, for every scroller on the page.
+   */
+  scroll-behavior: smooth;
   min-height: 0;
   padding: var(--mantine-spacing-md);
   border: 1px solid
@@ -71,4 +77,11 @@
 .search {
   flex: 1;
   min-width: 0;
+}
+
+/* Asked for no motion, the pane simply arrives where it was sent. */
+@media (prefers-reduced-motion: reduce) {
+  .pane {
+    scroll-behavior: auto;
+  }
 }
