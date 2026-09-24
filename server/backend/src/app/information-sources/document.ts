@@ -4,7 +4,7 @@ import { DocumentId } from './document-id';
 export const DocumentSchema = z
   .object({
     id: DocumentId.describe(
-      "The document id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'; unique within the change. Minted once by the writer with the plugin's entity-id.ts script and never changed, so it keeps the original title; saving at an existing id updates that document.",
+      "The document id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'; unique within the change. Minted by the server when the document is created and never changed, so it keeps the original title.",
     ),
     title: z
       .string()

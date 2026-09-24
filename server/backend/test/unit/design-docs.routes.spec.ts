@@ -35,7 +35,7 @@ afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.designDocsService.add(change, decodedDesignDocFixture);
+    await t.writeDesignDoc(change, designDocFixture);
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -48,10 +48,8 @@ describe('ui design-docs routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    const { value: created } = await t.designDocsService.add(
-      change,
-      decodedDesignDocFixture,
-    );
+    await t.writeDesignDoc(change, designDocFixture);
+    const created = decodedDesignDocFixture;
 
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
@@ -79,10 +77,8 @@ describe('ui design-docs routes', () => {
 
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    const { value: created } = await t.designDocsService.add(
-      change,
-      decodedDesignDocFixture,
-    );
+    await t.writeDesignDoc(change, designDocFixture);
+    const created = decodedDesignDocFixture;
     const send = (method: string, path: string) =>
       app.request(path, {
         method,

@@ -5,10 +5,13 @@ import type { DocumentsService } from '#backend/app/information-sources/document
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import type { ToolRegistration } from './tool';
-import { addChangeTool } from './tools/add-change.tool';
-import { addDesignDocToChangeTool } from './tools/add-design-doc-to-change.tool';
-import { addDocumentToChangeTool } from './tools/add-document-to-change.tool';
+import { createChangeTool } from './tools/create-change.tool';
+import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';
+import { createDocumentInChangeTool } from './tools/create-document-in-change.tool';
 import { listChangesTool } from './tools/list-changes.tool';
+import { updateChangeTool } from './tools/update-change.tool';
+import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
+import { updateDocumentInChangeTool } from './tools/update-document-in-change.tool';
 
 export interface McpServerDeps {
   version: string;
@@ -40,10 +43,13 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    addChangeTool(deps.changesService, deps.session),
+    createChangeTool(deps.changesService, deps.session),
+    updateChangeTool(deps.changesService, deps.session),
     listChangesTool(deps.changesService),
-    addDocumentToChangeTool(deps.documentsService, deps.session),
-    addDesignDocToChangeTool(deps.designDocsService, deps.session),
+    createDocumentInChangeTool(deps.documentsService, deps.session),
+    updateDocumentInChangeTool(deps.documentsService, deps.session),
+    createDesignDocInChangeTool(deps.designDocsService, deps.session),
+    updateDesignDocInChangeTool(deps.designDocsService, deps.session),
   ];
 }
 

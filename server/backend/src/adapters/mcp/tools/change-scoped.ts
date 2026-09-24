@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import type { SessionDir } from '#backend/platform/files/session-dir';
-import { ADD_CHANGE, ENTITY_ID_SCRIPT, LIST_CHANGES } from '../tool-names';
+import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { failure } from '../tool-result';
 
 const ID_EXAMPLE = '"2026-09-24-payment-retry"';
@@ -26,19 +26,11 @@ export function workingFilePath(
 }
 
 /**
- * What a working file's `id` field asks of the agent: a new id from the
- * plugin's script, or the stored one to update.
- */
-export function idInstructions(subject: string, titleField: string): string {
-  return `"id" is the ${subject}'s creation date, then its ${titleField} as a slug: for a new ${subject}, get it from the plugin's ${ENTITY_ID_SCRIPT} script (\`bun ${ENTITY_ID_SCRIPT} "<${titleField}>"\`); to update one, reuse its stored id, even when the ${titleField} changed. An id already in use updates that ${subject} in place, so check the existing ones first.`;
-}
-
-/**
- * The input of a tool that adds one working file to a change. The change id
- * is a plain string on purpose: whether it names a change is domain
+ * The input of a tool that writes one working file into a change. The change
+ * id is a plain string on purpose: whether it names a change is domain
  * knowledge, answered in-band by `withChange`, so a shape check adds nothing.
  */
-export function addToChangeInput(
+export function inChangeInput(
   session: SessionDir,
   subject: string,
   fileShape: string,
@@ -52,13 +44,12 @@ export function addToChangeInput(
         ),
       path: workingFilePath(session, subject, fileShape),
     })
-    .describe(`The change to add to, and where its ${subject} is written.`);
+    .describe(`The change the ${subject} is in, and where it is written.`);
 }
 
-/** How an add answers whether it created the entity or updated it. */
-export function createdOrUpdated(created: boolean): string {
-  return created ? 'Created' : 'Updated';
-}
+/** What a working file says of its id, which only the server mints. */
+export const NO_ID =
+  'Leave "id" out: the server mints it when it creates the entity and answers with it.';
 
 /**
  * Runs `run` for the change named by `raw`, answering in-band when `raw` is
@@ -94,6 +85,6 @@ function noSuchChange(
 ): CallToolResult {
   return failure(
     error.message,
-    `Add it with ${ADD_CHANGE} first, then add the ${subject} to its id.`,
+    `Create it with ${CREATE_CHANGE} first, then add the ${subject} to its id.`,
   );
 }

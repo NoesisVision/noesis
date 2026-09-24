@@ -41,7 +41,7 @@ afterEach(() => t.cleanup());
 
 describe('ui documents routes', () => {
   it('lists the stored documents of the change', async () => {
-    await t.documentsService.add(change, document);
+    await t.writeDocument(change, document);
 
     const listed = await app.request(BASE);
     expect(listed.status).toBe(200);
@@ -52,7 +52,7 @@ describe('ui documents routes', () => {
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
-    await t.documentsService.add(change, document);
+    await t.writeDocument(change, document);
 
     const res = await app.request(`${BASE}/${ID}`);
     expect(res.status).toBe(200);
@@ -68,7 +68,7 @@ describe('ui documents routes', () => {
 
   // Adding, revising and removing are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    await t.documentsService.add(change, document);
+    await t.writeDocument(change, document);
     const send = (method: string, path: string) =>
       app.request(path, {
         method,

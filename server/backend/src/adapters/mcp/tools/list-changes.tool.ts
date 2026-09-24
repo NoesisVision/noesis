@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
-import { ADD_CHANGE, LIST_CHANGES } from '../tool-names';
+import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { success } from '../tool-result';
 
 const inputSchema = z
@@ -40,7 +40,7 @@ function listed(changes: Change[]): CallToolResult {
 /** The ids are in the text too, for hosts and models that read only that. */
 function summary(changes: Change[]): string {
   if (changes.length === 0) {
-    return `There are no changes yet. Add one with ${ADD_CHANGE}.`;
+    return `There are no changes yet. Create one with ${CREATE_CHANGE}.`;
   }
   const count = changes.length === 1 ? '1 change' : `${changes.length} changes`;
   return [`${count}, newest first:`, ...changes.map(line)].join('\n');

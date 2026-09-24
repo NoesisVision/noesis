@@ -72,7 +72,7 @@ const exists = (path: string) =>
  */
 async function sessionDir(client: Client): Promise<string> {
   const { tools } = await client.listTools();
-  const path = tools.find((tool) => tool.name === 'add_document_to_change')
+  const path = tools.find((tool) => tool.name === 'create_document_in_change')
     ?.inputSchema.properties?.path as { description?: string } | undefined;
   const match = /scratch directory, (\S+?),/.exec(path?.description ?? '');
   if (!match?.[1]) throw new Error('no scratch directory in the tool schema');
@@ -108,43 +108,41 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     expect(await exists(dir)).toBe(true);
   });
 
-  it('offers the four tools it was started with', async () => {
+  it('offers the seven tools it was started with', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
-      'add_change',
-      'add_design_doc_to_change',
-      'add_document_to_change',
+      'create_change',
+      'create_design_doc_in_change',
+      'create_document_in_change',
       'list_changes',
+      'update_change',
+      'update_design_doc_in_change',
+      'update_document_in_change',
     ]);
   });
 
-  it('adds a change and a document, each written to the scratch directory', async () => {
-    const change = '2026-09-18-payment-retry';
+  it('creates a change and a document, each written to the scratch directory', async () => {
     const changeFile = join(await sessionDir(client), 'change.json');
     await writeFile(
       changeFile,
       JSON.stringify({
-        id: change,
         name: 'Payment retry',
         key: 'NOE-142',
         type: 'feature',
       }),
     );
     const created = await client.callTool({
-      name: 'add_change',
+      name: 'create_change',
       arguments: { path: changeFile },
     });
     expect(created.isError).toBeFalsy();
-    expect(created.structuredContent).toMatchObject({
-      change: { id: change },
-      created: true,
-    });
+    const { change } = created.structuredContent as { change: { id: string } };
+    expect(change.id).toMatch(/^\d{4}-\d{2}-\d{2}-payment-retry$/);
 
     const path = join(await sessionDir(client), 'document.json');
     await writeFile(
       path,
       JSON.stringify({
-        id: '2026-09-18-retry-interview',
         title: 'Retry interview',
         date: '2026-09-18',
         content: 'Support hears about double charges after a failed retry.',
@@ -152,19 +150,22 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const added = await client.callTool({
-      name: 'add_document_to_change',
-      arguments: { change, path },
+      name: 'create_document_in_change',
+      arguments: { change: change.id, path },
     });
 
     expect(added.isError).toBeFalsy();
-    expect(added.structuredContent).toMatchObject({ created: true });
+    const { document } = added.structuredContent as {
+      document: { id: string };
+    };
+    expect(document.id).toMatch(/^\d{4}-\d{2}-\d{2}-retry-interview$/);
     const stored = join(
       service.repoRoot,
       '.noesis',
       'graph',
       'changes',
-      change,
-      '2026-09-18-retry-interview.document.json',
+      change.id,
+      `${document.id}.document.json`,
     );
     expect(await exists(stored)).toBe(true);
   }, 15_000);
@@ -174,7 +175,6 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     await writeFile(
       path,
       JSON.stringify({
-        id: '2026-09-18-orphan',
         title: 'Orphan',
         date: '2026-09-18',
         content: 'x',
@@ -182,7 +182,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const result = await client.callTool({
-      name: 'add_document_to_change',
+      name: 'create_document_in_change',
       arguments: { change: '2026-09-18-booking', path },
     });
 
@@ -224,27 +224,26 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
 
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
-      'add_change',
-      'add_design_doc_to_change',
-      'add_document_to_change',
+      'create_change',
+      'create_design_doc_in_change',
+      'create_document_in_change',
       'list_changes',
+      'update_change',
+      'update_design_doc_in_change',
+      'update_document_in_change',
     ]);
 
     const path = join(await sessionDir(client), 'change.json');
     await writeFile(
       path,
-      JSON.stringify({
-        id: '2026-09-18-legacy-era',
-        name: 'Legacy era',
-        type: 'chore',
-      }),
+      JSON.stringify({ name: 'Legacy era', type: 'chore' }),
     );
     const created = await client.callTool({
-      name: 'add_change',
+      name: 'create_change',
       arguments: { path },
     });
     expect(created.structuredContent).toMatchObject({
-      change: { id: '2026-09-18-legacy-era' },
+      change: { name: 'Legacy era', status: 'discovery' },
     });
   }, 15_000);
 });

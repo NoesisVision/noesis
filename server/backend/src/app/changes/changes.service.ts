@@ -8,12 +8,6 @@ import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
 
-/** What an add answers: the entity as stored, and whether the id was new. */
-export interface Added<T> {
-  value: T;
-  created: boolean;
-}
-
 export class ChangeNotFoundError extends Error {
   readonly id: ChangeId;
 
@@ -88,19 +82,6 @@ export class ChangesService {
         name: doc.title,
       })),
     ];
-  }
-
-  /**
-   * Creates the change, or updates it when its id is already on disk. The
-   * lookup and the write run as one step, so parallel adds agree on which
-   * of them created it.
-   */
-  add(change: Change): Promise<Added<Change>> {
-    return this.writes.run(async () => {
-      const created = (await this.changes.get(change.id)) === null;
-      await this.changes.save(change);
-      return { value: change, created };
-    });
   }
 
   /**

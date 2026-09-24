@@ -22,7 +22,7 @@ const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 export const ChangeSchema = z
   .object({
     id: ChangeId.describe(
-      "The change's id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted once by the writer with the plugin's entity-id.ts script and never changed; saving at an existing id updates that change.",
+      "The change's id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted by the server when the change is created and never changed, even when the name is.",
     ),
     name: z
       .string()

@@ -150,10 +150,13 @@ test('the service the pin resolves to boots and lists tools', async () => {
     await client.connect(transport);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
-      'add_change',
-      'add_design_doc_to_change',
-      'add_document_to_change',
+      'create_change',
+      'create_design_doc_in_change',
+      'create_document_in_change',
       'list_changes',
+      'update_change',
+      'update_design_doc_in_change',
+      'update_document_in_change',
     ]);
   } finally {
     await client.close();

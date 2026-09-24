@@ -1,9 +1,6 @@
 import { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import type {
-  Added,
-  ChangesService,
-} from '#backend/app/changes/changes.service';
+import type { ChangesService } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
@@ -56,20 +53,6 @@ export class DocumentsService {
     this.docs = docs;
     this.changesService = changesService;
     this.today = today;
-  }
-
-  /**
-   * Creates the document, or updates it when its id is already in the
-   * change. The lookup and the write run as one step, so parallel adds
-   * agree on which of them created it.
-   */
-  add(change: ChangeId, document: Document): Promise<Added<DocumentSummary>> {
-    return this.writes.run(async () => {
-      await this.changesService.assertExists(change);
-      const created = (await this.docs.get(change, document.id)) === null;
-      await this.docs.save(change, document);
-      return { value: summarize(document), created };
-    });
   }
 
   /**

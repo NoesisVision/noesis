@@ -199,7 +199,7 @@ export type DesignedBehaviourChangeSet = z.infer<
 
 export const DesignDocumentSchema = z.object({
   id: DesignDocId.describe(
-    "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted once by the writer with the plugin's entity-id.ts script and never changed; saving at an existing id updates that design document.",
+    "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
   ),
   name: reviewableFieldSchema(z.string()),
   description: reviewableFieldSchema(z.string()),
