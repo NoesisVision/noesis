@@ -18,8 +18,7 @@ const nav = {
   key: 'NOE-1',
   type: 'feature',
   status: 'design',
-  documents: [],
-  designDocs: [],
+  entries: [],
 };
 const navigation = Response.json({ changes: [nav] });
 

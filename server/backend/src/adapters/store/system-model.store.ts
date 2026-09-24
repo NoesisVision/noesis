@@ -1,12 +1,16 @@
-import { SystemModelSchema } from '#backend/app/system-model/system-model';
-import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
+import {
+  type SystemModel,
+  SystemModelSchema,
+} from '#backend/app/system-model/system-model';
+import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 // Scanner-owned: a hand edit is overwritten by the next scan, so no locks.
-export function createSystemModelStore(noesis: NoesisDir) {
-  return createNoesisStore({
-    directory: noesis.resolve('graph', 'system-model'),
-    schema: SystemModelSchema,
-  });
+export function createSystemModelStore(noesis: NoesisDir): SystemModelStore {
+  return new JsonCollection(
+    SystemModelSchema,
+    noesis.resolve('graph', 'system-models'),
+    'system-model',
+  );
 }
-export type SystemModelStore = ReturnType<typeof createSystemModelStore>;
+export type SystemModelStore = JsonCollection<SystemModel>;

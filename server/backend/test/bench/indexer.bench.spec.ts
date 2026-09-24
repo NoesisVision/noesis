@@ -7,6 +7,8 @@ import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { SchemaService } from '#backend/adapters/graph/schema.service';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
+import { NoesisDocumentsRepository } from '#backend/adapters/store/documents.repository';
 import { createSystemModelStore } from '#backend/adapters/store/system-model.store';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { DatabaseService } from '#backend/platform/database/database.service';
@@ -36,11 +38,11 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changes = new NoesisChangesRepository(noesis);
-  const designDocs = (change: ChangeId) =>
-    changes.children(change)['design-docs'];
+  const folderOf = (change: ChangeId) =>
+    noesis.resolve('graph', 'changes', change);
   for (let c = 0; c < CHANGES; c++) {
     const change = ChangeId.parse(`2026-01-01-change-${c}`);
-    await changes.write({
+    await changes.save({
       id: change,
       name: change,
       key: '',
@@ -48,15 +50,14 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
       status: 'discovery',
       description: '',
     });
-    await mkdir(designDocs(change).directory, { recursive: true });
+    await mkdir(folderOf(change), { recursive: true });
   }
   for (let i = 0; i < files; i++) {
     const id = `2026-01-01-design-doc-${i}`;
     const name = `Design doc ${i}`;
     const change = ChangeId.parse(`2026-01-01-change-${i % CHANGES}`);
-    await mkdir(join(designDocs(change).directory, id));
     await writeFile(
-      designDocs(change).dataFile(id),
+      join(folderOf(change), `${id}.design-doc.json`),
       JSON.stringify(
         { ...designDocFixture, id, name: { value: name } },
         null,
@@ -70,9 +71,10 @@ async function syntheticNoesis(files: number): Promise<BenchRepository> {
 async function measure(files: number): Promise<number> {
   const { root, noesis } = await syntheticNoesis(files);
   try {
-    const changes = new NoesisChangesRepository(noesis);
     const indexer = new IndexService(db, {
-      changes,
+      changes: new NoesisChangesRepository(noesis),
+      designDocs: new NoesisDesignDocsRepository(noesis),
+      documents: new NoesisDocumentsRepository(noesis),
       systemModels: createSystemModelStore(noesis),
     });
     const report = await indexer.rebuild();

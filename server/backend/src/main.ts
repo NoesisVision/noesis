@@ -60,8 +60,8 @@ await session.open();
 log.info('session scratch directory {path}', { path: session.path });
 
 const changesRepository = new NoesisChangesRepository(noesis);
-const designDocsRepository = new NoesisDesignDocsRepository(changesRepository);
-const documentsRepository = new NoesisDocumentsRepository(changesRepository);
+const designDocsRepository = new NoesisDesignDocsRepository(noesis);
+const documentsRepository = new NoesisDocumentsRepository(noesis);
 const changesService = new ChangesService(
   changesRepository,
   designDocsRepository,
@@ -143,6 +143,8 @@ async function openGraphAndUi(): Promise<GraphAndUi> {
 
   const indexer = new IndexService(db, {
     changes: changesRepository,
+    designDocs: designDocsRepository,
+    documents: documentsRepository,
     systemModels: createSystemModelStore(noesis),
   });
   // Watching before the first build: a file that changes during the build then

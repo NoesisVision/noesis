@@ -49,21 +49,21 @@ async function countingWatcher(): Promise<{
 }
 
 describe('NoesisWatcher', () => {
-  it('rebuilds once for a burst of writes under a kind directory', async () => {
+  it("rebuilds once for a burst of writes under a change's folder", async () => {
     const { watcher, rebuilds } = await countingWatcher();
     await t.createChange(ALPHA);
-    const dir = t.changesRepository.children(ALPHA)['design-docs'].directory;
+    const dir = join(t.changesDir, ALPHA);
     const ids = ['one', 'two', 'three'];
-    for (const id of ids) await mkdir(`${dir}/${id}`, { recursive: true });
+    await mkdir(dir, { recursive: true });
     await waitFor(async () => rebuilds() >= 1);
-    // The OS delivers the events of the nested mkdir over a moment; let them
-    // all land before counting the burst.
+    // The OS delivers the events of the change and its folder over a moment;
+    // let them all land before counting the burst.
     await quiet();
     await watcher.settle();
     const before = rebuilds();
 
     for (const id of ids) {
-      await writeFile(`${dir}/${id}/data.json`, `{"id":"${id}"}`);
+      await writeFile(join(dir, `${id}.design-doc.json`), `{"id":"${id}"}`);
     }
     await waitFor(async () => rebuilds() > before);
     await quiet();
@@ -72,21 +72,24 @@ describe('NoesisWatcher', () => {
     expect(rebuilds()).toBe(before + 1);
   });
 
-  it('ignores tmp/ and the service’s own temp and ignore files', async () => {
+  it('ignores sessions/ and the service’s own temp and ignore files', async () => {
     const { watcher, rebuilds } = await countingWatcher();
-    await mkdir(t.noesis.resolve('tmp', 'session-1'), { recursive: true });
+    await mkdir(t.noesis.resolve('sessions', 'session-1'), { recursive: true });
     await quiet();
     await watcher.settle();
     const before = rebuilds();
 
-    await writeFile(t.noesis.resolve('tmp', 'session-1', 'work.json'), '{}');
-    await writeFile(t.noesis.resolve('.gitignore'), 'tmp/\n');
+    await writeFile(
+      t.noesis.resolve('sessions', 'session-1', 'work.json'),
+      '{}',
+    );
+    await writeFile(t.noesis.resolve('.gitignore'), 'sessions/\n');
     await quiet();
     await watcher.settle();
 
     expect(rebuilds()).toBe(before);
-    expect(isIgnored('tmp')).toBe(true);
-    expect(isIgnored('tmp/s/x.json')).toBe(true);
+    expect(isIgnored('sessions')).toBe(true);
+    expect(isIgnored('sessions/s/x.json')).toBe(true);
     expect(isIgnored('graph/changes/a/design-docs/x.json.abc.tmp')).toBe(true);
     expect(isIgnored('.gitignore')).toBe(true);
     expect(isIgnored('graph/changes/a/design-docs/x.json')).toBe(false);
@@ -97,13 +100,11 @@ describe('NoesisWatcher', () => {
     const db: DatabaseService = await sharedTestDatabase();
     const indexer = new IndexService(db, t.sources);
     await t.createChange(ALPHA);
-    await t.changesRepository
-      .children(ALPHA)
-      ['design-docs'].set('2026-01-01-a1', {
-        ...designDocFixture,
-        id: '2026-01-01-a1',
-        name: { value: 'Before' },
-      });
+    await t.writeDesignDoc(ALPHA, {
+      ...designDocFixture,
+      id: '2026-01-01-a1',
+      name: { value: 'Before' },
+    });
     await indexer.rebuild();
     watcher = new NoesisWatcher(t.noesis, () => indexer.rebuild(), {
       debounceMs: DEBOUNCE_MS,
@@ -119,15 +120,12 @@ describe('NoesisWatcher', () => {
     expect(await ids()).toEqual(['2026-01-01-a1']);
 
     // Behind the service's back, as `git checkout` would.
-    await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
+    await rm(join(t.changesDir, ALPHA), { recursive: true });
+    await rm(join(t.changesDir, `${ALPHA}.change.json`));
     await t.createChange(BETA);
-    const other = join(
-      t.changesRepository.children(BETA)['design-docs'].directory,
-      '2026-01-01-b1',
-    );
-    await mkdir(other, { recursive: true });
+    await mkdir(join(t.changesDir, BETA), { recursive: true });
     await writeFile(
-      `${other}/data.json`,
+      join(t.changesDir, BETA, '2026-01-01-b1.design-doc.json'),
       JSON.stringify({
         ...designDocFixture,
         id: '2026-01-01-b1',

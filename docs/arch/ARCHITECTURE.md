@@ -29,7 +29,7 @@ flowchart TB
         end
 
         subgraph filesystem["File system"]
-            tmp["Temp dir<br/>.noesis/tmp — ignored"]
+            sessions["Sessions dir<br/>.noesis/sessions — ignored"]
 
             subgraph repo["Git repository"]
                 src["Source code"]
@@ -45,8 +45,8 @@ flowchart TB
 
     ui --> api --> services
     agent --> mcp --> services
-    agent <-.-> tmp
-    services <-.-> tmp
+    agent <-.-> sessions
+    services <-.-> sessions
 
     agent --> kskills
     agent --> iskills
@@ -70,7 +70,7 @@ two sessions on one checkout are two processes over the same files.
 **File system** — the shared medium the three processes communicate through. It holds the
 **git repository** — the user's project, carrying the source code, the knowledge graph files
 so that everything Noesis knows is versioned alongside the code it describes — and, ignored
-from version control, the **temp dir** `.noesis/tmp/` used as scratch space between the agent
+from version control, the **sessions dir** `.noesis/sessions/` used as scratch space between the agent
 and the service. Skills are plugin content, versioned in the Noesis repository, not copied into
 the user's project.
 
@@ -80,7 +80,7 @@ The service is one process per agent session, started by the agent host as a std
 (the plugin's `.mcp.json` launches `bunx @noesis-vision/noesis` with `NOESIS_ROOT` set to the
 project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
 working directory), ensures `.noesis/` and its `.gitignore`, opens its scratch directory under
-`.noesis/tmp/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
+`.noesis/sessions/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
 opens the default browser on it once (`NOESIS_OPEN_BROWSER=0` suppresses this), and connects MCP
 on stdio. stdout belongs to MCP; every log line goes to stderr. When the host closes the stream
 the process removes its scratch directory, closes the database and exits — the UI lives exactly
@@ -133,46 +133,54 @@ This is the invariant the rest of the design follows from:
 
 ## Knowledge graph files
 
-All knowledge graph files live under `.noesis/` at the repository root, one directory per kind:
+All knowledge graph files live under `.noesis/` at the repository root:
 
 ```
 <project>/.noesis/
-├── .gitignore            written by the service on first run; contains `tmp/`
-├── tmp/<session>/        scratch space between the agent and the service — never versioned;
-│                         one subdirectory per service process, removed when it exits
-├── changes/              one directory per change tracked across the graph
-│   └── <change>/         the change set itself, plus everything produced while working on it
-│       ├── documents/      imported documents — title, date and verbatim content
-│       └── design-docs/    designed models, expressed as a diff against the implemented system
-└── system-model/         the implemented model, projected from the source code by the scanner
+├── .gitignore                  written by the service on first run; contains `sessions/`
+├── sessions/<session>/         scratch space between the agent and the service — never versioned;
+│                               one subdirectory per service process, removed when it exits
+└── graph/
+    ├── changes/
+    │   ├── <change>.change.json       one change
+    │   └── <change>/                  everything produced while working on it
+    │       ├── <id>.document.json       an imported document — title, date and verbatim content
+    │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
+    └── system-models/
+        └── <id>.system-model.json     the implemented model, projected from the code by the scanner
 ```
 
-The split reflects provenance. `documents/` holds **imports** — a faithful record of what was
-written, never rewritten. `design-docs/` is **authored**: what the
+The split reflects provenance. Documents are **imports** — a faithful record of what was
+written, never rewritten. Design docs are **authored**: what the
 imports and the code are taken to mean for the change at hand, written by the agent with the
-user, and revised in place as the design moves. `system-model/` is **derived**: the scanner
+user, and revised in place as the design moves. `system-models/` is **derived**: the scanner
 rewrites it from the source code, so nothing there is edited by hand.
 
 Imports and design docs are **scoped to a change**: a document is imported because some
-change is being worked on, and a design doc describes that change. Keeping them under the change
-directory makes the unit of work the unit of review — the whole record of a change lands in one
-directory in a pull request. `system-model/` is change-independent: it tracks the code as it is,
+change is being worked on, and a design doc describes that change. Keeping them in the change's
+folder makes the unit of work the unit of review — the whole record of a change lands in one
+place in a pull request. `system-models/` is change-independent: it tracks the code as it is,
 whichever change is in flight.
 
-The knowledge graph is `.noesis/graph/`: one directory per object at every depth,
-named by the object's key and holding exactly one `data.json`, written through a single typed
-store. Rules that hold across every kind:
+The knowledge graph is `.noesis/graph/`: one JSON file per entity, `<dir>/<id>.<kind>.json`,
+read and written through one small collection class over one codec. Rules that hold across
+every kind:
 
-- **Store-managed only.** Under `graph/`, an object is a directory with a `data.json`; a
-  directory without one is not an object, and nothing sits beside the data. Notes, source files
-  and scratch space live outside `graph/` — `sources/`, `tmp/` — and are not graph content.
-- **Directories nest by ownership, never by classification.** A change owns its documents and
-  design documents, so those are child collections under
-  `graph/changes/<change>/`; `system-model/` is a flat root collection. Where one object belongs
-  under another by classification rather than ownership, the relation lives in the data as a
-  field naming the other object's id, so re-classifying is a one-field edit, not a file move.
-- **The directory is the key.** The entity's id names its directory; a `git diff` shows an id,
-  and renaming an entity changes a field, not a path.
+- **One shape.** Every entity, the change included, is a file named by its id and its kind. The
+  change's file sits beside its folder, not inside it, so a change with no documents yet has no
+  folder; the folder appears with its first child. A folder with no `.change.json` beside it is
+  an orphan (a `git checkout` that removed the change): the change list never sees it, and no
+  new child lands in it. Notes, source files and scratch space live outside `graph/` —
+  `sources/`, `sessions/` — and are not graph content.
+- **Folders nest by ownership, never by classification.** A change owns its documents and
+  design documents, so those sit in `graph/changes/<change>/`; `system-models/` is flat. Where
+  one object belongs under another by classification rather than ownership, the relation lives
+  in the data as a field naming the other object's id, so re-classifying is a one-field edit,
+  not a file move.
+- **The file name is the key.** The entity's id names its file and repeats in its body; a
+  mismatch is a validation failure, so a hand-renamed file never answers to two ids. Ids match
+  `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it;
+  the indexer logs it and skips that one list, so the rebuild itself never fails.
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
   source imported twice lands under the same id rather than beside itself. A change, a document
   and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
@@ -239,7 +247,9 @@ answers drift.
 A rejection is returned in-band, as a result the agent can read: a list of issues, each naming the
 offending location by path into the document with a message saying what is wrong there. The list
 is capped, reporting how many further problems were suppressed, so one structural mistake does
-not bury the first real cause.
+not bury the first real cause. Working files and graph files are read by the same codec, so a
+working file that passes is exactly what the graph would hold; the graph side adds only the check
+that the file name matches the id.
 
 ## Flow of a write to the graph
 

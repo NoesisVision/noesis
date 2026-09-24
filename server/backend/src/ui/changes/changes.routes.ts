@@ -20,7 +20,7 @@ export function createChangesApp(deps: ChangesDeps) {
     })
 
     .get('/navigation', async (c) => {
-      return c.json({ changes: await changesService.listNavigation() });
+      return c.json({ changes: await changesService.listWithEntries() });
     })
 
     .get('/:id', async (c) => {

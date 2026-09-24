@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -68,6 +70,61 @@ describe('ChangesService', () => {
       ChangeId.parse('2026-03-01-a'),
       ChangeId.parse('2026-01-02-c'),
       ChangeId.parse('2026-01-02-b'),
+    ]);
+  });
+
+  it("names a change's design docs, then its documents, each oldest first", async () => {
+    const id = await t.createChange('2026-01-01-payment-retry');
+    await t.writeDocument(id, {
+      id: '2026-01-03-notes',
+      title: 'Notes',
+      date: '2026-01-03',
+      content: '',
+    });
+    await t.writeDocument(id, {
+      id: '2026-01-02-interview',
+      title: 'Interview',
+      date: '2026-01-02',
+      content: '',
+    });
+    await t.writeDesignDoc(id, {
+      ...designDocFixture,
+      id: '2026-01-05-retry-flow',
+      name: { value: 'Retry flow' },
+    });
+
+    const entries = await t.changesService.entries(id);
+
+    expect(
+      entries.map(({ kind, id, name }) => `${kind} ${id} ${name}`),
+    ).toEqual([
+      'design-doc 2026-01-05-retry-flow Retry flow',
+      'document 2026-01-02-interview Interview',
+      'document 2026-01-03-notes Notes',
+    ]);
+  });
+
+  it('refuses the entries of a change that does not exist', async () => {
+    await expect(
+      t.changesService.entries(ChangeId.parse('2026-01-01-missing')),
+    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+  });
+
+  it('lists every change, newest first, with its own entries', async () => {
+    const older = await t.createChange('2026-01-01-older');
+    await t.createChange('2026-01-02-newer');
+    await t.writeDocument(older, {
+      id: '2026-01-01-notes',
+      title: 'Notes',
+      date: '2026-01-01',
+      content: '',
+    });
+
+    const listed = await t.changesService.listWithEntries();
+
+    expect(listed.map(({ id, entries }) => `${id} ${entries.length}`)).toEqual([
+      '2026-01-02-newer 0',
+      '2026-01-01-older 1',
     ]);
   });
 });

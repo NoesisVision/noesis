@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import {
   type Document,
@@ -5,32 +6,34 @@ import {
 } from '#backend/app/information-sources/document';
 import type { DocumentId } from '#backend/app/information-sources/document-id';
 import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
-import type {
-  ChangeChildren,
-  NoesisChangesRepository,
-} from './changes.repository';
+import { JsonCollection } from '#backend/platform/files/json-collection';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { changesDir } from './changes.repository';
 
 export class NoesisDocumentsRepository implements DocumentsRepository {
-  private readonly changes: NoesisChangesRepository;
+  private readonly changesDir: string;
 
-  constructor(changes: NoesisChangesRepository) {
-    this.changes = changes;
+  constructor(noesis: NoesisDir) {
+    this.changesDir = changesDir(noesis);
   }
 
   get(change: ChangeId, id: DocumentId): Promise<Document | null> {
     return this.documents(change).get(id);
   }
 
-  set(change: ChangeId, id: DocumentId, document: Document): Promise<void> {
-    // The store takes the JSON side of the contract and decodes it itself.
-    return this.documents(change).set(id, DocumentSchema.encode(document));
+  list(change: ChangeId): Promise<Document[]> {
+    return this.documents(change).list();
   }
 
-  values(change: ChangeId): AsyncIterable<Document> {
-    return this.documents(change).values();
+  save(change: ChangeId, document: Document): Promise<void> {
+    return this.documents(change).save(document);
   }
 
-  private documents(change: ChangeId): ChangeChildren['documents'] {
-    return this.changes.children(change).documents;
+  private documents(change: ChangeId): JsonCollection<Document> {
+    return new JsonCollection(
+      DocumentSchema,
+      join(this.changesDir, change),
+      'document',
+    );
   }
 }

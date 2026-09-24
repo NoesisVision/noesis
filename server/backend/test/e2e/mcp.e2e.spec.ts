@@ -97,12 +97,14 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
 
   it('names the repository root in its instructions', () => {
     expect(client.getInstructions()).toContain(service.repoRoot);
-    expect(client.getInstructions()).toContain('.noesis/tmp/');
+    expect(client.getInstructions()).toContain('.noesis/sessions/');
   });
 
-  it('advertises a live scratch directory under .noesis/tmp/', async () => {
+  it('advertises a live scratch directory under .noesis/sessions/', async () => {
     const dir = await sessionDir(client);
-    expect(dir.startsWith(join(service.repoRoot, '.noesis', 'tmp'))).toBe(true);
+    expect(dir.startsWith(join(service.repoRoot, '.noesis', 'sessions'))).toBe(
+      true,
+    );
     expect(await exists(dir)).toBe(true);
   });
 
@@ -162,9 +164,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
       'graph',
       'changes',
       change,
-      'documents',
-      '2026-09-18-retry-interview',
-      'data.json',
+      '2026-09-18-retry-interview.document.json',
     );
     expect(await exists(stored)).toBe(true);
   }, 15_000);

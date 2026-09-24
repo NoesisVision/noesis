@@ -47,7 +47,7 @@ export class DesignDocsService {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
       const created = (await this.docs.get(change, document.id)) === null;
-      await this.docs.set(change, document.id, document);
+      await this.docs.save(change, document);
       return { value: summarize(document), created };
     });
   }
@@ -55,8 +55,7 @@ export class DesignDocsService {
   /** Oldest first: the id starts with the creation date. */
   async list(change: ChangeId): Promise<DesignDocSummary[]> {
     await this.changesService.assertExists(change);
-    const documents = await Array.fromAsync(this.docs.values(change));
-    return documents.sort((a, b) => a.id.localeCompare(b.id)).map(summarize);
+    return (await this.docs.list(change)).map(summarize);
   }
 
   async findById(

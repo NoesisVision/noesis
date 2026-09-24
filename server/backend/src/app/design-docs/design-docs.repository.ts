@@ -5,12 +5,8 @@ import type { DesignDocId } from './design-doc-id';
 export interface DesignDocsRepository {
   get(change: ChangeId, id: DesignDocId): Promise<DesignDocument | null>;
 
-  set(
-    change: ChangeId,
-    id: DesignDocId,
-    document: DesignDocument,
-  ): Promise<void>;
+  /** By id ascending. */
+  list(change: ChangeId): Promise<DesignDocument[]>;
 
-  /** In no particular order. */
-  values(change: ChangeId): AsyncIterable<DesignDocument>;
+  save(change: ChangeId, document: DesignDocument): Promise<void>;
 }

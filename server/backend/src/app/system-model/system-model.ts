@@ -165,6 +165,6 @@ export const SystemModelSchema = z
       .describe('The behaviours found, each naming its building block.'),
   })
   .describe(
-    'The implemented model of one scanned unit: the data.json of graph/system-model/<id>/, written by the scanner.',
+    'The implemented model of one scanned unit: graph/system-models/<id>.system-model.json, written by the scanner.',
   );
 export type SystemModel = z.infer<typeof SystemModelSchema>;

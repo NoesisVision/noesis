@@ -5,8 +5,8 @@ import type { DocumentId } from './document-id';
 export interface DocumentsRepository {
   get(change: ChangeId, id: DocumentId): Promise<Document | null>;
 
-  set(change: ChangeId, id: DocumentId, document: Document): Promise<void>;
+  /** By id ascending. */
+  list(change: ChangeId): Promise<Document[]>;
 
-  /** In no particular order. */
-  values(change: ChangeId): AsyncIterable<Document>;
+  save(change: ChangeId, document: Document): Promise<void>;
 }

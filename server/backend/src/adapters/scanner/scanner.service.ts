@@ -39,17 +39,17 @@ export class ScannerService {
         root: this.root,
         now: this.now,
       });
-      await this.systemModels.set(model.id, model);
+      await this.systemModels.save(model);
       written.add(model.id);
       report.units.push({
         name: model.name,
-        path: this.systemModels.dataFile(model.id),
+        path: this.systemModels.pathOf(model.id),
         buildingBlocks: model.buildingBlocks.length,
       });
     }
 
     // Every model first, then the deletions: no removing under the iteration.
-    const stale = (await Array.fromAsync(this.systemModels.values())).filter(
+    const stale = (await this.systemModels.list()).filter(
       (model) => !written.has(model.id),
     );
     for (const model of stale) {

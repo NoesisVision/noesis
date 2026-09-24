@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import {
   type DesignDocument,
@@ -5,36 +6,34 @@ import {
 } from '#backend/app/design-docs/design-doc';
 import type { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
-import type {
-  ChangeChildren,
-  NoesisChangesRepository,
-} from './changes.repository';
+import { JsonCollection } from '#backend/platform/files/json-collection';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { changesDir } from './changes.repository';
 
 export class NoesisDesignDocsRepository implements DesignDocsRepository {
-  private readonly changes: NoesisChangesRepository;
+  private readonly changesDir: string;
 
-  constructor(changes: NoesisChangesRepository) {
-    this.changes = changes;
+  constructor(noesis: NoesisDir) {
+    this.changesDir = changesDir(noesis);
   }
 
   get(change: ChangeId, id: DesignDocId): Promise<DesignDocument | null> {
     return this.docs(change).get(id);
   }
 
-  set(
-    change: ChangeId,
-    id: DesignDocId,
-    document: DesignDocument,
-  ): Promise<void> {
-    // The store takes the JSON side of the contract and decodes it itself.
-    return this.docs(change).set(id, DesignDocumentSchema.encode(document));
+  list(change: ChangeId): Promise<DesignDocument[]> {
+    return this.docs(change).list();
   }
 
-  values(change: ChangeId): AsyncIterable<DesignDocument> {
-    return this.docs(change).values();
+  save(change: ChangeId, document: DesignDocument): Promise<void> {
+    return this.docs(change).save(document);
   }
 
-  private docs(change: ChangeId): ChangeChildren['design-docs'] {
-    return this.changes.children(change)['design-docs'];
+  private docs(change: ChangeId): JsonCollection<DesignDocument> {
+    return new JsonCollection(
+      DesignDocumentSchema,
+      join(this.changesDir, change),
+      'design-doc',
+    );
   }
 }

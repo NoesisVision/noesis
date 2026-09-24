@@ -34,7 +34,7 @@ when Claude Code exits, the service exits with it.
 The service exposes four MCP tools: `add_change`, `list_changes`,
 `add_document_to_change` and `add_design_doc_to_change`. Tools never take
 content inline. The agent writes
-a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
+a working file to the session's scratch directory (`.noesis/sessions/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
 anything: a file that does not fit comes back as an issue list — path

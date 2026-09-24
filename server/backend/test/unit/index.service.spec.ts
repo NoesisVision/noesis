@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { IndexService } from '#backend/adapters/graph/index.service';
 import { ChangeId } from '#backend/app/changes/change-id';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc';
@@ -34,9 +35,7 @@ interface Row {
 }
 
 const writeDoc = (change: ChangeId, document: DesignDocumentInput) =>
-  t.changesRepository
-    .children(change)
-    ['design-docs'].set(document.id, document);
+  t.writeDesignDoc(change, document);
 
 const graphRows = () =>
   db.query<Row>(
@@ -99,7 +98,8 @@ describe('IndexService', () => {
     await indexer.rebuild();
 
     // What a `git checkout` does: files vanish and appear behind the service's back.
-    await rm(t.changesRepository.dirOf(ALPHA), { recursive: true });
+    await rm(join(t.changesDir, ALPHA), { recursive: true });
+    await rm(join(t.changesDir, `${ALPHA}.change.json`));
     await t.createChange(GAMMA);
     await writeDoc(GAMMA, {
       ...designDocFixture,
@@ -119,33 +119,30 @@ describe('IndexService', () => {
     ]);
   });
 
-  it('indexes an empty .noesis/ to an empty graph and skips what does not decode', async () => {
+  it('indexes an empty .noesis/ to an empty graph and skips the list a broken file is in', async () => {
     expect((await indexer.rebuild()).files).toBe(0);
 
     await t.createChange(ALPHA);
+    await t.createChange(BETA);
     await writeDoc(ALPHA, designDocFixture);
-    await writeDoc(ALPHA, { ...designDocFixture, id: '2026-01-01-junk' });
     await writeFile(
-      t.changesRepository
-        .children(ALPHA)
-        ['design-docs'].dataFile('2026-01-01-junk'),
+      join(t.changesDir, ALPHA, '2026-01-01-junk.design-doc.json'),
       '{',
     );
+    await writeDoc(BETA, { ...designDocFixture, id: '2026-01-01-b1' });
 
     expect((await indexer.rebuild()).files).toBe(1);
-    expect((await graphRows()).map((r) => r.id)).toEqual([designDocFixture.id]);
+    expect((await graphRows()).map((r) => r.id)).toEqual(['2026-01-01-b1']);
   });
 
   it('projects imported documents into their own table', async () => {
     await t.createChange(ALPHA);
-    await t.changesRepository
-      .children(ALPHA)
-      .documents.set('2026-09-01-rules', {
-        id: '2026-09-01-rules',
-        title: 'Rules',
-        date: '2026-09-01',
-        content: '',
-      });
+    await t.writeDocument(ALPHA, {
+      id: '2026-09-01-rules',
+      title: 'Rules',
+      date: '2026-09-01',
+      content: '',
+    });
 
     const report = await indexer.rebuild();
 

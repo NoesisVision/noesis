@@ -43,7 +43,7 @@ hand that file's path to the `add_change` tool. The service stores it under
 
 6. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `add_change`, of the form
-   `.noesis/tmp/<session>/`. Take it from there, never from memory: it
+   `.noesis/sessions/<session>/`. Take it from there, never from memory: it
    changes every session.
 7. **Write the working file** into the scratch directory, e.g.
    `<scratch directory>/change.json`: `id`, `name`, `type`, `key` and

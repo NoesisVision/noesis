@@ -2,7 +2,7 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const NOESIS_DIR_NAME = '.noesis';
-const UNVERSIONED_DIRS = ['tmp', 'logs'] as const;
+const UNVERSIONED_DIRS = ['sessions', 'logs'] as const;
 const GITIGNORE_LINES = UNVERSIONED_DIRS.map((dir) => `${dir}/`);
 
 export class NoesisDir {

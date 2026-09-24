@@ -58,6 +58,6 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
 function instructions({ noesis, session }: McpServerDeps): string {
   return [
     `Noesis keeps this repository's knowledge graph as files under ${noesis.path}/. Work is organised into changes: a change collects the documents that inform it and the design documents that describe what it does to the model.`,
-    `Tools take paths, never content: write a working file under ${session.tmpRoot}/ yourself — no tool call needed — and pass its path. Each tool's \`path\` parameter names the directory to write into.`,
+    `Tools take paths, never content: write a working file under ${session.sessionsRoot}/ yourself — no tool call needed — and pass its path. Each tool's \`path\` parameter names the directory to write into.`,
   ].join('\n\n');
 }

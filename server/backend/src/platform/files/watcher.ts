@@ -93,8 +93,8 @@ export class NoesisWatcher {
 export function isIgnored(relativePath: string): boolean {
   const path = relativePath.replaceAll('\\', '/');
   return (
-    path === 'tmp' ||
-    path.startsWith('tmp/') ||
+    path === 'sessions' ||
+    path.startsWith('sessions/') ||
     path === '.gitignore' ||
     path.endsWith('.tmp')
   );

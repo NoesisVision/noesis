@@ -65,7 +65,7 @@ describe('the MCP surface', () => {
   it('names the repository root and the scratch root, nothing per-process', () => {
     const instructions = client.getInstructions() ?? '';
     expect(instructions).toContain(noesis.root);
-    expect(instructions).toContain('.noesis/tmp/');
+    expect(instructions).toContain('.noesis/sessions/');
     // A session path here would be stale on a modern stdio connection.
     expect(instructions).not.toContain(session.path);
   });
@@ -188,7 +188,7 @@ describe('add_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('$.id');
+    expect(textOf(result)).toContain('→ at id');
     expect(await noesis.changesService.list()).toEqual([]);
   });
 
@@ -301,7 +301,7 @@ describe('add_document_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('.noesis/tmp/');
+    expect(textOf(result)).toContain('.noesis/sessions/');
   });
 
   it('answers a malformed document with the issues to fix', async () => {
@@ -318,8 +318,8 @@ describe('add_document_to_change', () => {
 
     expect(result.isError).toBe(true);
     const text = textOf(result);
-    expect(text).toContain('$.date');
-    expect(text).toContain('$.content');
+    expect(text).toContain('→ at date');
+    expect(text).toContain('→ at content');
   });
 
   it('refuses a working file above the size limit without reading it', async () => {
@@ -351,7 +351,7 @@ describe('add_document_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('$.date');
+    expect(textOf(result)).toContain('→ at date');
   });
 
   it('refuses a document without a dated id', async () => {
@@ -366,7 +366,7 @@ describe('add_document_to_change', () => {
       });
 
       expect(result.isError).toBe(true);
-      expect(textOf(result)).toContain('$.id');
+      expect(textOf(result)).toContain('→ at id');
     }
   });
 
@@ -482,7 +482,7 @@ describe('add_design_doc_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('$.id');
+    expect(textOf(result)).toContain('→ at id');
   });
 
   it('advertises the live scratch directory', async () => {
@@ -528,7 +528,7 @@ describe('add_design_doc_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('.noesis/tmp/');
+    expect(textOf(result)).toContain('.noesis/sessions/');
   });
 
   it('answers a malformed design document with the issues to fix', async () => {
@@ -546,8 +546,8 @@ describe('add_design_doc_to_change', () => {
 
     expect(result.isError).toBe(true);
     const text = textOf(result);
-    expect(text).toContain('$.name');
-    expect(text).toContain('$.buildingBlocks');
+    expect(text).toContain('→ at name');
+    expect(text).toContain('→ at buildingBlocks');
     expect(await noesis.designDocsService.list(change)).toEqual([]);
   });
 });

@@ -2,19 +2,9 @@ import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.
 import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import { Serial } from '#backend/app/serial';
 import type { Change } from './change';
+import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import type { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
-
-/** A child of a change as the sidebar names it. */
-interface ChangeNavigationChild {
-  id: string;
-  name: string;
-}
-
-export interface ChangeNavigationItem extends Change {
-  documents: ChangeNavigationChild[];
-  designDocs: ChangeNavigationChild[];
-}
 
 /** What an add answers: the entity as stored, and whether the id was new. */
 export interface Added<T> {
@@ -50,39 +40,49 @@ export class ChangesService {
 
   /** Newest first: the id starts with the creation date. */
   async list(): Promise<Change[]> {
-    const changes = await Array.fromAsync(this.changes.values());
-    return changes.sort((a, b) => b.id.localeCompare(a.id));
+    return (await this.changes.list()).reverse();
   }
 
   async findById(id: ChangeId): Promise<Change> {
-    const found = await this.changes.read(id);
+    const found = await this.changes.get(id);
     if (found === null) throw new ChangeNotFoundError(id);
     return found;
   }
 
-  /** What the sidebar renders: every change, each naming the documents under it. */
-  async listNavigation(): Promise<ChangeNavigationItem[]> {
-    const changes = await this.list();
-    return Promise.all(changes.map((change) => this.withChildren(change)));
+  /** The change's design documents, then its documents, each kind oldest first. */
+  async entries(id: ChangeId): Promise<ChangeEntry[]> {
+    await this.assertExists(id);
+    return this.entriesOf(id);
   }
 
-  private async withChildren(change: Change): Promise<ChangeNavigationItem> {
-    const [documents, designDocs] = await Promise.all([
-      Array.fromAsync(this.documents.values(change.id), ({ id, title }) => ({
-        id,
-        name: title,
-      })),
-      // `name` is a reviewable field now, so the sidebar gets its value.
-      Array.fromAsync(this.designDocs.values(change.id), ({ id, name }) => ({
+  /** What the sidebar renders: every change, newest first, with its entries. */
+  async listWithEntries(): Promise<ChangeWithEntries[]> {
+    const changes = await this.list();
+    return Promise.all(changes.map((change) => this.withEntries(change)));
+  }
+
+  private async withEntries(change: Change): Promise<ChangeWithEntries> {
+    return { ...change, entries: await this.entriesOf(change.id) };
+  }
+
+  private async entriesOf(id: ChangeId): Promise<ChangeEntry[]> {
+    const [designDocs, documents] = await Promise.all([
+      this.designDocs.list(id),
+      this.documents.list(id),
+    ]);
+    return [
+      // `name` is a reviewable field, so the entry gets its value.
+      ...designDocs.map(({ id, name }): ChangeEntry => ({
+        kind: 'design-doc',
         id,
         name: name.value,
       })),
-    ]);
-    return {
-      ...change,
-      documents: documents.sort(byId),
-      designDocs: designDocs.sort(byId),
-    };
+      ...documents.map(({ id, title }): ChangeEntry => ({
+        kind: 'document',
+        id,
+        name: title,
+      })),
+    ];
   }
 
   /**
@@ -92,20 +92,15 @@ export class ChangesService {
    */
   add(change: Change): Promise<Added<Change>> {
     return this.writes.run(async () => {
-      const created = (await this.changes.read(change.id)) === null;
-      await this.changes.write(change);
+      const created = (await this.changes.get(change.id)) === null;
+      await this.changes.save(change);
       return { value: change, created };
     });
   }
 
   async assertExists(id: ChangeId): Promise<void> {
-    if ((await this.changes.read(id)) === null) {
+    if ((await this.changes.get(id)) === null) {
       throw new ChangeNotFoundError(id);
     }
   }
-}
-
-/** Oldest first: the id starts with the creation date. */
-function byId(a: ChangeNavigationChild, b: ChangeNavigationChild): number {
-  return a.id.localeCompare(b.id);
 }

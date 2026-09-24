@@ -8,7 +8,7 @@ import {
   typeOf,
 } from '#backend/adapters/scanner/typescript-scanner';
 import { SystemModelSchema } from '#backend/app/system-model/system-model';
-import { all, type TestNoesis, testNoesis } from './test-noesis';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 let scanner: ScannerService;
@@ -25,9 +25,9 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 async function filesOf(store: TestNoesis['systemModels']) {
-  const ids = (await Array.fromAsync(store.keys())).sort();
+  const ids = (await store.list()).map(({ id }) => id);
   return Promise.all(
-    ids.map(async (id) => [id, await readFile(store.dataFile(id), 'utf8')]),
+    ids.map(async (id) => [id, await readFile(store.pathOf(id), 'utf8')]),
   );
 }
 
@@ -119,7 +119,7 @@ describe('ScannerService', () => {
     expect(report.units.map((u) => [u.name, u.buildingBlocks])).toEqual([
       ['@acme/backend', 3],
     ]);
-    const [stored] = await all(t.systemModels);
+    const [stored] = await t.systemModels.list();
     const model = SystemModelSchema.parse(stored);
     expect(model.name).toBe('@acme/backend');
     expect(model.scanned_at).toBe('2026-09-12T12:00:00.000Z');

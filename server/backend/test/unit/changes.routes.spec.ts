@@ -17,7 +17,7 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 const ids = async (): Promise<string[]> =>
-  Array.fromAsync(t.changesRepository.keys());
+  (await t.changesRepository.list()).map(({ id }) => id);
 
 const post = (body: unknown) =>
   app.request('/', {
@@ -44,13 +44,13 @@ const add = async (
   ).value;
 
 describe('ui changes routes', () => {
-  it('returns an empty navigation list when there are no changes', async () => {
+  it('returns an empty list when there are no changes', async () => {
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with the documents under it, scoped to it', async () => {
+  it('lists each change with its entries, scoped to it', async () => {
     const older = await t.createChange('2026-09-13-older', {
       name: 'Older change',
     });
@@ -78,8 +78,7 @@ describe('ui changes routes', () => {
           type: 'chore',
           status: 'discovery',
           description: '',
-          documents: [],
-          designDocs: [],
+          entries: [],
         },
         {
           id: '2026-09-13-older',
@@ -88,14 +87,16 @@ describe('ui changes routes', () => {
           type: 'chore',
           status: 'discovery',
           description: '',
-          documents: [{ id: document.id, name: document.title }],
-          designDocs: [{ id: designDoc.id, name: designDoc.name }],
+          entries: [
+            { kind: 'design-doc', id: designDoc.id, name: designDoc.name },
+            { kind: 'document', id: document.id, name: document.title },
+          ],
         },
       ],
     });
   });
 
-  it('names the documents of a change oldest first, by id', async () => {
+  it('names the entries of a change oldest first, by id', async () => {
     const change = await t.createChange('2026-09-13-older');
     for (const [id, title] of [
       ['2026-09-12-zoning-rules', 'Zoning rules'],
@@ -112,9 +113,9 @@ describe('ui changes routes', () => {
 
     const response = await app.request('/navigation');
     const { changes } = (await response.json()) as {
-      changes: { documents: { name: string }[] }[];
+      changes: { entries: { name: string }[] }[];
     };
-    expect(changes[0]?.documents.map((d) => d.name)).toEqual([
+    expect(changes[0]?.entries.map((entry) => entry.name)).toEqual([
       'Appointment booking',
       'Glossary',
       'Zoning rules',

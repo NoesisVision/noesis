@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ChangeId } from './change-id';
 
-// The change's directory also collects its imported conversations, documents
-// and design docs.
+// The directory named after the change, beside its file, collects its
+// documents and design docs.
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
 export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;
@@ -57,5 +57,5 @@ export const ChangeSchema = z
         'A paragraph on what the change is about, for the change list.',
       ),
   })
-  .describe('One change: the data.json file inside its directory.');
+  .describe('One change: graph/changes/<id>.change.json.');
 export type Change = z.infer<typeof ChangeSchema>;

@@ -34,7 +34,7 @@ updates that document.
    first and add the document to the id it returns.
 3. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `add_document_to_change`, of the
-   form `.noesis/tmp/<session>/`. Take it from there, never from memory: it
+   form `.noesis/sessions/<session>/`. Take it from there, never from memory: it
    changes every session.
 4. **Write the working file with the script**, never by hand, so the text is
    copied and not retyped:

@@ -19,9 +19,9 @@ export const changesList = queryOptions({
   },
 });
 
-export const changesNavigationList = queryOptions({
+export const changesWithEntriesList = queryOptions({
   staleTime: 'static',
-  queryKey: ['changes', 'navigation'] as const,
+  queryKey: ['changes', 'with-entries'] as const,
   queryFn: async ({ signal }) => {
     const data = await api.changes.navigation.$get({}, { init: { signal } });
     return data.changes;
@@ -50,13 +50,14 @@ export const changeById = (id: string) =>
   });
 
 /**
- * The open change and the list it came from. The `_shell` loader primes the
- * query, so this is a cache read: the shell gets the change and what hangs
- * under it without binding itself to a route's loader data.
+ * The open change and the list it came from, each with its entries. The
+ * `_shell` loader primes the query, so this is a cache read: the shell gets
+ * the change and what hangs under it without binding itself to a route's
+ * loader data.
  */
-export function useChangeNavigation() {
+export function useChangesWithEntries() {
   const { changeId } = useChangeId();
-  const { data: changes } = useQuery(changesNavigationList);
+  const { data: changes } = useQuery(changesWithEntriesList);
   const activeChange =
     changes?.find((change) => change.id === changeId) ?? changes?.[0] ?? null;
   return { changes: changes ?? [], activeChange };

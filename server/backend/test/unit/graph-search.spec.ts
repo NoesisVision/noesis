@@ -28,9 +28,7 @@ afterEach(async () => {
 describe('graph search', () => {
   it('finds design docs by a case-insensitive substring', async () => {
     await t.createChange(ALPHA);
-    await t.changesRepository
-      .children(ALPHA)
-      ['design-docs'].set(designDocFixture.id, designDocFixture);
+    await t.writeDesignDoc(ALPHA, designDocFixture);
     await new IndexService(db, t.sources).rebuild();
 
     const results = await search.search('REFUNDS');

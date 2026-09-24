@@ -2,7 +2,6 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { UPSERT, defineTool, type ToolRegistration } from '../tool';
 import { ADD_CHANGE, LIST_CHANGES } from '../tool-names';
@@ -59,7 +58,7 @@ async function add(
 ): Promise<CallToolResult> {
   const change = await readWorkingFile(session, ChangeSchema, path);
   if (change.isErr()) {
-    return failure(formatReport(SUBJECT, change.error));
+    return failure(`Invalid ${SUBJECT}:\n${change.error}`);
   }
   const { value, created } = await changes.add(change.value);
   return added(value, created);

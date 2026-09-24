@@ -24,7 +24,7 @@ export const DocumentSchema = z
       .describe('The document text, verbatim. Revised whenever it changes.'),
   })
   .describe(
-    'A document of a change: the working file an agent writes, and the data.json of graph/changes/<change>/documents/<id>/.',
+    'A document of a change: the working file an agent writes, and graph/changes/<change>/<id>.document.json.',
   );
 export type Document = z.infer<typeof DocumentSchema>;
 

@@ -11,7 +11,7 @@ import {
 import { realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { err, ok } from 'neverthrow';
+import { err } from 'neverthrow';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   SESSION_MAX_AGE_MS,
@@ -45,7 +45,7 @@ const exists = (path: string) =>
   );
 
 async function leftover(name: string, ageMs: number): Promise<string> {
-  const dir = noesis.resolve('tmp', name);
+  const dir = noesis.resolve('sessions', name);
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, 'draft.json'), '{}');
   const when = new Date(Date.now() - ageMs);
@@ -54,12 +54,12 @@ async function leftover(name: string, ageMs: number): Promise<string> {
 }
 
 describe('SessionDir', () => {
-  it('creates its own directory under .noesis/tmp/ on open', async () => {
+  it('creates its own directory under .noesis/sessions/ on open', async () => {
     const session = new SessionDir(noesis, root, { id: 'abc' });
 
     await session.open();
 
-    expect(session.path).toBe(join(root, '.noesis', 'tmp', 'abc'));
+    expect(session.path).toBe(join(root, '.noesis', 'sessions', 'abc'));
     expect(await exists(session.path)).toBe(true);
   });
 
@@ -76,8 +76,8 @@ describe('SessionDir', () => {
   });
 
   it('never sweeps a file that is not a session directory', async () => {
-    await mkdir(noesis.resolve('tmp'), { recursive: true });
-    const stray = noesis.resolve('tmp', 'notes.txt');
+    await mkdir(noesis.resolve('sessions'), { recursive: true });
+    const stray = noesis.resolve('sessions', 'notes.txt');
     await writeFile(stray, 'keep');
     const when = new Date(Date.now() - SESSION_MAX_AGE_MS * 2);
     await utimes(stray, when, when);
@@ -110,16 +110,18 @@ describe('SessionDir', () => {
       await writeFile(file, '{}');
     });
 
-    it('accepts an absolute path under tmp/', async () => {
-      expect(await session.resolveWorkingPath(file)).toEqual(
-        ok(await realpath(file)),
-      );
+    it('accepts an absolute path under sessions/', async () => {
+      expect(
+        (await session.resolveWorkingPath(file))._unsafeUnwrap(),
+      ).toBe<string>(await realpath(file));
     });
 
     it('accepts a path relative to the repository root', async () => {
-      expect(await session.resolveWorkingPath(relative(root, file))).toEqual(
-        ok(await realpath(file)),
-      );
+      expect(
+        (
+          await session.resolveWorkingPath(relative(root, file))
+        )._unsafeUnwrap(),
+      ).toBe<string>(await realpath(file));
     });
 
     it("accepts another session's file — skills need not know the id", async () => {
@@ -130,7 +132,7 @@ describe('SessionDir', () => {
       expect(result.isOk()).toBe(true);
     });
 
-    it('refuses a path outside tmp/, naming the session directory', async () => {
+    it('refuses a path outside sessions/, naming the session directory', async () => {
       const outside = join(root, '.noesis', 'doc.json');
       await writeFile(outside, '{}');
 
@@ -138,23 +140,23 @@ describe('SessionDir', () => {
 
       expect(result.isErr()).toBe(true);
       const message = result._unsafeUnwrapErr();
-      expect(message).toContain('.noesis/tmp/');
+      expect(message).toContain('.noesis/sessions/');
       expect(message).toContain(session.path);
     });
 
-    it('refuses a path that climbs out of tmp/ with ..', async () => {
+    it('refuses a path that climbs out of sessions/ with ..', async () => {
       const result = await session.resolveWorkingPath(
-        join('.noesis', 'tmp', 's1', '..', '..', '.gitignore'),
+        join('.noesis', 'sessions', 's1', '..', '..', '.gitignore'),
       );
       expect(result.isErr()).toBe(true);
     });
 
-    it('refuses the tmp/ directory itself', async () => {
-      const result = await session.resolveWorkingPath(session.tmpRoot);
+    it('refuses the sessions/ directory itself', async () => {
+      const result = await session.resolveWorkingPath(session.sessionsRoot);
       expect(result.isErr()).toBe(true);
     });
 
-    it('follows a symlink and refuses one that leaves tmp/', async () => {
+    it('follows a symlink and refuses one that leaves sessions/', async () => {
       const target = join(root, 'secret.json');
       await writeFile(target, '{}');
       const link = join(session.path, 'link.json');
@@ -175,16 +177,18 @@ describe('SessionDir', () => {
       const resolved = join(await realpath(linked.path), 'doc.json');
       await writeFile(resolved, '{}');
 
-      expect(await linked.resolveWorkingPath(resolved)).toEqual(ok(resolved));
+      expect(
+        (await linked.resolveWorkingPath(resolved))._unsafeUnwrap(),
+      ).toBe<string>(resolved);
     });
 
     it('answers the path it checked, not the link it was given', async () => {
       const link = join(session.path, 'link.json');
       await symlink(file, link);
 
-      expect(await session.resolveWorkingPath(link)).toEqual(
-        ok(await realpath(file)),
-      );
+      expect(
+        (await session.resolveWorkingPath(link))._unsafeUnwrap(),
+      ).toBe<string>(await realpath(file));
     });
 
     it('accepts a file whose name merely starts with two dots', async () => {

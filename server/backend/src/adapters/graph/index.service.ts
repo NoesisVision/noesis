@@ -1,10 +1,12 @@
-import type { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import type { SystemModelStore } from '#backend/adapters/store/system-model.store';
+import type { ChangesRepository } from '#backend/app/changes/changes.repository';
+import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
+import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import type {
   DatabaseService,
   Transaction,
 } from '#backend/platform/database/database.service';
-import { NoesisStoreError } from '#backend/platform/files/noesis-store';
+import { JsonFileError } from '#backend/platform/files/json-file';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { nodeTableNames } from './graph-schema';
 
@@ -16,7 +18,9 @@ export interface IndexReport {
 }
 
 export interface IndexerSources {
-  changes: NoesisChangesRepository;
+  changes: ChangesRepository;
+  designDocs: DesignDocsRepository;
+  documents: DocumentsRepository;
   systemModels: SystemModelStore;
 }
 
@@ -62,7 +66,7 @@ export class IndexService {
   }
 
   private async collect(): Promise<Map<string, Row[]>> {
-    const { changes, systemModels } = this.sources;
+    const { changes, designDocs, documents, systemModels } = this.sources;
     const rows = new Map<string, Row[]>([
       ['DesignDoc', []],
       ['Document', []],
@@ -70,9 +74,8 @@ export class IndexService {
     ]);
     const push = (table: string, row: Row) => rows.get(table)?.push(row);
 
-    for await (const change of changes.keys()) {
-      const owned = changes.children(change);
-      for await (const document of objects(owned['design-docs'])) {
+    for (const { id: change } of await objects(() => changes.list())) {
+      for (const document of await objects(() => designDocs.list(change))) {
         push('DesignDoc', {
           key: `${change}/${document.id}`,
           id: document.id,
@@ -83,7 +86,7 @@ export class IndexService {
           document: JSON.stringify(document),
         });
       }
-      for await (const document of objects(owned.documents)) {
+      for (const document of await objects(() => documents.list(change))) {
         push('Document', {
           key: `${change}/${document.id}`,
           id: document.id,
@@ -94,7 +97,7 @@ export class IndexService {
         });
       }
     }
-    for await (const model of objects(systemModels)) {
+    for (const model of await objects(() => systemModels.list())) {
       push('SystemModel', {
         id: model.id,
         name: model.name,
@@ -121,41 +124,19 @@ async function insert(
   }
 }
 
-interface Readable<T> {
-  keys(): AsyncIterable<string>;
-  get(key: string): Promise<T | null>;
-}
-
 /**
- * A corrupt file costs that one key, not the walk; a change removed under the
- * walk (a `git checkout`) ends it with what it had.
+ * A broken file costs its list, not the rebuild: `list()` has no per-file
+ * grain, so a broken document hides that change's documents.
  */
-async function* objects<T>(collection: Readable<T>): AsyncIterable<T> {
+async function objects<T>(list: () => Promise<T[]>): Promise<T[]> {
   try {
-    for await (const key of collection.keys()) {
-      try {
-        const object = await collection.get(key);
-        if (object !== null) yield object;
-      } catch (error) {
-        if (!isUndecodable(error)) throw error;
-        log.warn('skipping {path}: {error}', {
-          path: error.path ?? key,
-          error: error.message,
-        });
-      }
-    }
+    return await list();
   } catch (error) {
-    if (!isParentMissing(error)) throw error;
+    if (!(error instanceof JsonFileError)) throw error;
+    log.warn('skipping {path}: {error}', {
+      path: error.path,
+      error: error.message,
+    });
+    return [];
   }
-}
-
-function isUndecodable(error: unknown): error is NoesisStoreError {
-  return (
-    error instanceof NoesisStoreError &&
-    (error.code === 'INVALID_JSON' || error.code === 'VALIDATION_FAILED')
-  );
-}
-
-function isParentMissing(error: unknown): boolean {
-  return error instanceof NoesisStoreError && error.code === 'PARENT_NOT_FOUND';
 }

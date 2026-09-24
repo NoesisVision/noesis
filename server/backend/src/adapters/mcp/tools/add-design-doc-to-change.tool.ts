@@ -7,7 +7,6 @@ import {
   DesignDocSummarySchema,
   type DesignDocsService,
 } from '#backend/app/design-docs/design-docs.service';
-import { formatReport } from '#backend/app/validation/validator';
 import type { SessionDir } from '#backend/platform/files/session-dir';
 import { UPSERT, defineTool, type ToolRegistration } from '../tool';
 import { ADD_DESIGN_DOC_TO_CHANGE } from '../tool-names';
@@ -68,7 +67,7 @@ async function add(
 ): Promise<CallToolResult> {
   const document = await readWorkingFile(session, DesignDocumentSchema, path);
   if (document.isErr()) {
-    return failure(formatReport(SUBJECT, document.error));
+    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
   const { value, created } = await designDocs.add(change, document.value);
   return added(change, value, created);
