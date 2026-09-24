@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import {
   DesignDocNotFoundError,
   type DesignDocsService,
@@ -35,7 +35,7 @@ describe('DesignDocsService', () => {
 
     const detail = await service.findById(CHANGE, summary.id);
     expect(detail?.document).toEqual(
-      DesignDocumentSchema.parse({ ...designDocFixture, id: summary.id }),
+      DesignDocument.parse({ ...designDocFixture, id: summary.id }),
     );
   });
 
@@ -45,7 +45,7 @@ describe('DesignDocsService', () => {
     const updated = await service.update(CHANGE, created.id, {
       // Carries the fixture's own id, which the service ignores.
       ...decodedDesignDocFixture,
-      name: { value: 'Renamed', reviewedByHuman: false },
+      name: { value: 'Renamed', status: 'setByAgent' },
     });
 
     expect(updated.id).toBe(created.id);
@@ -66,7 +66,7 @@ describe('DesignDocsService', () => {
     const summary = await service.create(CHANGE, decodedDesignDocFixture);
     const other = await service.create(CHANGE, {
       ...decodedDesignDocFixture,
-      name: { value: 'Another design', reviewedByHuman: false },
+      name: { value: 'Another design', status: 'setByAgent' },
       implemented: true,
     });
 

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { NoesisStoreError } from '#backend/platform/files/noesis-store';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -101,7 +101,7 @@ describe('NoesisChangesRepository', () => {
 
     expect((await t.changesRepository.read(kept))?.status).toBe('design');
     expect(await owned.get(designDocFixture.id)).toEqual(
-      DesignDocumentSchema.parse(designDocFixture),
+      DesignDocument.parse(designDocFixture),
     );
   });
 

@@ -1,8 +1,5 @@
 import type { ChangeSlug } from '#backend/app/changes/change-slug';
-import {
-  type DesignDocument,
-  DesignDocumentSchema,
-} from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type {
   ChangeChildren,
@@ -22,7 +19,7 @@ export class NoesisDesignDocsRepository implements DesignDocsRepository {
 
   set(slug: ChangeSlug, id: string, document: DesignDocument): Promise<void> {
     // The store takes the JSON side of the contract and decodes it itself.
-    return this.docs(slug).set(id, DesignDocumentSchema.encode(document));
+    return this.docs(slug).set(id, DesignDocument.encode(document));
   }
 
   delete(slug: ChangeSlug, id: string): Promise<boolean> {

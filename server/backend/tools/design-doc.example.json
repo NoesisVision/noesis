@@ -1,11 +1,11 @@
 {
   "name": {
     "value": "Partial refunds for orders",
-    "reviewedByHuman": true
+    "status": "acceptedByHuman"
   },
   "description": {
     "value": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
-    "reviewedByHuman": false
+    "status": "setByAgent"
   },
   "modules": {
     "added": [
@@ -13,7 +13,7 @@
         "id": "module|sales.refunds",
         "description": {
           "value": "Everything about giving money back to a customer.",
-          "reviewedByHuman": false
+          "status": "setByAgent"
         }
       }
     ],
@@ -23,7 +23,7 @@
         "id": "module|sales.orders",
         "description": {
           "value": "Order lifecycle, now including the refundable state of each line.",
-          "reviewedByHuman": true
+          "status": "acceptedByHuman"
         }
       }
     ]
@@ -32,29 +32,29 @@
     "added": [
       {
         "id": "building_block|sales.refunds.Refund",
-        "type": { "value": "aggregate", "reviewedByHuman": true },
+        "type": { "value": "aggregate", "status": "acceptedByHuman" },
         "description": {
           "value": "A refund of one or more lines of a single order.",
-          "reviewedByHuman": false
+          "status": "setByAgent"
         },
         "properties": {
           "added": [
             {
-              "name": { "value": "orderId", "reviewedByHuman": true },
-              "type": { "value": "OrderId", "reviewedByHuman": false },
+              "name": { "value": "orderId", "status": "acceptedByHuman" },
+              "type": { "value": "OrderId", "status": "setByAgent" },
               "description": {
                 "value": "The order the refunded lines belong to.",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               }
             },
             {
-              "name": { "value": "lines", "reviewedByHuman": false },
-              "type": { "value": "RefundLine", "reviewedByHuman": false },
+              "name": { "value": "lines", "status": "setByAgent" },
+              "type": { "value": "RefundLine", "status": "setByAgent" },
               "collection": true
             },
             {
-              "name": { "value": "issuedAt", "reviewedByHuman": false },
-              "type": { "value": "Date", "reviewedByHuman": false },
+              "name": { "value": "issuedAt", "status": "setByAgent" },
+              "type": { "value": "Date", "status": "setByAgent" },
               "nullable": true
             }
           ]
@@ -64,12 +64,12 @@
             {
               "name": {
                 "value": "Refund never exceeds paid amount",
-                "reviewedByHuman": true
+                "status": "acceptedByHuman"
               },
               "ruleType": "Consistency",
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
-                "reviewedByHuman": true
+                "status": "acceptedByHuman"
               }
             }
           ]
@@ -79,23 +79,23 @@
             {
               "name": {
                 "value": "Refunding one line of a paid order",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               },
               "description": {
                 "value": "The happy path of a partial refund.",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               },
               "given": {
                 "value": "a paid order with two lines",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               },
               "when": {
                 "value": "support refunds the first line",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               },
               "then": {
                 "value": "a refund for that line's amount is issued and the second line stays refundable",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               }
             }
           ]
@@ -103,11 +103,11 @@
       },
       {
         "id": "building_block|sales.refunds.RefundIssued",
-        "type": { "value": "domain_event", "reviewedByHuman": false }
+        "type": { "value": "domain_event", "status": "setByAgent" }
       },
       {
         "id": "building_block|sales.refunds.RefundRepository",
-        "type": { "value": "repository", "reviewedByHuman": false },
+        "type": { "value": "repository", "status": "setByAgent" },
         "implements": ["building_block|sales.shared.Repository"]
       }
     ],
@@ -118,18 +118,18 @@
         "properties": {
           "added": [
             {
-              "name": { "value": "refundedAmount", "reviewedByHuman": false },
-              "type": { "value": "Money", "reviewedByHuman": false }
+              "name": { "value": "refundedAmount", "status": "setByAgent" },
+              "type": { "value": "Money", "status": "setByAgent" }
             }
           ],
           "removed": ["creditNoteId"],
           "modified": [
             {
-              "name": { "value": "status", "reviewedByHuman": true },
-              "type": { "value": "OrderStatus", "reviewedByHuman": true },
+              "name": { "value": "status", "status": "acceptedByHuman" },
+              "type": { "value": "OrderStatus", "status": "acceptedByHuman" },
               "description": {
                 "value": "Gains the 'partially_refunded' state.",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               }
             }
           ]
@@ -141,10 +141,10 @@
     "added": [
       {
         "id": "behavior|sales.refunds.Refund.issue",
-        "type": { "value": "Command", "reviewedByHuman": true },
+        "type": { "value": "Command", "status": "acceptedByHuman" },
         "description": {
           "value": "Issues a refund for the chosen lines of an order.",
-          "reviewedByHuman": false
+          "status": "setByAgent"
         },
         "input": { "added": ["OrderId", "RefundLine[]"] },
         "output": { "added": ["RefundIssued"] },
@@ -159,14 +159,14 @@
             {
               "name": {
                 "value": "Only paid orders are refundable",
-                "reviewedByHuman": false
+                "status": "setByAgent"
               },
               "ruleType": "State change"
             }
           ]
         },
         "isPublic": true,
-        "actor": { "value": "Support agent", "reviewedByHuman": true }
+        "actor": { "value": "Support agent", "status": "acceptedByHuman" }
       }
     ],
     "removed": ["behavior|sales.credit-notes.CreditNote.issue"],

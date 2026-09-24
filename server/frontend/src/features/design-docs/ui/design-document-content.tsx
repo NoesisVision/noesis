@@ -7,6 +7,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
+import type { DesignDocFieldStatus } from '#backend/app/design-docs/design-doc-field.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -20,12 +21,12 @@ import type {
 /*
  * Renders the document as the diff it is: per kind of element, what the
  * design adds, modifies and removes. An element is shown by its address, the
- * part of its id after the kind; a field a human reviewed says so.
+ * part of its id after the kind; a field a human set or accepted says so.
  */
 
-interface ReviewableInput {
+interface DesignDocFieldInput {
   value?: string | null | undefined;
-  reviewedByHuman?: boolean | undefined;
+  status?: DesignDocFieldStatus | undefined;
 }
 
 interface ChangeSetInput<Item, Key> {
@@ -38,11 +39,32 @@ const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
 const humanType = (type: string | null | undefined) =>
   type?.replaceAll('_', ' ') ?? 'Unclassified';
 
+const STATUS_LABELS: Record<DesignDocFieldStatus, string | null> = {
+  setByAgent: null,
+  acceptedByHuman: 'accepted',
+  setByHuman: 'set by human',
+};
+
+function StatusBadge({
+  status = 'setByAgent',
+}: {
+  status?: DesignDocFieldStatus | undefined;
+}) {
+  const label = STATUS_LABELS[status];
+  return (
+    label && (
+      <Badge size="xs" variant="light" ml="xs">
+        {label}
+      </Badge>
+    )
+  );
+}
+
 function Field({
   field,
   fallback = 'Not specified.',
 }: {
-  field: ReviewableInput | undefined;
+  field: DesignDocFieldInput | undefined;
   fallback?: string;
 }) {
   const value = field?.value ?? null;
@@ -57,11 +79,7 @@ function Field({
           {value}
         </Text>
       )}
-      {field?.reviewedByHuman && (
-        <Badge size="xs" variant="light" ml="xs">
-          reviewed
-        </Badge>
-      )}
+      <StatusBadge status={field?.status} />
     </>
   );
 }
@@ -137,7 +155,7 @@ function Changes<Item, Key extends string>({
 }
 
 /** A change set of parts, shown only when the design touches it. */
-function Parts<Item extends { name: ReviewableInput }>({
+function Parts<Item extends { name: DesignDocFieldInput }>({
   title,
   set,
   render,
@@ -261,11 +279,7 @@ function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
       </Title>
       <Text size="sm" c="dimmed">
         {humanType(block.type?.value)}
-        {block.type?.reviewedByHuman && (
-          <Badge size="xs" variant="light" ml="xs">
-            reviewed
-          </Badge>
-        )}
+        <StatusBadge status={block.type?.status} />
       </Text>
       <Text>
         <Field field={block.description} />

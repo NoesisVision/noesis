@@ -29,7 +29,7 @@ export function addDesignDocToChangeTool(
       inputSchema: addToChangeInput(
         session,
         SUBJECT,
-        '{ "name", "description", "modules", "buildingBlocks", "behaviours" }, each field a { "value", "reviewedByHuman" } pair and each collection a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it.',
+        '{ "name", "description", "modules", "buildingBlocks", "behaviours" }, each field a { "value", "status" } pair and each collection a change set of { "added", "removed", "modified" }. Leave out "id"; the server mints it.',
       ),
       outputSchema: DesignDocSummarySchema.describe(
         'Where the design document now lives.',

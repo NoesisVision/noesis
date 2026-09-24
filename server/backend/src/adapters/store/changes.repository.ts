@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import { ChangeSlug } from '#backend/app/changes/change-slug';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -16,7 +16,7 @@ const log = serverLogger('changes');
 
 // Each is keyed by the contract's own id: `id`, `document_id`.
 const CHANGE_CHILDREN = {
-  'design-docs': DesignDocumentSchema,
+  'design-docs': DesignDocument,
   documents: DocumentSchema,
 } as const;
 

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { inChange } from '../changes/in-change';
 
@@ -35,7 +35,7 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         // ids as strings, not the value objects the service decodes them to.
         return c.json({
           summary: detail.summary,
-          document: z.encode(DesignDocumentSchema, detail.document),
+          document: z.encode(DesignDocument, detail.document),
         });
       });
     });
