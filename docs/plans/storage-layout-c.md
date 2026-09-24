@@ -5,6 +5,25 @@ JSON file per entity, key every change, document and design doc by its creation
 date plus a slug of its title (`2026-09-24-payment-retry`), and read graph
 files and session working files through one codec.
 
+## Use cases
+
+1. Get an entity (change, design doc, document) by id:
+   `changes.get(id)`, `designDocs.get(change, id)`, `documents.get(change, id)`.
+2. List all design docs within a single change: `designDocs.list(change)`.
+3. List all documents within a single change: `documents.list(change)`.
+4. List a summary of all entities (design docs and documents) within a single
+   change: `changes.entries(change)`, one `readdir` of the change folder.
+
+Documents and design docs are loaded from two places, with one shared codec:
+
+- the graph folder, where the server put them, so their structure is correct;
+- the session dir, where the agent generates them, so they may have structure
+  errors; after validation they are identical to the graph files.
+
+Constraints: collections are returned as promises of arrays, never
+`AsyncIterable` (the whole result is needed in memory); simplicity over
+performance, as there are few, small files.
+
 ## Decisions
 
 | Topic            | Decision                                                                                                                                                                                                        |
