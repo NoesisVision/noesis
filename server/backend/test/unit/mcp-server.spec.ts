@@ -4,10 +4,11 @@ import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
+import { SessionDir } from '#backend/adapters/mcp/session-dir';
 import {
   MAX_WORKING_FILE_BYTES,
-  SessionDir,
-} from '#backend/adapters/mcp/session-dir';
+  type SessionFiles,
+} from '#backend/adapters/mcp/session-files';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
@@ -18,17 +19,16 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 // revision is covered against the real stdio service in test/e2e.
 
 let noesis: TestNoesis;
-let session: SessionDir;
+let files: SessionFiles;
 let client: Client;
 
 beforeEach(async () => {
   noesis = await testNoesis();
-  session = new SessionDir(noesis.noesis, noesis.root);
-  await session.open();
+  files = await new SessionDir(noesis.noesis).open();
   const server = createMcpServer({
     version: '0.0.0-test',
     noesis: noesis.noesis,
-    session,
+    sessionFiles: files,
     changesService: noesis.changesService,
     designDocsService: noesis.designDocsService,
     documentsService: noesis.documentsService,
@@ -45,7 +45,7 @@ afterEach(async () => {
 
 /** The working file the agent writes before calling a tool. */
 async function workingFile(name: string, contents: unknown): Promise<string> {
-  const path = join(session.path, name);
+  const path = join(files.dir, name);
   await writeFile(
     path,
     typeof contents === 'string' ? contents : JSON.stringify(contents),
@@ -77,7 +77,7 @@ describe('the MCP surface', () => {
     expect(instructions).toContain(noesis.root);
     expect(instructions).toContain('.noesis/sessions/');
     // A session path here would be stale on a modern stdio connection.
-    expect(instructions).not.toContain(session.path);
+    expect(instructions).not.toContain(files.dir);
   });
 
   it('advertises the live scratch directory on every tool that reads from it', async () => {
@@ -86,7 +86,7 @@ describe('the MCP surface', () => {
     expect(writers).toHaveLength(6);
     for (const tool of writers) {
       const path = tool.inputSchema.properties?.path as { description: string };
-      expect(path.description).toContain(session.path);
+      expect(path.description).toContain(files.dir);
     }
   });
 

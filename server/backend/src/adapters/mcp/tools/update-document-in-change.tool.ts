@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
@@ -26,7 +26,7 @@ const outputSchema = z
 
 export function updateDocumentInChangeTool(
   documents: DocumentsService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     UPDATE_DOCUMENT_IN_CHANGE,
@@ -34,7 +34,7 @@ export function updateDocumentInChangeTool(
       title: 'Update document in change',
       description: `Replaces an existing document of a change whole. The id stays as it was, even when the title changes. Never creates a document; use ${CREATE_DOCUMENT_IN_CHANGE} for that. Write the document to a JSON working file under the session scratch directory and pass its path with the document's id.`,
       inputSchema: inChangeInput(
-        session,
+        files,
         SUBJECT,
         '{ "title", "date", "content" }, without "id".',
       ).extend({
@@ -47,19 +47,19 @@ export function updateDocumentInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        update(documents, session, change, input.id, input.path),
+        update(documents, files, change, input.id, input.path),
       ),
   );
 }
 
 async function update(
   documents: DocumentsService,
-  session: SessionDir,
+  files: SessionFiles,
   change: ChangeId,
   id: DocumentId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await session.readWorkingFile(DocumentContentSchema, path);
+  const document = await files.read(DocumentContentSchema, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

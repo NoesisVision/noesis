@@ -91,7 +91,7 @@ Generated JSON Schema contracts in `contracts/`, `.mcp.json` launching `${NOESIS
 
 Keep comments to a minimum. Code should be readable and comprehensible on its own: clear names, small functions and explicit types carry the meaning, not prose beside them. Add a comment only for information that is not present in the code — the reason behind a non-obvious choice or an external constraint (a bun or LadybugDB quirk, a load-bearing build flag). Never restate what a line does, and remove a comment that no longer says something the code cannot.
 
-Structure classes so the public surface reads as a sequence of steps (`NoesisDir` and `SessionDir` in `platform/files` are the reference):
+Structure classes so the public surface reads as a sequence of steps (`NoesisDir` in `platform/files` and `SessionDir` in `adapters/mcp` are the reference):
 
 - **Public methods compose, private methods do.** A public method's body is a short sequence of calls to private methods, one per meaningful step, each named for what it achieves (`createDirectories()`, `excludeUnversionedDirsFromGit()`), not how. A public name must say what happens: `ensureInitialized()`, not `ensure()`.
 - **Instance or module.** A helper that needs `this` is a private method; one that does not is a plain function at the bottom of the module (`isInside`, `realpathIfExists`).

@@ -1,5 +1,6 @@
 import type { Logger } from '@logtape/logtape';
 import { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import {
   loadServerConfig,
   type ServerConfig,
@@ -17,6 +18,7 @@ export interface Workspace {
   config: ServerConfig;
   noesis: NoesisDir;
   session: SessionDir;
+  sessionFiles: SessionFiles;
   log: Logger;
 }
 
@@ -38,11 +40,11 @@ export async function openWorkspace(): Promise<Workspace> {
   const log = serverLogger();
   log.info('knowledge graph files in {path}', { path: noesis.path });
 
-  const session = new SessionDir(noesis, repositoryRoot);
-  await session.open();
+  const session = new SessionDir(noesis);
+  const sessionFiles = await session.open();
   log.info('session scratch directory {path}', { path: session.path });
 
-  return { config, noesis, session, log };
+  return { config, noesis, session, sessionFiles, log };
 }
 
 function resolveRepositoryRoot(config: ServerConfig): string {

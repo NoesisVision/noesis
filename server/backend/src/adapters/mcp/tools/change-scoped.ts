@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
@@ -14,14 +14,14 @@ const ID_EXAMPLE = '"2026-09-24-payment-retry"';
  * this description is served by the process that owns it.
  */
 export function workingFilePath(
-  session: SessionDir,
+  files: SessionFiles,
   subject: string,
   fileShape: string,
 ) {
   return z
     .string()
     .describe(
-      `Path to a JSON working file holding the ${subject}: ${fileShape} Write it yourself into this session's scratch directory, ${session.path}, which is deleted when the session ends; any path under .noesis/sessions/ is accepted. The ${subject} never travels in this call.`,
+      `Path to a JSON working file holding the ${subject}: ${fileShape} Write it yourself into this session's scratch directory, ${files.dir}, which is deleted when the session ends; any path under .noesis/sessions/ is accepted. The ${subject} never travels in this call.`,
     );
 }
 
@@ -31,7 +31,7 @@ export function workingFilePath(
  * knowledge, answered in-band by `withChange`, so a shape check adds nothing.
  */
 export function inChangeInput(
-  session: SessionDir,
+  files: SessionFiles,
   subject: string,
   fileShape: string,
 ) {
@@ -42,7 +42,7 @@ export function inChangeInput(
         .describe(
           `The id of the change the ${subject} belongs to, as ${LIST_CHANGES} lists it, e.g. ${ID_EXAMPLE}.`,
         ),
-      path: workingFilePath(session, subject, fileShape),
+      path: workingFilePath(files, subject, fileShape),
     })
     .describe(`The change the ${subject} is in, and where it is written.`);
 }

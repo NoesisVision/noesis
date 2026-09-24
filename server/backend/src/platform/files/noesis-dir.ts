@@ -6,9 +6,11 @@ const UNVERSIONED_DIRS = ['sessions', 'logs'] as const;
 const GITIGNORE_LINES = UNVERSIONED_DIRS.map((dir) => `${dir}/`);
 
 export class NoesisDir {
+  readonly root: string;
   readonly path: string;
 
   constructor(repositoryRoot: string) {
+    this.root = repositoryRoot;
     this.path = join(repositoryRoot, NOESIS_DIR_NAME);
   }
 

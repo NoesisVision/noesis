@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
@@ -16,7 +16,7 @@ import { updateDocumentInChangeTool } from './tools/update-document-in-change.to
 export interface McpServerDeps {
   version: string;
   noesis: NoesisDir;
-  session: SessionDir;
+  sessionFiles: SessionFiles;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: DocumentsService;
@@ -43,13 +43,13 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    createChangeTool(deps.changesService, deps.session),
-    updateChangeTool(deps.changesService, deps.session),
+    createChangeTool(deps.changesService, deps.sessionFiles),
+    updateChangeTool(deps.changesService, deps.sessionFiles),
     listChangesTool(deps.changesService),
-    createDocumentInChangeTool(deps.documentsService, deps.session),
-    updateDocumentInChangeTool(deps.documentsService, deps.session),
-    createDesignDocInChangeTool(deps.designDocsService, deps.session),
-    updateDesignDocInChangeTool(deps.designDocsService, deps.session),
+    createDocumentInChangeTool(deps.documentsService, deps.sessionFiles),
+    updateDocumentInChangeTool(deps.documentsService, deps.sessionFiles),
+    createDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
+    updateDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
   ];
 }
 
@@ -61,9 +61,9 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
  * agent reads it. The live scratch directory is named by each tool's `path`
  * parameter instead, which `tools/list` answers from the serving process.
  */
-function instructions({ noesis, session }: McpServerDeps): string {
+function instructions({ noesis, sessionFiles }: McpServerDeps): string {
   return [
     `Noesis keeps this repository's knowledge graph as files under ${noesis.path}/. Work is organised into changes: a change collects the documents that inform it and the design documents that describe what it does to the model.`,
-    `Tools take paths, never content: write a working file under ${session.sessionsRoot}/ yourself — no tool call needed — and pass its path. Each tool's \`path\` parameter names the directory to write into.`,
+    `Tools take paths, never content: write a working file under ${sessionFiles.sessionsRoot}/ yourself — no tool call needed — and pass its path. Each tool's \`path\` parameter names the directory to write into.`,
   ].join('\n\n');
 }

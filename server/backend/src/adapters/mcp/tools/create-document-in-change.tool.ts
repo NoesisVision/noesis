@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import {
@@ -24,7 +24,7 @@ const outputSchema = z
 
 export function createDocumentInChangeTool(
   documents: DocumentsService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     CREATE_DOCUMENT_IN_CHANGE,
@@ -32,7 +32,7 @@ export function createDocumentInChangeTool(
       title: 'Create document in change',
       description: `Creates a document in a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The server mints its id from today's date and the title, and every call creates a new document, so revise one you created with ${UPDATE_DOCUMENT_IN_CHANGE}. Write the document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
-        session,
+        files,
         SUBJECT,
         `{ "title", "date", "content" }. ${NO_ID}`,
       ),
@@ -41,18 +41,18 @@ export function createDocumentInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        create(documents, session, change, input.path),
+        create(documents, files, change, input.path),
       ),
   );
 }
 
 async function create(
   documents: DocumentsService,
-  session: SessionDir,
+  files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await session.readWorkingFile(DocumentContentSchema, path);
+  const document = await files.read(DocumentContentSchema, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

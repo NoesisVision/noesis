@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import {
   type Change,
   ChangeContentSchema,
@@ -24,7 +24,7 @@ const outputSchema = z
 
 export function updateChangeTool(
   changes: ChangesService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     UPDATE_CHANGE,
@@ -37,7 +37,7 @@ export function updateChangeTool(
             `The id of the change to update, as ${LIST_CHANGES} lists it.`,
           ),
           path: workingFilePath(
-            session,
+            files,
             SUBJECT,
             `{ "name", "type", "key", "status", "description" }, without "id". Carry the "status" ${LIST_CHANGES} returned unless the change moves on; left out, it goes back to discovery.`,
           ),
@@ -48,17 +48,17 @@ export function updateChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) => update(changes, session, input.id, input.path),
+    (input) => update(changes, files, input.id, input.path),
   );
 }
 
 async function update(
   changes: ChangesService,
-  session: SessionDir,
+  files: SessionFiles,
   id: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const change = await session.readWorkingFile(ChangeContentSchema, path);
+  const change = await files.read(ChangeContentSchema, path);
   if (change.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${change.error}`);
   }

@@ -1,146 +1,59 @@
 import type { Dirent } from 'node:fs';
 import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
-import { isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
-import { err, ok, type Result } from 'neverthrow';
+import { join } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
-import type { ZodType } from 'zod';
-import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
+import { SessionFiles } from './session-files';
 
 const log = serverLogger('session');
-
-declare const workingFilePathBrand: unique symbol;
-/** Checked by `resolveWorkingPath`: real, and under `.noesis/sessions/`. */
-export type WorkingFilePath = string & {
-  readonly [workingFilePathBrand]: true;
-};
 
 const SESSIONS_DIR_NAME = 'sessions';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-/**
- * A working file is one document the agent just wrote, so anything this large
- * is the wrong path — an index, a log, a dump. Reading it would pull the whole
- * file into memory before the shape is known.
- */
-export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
-
 export interface SessionDirOptions {
   id?: string;
-  now?: () => number;
-  maxAgeMs?: number;
 }
 
 /**
- * MCP messages carry paths into this scratch area, not content. Nothing
- * written here is graph content.
+ * This session's scratch directory under `.noesis/sessions/`, from boot to
+ * shutdown. Nothing written here is graph content.
  */
 export class SessionDir {
-  readonly id: string;
   readonly path: string;
-  readonly sessionsRoot: string;
+  private readonly sessionsRoot: string;
+  private readonly id: string;
   private readonly repositoryRoot: string;
-  private readonly now: () => number;
-  private readonly maxAgeMs: number;
 
-  constructor(
-    noesis: NoesisDir,
-    repositoryRoot: string,
-    options: SessionDirOptions = {},
-  ) {
-    this.repositoryRoot = repositoryRoot;
+  constructor(noesis: NoesisDir, options: SessionDirOptions = {}) {
     this.id = options.id ?? uuidv7();
+    this.repositoryRoot = noesis.root;
     this.sessionsRoot = noesis.resolve(SESSIONS_DIR_NAME);
     this.path = join(this.sessionsRoot, this.id);
-    this.now = options.now ?? Date.now;
-    this.maxAgeMs = options.maxAgeMs ?? SESSION_MAX_AGE_MS;
   }
 
-  async open(): Promise<void> {
+  async open(): Promise<SessionFiles> {
     await mkdir(this.path, { recursive: true });
     await this.removeStaleSessionDirs();
+    return this.sessionFiles();
   }
 
   async dispose(): Promise<void> {
     await rm(this.path, { recursive: true, force: true });
   }
 
-  /**
-   * An MCP message carries a path into `.noesis/sessions/<session>/`,
-   * never the payload itself, and the payload is checked once — here, before
-   * any service sees it.
-   */
-  async readWorkingFile<T>(
-    schema: ZodType<T>,
-    path: string,
-  ): Promise<Result<T, string>> {
-    const resolved = await this.resolveWorkingPath(path);
-    if (resolved.isErr()) {
-      return err(
-        `${resolved.error} Write the file under ${this.path} and pass that path.`,
-      );
-    }
-    const { size } = await stat(resolved.value);
-    if (size > MAX_WORKING_FILE_BYTES) {
-      return err(
-        `${resolved.value} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
-      );
-    }
-    return readJsonFile(resolved.value, schema);
-  }
-
-  /**
-   * Any session's directory is accepted: skills may write under `sessions/`
-   * without knowing the id. Relative paths resolve against the repository
-   * root, where the agent's own tools run. Symlinks are followed before the
-   * check, so a link out of `sessions/` is refused too — and both spellings of
-   * `sessions/` count, the configured one and the one it resolves to, because an
-   * agent that resolves paths itself passes the latter.
-   */
-  async resolveWorkingPath(
-    input: string,
-  ): Promise<Result<WorkingFilePath, string>> {
-    const absolute = this.toAbsolute(input);
-    const realSessionsRoot = await realpathIfExists(this.sessionsRoot);
-    if (!this.isUnderSessionsRoot(absolute, realSessionsRoot)) {
-      return this.notUnderSessions(input);
-    }
-    const target = await realpathIfExists(absolute);
-    if (target === null) return noFileAt(absolute);
-    if (realSessionsRoot === null || !isInside(realSessionsRoot, target)) {
-      return this.notUnderSessions(input);
-    }
-    // The checked path, not the spelled one: a link swapped in after the check
-    // would otherwise be read in its place.
-    return ok(target as WorkingFilePath);
-  }
-
-  private toAbsolute(input: string): string {
-    return isAbsolute(input)
-      ? normalize(input)
-      : resolve(this.repositoryRoot, input);
-  }
-
-  private isUnderSessionsRoot(
-    absolute: string,
-    realSessionsRoot: string | null,
-  ): boolean {
-    return (
-      isInside(this.sessionsRoot, absolute) ||
-      (realSessionsRoot !== null && isInside(realSessionsRoot, absolute))
-    );
-  }
-
-  private notUnderSessions(input: string): Result<never, string> {
-    return err(
-      `${input} is not under ${relative(this.repositoryRoot, this.sessionsRoot)}/. Tools accept only paths under .noesis/sessions/; this session's directory is ${this.path}.`,
-    );
+  private async sessionFiles(): Promise<SessionFiles> {
+    return new SessionFiles({
+      repositoryRoot: this.repositoryRoot,
+      sessionsRoot: this.sessionsRoot,
+      realSessionsRoot: await realpath(this.sessionsRoot),
+      dir: this.path,
+    });
   }
 
   private async removeStaleSessionDirs(): Promise<void> {
-    const cutoff = this.now() - this.maxAgeMs;
+    const cutoff = Date.now() - SESSION_MAX_AGE_MS;
     let removed = 0;
     for (const dir of await this.listOtherSessionDirs()) {
       if (await this.removeIfStale(dir, cutoff)) removed += 1;
@@ -180,25 +93,4 @@ export class SessionDir {
       return false;
     }
   }
-}
-
-/** Strictly below: the parent itself does not count. */
-function isInside(parent: string, child: string): boolean {
-  const rel = relative(parent, child);
-  if (rel === '' || isAbsolute(rel)) return false;
-  // `..` as a whole segment climbs out; a name that merely starts with dots does not.
-  return rel !== '..' && !rel.startsWith(`..${sep}`);
-}
-
-async function realpathIfExists(path: string): Promise<string | null> {
-  try {
-    return await realpath(path);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
-    throw error;
-  }
-}
-
-function noFileAt(path: string): Result<never, string> {
-  return err(`No file at ${path}.`);
 }

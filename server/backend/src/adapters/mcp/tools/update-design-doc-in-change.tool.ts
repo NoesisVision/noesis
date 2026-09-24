@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
@@ -27,7 +27,7 @@ const outputSchema = z
 
 export function updateDesignDocInChangeTool(
   designDocs: DesignDocsService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     UPDATE_DESIGN_DOC_IN_CHANGE,
@@ -35,7 +35,7 @@ export function updateDesignDocInChangeTool(
       title: 'Update design document in change',
       description: `Replaces an existing design document of a change whole. The id stays as it was, even when the name changes. Never creates a design document; use ${CREATE_DESIGN_DOC_IN_CHANGE} for that. Write the design document to a JSON working file under the session scratch directory and pass its path with the design document's id.`,
       inputSchema: inChangeInput(
-        session,
+        files,
         SUBJECT,
         `${DESIGN_DOC_SHAPE} Without "id".`,
       ).extend({
@@ -48,22 +48,19 @@ export function updateDesignDocInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        update(designDocs, session, change, input.id, input.path),
+        update(designDocs, files, change, input.id, input.path),
       ),
   );
 }
 
 async function update(
   designDocs: DesignDocsService,
-  session: SessionDir,
+  files: SessionFiles,
   change: ChangeId,
   id: DesignDocId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await session.readWorkingFile(
-    DesignDocumentContentSchema,
-    path,
-  );
+  const document = await files.read(DesignDocumentContentSchema, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

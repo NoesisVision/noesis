@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import {
   type Change,
   ChangeSchema,
@@ -20,7 +20,7 @@ const outputSchema = z
 
 export function createChangeTool(
   changes: ChangesService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     CREATE_CHANGE,
@@ -30,7 +30,7 @@ export function createChangeTool(
       inputSchema: z
         .object({
           path: workingFilePath(
-            session,
+            files,
             SUBJECT,
             `{ "name", "type", "key", "description" }. ${NO_ID} A new change starts in discovery.`,
           ),
@@ -39,16 +39,16 @@ export function createChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) => create(changes, session, input.path),
+    (input) => create(changes, files, input.path),
   );
 }
 
 async function create(
   changes: ChangesService,
-  session: SessionDir,
+  files: SessionFiles,
   path: string,
 ): Promise<CallToolResult> {
-  const change = await session.readWorkingFile(NewChangeSchema, path);
+  const change = await files.read(NewChangeSchema, path);
   if (change.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${change.error}`);
   }

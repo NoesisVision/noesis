@@ -12,7 +12,7 @@ import { openWorkspace } from './boot/workspace';
 // and answers the SDK's era probe in milliseconds; the ui comes up only once a
 // session is known to be served, or when a person starts the process by hand.
 
-const { config, noesis, session } = await openWorkspace();
+const { config, noesis, session, sessionFiles } = await openWorkspace();
 const services = createServices(noesis);
 const ui = new UiHost({ config, services });
 const lifecycle = installLifecycle({ dispose: release });
@@ -20,7 +20,7 @@ const lifecycle = installLifecycle({ dispose: release });
 const mcp = serveMcp({
   version,
   noesis,
-  session,
+  sessionFiles,
   services,
   onServing: () => ui.start(),
   onStdinEnd: () => void lifecycle.shutdown(),

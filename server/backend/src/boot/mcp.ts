@@ -1,7 +1,7 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
 import { ServingTransport } from '#backend/adapters/mcp/serving-transport';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
 import type { Services } from './services';
@@ -11,7 +11,7 @@ const log = serverLogger('mcp');
 export interface McpOptions {
   version: string;
   noesis: NoesisDir;
-  session: SessionDir;
+  sessionFiles: SessionFiles;
   services: Services;
   /** The first message proving this process serves a session, not the era probe. */
   onServing: () => void;
@@ -35,13 +35,13 @@ export interface McpHandle {
  * not `server/discover` can start the ui.
  */
 export function serveMcp(options: McpOptions): McpHandle {
-  const { version, noesis, session, services } = options;
+  const { version, noesis, sessionFiles, services } = options;
   const handle = serveStdio(
     () =>
       createMcpServer({
         version,
         noesis,
-        session,
+        sessionFiles,
         changesService: services.changesService,
         designDocsService: services.designDocsService,
         documentsService: services.documentsService,

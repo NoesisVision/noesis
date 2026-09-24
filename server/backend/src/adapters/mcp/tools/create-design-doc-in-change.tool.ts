@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionDir } from '#backend/adapters/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
 import {
@@ -28,7 +28,7 @@ const outputSchema = z
 
 export function createDesignDocInChangeTool(
   designDocs: DesignDocsService,
-  session: SessionDir,
+  files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     CREATE_DESIGN_DOC_IN_CHANGE,
@@ -36,7 +36,7 @@ export function createDesignDocInChangeTool(
       title: 'Create design document in change',
       description: `Creates a design document in a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call creates a new design document, so revise one you created with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
-        session,
+        files,
         SUBJECT,
         `${DESIGN_DOC_SHAPE} ${NO_ID}`,
       ),
@@ -45,21 +45,18 @@ export function createDesignDocInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        create(designDocs, session, change, input.path),
+        create(designDocs, files, change, input.path),
       ),
   );
 }
 
 async function create(
   designDocs: DesignDocsService,
-  session: SessionDir,
+  files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await session.readWorkingFile(
-    DesignDocumentContentSchema,
-    path,
-  );
+  const document = await files.read(DesignDocumentContentSchema, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
