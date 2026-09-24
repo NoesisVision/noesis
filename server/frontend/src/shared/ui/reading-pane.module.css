@@ -43,18 +43,25 @@
   z-index: 1;
   margin-inline: calc(-1 * var(--reading-gutter));
   /*
-   * The title is centred in this box, so the box has to be symmetric: a
-   * narrower end than start would drift the title off the column beneath it
-   * by half the difference. The controls are pinned to the view, not to the
-   * end of this padding, so nothing else depends on it.
+   * A gutter on every side. At the start and the end because the title is
+   * centred in this box, and a narrower end would drift it off the column
+   * beneath by half the difference; at the top because the bar pulled a
+   * gutter back above, and putting back anything else would leave the title
+   * of a document sitting higher than the title of the list it came from,
+   * which `ViewHeader` draws at exactly the shell's own padding.
    */
-  padding: var(--mantine-spacing-md) var(--reading-gutter)
-    calc(var(--mantine-spacing-md) + 4px);
+  padding: var(--reading-gutter);
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-gray-9)
   );
-  margin-top: calc(var(--mantine-spacing-md) * -1);
+  /*
+   * `AppShell.Main` pads its content down from the shell's header by exactly a
+   * gutter, and the bar takes that back — all of it, so that where it rests is
+   * where it sticks. Any other amount and the bar slides by the difference the
+   * moment the reader scrolls, then pins.
+   */
+  margin-top: calc(-1 * var(--reading-gutter));
   transition: box-shadow 150ms ease;
 }
 
