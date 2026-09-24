@@ -20,6 +20,12 @@ describe('ChangeSlug', () => {
     expect(ChangeSlug.fromName('Été à Paris')).toBe(
       ChangeSlug.parse('ete-a-paris'),
     );
+    expect(ChangeSlug.fromName('Zażółć gęślą jaźń')).toBe(
+      ChangeSlug.parse('zazolc-gesla-jazn'),
+    );
+    expect(ChangeSlug.fromName('Łódź Straße')).toBe(
+      ChangeSlug.parse('lodz-strasse'),
+    );
     expect(ChangeSlug.fromName('!!!')).toBe(ChangeSlug.parse('untitled'));
     expect(ChangeSlug.fromName('x'.repeat(80))).toHaveLength(64);
   });

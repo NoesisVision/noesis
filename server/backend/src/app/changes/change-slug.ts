@@ -19,11 +19,25 @@ export const ChangeSlug = Object.assign(changeSlugSchema, {
 });
 export type ChangeSlug = z.infer<typeof changeSlugSchema>;
 
+/** Latin letters that NFKD leaves whole, so stripping marks can't reach them. */
+const TRANSLITERATIONS: Record<string, string> = {
+  ł: 'l',
+  ß: 'ss',
+  ø: 'o',
+  æ: 'ae',
+  œ: 'oe',
+  đ: 'd',
+  ð: 'd',
+  þ: 'th',
+  ı: 'i',
+};
+
 function slugify(text: string, maxLength: number): string {
   return text
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
+    .replace(/[łßøæœđðþı]/g, (letter) => TRANSLITERATIONS[letter] ?? letter)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, maxLength)
