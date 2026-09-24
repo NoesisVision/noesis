@@ -99,6 +99,12 @@ it('checks a default against the props of the component it is for', () => {
     return <div>{props.radius}</div>;
   }
 
+  // Spelled right, the default reaches the component it was named for.
+  const Wrapped = wrapComponent<typeof Probe, ProbeProps>(Probe, 'Probe', {
+    radius: 'md',
+  });
+  expect(renderToStaticMarkup(<Wrapped />)).toContain('md');
+
   // @ts-expect-error a misspelled prop is not one of ProbeProps
   wrapComponent<typeof Probe, ProbeProps>(Probe, 'Probe', { raddddius: 'md' });
   // @ts-expect-error defaults without a named props type are unchecked
