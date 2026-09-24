@@ -1,7 +1,7 @@
-import { readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { JsonFileError, readJsonFile, writeJsonFile } from './json-file';
+import { JsonFileError, parseJson, writeJsonFile } from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -23,65 +23,58 @@ export class JsonCollection<T extends { id: string }> {
   }
 
   /** `null` when absent; a `JsonFileError` when the file is broken. */
-  async get(id: string): Promise<T | null> {
-    return this.read(id, this.pathOf(id));
+  get(id: string): Promise<T | null> {
+    return this.read(id);
   }
 
   /** By id ascending; throws on the first broken file. */
   async list(): Promise<T[]> {
     const ids = (await this.listIds()).sort();
-    const entities = await Promise.all(
-      ids.map((id) => this.read(id, join(this.dir, this.fileName(id)))),
-    );
+    const entities = await Promise.all(ids.map((id) => this.read(id)));
     return entities.filter((entity) => entity !== null);
   }
 
+  // `async`, so a refused id rejects instead of throwing before the promise exists.
   async save(entity: T): Promise<void> {
     return writeJsonFile(this.pathOf(entity.id), this.schema, entity);
   }
 
-  async delete(id: string): Promise<boolean> {
-    const file = Bun.file(this.pathOf(id));
-    if (!(await file.exists())) return false;
-    await file.delete();
-    return true;
-  }
-
-  pathOf(id: string): string {
+  private pathOf(id: string): string {
     if (!ID_PATTERN.test(id)) {
       throw new Error(
         `Invalid id ${JSON.stringify(id)}; ids match ${ID_PATTERN}.`,
       );
     }
-    return join(this.dir, this.fileName(id));
-  }
-
-  private fileName(id: string): string {
-    return `${id}${this.suffix}`;
+    return join(this.dir, `${id}${this.suffix}`);
   }
 
   private async listIds(): Promise<string[]> {
-    const names = await readdirIfExists(this.dir);
-    return names
-      .filter((name) => name.endsWith(this.suffix))
-      .map((name) => name.slice(0, -this.suffix.length));
+    const names = (await readdirIfExists(this.dir)).filter((name) =>
+      name.endsWith(this.suffix),
+    );
+    for (const name of names) {
+      if (!ID_PATTERN.test(name.slice(0, -this.suffix.length))) {
+        throw new JsonFileError(
+          join(this.dir, name),
+          `the file name is not an id; ids match ${ID_PATTERN}.`,
+        );
+      }
+    }
+    return names.map((name) => name.slice(0, -this.suffix.length));
   }
 
-  private async read(id: string, path: string): Promise<T | null> {
-    if (!(await Bun.file(path).exists())) return null;
-    if (!ID_PATTERN.test(id)) {
-      throw new JsonFileError(
-        path,
-        `the file name is not an id; ids match ${ID_PATTERN}.`,
-      );
+  /** A file gone since `readdir` (a `git checkout` under the walk) is absent, not broken. */
+  private async read(id: string): Promise<T | null> {
+    const path = this.pathOf(id);
+    let text: string;
+    try {
+      text = await readFile(path, 'utf8');
+    } catch (error) {
+      if (isMissing(error)) return null;
+      throw error;
     }
-    const result = await readJsonFile(path, this.schema);
-    if (result.isErr()) {
-      // A file removed since the existence check (a `git checkout` under the
-      // walk) is absent, not broken.
-      if (!(await Bun.file(path).exists())) return null;
-      throw new JsonFileError(path, result.error);
-    }
+    const result = parseJson(text, this.schema);
+    if (result.isErr()) throw new JsonFileError(path, result.error);
     if (result.value.id !== id) {
       throw new JsonFileError(
         path,
@@ -96,7 +89,11 @@ async function readdirIfExists(dir: string): Promise<string[]> {
   try {
     return await readdir(dir);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    if (isMissing(error)) return [];
     throw error;
   }
+}
+
+function isMissing(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException).code === 'ENOENT';
 }

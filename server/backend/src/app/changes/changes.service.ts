@@ -72,15 +72,15 @@ export class ChangesService {
     ]);
     return [
       // `name` is a reviewable field, so the entry gets its value.
-      ...designDocs.map(({ id, name }): ChangeEntry => ({
+      ...designDocs.map((doc): ChangeEntry => ({
         kind: 'design-doc',
-        id,
-        name: name.value,
+        id: doc.id,
+        name: doc.name.value,
       })),
-      ...documents.map(({ id, title }): ChangeEntry => ({
+      ...documents.map((doc): ChangeEntry => ({
         kind: 'document',
-        id,
-        name: title,
+        id: doc.id,
+        name: doc.title,
       })),
     ];
   }

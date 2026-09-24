@@ -1,18 +1,19 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { ChangeOwnedRepository } from '#backend/adapters/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
-import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
-import { NoesisDocumentsRepository } from '#backend/adapters/store/documents.repository';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import {
+  type DesignDocument,
   type DesignDocumentInput,
   DesignDocumentSchema,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import {
+  type Document,
   type DocumentInput,
   DocumentSchema,
 } from '#backend/app/information-sources/document';
@@ -25,8 +26,8 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  designDocsRepository: NoesisDesignDocsRepository;
-  documentsRepository: NoesisDocumentsRepository;
+  designDocsRepository: ChangeOwnedRepository<DesignDocument>;
+  documentsRepository: ChangeOwnedRepository<Document>;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: DocumentsService;
@@ -52,8 +53,16 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new NoesisDesignDocsRepository(noesis);
-  const documentsRepository = new NoesisDocumentsRepository(noesis);
+  const designDocsRepository = new ChangeOwnedRepository(
+    noesis,
+    DesignDocumentSchema,
+    'design-doc',
+  );
+  const documentsRepository = new ChangeOwnedRepository(
+    noesis,
+    DocumentSchema,
+    'document',
+  );
   const changesService = new ChangesService(
     changesRepository,
     designDocsRepository,

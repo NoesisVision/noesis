@@ -45,9 +45,6 @@ describe('JsonCollection', () => {
     expect(await readdir(join(dir, 'notes'))).toEqual([
       '2026-09-24-first.note.json',
     ]);
-    expect(notes.pathOf('2026-09-24-first')).toBe(
-      join(dir, 'notes', '2026-09-24-first.note.json'),
-    );
     expect(await notes.get('2026-09-24-first')).toEqual(
       note('2026-09-24-first', 'hello'),
     );
@@ -100,7 +97,9 @@ describe('JsonCollection', () => {
     const error = await notes.get('a').catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(JsonFileError);
-    expect((error as JsonFileError).path).toBe(notes.pathOf('a'));
+    expect((error as JsonFileError).path).toBe(
+      join(dir, 'notes', 'a.note.json'),
+    );
     expect((error as JsonFileError).message).toContain('→ at text');
   });
 
@@ -119,12 +118,10 @@ describe('JsonCollection', () => {
 
   it('refuses an id that could name a path, before touching the disk', async () => {
     for (const id of ['../escape', 'a/b', '', 'Upper', '-leading', '.']) {
-      expect(() => notes.pathOf(id)).toThrow('Invalid id');
       await expect(notes.get(id)).rejects.toThrow('Invalid id');
-      await expect(notes.delete(id)).rejects.toThrow('Invalid id');
       await expect(notes.save(note(id))).rejects.toThrow('Invalid id');
     }
-    expect(await Bun.file(join(dir, 'escape.note.json')).exists()).toBe(false);
+    expect(await readdir(dir)).toEqual([]);
   });
 
   it('accepts a content-hash id', async () => {
@@ -132,13 +129,5 @@ describe('JsonCollection', () => {
     await notes.save(note(id));
 
     expect(await notes.get(id)).toEqual(note(id));
-  });
-
-  it('deletes a file, answering whether there was one', async () => {
-    await notes.save(note('a'));
-
-    expect(await notes.delete('a')).toBe(true);
-    expect(await notes.delete('a')).toBe(false);
-    expect(await notes.list()).toEqual([]);
   });
 });

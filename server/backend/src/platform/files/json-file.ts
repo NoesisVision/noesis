@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { mkdir, rename } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
 import { z, type ZodType } from 'zod';
@@ -7,19 +7,33 @@ import { z, type ZodType } from 'zod';
 /** One mistake repeated across a large array must not bury the first real cause. */
 const ISSUE_CAP = 20;
 
-/** Unreadable file, broken JSON or schema failure, as one message. */
-export async function readJsonFile<T>(
-  path: string,
+/** Broken JSON or a schema failure, as one message. */
+export function parseJson<T>(
+  text: string,
   schema: ZodType<T>,
-): Promise<Result<T, string>> {
+): Result<T, string> {
   let json: unknown;
   try {
-    json = JSON.parse(await Bun.file(path).text());
+    json = JSON.parse(text);
   } catch (error) {
     return err(`Unreadable JSON: ${String(error)}`);
   }
   const parsed = schema.safeParse(json);
   return parsed.success ? ok(parsed.data) : err(describeIssues(parsed.error));
+}
+
+/** Unreadable file, broken JSON or schema failure, as one message. */
+export async function readJsonFile<T>(
+  path: string,
+  schema: ZodType<T>,
+): Promise<Result<T, string>> {
+  let text: string;
+  try {
+    text = await readFile(path, 'utf8');
+  } catch (error) {
+    return err(`Unreadable JSON: ${String(error)}`);
+  }
+  return parseJson(text, schema);
 }
 
 /**
@@ -60,12 +74,10 @@ function describeIssues(error: z.ZodError): string {
 async function replaceAtomically(path: string, content: string): Promise<void> {
   const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
   try {
-    await Bun.write(temp, content);
+    await writeFile(temp, content);
     await rename(temp, path);
   } catch (error) {
-    await Bun.file(temp)
-      .delete()
-      .catch(() => undefined);
+    await rm(temp, { force: true });
     throw error;
   }
 }

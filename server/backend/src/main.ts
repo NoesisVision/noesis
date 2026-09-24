@@ -8,12 +8,13 @@ import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { version } from '../package.json';
 import { createMcpServer } from './adapters/mcp/mcp-server';
 import { ServingTransport } from './adapters/mcp/serving-transport';
+import { ChangeOwnedRepository } from './adapters/store/change-owned.repository';
 import { NoesisChangesRepository } from './adapters/store/changes.repository';
-import { NoesisDesignDocsRepository } from './adapters/store/design-docs.repository';
-import { NoesisDocumentsRepository } from './adapters/store/documents.repository';
 import { createApp } from './app';
 import { ChangesService } from './app/changes/changes.service';
+import { DesignDocumentSchema } from './app/design-docs/design-doc';
 import { DesignDocsService } from './app/design-docs/design-docs.service';
+import { DocumentSchema } from './app/information-sources/document';
 import { DocumentsService } from './app/information-sources/documents.service';
 import { SearchService } from './app/search/search.service';
 import { openBrowser } from './browser';
@@ -53,8 +54,16 @@ await session.open();
 log.info('session scratch directory {path}', { path: session.path });
 
 const changesRepository = new NoesisChangesRepository(noesis);
-const designDocsRepository = new NoesisDesignDocsRepository(noesis);
-const documentsRepository = new NoesisDocumentsRepository(noesis);
+const designDocsRepository = new ChangeOwnedRepository(
+  noesis,
+  DesignDocumentSchema,
+  'design-doc',
+);
+const documentsRepository = new ChangeOwnedRepository(
+  noesis,
+  DocumentSchema,
+  'document',
+);
 const changesService = new ChangesService(
   changesRepository,
   designDocsRepository,
