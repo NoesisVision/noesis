@@ -4,13 +4,20 @@ import {
   IconViewportNarrow,
   IconViewportWide,
 } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import {
   useFullscreenElement,
   useLocalStorage,
+  useMergedRef,
 } from '#/shared/design-system/hooks.ts';
 import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
@@ -61,6 +68,41 @@ interface ReadingPaneProps {
 }
 
 /**
+ * Whether the document has moved under the header, so it can draw the edge
+ * that says the page carries on beneath it.
+ *
+ * The header rests at the very offset it sticks to, so where it sits says
+ * nothing about whether it is holding anything back; what the reader has
+ * scrolled does. Either scroller counts — the pane's own in full screen, the
+ * page's otherwise — and a scroll event does not bubble but is seen on the way
+ * down, so one capturing listener hears whichever of the two it was.
+ */
+function useScrolledUnder(pane: RefObject<HTMLDivElement | null>): boolean {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const read = () =>
+      setScrolled(
+        Math.max(
+          document.scrollingElement?.scrollTop ?? 0,
+          pane.current?.scrollTop ?? 0,
+        ) > 0,
+      );
+
+    read();
+    document.addEventListener('scroll', read, { capture: true, passive: true });
+    // Leaving full screen hands the scrolling back to the page.
+    document.addEventListener('fullscreenchange', read);
+    return () => {
+      document.removeEventListener('scroll', read, { capture: true });
+      document.removeEventListener('fullscreenchange', read);
+    };
+  }, [pane]);
+
+  return scrolled;
+}
+
+/**
  * The surface a whole document is read on: its heading, and above it the
  * controls for how much of the window it takes. Full screen is the browser's
  * own, asked for on this element, so the shell around it is simply not painted
@@ -85,10 +127,18 @@ export function ReadingPane({
   // A browser that refuses the request leaves the pane as it is, which is the
   // state the button already shows, so there is nothing to report.
   const toggleFullscreen = () => void toggle().catch(() => {});
+  // The pane is both what goes full screen and what scrolls while it is.
+  const pane = useRef<HTMLDivElement>(null);
+  const paneRef = useMergedRef(ref, pane);
+  const stuck = useScrolledUnder(pane);
 
   return (
-    <Box component="article" ref={ref} className={classes.surface}>
-      <Box className={classes.header} data-width={width}>
+    <Box component="article" ref={paneRef} className={classes.surface}>
+      <Box
+        className={classes.header}
+        data-width={width}
+        data-stuck={stuck || undefined}
+      >
         <Box className={classes.headerColumn}>
           <IconHeading title={title} icon={icon} description={description} />
         </Box>

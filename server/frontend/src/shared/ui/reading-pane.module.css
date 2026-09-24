@@ -54,7 +54,20 @@
     var(--mantine-color-gray-0),
     var(--mantine-color-gray-9)
   );
-  margin-top: calc((var(--mantine-spacing-md) * -1) - 4px);
+  margin-top: calc(var(--mantine-spacing-md) * -1);
+  transition: box-shadow 150ms ease;
+}
+
+/*
+ * Once the document runs on underneath it, the header says where it ends: a
+ * hairline and the softest lift under it. A shadow rather than a border, so
+ * nothing below moves by a pixel the moment it appears.
+ */
+.header[data-stuck] {
+  box-shadow:
+    0 1px 0 0
+      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)),
+    0 8px 12px -12px light-dark(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
 }
 
 /*
@@ -93,13 +106,18 @@
   max-width: 900px;
 }
 
-/* At the view's right edge in either width, so the switch never moves. */
+/*
+ * At the view's right edge in either width, so the switch never moves, and
+ * centred in the bar by the free space above and below it: `inset-block` plus
+ * a height of its own leaves `auto` margins to share what is left, so the
+ * controls stay centred whatever height they or the title come to.
+ */
 .controls {
   position: absolute;
   inset-block: 0;
-  right: var(--reading-gutter);
+  right: 17px;
   height: fit-content;
-  top: 10px;
+  margin-block: auto;
 }
 
 .column {

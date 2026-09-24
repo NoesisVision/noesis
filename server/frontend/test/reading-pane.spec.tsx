@@ -50,3 +50,8 @@ it('keeps the controls off a small screen, where they say nothing', () => {
   // The same width the shell folds its sidebar at.
   expect(pane).toContain('mantine-visible-from-md');
 });
+
+it('marks the header only once the document has run under it', () => {
+  // Nothing has scrolled in a static render, so the edge is not drawn yet.
+  expect(pane).not.toContain('data-stuck');
+});
