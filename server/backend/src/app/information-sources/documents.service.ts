@@ -5,7 +5,9 @@ import type {
   ChangesService,
 } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
-import type { Document } from './document';
+import { freeSlugId } from '#backend/app/slug-id';
+import type { Today } from '#backend/app/today';
+import type { Document, DocumentContent } from './document';
 import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
@@ -22,15 +24,38 @@ export interface DocumentDetail {
   document: Document;
 }
 
-/** Callers validate before calling in; the id comes with the document. */
+export class DocumentNotFoundError extends Error {
+  readonly change: ChangeId;
+  readonly id: DocumentId;
+
+  constructor(change: ChangeId, id: DocumentId) {
+    super(
+      `No document ${JSON.stringify(id)} in change ${JSON.stringify(change)}.`,
+    );
+    this.name = 'DocumentNotFoundError';
+    this.change = change;
+    this.id = id;
+  }
+}
+
+/**
+ * Callers validate before calling in. The service mints the id of a new
+ * document; an update names it.
+ */
 export class DocumentsService {
   private readonly docs: DocumentsRepository;
   private readonly changesService: ChangesService;
+  private readonly today: Today;
   private readonly writes = new Serial();
 
-  constructor(docs: DocumentsRepository, changesService: ChangesService) {
+  constructor(
+    docs: DocumentsRepository,
+    changesService: ChangesService,
+    today: Today,
+  ) {
     this.docs = docs;
     this.changesService = changesService;
+    this.today = today;
   }
 
   /**
@@ -44,6 +69,46 @@ export class DocumentsService {
       const created = (await this.docs.get(change, document.id)) === null;
       await this.docs.save(change, document);
       return { value: summarize(document), created };
+    });
+  }
+
+  /**
+   * Creates the document in the change, at an id minted from today's date
+   * and its title. A title already used that day in the change gets the next
+   * free suffix.
+   */
+  create(
+    change: ChangeId,
+    document: DocumentContent,
+  ): Promise<DocumentSummary> {
+    return this.writes.run(async () => {
+      await this.changesService.assertExists(change);
+      const id = await freeSlugId(
+        DocumentId,
+        document.title,
+        this.today(),
+        async (candidate) => (await this.docs.get(change, candidate)) !== null,
+      );
+      const created: Document = { id, ...document };
+      await this.docs.save(change, created);
+      return summarize(created);
+    });
+  }
+
+  /** Replaces the document at `id` whole; never creates one. */
+  update(
+    change: ChangeId,
+    id: DocumentId,
+    document: DocumentContent,
+  ): Promise<DocumentSummary> {
+    return this.writes.run(async () => {
+      await this.changesService.assertExists(change);
+      if ((await this.docs.get(change, id)) === null) {
+        throw new DocumentNotFoundError(change, id);
+      }
+      const updated: Document = { id, ...document };
+      await this.docs.save(change, updated);
+      return summarize(updated);
     });
   }
 

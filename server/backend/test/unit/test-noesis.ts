@@ -20,6 +20,9 @@ import {
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
+/** The day every service in a spec mints its ids on. */
+const TODAY = () => '2026-09-24';
+
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
 export interface TestNoesis {
@@ -67,6 +70,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     changesRepository,
     designDocsRepository,
     documentsRepository,
+    TODAY,
   );
   return {
     root,
@@ -78,8 +82,13 @@ export async function testNoesis(): Promise<TestNoesis> {
     designDocsService: new DesignDocsService(
       designDocsRepository,
       changesService,
+      TODAY,
     ),
-    documentsService: new DocumentsService(documentsRepository, changesService),
+    documentsService: new DocumentsService(
+      documentsRepository,
+      changesService,
+      TODAY,
+    ),
     changesDir: noesis.resolve('graph', 'changes'),
     createChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);

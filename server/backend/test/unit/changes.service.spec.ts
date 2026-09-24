@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import type { Change } from '#backend/app/changes/change';
+import {
+  type Change,
+  ChangeContentSchema,
+  NewChangeSchema,
+} from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
@@ -126,5 +130,81 @@ describe('ChangesService', () => {
       '2026-01-02-newer 0',
       '2026-01-01-older 1',
     ]);
+  });
+});
+
+describe('ChangesService.create', () => {
+  const draft = NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' });
+
+  it("mints the id from today's date and the name, and starts in discovery", async () => {
+    const created = await t.changesService.create(draft);
+
+    expect(created).toEqual({
+      id: ChangeId.parse('2026-09-24-payment-retry'),
+      name: 'Payment retry',
+      key: '',
+      type: 'fix',
+      status: 'discovery',
+      description: '',
+    });
+    expect(await t.changesService.findById(created.id)).toEqual(created);
+  });
+
+  it('gives a name already used today the next free suffix', async () => {
+    await t.changesService.create(draft);
+    const second = await t.changesService.create(draft);
+
+    expect(second.id).toBe(ChangeId.parse('2026-09-24-payment-retry-2'));
+    expect(await t.changesService.list()).toHaveLength(2);
+  });
+
+  it('gives parallel creates of one name different ids', async () => {
+    const created = await Promise.all([
+      t.changesService.create(draft),
+      t.changesService.create(draft),
+      t.changesService.create(draft),
+    ]);
+
+    expect(created.map((c) => c.id)).toEqual([
+      ChangeId.parse('2026-09-24-payment-retry'),
+      ChangeId.parse('2026-09-24-payment-retry-2'),
+      ChangeId.parse('2026-09-24-payment-retry-3'),
+    ]);
+  });
+});
+
+describe('ChangesService.update', () => {
+  it('replaces the change at its id, which a rename leaves as it was', async () => {
+    const { id } = await t.changesService.create(
+      NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' }),
+    );
+
+    const updated = await t.changesService.update(
+      id,
+      ChangeContentSchema.parse({
+        name: 'Payment retries',
+        type: 'feature',
+        status: 'design',
+      }),
+    );
+
+    expect(updated.id).toBe(id);
+    expect(await t.changesService.list()).toEqual([updated]);
+    expect(updated).toMatchObject({
+      name: 'Payment retries',
+      status: 'design',
+    });
+  });
+
+  it('refuses an id that names no change, and creates nothing', async () => {
+    const missing = ChangeId.parse('2026-09-24-missing');
+
+    await expect(
+      t.changesService.update(
+        missing,
+        ChangeContentSchema.parse({ name: 'Missing', type: 'fix' }),
+      ),
+    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+    expect(await t.changesService.list()).toEqual([]);
   });
 });

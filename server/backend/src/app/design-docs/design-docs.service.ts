@@ -5,7 +5,9 @@ import type {
   ChangesService,
 } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
-import type { DesignDocument } from './design-doc';
+import { freeSlugId } from '#backend/app/slug-id';
+import type { Today } from '#backend/app/today';
+import type { DesignDocument, DesignDocumentContent } from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
@@ -24,15 +26,38 @@ export interface DesignDocDetail {
   document: DesignDocument;
 }
 
-/** Callers validate before calling in; the id comes with the document. */
+export class DesignDocNotFoundError extends Error {
+  readonly change: ChangeId;
+  readonly id: DesignDocId;
+
+  constructor(change: ChangeId, id: DesignDocId) {
+    super(
+      `No design document ${JSON.stringify(id)} in change ${JSON.stringify(change)}.`,
+    );
+    this.name = 'DesignDocNotFoundError';
+    this.change = change;
+    this.id = id;
+  }
+}
+
+/**
+ * Callers validate before calling in. The service mints the id of a new
+ * document; an update names it.
+ */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
   private readonly changesService: ChangesService;
+  private readonly today: Today;
   private readonly writes = new Serial();
 
-  constructor(docs: DesignDocsRepository, changesService: ChangesService) {
+  constructor(
+    docs: DesignDocsRepository,
+    changesService: ChangesService,
+    today: Today,
+  ) {
     this.docs = docs;
     this.changesService = changesService;
+    this.today = today;
   }
 
   /**
@@ -49,6 +74,46 @@ export class DesignDocsService {
       const created = (await this.docs.get(change, document.id)) === null;
       await this.docs.save(change, document);
       return { value: summarize(document), created };
+    });
+  }
+
+  /**
+   * Creates the design document in the change, at an id minted from today's date
+   * and its name. A name already used that day in the change gets the next
+   * free suffix.
+   */
+  create(
+    change: ChangeId,
+    document: DesignDocumentContent,
+  ): Promise<DesignDocSummary> {
+    return this.writes.run(async () => {
+      await this.changesService.assertExists(change);
+      const id = await freeSlugId(
+        DesignDocId,
+        document.name.value,
+        this.today(),
+        async (candidate) => (await this.docs.get(change, candidate)) !== null,
+      );
+      const created: DesignDocument = { id, ...document };
+      await this.docs.save(change, created);
+      return summarize(created);
+    });
+  }
+
+  /** Replaces the design document at `id` whole; never creates one. */
+  update(
+    change: ChangeId,
+    id: DesignDocId,
+    document: DesignDocumentContent,
+  ): Promise<DesignDocSummary> {
+    return this.writes.run(async () => {
+      await this.changesService.assertExists(change);
+      if ((await this.docs.get(change, id)) === null) {
+        throw new DesignDocNotFoundError(change, id);
+      }
+      const updated: DesignDocument = { id, ...document };
+      await this.docs.save(change, updated);
+      return summarize(updated);
     });
   }
 

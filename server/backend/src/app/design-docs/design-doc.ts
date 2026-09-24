@@ -210,6 +210,12 @@ export const DesignDocumentSchema = z.object({
 });
 export type DesignDocument = z.infer<typeof DesignDocumentSchema>;
 
+/** The working file of a design document: the server mints the id of a new one; an update names it beside the file. */
+export const DesignDocumentContentSchema = DesignDocumentSchema.omit({
+  id: true,
+});
+export type DesignDocumentContent = z.infer<typeof DesignDocumentContentSchema>;
+
 /** The JSON form: what an agent writes, what the store holds, what the wire carries. */
 export type DesignDocumentInput = z.input<typeof DesignDocumentSchema>;
 

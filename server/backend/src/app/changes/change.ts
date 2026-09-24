@@ -59,3 +59,11 @@ export const ChangeSchema = z
   })
   .describe('One change: graph/changes/<id>.change.json.');
 export type Change = z.infer<typeof ChangeSchema>;
+
+/** The working file of a new change: the server mints its id, and it starts in discovery. */
+export const NewChangeSchema = ChangeSchema.omit({ id: true, status: true });
+export type NewChange = z.infer<typeof NewChangeSchema>;
+
+/** The working file of a change update: the id travels beside it. */
+export const ChangeContentSchema = ChangeSchema.omit({ id: true });
+export type ChangeContent = z.infer<typeof ChangeContentSchema>;

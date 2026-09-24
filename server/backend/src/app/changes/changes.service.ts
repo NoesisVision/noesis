@@ -1,9 +1,11 @@
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
 import { Serial } from '#backend/app/serial';
-import type { Change } from './change';
+import { freeSlugId } from '#backend/app/slug-id';
+import type { Today } from '#backend/app/today';
+import type { Change, ChangeContent, NewChange } from './change';
 import type { ChangeEntry, ChangeWithEntries } from './change-entry';
-import type { ChangeId } from './change-id';
+import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
 
 /** What an add answers: the entity as stored, and whether the id was new. */
@@ -26,16 +28,19 @@ export class ChangesService {
   private readonly changes: ChangesRepository;
   private readonly designDocs: DesignDocsRepository;
   private readonly documents: DocumentsRepository;
+  private readonly today: Today;
   private readonly writes = new Serial();
 
   constructor(
     changes: ChangesRepository,
     designDocs: DesignDocsRepository,
     documents: DocumentsRepository,
+    today: Today,
   ) {
     this.changes = changes;
     this.designDocs = designDocs;
     this.documents = documents;
+    this.today = today;
   }
 
   /** Newest first: the id starts with the creation date. */
@@ -95,6 +100,34 @@ export class ChangesService {
       const created = (await this.changes.get(change.id)) === null;
       await this.changes.save(change);
       return { value: change, created };
+    });
+  }
+
+  /**
+   * Creates the change in discovery, at an id minted from today's date and
+   * its name. A name already used that day gets the next free suffix.
+   */
+  create(change: NewChange): Promise<Change> {
+    return this.writes.run(async () => {
+      const id = await freeSlugId(
+        ChangeId,
+        change.name,
+        this.today(),
+        async (candidate) => (await this.changes.get(candidate)) !== null,
+      );
+      const created: Change = { id, ...change, status: 'discovery' };
+      await this.changes.save(created);
+      return created;
+    });
+  }
+
+  /** Replaces the change at `id` whole; never creates one. */
+  update(id: ChangeId, change: ChangeContent): Promise<Change> {
+    return this.writes.run(async () => {
+      await this.assertExists(id);
+      const updated: Change = { id, ...change };
+      await this.changes.save(updated);
+      return updated;
     });
   }
 

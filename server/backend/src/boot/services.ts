@@ -6,6 +6,7 @@ import { DesignDocsService } from '#backend/app/design-docs/design-docs.service'
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { SearchService } from '#backend/app/search/search.service';
+import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The application layer, shared by the MCP tools and the ui routes. */
@@ -34,14 +35,20 @@ export function createServices(noesis: NoesisDir): Services {
     changesRepository,
     designDocsRepository,
     documentsRepository,
+    localToday,
   );
   return {
     changesService,
     designDocsService: new DesignDocsService(
       designDocsRepository,
       changesService,
+      localToday,
     ),
-    documentsService: new DocumentsService(documentsRepository, changesService),
+    documentsService: new DocumentsService(
+      documentsRepository,
+      changesService,
+      localToday,
+    ),
     searchService: new SearchService(),
   };
 }
