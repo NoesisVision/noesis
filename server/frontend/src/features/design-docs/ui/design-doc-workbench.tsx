@@ -6,7 +6,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -21,6 +21,7 @@ import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { ModelTree } from '#/shared/ui/model-tree.tsx';
+import { expansionMemory } from '#/shared/ui/outline-memory.ts';
 import {
   type ModelTreeController,
   useModelTree,
@@ -40,9 +41,35 @@ import classes from './design-doc-workbench.module.css';
  * document open, and opening another one starts again rather than carrying a
  * selection that names nothing.
  */
-export function DesignDocWorkbench({ detail }: { detail: DesignDocDetail }) {
+export function DesignDocWorkbench({
+  detail,
+  node,
+  query,
+  onSelect,
+  onQuery,
+}: {
+  detail: DesignDocDetail;
+  node: string | null;
+  query: string;
+  onSelect: (path: string) => void;
+  onQuery: (query: string) => void;
+}) {
   const { document: doc, outline } = detail;
-  const controller = useModelTree(outline);
+  const memory = useMemo(
+    () => expansionMemory(`noesis.designDocs.${detail.summary.id}.expanded`),
+    [detail.summary.id],
+  );
+  // An address naming an element this document no longer has is not an error
+  // to show the reader: the design was rewritten, and the top of the tree is
+  // where they would have started anyway.
+  const known = outline.some((element) => element.path === node);
+  const controller = useModelTree(outline, {
+    selected: known ? node : (outline[0]?.path ?? null),
+    onSelect,
+    query,
+    onQuery,
+    memory,
+  });
   const { ref, toggle, fullscreen } = useFullscreenElement<HTMLDivElement>();
   const fullscreenLabel = fullscreen ? 'Exit full screen' : 'Full screen';
   // A browser that refuses leaves the pane as it is, which is what the button

@@ -4,11 +4,20 @@ import { DesignDocWorkbench } from '../src/features/design-docs/ui/design-doc-wo
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { designDocDetailFixture } from './fixtures/design-doc.fixture';
 
-const page = renderToStaticMarkup(
-  <MantineProvider>
-    <DesignDocWorkbench detail={designDocDetailFixture} />
-  </MantineProvider>,
-);
+const reading = (node: string | null, query = '') =>
+  renderToStaticMarkup(
+    <MantineProvider>
+      <DesignDocWorkbench
+        detail={designDocDetailFixture}
+        node={node}
+        query={query}
+        onSelect={() => {}}
+        onQuery={() => {}}
+      />
+    </MantineProvider>,
+  );
+
+const page = reading(null);
 
 const headings = [...page.matchAll(/<h([1-6])[^>]*>(.*?)<\/h\1>/g)].map(
   ([, level, text]) => [Number(level), text] as const,
@@ -56,5 +65,25 @@ describe('DesignDocWorkbench', () => {
   it('says nothing is being searched until something is', () => {
     expect(page).not.toContain('<output');
     expect(page).not.toContain('aria-label="Clear the search"');
+  });
+
+  it('opens on the element the address names', () => {
+    const html = reading('building_block|sales.refunds.Refund');
+    expect(html).toMatch(/<h2[^>]*>Refund<\/h2>/);
+    expect(html.match(/aria-selected="true"/g)).toHaveLength(1);
+  });
+
+  it('falls back to the top when the address names nothing here', () => {
+    // A design document is rewritten by the agent; a bookmark outlives the
+    // element it named, and that is not a page to show an error on.
+    expect(reading('building_block|gone.Away')).toMatch(/<h2[^>]*>sales<\/h2>/);
+  });
+
+  it('carries a search from the address into the outline', () => {
+    const html = reading(null, 'aggregate');
+    expect(html).toContain('<output');
+    expect(html).toContain('aria-label="Clear the search"');
+    expect(html).toMatch(/<mark[^>]*>aggregate<\/mark>/);
+    expect(html.match(/role="treeitem"/g)).toHaveLength(3);
   });
 });

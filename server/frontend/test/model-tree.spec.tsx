@@ -16,8 +16,15 @@ import { outlineFixture } from './fixtures/outline.fixture';
  * whether a row is open are attributes, because a rail drawn in CSS is
  * invisible to `bun test` and to a screen reader alike.
  */
+const nothing = () => {};
+
 function Harness({ nodes }: { nodes: OutlineNode[] }) {
-  const controller = useModelTree(nodes);
+  const controller = useModelTree(nodes, {
+    selected: nodes[0]?.path ?? null,
+    onSelect: nothing,
+    query: '',
+    onQuery: nothing,
+  });
   return <ModelTree controller={controller} label="Design outline" />;
 }
 
@@ -106,7 +113,6 @@ describe('ModelTree', () => {
 function searching(query: string): ModelTreeController {
   const tree = outlineTree(outlineFixture);
   const search = searchOutline(tree, query);
-  const nothing = () => {};
   return {
     tree,
     selected: null,

@@ -10,6 +10,7 @@ import {
   type SearchShape,
   UNTOUCHED,
 } from './outline-expansion.ts';
+import { type ExpansionMemory, FORGETFUL } from './outline-memory.ts';
 import { type OutlineSearch, searchOutline } from './outline-search.ts';
 import { type OutlineTree, outlineTree } from './outline-tree.ts';
 
@@ -38,16 +39,38 @@ export interface ModelTreeController {
   readonly collapseAll: () => void;
 }
 
+/**
+ * Where the reader is and what they are looking for belong to the page, not
+ * to the tree: they are in the address, so they survive a step away and come
+ * back, and a link to one of them means something. The shape the tree is in
+ * is the tree's own, and is remembered rather than addressed.
+ */
+export interface ModelTreeState {
+  readonly selected: string | null;
+  readonly onSelect: (path: string) => void;
+  readonly query: string;
+  readonly onQuery: (query: string) => void;
+  readonly memory?: ExpansionMemory;
+}
+
 export function useModelTree(
   nodes: readonly OutlineNode[],
+  state: ModelTreeState,
 ): ModelTreeController {
+  const { selected, onSelect, query, onQuery, memory = FORGETFUL } = state;
   const tree = useMemo(() => outlineTree(nodes), [nodes]);
-  const [expanded, setExpanded] = useState(() => defaultExpansion(tree));
-  const [selected, setSelected] = useState<string | null>(
-    () => tree.roots[0]?.path ?? null,
+  const [expanded, setExpanded] = useState(
+    () => memory.recall() ?? defaultExpansion(tree),
   );
-  const [query, setQuery] = useState('');
   const [shape, setShape] = useState<SearchShape>(UNTOUCHED);
+
+  const keep = useCallback(
+    (paths: Set<string>) => {
+      memory.remember(paths);
+      return paths;
+    },
+    [memory],
+  );
 
   const search = useMemo(() => searchOutline(tree, query), [tree, query]);
 
@@ -73,10 +96,10 @@ export function useModelTree(
         const next = new Set(current);
         if (open) next.add(path);
         else next.delete(path);
-        return next;
+        return keep(next);
       });
     },
-    [search.active],
+    [search.active, keep],
   );
 
   const expand = useCallback((path: string) => setOpen(path, true), [setOpen]);
@@ -87,13 +110,13 @@ export function useModelTree(
 
   const expandAll = useCallback(() => {
     if (search.active) setShape(openEverything(tree, search));
-    else setExpanded(expandablePaths(tree));
-  }, [tree, search]);
+    else setExpanded(keep(expandablePaths(tree)));
+  }, [tree, search, keep]);
 
   const collapseAll = useCallback(() => {
     if (search.active) setShape(closeToMatches(tree, search));
-    else setExpanded(new Set());
-  }, [tree, search]);
+    else setExpanded(keep(new Set()));
+  }, [tree, search, keep]);
 
   /*
    * Putting a query away puts the tree back as it was, plus the way down to
@@ -102,20 +125,19 @@ export function useModelTree(
    */
   const ask = useCallback(
     (next: string) => {
-      setQuery(next);
-      if (searchIsOver(query, next)) {
-        setShape(UNTOUCHED);
-        setExpanded((current) => {
-          if (selected === null) return current;
-          const kept = new Set(current);
-          for (const ancestor of tree.ancestryOf(selected)) {
-            if (ancestor !== selected) kept.add(ancestor);
-          }
-          return kept;
-        });
-      }
+      onQuery(next);
+      if (!searchIsOver(query, next)) return;
+      setShape(UNTOUCHED);
+      setExpanded((current) => {
+        if (selected === null) return current;
+        const kept = new Set(current);
+        for (const ancestor of tree.ancestryOf(selected)) {
+          if (ancestor !== selected) kept.add(ancestor);
+        }
+        return keep(kept);
+      });
     },
-    [query, selected, tree],
+    [query, selected, tree, onQuery, keep],
   );
 
   /*
@@ -125,10 +147,10 @@ export function useModelTree(
    */
   const open = useCallback(
     (path: string) => {
-      setSelected(path);
+      onSelect(path);
       if (tree.childrenOf(path).length > 0) setOpen(path, !isExpanded(path));
     },
-    [tree, setOpen, isExpanded],
+    [tree, setOpen, isExpanded, onSelect],
   );
 
   return {
@@ -142,7 +164,7 @@ export function useModelTree(
     isExpanded,
     isVisible: (path) => search.visible === null || search.visible.has(path),
     open,
-    select: setSelected,
+    select: onSelect,
     expand,
     collapse,
     expandAll,
