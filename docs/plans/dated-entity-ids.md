@@ -15,14 +15,14 @@ rework is a separate plan (`storage-layout-c.md`) that assumes this one is done.
 | Id scope        | A change id is unique among changes; a document or design-doc id is unique only within its change (the same `2026-09-24-refund-flow` may exist in two changes)                                                  |
 | Why dated       | Fewer collisions than a bare slug, ids sort by creation date, and the files stay readable when edited by hand                                                                                                   |
 | Who mints ids   | The writer of the file: a plugin script derives the id from the title and today's date and puts it in the body. Every entity, the change included, reaches the server as a session file                         |
-| Existing id     | Every save is an upsert: an id already on disk is an update. The same title on the same day therefore overwrites the earlier entity; the scripts warn when the target already exists                            |
+| Existing id     | Every save is an upsert: an id already on disk is an update. The same title on the same day therefore overwrites the earlier entity; the tool answers whether it created or updated, so the agent notices       |
 | Id stability    | Immutable: the id is minted once, at creation, and never re-derived. A title or name change is an ordinary update at the same id; the id keeps the original title                                               |
 | Get by id       | Nested: `get(changeId, id)`; HTTP routes stay `/changes/:changeId/documents/:id`                                                                                                                                |
 | Change upsert   | The agent's file carries `id`, `name`, `key`, `type`, `description`; the server sets `status = discovery` and `created_at` on first write and keeps both on later writes                                        |
 | Design doc name | No new field: the id slugs the existing reviewable `name.value`. The id is immutable, so a later `name` edit is an ordinary update                                                                              |
 | Document titles | Free text up to 200 characters, duplicates allowed on different days; `DuplicateDocumentError` and title-only ids go away                                                                                       |
 | Change keys     | The tracker `key` may repeat across changes; no uniqueness check                                                                                                                                                |
-| Default order   | Lists are sorted by id, so by creation date, then title                                                                                                                                                         |
+| Default order   | Lists sort by id, so by creation date then title: changes newest first (as `list_changes` and the sidebar say), documents and design docs within a change oldest first (reading order)                          |
 | Tool names      | `save_change`, `save_document`, `save_design_doc` (every write is an upsert); skills renamed to match                                                                                                           |
 | Storage         | Unchanged: `NoesisStore` keyed by the dated ids (they match its `KEY_PATTERN`)                                                                                                                                  |
 | Migration       | None: today's `graph/changes/<slug>/` folders are dev data, deleted by hand                                                                                                                                     |
@@ -141,6 +141,34 @@ export const ChangeFileSchema = ChangeSchema.pick({
 `DocumentSummary`, `DesignDocSummary` and `ChangeNavigationItem` keep their
 shape, with `id` typed as the new VOs (`slug` becomes `id`).
 
+### Descriptions
+
+Every `.describe` that names a server-minted id or a unique title is
+rewritten: `DocumentSchema.id` ("the service derives it; retitling moves it"),
+`DocumentSchema.title` ("unique within the change"),
+`DesignDocSummarySchema.id` ("minted by the server"), `DocumentSummarySchema`,
+`ChangeSchema.id` and the tool descriptions. The new text says: the id is
+minted by the writer with `entity-id.ts`, immutable, and a save at an existing
+id updates it.
+
+### Contracts (`tools/contracts.ts`)
+
+The `CONTRACTS` map follows the schemas it ships:
+
+| Today                                            | After                                                                 |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `change` (`ChangeSchema`)                        | unchanged: what `save_change` answers                                 |
+| `create-change` (`CreateChangeSchema`)           | `change-file` (`ChangeFileSchema`): what the agent writes             |
+| `document` + `create-document`                   | `document` (`DocumentSchema`): the working file, id included          |
+| `design-document` (`CreateDesignDocumentSchema`) | `design-document` (`DesignDocumentSchema`); the example gains an `id` |
+| `system-model`                                   | unchanged                                                             |
+
+`contracts-json-schema.spec.ts` follows: the codec assertion moves from
+`document.properties.document_id` to `document.properties.id` with the dated
+pattern, and the description assertion from `create-change` to `change-file`.
+`contracts-change.spec.ts` likewise. The plugin skills read the new file names
+(step 3).
+
 ## Repositories
 
 Today's repositories and `NoesisStore` stay; only the key types change:
@@ -157,7 +185,8 @@ Today's repositories and `NoesisStore` stay; only the key types change:
 
 - `ChangesService`
   - `list()`, `findById(id)`, `assertExists(id)`: as today, on the dated id;
-    `list()` sorted by id.
+    `list()` sorted by id descending (newest first), replacing today's
+    `created_at` sort.
   - `save(file: ChangeFile, now)`: under `Serial`, upsert by `id`. No
     uniqueness checks: an id already on disk is an update, and the tracker
     `key` may repeat across changes. Existing change: keep `status` and
@@ -166,7 +195,8 @@ Today's repositories and `NoesisStore` stay; only the key types change:
 - `DocumentsService` / `DesignDocsService`
   - `save(changeId, doc)`: under `Serial`; `assertExists(changeId)`; write.
     Returns the summary. No cross-change check: ids are scoped to their change.
-  - `list` (sorted by id), `findById`: unchanged apart from the dated ids.
+  - `list` (sorted by id ascending), `findById`: unchanged apart from the
+    dated ids.
   - `create` / `update` / `delete` and the title checks go.
 
 ## MCP tools
@@ -185,8 +215,16 @@ renamed after what they now do: every write creates or updates.
   (`save-change.tool.ts`, `SAVE_CHANGE`, …); the server instructions and every
   tool description that names another tool are updated with them.
 - The working file is loaded with today's `readWorkingFile` (session dir
-  check, size limit, validator report); `save_change` now uses it too.
-  `withChange` parses `ChangeId` (not for `save_change`).
+  check, size limit, validator report); `save_change` now uses it too, so
+  `saveChangeTool(changes, session)` takes the session like the other two
+  (`mcp-server.ts` wiring). `withChange` parses `ChangeId` (not for
+  `save_change`).
+- Every save answers whether it created or updated: the text says
+  `Created change 2026-09-24-payment-retry …` or `Updated change …`, and the
+  structured content carries `created: boolean` beside the summary. The
+  service knows: `save` reads the entity first (it keeps `status` and
+  `created_at` on a change). An agent that meant to create and reads
+  `Updated` knows it collided and tells the user.
 - Tool descriptions tell the agent to get the id of a new entity from the
   plugin's `entity-id.ts` script and to reuse the existing id to update one.
   An id already in use overwrites that entity, so the agent checks
@@ -203,11 +241,9 @@ renamed after what they now do: every write creates or updates.
   (NFKD, strip marks, transliterate `ł`, `ß`, …, kebab-case, `untitled`
   fallback, cut to fit 64 characters). Plugin scripts are standalone, so the
   function is copied with its test cases, not imported from the server.
-- With `--change <id> --kind <document|design-doc|change>` the CLI also warns
-  on stderr when an entity with that id already exists under
-  `.noesis/graph/` (a same-day, same-title save would overwrite it). The
-  existence check goes through one helper that knows today's paths, so the
-  storage plan changes it in one place.
+- The script is a pure function of title and date: it never reads
+  `.noesis/`, so the plugin knows nothing of the storage layout. Overwrite
+  detection is the server's (`created: boolean` in every save answer).
 - `save-change` skill: write the change working file with the id from
   `entity-id.ts` (or the existing id to update) and pass its path.
 - `save-document` skill and `scripts/write-working-file.ts`: add `id` from
@@ -231,9 +267,10 @@ renamed after what they now do: every write creates or updates.
   routes stay read only.
 - Frontend: `change.slug` becomes `change.id` (sidebar, change picker, last
   opened change, `_shell/index.tsx`, `$changeId.tsx`); `document_id` becomes
-  `id`. Lists keep the server's id order
-  instead of sorting by name. Route file names already say `$changeId` /
-  `$documentId`.
+  `id`. Lists keep the server's id order instead of sorting by name. Route
+  file names already say `$changeId` / `$documentId`. A last-opened change
+  stored under the old slug already falls back to the first change
+  (`_shell/index.tsx`), so nothing to do there.
 
 ## Deletions
 
@@ -252,19 +289,23 @@ Each step leaves the root CI scripts green.
    VOs with specs (accept `2024-02-29-x`; reject `2026-02-29-x`, `2026-02-30-x`,
    `2026-13-01-x`, a bare slug, upper case, a 65-character id; the JSON
    Schema `pattern` equals the regex source).
-2. Switch the models (`id` fields, `ChangeFileSchema`,
-   drop the create schemas), repositories, services and indexer to the new
-   ids and upsert semantics in one step.
-3. Rewrite and rename the MCP tools to the path-only, upsert contract
-   (`save_change`, `save_document`, `save_design_doc`).
-4. HTTP params, frontend `slug` and `document_id` to `id`.
-5. Add `entity-id.ts`; rename and update the plugin skills, scripts and tests.
-6. Delete `ChangeSlug` and dead tests; run knip.
-7. Update `docs/arch/ARCHITECTURE.md` where it describes ids and the tools.
+2. One commit, because every layer names `slug`, `document_id` or `create`:
+   models (`id` fields, `ChangeFileSchema`, drop the create schemas,
+   descriptions, `CONTRACTS` and its specs), repositories, services and
+   indexer to the new ids and upsert semantics; the MCP tools rewritten and
+   renamed to the path-only, upsert contract (`save_change`, `save_document`,
+   `save_design_doc`, created/updated answers); HTTP params and the frontend
+   from `slug` and `document_id` to `id`. Splitting it would leave the type
+   check red in between.
+3. Add `entity-id.ts`; rename and update the plugin skills, scripts and tests
+   to the new tool and contract names.
+4. Delete `ChangeSlug` and dead tests; run knip.
+5. Update `docs/arch/ARCHITECTURE.md` where it describes ids and the tools.
 
-## Open questions
+## Settled
 
-- Same-day, same-title saves overwrite by design (upsert). Is the script's
-  warning enough, or should the server refuse a new-looking save (for a
-  change, a differing `created_at` date) at an id already on disk? A differing
-  title alone is never a reason to refuse: it is a normal rename.
+- Same-day, same-title saves overwrite by design (upsert); the server does not
+  refuse them. A same-day, same-slug save is the same entity in practice, a
+  refusal would need the agent to send `created_at`, which the server owns,
+  and the created/updated answer already tells the agent what happened. A
+  differing title is never a reason to refuse: it is a normal rename.

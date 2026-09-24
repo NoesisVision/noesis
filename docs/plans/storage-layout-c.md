@@ -267,11 +267,9 @@ answers in-band:
 
 ## Plugin
 
-- `entity-id.ts`: its existence check (the helper that knows the graph paths)
-  looks for `changes/<id>/change.json` and
-  `changes/<change>/<id>.<kind>.json` instead of the nested `data.json`
-  paths.
-- README and the `save-document` skill name `.noesis/sessions/<session>/`.
+- Nothing in the plugin knows the graph layout (`entity-id.ts` never reads
+  `.noesis/`), so only texts change: the README and the `save-document` skill
+  name `.noesis/sessions/<session>/`.
 
 ## Indexer and scanner
 
@@ -330,8 +328,7 @@ Each step leaves the root CI scripts green.
    folder placements, id/name mismatch, broken JSON, schema failure, issue
    cap, atomic write, missing dir).
 3. Switch the repositories, services and indexer to `JsonCollection` and
-   layout C in one step; move the system-model store and the scanner; update
-   the existence check in `entity-id.ts`.
+   layout C in one step; move the system-model store and the scanner.
 4. Switch `readWorkingFile` to `readJsonFile`; delete `validator.ts` and its
    spec.
 5. `ChangeEntry`, `entries` in the repository, service and HTTP route;
