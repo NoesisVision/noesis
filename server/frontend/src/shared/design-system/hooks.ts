@@ -4,5 +4,6 @@ export {
   useDisclosure,
   useFullscreenElement,
   useLocalStorage,
+  useMediaQuery,
   useMergedRef,
 } from '@mantine/hooks';

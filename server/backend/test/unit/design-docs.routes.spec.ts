@@ -75,6 +75,27 @@ describe('ui design-docs routes', () => {
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
+  it('serves the outline of the same document beside it', async () => {
+    await t.writeDesignDoc(change, designDocFixture);
+
+    const res = await app.request(`${BASE}/${designDocFixture.id}`);
+    const { outline } = (await res.json()) as {
+      outline: { path: string; parentPath: string | null; depth: number }[];
+    };
+
+    // The document names no root module; the outline conjures the one every
+    // element's id implies.
+    expect(
+      outline
+        .filter((node) => node.parentPath === null)
+        .map((node) => node.path),
+    ).toEqual(['module|sales']);
+    expect(outline.every((node) => node.depth >= 0)).toBe(true);
+    expect(outline.length).toBeGreaterThan(
+      designDocFixture.buildingBlocks.added.length,
+    );
+  });
+
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
     await t.writeDesignDoc(change, designDocFixture);
