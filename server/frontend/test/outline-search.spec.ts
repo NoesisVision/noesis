@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'bun:test';
-import { searchOutline, searchTokens } from '../src/shared/ui/outline-search';
-import { outlineTree } from '../src/shared/ui/outline-tree';
+import {
+  searchOutline,
+  searchTokens,
+} from '../src/shared/ui/model-tree/outline-search';
+import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 const tree = outlineTree(outlineFixture);

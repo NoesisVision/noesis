@@ -6,7 +6,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
-import { CHANGE_COLOUR } from '#/shared/ui/outline-change.ts';
+import { CHANGE_COLOUR } from '#/shared/ui/model-tree/outline-change.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,

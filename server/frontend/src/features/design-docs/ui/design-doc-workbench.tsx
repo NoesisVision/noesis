@@ -20,12 +20,12 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
-import { ModelTree } from '#/shared/ui/model-tree.tsx';
-import { expansionMemory } from '#/shared/ui/outline-memory.ts';
+import { ModelTree } from '#/shared/ui/model-tree/model-tree.tsx';
+import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
 import {
   type ModelTreeController,
   useModelTree,
-} from '#/shared/ui/use-model-tree.ts';
+} from '#/shared/ui/model-tree/use-model-tree.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DesignDocsIcon } from '../design-docs.model.ts';
 import { ElementDetail } from './element-detail.tsx';
