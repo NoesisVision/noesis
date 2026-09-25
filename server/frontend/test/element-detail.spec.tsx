@@ -17,27 +17,26 @@ const DIAGRAM = [
 ].join('\n');
 
 // The trailing comma is what tells a .tsx file this is a type parameter.
-const reviewed = <const T,>(value: T) => ({ value, reviewedByHuman: true });
-const plain = <const T,>(value: T) => ({ value, reviewedByHuman: false });
+const human = <const T,>(value: T) => ({ value, author: 'human' as const });
+const plain = <const T,>(value: T) => ({ value, author: 'agent' as const });
 
 const document = {
   id: 'doc',
-  name: reviewed('Holds'),
-  description: plain('A design.'),
+  name: 'Holds',
+  description: 'A design.',
   modules: { added: [], removed: [], modified: [] },
   buildingBlocks: {
     added: [
       {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
-        description: reviewed(DIAGRAM),
+        description: human(DIAGRAM),
         properties: {
           added: [
             {
-              name: plain('amount'),
-              type: plain('Money'),
-              description: plain(null),
-              nullable: true,
+              name: 'amount',
+              type: plain('building_block|pay.Money'),
+              optional: plain(true),
             },
           ],
           removed: [],
@@ -47,7 +46,7 @@ const document = {
         scenarios: {
           added: [
             {
-              name: plain('A hold settles'),
+              name: 'A hold settles',
               description: plain('The ordinary path.'),
               given: plain('a hold'),
               when: plain('the booking is confirmed'),
@@ -178,7 +177,7 @@ describe('ElementDetail', () => {
     // backticks and a word; given to the reader, it becomes a picture.
     expect(html).not.toContain('```');
     expect(html).not.toContain('Not specified.');
-    expect(html).toContain('reviewed');
+    expect(html).toContain('by a human');
   });
 
   it('says a description is missing rather than opening an editor on it', () => {
@@ -189,7 +188,9 @@ describe('ElementDetail', () => {
 
   it('reads a property as the field it declares', () => {
     expect(show('building_block|pay.Hold#property:amount')).toContain('Money');
-    expect(show('building_block|pay.Hold#property:amount')).toContain('null');
+    expect(show('building_block|pay.Hold#property:amount')).toContain(
+      'amount?',
+    );
   });
 
   it('reads a scenario as the three things it says', () => {

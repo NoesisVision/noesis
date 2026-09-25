@@ -96,6 +96,15 @@ describe('outlineOf', () => {
     ]);
   });
 
+  it('names a property type by its item, a collection with brackets', () => {
+    expect(
+      at('building_block|sales.refunds.Refund#property:lines').pattern,
+    ).toBe('RefundLine[]');
+    expect(
+      at('building_block|sales.refunds.Refund#property:issuedAt').pattern,
+    ).toBe('date');
+  });
+
   it('keys a part under the element that owns it', () => {
     expect(
       at('building_block|sales.refunds.Refund#property:orderId'),
@@ -132,8 +141,8 @@ describe('outlineOf', () => {
     expect(
       outlineOf({
         id: '2026-01-01-empty',
-        name: { value: 'Empty' },
-        description: { value: '' },
+        name: 'Empty',
+        description: '',
       }),
     ).toEqual([]);
   });

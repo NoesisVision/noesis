@@ -73,7 +73,7 @@ export const designDocPayloadFixture = {
     // The wire carries the id as the string it is written as; the client's
     // type brands it back, and a fixture cannot mint a brand of its own.
     id: designDocFixture.id as DesignDocSummary['id'],
-    name: designDocFixture.name.value,
+    name: designDocFixture.name,
     implemented: false,
   },
   document: designDocFixture,
