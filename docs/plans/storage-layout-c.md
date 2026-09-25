@@ -81,7 +81,7 @@ performance, as there are few, small files.
 - `system-models/` replaces `system-model/`; the scanner writes the whole
   directory again on the next scan, so nothing needs moving. The system model
   keeps its content-hash id (`contentHashAsUuid`: hex and dashes), which fits
-  the collection's id pattern; `SystemModelSchema.id` stays a plain string.
+  the collection's id pattern; `SystemModel.id` stays a plain string.
 
 ## Models
 
@@ -234,7 +234,7 @@ interface DesignDocsRepository {
   services move from `read` / `write` / `set` to `get` / `save`. The child
   services drop their sort (`list()` is ascending already); `ChangesService`
   keeps its reverse.
-- `SystemModelStore` becomes `new JsonCollection(SystemModelSchema, noesis.resolve('graph', 'system-models'), 'system-model')`.
+- `SystemModelStore` becomes `new JsonCollection(SystemModel, noesis.resolve('graph', 'system-models'), 'system-model')`.
 
 ## Services
 

@@ -1,170 +1,160 @@
 import { z } from 'zod';
 import {
-  DesignedBehaviourTypeSchema,
-  DesignedBuildingBlockTypeSchema,
-} from '#backend/app/design-docs/design-doc';
+  BehaviorId,
+  BuildingBlockId,
+  ElementName,
+  ModuleId,
+} from '#backend/app/element-id';
 
-/*
- * The implemented model a design is a diff against. It shares the design
- * vocabulary for the kinds of elements, but none of the review machinery:
- * only the scanner writes these files, never edited by hand, no field ever
- * locked. Ids are the scanner's own, unique across the file, and every `*Id`
- * field names an element of the expected kind in the same file.
- */
+export const BuildingBlockType = z.enum([
+  'aggregate',
+  'entity',
+  'value_object',
+  'domain_event',
+  'domain_command',
+  'domain_query',
+  'domain_service',
+  'application_service',
+  'repository',
+  'factory',
+  'external_integration',
+]);
+export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
 
-export const SourceLocationSchema = z
-  .object({
-    path: z
-      .string()
-      .describe('The source file, relative to the repository root.'),
-    line: z
-      .int()
-      .nullable()
-      .default(null)
-      .describe('The 1-based line where the element is declared, when known.'),
-  })
-  .describe('Where in the code an element was found.');
-export type SourceLocation = z.infer<typeof SourceLocationSchema>;
+export const RuleType = z.enum([
+  'Consistency',
+  'Structure',
+  'Computation',
+  'State change',
+]);
+export type RuleType = z.infer<typeof RuleType>;
 
-const scanned = {
-  source: SourceLocationSchema.nullable()
-    .default(null)
-    .describe('Where the scanner found this element; null when inferred.'),
-};
+export const BehaviourType = z.enum(['Command', 'Event', 'Query']);
+export type BehaviourType = z.infer<typeof BehaviourType>;
 
-export const ScannedPropertySchema = z
-  .object({
-    name: z.string().describe('The property name as code spells it.'),
-    type: z.string().describe('The type, in the language of the model.'),
-    description: z
-      .string()
-      .default('')
-      .describe('What the property holds; empty when the name says it.'),
-    nullable: z
-      .boolean()
-      .default(false)
-      .describe('True when the property may be absent.'),
-    collection: z
-      .boolean()
-      .default(false)
-      .describe('True when the property holds many values of `type`.'),
-  })
-  .describe('One property of a building block, as found in the code.');
-export type ScannedProperty = z.infer<typeof ScannedPropertySchema>;
+const PRIMITIVE_KIND = 'primitive';
+const PRIMITIVES = [
+  'string',
+  'integer',
+  'decimal',
+  'boolean',
+  'date',
+  'datetime',
+  'duration',
+  'uuid',
+];
+export const PrimitiveId = z
+  .string()
+  .regex(
+    new RegExp(`^${PRIMITIVE_KIND}\\|(?:${PRIMITIVES.join('|')})$`),
+    'Invalid PrimitiveId',
+  )
+  .describe(
+    `A built-in building block's id: '${PRIMITIVE_KIND}|', then one of ${PRIMITIVES.join(', ')}, e.g. '${PRIMITIVE_KIND}|uuid'.`,
+  )
+  .brand<'PrimitiveId'>();
+export type PrimitiveId = z.infer<typeof PrimitiveId>;
 
-export const ScannedBoundedContextSchema = z
-  .object({
-    id: z.string().describe('Unique across the file.'),
-    name: z.string().describe('The bounded context name.'),
-    description: z
-      .string()
-      .default('')
-      .describe('What the context is responsible for.'),
-    ...scanned,
-  })
-  .describe('A bounded context as found in the code.');
-export type ScannedBoundedContext = z.infer<typeof ScannedBoundedContextSchema>;
+export interface Collection {
+  collectionOf: BuildingBlockRef;
+}
 
-export const ScannedDomainModuleSchema = z
-  .object({
-    id: z.string().describe('Unique across the file.'),
-    name: z.string().describe('The module name.'),
-    boundedContextId: z
-      .string()
-      .describe('The id of the bounded context the module belongs to.'),
-    description: z.string().default('').describe('What the module groups.'),
-    ...scanned,
-  })
-  .describe('A domain module as found in the code.');
-export type ScannedDomainModule = z.infer<typeof ScannedDomainModuleSchema>;
+interface CollectionInput {
+  collectionOf: BuildingBlockRefInput;
+}
 
-export const ScannedBuildingBlockSchema = z
-  .object({
-    id: z.string().describe('Unique across the file.'),
-    name: z.string().describe('The block name as code spells it.'),
-    type: DesignedBuildingBlockTypeSchema.nullable()
-      .default(null)
-      .describe('The tactical kind, or null when not recognised.'),
-    boundedContextId: z
-      .string()
-      .describe('The id of the bounded context the block belongs to.'),
-    domainModuleId: z
-      .string()
-      .nullable()
-      .default(null)
-      .describe('The id of the module the block sits in, or null.'),
-    description: z
-      .string()
-      .default('')
-      .describe('What the block is responsible for.'),
-    implements: z
-      .array(z.string())
-      .default([])
-      .describe(
-        'Ids of the blocks (interfaces, contracts) this one implements.',
-      ),
-    properties: z
-      .array(ScannedPropertySchema)
-      .default([])
-      .describe('The structural properties of the block.'),
-    ...scanned,
-  })
-  .describe('A building block as found in the code.');
-export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlockSchema>;
+export const Collection: z.ZodType<Collection, CollectionInput> =
+  z.strictObject({
+    get collectionOf() {
+      return BuildingBlockRef;
+    },
+  });
 
-export const ScannedBehaviourSchema = z
-  .object({
-    id: z.string().describe('Unique across the file.'),
-    name: z.string().describe('The behaviour name as code spells it.'),
-    type: DesignedBehaviourTypeSchema.nullable()
-      .default(null)
-      .describe('Command, Query or Event, or null when not classified.'),
-    buildingBlockId: z
-      .string()
-      .describe('The id of the building block that owns the behaviour.'),
-    description: z.string().default('').describe('What the behaviour does.'),
-    ...scanned,
-  })
-  .describe('A behaviour of a building block as found in the code.');
-export type ScannedBehaviour = z.infer<typeof ScannedBehaviourSchema>;
+export type BuildingBlockRef = BuildingBlockId | PrimitiveId | Collection;
+export type BuildingBlockRefInput = string | CollectionInput;
 
-export const SystemModelSchema = z
-  .object({
-    id: z
-      .string()
-      .describe(
-        'The id of this scanned unit; stable across scans of the same unit.',
-      ),
-    name: z
-      .string()
-      .describe(
-        'What was scanned, as a title: a package, a service, a module.',
-      ),
-    scanned_at: z.string().describe('When the scan ran, ISO 8601 with offset.'),
-    scanner: z
-      .object({
-        name: z.string().describe('The scanner that produced this file.'),
-        version: z.string().describe('Its version.'),
-      })
-      .describe('Provenance of the file.'),
-    boundedContexts: z
-      .array(ScannedBoundedContextSchema)
-      .default([])
-      .describe('The bounded contexts found.'),
-    domainModules: z
-      .array(ScannedDomainModuleSchema)
-      .default([])
-      .describe('The domain modules found, each naming its bounded context.'),
-    buildingBlocks: z
-      .array(ScannedBuildingBlockSchema)
-      .default([])
-      .describe('The building blocks found, each naming its bounded context.'),
-    behaviours: z
-      .array(ScannedBehaviourSchema)
-      .default([])
-      .describe('The behaviours found, each naming its building block.'),
+export const BuildingBlockRef: z.ZodType<
+  BuildingBlockRef,
+  BuildingBlockRefInput
+> = z.union([BuildingBlockId, PrimitiveId, Collection]);
+
+export const Visibility = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('private') }),
+  z.strictObject({ kind: z.literal('public'), actors: z.array(z.string()) }),
+]);
+export type Visibility = z.infer<typeof Visibility>;
+
+export const SourceLocation = z.strictObject({
+  path: z.string(),
+  line: z.int().min(1).nullable().default(null),
+});
+export type SourceLocation = z.infer<typeof SourceLocation>;
+
+export const ScannedProperty = z.strictObject({
+  name: ElementName,
+  type: BuildingBlockRef,
+  description: z.string().nullable().default(null),
+  optional: z.boolean().default(false),
+});
+export type ScannedProperty = z.infer<typeof ScannedProperty>;
+
+export const ScannedScenario = z.strictObject({
+  name: ElementName,
+  description: z.string(),
+  given: z.string(),
+  when: z.string(),
+  // oxlint-disable-next-line unicorn/no-thenable
+  then: z.string(), // NOSONAR
+  // TODO: Czy scenariusz zawsze jest podpięty pod jeden element i wtedy powinien być na tym elemencie?
+  testedElementIds: z.array(z.union([BuildingBlockId, BehaviorId])).default([]),
+});
+export type ScannedScenario = z.infer<typeof ScannedScenario>;
+
+export const ScannedDomainModule = z.strictObject({
+  id: ModuleId,
+  name: ElementName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation,
+});
+export type ScannedDomainModule = z.infer<typeof ScannedDomainModule>;
+
+export const ScannedBuildingBlock = z.strictObject({
+  id: BuildingBlockId,
+  name: ElementName,
+  type: BuildingBlockType,
+  description: z.string().nullable().default(null),
+  implements: z.array(BuildingBlockId).default([]),
+  properties: z.array(ScannedProperty).default([]),
+  source: SourceLocation,
+});
+export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
+
+export const ScannedBehaviour = z.strictObject({
+  id: BehaviorId,
+  buildingBlockId: BuildingBlockId,
+  name: ElementName,
+  type: BehaviourType,
+  description: z.string().nullable().default(null),
+  visibility: Visibility,
+  input: z.array(BuildingBlockRef).default([]),
+  output: z.array(BuildingBlockRef).default([]),
+  // TODO: Czy to jest potrzebne? Co z invokes?
+  usedBuildingBlocks: z.array(BuildingBlockId).default([]),
+  source: SourceLocation,
+});
+export type ScannedBehaviour = z.infer<typeof ScannedBehaviour>;
+
+export const SystemModel = z
+  .strictObject({
+    id: z.string(),
+    name: z.string(),
+    scanned_at: z.string(),
+    // TODO: 3 listy, czy jedna Elements?
+    modules: z.array(ScannedDomainModule).default([]),
+    buildingBlocks: z.array(ScannedBuildingBlock).default([]),
+    behaviours: z.array(ScannedBehaviour).default([]),
   })
   .describe(
     'The implemented model of one scanned unit: graph/system-models/<id>.system-model.json, written by the scanner.',
   );
-export type SystemModel = z.infer<typeof SystemModelSchema>;
+export type SystemModel = z.infer<typeof SystemModel>;

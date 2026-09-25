@@ -8,8 +8,8 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
  * panel's business, not the tree's.
  */
 
-const reviewed = <const T>(value: T) => ({ value, reviewedByHuman: true });
-const unreviewed = <const T>(value: T) => ({ value, reviewedByHuman: false });
+const human = <const T>(value: T) => ({ value, author: 'human' as const });
+const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
 const ISSUE_DIAGRAM = [
   'How a refund is issued.',
@@ -23,62 +23,70 @@ const ISSUE_DIAGRAM = [
 
 export const changedEverywhereFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
-  name: reviewed('Partial refunds for orders'),
-  description: unreviewed('Refund single order lines.'),
+  name: 'Partial refunds for orders',
+  description: 'Refund single order lines.',
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
-        description: unreviewed('Giving money back.'),
+        description: agent('Giving money back.'),
       },
     ],
     removed: ['module|sales.credit-notes'],
     modified: [
-      { id: 'module|sales.orders', description: reviewed('Order lifecycle.') },
+      { id: 'module|sales.orders', description: human('Order lifecycle.') },
     ],
   },
   buildingBlocks: {
     added: [
       {
         id: 'building_block|sales.refunds.Refund',
-        type: reviewed('aggregate'),
-        description: unreviewed('A refund of one or more lines of an order.'),
+        type: human('aggregate'),
+        description: agent('A refund of one or more lines of an order.'),
         properties: {
           added: [
-            { name: reviewed('orderId'), type: unreviewed('OrderId') },
-            { name: unreviewed('lines'), type: unreviewed('RefundLine') },
-            { name: unreviewed('issuedAt'), type: unreviewed('Date') },
+            {
+              name: 'orderId',
+              type: agent('building_block|sales.orders.OrderId'),
+            },
+            {
+              name: 'lines',
+              type: agent({
+                collectionOf: 'building_block|sales.refunds.RefundLine',
+              }),
+            },
+            { name: 'issuedAt', type: agent('primitive|date') },
           ],
         },
         rules: {
           added: [
             {
-              name: reviewed('Refund never exceeds paid amount'),
-              ruleType: 'Consistency',
+              name: 'Refund never exceeds paid amount',
+              ruleType: agent('Consistency'),
             },
           ],
         },
         scenarios: {
           added: [
             {
-              name: unreviewed('Refunding one line of a paid order'),
-              description: unreviewed('The happy path of a partial refund.'),
-              given: unreviewed('a paid order with two lines'),
-              when: unreviewed('support refunds the first line'),
+              name: 'Refunding one line of a paid order',
+              description: agent('The happy path of a partial refund.'),
+              given: agent('a paid order with two lines'),
+              when: agent('support refunds the first line'),
               // Gherkin's word; the fixture is never awaited.
               // oxlint-disable-next-line unicorn/no-thenable
-              then: unreviewed('the line is refunded'), // NOSONAR
+              then: agent('the line is refunded'), // NOSONAR
             },
           ],
         },
       },
       {
         id: 'building_block|sales.refunds.RefundIssued',
-        type: unreviewed('domain_event'),
+        type: agent('domain_event'),
       },
       {
         id: 'building_block|sales.refunds.RefundRepository',
-        type: unreviewed('repository'),
+        type: agent('repository'),
       },
     ],
     removed: ['building_block|sales.credit-notes.CreditNote'],
@@ -87,11 +95,17 @@ export const changedEverywhereFixture = {
         id: 'building_block|sales.orders.Order',
         properties: {
           added: [
-            { name: unreviewed('refundedAmount'), type: unreviewed('Money') },
+            {
+              name: 'refundedAmount',
+              type: agent('building_block|sales.Money'),
+            },
           ],
           removed: ['creditNoteId'],
           modified: [
-            { name: reviewed('status'), type: reviewed('OrderStatus') },
+            {
+              name: 'status',
+              type: human('building_block|sales.orders.OrderStatus'),
+            },
           ],
         },
       },
@@ -101,13 +115,13 @@ export const changedEverywhereFixture = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
-        type: reviewed('Command'),
-        description: unreviewed(ISSUE_DIAGRAM),
+        type: human('Command'),
+        description: agent(ISSUE_DIAGRAM),
         rules: {
           added: [
             {
-              name: unreviewed('Only paid orders are refundable'),
-              ruleType: 'State change',
+              name: 'Only paid orders are refundable',
+              ruleType: agent('State change'),
             },
           ],
         },

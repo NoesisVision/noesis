@@ -8,9 +8,9 @@ import {
   ChangeContentSchema,
   NewChangeSchema,
 } from '#backend/app/changes/change';
-import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
-import { SystemModelSchema } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import designDocumentExample from './design-doc.example.json';
 
 export const CONTRACTS = {
@@ -18,10 +18,10 @@ export const CONTRACTS = {
   change: { schema: ChangeContentSchema },
   document: { schema: DocumentContentSchema },
   'design-document': {
-    schema: DesignDocumentContentSchema,
+    schema: DesignDocumentContent,
     // Decoded, as every example is: the generator encodes it back to JSON,
     // with every default the file leaves out spelled out.
-    example: DesignDocumentContentSchema.parse(designDocumentExample),
+    example: DesignDocumentContent.parse(designDocumentExample),
   },
-  'system-model': { schema: SystemModelSchema },
+  'system-model': { schema: SystemModel },
 } satisfies Record<string, { schema: z.ZodType; example?: unknown }>;

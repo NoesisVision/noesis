@@ -4,7 +4,11 @@ import type { ChangesService } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import type { DesignDocument, DesignDocumentContent } from './design-doc';
+import {
+  DesignDocument,
+  type DesignDocumentContent,
+  type DesignDocViolation,
+} from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
@@ -37,9 +41,25 @@ export class DesignDocNotFoundError extends Error {
   }
 }
 
+/** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
+export class InvalidDesignDocError extends Error {
+  readonly violations: DesignDocViolation[];
+
+  constructor(violations: DesignDocViolation[]) {
+    super(
+      `The design document breaks its rules:\n${violations
+        .map(({ path, reason }) => `- ${path}: ${reason}`)
+        .join('\n')}`,
+    );
+    this.name = 'InvalidDesignDocError';
+    this.violations = violations;
+  }
+}
+
 /**
  * Callers validate before calling in. The service mints the id of a new
- * document; an update names it.
+ * document; an update names it. Every write comes from an agent, so each is
+ * checked against the rules for a design an agent wrote first.
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
@@ -60,7 +80,7 @@ export class DesignDocsService {
   /**
    * Creates the design document in the change, at an id minted from today's date
    * and its name. A name already used that day in the change gets the next
-   * free suffix.
+   * free suffix. Throws `InvalidDesignDocError` when it breaks the rules.
    */
   create(
     change: ChangeId,
@@ -68,9 +88,10 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
+      assertValid(document);
       const id = await freeSlugId(
         DesignDocId,
-        document.name.value,
+        document.name,
         this.today(),
         async (candidate) => (await this.docs.get(change, candidate)) !== null,
       );
@@ -80,7 +101,10 @@ export class DesignDocsService {
     });
   }
 
-  /** Replaces the design document at `id` whole; never creates one. */
+  /**
+   * Replaces the design document at `id` whole; never creates one. Throws
+   * `InvalidDesignDocError` when the new version breaks the rules.
+   */
   update(
     change: ChangeId,
     id: DesignDocId,
@@ -91,6 +115,7 @@ export class DesignDocsService {
       if ((await this.docs.get(change, id)) === null) {
         throw new DesignDocNotFoundError(change, id);
       }
+      assertValid(document);
       const updated: DesignDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
@@ -119,5 +144,11 @@ function summarize({
   name,
   implemented,
 }: DesignDocument): DesignDocSummary {
-  return { id, name: name.value, implemented };
+  return { id, name, implemented };
+}
+
+/** No system model is scanned yet, so every design is a green field. */
+function assertValid(document: DesignDocumentContent): void {
+  const violations = DesignDocument.validateAgentGenerated(document);
+  if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

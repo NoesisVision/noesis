@@ -1,7 +1,7 @@
 import { ChangeOwnedRepository } from '#backend/adapters/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import { ChangesService } from '#backend/app/changes/changes.service';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
@@ -22,7 +22,7 @@ export function createServices(noesis: NoesisDir): Services {
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new ChangeOwnedRepository(
     noesis,
-    DesignDocumentSchema,
+    DesignDocument,
     'design-doc',
   );
   const documentsRepository = new ChangeOwnedRepository(

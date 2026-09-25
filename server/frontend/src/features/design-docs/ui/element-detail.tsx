@@ -17,6 +17,12 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import {
+  type DesignDocFieldInput,
+  isHumanAuthored,
+  valueOf,
+} from '../design-doc-field.ts';
 import classes from './element-detail.module.css';
 
 /*
@@ -25,11 +31,6 @@ import classes from './element-detail.module.css';
  * what the thing is.
  */
 
-interface ReviewableInput {
-  value?: string | null | undefined;
-  reviewedByHuman?: boolean | undefined;
-}
-
 interface ChangeSetInput<Item, Key> {
   added?: Item[] | undefined;
   removed?: Key[] | undefined;
@@ -37,6 +38,12 @@ interface ChangeSetInput<Item, Key> {
 }
 
 const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
+
+/** A type reference by its address, a collection with `[]` after its item. */
+const refAddressOf = (ref: BuildingBlockRefInput): string =>
+  typeof ref === 'string'
+    ? addressOf(ref)
+    : `${refAddressOf(ref.collectionOf)}[]`;
 
 export function ElementDetail({
   node,
@@ -165,9 +172,7 @@ function BuildingBlockBody({
   return (
     <Stack gap="xs">
       <Description field={block.description} at={at} />
-      {block.implements && block.implements.length > 0 && (
-        <Text>Implements: {block.implements.map(addressOf).join(', ')}</Text>
-      )}
+      <Refs title="Implements" set={block.implements} />
     </Stack>
   );
 }
@@ -179,22 +184,24 @@ function BehaviourBody({
   behaviour: DesignedBehaviourInput;
   at: string;
 }) {
+  const visibility = valueOf(behaviour.visibility);
+  const actors = visibility?.kind === 'public' ? visibility.actors : [];
   return (
     <Stack gap="xs">
-      {(behaviour.actor?.value || behaviour.isPublic) && (
+      {visibility?.kind === 'public' && (
         <Group gap="xs">
-          {behaviour.actor?.value && (
+          {actors.length > 0 && (
             <Text size="sm" c="dimmed">
-              {behaviour.actor.value}
+              {actors.join(', ')}
             </Text>
           )}
-          {behaviour.isPublic && <Badge variant="outline">public</Badge>}
+          <Badge variant="outline">public</Badge>
         </Group>
       )}
       <Description field={behaviour.description} at={at} />
-      <Strings title="Input" set={behaviour.input} />
-      <Strings title="Output" set={behaviour.output} />
-      <Strings title="Uses" set={behaviour.usedBuildingBlocks} />
+      <Refs title="Input" set={behaviour.input} />
+      <Refs title="Output" set={behaviour.output} />
+      <Refs title="Uses" set={behaviour.usedBuildingBlocks} />
     </Stack>
   );
 }
@@ -237,10 +244,9 @@ function PropertyBody({
     <Stack gap="xs">
       <Text>
         <code>
-          <Field field={property.name} />:{' '}
-          <Field field={property.type} fallback="?" />
-          {property.collection ? '[]' : ''}
-          {property.nullable ? ' | null' : ''}
+          {property.name}
+          {valueOf(property.optional) ? '?' : ''}:{' '}
+          <Field field={property.type} format={refAddressOf} fallback="?" />
         </code>
       </Text>
       <Description field={property.description} at={at} />
@@ -288,18 +294,18 @@ function Description({
   field,
   at,
 }: {
-  field: ReviewableInput | undefined;
+  field: DesignDocFieldInput<string>;
   at: string;
 }) {
-  const value = field?.value ?? null;
+  const value = valueOf(field);
   if (value === null || value.trim() === '') {
     return <Text c="dimmed">Not specified.</Text>;
   }
   return (
     <Stack gap="xs">
-      {field?.reviewedByHuman && (
+      {isHumanAuthored(field) && (
         <Badge size="xs" variant="light" w="fit-content">
-          reviewed
+          by a human
         </Badge>
       )}
       <MarkdownEditor key={at} markdown={value} readOnly headingLevel={3} />
@@ -307,14 +313,16 @@ function Description({
   );
 }
 
-function Field({
+function Field<T = string>({
   field,
+  format = String,
   fallback = 'Not specified.',
 }: {
-  field: ReviewableInput | undefined;
+  field: DesignDocFieldInput<T>;
+  format?: (value: T) => string;
   fallback?: string;
 }) {
-  const value = field?.value ?? null;
+  const value = valueOf(field);
   return (
     <>
       {value === null ? (
@@ -322,28 +330,28 @@ function Field({
           {fallback}
         </Text>
       ) : (
-        <Text component="span">{value}</Text>
+        <Text component="span">{format(value)}</Text>
       )}
-      {field?.reviewedByHuman && (
+      {isHumanAuthored(field) && (
         <Badge size="xs" variant="light" ml="xs">
-          reviewed
+          by a human
         </Badge>
       )}
     </>
   );
 }
 
-/** A change set of bare names, shown only when the design touches it. */
-function Strings({
+/** A change set of type references, shown only when the design touches it. */
+function Refs({
   title,
   set,
 }: {
   title: string;
-  set: ChangeSetInput<string, string> | undefined;
+  set: ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput> | undefined;
 }) {
-  const added = set?.added ?? [];
-  const modified = set?.modified ?? [];
-  const removed = set?.removed ?? [];
+  const added = (set?.added ?? []).map(refAddressOf);
+  const modified = (set?.modified ?? []).map(refAddressOf);
+  const removed = (set?.removed ?? []).map(refAddressOf);
   if (!added.length && !modified.length && !removed.length) return null;
   return (
     <>
@@ -375,7 +383,7 @@ function Names({
         {change}
       </Badge>
       {names.map((name) => (
-        <code key={name}>{addressOf(name)}</code>
+        <code key={name}>{name}</code>
       ))}
     </Group>
   );
@@ -389,10 +397,10 @@ function findById<Item extends { id: string }>(
   return set?.added?.find(named) ?? set?.modified?.find(named) ?? null;
 }
 
-function findByName<Item extends { name: ReviewableInput }>(
+function findByName<Item extends { name: string }>(
   set: ChangeSetInput<Item, string> | undefined,
   name: string,
 ): Item | null {
-  const named = (item: Item) => item.name.value === name;
+  const named = (item: Item) => item.name === name;
   return set?.added?.find(named) ?? set?.modified?.find(named) ?? null;
 }

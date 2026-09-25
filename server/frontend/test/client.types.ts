@@ -20,7 +20,7 @@ export async function checkDesignDocClient(client: typeof api) {
     param: { change: 'test-2', id: 'doc-refunds' },
   });
   const id: string | undefined = data.document.buildingBlocks?.added?.[0]?.id;
-  const name: string = data.document.name.value;
+  const name: string = data.document.name;
   void [id, name];
   // @ts-expect-error The tree is the reader's; the wire carries none.
   void data.outline;

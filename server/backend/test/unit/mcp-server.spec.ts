@@ -11,7 +11,10 @@ import {
 } from '#backend/adapters/mcp/session-files';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { designDocFixture } from '../fixtures/design-doc.fixture';
+import {
+  designDocFixture,
+  greenFieldDesignDocFixture,
+} from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -64,7 +67,7 @@ const document = {
   content: 'Support hears about double charges after a failed retry.',
 };
 
-const { id: _designDocId, ...designDoc } = designDocFixture;
+const { id: _designDocId, ...designDoc } = greenFieldDesignDocFixture;
 const DESIGN_DOC_ID = DesignDocId.parse(`${TODAY}-partial-refunds-for-orders`);
 
 async function call(name: string, args: Record<string, unknown>) {
@@ -469,7 +472,7 @@ describe('create_design_doc_in_change', () => {
     expect(result.structuredContent).toEqual({
       designDoc: {
         id: DESIGN_DOC_ID,
-        name: designDoc.name.value,
+        name: designDoc.name,
         implemented: false,
       },
     });
@@ -480,7 +483,7 @@ describe('create_design_doc_in_change', () => {
       change,
       DESIGN_DOC_ID,
     );
-    expect(stored?.summary.name).toBe(designDoc.name.value);
+    expect(stored?.summary.name).toBe(designDoc.name);
   });
 
   it('reports an unknown change in-band', async () => {
@@ -526,7 +529,7 @@ describe('create_design_doc_in_change', () => {
     const change = await noesis.createChange(CHANGE);
     const path = await workingFile('design-doc.json', {
       ...designDoc,
-      name: 'Partial refunds',
+      name: 42,
       buildingBlocks: { added: [{ id: 'not an id' }] },
     });
 
@@ -539,6 +542,53 @@ describe('create_design_doc_in_change', () => {
     const text = textOf(result);
     expect(text).toContain('→ at name');
     expect(text).toContain('→ at buildingBlocks');
+    expect(await noesis.designDocsService.list(change)).toEqual([]);
+  });
+
+  it('refuses a working file that names an id: the server mints it', async () => {
+    const change = await noesis.createChange(CHANGE);
+    const path = await workingFile('design-doc.json', {
+      ...designDoc,
+      id: '2020-01-01-chosen-by-agent',
+    });
+
+    const result = await call('create_design_doc_in_change', { change, path });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Unrecognized key: "id"');
+    expect(await noesis.designDocsService.list(change)).toEqual([]);
+  });
+
+  it('refuses a key the design document does not know, rather than dropping it', async () => {
+    const change = await noesis.createChange(CHANGE);
+    const path = await workingFile('design-doc.json', {
+      ...designDoc,
+      modules: { added: [], removed: [], modified: [], renamed: [] },
+    });
+
+    const result = await call('create_design_doc_in_change', { change, path });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Unrecognized key: "renamed"');
+    expect(textOf(result)).toContain('→ at modules');
+  });
+
+  it('answers a design document that breaks its rules with each field to fix', async () => {
+    const change = await noesis.createChange(CHANGE);
+    const { id: _id, ...reviewed } = designDocFixture;
+    const path = await workingFile('design-doc.json', reviewed);
+
+    const result = await call('create_design_doc_in_change', { change, path });
+
+    expect(result.isError).toBe(true);
+    const text = textOf(result);
+    expect(text).toContain('fix each field and call again');
+    expect(text).toContain(
+      '- modules.removed[module|sales.credit-notes]: nothing is scanned yet',
+    );
+    expect(text).toContain(
+      '- modules.modified[module|sales.orders].description: write every field as the agent',
+    );
     expect(await noesis.designDocsService.list(change)).toEqual([]);
   });
 });
@@ -566,6 +616,35 @@ describe('update_design_doc_in_change', () => {
       `Updated design document ${DESIGN_DOC_ID}`,
     );
     expect(await noesis.designDocsService.list(change)).toHaveLength(1);
+  });
+
+  it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
+    const change = await noesis.createChange(CHANGE);
+    await call('create_design_doc_in_change', {
+      change,
+      path: await workingFile('design-doc.json', designDoc),
+    });
+    const stored = await noesis.designDocsService.findById(
+      change,
+      DESIGN_DOC_ID,
+    );
+
+    const result = await call('update_design_doc_in_change', {
+      change,
+      id: DESIGN_DOC_ID,
+      path: await workingFile('design-doc.json', {
+        ...designDoc,
+        behaviours: { removed: ['behavior|sales.orders.Order.cancel'] },
+      }),
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(
+      '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
+    );
+    expect(
+      await noesis.designDocsService.findById(change, DESIGN_DOC_ID),
+    ).toEqual(stored);
   });
 
   it('answers an id that names no design document in-band', async () => {

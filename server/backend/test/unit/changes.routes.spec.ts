@@ -93,7 +93,7 @@ describe('ui changes routes', () => {
             {
               kind: 'design-doc',
               id: decodedDesignDocFixture.id,
-              name: decodedDesignDocFixture.name.value,
+              name: decodedDesignDocFixture.name,
             },
             { kind: 'document', id: document.id, name: document.title },
           ],

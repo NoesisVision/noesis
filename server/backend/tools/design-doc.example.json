@@ -1,19 +1,15 @@
 {
-  "name": {
-    "value": "Partial refunds for orders",
-    "reviewedByHuman": true
-  },
-  "description": {
-    "value": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
-    "reviewedByHuman": false
-  },
+  "name": "Partial refunds for orders",
+  "description": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
   "modules": {
     "added": [
       {
         "id": "module|sales.refunds",
+        "name": {
+          "value": "refunds"
+        },
         "description": {
-          "value": "Everything about giving money back to a customer.",
-          "reviewedByHuman": false
+          "value": "Everything about giving money back to a customer."
         }
       }
     ],
@@ -23,7 +19,7 @@
         "id": "module|sales.orders",
         "description": {
           "value": "Order lifecycle, now including the refundable state of each line.",
-          "reviewedByHuman": true
+          "author": "human"
         }
       }
     ]
@@ -32,44 +28,86 @@
     "added": [
       {
         "id": "building_block|sales.refunds.Refund",
-        "type": { "value": "aggregate", "reviewedByHuman": true },
+        "name": {
+          "value": "Refund",
+          "author": "human"
+        },
+        "type": {
+          "value": "aggregate",
+          "author": "human"
+        },
         "description": {
-          "value": "A refund of one or more lines of a single order.",
-          "reviewedByHuman": false
+          "value": "A refund of one or more lines of a single order."
         },
         "properties": {
           "added": [
             {
-              "name": { "value": "orderId", "reviewedByHuman": true },
-              "type": { "value": "OrderId", "reviewedByHuman": false },
+              "name": "orderId",
+              "type": {
+                "value": "building_block|sales.orders.OrderId",
+                "author": "human"
+              },
               "description": {
-                "value": "The order the refunded lines belong to.",
-                "reviewedByHuman": false
+                "value": "The order the refunded lines belong to."
+              },
+              "optional": {
+                "value": false
               }
             },
             {
-              "name": { "value": "lines", "reviewedByHuman": false },
-              "type": { "value": "RefundLine", "reviewedByHuman": false },
-              "collection": true
+              "name": "lines",
+              "type": {
+                "value": {
+                  "collectionOf": "building_block|sales.refunds.RefundLine"
+                }
+              },
+              "description": {
+                "value": "The refunded lines."
+              },
+              "optional": {
+                "value": false
+              }
             },
             {
-              "name": { "value": "issuedAt", "reviewedByHuman": false },
-              "type": { "value": "Date", "reviewedByHuman": false },
-              "nullable": true
+              "name": "notes",
+              "type": {
+                "value": {
+                  "collectionOf": {
+                    "collectionOf": "primitive|string"
+                  }
+                }
+              },
+              "description": {
+                "value": "Notes per line, several per line."
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "issuedAt",
+              "type": {
+                "value": "primitive|datetime"
+              },
+              "description": {
+                "value": "When the refund was issued."
+              },
+              "optional": {
+                "value": true
+              }
             }
           ]
         },
         "rules": {
           "added": [
             {
-              "name": {
-                "value": "Refund never exceeds paid amount",
-                "reviewedByHuman": true
+              "name": "Refund never exceeds paid amount",
+              "ruleType": {
+                "value": "Consistency"
               },
-              "ruleType": "Consistency",
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
-                "reviewedByHuman": true
+                "author": "human"
               }
             }
           ]
@@ -77,25 +115,18 @@
         "scenarios": {
           "added": [
             {
-              "name": {
-                "value": "Refunding one line of a paid order",
-                "reviewedByHuman": false
-              },
+              "name": "Refunding one line of a paid order",
               "description": {
-                "value": "The happy path of a partial refund.",
-                "reviewedByHuman": false
+                "value": "The happy path of a partial refund."
               },
               "given": {
-                "value": "a paid order with two lines",
-                "reviewedByHuman": false
+                "value": "a paid order with two lines"
               },
               "when": {
-                "value": "support refunds the first line",
-                "reviewedByHuman": false
+                "value": "support refunds the first line"
               },
               "then": {
-                "value": "a refund for that line's amount is issued and the second line stays refundable",
-                "reviewedByHuman": false
+                "value": "a refund for that line's amount is issued and the second line stays refundable"
               }
             }
           ]
@@ -103,12 +134,30 @@
       },
       {
         "id": "building_block|sales.refunds.RefundIssued",
-        "type": { "value": "domain_event", "reviewedByHuman": false }
+        "name": {
+          "value": "RefundIssued"
+        },
+        "type": {
+          "value": "domain_event"
+        },
+        "description": {
+          "value": "Tells the ledger a refund went out."
+        }
       },
       {
         "id": "building_block|sales.refunds.RefundRepository",
-        "type": { "value": "repository", "reviewedByHuman": false },
-        "implements": ["building_block|sales.shared.Repository"]
+        "name": {
+          "value": "RefundRepository"
+        },
+        "type": {
+          "value": "repository"
+        },
+        "description": {
+          "value": "Stores refunds."
+        },
+        "implements": {
+          "added": ["building_block|sales.shared.Repository"]
+        }
       }
     ],
     "removed": ["building_block|sales.credit-notes.CreditNote"],
@@ -118,18 +167,27 @@
         "properties": {
           "added": [
             {
-              "name": { "value": "refundedAmount", "reviewedByHuman": false },
-              "type": { "value": "Money", "reviewedByHuman": false }
+              "name": "refundedAmount",
+              "type": {
+                "value": "building_block|sales.shared.Money"
+              },
+              "description": {
+                "value": "What has been refunded so far."
+              },
+              "optional": {
+                "value": false
+              }
             }
           ],
           "removed": ["creditNoteId"],
           "modified": [
             {
-              "name": { "value": "status", "reviewedByHuman": true },
-              "type": { "value": "OrderStatus", "reviewedByHuman": true },
+              "name": "status",
+              "type": {
+                "changed": false
+              },
               "description": {
-                "value": "Gains the 'partially_refunded' state.",
-                "reviewedByHuman": false
+                "value": "Gains the 'partially_refunded' state."
               }
             }
           ]
@@ -141,13 +199,35 @@
     "added": [
       {
         "id": "behavior|sales.refunds.Refund.issue",
-        "type": { "value": "Command", "reviewedByHuman": true },
-        "description": {
-          "value": "Issues a refund for the chosen lines of an order.",
-          "reviewedByHuman": false
+        "name": {
+          "value": "issue"
         },
-        "input": { "added": ["OrderId", "RefundLine[]"] },
-        "output": { "added": ["RefundIssued"] },
+        "type": {
+          "value": "Command",
+          "author": "human"
+        },
+        "description": {
+          "value": "Issues a refund for the chosen lines of an order."
+        },
+        "visibility": {
+          "value": {
+            "kind": "public",
+            "actors": ["Support agent"]
+          },
+          "author": "human"
+        },
+        "input": {
+          "added": [
+            "building_block|sales.orders.OrderId",
+            {
+              "collectionOf": "building_block|sales.refunds.RefundLine"
+            },
+            "primitive|string"
+          ]
+        },
+        "output": {
+          "added": ["building_block|sales.refunds.RefundIssued"]
+        },
         "usedBuildingBlocks": {
           "added": [
             "building_block|sales.orders.Order",
@@ -157,22 +237,27 @@
         "rules": {
           "added": [
             {
-              "name": {
-                "value": "Only paid orders are refundable",
-                "reviewedByHuman": false
+              "name": "Only paid orders are refundable",
+              "ruleType": {
+                "value": "State change"
               },
-              "ruleType": "State change"
+              "description": {
+                "value": "An unpaid order has nothing to refund."
+              }
             }
           ]
-        },
-        "isPublic": true,
-        "actor": { "value": "Support agent", "reviewedByHuman": true }
+        }
       }
     ],
     "removed": ["behavior|sales.credit-notes.CreditNote.issue"],
     "modified": [
       {
         "id": "behavior|sales.orders.Order.cancel",
+        "visibility": {
+          "value": {
+            "kind": "private"
+          }
+        },
         "usedBuildingBlocks": {
           "added": ["building_block|sales.refunds.Refund"],
           "removed": ["building_block|sales.credit-notes.CreditNote"]

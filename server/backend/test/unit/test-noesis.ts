@@ -7,9 +7,8 @@ import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import {
-  type DesignDocument,
+  DesignDocument,
   type DesignDocumentInput,
-  DesignDocumentSchema,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import {
@@ -58,7 +57,7 @@ export async function testNoesis(): Promise<TestNoesis> {
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new ChangeOwnedRepository(
     noesis,
-    DesignDocumentSchema,
+    DesignDocument,
     'design-doc',
   );
   const documentsRepository = new ChangeOwnedRepository(
@@ -105,7 +104,7 @@ export async function testNoesis(): Promise<TestNoesis> {
       return parsed;
     },
     writeDesignDoc: (change, document) =>
-      designDocsRepository.save(change, DesignDocumentSchema.parse(document)),
+      designDocsRepository.save(change, DesignDocument.parse(document)),
     writeDocument: (change, document) =>
       documentsRepository.save(change, DocumentSchema.parse(document)),
     cleanup: () => rm(root, { recursive: true, force: true }),

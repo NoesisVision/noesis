@@ -70,11 +70,10 @@ export class ChangesService {
       this.documents.list(id),
     ]);
     return [
-      // `name` is a reviewable field, so the entry gets its value.
       ...designDocs.map((doc): ChangeEntry => ({
         kind: 'design-doc',
         id: doc.id,
-        name: doc.name.value,
+        name: doc.name,
       })),
       ...documents.map((doc): ChangeEntry => ({
         kind: 'document',

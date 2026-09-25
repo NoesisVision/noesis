@@ -15,6 +15,8 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { refLabelOf, valueOf } from './design-doc-field.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -54,7 +56,7 @@ function addModules(
   modules: ChangeSetInput<DesignedDomainModuleInput, string> | undefined,
 ): void {
   for (const [module, change] of named(modules))
-    put(nodes, element(module.id, change, null, module.description?.value));
+    put(nodes, element(module.id, change, null, valueOf(module.description)));
   for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
@@ -68,8 +70,8 @@ function addBuildingBlocks(
       element(
         block.id,
         change,
-        block.type?.value ?? null,
-        block.description?.value,
+        valueOf(block.type),
+        valueOf(block.description),
       ),
     );
     addProperties(nodes, block.id, block.properties);
@@ -89,8 +91,8 @@ function addBehaviours(
       element(
         behaviour.id,
         change,
-        behaviour.type?.value ?? null,
-        behaviour.description?.value,
+        valueOf(behaviour.type),
+        valueOf(behaviour.description),
       ),
     );
     addRules(nodes, behaviour.id, behaviour.rules);
@@ -111,10 +113,10 @@ function addProperties(
       part(
         owner,
         'property',
-        property.name.value,
+        property.name,
         change,
-        property.type?.value ?? null,
-        property.description?.value,
+        refLabelOrNull(valueOf(property.type)),
+        valueOf(property.description),
       ),
     );
   for (const name of properties?.removed ?? [])
@@ -132,10 +134,10 @@ function addRules(
       part(
         owner,
         'rule',
-        rule.name.value,
+        rule.name,
         change,
-        rule.ruleType ?? null,
-        rule.description?.value,
+        valueOf(rule.ruleType),
+        valueOf(rule.description),
       ),
     );
   for (const name of rules?.removed ?? [])
@@ -153,15 +155,18 @@ function addScenarios(
       part(
         owner,
         'scenario',
-        scenario.name.value,
+        scenario.name,
         change,
         null,
-        scenario.description.value,
+        valueOf(scenario.description),
       ),
     );
   for (const name of scenarios?.removed ?? [])
     put(nodes, part(owner, 'scenario', name, 'removed'));
 }
+
+const refLabelOrNull = (ref: BuildingBlockRefInput | null) =>
+  ref === null ? null : refLabelOf(ref);
 
 /** Every item the design spells out, with what it does to it; removals are keys, not items. */
 function* named<Item>(

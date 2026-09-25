@@ -1,5 +1,5 @@
 import {
-  DesignDocumentSchema,
+  DesignDocument,
   type DesignDocumentInput,
 } from '#backend/app/design-docs/design-doc';
 
@@ -7,26 +7,38 @@ import {
  * The JSON form, with every default spelled out, so that decoding and
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
- * a part of each kind, fields reviewed and unreviewed, a public behaviour.
+ * a part of each kind, unchanged fields and changed fields of both authors,
+ * every kind of type including a nested collection, a public behaviour.
  */
 
-const reviewed = <const T>(value: T) => ({ value, reviewedByHuman: true });
-const unreviewed = <const T>(value: T) => ({ value, reviewedByHuman: false });
+const byHuman = <const T>(value: T) => ({
+  changed: true as const,
+  value,
+  author: 'human' as const,
+});
+const byAgent = <const T>(value: T) => ({
+  changed: true as const,
+  value,
+  author: 'agent' as const,
+});
+const unchanged = { changed: false as const };
+const noChanges = { added: [], removed: [], modified: [] };
+const noAdditions = { added: [], removed: [] };
 
 const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
 
 export const designDocFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
-  name: reviewed('Partial refunds for orders'),
-  description: unreviewed(
+  name: 'Partial refunds for orders',
+  description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',
-  ),
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
-        description: unreviewed(
+        name: byAgent('refunds'),
+        description: byAgent(
           'Everything about giving money back to a customer.',
         ),
       },
@@ -35,7 +47,8 @@ export const designDocFixture = {
     modified: [
       {
         id: 'module|sales.orders',
-        description: reviewed(
+        name: unchanged,
+        description: byHuman(
           'Order lifecycle, now including the refundable state of each line.',
         ),
       },
@@ -45,30 +58,41 @@ export const designDocFixture = {
     added: [
       {
         id: 'building_block|sales.refunds.Refund',
-        type: reviewed('aggregate'),
-        description: unreviewed(
+        name: byHuman('Refund'),
+        type: byHuman('aggregate'),
+        description: byAgent(
           'A refund of one or more lines of a single order.',
         ),
+        implements: noAdditions,
         properties: {
           added: [
             {
-              name: reviewed('orderId'),
-              type: unreviewed('OrderId'),
-              description: unreviewed(
-                'The order the refunded lines belong to.',
-              ),
+              name: 'orderId',
+              type: byHuman('building_block|sales.orders.OrderId'),
+              description: byAgent('The order the refunded lines belong to.'),
+              optional: byAgent(false),
             },
             {
-              name: unreviewed('lines'),
-              type: unreviewed('RefundLine'),
-              description: unreviewed(null),
-              collection: true,
+              name: 'lines',
+              type: byAgent({
+                collectionOf: 'building_block|sales.refunds.RefundLine',
+              }),
+              description: byAgent('The refunded lines.'),
+              optional: byAgent(false),
             },
             {
-              name: unreviewed('issuedAt'),
-              type: unreviewed('Date'),
-              description: unreviewed(null),
-              nullable: true,
+              name: 'notes',
+              type: byAgent({
+                collectionOf: { collectionOf: 'primitive|string' },
+              }),
+              description: byAgent('Notes per line, several per line.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'issuedAt',
+              type: byAgent('primitive|datetime'),
+              description: byAgent('When the refund was issued.'),
+              optional: byAgent(true),
             },
           ],
           removed: [],
@@ -77,9 +101,9 @@ export const designDocFixture = {
         rules: {
           added: [
             {
-              name: reviewed('Refund never exceeds paid amount'),
-              ruleType: 'Consistency',
-              description: reviewed(
+              name: 'Refund never exceeds paid amount',
+              ruleType: byAgent('Consistency'),
+              description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
               ),
             },
@@ -90,13 +114,12 @@ export const designDocFixture = {
         scenarios: {
           added: [
             {
-              name: unreviewed('Refunding one line of a paid order'),
-              description: unreviewed('The happy path of a partial refund.'),
-              given: unreviewed('a paid order with two lines'),
-              when: unreviewed('support refunds the first line'),
-              // Gherkin's word; the fixture is never awaited.
+              name: 'Refunding one line of a paid order',
+              description: byAgent('The happy path of a partial refund.'),
+              given: byAgent('a paid order with two lines'),
+              when: byAgent('support refunds the first line'),
               // oxlint-disable-next-line unicorn/no-thenable
-              then: unreviewed(REFUND_OUTCOME), // NOSONAR
+              then: byAgent(REFUND_OUTCOME), // NOSONAR
             },
           ],
           removed: [],
@@ -105,39 +128,57 @@ export const designDocFixture = {
       },
       {
         id: 'building_block|sales.refunds.RefundIssued',
-        type: unreviewed('domain_event'),
-        description: unreviewed(null),
+        name: byAgent('RefundIssued'),
+        type: byAgent('domain_event'),
+        description: byAgent('Tells the ledger a refund went out.'),
+        implements: noAdditions,
+        properties: noChanges,
+        rules: noChanges,
+        scenarios: noChanges,
       },
       {
         id: 'building_block|sales.refunds.RefundRepository',
-        type: unreviewed('repository'),
-        description: unreviewed(null),
-        implements: ['building_block|sales.shared.Repository'],
+        name: byAgent('RefundRepository'),
+        type: byAgent('repository'),
+        description: byAgent('Stores refunds.'),
+        implements: {
+          added: ['building_block|sales.shared.Repository'],
+          removed: [],
+        },
+        properties: noChanges,
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
     removed: ['building_block|sales.credit-notes.CreditNote'],
     modified: [
       {
         id: 'building_block|sales.orders.Order',
-        type: unreviewed(null),
-        description: unreviewed(null),
+        name: unchanged,
+        type: unchanged,
+        description: unchanged,
+        implements: noAdditions,
         properties: {
           added: [
             {
-              name: unreviewed('refundedAmount'),
-              type: unreviewed('Money'),
-              description: unreviewed(null),
+              name: 'refundedAmount',
+              type: byAgent('building_block|sales.shared.Money'),
+              description: byAgent('What has been refunded so far.'),
+              optional: byAgent(false),
             },
           ],
           removed: ['creditNoteId'],
           modified: [
             {
-              name: reviewed('status'),
-              type: reviewed('OrderStatus'),
-              description: unreviewed("Gains the 'partially_refunded' state."),
+              name: 'status',
+              type: unchanged,
+              description: byAgent("Gains the 'partially_refunded' state."),
+              optional: unchanged,
             },
           ],
         },
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
   },
@@ -145,52 +186,61 @@ export const designDocFixture = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
-        description: unreviewed(
+        name: byAgent('issue'),
+        type: byHuman('Command'),
+        description: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
-        type: reviewed('Command'),
+        visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
         input: {
-          added: ['OrderId', 'RefundLine[]'],
+          added: [
+            'building_block|sales.orders.OrderId',
+            { collectionOf: 'building_block|sales.refunds.RefundLine' },
+            'primitive|string',
+          ],
           removed: [],
-          modified: [],
         },
-        output: { added: ['RefundIssued'], removed: [], modified: [] },
+        output: {
+          added: ['building_block|sales.refunds.RefundIssued'],
+          removed: [],
+        },
         usedBuildingBlocks: {
           added: [
             'building_block|sales.orders.Order',
             'building_block|sales.refunds.RefundRepository',
           ],
           removed: [],
-          modified: [],
         },
         rules: {
           added: [
             {
-              name: unreviewed('Only paid orders are refundable'),
-              ruleType: 'State change',
-              description: unreviewed(null),
+              name: 'Only paid orders are refundable',
+              ruleType: byAgent('State change'),
+              description: byAgent('An unpaid order has nothing to refund.'),
             },
           ],
           removed: [],
           modified: [],
         },
-        isPublic: true,
-        actor: reviewed('Support agent'),
+        scenarios: noChanges,
       },
     ],
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
     modified: [
       {
         id: 'behavior|sales.orders.Order.cancel',
-        description: unreviewed(null),
-        type: unreviewed(null),
+        name: unchanged,
+        type: unchanged,
+        description: unchanged,
+        visibility: byAgent({ kind: 'private' }),
+        input: noAdditions,
+        output: noAdditions,
         usedBuildingBlocks: {
           added: ['building_block|sales.refunds.Refund'],
           removed: ['building_block|sales.credit-notes.CreditNote'],
-          modified: [],
         },
-        isPublic: false,
-        actor: unreviewed(null),
+        rules: noChanges,
+        scenarios: noChanges,
       },
     ],
   },
@@ -198,5 +248,27 @@ export const designDocFixture = {
 } satisfies DesignDocumentInput;
 
 /** The decoded form, as the service takes it. */
-export const decodedDesignDocFixture =
-  DesignDocumentSchema.decode(designDocFixture);
+export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
+
+/*
+ * What an agent may write while nothing is scanned yet: the same design with
+ * every field written by the agent, adding elements only.
+ */
+const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
+export const greenFieldDesignDocFixture: DesignDocumentInput = {
+  ...byAgentOnly,
+  modules: { added: byAgentOnly.modules.added },
+  buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
+  behaviours: { added: byAgentOnly.behaviours.added },
+};
+
+function asAgent(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(asAgent);
+  if (typeof node !== 'object' || node === null) return node;
+  return Object.fromEntries(
+    Object.entries(node).map(([key, value]) => [
+      key,
+      key === 'author' ? 'agent' : asAgent(value),
+    ]),
+  );
+}

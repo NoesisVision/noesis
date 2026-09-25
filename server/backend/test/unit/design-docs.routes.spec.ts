@@ -56,14 +56,12 @@ describe('ui design-docs routes', () => {
     const detail = (await res.json()) as {
       summary: { id: string };
       document: {
-        description: { value: string };
+        description: string;
         buildingBlocks: { added: { id: string }[] };
       };
     };
     expect(detail.summary.id).toBe(created.id);
-    expect(detail.document.description.value).toBe(
-      designDocFixture.description.value,
-    );
+    expect(detail.document.description).toBe(designDocFixture.description);
     // Element ids travel as the strings they are written as.
     expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
       'building_block|sales.refunds.Refund',

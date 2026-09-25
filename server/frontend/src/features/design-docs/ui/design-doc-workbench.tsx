@@ -81,7 +81,7 @@ export function DesignDocWorkbench({
     <Box component="article" ref={ref} className={classes.surface}>
       <Group justify="space-between" wrap="nowrap" className={classes.header}>
         <IconHeading
-          title={doc.name.value}
+          title={doc.name}
           icon={DesignDocsIcon}
           description={detail.summary.implemented ? 'Implemented' : 'Draft'}
         />

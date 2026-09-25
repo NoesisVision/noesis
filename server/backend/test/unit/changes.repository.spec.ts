@@ -3,7 +3,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { JsonFileError } from '#backend/platform/files/json-file';
 import {
   decodedDesignDocFixture,
@@ -101,7 +101,7 @@ describe('NoesisChangesRepository', () => {
     expect((await t.changesRepository.get(kept))?.status).toBe('design');
     expect(
       await t.designDocsRepository.get(kept, decodedDesignDocFixture.id),
-    ).toEqual(DesignDocumentSchema.parse(designDocFixture));
+    ).toEqual(DesignDocument.parse(designDocFixture));
     expect((await readdir(join(t.changesDir, kept))).sort()).toEqual([
       `${designDocFixture.id}.design-doc.json`,
     ]);

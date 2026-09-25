@@ -2,13 +2,14 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocumentContentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import {
   DesignDocNotFoundError,
   type DesignDocSummary,
   DesignDocSummarySchema,
   type DesignDocsService,
+  InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -17,7 +18,10 @@ import {
 } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { inChangeInput, withChange } from './change-scoped';
-import { DESIGN_DOC_SHAPE } from './create-design-doc-in-change.tool';
+import {
+  DESIGN_DOC_SHAPE,
+  violationsFailure,
+} from './create-design-doc-in-change.tool';
 
 const SUBJECT = 'design document';
 
@@ -60,7 +64,7 @@ async function update(
   id: DesignDocId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(DesignDocumentContentSchema, path);
+  const document = await files.read(DesignDocumentContent, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
@@ -73,6 +77,7 @@ async function update(
         `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
       );
     }
+    if (error instanceof InvalidDesignDocError) return violationsFailure(error);
     throw error;
   }
 }

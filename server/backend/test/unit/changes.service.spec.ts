@@ -69,7 +69,7 @@ describe('ChangesService', () => {
     await t.writeDesignDoc(id, {
       ...designDocFixture,
       id: '2026-01-05-retry-flow',
-      name: { value: 'Retry flow' },
+      name: 'Retry flow',
     });
 
     const entries = await t.changesService.entries(id);

@@ -6,14 +6,14 @@
   "workspaces": {
     "server/backend": {
       // Type-only tests are checked by tsc and never imported. The design
-      // document, its element ids and reviewable fields, and the system
+      // document, its element ids and design doc fields, and the system
       // model are exported whole: a type nothing imports yet is still part
       // of the domain model.
       "entry": [
         "src/main.ts",
         "src/app/design-docs/design-doc.ts",
         "src/app/element-id.ts",
-        "src/app/design-docs/reviewable-field.ts",
+        "src/app/design-docs/design-doc-field.ts",
         "src/app/system-model/system-model.ts",
         "test/**/*.types.ts"
       ]
