@@ -1,17 +1,17 @@
 import { type RefObject, useEffect } from 'react';
 
 /**
- * Brings the row the reader has moved to into view, wherever the move was
- * made — a step of the breadcrumb, a link into the middle of a design.
- * `nearest` means a row already on screen is left where it is, and how the
- * scroll is made is the stylesheet's to say, which is how a reader who asked
- * for no motion is given none.
+ * Puts the row the reader has moved to in the middle of the outline, wherever
+ * the move was made — a step of the breadcrumb, a link into the middle of a
+ * design. `center` and not `nearest`: a row is worth seeing in its
+ * surroundings, and a row that merely scraped into view at the bottom edge
+ * shows none of what it sits among. The cost is that a row already on screen
+ * is moved too. How the scroll is made is the stylesheet's to say, which is
+ * how a reader who asked for no motion is given none.
  *
- * What is brought into view is the label and never the item that holds it: a
- * `treeitem` contains its whole subtree, so a module's is as tall as
- * everything under it and already covers the scroller — `nearest` would
- * rightly decide there was nothing to do and the reader would be taken
- * nowhere.
+ * What is centred is the label and never the item that holds it: a `treeitem`
+ * contains its whole subtree, so a module's is as tall as everything under it
+ * and centring that would put the module's own line off the top.
  */
 export function useRevealRow(
   tree: RefObject<HTMLElement | null>,
@@ -26,7 +26,7 @@ export function useRevealRow(
       for (const item of items ?? []) {
         if (item.dataset.path !== selected) continue;
         item.querySelector<HTMLElement>(':scope > [data-row]')?.scrollIntoView({
-          block: 'nearest',
+          block: 'center',
         });
         return;
       }
