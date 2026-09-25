@@ -24,15 +24,16 @@ const SUBJECT = 'design document';
 
 /** The working file, as both design-document tools describe it. */
 export const DESIGN_DOC_SHAPE =
-  '{ "name", "description", "modules", "buildingBlocks", "behaviours" }. A field is { "value", "author" } when the design changes it, { "changed": false } or absent when it does not; each collection is a change set of { "added", "removed", "modified" }. Only a human sets "author": "human"; write every such field back exactly as it is.';
+  '{ "name", "description", "modules", "buildingBlocks", "behaviours" }. A field is { "value", "author" } when the design changes it, { "changed": false } or absent when it does not; each collection is a change set of { "added", "removed", "modified" }. Write every field as the agent: leave "author" out. Nothing is scanned yet, so a design only adds, at every level.';
 
 const FIXES: Record<DesignDocViolation['reason'], string> = {
-  humanValueChanged:
-    'a human wrote this field; write it back exactly as it is stored',
-  humanAuthorClaimed:
-    'only a human sets "author": "human"; leave "author" out or set "agent"',
+  changedInGreenField:
+    'nothing is scanned yet, so a design only adds; add this instead',
+  unknownElement:
+    'the scanned model has no such element or part; add it instead of modifying or removing it',
   unchangedFieldInAddedItem:
     'the item is new, so this field needs a { "value" }',
+  humanAuthor: 'write every field as the agent: leave "author" out',
 };
 
 /** The answer to a design document that breaks its rules, one line per field to fix. */

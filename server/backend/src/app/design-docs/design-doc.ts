@@ -10,6 +10,7 @@ import {
   BuildingBlockType,
   RuleType,
   BuildingBlockRef,
+  type SystemModel,
   Visibility,
 } from '#backend/app/system-model/system-model';
 import { DesignDocField } from './design-doc-field';
@@ -92,12 +93,17 @@ const designDocumentSchema = z.strictObject({
 });
 
 export const DesignDocument = Object.assign(designDocumentSchema, {
-  violationsOf: (
+  /**
+   * The rules a design document written by an agent follows. Without a
+   * system model it is a green field: there is nothing to modify or remove.
+   */
+  validateAgentGenerated: (
     document: DesignDocumentContent,
-    existing?: DesignDocumentContent,
+    systemModel?: SystemModel,
   ): DesignDocViolation[] => [
+    ...changesMissingFrom(systemModel, document),
     ...unchangedFieldsInAddedItems(document),
-    ...humanFieldViolations(document, existing),
+    ...humanAuthoredFields(document),
   ],
 });
 export type DesignDocument = z.infer<typeof designDocumentSchema>;
@@ -105,9 +111,10 @@ export type DesignDocument = z.infer<typeof designDocumentSchema>;
 export interface DesignDocViolation {
   path: string;
   reason:
-    | 'humanValueChanged'
-    | 'humanAuthorClaimed'
-    | 'unchangedFieldInAddedItem';
+    | 'changedInGreenField'
+    | 'unknownElement'
+    | 'unchangedFieldInAddedItem'
+    | 'humanAuthor';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -168,6 +175,90 @@ function changeSet(item: z.ZodType, key?: z.ZodType) {
     .prefault({});
 }
 
+/**
+ * Every element or part the document modifies or removes, at any level, that
+ * the system model lacks; all of them in a green field. An element's parts
+ * are matched by name: a designed block's `properties` against the scanned
+ * block's `properties`, and so on. Inside an added element nothing exists yet.
+ */
+function changesMissingFrom(
+  systemModel: SystemModel | undefined,
+  document: DesignDocumentContent,
+): DesignDocViolation[] {
+  const reason =
+    systemModel === undefined ? 'changedInGreenField' : 'unknownElement';
+  return [...partsMissingFrom(document, systemModel, '')].map((path) => ({
+    path,
+    reason,
+  }));
+}
+
+function* partsMissingFrom(
+  designed: object,
+  scanned: object | undefined,
+  path: string,
+): Generator<string> {
+  for (const [name, part] of Object.entries(designed)) {
+    if (!isChangeSet(part)) continue;
+    const counterpart: unknown =
+      scanned === undefined ? undefined : Reflect.get(scanned, name);
+    yield* changesMissingFromPart(
+      part,
+      Array.isArray(counterpart) ? counterpart : [],
+      path === '' ? name : `${path}.${name}`,
+    );
+  }
+}
+
+function* changesMissingFromPart(
+  changes: ChangeSetValue,
+  scanned: unknown[],
+  path: string,
+): Generator<string> {
+  const known = new Map(scanned.map((item) => [keyOf(item), item]));
+  for (const item of changes.added) {
+    if (isObject(item)) {
+      yield* partsMissingFrom(item, undefined, `${path}.added[${keyOf(item)}]`);
+    }
+  }
+  for (const key of changes.removed.map(keyOf)) {
+    if (!known.has(key)) yield `${path}.removed[${key}]`;
+  }
+  for (const item of changes.modified ?? []) {
+    const key = keyOf(item);
+    const found = known.get(key);
+    if (found === undefined) {
+      yield `${path}.modified[${key}]`;
+    } else if (isObject(item)) {
+      yield* partsMissingFrom(
+        item,
+        isObject(found) ? found : undefined,
+        `${path}.modified[${key}]`,
+      );
+    }
+  }
+}
+
+interface ChangeSetValue {
+  added: unknown[];
+  removed: unknown[];
+  modified?: unknown[];
+}
+
+function isChangeSet(value: unknown): value is ChangeSetValue {
+  return (
+    isObject(value) &&
+    'added' in value &&
+    Array.isArray(value.added) &&
+    'removed' in value &&
+    Array.isArray(value.removed)
+  );
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === 'object' && value !== null;
+}
+
 function unchangedFieldsInAddedItems(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
@@ -176,30 +267,16 @@ function unchangedFieldsInAddedItems(
     .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' }));
 }
 
-function humanFieldViolations(
+function humanAuthoredFields(
   document: DesignDocumentContent,
-  existing: DesignDocumentContent | undefined,
 ): DesignDocViolation[] {
-  const before = existing === undefined ? new Map() : humanFieldsOf(existing);
-  const after = humanFieldsOf(document);
-  return [...new Set([...before.keys(), ...after.keys()])]
-    .filter((path) => before.get(path) !== after.get(path))
-    .map((path) => ({
-      path,
-      reason: before.has(path) ? 'humanValueChanged' : 'humanAuthorClaimed',
-    }));
+  return [...fieldsOf(document, '')]
+    .filter(([, field]) => field.changed && field.author === 'human')
+    .map(([path]) => ({ path, reason: 'humanAuthor' }));
 }
 
 function isInAddedItem(path: string): boolean {
   return /(?:^|\.)added\[/.test(path);
-}
-
-function humanFieldsOf(document: DesignDocumentContent): Map<string, string> {
-  return new Map(
-    [...fieldsOf(document, '')]
-      .filter(([, field]) => field.changed && field.author === 'human')
-      .map(([path, field]) => [path, JSON.stringify(field)]),
-  );
 }
 
 function* fieldsOf(

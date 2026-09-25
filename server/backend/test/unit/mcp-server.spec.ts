@@ -12,8 +12,8 @@ import {
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
-  agentDesignDocFixture,
   designDocFixture,
+  greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
@@ -67,7 +67,7 @@ const document = {
   content: 'Support hears about double charges after a failed retry.',
 };
 
-const { id: _designDocId, ...designDoc } = agentDesignDocFixture;
+const { id: _designDocId, ...designDoc } = greenFieldDesignDocFixture;
 const DESIGN_DOC_ID = DesignDocId.parse(`${TODAY}-partial-refunds-for-orders`);
 
 async function call(name: string, args: Record<string, unknown>) {
@@ -575,8 +575,8 @@ describe('create_design_doc_in_change', () => {
 
   it('answers a design document that breaks its rules with each field to fix', async () => {
     const change = await noesis.createChange(CHANGE);
-    const { id: _id, ...claimed } = designDocFixture;
-    const path = await workingFile('design-doc.json', claimed);
+    const { id: _id, ...reviewed } = designDocFixture;
+    const path = await workingFile('design-doc.json', reviewed);
 
     const result = await call('create_design_doc_in_change', { change, path });
 
@@ -584,7 +584,10 @@ describe('create_design_doc_in_change', () => {
     const text = textOf(result);
     expect(text).toContain('fix each field and call again');
     expect(text).toContain(
-      '- modules.modified[module|sales.orders].description: only a human sets',
+      '- modules.removed[module|sales.credit-notes]: nothing is scanned yet',
+    );
+    expect(text).toContain(
+      '- modules.modified[module|sales.orders].description: write every field as the agent',
     );
     expect(await noesis.designDocsService.list(change)).toEqual([]);
   });
@@ -615,27 +618,33 @@ describe('update_design_doc_in_change', () => {
     expect(await noesis.designDocsService.list(change)).toHaveLength(1);
   });
 
-  it('answers a version that overwrites what a human wrote with each field to fix', async () => {
+  it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
     const change = await noesis.createChange(CHANGE);
-    await noesis.writeDesignDoc(change, designDocFixture);
+    await call('create_design_doc_in_change', {
+      change,
+      path: await workingFile('design-doc.json', designDoc),
+    });
+    const stored = await noesis.designDocsService.findById(
+      change,
+      DESIGN_DOC_ID,
+    );
 
     const result = await call('update_design_doc_in_change', {
       change,
-      id: designDocFixture.id,
-      path: await workingFile('design-doc.json', designDoc),
+      id: DESIGN_DOC_ID,
+      path: await workingFile('design-doc.json', {
+        ...designDoc,
+        behaviours: { removed: ['behavior|sales.orders.Order.cancel'] },
+      }),
     });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(
-      '- modules.modified[module|sales.orders].description: a human wrote this field',
+      '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
     );
-    const stored = await noesis.designDocsService.findById(
-      change,
-      DesignDocId.parse(designDocFixture.id),
-    );
-    expect(stored?.document.modules.modified[0]?.description).toMatchObject({
-      author: 'human',
-    });
+    expect(
+      await noesis.designDocsService.findById(change, DESIGN_DOC_ID),
+    ).toEqual(stored);
   });
 
   it('answers an id that names no design document in-band', async () => {

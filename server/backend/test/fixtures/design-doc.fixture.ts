@@ -9,7 +9,6 @@ import {
  * the specs rely on: an element added, modified and removed at every level,
  * a part of each kind, unchanged fields and changed fields of both authors,
  * every kind of type including a nested collection, a public behaviour.
- * Checked against itself, `DesignDocument.violationsOf` finds nothing.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -251,13 +250,17 @@ export const designDocFixture = {
 /** The decoded form, as the service takes it. */
 export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
 
-/**
- * The same design with every changed field written by an agent: what an
- * agent may create, since only a human sets a human author.
+/*
+ * What an agent may write while nothing is scanned yet: the same design with
+ * every field written by the agent, adding elements only.
  */
-export const agentDesignDocFixture = asAgent(
-  designDocFixture,
-) as DesignDocumentInput;
+const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
+export const greenFieldDesignDocFixture: DesignDocumentInput = {
+  ...byAgentOnly,
+  modules: { added: byAgentOnly.modules.added },
+  buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
+  behaviours: { added: byAgentOnly.behaviours.added },
+};
 
 function asAgent(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(asAgent);

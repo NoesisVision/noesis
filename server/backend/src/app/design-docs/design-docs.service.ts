@@ -41,7 +41,7 @@ export class DesignDocNotFoundError extends Error {
   }
 }
 
-/** A version an agent wrote breaks the rules of `DesignDocument.violationsOf`. */
+/** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
 export class InvalidDesignDocError extends Error {
   readonly violations: DesignDocViolation[];
 
@@ -59,7 +59,7 @@ export class InvalidDesignDocError extends Error {
 /**
  * Callers validate before calling in. The service mints the id of a new
  * document; an update names it. Every write comes from an agent, so each is
- * checked against the stored version first.
+ * checked against the rules for a design an agent wrote first.
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
@@ -103,8 +103,7 @@ export class DesignDocsService {
 
   /**
    * Replaces the design document at `id` whole; never creates one. Throws
-   * `InvalidDesignDocError` when the new version breaks the rules against the
-   * stored one.
+   * `InvalidDesignDocError` when the new version breaks the rules.
    */
   update(
     change: ChangeId,
@@ -113,9 +112,10 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
-      const existing = await this.docs.get(change, id);
-      if (existing === null) throw new DesignDocNotFoundError(change, id);
-      assertValid(document, existing);
+      if ((await this.docs.get(change, id)) === null) {
+        throw new DesignDocNotFoundError(change, id);
+      }
+      assertValid(document);
       const updated: DesignDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
@@ -147,10 +147,8 @@ function summarize({
   return { id, name, implemented };
 }
 
-function assertValid(
-  document: DesignDocumentContent,
-  existing?: DesignDocument,
-): void {
-  const violations = DesignDocument.violationsOf(document, existing);
+/** No system model is scanned yet, so every design is a green field. */
+function assertValid(document: DesignDocumentContent): void {
+  const violations = DesignDocument.validateAgentGenerated(document);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

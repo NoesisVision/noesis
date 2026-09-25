@@ -14,9 +14,9 @@ import {
   InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
 import {
-  agentDesignDocFixture,
   decodedDesignDocFixture,
   designDocFixture,
+  greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -24,17 +24,23 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 const CHANGE = ChangeId.parse('2026-01-01-booking');
 const NOPE = ChangeId.parse('2026-01-01-nope');
 const MINTED = DesignDocId.parse('2026-09-24-partial-refunds-for-orders');
-/** The fixture's own id: a design document a human has already reviewed. */
-const REVIEWED = decodedDesignDocFixture.id;
+/** The fixture's own id, as it is stored. */
+const STORED = decodedDesignDocFixture.id;
 
 /** A design as an agent's working file holds it: everything but the id. */
 const contentOf = ({ id: _id, ...content }: DesignDocumentInput) =>
   DesignDocumentContent.parse(content);
 
-/** What an agent may write: every changed field is its own. */
-const byAgent = contentOf(agentDesignDocFixture);
-/** The reviewed design, with the fields a human wrote. */
-const reviewed = contentOf(designDocFixture);
+/** What an agent may write while nothing is scanned: every field its own, adding elements only. */
+const byAgent = contentOf(greenFieldDesignDocFixture);
+/** The same design, removing an element: nothing is scanned that it could remove. */
+const removing = contentOf({
+  ...greenFieldDesignDocFixture,
+  buildingBlocks: {
+    ...greenFieldDesignDocFixture.buildingBlocks,
+    removed: ['building_block|sales.credit-notes.CreditNote'],
+  },
+});
 
 let t: TestNoesis;
 let service: DesignDocsService;
@@ -71,7 +77,7 @@ describe('Reading the design documents of a change', () => {
 
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
       earlier,
-      REVIEWED,
+      STORED,
     ]);
   });
 
@@ -79,14 +85,14 @@ describe('Reading the design documents of a change', () => {
     await t.writeDesignDoc(CHANGE, { ...designDocFixture, implemented: true });
 
     expect(await service.list(CHANGE)).toEqual([
-      { id: REVIEWED, name: 'Partial refunds for orders', implemented: true },
+      { id: STORED, name: 'Partial refunds for orders', implemented: true },
     ]);
   });
 
   it('finds one whole, and nothing for an id the change does not have', async () => {
     await t.writeDesignDoc(CHANGE, designDocFixture);
 
-    expect((await service.findById(CHANGE, REVIEWED))?.document).toEqual(
+    expect((await service.findById(CHANGE, STORED))?.document).toEqual(
       decodedDesignDocFixture,
     );
     expect(
@@ -100,15 +106,15 @@ describe('Every operation on design documents', () => {
     await expect(service.list(NOPE)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    await expect(service.findById(NOPE, REVIEWED)).rejects.toBeInstanceOf(
+    await expect(service.findById(NOPE, STORED)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
     await expect(service.create(NOPE, byAgent)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    await expect(
-      service.update(NOPE, REVIEWED, byAgent),
-    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+    await expect(service.update(NOPE, STORED, byAgent)).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
   });
 });
 
@@ -118,7 +124,7 @@ describe('Creating a design document', () => {
 
     expect(created.id).toBe(MINTED);
     expect((await service.findById(CHANGE, MINTED))?.document).toEqual(
-      DesignDocument.parse({ ...agentDesignDocFixture, id: MINTED }),
+      DesignDocument.parse({ ...greenFieldDesignDocFixture, id: MINTED }),
     );
   });
 
@@ -131,16 +137,36 @@ describe('Creating a design document', () => {
     expect(await service.list(CHANGE)).toHaveLength(2);
   });
 
-  it('refuses a design that claims a human wrote a field, storing nothing', async () => {
-    expect(await brokenRules(service.create(CHANGE, reviewed))).toEqual([
-      'humanAuthorClaimed',
+  it('refuses a design that modifies or removes an element, as nothing is scanned yet', async () => {
+    expect(await brokenRules(service.create(CHANGE, removing))).toEqual([
+      'changedInGreenField',
+    ]);
+    expect(await service.list(CHANGE)).toEqual([]);
+  });
+
+  it('refuses a field a human wrote, storing nothing', async () => {
+    const withHumanField = contentOf({
+      ...greenFieldDesignDocFixture,
+      modules: {
+        added: [
+          {
+            id: 'module|sales.refunds',
+            name: { value: 'refunds' },
+            description: { value: 'Money back.', author: 'human' },
+          },
+        ],
+      },
+    });
+
+    expect(await brokenRules(service.create(CHANGE, withHumanField))).toEqual([
+      'humanAuthor',
     ]);
     expect(await service.list(CHANGE)).toEqual([]);
   });
 
   it('refuses an added element with a field left unchanged, storing nothing', async () => {
     const incomplete = contentOf({
-      ...agentDesignDocFixture,
+      ...greenFieldDesignDocFixture,
       modules: {
         added: [{ id: 'module|sales.refunds', name: { value: 'refunds' } }],
       },
@@ -181,28 +207,19 @@ describe('Updating a design document', () => {
     expect(renamed).toMatchObject({ id, name: 'Refunds by line' });
   });
 
-  it('accepts a version that writes back what a human wrote', async () => {
-    await t.writeDesignDoc(CHANGE, designDocFixture);
+  it('refuses a version that breaks the rules, keeping the stored one', async () => {
+    const { id } = await service.create(CHANGE, byAgent);
+    const stored = await service.findById(CHANGE, id);
 
-    expect(await service.update(CHANGE, REVIEWED, reviewed)).toMatchObject({
-      id: REVIEWED,
-    });
-  });
-
-  it('refuses a version that overwrites what a human wrote, keeping the stored one', async () => {
-    await t.writeDesignDoc(CHANGE, designDocFixture);
-
-    expect(
-      await brokenRules(service.update(CHANGE, REVIEWED, byAgent)),
-    ).toEqual(['humanValueChanged']);
-    expect((await service.findById(CHANGE, REVIEWED))?.document).toEqual(
-      decodedDesignDocFixture,
-    );
+    expect(await brokenRules(service.update(CHANGE, id, removing))).toEqual([
+      'changedInGreenField',
+    ]);
+    expect(await service.findById(CHANGE, id)).toEqual(stored);
   });
 
   it('refuses an id the change does not have, creating nothing', async () => {
     await expect(
-      service.update(CHANGE, REVIEWED, byAgent),
+      service.update(CHANGE, STORED, byAgent),
     ).rejects.toBeInstanceOf(DesignDocNotFoundError);
     expect(await service.list(CHANGE)).toEqual([]);
   });

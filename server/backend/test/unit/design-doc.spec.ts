@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import {
-  agentDesignDocFixture,
   designDocFixture,
+  greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
 
 /*
  * A design document is a diff against the scanned model: the modules,
  * building blocks and behaviours a change adds, modifies or removes. An agent
- * writes it; a human reviews it, and a field a human wrote is theirs.
+ * writes it; a human reviews it.
  */
 
 const REFUND = 'building_block|sales.refunds.Refund';
@@ -337,190 +338,372 @@ describe('The visibility of a behaviour', () => {
   });
 });
 
-describe('What an agent may write', () => {
-  const MODULE_DESCRIPTION =
-    'modules.modified[module|sales.refunds].description';
-  const BLOCK_DESCRIPTION = `buildingBlocks.modified[${REFUND}].description`;
+describe('A design document an agent wrote', () => {
+  const ORDERS = 'module|sales.orders';
+  const ORDER = 'building_block|sales.orders.Order';
+  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const source = { path: 'src/sales/orders/order.ts' };
 
-  /*
-   * A stored design whose building block description a human wrote. Every
-   * element is modified, not added, so only the rules on human fields apply.
+  const AUDITABLE = 'building_block|sales.shared.Auditable';
+
+  /**
+   * What the scanner found: the orders module; its Order, which implements
+   * Auditable and has a total; and Order.cancel, which takes an Order and
+   * uses it.
    */
-  const version = (patch: {
-    moduleDescription?: object;
-    blockDescription?: object;
-    propertyName?: string;
-  }) =>
-    DesignDocument.parse(
-      design({
-        modules: {
-          modified: [
-            {
-              id: 'module|sales.refunds',
-              description: patch.moduleDescription ?? { value: 'Refunds.' },
-            },
-          ],
-        },
-        buildingBlocks: {
-          modified: [
-            {
-              id: REFUND,
-              description: patch.blockDescription ?? {
-                value: 'Money back.',
-                author: 'human',
-              },
-              properties: {
-                modified: [{ name: patch.propertyName ?? 'amount' }],
-              },
-            },
-          ],
-        },
-      }),
-    );
-  const stored = version({});
+  const scanned = SystemModel.parse({
+    id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
+    name: 'shop',
+    scanned_at: '2026-09-25T08:00:00.000Z',
+    modules: [{ id: ORDERS, name: 'orders', source }],
+    buildingBlocks: [
+      {
+        id: ORDER,
+        name: 'Order',
+        type: 'aggregate',
+        implements: [AUDITABLE],
+        properties: [{ name: 'total', type: 'primitive|decimal' }],
+        source,
+      },
+    ],
+    behaviours: [
+      {
+        id: CANCEL,
+        buildingBlockId: ORDER,
+        name: 'cancel',
+        type: 'Command',
+        visibility: { kind: 'private' },
+        input: [ORDER],
+        usedBuildingBlocks: [ORDER],
+        source,
+      },
+    ],
+  });
 
-  describe('in a new design document', () => {
-    it('writes every changed field as the agent', () => {
+  const validate = (document: unknown, systemModel?: SystemModel) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(document),
+      systemModel,
+    );
+
+  describe('for a green field, where nothing is scanned yet', () => {
+    it('adds elements', () => {
+      expect(validate(greenFieldDesignDocFixture)).toEqual([]);
+    });
+
+    it('modifies and removes nothing, as there is nothing yet', () => {
       expect(
-        DesignDocument.violationsOf(
-          DesignDocument.parse(agentDesignDocFixture),
+        validate(
+          design({
+            modules: { modified: [{ id: ORDERS }] },
+            buildingBlocks: { removed: [ORDER] },
+            behaviours: { modified: [{ id: CANCEL }] },
+          }),
+        ),
+      ).toEqual([
+        { path: `modules.modified[${ORDERS}]`, reason: 'changedInGreenField' },
+        {
+          path: `buildingBlocks.removed[${ORDER}]`,
+          reason: 'changedInGreenField',
+        },
+        {
+          path: `behaviours.modified[${CANCEL}]`,
+          reason: 'changedInGreenField',
+        },
+      ]);
+    });
+  });
+
+  describe('for a green field, inside an element it adds', () => {
+    it('modifies and removes nothing either', () => {
+      expect(
+        validate(
+          addingRefund({
+            description: { value: 'Money back.' },
+            type: { value: 'aggregate' },
+            implements: { removed: [AUDITABLE] },
+            properties: { removed: ['legacyFlag'] },
+          }),
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.added[${REFUND}].implements.removed[${AUDITABLE}]`,
+          reason: 'changedInGreenField',
+        },
+        {
+          path: `buildingBlocks.added[${REFUND}].properties.removed[legacyFlag]`,
+          reason: 'changedInGreenField',
+        },
+      ]);
+    });
+  });
+
+  describe('against a scanned system model', () => {
+    it('modifies and removes the elements the model has', () => {
+      expect(
+        validate(
+          design({
+            modules: { modified: [{ id: ORDERS }] },
+            buildingBlocks: { modified: [{ id: ORDER }] },
+            behaviours: { removed: [CANCEL] },
+          }),
+          scanned,
         ),
       ).toEqual([]);
     });
 
-    it('never claims a human wrote a field', () => {
-      expect(DesignDocument.violationsOf(stored)).toEqual([
-        { path: BLOCK_DESCRIPTION, reason: 'humanAuthorClaimed' },
+    it('never modifies or removes an element the model does not have', () => {
+      const missing = 'building_block|sales.orders.OrderLine';
+
+      expect(
+        validate(
+          design({
+            buildingBlocks: { modified: [{ id: missing }] },
+            behaviours: { removed: ['behavior|sales.orders.Order.ship'] },
+          }),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.modified[${missing}]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: 'behaviours.removed[behavior|sales.orders.Order.ship]',
+          reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('modifies and removes the parts of an element that the model has', () => {
+      expect(
+        validate(
+          design({
+            buildingBlocks: {
+              modified: [
+                {
+                  id: ORDER,
+                  implements: { removed: [AUDITABLE] },
+                  properties: {
+                    modified: [
+                      { name: 'total', description: { value: 'The sum.' } },
+                    ],
+                  },
+                },
+              ],
+            },
+            behaviours: {
+              modified: [
+                {
+                  id: CANCEL,
+                  input: { removed: [ORDER] },
+                  usedBuildingBlocks: { removed: [ORDER] },
+                },
+              ],
+            },
+          }),
+          scanned,
+        ),
+      ).toEqual([]);
+    });
+
+    it('never modifies or removes a part the element in the model does not have', () => {
+      expect(
+        validate(
+          design({
+            buildingBlocks: {
+              modified: [
+                {
+                  id: ORDER,
+                  properties: {
+                    removed: ['legacyFlag'],
+                    modified: [{ name: 'discount' }],
+                  },
+                  rules: { removed: ['Paid orders only'] },
+                },
+              ],
+            },
+            behaviours: {
+              modified: [
+                {
+                  id: CANCEL,
+                  output: { removed: ['primitive|boolean'] },
+                  input: { removed: [{ collectionOf: ORDER }] },
+                },
+              ],
+            },
+          }),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.modified[${ORDER}].properties.removed[legacyFlag]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `buildingBlocks.modified[${ORDER}].properties.modified[discount]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `buildingBlocks.modified[${ORDER}].rules.removed[Paid orders only]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `behaviours.modified[${CANCEL}].input.removed[{"collectionOf":"${ORDER}"}]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `behaviours.modified[${CANCEL}].output.removed[primitive|boolean]`,
+          reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('reports an element the model does not have once, not each part changed under it', () => {
+      const missing = 'building_block|sales.orders.OrderLine';
+
+      expect(
+        validate(
+          design({
+            buildingBlocks: {
+              modified: [{ id: missing, properties: { removed: ['total'] } }],
+            },
+          }),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.modified[${missing}]`,
+          reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('modifies and removes nothing inside an element it adds', () => {
+      expect(
+        validate(
+          addingRefund({
+            description: { value: 'Money back.' },
+            type: { value: 'aggregate' },
+            properties: { removed: ['total'] },
+          }),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.added[${REFUND}].properties.removed[total]`,
+          reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('adds elements the model does not have yet', () => {
+      expect(validate(greenFieldDesignDocFixture, scanned)).toEqual([]);
+    });
+  });
+
+  describe('whatever it is written against', () => {
+    it('writes every field as the agent', () => {
+      expect(
+        validate(
+          design({
+            buildingBlocks: {
+              modified: [
+                {
+                  id: ORDER,
+                  description: { value: 'Money back.', author: 'human' },
+                },
+              ],
+            },
+          }),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `buildingBlocks.modified[${ORDER}].description`,
+          reason: 'humanAuthor',
+        },
       ]);
     });
 
     it('gives every field of an added element a value, at any depth', () => {
-      const parsed = DesignDocument.parse(
-        design({
-          buildingBlocks: {
-            added: [
-              {
-                id: REFUND,
-                type: { value: 'aggregate' },
-                description: { value: 'Money back.' },
-              },
-            ],
-            modified: [
-              {
-                id: 'building_block|sales.orders.Order',
-                properties: {
-                  added: [
-                    {
-                      name: 'refundedAmount',
-                      type: { value: 'primitive|decimal' },
-                      optional: { value: false },
-                    },
-                  ],
+      expect(
+        validate(
+          design({
+            buildingBlocks: {
+              added: [
+                {
+                  id: REFUND,
+                  type: { value: 'aggregate' },
+                  description: { value: 'Money back.' },
                 },
-              },
-            ],
-          },
-        }),
-      );
-
-      expect(DesignDocument.violationsOf(parsed)).toEqual([
+              ],
+              modified: [
+                {
+                  id: ORDER,
+                  properties: {
+                    added: [
+                      {
+                        name: 'refundedAmount',
+                        type: { value: 'primitive|decimal' },
+                        optional: { value: false },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          }),
+          scanned,
+        ),
+      ).toEqual([
         {
           path: `buildingBlocks.added[${REFUND}].name`,
           reason: 'unchangedFieldInAddedItem',
         },
         {
-          path: 'buildingBlocks.modified[building_block|sales.orders.Order].properties.added[refundedAmount].description',
+          path: `buildingBlocks.modified[${ORDER}].properties.added[refundedAmount].description`,
           reason: 'unchangedFieldInAddedItem',
         },
       ]);
     });
 
     it('leaves a field of a modified element unchanged', () => {
-      const parsed = DesignDocument.parse(
-        design({ buildingBlocks: { modified: [{ id: REFUND }] } }),
-      );
-
-      expect(DesignDocument.violationsOf(parsed)).toEqual([]);
+      expect(
+        validate(
+          design({ buildingBlocks: { modified: [{ id: ORDER }] } }),
+          scanned,
+        ),
+      ).toEqual([]);
     });
 
     it('is told every rule it broke at once', () => {
-      const parsed = DesignDocument.parse(
-        addingRefund({
-          type: { value: 'aggregate', author: 'human' },
-        }),
-      );
-
-      expect(DesignDocument.violationsOf(parsed)).toEqual([
+      expect(
+        validate(
+          design({
+            modules: { removed: [ORDERS] },
+            buildingBlocks: {
+              added: [
+                {
+                  id: REFUND,
+                  name: { value: 'Refund' },
+                  type: { value: 'aggregate', author: 'human' },
+                },
+              ],
+            },
+          }),
+        ),
+      ).toEqual([
+        { path: `modules.removed[${ORDERS}]`, reason: 'changedInGreenField' },
         {
           path: `buildingBlocks.added[${REFUND}].description`,
           reason: 'unchangedFieldInAddedItem',
         },
         {
           path: `buildingBlocks.added[${REFUND}].type`,
-          reason: 'humanAuthorClaimed',
+          reason: 'humanAuthor',
         },
       ]);
-    });
-  });
-
-  describe('in a new version of a stored design document', () => {
-    it('writes back what a human wrote exactly as it is', () => {
-      const fixture = DesignDocument.parse(designDocFixture);
-
-      expect(DesignDocument.violationsOf(fixture, fixture)).toEqual([]);
-      expect(DesignDocument.violationsOf(version({}), stored)).toEqual([]);
-    });
-
-    it('rewrites freely what an agent wrote', () => {
-      expect(
-        DesignDocument.violationsOf(
-          version({
-            moduleDescription: { value: 'Giving money back.' },
-            propertyName: 'total',
-          }),
-          stored,
-        ),
-      ).toEqual([]);
-    });
-
-    it('never changes a value a human wrote', () => {
-      expect(
-        DesignDocument.violationsOf(
-          version({ blockDescription: { value: 'Refund.', author: 'human' } }),
-          stored,
-        ),
-      ).toEqual([{ path: BLOCK_DESCRIPTION, reason: 'humanValueChanged' }]);
-    });
-
-    it('never takes over a field a human wrote, even keeping its value', () => {
-      expect(
-        DesignDocument.violationsOf(
-          version({ blockDescription: { value: 'Money back.' } }),
-          stored,
-        ),
-      ).toEqual([{ path: BLOCK_DESCRIPTION, reason: 'humanValueChanged' }]);
-    });
-
-    it('never drops a field a human wrote', () => {
-      const dropped = DesignDocument.parse({
-        ...version({}),
-        buildingBlocks: {},
-      });
-
-      expect(DesignDocument.violationsOf(dropped, stored)).toEqual([
-        { path: BLOCK_DESCRIPTION, reason: 'humanValueChanged' },
-      ]);
-    });
-
-    it('never claims a human wrote a field a human did not', () => {
-      expect(
-        DesignDocument.violationsOf(
-          version({
-            moduleDescription: { value: 'Refunds.', author: 'human' },
-          }),
-          stored,
-        ),
-      ).toEqual([{ path: MODULE_DESCRIPTION, reason: 'humanAuthorClaimed' }]);
     });
   });
 });
