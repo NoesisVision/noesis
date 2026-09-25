@@ -13,8 +13,22 @@ import {
   DOCUMENTS_NAV,
   type NavItem,
 } from '#/shell/navigation/nav-items.ts';
-import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 import classes from './sidebar.module.css';
+
+/**
+ * How every link in the sidebar decides whether it is the one you are on.
+ * One mechanism, stated once: the link's own match against the address.
+ *
+ * `exact`, so a heading stops being active the moment one of its items opens
+ * — the icon carries that instead, and a fuzzy match would light the heading
+ * and the item both.
+ *
+ * Search left out, because a sidebar link names a view and never a reading
+ * position inside it. A design document keeps the element in hand and the
+ * search in the address, and the link that led there is still the link you
+ * are on.
+ */
+const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const;
 
 interface SidebarProps {
   onNavigate: () => void;
@@ -77,21 +91,11 @@ function ChangeNavHeading({
   disabled,
   onNavigate,
 }: ChangeNavHeadingProps) {
-  // Active by leaf route id, not by pathname: `matchRoute` reports the change
-  // layout as matching under every view beneath it, so Overview would stay
-  // lit. The Link is told the same (`exact`), because Mantine's NavLink also
-  // styles the `aria-current` the Link sets on a fuzzy match.
-  const { isActive } = useActiveRoute();
-
   return (
     <NavLink
       label={entry.label}
       leftSection={<entry.icon size={22} stroke={1.6} />}
       disabled={disabled}
-      active={isActive(
-        entry.routeId,
-        'exact' in entry ? entry.exact : undefined,
-      )}
       onClick={onNavigate}
       renderRoot={(props) => (
         <Link
@@ -99,7 +103,7 @@ function ChangeNavHeading({
           className={classes.link}
           to={entry.to}
           params={params}
-          activeOptions={{ exact: true }}
+          activeOptions={ACTIVE_OPTIONS}
         />
       )}
     />
@@ -109,7 +113,6 @@ function ChangeNavHeading({
 /** Change navigation and child groups for the current or last opened change. */
 export function Sidebar({ onNavigate }: SidebarProps) {
   const { changes, activeChange } = useChangeNavigation();
-  const { isActive } = useActiveRoute();
   const params = { changeId: activeChange?.slug ?? '' };
   const children = changeNavChildren(activeChange, params.changeId);
 
@@ -165,7 +168,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                           {...props}
                           {...item.link}
                           className={clsx(classes.link, classes.subLink)}
-                          activeOptions={{ exact: true }}
+                          activeOptions={ACTIVE_OPTIONS}
                         />
                       )}
                     />
@@ -193,14 +196,13 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             key={entry.to}
             label={entry.label}
             leftSection={<entry.icon size={18} stroke={1.6} />}
-            active={isActive(entry.routeId)}
             onClick={onNavigate}
             renderRoot={(props) => (
               <Link
                 {...props}
                 className={classes.link}
                 to={entry.to}
-                activeOptions={{ exact: true }}
+                activeOptions={ACTIVE_OPTIONS}
               />
             )}
           />
