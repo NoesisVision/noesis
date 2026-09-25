@@ -15,8 +15,8 @@
   ],
   "settings": {
     // The backend's layers. A file belongs to the first
-    // element whose folder contains it; `root` catches what is directly in
-    // `src/` — the composition root.
+    // element whose folder contains it; `root` catches what is left —
+    // `main.ts` and `boot/`, the composition root.
     "boundaries/include": [
       "server/backend/src/**/*.ts",
       "server/frontend/src/**/*.ts",

@@ -72,7 +72,7 @@ const exists = (path: string) =>
  */
 async function sessionDir(client: Client): Promise<string> {
   const { tools } = await client.listTools();
-  const path = tools.find((tool) => tool.name === 'add_document_to_change')
+  const path = tools.find((tool) => tool.name === 'create_document_in_change')
     ?.inputSchema.properties?.path as { description?: string } | undefined;
   const match = /scratch directory, (\S+?),/.exec(path?.description ?? '');
   if (!match?.[1]) throw new Error('no scratch directory in the tool schema');
@@ -97,32 +97,47 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
 
   it('names the repository root in its instructions', () => {
     expect(client.getInstructions()).toContain(service.repoRoot);
-    expect(client.getInstructions()).toContain('.noesis/tmp/');
+    expect(client.getInstructions()).toContain('.noesis/sessions/');
   });
 
-  it('advertises a live scratch directory under .noesis/tmp/', async () => {
+  it('advertises a live scratch directory under .noesis/sessions/', async () => {
     const dir = await sessionDir(client);
-    expect(dir.startsWith(join(service.repoRoot, '.noesis', 'tmp'))).toBe(true);
+    expect(dir.startsWith(join(service.repoRoot, '.noesis', 'sessions'))).toBe(
+      true,
+    );
     expect(await exists(dir)).toBe(true);
   });
 
-  it('offers the four tools it was started with', async () => {
+  it('offers the seven tools it was started with', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
-      'add_design_doc_to_change',
-      'add_document_to_change',
       'create_change',
+      'create_design_doc_in_change',
+      'create_document_in_change',
       'list_changes',
+      'update_change',
+      'update_design_doc_in_change',
+      'update_document_in_change',
     ]);
   });
 
-  it('creates a change and adds a document written to the scratch directory', async () => {
+  it('creates a change and a document, each written to the scratch directory', async () => {
+    const changeFile = join(await sessionDir(client), 'change.json');
+    await writeFile(
+      changeFile,
+      JSON.stringify({
+        name: 'Payment retry',
+        key: 'NOE-142',
+        type: 'feature',
+      }),
+    );
     const created = await client.callTool({
       name: 'create_change',
-      arguments: { name: 'Payment retry', key: 'NOE-142', type: 'feature' },
+      arguments: { path: changeFile },
     });
     expect(created.isError).toBeFalsy();
-    expect(created.structuredContent).toMatchObject({ slug: 'payment-retry' });
+    const { change } = created.structuredContent as { change: { id: string } };
+    expect(change.id).toMatch(/^\d{4}-\d{2}-\d{2}-payment-retry$/);
 
     const path = join(await sessionDir(client), 'document.json');
     await writeFile(
@@ -135,14 +150,22 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const added = await client.callTool({
-      name: 'add_document_to_change',
-      arguments: { change: 'payment-retry', path },
+      name: 'create_document_in_change',
+      arguments: { change: change.id, path },
     });
 
     expect(added.isError).toBeFalsy();
-    const stored = (added.structuredContent as { path: string }).path;
-    expect(stored.startsWith(join(service.repoRoot, '.noesis', 'graph'))).toBe(
-      true,
+    const { document } = added.structuredContent as {
+      document: { id: string };
+    };
+    expect(document.id).toMatch(/^\d{4}-\d{2}-\d{2}-retry-interview$/);
+    const stored = join(
+      service.repoRoot,
+      '.noesis',
+      'graph',
+      'changes',
+      change.id,
+      `${document.id}.document.json`,
     );
     expect(await exists(stored)).toBe(true);
   }, 15_000);
@@ -151,18 +174,22 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     const path = join(await sessionDir(client), 'orphan.json');
     await writeFile(
       path,
-      JSON.stringify({ title: 'Orphan', date: '2026-09-18', content: 'x' }),
+      JSON.stringify({
+        title: 'Orphan',
+        date: '2026-09-18',
+        content: 'x',
+      }),
     );
 
     const result = await client.callTool({
-      name: 'add_document_to_change',
-      arguments: { change: 'booking', path },
+      name: 'create_document_in_change',
+      arguments: { change: '2026-09-18-booking', path },
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('No change "booking"');
+    expect(textOf(result)).toContain('No change "2026-09-18-booking"');
     const changes = join(service.repoRoot, '.noesis', 'graph', 'changes');
-    expect(await exists(join(changes, 'booking'))).toBe(false);
+    expect(await exists(join(changes, '2026-09-18-booking'))).toBe(false);
   });
 
   it('deletes the scratch directory when the session ends', async () => {
@@ -197,23 +224,33 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
 
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
-      'add_design_doc_to_change',
-      'add_document_to_change',
       'create_change',
+      'create_design_doc_in_change',
+      'create_document_in_change',
       'list_changes',
+      'update_change',
+      'update_design_doc_in_change',
+      'update_document_in_change',
     ]);
 
+    const path = join(await sessionDir(client), 'change.json');
+    await writeFile(
+      path,
+      JSON.stringify({ name: 'Legacy era', type: 'chore' }),
+    );
     const created = await client.callTool({
       name: 'create_change',
-      arguments: { name: 'Legacy era', type: 'chore' },
+      arguments: { path },
     });
-    expect(created.structuredContent).toMatchObject({ slug: 'legacy-era' });
+    expect(created.structuredContent).toMatchObject({
+      change: { name: 'Legacy era', status: 'discovery' },
+    });
   }, 15_000);
 });
 
-// The heavy half — database, graph index, watcher, page — waits for a session,
-// so the SDK's throwaway era probe never pays for one.
-describe('the graph and ui half (e2e)', () => {
+// The ui waits for a session, so the SDK's throwaway era probe never binds a
+// port or opens a browser.
+describe('the ui half (e2e)', () => {
   let service: Service;
 
   beforeAll(async () => {

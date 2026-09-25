@@ -1,4 +1,5 @@
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { DesignDocSummary } from '#backend/app/design-docs/design-docs.service.ts';
 import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
@@ -68,10 +69,11 @@ const designDocOutlineFixture: OutlineNode[] = [
 /** The whole of what `GET /ui/changes/:change/design-docs/:id` answers. */
 export const designDocDetailFixture = {
   summary: {
-    id: designDocFixture.id,
+    // The wire carries the id as the string it is written as; the client's
+    // type brands it back, and a fixture cannot mint a brand of its own.
+    id: designDocFixture.id as DesignDocSummary['id'],
     name: designDocFixture.name.value,
     implemented: false,
-    path: `/repo/.noesis/graph/changes/test-2/design-docs/${designDocFixture.id}/data.json`,
   },
   document: designDocFixture,
   outline: designDocOutlineFixture,

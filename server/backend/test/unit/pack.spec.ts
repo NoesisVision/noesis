@@ -2,7 +2,7 @@
 // The @repo/* workspace deps are private: leaking them would break every
 // `bunx @noesis-vision/noesis` install. The bin is launched from another
 // directory because bun resolves the bundle manifest against the working
-// directory, which src/bundle-cwd.ts handles.
+// directory, which src/boot/bundle-cwd.ts handles.
 import { afterAll, expect, test } from 'bun:test';
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
@@ -24,7 +24,7 @@ afterAll(async () => {
   if (workDir) await rm(workDir, { recursive: true, force: true });
 });
 
-test('the packed tarball is bunx-installable: one bin, the ui, one native dep', async () => {
+test('the packed tarball is bunx-installable: one bin, the ui, no dependencies', async () => {
   workDir = await mkdtemp(join(tmpdir(), 'noesis-service-pack-'));
 
   const pack = spawnSync('bun', ['pm', 'pack', '--destination', workDir], {
@@ -69,10 +69,8 @@ test('the packed tarball is bunx-installable: one bin, the ui, one native dep', 
   const manifest = JSON.parse(
     await readFile(join(packageDir, 'package.json'), 'utf8'),
   ) as Record<string, unknown>;
-  expect(Object.keys(manifest.dependencies as object)).toEqual([
-    '@ladybugdb/core',
-  ]);
-  expect(manifest.trustedDependencies).toEqual(['@ladybugdb/core']);
+  expect(manifest.dependencies).toBeUndefined();
+  expect(manifest.trustedDependencies).toBeUndefined();
   expect(manifest.bin).toEqual({ noesis: 'dist/main.js' });
   expect(JSON.stringify(manifest)).not.toContain('workspace:');
   expect(JSON.stringify(manifest)).not.toContain('catalog:');

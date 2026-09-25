@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
+import { DocumentId } from '#backend/app/information-sources/document-id';
 import { createChangesApp } from '#backend/ui/changes/changes.routes';
-import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
+import {
+  decodedDesignDocFixture,
+  designDocFixture,
+} from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -15,8 +19,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const slugs = async (): Promise<string[]> =>
-  Array.fromAsync(t.changesRepository.keys());
+const ids = async (): Promise<string[]> =>
+  (await t.changesRepository.list()).map(({ id }) => id);
 
 const post = (body: unknown) =>
   app.request('/', {
@@ -25,66 +29,88 @@ const post = (body: unknown) =>
     body: JSON.stringify(body),
   });
 
-const create = (name: string, key = '', type: Change['type'] = 'feature') =>
-  t.changesService.create({ name, key, type });
+/** Writes a change as the agent's tools leave it, bypassing the service. */
+const add = async (
+  id: string,
+  name: string,
+  key = '',
+  type: Change['type'] = 'feature',
+): Promise<Change> => {
+  const change: Change = {
+    id: ChangeId.parse(id),
+    name,
+    key,
+    type,
+    status: 'discovery',
+    description: '',
+  };
+  await t.changesRepository.save(change);
+  return change;
+};
 
 describe('ui changes routes', () => {
-  it('returns an empty navigation list when there are no changes', async () => {
+  it('returns an empty list when there are no changes', async () => {
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with the documents under it, scoped to it', async () => {
-    const older = await t.createChange('older', { name: 'Older change' });
-    await t.createChange('newer', {
-      name: 'Newer change',
-      created_at: '2026-09-14T00:00:00.000Z',
+  it('lists each change with its entries, scoped to it', async () => {
+    const older = await t.createChange('2026-09-13-older', {
+      name: 'Older change',
     });
-    const designDoc = await t.designDocsService.create(
-      older,
-      decodedDesignDocFixture,
-    );
-    const document = await t.documentsService.create(older, {
+    await t.createChange('2026-09-14-newer', { name: 'Newer change' });
+    await t.writeDesignDoc(older, designDocFixture);
+    const document = {
+      id: DocumentId.parse('2026-09-12-stakeholder-interview'),
       title: 'Stakeholder interview',
       date: '2026-09-12',
       content: 'What they said.',
-    });
+    };
+    await t.writeDocument(older, document);
 
     const response = await app.request('/navigation');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       changes: [
         {
-          slug: 'newer',
+          id: '2026-09-14-newer',
           name: 'Newer change',
           key: '',
           type: 'chore',
           status: 'discovery',
-          created_at: '2026-09-14T00:00:00.000Z',
           description: '',
-          documents: [],
-          designDocs: [],
+          entries: [],
         },
         {
-          slug: 'older',
+          id: '2026-09-13-older',
           name: 'Older change',
           key: '',
           type: 'chore',
           status: 'discovery',
-          created_at: '2026-09-13T00:00:00.000Z',
           description: '',
-          documents: [{ id: document.id, name: document.title }],
-          designDocs: [{ id: designDoc.id, name: designDoc.name }],
+          entries: [
+            {
+              kind: 'design-doc',
+              id: decodedDesignDocFixture.id,
+              name: decodedDesignDocFixture.name.value,
+            },
+            { kind: 'document', id: document.id, name: document.title },
+          ],
         },
       ],
     });
   });
 
-  it('names the documents of a change in title order', async () => {
-    const change = await t.createChange('older');
-    for (const title of ['Zoning rules', 'Appointment booking', 'Glossary']) {
-      await t.documentsService.create(change, {
+  it('names the entries of a change oldest first, by id', async () => {
+    const change = await t.createChange('2026-09-13-older');
+    for (const [id, title] of [
+      ['2026-09-12-zoning-rules', 'Zoning rules'],
+      ['2026-09-10-appointment-booking', 'Appointment booking'],
+      ['2026-09-11-glossary', 'Glossary'],
+    ] as const) {
+      await t.writeDocument(change, {
+        id,
         title,
         date: '2026-09-12',
         content: '',
@@ -93,61 +119,60 @@ describe('ui changes routes', () => {
 
     const response = await app.request('/navigation');
     const { changes } = (await response.json()) as {
-      changes: { documents: { name: string }[] }[];
+      changes: { entries: { name: string }[] }[];
     };
-    expect(changes[0]?.documents.map((d) => d.name)).toEqual([
+    expect(changes[0]?.entries.map((entry) => entry.name)).toEqual([
       'Appointment booking',
       'Glossary',
       'Zoning rules',
     ]);
   });
 
-  it('lists what the service created, whole', async () => {
-    const change = await create('Payment retry', 'NOE-142');
+  it('lists what is stored, whole', async () => {
+    const change = await add(
+      '2026-09-01-payment-retry',
+      'Payment retry',
+      'NOE-142',
+    );
 
     const listed = await app.request('/');
     expect(listed.status).toBe(200);
     expect(await listed.json()).toEqual({ changes: [change] });
-    expect(await slugs()).toEqual(['payment-retry']);
+    expect(await ids()).toEqual(['2026-09-01-payment-retry']);
   });
 
-  // Creation is the agent's, through the `create-change` tool.
+  // Creating is the agent's, through the `create_change` tool.
   it('writes nothing: POST is not a route of this surface', async () => {
     const res = await post({ name: 'Payment retry', type: 'feature' });
 
     expect(res.status).toBe(404);
-    expect(await slugs()).toEqual([]);
+    expect(await ids()).toEqual([]);
   });
 
   it('lists newest first', async () => {
-    await t.changesService.create(
-      { name: 'Older', key: '', type: 'chore' },
-      new Date('2026-09-01T00:00:00Z'),
-    );
-    await t.changesService.create(
-      { name: 'Newer', key: '', type: 'fix' },
-      new Date('2026-09-02T00:00:00Z'),
-    );
+    await add('2026-09-01-older', 'Older', '', 'chore');
+    await add('2026-09-02-newer', 'Newer', '', 'fix');
     const { changes } = (await (await app.request('/')).json()) as {
       changes: Change[];
     };
-    expect(changes.map((c) => c.slug)).toEqual([
-      ChangeSlug.parse('newer'),
-      ChangeSlug.parse('older'),
+    expect(changes.map((c) => c.id)).toEqual([
+      ChangeId.parse('2026-09-02-newer'),
+      ChangeId.parse('2026-09-01-older'),
     ]);
   });
 
-  it('reads one change by slug and 404s an unknown or unsafe one', async () => {
-    await create('Audit log', '', 'improvement');
-    const found = await app.request('/audit-log');
+  it('reads one change by id and 404s an unknown or unsafe one', async () => {
+    await add('2026-09-01-audit-log', 'Audit log', '', 'improvement');
+    const found = await app.request('/2026-09-01-audit-log');
     expect(found.status).toBe(200);
     expect(((await found.json()) as { change: Change }).change.name).toBe(
       'Audit log',
     );
 
-    const missing = await app.request('/nope');
+    const missing = await app.request('/2026-09-01-nope');
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ error: 'change_not_found' });
-    expect((await app.request('/Not%20A%20Slug')).status).toBe(404);
+    expect((await app.request('/audit-log')).status).toBe(404);
+    expect((await app.request('/Not%20An%20Id')).status).toBe(404);
   });
 });

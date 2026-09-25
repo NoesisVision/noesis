@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
-import { useChangeNavigation } from '#/features/changes/changes.api.ts';
+import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
 import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import { Box } from '#/shared/design-system/box';
@@ -55,24 +55,31 @@ interface ChangeNavChild {
 type ChangeNavChildren = Partial<Record<NavItem['to'], ChangeNavChild[]>>;
 
 function changeNavChildren(
-  change: ReturnType<typeof useChangeNavigation>['activeChange'],
+  change: ReturnType<typeof useChangesWithEntries>['activeChange'],
   changeId: string,
 ): ChangeNavChildren {
+  const entries = change?.entries ?? [];
   return {
-    [DOCUMENTS_NAV.to]: (change?.documents ?? []).map((item) => ({
-      ...item,
-      link: {
-        to: '/changes/$changeId/documents/$documentId',
-        params: { changeId, documentId: item.id },
-      },
-    })),
-    [DESIGN_DOCS_NAV.to]: (change?.designDocs ?? []).map((item) => ({
-      ...item,
-      link: {
-        to: '/changes/$changeId/design-docs/$docId',
-        params: { changeId, docId: item.id },
-      },
-    })),
+    [DOCUMENTS_NAV.to]: entries
+      .filter((entry) => entry.kind === 'document')
+      .map(({ id, name }) => ({
+        id,
+        name,
+        link: {
+          to: '/changes/$changeId/documents/$documentId',
+          params: { changeId, documentId: id },
+        },
+      })),
+    [DESIGN_DOCS_NAV.to]: entries
+      .filter((entry) => entry.kind === 'design-doc')
+      .map(({ id, name }) => ({
+        id,
+        name,
+        link: {
+          to: '/changes/$changeId/design-docs/$docId',
+          params: { changeId, docId: id },
+        },
+      })),
   };
 }
 
@@ -112,8 +119,8 @@ function ChangeNavHeading({
 
 /** Change navigation and child groups for the current or last opened change. */
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const { changes, activeChange } = useChangeNavigation();
-  const params = { changeId: activeChange?.slug ?? '' };
+  const { changes, activeChange } = useChangesWithEntries();
+  const params = { changeId: activeChange?.id ?? '' };
   const children = changeNavChildren(activeChange, params.changeId);
 
   return (

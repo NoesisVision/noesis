@@ -1,20 +1,23 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { z } from 'zod';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
-import type { CreateDocument } from '#backend/app/information-sources/document';
+import {
+  type Document,
+  DocumentContentSchema,
+} from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
   DocumentNotFoundError,
   type DocumentsService,
-  DuplicateDocumentError,
 } from '#backend/app/information-sources/documents.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
-const CHANGE = ChangeSlug.parse('booking');
-const NOPE = ChangeSlug.parse('nope');
+const CHANGE = ChangeId.parse('2026-01-01-booking');
+const NOPE = ChangeId.parse('2026-01-01-nope');
+const ID = DocumentId.parse('2026-09-18-booking-rules-v2');
 
-const document: CreateDocument = {
+const document: Document = {
+  id: ID,
   title: 'Booking Rules — v2',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -32,172 +35,123 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 describe('DocumentsService', () => {
-  it('stores a document under the slug of its title and reads it back whole', async () => {
-    const summary = await service.create(CHANGE, document);
+  it('lists oldest first, by id', async () => {
+    for (const id of [
+      '2026-09-10-newer',
+      '2026-09-01-older',
+      '2026-09-10-also-newer',
+    ]) {
+      await t.writeDocument(CHANGE, { ...document, id });
+    }
 
-    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
-    expect(summary.path).toEndWith(
-      '/graph/changes/booking/documents/booking-rules-v2/data.json',
-    );
-
-    const detail = await service.findById(CHANGE, DocumentId.parse(summary.id));
-    expect(detail?.document).toEqual({
-      ...document,
-      document_id: DocumentId.parse('booking-rules-v2'),
-    });
-  });
-
-  it('refuses a title no id can be derived from, on create and on retitle', async () => {
-    await expect(
-      service.create(CHANGE, { ...document, title: '!!!' }),
-    ).rejects.toBeInstanceOf(z.ZodError);
-
-    const created = await service.create(CHANGE, document);
-    await expect(
-      service.update(CHANGE, DocumentId.parse(created.id), {
-        ...document,
-        title: '日本語',
-      }),
-    ).rejects.toBeInstanceOf(z.ZodError);
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
-  });
-
-  it('refuses a second document with the same title in the change', async () => {
-    await service.create(CHANGE, document);
-
-    expect(
-      service.create(CHANGE, { ...document, content: 'Rewritten.' }),
-    ).rejects.toBeInstanceOf(DuplicateDocumentError);
-  });
-
-  it('lets only one of two parallel creates with the same title through', async () => {
-    const results = await Promise.allSettled([
-      service.create(CHANGE, document),
-      service.create(CHANGE, { ...document, content: 'Rewritten.' }),
-    ]);
-
-    expect(results.map((r) => r.status)).toEqual(['fulfilled', 'rejected']);
-    const stored = await service.findById(
-      CHANGE,
-      DocumentId.parse('booking-rules-v2'),
-    );
-    expect(stored?.document.content).toBe(document.content);
-  });
-
-  it('lets another change hold a document of the same title', async () => {
-    const other = await t.createChange('billing');
-    await service.create(CHANGE, document);
-
-    const summary = await service.create(other, document);
-
-    expect(summary.id).toBe(DocumentId.parse('booking-rules-v2'));
-  });
-
-  it('replaces the content under the same id', async () => {
-    const created = await service.create(CHANGE, document);
-
-    const updated = await service.update(CHANGE, DocumentId.parse(created.id), {
-      ...document,
-      content: 'A slot may be booked twice.',
-    });
-
-    expect(updated.id).toEqual(created.id);
-    expect((await service.findById(CHANGE, created.id))?.document.content).toBe(
-      'A slot may be booked twice.',
-    );
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([created.id]);
-  });
-
-  it('moves the document to a new id when the title changes', async () => {
-    const created = await service.create(CHANGE, document);
-
-    const renamed = await service.update(CHANGE, DocumentId.parse(created.id), {
-      ...document,
-      title: 'Booking rules v3',
-    });
-
-    expect(renamed.id).toBe(DocumentId.parse('booking-rules-v3'));
-    expect(await service.findById(CHANGE, created.id)).toBe(null);
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      DocumentId.parse('booking-rules-v3'),
+      DocumentId.parse('2026-09-01-older'),
+      DocumentId.parse('2026-09-10-also-newer'),
+      DocumentId.parse('2026-09-10-newer'),
     ]);
   });
 
-  it('refuses a retitle onto a title the change already has', async () => {
-    const created = await service.create(CHANGE, document);
-    await service.create(CHANGE, { ...document, title: 'Pricing' });
-
+  it('answers null for a document that does not exist', async () => {
     expect(
-      service.update(CHANGE, DocumentId.parse(created.id), {
-        ...document,
-        title: 'Pricing',
-      }),
-    ).rejects.toBeInstanceOf(DuplicateDocumentError);
-    expect((await service.findById(CHANGE, created.id))?.document.title).toBe(
-      document.title,
-    );
-  });
-
-  it('refuses to update a document the change does not have', async () => {
-    expect(
-      service.update(CHANGE, DocumentId.parse('missing'), document),
-    ).rejects.toBeInstanceOf(DocumentNotFoundError);
-  });
-
-  it('lists newest first, then by title', async () => {
-    await service.create(CHANGE, {
-      ...document,
-      title: 'Older',
-      date: '2026-09-01',
-    });
-    await service.create(CHANGE, {
-      ...document,
-      title: 'Newer',
-      date: '2026-09-10',
-    });
-    await service.create(CHANGE, {
-      ...document,
-      title: 'Also newer',
-      date: '2026-09-10',
-    });
-
-    expect((await service.list(CHANGE)).map((d) => d.title)).toEqual([
-      'Also newer',
-      'Newer',
-      'Older',
-    ]);
-  });
-
-  it('answers null for a document that does not exist and false when deleting it', async () => {
-    expect(await service.findById(CHANGE, DocumentId.parse('missing'))).toBe(
-      null,
-    );
-    expect(await service.delete(CHANGE, DocumentId.parse('missing'))).toBe(
-      false,
-    );
-  });
-
-  it('deletes a document it has', async () => {
-    const created = await service.create(CHANGE, document);
-
-    expect(await service.delete(CHANGE, DocumentId.parse(created.id))).toBe(
-      true,
-    );
-    expect(await service.list(CHANGE)).toEqual([]);
+      await service.findById(CHANGE, DocumentId.parse('2026-01-01-missing')),
+    ).toBe(null);
   });
 
   it('refuses every operation on a change that has no directory', async () => {
     await expect(service.list(NOPE)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
-    await expect(service.create(NOPE, document)).rejects.toBeInstanceOf(
+    await expect(service.findById(NOPE, ID)).rejects.toBeInstanceOf(
       ChangeNotFoundError,
     );
+  });
+});
+
+describe('DocumentsService.create', () => {
+  const content = DocumentContentSchema.parse({
+    title: 'Booking Rules — v2',
+    date: '2026-09-18',
+    content: 'A slot may be booked once.',
+  });
+
+  it("mints the id from today's date and the title, not the document's date", async () => {
+    const created = await service.create(CHANGE, content);
+
+    const id = DocumentId.parse('2026-09-24-booking-rules-v2');
+    expect(created).toEqual({ id, title: content.title, date: content.date });
+    expect((await service.findById(CHANGE, id))?.document).toEqual({
+      id,
+      ...content,
+    });
+  });
+
+  it('gives a title already used today in the change the next free suffix', async () => {
+    await service.create(CHANGE, content);
+
+    expect((await service.create(CHANGE, content)).id).toBe(
+      DocumentId.parse('2026-09-24-booking-rules-v2-2'),
+    );
+  });
+
+  it('mints the same id in another change', async () => {
+    const other = await t.createChange('2026-01-01-billing');
+    const first = await service.create(CHANGE, content);
+
+    expect((await service.create(other, content)).id).toBe(first.id);
+  });
+
+  it('gives parallel creates of one title different ids', async () => {
+    const created = await Promise.all([
+      service.create(CHANGE, content),
+      service.create(CHANGE, content),
+    ]);
+
+    expect(new Set(created.map((d) => d.id)).size).toBe(2);
+    expect(await service.list(CHANGE)).toHaveLength(2);
+  });
+
+  it('refuses a change that has no directory', async () => {
+    await expect(service.create(NOPE, content)).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
+  });
+});
+
+describe('DocumentsService.update', () => {
+  const content = DocumentContentSchema.parse({
+    title: 'Booking rules',
+    date: '2026-09-18',
+    content: 'A slot may be booked once.',
+  });
+
+  it('replaces the document at its id, which a new title leaves as it was', async () => {
+    const { id } = await service.create(CHANGE, content);
+
+    const updated = await service.update(CHANGE, id, {
+      ...content,
+      title: 'Booking rules v3',
+      content: 'A slot may be booked twice.',
+    });
+
+    expect(updated.id).toBe(id);
+    const stored = await service.findById(CHANGE, id);
+    expect(stored?.document.title).toBe('Booking rules v3');
+    expect(stored?.document.content).toBe('A slot may be booked twice.');
+    expect(await service.list(CHANGE)).toHaveLength(1);
+  });
+
+  it('refuses an id that names no document in the change, and creates nothing', async () => {
+    const missing = DocumentId.parse('2026-09-24-missing');
+
     await expect(
-      service.findById(NOPE, DocumentId.parse('x')),
-    ).rejects.toBeInstanceOf(ChangeNotFoundError);
-    await expect(
-      service.delete(NOPE, DocumentId.parse('x')),
-    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+      service.update(CHANGE, missing, content),
+    ).rejects.toBeInstanceOf(DocumentNotFoundError);
+    expect(await service.list(CHANGE)).toEqual([]);
+  });
+
+  it('refuses a change that has no directory', async () => {
+    await expect(service.update(NOPE, ID, content)).rejects.toBeInstanceOf(
+      ChangeNotFoundError,
+    );
   });
 });

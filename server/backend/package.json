@@ -19,7 +19,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bun run --cwd ../frontend build:spa && NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --external @ladybugdb/core --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' && bun run scripts/copy-ui.ts",
+    "build": "bun run --cwd ../frontend build:spa && NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' && bun run scripts/copy-ui.ts",
     "start": "bun dist/main.js",
     "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
@@ -27,15 +27,8 @@
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",
     "test:e2e": "bun run --cwd ../frontend build:spa && bun test test/e2e",
-    "test:bench": "bun test test/bench",
     "prepack": "bun run build"
   },
-  "dependencies": {
-    "@ladybugdb/core": "^0.20.4"
-  },
-  "trustedDependencies": [
-    "@ladybugdb/core"
-  ],
   "devDependencies": {
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",

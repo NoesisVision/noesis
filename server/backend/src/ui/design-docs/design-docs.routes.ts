@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
+import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { outlineOf } from '#backend/app/design-docs/design-doc-outline';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { inChange } from '../changes/in-change';
@@ -27,10 +28,9 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
 
     .get('/:id', async (c) => {
       return inChange(c, async (change) => {
-        const detail = await designDocsService.findById(
-          change,
-          c.req.param('id'),
-        );
+        const id = DesignDocId.safeParse(c.req.param('id'));
+        if (!id.success) return c.json({ error: 'not_found' }, 404);
+        const detail = await designDocsService.findById(change, id.data);
         if (detail === null) return c.json({ error: 'not_found' }, 404);
         // Encoded, so the client's type says what the JSON holds: element
         // ids as strings, not the value objects the service decodes them to.

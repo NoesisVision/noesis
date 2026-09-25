@@ -7,7 +7,7 @@ import { writeLastChange } from '#/features/changes/current-change.ts';
 import { ChangeNotFoundView } from '#/features/changes/ui/change-not-found.tsx';
 
 // The change layout: loads the change once for every view under it, remembers
-// it as the last opened, and turns an unknown slug into a not-found view
+// it as the last opened, and turns an unknown id into a not-found view
 // inside the shell.
 export const Route = createFileRoute('/_shell/changes/$changeId')({
   loader: async ({ context, params }) => {
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_shell/changes/$changeId')({
       const change = await context.queryClient.query(
         changeById(params.changeId),
       );
-      writeLastChange(change.slug);
+      writeLastChange(change.id);
       return { change };
     } catch (error) {
       if (error instanceof ChangeNotFoundError) throw notFound();

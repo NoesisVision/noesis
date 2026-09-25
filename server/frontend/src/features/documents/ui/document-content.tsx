@@ -22,11 +22,7 @@ export function DocumentContent({
         {doc.content.trim() ? (
           // The editor reads its markdown once, so a different document is a
           // different editor rather than the same one told to change.
-          <MarkdownEditor
-            key={doc.document_id}
-            markdown={doc.content}
-            readOnly
-          />
+          <MarkdownEditor key={doc.id} markdown={doc.content} readOnly />
         ) : (
           <Text c="dimmed">This document is empty.</Text>
         )}

@@ -43,10 +43,21 @@ export const READ_ONLY: ToolAnnotations = {
   openWorldHint: false,
 };
 
-/** Adds something new; calling twice adds twice, or is refused as a duplicate. */
-export const APPEND: ToolAnnotations = {
+/** Adds a new entity at an id the server mints: calling twice adds two. */
+export const CREATE: ToolAnnotations = {
   readOnlyHint: false,
   destructiveHint: false,
   idempotentHint: false,
+  openWorldHint: false,
+};
+
+/**
+ * Replaces an existing entity whole: calling twice with the same file stores
+ * the same thing, and what the file leaves out is gone.
+ */
+export const UPDATE: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: true,
   openWorldHint: false,
 };

@@ -21,18 +21,24 @@ import { getContext } from '../src/shared/query/query-client';
  * test, and the two times this broke it broke in the wiring.
  */
 
-const CHANGE = {
-  slug: 'test-2',
+const CHANGE = '2026-01-01-scheduling';
+const NOTES = '2026-01-01-notes';
+const DOC = '2026-01-02-partial-refunds';
+
+const NAVIGATION = {
+  id: CHANGE,
   name: 'Scheduling',
   key: 'NOE-1',
   type: 'feature',
   status: 'design',
-  documents: [{ id: 'notes', name: 'Notes' }],
-  designDocs: [{ id: 'doc-a', name: 'Doc A' }],
+  entries: [
+    { id: NOTES, name: 'Notes', kind: 'document' },
+    { id: DOC, name: 'Partial refunds', kind: 'design-doc' },
+  ],
 };
 
 const EMPTY_DESIGN_DOC = {
-  id: 'doc-a',
+  id: DOC,
   name: { value: 'Doc A' },
   description: { value: '' },
   modules: { added: [], removed: [], modified: [] },
@@ -52,17 +58,12 @@ beforeAll(() => {
           ? input.href
           : input.url;
     if (url.endsWith('/navigation')) {
-      return Promise.resolve(Response.json({ changes: [CHANGE] }));
+      return Promise.resolve(Response.json({ changes: [NAVIGATION] }));
     }
     if (url.includes('/design-docs/')) {
       return Promise.resolve(
         Response.json({
-          summary: {
-            id: 'doc-a',
-            name: 'Doc A',
-            implemented: false,
-            path: '/x',
-          },
+          summary: { id: DOC, name: 'Partial refunds', implemented: false },
           document: EMPTY_DESIGN_DOC,
           outline: [],
         }),
@@ -87,12 +88,12 @@ beforeAll(() => {
       );
     }
     if (url.endsWith('/design-docs')) {
-      return Promise.resolve(Response.json({ designDocs: CHANGE.designDocs }));
+      return Promise.resolve(Response.json({ designDocs: [] }));
     }
     if (url.endsWith('/documents')) {
-      return Promise.resolve(Response.json({ documents: CHANGE.documents }));
+      return Promise.resolve(Response.json({ documents: [] }));
     }
-    return Promise.resolve(Response.json({ change: CHANGE }));
+    return Promise.resolve(Response.json({ change: NAVIGATION }));
   }) as typeof fetch);
 });
 
@@ -122,22 +123,22 @@ async function currentLinks(url: string): Promise<(string | undefined)[]> {
 
 describe('the sidebar', () => {
   it.each([
-    ['/changes/test-2', '/changes/test-2'],
-    ['/changes/test-2/documents', '/changes/test-2/documents'],
-    ['/changes/test-2/documents/notes', '/changes/test-2/documents/notes'],
-    ['/changes/test-2/design-docs', '/changes/test-2/design-docs'],
-    ['/changes/test-2/design-docs/doc-a', '/changes/test-2/design-docs/doc-a'],
-    ['/system-model', '/system-model'],
-  ])('marks one link at %s', async (url, expected) => {
-    expect(await currentLinks(url)).toEqual([expected]);
+    `/changes/${CHANGE}`,
+    `/changes/${CHANGE}/documents`,
+    `/changes/${CHANGE}/documents/${NOTES}`,
+    `/changes/${CHANGE}/design-docs`,
+    `/changes/${CHANGE}/design-docs/${DOC}`,
+    '/system-model',
+  ])('marks one link at %s', async (url) => {
+    expect(await currentLinks(url)).toEqual([url]);
   });
 
   it('leaves a heading to its item once the item is open', async () => {
     // The heading's icon carries "one of these is open" instead; the CSS
     // reads the item's `aria-current` for it.
     expect(
-      await currentLinks('/changes/test-2/design-docs/doc-a'),
-    ).not.toContain('/changes/test-2/design-docs');
+      await currentLinks(`/changes/${CHANGE}/design-docs/${DOC}`),
+    ).not.toContain(`/changes/${CHANGE}/design-docs`);
   });
 
   it('stays on the document while the reader moves about inside it', async () => {
@@ -146,8 +147,8 @@ describe('the sidebar', () => {
     // the search takes no part in deciding which link is current.
     expect(
       await currentLinks(
-        '/changes/test-2/design-docs/doc-a?node=module%7Cx&q=slot',
+        `/changes/${CHANGE}/design-docs/${DOC}?node=module%7Cx&q=slot`,
       ),
-    ).toEqual(['/changes/test-2/design-docs/doc-a']);
+    ).toEqual([`/changes/${CHANGE}/design-docs/${DOC}`]);
   });
 });

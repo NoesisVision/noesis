@@ -31,13 +31,18 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes three MCP tools: `create_change`, `list_changes` and
-`add_document_to_change`. Tools never take content inline. The agent writes
-a working file to the session's scratch directory (`.noesis/tmp/<session>/`,
+The service exposes seven MCP tools: `create_change`, `update_change`,
+`list_changes`, `create_document_in_change`, `update_document_in_change`,
+`create_design_doc_in_change` and `update_design_doc_in_change`. Tools never
+take content inline. The agent writes
+a working file to the session's scratch directory (`.noesis/sessions/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
 anything: a file that does not fit comes back as an issue list — path
-and message — to correct and call again.
+and message — to correct and call again. No working file carries an id: a
+create tool mints it from the creation date and the title and answers with
+it, and an update tool takes it as an argument and refuses one that names
+nothing.
 
 ## What's inside
 
@@ -50,9 +55,10 @@ and message — to correct and call again.
   `contracts/README.md` is committed; the published plugin carries the
   generated files.
 - `skills/` — the skills that drive the tools, one folder per skill.
-  `create-change` opens a change through `create_change`;
-  `add-document-to-change` takes a Markdown file, asks which change from
-  `list_changes` it belongs to and adds it through `add_document_to_change`, building the working file with its
+  `add-change` opens or updates a change through `create_change` or
+  `update_change`; `add-document-to-change` takes a Markdown file, asks which
+  change from `list_changes` it belongs to and adds it through
+  `create_document_in_change`, building the working file with its
   `scripts/write-working-file.ts` so the text is copied, not retyped. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the

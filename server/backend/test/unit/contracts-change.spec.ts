@@ -3,21 +3,58 @@ import {
   CHANGE_STATUSES,
   CHANGE_TYPES,
   ChangeSchema,
-  CreateChangeSchema,
 } from '#backend/app/changes/change';
 
 describe('ChangeSchema', () => {
   const minimal = {
-    slug: 'payment-retry',
+    id: '2026-09-13-payment-retry',
     name: 'Payment retry',
-    key: 'NOE-142',
     type: 'feature' as const,
-    status: 'discovery' as const,
-    created_at: '2026-09-13T10:00:00+02:00',
   };
 
-  it('defaults the description to empty', () => {
-    expect(ChangeSchema.parse(minimal).description).toBe('');
+  it('starts a new change in discovery, with no key and no description', () => {
+    expect(ChangeSchema.parse(minimal)).toEqual({
+      ...minimal,
+      id: ChangeSchema.shape.id.parse(minimal.id),
+      key: '',
+      status: 'discovery',
+      description: '',
+    });
+  });
+
+  it('trims the name and requires a type', () => {
+    expect(
+      ChangeSchema.parse({ ...minimal, name: '  Payment retry ' }).name,
+    ).toBe('Payment retry');
+    expect(
+      ChangeSchema.safeParse({ id: minimal.id, name: 'No type' }).success,
+    ).toBe(false);
+  });
+
+  it('rejects an empty name', () => {
+    expect(ChangeSchema.safeParse({ ...minimal, name: '   ' }).success).toBe(
+      false,
+    );
+  });
+
+  it('requires a dated id', () => {
+    expect(
+      ChangeSchema.safeParse({ ...minimal, id: 'payment-retry' }).success,
+    ).toBe(false);
+    const { id: _, ...withoutId } = minimal;
+    expect(ChangeSchema.safeParse(withoutId).success).toBe(false);
+  });
+
+  it('accepts a tracker key or nothing, never a malformed one', () => {
+    expect(ChangeSchema.parse({ ...minimal, key: 'NOE-142' }).key).toBe(
+      'NOE-142',
+    );
+    expect(ChangeSchema.parse({ ...minimal, key: '' }).key).toBe('');
+    for (const bad of ['noe-142', 'NOE142', 'N-1', 'NOE-', 'TOOLONGKEY-1']) {
+      expect(ChangeSchema.safeParse({ ...minimal, key: bad }).success).toBe(
+        false,
+      );
+    }
   });
 
   it('keeps the vocabularies in the order the ui sorts by', () => {
@@ -36,36 +73,6 @@ describe('ChangeSchema', () => {
     );
     expect(
       ChangeSchema.safeParse({ ...minimal, status: 'shipped' }).success,
-    ).toBe(false);
-  });
-});
-
-describe('CreateChangeSchema', () => {
-  it('trims the name, defaults the key to empty and requires a type', () => {
-    expect(
-      CreateChangeSchema.parse({ name: '  Payment retry ', type: 'fix' }),
-    ).toEqual({ name: 'Payment retry', key: '', type: 'fix' });
-    expect(CreateChangeSchema.safeParse({ name: 'No type' }).success).toBe(
-      false,
-    );
-  });
-
-  it('accepts a tracker key or nothing, never a malformed one', () => {
-    const valid = { name: 'x', type: 'chore' };
-    expect(CreateChangeSchema.parse({ ...valid, key: 'NOE-142' }).key).toBe(
-      'NOE-142',
-    );
-    expect(CreateChangeSchema.parse({ ...valid, key: '' }).key).toBe('');
-    for (const bad of ['noe-142', 'NOE142', 'N-1', 'NOE-', 'TOOLONGKEY-1']) {
-      expect(CreateChangeSchema.safeParse({ ...valid, key: bad }).success).toBe(
-        false,
-      );
-    }
-  });
-
-  it('rejects an empty name', () => {
-    expect(
-      CreateChangeSchema.safeParse({ name: '   ', type: 'fix' }).success,
     ).toBe(false);
   });
 });

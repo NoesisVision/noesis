@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { ChangeSlug } from './change-slug';
+import { ChangeId } from './change-id';
 
-// The change's directory also collects its imported conversations, documents
-// and design docs.
+// The directory named after the change, beside its file, collects its
+// documents and design docs.
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
 export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;
@@ -21,7 +21,9 @@ const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
 export const ChangeSchema = z
   .object({
-    slug: ChangeSlug,
+    id: ChangeId.describe(
+      "The change's id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted by the server when the change is created and never changed, even when the name is.",
+    ),
     name: z
       .string()
       .trim()
@@ -44,12 +46,10 @@ export const ChangeSchema = z
       ),
     status: z
       .enum(CHANGE_STATUSES)
+      .default('discovery')
       .describe(
-        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done.',
+        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out; an update carries the value list_changes returned.',
       ),
-    created_at: z
-      .string()
-      .describe('When the change was created, ISO 8601 with offset.'),
     description: z
       .string()
       .default('')
@@ -57,13 +57,13 @@ export const ChangeSchema = z
         'A paragraph on what the change is about, for the change list.',
       ),
   })
-  .describe('One change: the data.json file inside its directory.');
+  .describe('One change: graph/changes/<id>.change.json.');
 export type Change = z.infer<typeof ChangeSchema>;
 
-/** The server sets slug, status (`discovery`) and `created_at`, so the request carries none of them. */
-export const CreateChangeSchema = ChangeSchema.pick({
-  name: true,
-  key: true,
-  type: true,
-}).describe('The request body for creating a change.');
-export type CreateChange = z.infer<typeof CreateChangeSchema>;
+/** The working file of a new change: the server mints its id, and it starts in discovery. */
+export const NewChangeSchema = ChangeSchema.omit({ id: true, status: true });
+export type NewChange = z.infer<typeof NewChangeSchema>;
+
+/** The working file of a change update: the id travels beside it. */
+export const ChangeContentSchema = ChangeSchema.omit({ id: true });
+export type ChangeContent = z.infer<typeof ChangeContentSchema>;
