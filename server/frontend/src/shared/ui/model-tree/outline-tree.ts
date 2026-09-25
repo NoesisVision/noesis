@@ -1,10 +1,10 @@
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from './model-outline.ts';
 
 /*
- * The outline arrives flat and in reading order, because that is the shape
- * that survives the wire. A reader needs it by parent, so the relations are
- * grouped once here and the tree is rendered from them; the order inside each
- * group is the order the server sent, never re-sorted.
+ * The outline comes flat and in reading order, because a node's subtree is
+ * then the run of nodes after it. A reader needs it by parent, so the
+ * relations are grouped once here and the tree is rendered from them; the
+ * order inside each group is the order it was projected in, never re-sorted.
  */
 
 export interface OutlineTree {

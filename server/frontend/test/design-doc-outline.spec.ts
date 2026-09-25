@@ -1,14 +1,9 @@
 import { describe, expect, it } from 'bun:test';
-import { outlineOf } from '#backend/app/design-docs/design-doc-outline';
-import {
-  compareSiblings,
-  drawsDiagram,
-  type OutlineNode,
-  patternLabelOf,
-} from '#backend/app/model-outline/model-outline';
-import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
+import { outlineOf } from '../src/features/design-docs/design-doc-outline';
+import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline';
+import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
-const outline = outlineOf(decodedDesignDocFixture);
+const outline = outlineOf(changedEverywhereFixture);
 const byPath = new Map(outline.map((node) => [node.path, node]));
 const at = (path: string): OutlineNode => {
   const node = byPath.get(path);
@@ -127,73 +122,19 @@ describe('outlineOf', () => {
     expect(at('module|sales.refunds').name).toBe('refunds');
   });
 
-  it('draws no diagram for a document that writes none', () => {
-    expect(outline.some((node) => node.hasDiagram)).toBe(false);
-  });
-});
-
-describe('patternLabelOf', () => {
-  it('spells a pattern the way a reader types it', () => {
-    expect(patternLabelOf('application_service')).toBe('application service');
-    expect(patternLabelOf('Command')).toBe('Command');
-    expect(patternLabelOf(null)).toBeNull();
-  });
-});
-
-describe('drawsDiagram', () => {
-  it.each([
-    '```mermaid\nflowchart TD\n```',
-    'Before.\n\n  ```mermaid\n  flowchart TD\n  ```',
-    '~~~mermaid\nflowchart TD\n~~~',
-  ])('finds a fence in %j', (description) => {
-    expect(drawsDiagram(description)).toBe(true);
-  });
-
-  it.each([null, undefined, '', 'mermaid is a word here', '`mermaid`'])(
-    'finds none in %j',
-    (description) => {
-      expect(drawsDiagram(description)).toBe(false);
-    },
-  );
-});
-
-describe('compareSiblings', () => {
-  const node = (over: Partial<OutlineNode>): OutlineNode => ({
-    path: over.name ?? '',
-    parentPath: 'module|sales',
-    elementId: null,
-    kind: 'property',
-    name: '',
-    depth: 1,
-    change: 'added',
-    pattern: null,
-    patternLabel: null,
-    hasDiagram: false,
-    ...over,
-  });
-
-  it('reads a property type that looks like a pattern as a type, not a rank', () => {
-    const zeta = node({ name: 'zeta', pattern: 'aggregate' });
-    const alpha = node({ name: 'alpha', pattern: 'Money' });
-    expect([zeta, alpha].sort(compareSiblings).map((n) => n.name)).toEqual([
-      'alpha',
-      'zeta',
-    ]);
-  });
-
-  it('ranks building blocks by the order a reader meets them', () => {
-    const aggregate = node({
-      kind: 'building_block',
-      name: 'Zeta',
-      pattern: 'aggregate',
-    });
-    const service = node({
-      kind: 'building_block',
-      name: 'Alpha',
-      pattern: 'application_service',
-    });
+  it('marks the one element whose description draws a diagram', () => {
     expect(
-      [aggregate, service].sort(compareSiblings).map((n) => n.name),
-    ).toEqual(['Alpha', 'Zeta']);
+      outline.filter((node) => node.hasDiagram).map((node) => node.path),
+    ).toEqual(['behavior|sales.refunds.Refund.issue']);
+  });
+
+  it('says nothing about a document that designs nothing', () => {
+    expect(
+      outlineOf({
+        id: '2026-01-01-empty',
+        name: { value: 'Empty' },
+        description: { value: '' },
+      }),
+    ).toEqual([]);
   });
 });
