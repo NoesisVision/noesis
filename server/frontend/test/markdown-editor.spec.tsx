@@ -44,9 +44,24 @@ it('inserts a diagram that carries its own accessible name', () => {
   expect(NEW_DIAGRAM).toContain('accTitle:');
 });
 
-it('holds the editor back until it is opened', () => {
+/*
+ * `lazy` resolves once for the whole process, so whether a render catches the
+ * fallback depends on whether anything earlier in the run had already opened
+ * an editor — a race, and one that only ever showed up on a slower machine.
+ * The boundary is read off the module instead, and what a render is asked is
+ * only what holds either way: the document never lands on the page as text.
+ */
+it('brings the editor in on its own rather than with the bundle', async () => {
+  const source = await Bun.file(
+    new URL('../src/shared/ui/markdown-editor.tsx', import.meta.url),
+  ).text();
+  expect(source).toMatch(/lazy\(\(\) => import\(/);
+  expect(source).toContain('Suspense');
+});
+
+it('never paints the markdown as the text it is written in', () => {
   const html = render(<MarkdownEditor markdown="# Hello" />);
-  expect(html).toContain('Opening the editor');
+  expect(html).not.toContain('# Hello');
 });
 
 it('heads the document page itself and opens the editor under it', () => {
@@ -61,7 +76,8 @@ it('heads the document page itself and opens the editor under it', () => {
     />,
   );
   expect(html).toMatch(/<h1[^>]*>Payment retry policy<\/h1>/);
-  expect(html).toContain('Opening the editor');
+  // The body went to the editor rather than onto the page beside the title.
+  expect(html).not.toContain('Retry twice, then stop.');
 });
 
 it('says an empty document is empty rather than opening an editor on it', () => {
@@ -76,5 +92,4 @@ it('says an empty document is empty rather than opening an editor on it', () => 
     />,
   );
   expect(html).toContain('This document is empty.');
-  expect(html).not.toContain('Opening the editor');
 });
