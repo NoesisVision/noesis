@@ -1,5 +1,3 @@
-import { type RefObject, useEffect, useRef } from 'react';
-
 /**
  * Puts a row in the middle of the outline. `center` and not `nearest`: a row
  * is worth seeing in its surroundings, and a row that merely scraped into view
@@ -26,21 +24,4 @@ export function revealRow(within: HTMLElement | null, path: string): void {
       return;
     }
   }, 0);
-}
-
-/**
- * The row the outline opened on, brought into view once: a link may name an
- * element anywhere in a deep design, and the reader who followed it would
- * otherwise have to go looking for where they are. Only on arrival — every
- * scroll after it is the reader's own move, and the page says which of those
- * are worth following.
- */
-export function useRevealOnArrival(
-  within: RefObject<HTMLElement | null>,
-  path: string | null,
-): void {
-  const arrival = useRef(path);
-  useEffect(() => {
-    if (arrival.current !== null) revealRow(within.current, arrival.current);
-  }, [within]);
 }

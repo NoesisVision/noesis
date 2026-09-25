@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { OutlineNode } from './model-outline.ts';
 import {
   closeIn,
@@ -18,11 +18,11 @@ import { type OutlineTree, outlineTree } from './outline-tree.ts';
  * Where a selection was made. The tree cannot tell what a page should do
  * about one — a row the reader clicked is already under their eye, while a row
  * reached from the panel beside the tree may be anywhere — so it says where
- * the move came from and leaves the page to answer for it. Not exported: the
- * two signatures it appears in are how a caller meets it, and every caller so
- * far writes the word itself.
+ * the move came from and leaves the page to answer for it. `init` is the
+ * tree's own: the row it opened at, which the reader neither clicked nor
+ * navigated to.
  */
-type SelectSource = 'tree' | 'detail';
+export type SelectSource = 'tree' | 'detail' | 'init';
 
 /**
  * What the tree is currently showing. The outline itself never changes while
@@ -67,8 +67,40 @@ export function useModelTree(
   nodes: readonly OutlineNode[],
   state: ModelTreeState,
 ): ModelTreeController {
-  const { selected, onSelect, query, onQuery, memory = FORGETFUL } = state;
+  const {
+    selected: addressed,
+    onSelect,
+    query,
+    onQuery,
+    memory = FORGETFUL,
+  } = state;
   const tree = useMemo(() => outlineTree(nodes), [nodes]);
+  /*
+   * The tree opens at a row whether or not the address names one: an empty
+   * panel beside a full outline says nothing, and the top of the tree is where
+   * a reader would have started anyway. An address naming a row this outline
+   * has not got is the same case and not an error to put in front of them —
+   * the model was rewritten under their link.
+   */
+  const selected = useMemo(
+    () =>
+      addressed !== null && tree.byPath.has(addressed)
+        ? addressed
+        : (tree.nodes[0]?.path ?? null),
+    [tree, addressed],
+  );
+  /*
+   * Said once, and only the page can answer it: the row is the tree's own
+   * choice, so nothing else knows to put it in the address or to scroll to it.
+   * An outline that has no rows yet has nothing to open at, and says so when
+   * it has.
+   */
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || selected === null) return;
+    opened.current = true;
+    onSelect(selected, 'init');
+  }, [selected, onSelect]);
   /*
    * Whatever shape the tree was left in, the row the address names has to be
    * a row: a link into the middle of a design that opened on a closed branch

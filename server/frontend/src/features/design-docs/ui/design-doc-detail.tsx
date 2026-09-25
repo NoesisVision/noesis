@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
+import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
 import { designDocById } from '../design-docs.api.ts';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
 
@@ -9,7 +10,7 @@ export interface DesignDocDetailProps {
   /** The element in hand, as the address names it; null for the top. */
   node: string | null;
   query: string;
-  onSelect: (path: string) => void;
+  onSelect: (path: string, source: SelectSource) => void;
   onQuery: (query: string) => void;
 }
 
