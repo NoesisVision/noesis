@@ -90,10 +90,16 @@
 .chevron {
   display: inline-flex;
   flex: none;
+  /*
+   * As tall as the row leaves it: a glyph the pointer aims at is easier to
+   * hit over the whole height of the line than over a square in the middle
+   * of it, and the hover it draws then reads as a column rather than a dot.
+   * The row's own padding is what it stops short of.
+   */
+  align-self: stretch;
   align-items: center;
   justify-content: center;
   width: 1rem;
-  height: 1rem;
   border-radius: var(--mantine-radius-xs);
   color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
   transition: background-color 0.1s ease-in-out;
