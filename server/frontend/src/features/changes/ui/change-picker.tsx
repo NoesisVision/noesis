@@ -41,7 +41,7 @@ export function ChangePicker({
     onNavigate?.();
     await navigate({
       to: '/changes/$changeId',
-      params: { changeId: change.slug },
+      params: { changeId: change.id },
     });
   };
 
@@ -56,7 +56,7 @@ export function ChangePicker({
                 mih={24}
                 bg={
                   current
-                    ? changeSwatch(current.slug)
+                    ? changeSwatch(current.id)
                     : 'var(--mantine-color-gray-4)'
                 }
               />
@@ -107,14 +107,14 @@ export function ChangePicker({
           </Menu.Label>
           {changes.map((change) => (
             <Menu.Item
-              key={change.slug}
+              key={change.id}
               className={classes.item}
-              data-current={change.slug === current?.slug || undefined}
+              data-current={change.id === current?.id || undefined}
               leftSection={
                 <Box
                   className={classes.bar}
                   h={22}
-                  bg={changeSwatch(change.slug)}
+                  bg={changeSwatch(change.id)}
                 />
               }
               onClick={() => choose(change)}

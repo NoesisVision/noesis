@@ -8,7 +8,7 @@ one another. The research and the schema are in
 graph vocabulary.
 
 **Status: standalone, not yet integrated with the service.** The scanner
-writes a JSON graph file; how that file feeds `.noesis/graph/system-model/` is a
+writes a JSON graph file; how that file feeds `.noesis/graph/system-models/` is a
 later decision, once the file format settles. The TypeScript scanner inside `server/backend` is the only one the
 service runs today.
 

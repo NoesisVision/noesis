@@ -13,6 +13,7 @@ import {
   Visibility,
 } from '#backend/app/system-model/system-model';
 import { DesignDocField } from './design-doc-field';
+import { DesignDocId } from './design-doc-id';
 
 export const DesignedProperty = z.object({
   name: ElementName,
@@ -73,7 +74,9 @@ export const DesignedBehaviour = z.object({
 export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
 
 const designDocumentSchema = z.object({
-  id: z.string(),
+  id: DesignDocId.describe(
+    "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
+  ),
   name: z.string(),
   description: z.string(),
   modules: changeSetSchema(DesignedDomainModule, ModuleId),
@@ -83,7 +86,7 @@ const designDocumentSchema = z.object({
 });
 
 export const DesignDocument = Object.assign(designDocumentSchema, {
-  validateAddedItems: (document: CreateDesignDocument): DesignDocViolation[] =>
+  validateAddedItems: (document: DesignDocumentContent): DesignDocViolation[] =>
     [...fieldsOf(document, '')]
       .filter(([path, field]) => !field.changed && isInAddedItem(path))
       .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' })),
@@ -113,12 +116,11 @@ export interface DesignDocViolation {
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
 
-export const CreateDesignDocument = designDocumentSchema
-  .omit({
-    id: true,
-  })
-  .describe('The design document to add to a change.');
-export type CreateDesignDocument = z.output<typeof CreateDesignDocument>;
+/** The working file of a design document: the server mints the id of a new one; an update names it beside the file. */
+export const DesignDocumentContent = designDocumentSchema.omit({
+  id: true,
+});
+export type DesignDocumentContent = z.infer<typeof DesignDocumentContent>;
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;

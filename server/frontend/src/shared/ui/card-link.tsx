@@ -1,10 +1,12 @@
+import { IconLink } from '@tabler/icons-react';
 import { createLink, type LinkComponent } from '@tanstack/react-router';
 import { clsx } from 'clsx';
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Card } from '#/shared/design-system/card.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { Title } from '#/shared/design-system/title.tsx';
+import { IconHeading, type IconComponent } from '#/shared/ui/icon-heading.tsx';
 import classes from './card-link.module.css';
 
 // `title` and `content` are anchor attributes of their own — the tooltip and
@@ -15,6 +17,8 @@ interface CardLinkProps extends Omit<
 > {
   /** What the card is: a document's title, a design document's name. */
   title: ReactNode;
+  /** The icon of the kind the card leads to; the domain exports it. */
+  icon: IconComponent;
   /** A line under the title, for what the item is rather than what it says. */
   description?: ReactNode;
   /** Whatever else belongs on the card, under the two lines above. */
@@ -28,6 +32,7 @@ interface CardLinkProps extends Omit<
 
 function CardLinkBase({
   title,
+  icon,
   description,
   content,
   headingLevel = 2,
@@ -37,21 +42,27 @@ function CardLinkBase({
   return (
     <Card
       component="a"
-      withBorder
       padding="lg"
+      withBorder
       className={clsx(classes.card, className)}
       {...props}
     >
       <Stack gap={4}>
-        {/* `size` holds the type scale steady while the level moves. */}
-        <Title order={headingLevel} size={`h${headingLevel + 1}`} mb={0}>
-          {title}
-        </Title>
-        {!!description && (
-          <Text size="sm" c="dimmed">
-            {description}
-          </Text>
-        )}
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <IconHeading
+            title={title}
+            icon={icon}
+            description={description}
+            headingLevel={headingLevel}
+          />
+          {/* Decorative: the whole card is the anchor, and this says so. */}
+          <IconLink
+            size={22}
+            stroke={1.6}
+            className={classes.hint}
+            aria-hidden
+          />
+        </Group>
         {!!content && <Text size="sm">{content}</Text>}
       </Stack>
     </Card>

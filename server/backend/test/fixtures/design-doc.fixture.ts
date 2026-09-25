@@ -30,7 +30,7 @@ const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
 
 export const designDocFixture = {
-  id: 'refund-partial-orders',
+  id: '2026-01-01-partial-refunds-for-orders',
   name: 'Partial refunds for orders',
   description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',

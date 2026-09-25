@@ -1,21 +1,26 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { IndexerSources } from '#backend/adapters/graph/index.service';
+import { ChangeOwnedRepository } from '#backend/adapters/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
-import { NoesisDesignDocsRepository } from '#backend/adapters/store/design-docs.repository';
-import { NoesisDocumentsRepository } from '#backend/adapters/store/documents.repository';
-import {
-  createSystemModelStore,
-  type SystemModelStore,
-} from '#backend/adapters/store/system-model.store';
 import type { Change } from '#backend/app/changes/change';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
+import {
+  DesignDocument,
+  type DesignDocumentInput,
+} from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import {
+  type Document,
+  type DocumentInput,
+  DocumentSchema,
+} from '#backend/app/information-sources/document';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type { NoesisStore } from '#backend/platform/files/noesis-store';
+
+/** The day every service in a spec mints its ids on. */
+const TODAY = () => '2026-09-24';
 
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
@@ -23,16 +28,25 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  systemModels: SystemModelStore;
-  sources: IndexerSources;
+  designDocsRepository: ChangeOwnedRepository<DesignDocument>;
+  documentsRepository: ChangeOwnedRepository<Document>;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: DocumentsService;
+  /** `graph/changes/`, where each change's file and folder sit. */
+  changesDir: string;
   /** Writes a change with placeholder data. */
   createChange(
-    slug: string | ChangeSlug,
+    id: string | ChangeId,
     overrides?: Partial<Change>,
-  ): Promise<ChangeSlug>;
+  ): Promise<ChangeId>;
+  /** Writes a design document into the change, bypassing the service. */
+  writeDesignDoc(
+    change: ChangeId,
+    document: DesignDocumentInput,
+  ): Promise<void>;
+  /** Writes a document into the change, bypassing the service. */
+  writeDocument(change: ChangeId, document: DocumentInput): Promise<void>;
   cleanup(): Promise<void>;
 }
 
@@ -41,50 +55,58 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new NoesisDesignDocsRepository(
-    changesRepository,
+  const designDocsRepository = new ChangeOwnedRepository(
+    noesis,
+    DesignDocument,
+    'design-doc',
   );
-  const documentsRepository = new NoesisDocumentsRepository(changesRepository);
-  const systemModels = createSystemModelStore(noesis);
+  const documentsRepository = new ChangeOwnedRepository(
+    noesis,
+    DocumentSchema,
+    'document',
+  );
   const changesService = new ChangesService(
     changesRepository,
     designDocsRepository,
     documentsRepository,
+    TODAY,
   );
   return {
     root,
     noesis,
     changesRepository,
-    systemModels,
-    sources: { changes: changesRepository, systemModels },
+    designDocsRepository,
+    documentsRepository,
     changesService,
     designDocsService: new DesignDocsService(
       designDocsRepository,
       changesService,
+      TODAY,
     ),
-    documentsService: new DocumentsService(documentsRepository, changesService),
-    createChange: async (slug, overrides = {}) => {
-      const parsed = ChangeSlug.parse(slug);
+    documentsService: new DocumentsService(
+      documentsRepository,
+      changesService,
+      TODAY,
+    ),
+    changesDir: noesis.resolve('graph', 'changes'),
+    createChange: async (id, overrides = {}) => {
+      const parsed = ChangeId.parse(id);
       const change: Change = {
-        slug: parsed,
+        id: parsed,
         name: parsed,
         key: '',
         type: 'chore',
         status: 'discovery',
-        created_at: '2026-09-13T00:00:00.000Z',
         description: '',
         ...overrides,
       };
-      await changesRepository.write(change);
+      await changesRepository.save(change);
       return parsed;
     },
+    writeDesignDoc: (change, document) =>
+      designDocsRepository.save(change, DesignDocument.parse(document)),
+    writeDocument: (change, document) =>
+      documentsRepository.save(change, DocumentSchema.parse(document)),
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
-}
-
-/** Every object of a collection, in no particular order. */
-export function all<T>(
-  store: Pick<NoesisStore<unknown, T, unknown>, 'values'>,
-): Promise<T[]> {
-  return Array.fromAsync(store.values());
 }

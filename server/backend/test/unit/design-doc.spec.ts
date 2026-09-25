@@ -5,7 +5,7 @@ import { BehaviorId, BuildingBlockId, ModuleId } from '#backend/app/element-id';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 
 const document = {
-  id: 'doc-1',
+  id: '2026-01-01-doc-1',
   name: 'Refunds',
   description: 'Let a clerk refund an order.',
   modules: {
@@ -194,7 +194,7 @@ describe('DesignDocument.validateAgentVersion', () => {
     propertyName?: string;
   }) =>
     DesignDocument.parse({
-      id: 'doc-1',
+      id: '2026-01-01-doc-1',
       name: 'Refunds',
       description: 'Let a clerk refund.',
       modules: {
@@ -293,7 +293,7 @@ describe('DesignDocument.validateAddedItems', () => {
 
   it('reports an unchanged field of an added item, at any depth', () => {
     const parsed = DesignDocument.parse({
-      id: 'doc-1',
+      id: '2026-01-01-doc-1',
       name: 'Refunds',
       description: 'Let a clerk refund an order.',
       buildingBlocks: {

@@ -18,7 +18,7 @@ Constraints already settled that apply here when work starts:
   CI would get its own gated job the way `java-scanner` has one.
 - **Integration**: not with this migration. The service runs only the
   TypeScript scanner in `server/backend`; how an external scanner's output
-  feeds `.noesis/graph/system-model/` is a later decision, once that file format
+  feeds `.noesis/graph/system-models/` is a later decision, once that file format
   settles. Until then a .NET scanner would
   be standalone, writing a graph file as the Java one does.
 - **Engine and enrichment**: open. The Java scanner's split (a bytecode-level

@@ -24,7 +24,7 @@ export function listChangesTool(changes: ChangesService): ToolRegistration {
     {
       title: 'List changes',
       description:
-        'Lists every change in the repository, newest first, each with its slug, name, tracker key, type and status. Use it to find the slug of a change the user refers to by name or key, or to offer the user the changes to choose from.',
+        'Lists every change in the repository, newest first, each with its id, name, tracker key, type and status. Use it to find the id of a change the user refers to by name or key, or to offer the user the changes to choose from.',
       inputSchema,
       outputSchema,
       annotations: READ_ONLY,
@@ -37,7 +37,7 @@ function listed(changes: Change[]): CallToolResult {
   return success(summary(changes), { changes });
 }
 
-/** The slugs are in the text too, for hosts and models that read only that. */
+/** The ids are in the text too, for hosts and models that read only that. */
 function summary(changes: Change[]): string {
   if (changes.length === 0) {
     return `There are no changes yet. Create one with ${CREATE_CHANGE}.`;
@@ -48,5 +48,5 @@ function summary(changes: Change[]): string {
 
 function line(change: Change): string {
   const key = change.key === '' ? '' : ` [${change.key}]`;
-  return `- ${change.slug}${key}: ${change.name} (${change.type}, ${change.status})`;
+  return `- ${change.id}${key}: ${change.name} (${change.type}, ${change.status})`;
 }

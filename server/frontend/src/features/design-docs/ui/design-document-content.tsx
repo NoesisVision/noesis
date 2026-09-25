@@ -1,4 +1,3 @@
-import { IconPencilBolt } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
@@ -6,7 +5,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-import { IconHeading } from '#/shared/ui/icon-heading.tsx';
+import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
 import type { DesignDocFieldAuthor } from '#backend/app/design-docs/design-doc-field.ts';
 import type {
   DesignDocumentInput,
@@ -18,6 +17,7 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { DesignDocsIcon } from '../design-docs.model.ts';
 
 /*
  * Renders the document as the diff it is: per kind of element, what the
@@ -192,9 +192,7 @@ function Types({
   set,
 }: {
   title: string;
-  set:
-    | ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput>
-    | undefined;
+  set: ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput> | undefined;
 }) {
   if (set === undefined) return null;
   return (
@@ -360,12 +358,11 @@ export function DesignDocumentContent({
   document: DesignDocumentInput;
 }) {
   return (
-    <Stack component="article" maw={1000}>
-      <IconHeading
-        title={doc.name}
-        icon={IconPencilBolt}
-        description={doc.implemented ? 'Implemented' : 'Draft'}
-      />
+    <ReadingPane
+      title={doc.name}
+      icon={DesignDocsIcon}
+      description={doc.implemented ? 'Implemented' : 'Draft'}
+    >
       <Text>{doc.description}</Text>
       <Section title="Modules">
         <Changes
@@ -391,6 +388,6 @@ export function DesignDocumentContent({
           render={(behaviour) => <Behaviour behaviour={behaviour} />}
         />
       </Section>
-    </Stack>
+    </ReadingPane>
   );
 }

@@ -1,76 +1,34 @@
-import { join } from 'node:path';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
-import { ChangeSlug } from '#backend/app/changes/change-slug';
+import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { DocumentSchema } from '#backend/app/information-sources/document';
-import { createNoesisStore } from '#backend/platform/files/bun-noesis-store';
+import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type {
-  ChildHandles,
-  NoesisStoreOf,
-} from '#backend/platform/files/noesis-store';
-import { serverLogger } from '#backend/platform/logging/logging';
 
-const log = serverLogger('changes');
-
-// Each is keyed by the contract's own id: `id`, `document_id`.
-const CHANGE_CHILDREN = {
-  'design-docs': DesignDocument,
-  documents: DocumentSchema,
-} as const;
-
-export type ChangeChildren = ChildHandles<typeof CHANGE_CHILDREN>;
-
-type ChangesStore = NoesisStoreOf<typeof ChangeSchema, typeof CHANGE_CHILDREN>;
+/** `<id>.change.json` sits beside `<id>/`, which holds what the change owns. */
+export function changesDir(noesis: NoesisDir): string {
+  return noesis.resolve('graph', 'changes');
+}
 
 export class NoesisChangesRepository implements ChangesRepository {
-  private readonly store: ChangesStore;
+  private readonly changes: JsonCollection<Change>;
 
   constructor(noesis: NoesisDir) {
-    this.store = createNoesisStore({
-      directory: noesis.resolve('graph', 'changes'),
-      schema: ChangeSchema,
-      children: CHANGE_CHILDREN,
-    });
+    this.changes = new JsonCollection(
+      ChangeSchema,
+      changesDir(noesis),
+      'change',
+    );
   }
 
-  dirOf(slug: ChangeSlug): string {
-    return join(this.store.directory, slug);
+  get(id: ChangeId): Promise<Change | null> {
+    return this.changes.get(id);
   }
 
-  /** Unordered; the graph sorts. */
-  async *keys(): AsyncIterable<ChangeSlug> {
-    for await (const key of this.store.keys()) {
-      const slug = ChangeSlug.safeParse(key);
-      if (!slug.success) {
-        log.warn('skipping {key} under {directory}: not a change slug', {
-          key,
-          directory: this.store.directory,
-        });
-        continue;
-      }
-      yield slug.data;
-    }
+  list(): Promise<Change[]> {
+    return this.changes.list();
   }
 
-  async read(slug: ChangeSlug): Promise<Change | null> {
-    return this.store.get(slug);
-  }
-
-  async *values(): AsyncIterable<Change> {
-    for await (const slug of this.keys()) {
-      const change = await this.read(slug);
-      if (change !== null) yield change;
-    }
-  }
-
-  /** What the change owns stays. */
-  async write(change: Change): Promise<void> {
-    await this.store.set(ChangeSlug.parse(change.slug), change);
-  }
-
-  children(slug: ChangeSlug): ChangeChildren {
-    return this.store.children(slug);
+  save(change: Change): Promise<void> {
+    return this.changes.save(change);
   }
 }

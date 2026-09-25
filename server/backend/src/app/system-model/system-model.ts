@@ -140,7 +140,7 @@ export const SystemModel = z
     behaviours: z.array(ScannedBehaviour).default([]),
   })
   .describe(
-    'The implemented model of one scanned unit, written by the scanner: graph/system-model/<id>/data.json.',
+    'The implemented model of one scanned unit: graph/system-models/<id>.system-model.json, written by the scanner.',
   );
 export type SystemModel = z.infer<typeof SystemModel>;
 

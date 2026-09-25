@@ -1,0 +1,71 @@
+/*
+ * MDXEditor ships its own chrome and its own dark theme; only the typography
+ * of the text being written is pulled back onto the app's scale.
+ */
+.content.content {
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-sm);
+  line-height: var(--mantine-line-height-md);
+  padding-top: 0;
+}
+
+/*
+ * A document is hard-wrapped in its own file, and Lexical sets
+ * `white-space: pre-wrap` inline on the editor's root, so every newline the
+ * author typed becomes a break and the text reads at the width their editor
+ * happened to wrap at. Reading is not editing: the soft wraps collapse, the
+ * way every markdown renderer treats them, and the text fills the page.
+ * Only `!important` reaches an inline style.
+ */
+.reading.reading {
+  white-space: normal !important;
+}
+
+/*
+ * A mermaid fence: its source and the picture it draws, side by side until the
+ * column is too narrow to hold both.
+ */
+.fence {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--mantine-spacing-sm);
+  margin: var(--mantine-spacing-sm) 0;
+  padding: var(--mantine-spacing-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+@media (max-width: 62em) {
+  .fence {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.fenceSource {
+  min-height: 8rem;
+  padding: var(--mantine-spacing-xs);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  line-height: var(--mantine-line-height-sm);
+  resize: vertical;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+  }
+}
+
+.fencePreview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+}
