@@ -15,6 +15,16 @@ import { type OutlineSearch, searchOutline } from './outline-search.ts';
 import { type OutlineTree, outlineTree } from './outline-tree.ts';
 
 /**
+ * Where a selection was made. The tree cannot tell what a page should do
+ * about one — a row the reader clicked is already under their eye, while a row
+ * reached from the panel beside the tree may be anywhere — so it says where
+ * the move came from and leaves the page to answer for it. Not exported: the
+ * two signatures it appears in are how a caller meets it, and every caller so
+ * far writes the word itself.
+ */
+type SelectSource = 'tree' | 'detail';
+
+/**
  * What the tree is currently showing. The outline itself never changes while
  * a document is open, so everything here is the reader's own doing: what they
  * have opened, what they are looking for, and what they are looking at.
@@ -30,7 +40,7 @@ export interface ModelTreeController {
   readonly ask: (query: string) => void;
   readonly isExpanded: (path: string) => boolean;
   readonly isVisible: (path: string) => boolean;
-  readonly select: (path: string) => void;
+  readonly select: (path: string, source: SelectSource) => void;
   /** Opens a row that is shut and shuts one that is open; a leaf is neither. */
   readonly toggle: (path: string) => void;
   readonly expand: (path: string) => void;
@@ -47,7 +57,7 @@ export interface ModelTreeController {
  */
 export interface ModelTreeState {
   readonly selected: string | null;
-  readonly onSelect: (path: string) => void;
+  readonly onSelect: (path: string, source: SelectSource) => void;
   readonly query: string;
   readonly onQuery: (query: string) => void;
   readonly memory?: ExpansionMemory;

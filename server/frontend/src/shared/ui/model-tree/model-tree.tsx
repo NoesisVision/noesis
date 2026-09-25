@@ -1,7 +1,7 @@
 import { useId, useMemo, useRef } from 'react';
+import { useRevealOnArrival } from './reveal-row.ts';
 import { TreeItem } from './tree-item.tsx';
 import type { ModelTreeController } from './use-model-tree.ts';
-import { useRevealRow } from './use-reveal-row.ts';
 import classes from './model-tree.module.css';
 
 /*
@@ -39,7 +39,7 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
   const focusPath = selected ?? roots[0]?.path ?? null;
 
   const list = useRef<HTMLUListElement>(null);
-  useRevealRow(list, selected);
+  useRevealOnArrival(list, selected);
 
   return (
     <ul ref={list} role="tree" aria-label={label} className={classes.tree}>

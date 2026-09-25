@@ -6,7 +6,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo, useRef } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -22,6 +22,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { ModelTree } from '#/shared/ui/model-tree/model-tree.tsx';
 import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
+import { revealRow } from '#/shared/ui/model-tree/reveal-row.ts';
 import {
   type ModelTreeController,
   useModelTree,
@@ -63,9 +64,17 @@ export function DesignDocWorkbench({
   // to show the reader: the design was rewritten, and the top of the tree is
   // where they would have started anyway.
   const known = outline.some((element) => element.path === node);
+  const outlineBody = useRef<HTMLDivElement>(null);
   const controller = useModelTree(outline, {
     selected: known ? node : (outline[0]?.path ?? null),
-    onSelect,
+    // A row the reader clicked is already where they are looking, and moving
+    // the outline under their hand would only lose them the neighbours they
+    // were reading. A step of the breadcrumb is the other way about: it names
+    // an element that may be anywhere above, so the tree is taken to it.
+    onSelect: (path, source) => {
+      onSelect(path);
+      if (source === 'detail') revealRow(outlineBody.current, path);
+    },
     query,
     onQuery,
     memory,
@@ -106,7 +115,7 @@ export function DesignDocWorkbench({
             <Box className={classes.searchBar}>
               <OutlineSearchBox controller={controller} />
             </Box>
-            <Box className={classes.outlineBody}>
+            <Box className={classes.outlineBody} ref={outlineBody}>
               <Outline controller={controller} empty={outline.length === 0} />
             </Box>
           </>
@@ -123,7 +132,7 @@ export function DesignDocWorkbench({
                   .map((path) => controller.tree.byPath.get(path))
                   .filter((node) => node !== undefined)}
                 document={doc}
-                onSelect={controller.select}
+                onSelect={(path) => controller.select(path, 'detail')}
               />
             )}
           </Box>
