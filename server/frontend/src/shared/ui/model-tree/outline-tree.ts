@@ -1,4 +1,4 @@
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '#backend/ui/model-outline/model-outline.ts';
 
 /*
  * The outline arrives flat and in reading order, because that is the shape

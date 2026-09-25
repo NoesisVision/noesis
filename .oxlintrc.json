@@ -122,9 +122,9 @@
               }
             }
           },
-          // The frontend reads the backend's model and route types only.
-          // `fe-root` is where the generated route tree sits, so anything
-          // typed against routes imports it.
+          // The frontend reads the backend's model, route and view-model
+          // types only. `fe-root` is where the generated route tree sits, so
+          // anything typed against routes imports it.
           {
             "from": {
               "element": {
@@ -139,7 +139,7 @@
               }
             },
             "allow": {
-              "to": { "element": { "type": ["app", "root", "fe-root"] } }
+              "to": { "element": { "type": ["app", "ui", "root", "fe-root"] } }
             }
           },
           // shared is the kernel: the client, the design system, routing ids.

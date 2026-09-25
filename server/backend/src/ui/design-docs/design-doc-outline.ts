@@ -1,12 +1,3 @@
-import { BuildingBlockId, ElementId, ModuleId } from '#backend/app/element-id';
-import {
-  drawsDiagram,
-  inReadingOrder,
-  type OutlineChange,
-  type OutlineKind,
-  type OutlineNode,
-  patternLabelOf,
-} from '#backend/app/model-outline/model-outline';
 import type {
   DesignDocument,
   DesignedBehaviour,
@@ -18,7 +9,16 @@ import type {
   DesignedPropertyChangeSet,
   DesignedRuleChangeSet,
   DesignedScenarioChangeSet,
-} from './design-doc';
+} from '#backend/app/design-docs/design-doc';
+import { BuildingBlockId, ElementId, ModuleId } from '#backend/app/element-id';
+import {
+  drawsDiagram,
+  inReadingOrder,
+  type OutlineChange,
+  type OutlineKind,
+  type OutlineNode,
+  patternLabelOf,
+} from '#backend/ui/model-outline/model-outline';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '#backend/ui/model-outline/model-outline.ts';
 import {
   closeIn,
   closeToMatches,

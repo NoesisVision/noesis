@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '#backend/ui/model-outline/model-outline.ts';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { ModelTree } from '../src/shared/ui/model-tree/model-tree';
 import { searchOutline } from '../src/shared/ui/model-tree/outline-search';

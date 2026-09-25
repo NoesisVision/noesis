@@ -1,6 +1,6 @@
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { DesignDocSummary } from '#backend/app/design-docs/design-docs.service.ts';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '#backend/ui/model-outline/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
 export const designDocFixture = {

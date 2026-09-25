@@ -6,7 +6,7 @@ import {
   IconPoint,
   IconScale,
 } from '@tabler/icons-react';
-import type { OutlineKind } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineKind } from '#backend/ui/model-outline/model-outline.ts';
 import classes from './model-tree.module.css';
 
 const KIND_ICONS = {

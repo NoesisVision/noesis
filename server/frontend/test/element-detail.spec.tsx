@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '#backend/ui/model-outline/model-outline.ts';
 import { ElementDetail } from '../src/features/design-docs/ui/element-detail';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';

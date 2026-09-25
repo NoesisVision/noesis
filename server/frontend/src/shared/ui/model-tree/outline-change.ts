@@ -1,4 +1,4 @@
-import type { OutlineChange } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineChange } from '#backend/ui/model-outline/model-outline.ts';
 
 /*
  * One colour for what a design does to an element, wherever it is shown: the

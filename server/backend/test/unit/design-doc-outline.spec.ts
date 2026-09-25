@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import { outlineOf } from '#backend/app/design-docs/design-doc-outline';
+import { outlineOf } from '#backend/ui/design-docs/design-doc-outline';
 import {
   compareSiblings,
   drawsDiagram,
   type OutlineNode,
   patternLabelOf,
-} from '#backend/app/model-outline/model-outline';
+} from '#backend/ui/model-outline/model-outline';
 import { decodedDesignDocFixture } from '../fixtures/design-doc.fixture';
 
 const outline = outlineOf(decodedDesignDocFixture);

@@ -2,9 +2,9 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { DesignDocumentSchema } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { outlineOf } from '#backend/app/design-docs/design-doc-outline';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { inChange } from '../changes/in-change';
+import { outlineOf } from './design-doc-outline';
 
 export interface DesignDocsDeps {
   designDocsService: DesignDocsService;
