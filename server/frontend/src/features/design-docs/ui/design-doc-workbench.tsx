@@ -200,9 +200,18 @@ function Outline({
   controller: ModelTreeController;
   empty: boolean;
 }) {
-  if (empty) return <Text c="dimmed">This design names no elements yet.</Text>;
+  if (empty)
+    return (
+      <Box pt="md">
+        <Text c="dimmed">This design names no elements yet.</Text>
+      </Box>
+    );
   if (controller.search.active && controller.search.matched.size === 0) {
-    return <Text c="dimmed">Nothing in this design is called that.</Text>;
+    return (
+      <Box pt="md">
+        <Text c="dimmed">Nothing in this design is called that.</Text>
+      </Box>
+    );
   }
   return <ModelTree controller={controller} label="Design outline" />;
 }
