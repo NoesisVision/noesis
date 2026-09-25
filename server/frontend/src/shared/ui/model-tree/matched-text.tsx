@@ -19,12 +19,16 @@ export function MatchedText({
   dimmed?: boolean;
   children: string;
 }) {
-  const colour = dimmed ? 'dimmed' : undefined;
   // A monospaced face reads a size larger at the same measure.
   const size = dimmed ? 'xs' : 'sm';
+  /*
+   * The colour is the stylesheet's, not a prop: `c` lands as an inline style,
+   * which no rule can reach past, and the row in hand has to be able to lift
+   * what it says about itself off its own background.
+   */
   if (tokens.length === 0) {
     return (
-      <Text component="span" size={size} c={colour} className={className}>
+      <Text component="span" size={size} className={className}>
         {children}
       </Text>
     );
@@ -33,7 +37,6 @@ export function MatchedText({
     <Highlight
       component="span"
       size={size}
-      c={colour}
       className={className}
       highlight={[...tokens]}
     >

@@ -36,7 +36,7 @@
     content: '';
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 12px;
     left: calc(var(--model-tree-offset) / 2);
     width: 1px;
     border-radius: 1px;
@@ -137,6 +137,7 @@
 .pattern {
   flex: 0 1 auto;
   overflow: hidden;
+  color: var(--mantine-color-dimmed);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -216,11 +217,32 @@
   }
 }
 
+/*
+ * The row in hand is filled, so everything on it has to be legible against
+ * that fill rather than against the pane: the name comes up to the lightest
+ * of the brand, and what the row says about itself — its kind, its pattern,
+ * its chevron, its diagram — a step behind it. Left alone, each of those
+ * would keep the colour it is given elsewhere, which is dark on dark here.
+ *
+ * Last of the three, so it wins on order where it ties with them on weight.
+ */
 .item[data-selected] > .row {
   background-color: var(--mantine-color-brand-9);
   color: var(--mantine-color-brand-0);
 
   & .name {
+    color: var(--mantine-color-brand-0);
+  }
+
+  & .icon,
+  & .chevron,
+  & .pattern,
+  & .mark {
+    color: var(--mantine-color-brand-2);
+  }
+
+  & .chevron[data-opens]:hover {
+    background-color: var(--mantine-color-brand-7);
     color: var(--mantine-color-brand-0);
   }
 }

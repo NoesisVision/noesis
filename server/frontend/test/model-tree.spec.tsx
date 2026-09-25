@@ -98,6 +98,12 @@ describe('ModelTree', () => {
     expect(count(/tabindex="0"/g)).toBe(1);
   });
 
+  it('leaves every colour on a row to the stylesheet', () => {
+    // An inline colour is past the reach of any rule, and the row in hand is
+    // filled: what it says about itself has to be able to lift off that.
+    expect(html).not.toMatch(/style="[^"]*color:/);
+  });
+
   it('names the kind, the pattern and the change of a row', () => {
     expect(rowOf('Order')).toContain('data-kind="building_block"');
     expect(rowOf('Order')).toContain('aggregate');
