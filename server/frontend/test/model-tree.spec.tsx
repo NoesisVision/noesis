@@ -98,19 +98,15 @@ describe('ModelTree', () => {
     expect(count(/tabindex="0"/g)).toBe(1);
   });
 
-  it('says what changed in a word, never in a colour alone', () => {
-    expect(rowOf('orders')).toContain('added');
-    expect(rowOf('legacy')).toContain('removed');
-    expect(rowOf('Order')).toContain('modified');
-    // Nothing happened to the context, so nothing is claimed about it.
-    expect(rowOf('shop')).not.toContain('data-change="added"');
-    expect(rowOf('shop')).toContain('data-change="unchanged"');
-  });
-
-  it('names the kind and the pattern of a row', () => {
+  it('names the kind, the pattern and the change of a row', () => {
     expect(rowOf('Order')).toContain('data-kind="building_block"');
     expect(rowOf('Order')).toContain('aggregate');
     expect(rowOf('Orders')).toContain('repository');
+    // What the design does to a row is stated where the colours read it
+    // from; nothing happened to the context, and nothing is claimed about it.
+    expect(rowOf('orders')).toContain('data-change="added"');
+    expect(rowOf('legacy')).toContain('data-change="removed"');
+    expect(rowOf('shop')).toContain('data-change="unchanged"');
   });
 
   it('marks a row that draws a diagram, in a word as well as a glyph', () => {

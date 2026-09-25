@@ -1,6 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
 import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
-import { ChangeBadge } from './change-badge.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
@@ -155,7 +154,6 @@ export function TreeItem({
         )}
         <span className={classes.trailing}>
           {node.hasDiagram && <DiagramMark />}
-          <ChangeBadge change={node.change} />
         </span>
       </span>
       {expanded && (
