@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.TechnicalStuff.Kafka</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.TechnicalStuff.Kafka</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Confluent.Kafka" Version="2.4.0" />
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TechnicalStuff\TechnicalStuff.csproj" />
+    </ItemGroup>
+
+</Project>

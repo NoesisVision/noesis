@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>        
+        <AssemblyName>MyCompany.ECommerce.TechnicalStuff</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.TechnicalStuff</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>
+
+</Project>

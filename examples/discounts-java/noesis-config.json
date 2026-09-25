@@ -1,0 +1,4 @@
+{
+  "namespacePartsToSkip": ["com.itlibrium"],
+  "namespacesToExclude": []
+}

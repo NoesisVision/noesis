@@ -1,0 +1,9 @@
+{
+  "slug": "order-persistence-and-risk-integration",
+  "name": "Order persistence and risk integration",
+  "key": "",
+  "type": "feature",
+  "status": "design",
+  "created_at": "2026-05-05T12:46:00+02:00",
+  "description": "The two decisions of the architecture review of 2026-02-18: the Order aggregate is persisted as a Marten document with an EF Core read model kept in sync by inline projections, and Sales calls RiskManagement synchronously in process through the RiskManagementIntegration port."
+}

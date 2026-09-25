@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.TechnicalStuff.Ef</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.TechnicalStuff.Ef</RootNamespace>
+        <LangVersion>default</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TechnicalStuff\TechnicalStuff.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>    
+
+</Project>

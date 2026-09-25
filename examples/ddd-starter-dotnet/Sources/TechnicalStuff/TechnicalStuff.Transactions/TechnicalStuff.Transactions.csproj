@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.TechnicalStuff.Transactions</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.TechnicalStuff.Transactions</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TechnicalStuff.Persistence\TechnicalStuff.Persistence.csproj" />
+      <ProjectReference Include="..\TechnicalStuff.ProcessModel\TechnicalStuff.ProcessModel.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.TechnicalStuff.Api</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.TechnicalStuff.Api</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+      <PackageReference Include="NSwag.AspNetCore" Version="14.0.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TechnicalStuff\TechnicalStuff.csproj" />
+    </ItemGroup>
+
+</Project>

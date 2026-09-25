@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.Sales.RestApi</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.Sales</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud.Api\TechnicalStuff.Crud.Api.csproj" />      
+      <ProjectReference Include="..\Sales.ProcessModel\Sales.ProcessModel.csproj" />      
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.5" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+    </ItemGroup>    
+
+</Project>

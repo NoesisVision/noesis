@@ -1,0 +1,9 @@
+{
+  "slug": "threshold-activated-discount",
+  "name": "Threshold-activated discount",
+  "key": "",
+  "type": "feature",
+  "status": "design",
+  "created_at": "2026-05-08T00:00:00+02:00",
+  "description": "A percentage discount that applies once an order total crosses a threshold, designed from the sales spec and the review meeting notes."
+}

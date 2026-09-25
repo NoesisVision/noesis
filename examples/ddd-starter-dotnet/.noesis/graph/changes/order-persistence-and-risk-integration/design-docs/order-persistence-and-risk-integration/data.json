@@ -1,0 +1,156 @@
+{
+  "id": "order-persistence-and-risk-integration",
+  "name": {
+    "value": "Order persistence and risk integration",
+    "reviewedByHuman": false
+  },
+  "description": {
+    "value": "Faithful design-doc projection of the 2026-02-18 architecture review. Operating principles: (1) every element corresponds to something the conversation actually decided — architectural-review remarks that merely cite an existing domain rule as context are not extracted as new rules; (2) Building Blocks existing in code but invisible to the domain scan are not modelled — decisions about them attach to the nearest scan-visible carrier (an existing aggregate / factory / repository / module); (3) read-side query repositories already exist (Sales.OnlineOrdering.OrderDetailsFinder, Sales.WholesaleOrdering.OrderDetailsFinder) and are reused as the consumers of the new OrderReadModel projection. The two decisions captured: (a) Order persistence — Marten Document Store on the write side and EF Core read side via Marten inline projections; (b) Sales→RiskManagement integration stays synchronous and in-process under an explicit co-deployment assumption with revisit triggers.",
+    "reviewedByHuman": false
+  },
+  "modules": {},
+  "buildingBlocks": {
+    "added": [
+      {
+        "id": "building_block|Sales.Orders.OrderReadModel",
+        "type": {
+          "value": "entity",
+          "reviewedByHuman": false
+        },
+        "description": {
+          "value": "Flat denormalised relational projection of Order for query workloads — header columns, denormalised line summaries, pricing totals — populated by Marten inline projections atomically with the document save by Sales.Orders.Repository. Indexed for filtering, sorting and pagination by EF Core. Owned by Sales.Orders; not a separate aggregate; it has no behaviour of its own. Consumed by the existing read-side repositories Sales.OnlineOrdering.OrderDetailsFinder and Sales.WholesaleOrdering.OrderDetailsFinder — this design doc does not introduce a new query Building Block, only the projection they read from.",
+          "reviewedByHuman": false
+        },
+        "properties": {
+          "added": [
+            {
+              "name": {
+                "value": "orderId",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "String",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "clientId",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "ClientId",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "total",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "Money",
+                "reviewedByHuman": false
+              }
+            },
+            {
+              "name": {
+                "value": "placedAt",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "String",
+                "reviewedByHuman": false
+              },
+              "nullable": true
+            },
+            {
+              "name": {
+                "value": "status",
+                "reviewedByHuman": false
+              },
+              "type": {
+                "value": "String",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "scenarios": {
+          "added": [
+            {
+              "name": {
+                "value": "Read model stays in sync within the same transaction",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Verifies the inline-projection guarantee on the read side — a follow-up query observes the new row immediately.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "an Order is being placed",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "Sales.Orders.Repository saves the Order document via Marten",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the Marten inline projection updates the OrderReadModel row in the same database transaction\nAnd a follow-up read for the new Order via the existing OrderDetailsFinder returns the projected data immediately, without observable lag",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "modified": [
+      {
+        "id": "building_block|Sales.Orders.Order",
+        "rules": {
+          "added": [
+            {
+              "name": {
+                "value": "OrderAggregateLoadedAndSavedAsWhole",
+                "reviewedByHuman": false
+              },
+              "ruleType": "Consistency",
+              "description": {
+                "value": "Trigger: any persistence operation on Order via Sales.Orders.Repository. Pre: a coherent aggregate state exists in memory. Algorithm: load and save the entire JSONB document atomically; mutate only via aggregate methods, never through external table updates. Post: aggregate state on disk matches the in-memory state at commit. Edge cases: read-model projections must be written in the same transaction (inline) so reads and writes never observe a torn state; partial reads or partial writes of the aggregate are not allowed.",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        },
+        "scenarios": {
+          "added": [
+            {
+              "name": {
+                "value": "Order load and save is whole-aggregate",
+                "reviewedByHuman": false
+              },
+              "description": {
+                "value": "Verifies the Consistency rule that the Order aggregate is treated as a single load/save unit on the document store.",
+                "reviewedByHuman": false
+              },
+              "given": {
+                "value": "an existing Order with three line items has been persisted",
+                "reviewedByHuman": false
+              },
+              "when": {
+                "value": "an aggregate command updates one line item",
+                "reviewedByHuman": false
+              },
+              "then": {
+                "value": "the entire Order aggregate is reloaded from its JSONB document\nAnd after the update, the entire aggregate is written back as a single document in one transaction\nAnd no external write touches Order tables outside the aggregate boundary",
+                "reviewedByHuman": false
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "behaviours": {},
+  "implemented": false
+}

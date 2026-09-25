@@ -1,0 +1,21 @@
+{
+  "namespacePartsToSkip": [
+    "MyCompany.ECommerce",
+    "OldApi",
+    "RestApi",
+    "EF",
+    "Sql.Documents",
+    "Sql.Raw",
+    "Sql",
+    "Database",
+    "Infrastructure"
+  ],
+  "namespacesToExclude": [
+    "*.TechnicalStuff.*",
+    "*.Nuke.*",
+    "PrivatePackage.*",
+    "*.Migrations.*",
+    "*.FluentMigrations.*",
+    "*.DI.*"
+  ]
+}
