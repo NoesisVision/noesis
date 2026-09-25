@@ -31,7 +31,8 @@ test('the packed tarball is bunx-installable: one bin, the ui, no dependencies',
     cwd: serviceRoot,
     encoding: 'utf8',
   });
-  expect(pack.status).toBe(0);
+  // prepack runs the full build; its output is the only clue when it fails.
+  expect(pack.status, pack.stderr).toBe(0);
 
   const tarball = (await readdir(workDir)).find((f) => f.endsWith('.tgz'));
   if (!tarball) throw new Error('bun pm pack produced no tarball');

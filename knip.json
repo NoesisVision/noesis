@@ -1,8 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  // Prototypes and prior art under docs/ are reference material, not code
-  // (Oxlint skips them too).
-  "ignore": ["docs/**/prior-art/**", "docs/**/prototypes/**"],
   "workspaces": {
     "server/backend": {
       // Type-only tests are checked by tsc and never imported. The design
@@ -20,6 +17,12 @@
     },
     "server/frontend": {
       "entry": ["test/**/*.types.ts"]
+    },
+    "plugins/claude-code": {
+      // Never imported: the workspace dependency orders `bun run --filter`
+      // so the service's pack test finishes building dist before the
+      // plugin's tarball test rebuilds it.
+      "ignoreDependencies": ["@noesis-vision/noesis"]
     }
   }
 }

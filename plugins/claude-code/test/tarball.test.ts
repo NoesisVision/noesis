@@ -28,7 +28,7 @@ test('packs the npm tarball', async () => {
     cwd: pluginRoot,
     encoding: 'utf8',
   });
-  expect(pack.status).toBe(0);
+  expect(pack.status, pack.stderr).toBe(0);
 
   const tarball = (await readdir(workDir)).find((f) => f.endsWith('.tgz'));
   if (!tarball) throw new Error('bun pm pack produced no tarball');
@@ -129,7 +129,7 @@ test('the service the pin resolves to boots and lists tools', async () => {
     cwd: serviceRoot,
     encoding: 'utf8',
   });
-  expect(build.status).toBe(0);
+  expect(build.status, build.stderr).toBe(0);
 
   const projectDir = join(workDir, 'project');
   await mkdir(projectDir, { recursive: true });
