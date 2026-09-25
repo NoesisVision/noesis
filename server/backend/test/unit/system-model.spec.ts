@@ -80,7 +80,7 @@ describe('A system model', () => {
     expect(isValid(model({ modules: [{ ...module, parent: null }] }))).toBe(
       false,
     );
-    expect(isValid(withBlock({ rules: [] }))).toBe(false);
+    expect(isValid(withBlock({ invariants: [] }))).toBe(false);
     expect(
       isValid(withBlock({ source: { path: 'order.ts', column: 4 } })),
     ).toBe(false);
@@ -93,7 +93,7 @@ describe('A system model', () => {
         }),
       ),
     ).toBe(false);
-    expect(isValid(withBehaviour({ scenarios: [] }))).toBe(false);
+    expect(isValid(withBehaviour({ usedBuildingBlocks: [] }))).toBe(false);
   });
 
   it('reads back exactly as the scanner wrote it, with every default spelled out', () => {
@@ -232,11 +232,6 @@ describe('A scanned behaviour', () => {
     expect(parsed.behaviours[0]?.output).toHaveLength(1);
     expect(isValid(withBehaviour({ input: ['primitive|money'] }))).toBe(false);
   });
-
-  it('lists the building blocks it uses', () => {
-    expect(isValid(withBehaviour({ usedBuildingBlocks: [ORDER] }))).toBe(true);
-    expect(isValid(withBehaviour({ usedBuildingBlocks: [PLACE] }))).toBe(false);
-  });
 });
 
 describe('A reference to the type of a value', () => {
@@ -298,34 +293,81 @@ describe('A primitive', () => {
   });
 });
 
-describe('A scanned scenario', () => {
-  const scenario = (testedElementIds: string[]) => ({
-    name: 'Placing an order',
-    description: 'The happy path.',
-    given: 'a cart with one item',
-    when: 'the customer places the order',
-    // oxlint-disable-next-line unicorn/no-thenable
-    then: 'the order is placed', // NOSONAR
-    testedElementIds,
-  });
-  const isScenario = (value: unknown) =>
-    ScannedScenario.safeParse(value).success;
+const scenario = {
+  name: 'Placing an order',
+  description: 'The happy path.',
+  given: 'a cart with one item',
+  when: 'the customer places the order',
+  // oxlint-disable-next-line unicorn/no-thenable
+  then: 'the order is placed', // NOSONAR
+};
+const rule = { name: 'Paid orders only', ruleType: 'State change' };
 
-  it('tests building blocks and behaviours', () => {
-    expect(isScenario(scenario([ORDER, PLACE]))).toBe(true);
+describe('A scanned rule', () => {
+  it('belongs to a building block or a behaviour', () => {
+    const parsed = SystemModel.parse(
+      model({
+        buildingBlocks: [{ ...block, rules: [rule] }],
+        behaviours: [{ ...behaviour, rules: [rule] }],
+      }),
+    );
+
+    expect(parsed.buildingBlocks[0]?.rules.map((r) => r.name)).toEqual([
+      'Paid orders only',
+    ]);
+    expect(parsed.behaviours[0]?.rules.map((r) => r.name)).toEqual([
+      'Paid orders only',
+    ]);
+  });
+
+  it('is none until the scanner finds one', () => {
+    const parsed = SystemModel.parse(model());
+
+    expect(parsed.buildingBlocks[0]?.rules).toEqual([]);
+    expect(parsed.behaviours[0]?.rules).toEqual([]);
+  });
+
+  it('is always classified, by one of the known types', () => {
+    expect(
+      isValid(withBlock({ rules: [{ ...rule, ruleType: undefined }] })),
+    ).toBe(false);
+    expect(
+      isValid(withBlock({ rules: [{ ...rule, ruleType: 'Validation' }] })),
+    ).toBe(false);
+  });
+
+  it('has a description only when the code gives one', () => {
+    const parsed = SystemModel.parse(withBlock({ rules: [rule] }));
+
+    expect(parsed.buildingBlocks[0]?.rules[0]?.description).toBe(null);
+  });
+});
+
+describe('A scanned scenario', () => {
+  it('tests the one building block, behaviour or rule that holds it', () => {
+    const parsed = SystemModel.parse(
+      model({
+        buildingBlocks: [
+          {
+            ...block,
+            scenarios: [scenario],
+            rules: [{ ...rule, scenarios: [scenario] }],
+          },
+        ],
+        behaviours: [{ ...behaviour, scenarios: [scenario] }],
+      }),
+    );
+
+    expect(parsed.buildingBlocks[0]?.scenarios).toHaveLength(1);
+    expect(parsed.buildingBlocks[0]?.rules[0]?.scenarios).toHaveLength(1);
+    expect(parsed.behaviours[0]?.scenarios).toHaveLength(1);
   });
 
   it('refuses a key it does not know', () => {
-    expect(isScenario({ ...scenario([]), tags: ['smoke'] })).toBe(false);
-  });
-
-  it('never tests a module', () => {
-    expect(isScenario(scenario(['module|sales.orders']))).toBe(false);
-  });
-
-  it('tests nothing until the scanner links it', () => {
-    const { testedElementIds: _ids, ...unlinked } = scenario([]);
-
-    expect(ScannedScenario.parse(unlinked).testedElementIds).toEqual([]);
+    expect(ScannedScenario.safeParse(scenario).success).toBe(true);
+    expect(
+      ScannedScenario.safeParse({ ...scenario, testedElementIds: [ORDER] })
+        .success,
+    ).toBe(false);
   });
 });

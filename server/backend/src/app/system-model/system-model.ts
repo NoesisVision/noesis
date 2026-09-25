@@ -105,10 +105,16 @@ export const ScannedScenario = z.strictObject({
   when: z.string(),
   // oxlint-disable-next-line unicorn/no-thenable
   then: z.string(), // NOSONAR
-  // TODO: Czy scenariusz zawsze jest podpięty pod jeden element i wtedy powinien być na tym elemencie?
-  testedElementIds: z.array(z.union([BuildingBlockId, BehaviorId])).default([]),
 });
 export type ScannedScenario = z.infer<typeof ScannedScenario>;
+
+export const ScannedRule = z.strictObject({
+  name: ElementName,
+  ruleType: RuleType,
+  description: z.string().nullable().default(null),
+  scenarios: z.array(ScannedScenario).default([]),
+});
+export type ScannedRule = z.infer<typeof ScannedRule>;
 
 export const ScannedDomainModule = z.strictObject({
   id: ModuleId,
@@ -125,6 +131,8 @@ export const ScannedBuildingBlock = z.strictObject({
   description: z.string().nullable().default(null),
   implements: z.array(BuildingBlockId).default([]),
   properties: z.array(ScannedProperty).default([]),
+  rules: z.array(ScannedRule).default([]),
+  scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
@@ -138,8 +146,8 @@ export const ScannedBehaviour = z.strictObject({
   visibility: Visibility,
   input: z.array(BuildingBlockRef).default([]),
   output: z.array(BuildingBlockRef).default([]),
-  // TODO: Czy to jest potrzebne? Co z invokes?
-  usedBuildingBlocks: z.array(BuildingBlockId).default([]),
+  rules: z.array(ScannedRule).default([]),
+  scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
 export type ScannedBehaviour = z.infer<typeof ScannedBehaviour>;
@@ -149,7 +157,6 @@ export const SystemModel = z
     id: z.string(),
     name: z.string(),
     scanned_at: z.string(),
-    // TODO: 3 listy, czy jedna Elements?
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviours: z.array(ScannedBehaviour).default([]),

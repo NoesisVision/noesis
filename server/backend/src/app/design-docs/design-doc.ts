@@ -16,6 +16,16 @@ import {
 import { DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 
+export const DesignedScenario = z.strictObject({
+  name: ElementName,
+  description: DesignDocField(z.string()),
+  given: DesignDocField(z.string()),
+  when: DesignDocField(z.string()),
+  // oxlint-disable-next-line unicorn/no-thenable
+  then: DesignDocField(z.string()), // NOSONAR
+});
+export type DesignedScenario = z.infer<typeof DesignedScenario>;
+
 export const DesignedProperty = z.strictObject({
   name: ElementName,
   type: DesignDocField(BuildingBlockRef),
@@ -28,18 +38,9 @@ export const DesignedRule = z.strictObject({
   name: ElementName,
   ruleType: DesignDocField(RuleType),
   description: DesignDocField(z.string()),
+  scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedRule = z.infer<typeof DesignedRule>;
-
-export const DesignedScenario = z.strictObject({
-  name: ElementName,
-  description: DesignDocField(z.string()),
-  given: DesignDocField(z.string()),
-  when: DesignDocField(z.string()),
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: DesignDocField(z.string()), // NOSONAR
-});
-export type DesignedScenario = z.infer<typeof DesignedScenario>;
 
 export const DesignedDomainModule = z.strictObject({
   id: ModuleId,
@@ -55,9 +56,7 @@ export const DesignedBuildingBlock = z.strictObject({
   description: DesignDocField(z.string()),
   implements: changeSet(BuildingBlockId),
   properties: changeSet(DesignedProperty, ElementName),
-  // TODO: Skanery na razie nie będą zwracać Rules (bo nie ma jak) więc wszystkie reguły będą zawsze jako dodane.
   rules: changeSet(DesignedRule, ElementName),
-  // TODO: Na tym poziomie (wymaga  relacji 1 - 1), czy osobno?
   scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
@@ -70,11 +69,7 @@ export const DesignedBehaviour = z.strictObject({
   visibility: DesignDocField(Visibility),
   input: changeSet(BuildingBlockRef),
   output: changeSet(BuildingBlockRef),
-  // TODO: Czy to jest potrzebne? Co z invokes?
-  usedBuildingBlocks: changeSet(BuildingBlockId),
-  // TODO: Skanery na razie nie będą zwracać Rules (bo nie ma jak) więc wszystkie reguły będą zawsze jako dodane.
   rules: changeSet(DesignedRule, ElementName),
-  // TODO: Na tym poziomie (wymaga  relacji 1 - 1), czy osobno?
   scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
@@ -85,7 +80,6 @@ const designDocumentSchema = z.strictObject({
   ),
   name: z.string(),
   description: z.string(),
-  // TODO: 3 listy, czy 1?
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviours: changeSet(DesignedBehaviour, BehaviorId),
@@ -120,7 +114,7 @@ export interface DesignDocViolation {
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
 
 /** The working file of a design document: the server mints the id of a new one; an update names it beside the file. */
-// TODO: Czy to jest optymalne rozwiązanie?
+// TODO: Czy to jest optymalne rozwiązanie? Może przenieść jako kontrakt serwisu aplikacyjnego - command CreateDesignDocument.
 export const DesignDocumentContent = designDocumentSchema.omit({
   id: true,
 });

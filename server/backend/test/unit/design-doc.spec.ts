@@ -148,7 +148,29 @@ describe('The elements a design changes', () => {
     expect(block.scenarios.removed).toEqual(['Refunding a whole order']);
   });
 
-  it('adds and removes an implemented interface or a used building block by its id', () => {
+  it('holds the scenarios of a building block, a behaviour and a rule', () => {
+    const parsed = DesignDocument.parse(
+      addingRefund({
+        rules: {
+          modified: [
+            {
+              name: 'Refund only paid orders',
+              scenarios: { removed: ['Refunding an unpaid order'] },
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(
+      parsed.buildingBlocks.added[0]?.rules.modified[0]?.scenarios.removed,
+    ).toEqual(['Refunding an unpaid order']);
+    expect(
+      isValid(addingIssue({ scenarios: { removed: ['Refunding'] } })),
+    ).toBe(true);
+  });
+
+  it('adds and removes an implemented interface by its id', () => {
     const parsed = DesignDocument.parse(
       design({
         buildingBlocks: {
@@ -162,16 +184,6 @@ describe('The elements a design changes', () => {
             },
           ],
         },
-        behaviours: {
-          modified: [
-            {
-              id: ISSUE,
-              usedBuildingBlocks: {
-                added: ['building_block|sales.orders.Order'],
-              },
-            },
-          ],
-        },
       }),
     );
 
@@ -181,12 +193,9 @@ describe('The elements a design changes', () => {
       added: ['building_block|sales.shared.Auditable'],
       removed: ['building_block|sales.shared.Legacy'],
     });
-    expect<string[] | undefined>(
-      parsed.behaviours.modified[0]?.usedBuildingBlocks.added,
-    ).toEqual(['building_block|sales.orders.Order']);
   });
 
-  it('never modifies an implemented interface, an input, an output or a used building block: it removes one and adds another', () => {
+  it('never modifies an implemented interface, an input or an output: it removes one and adds another', () => {
     const modifying = (part: string) =>
       design({
         behaviours: {
@@ -205,7 +214,6 @@ describe('The elements a design changes', () => {
     ).toBe(false);
     expect(isValid(modifying('input'))).toBe(false);
     expect(isValid(modifying('output'))).toBe(false);
-    expect(isValid(modifying('usedBuildingBlocks'))).toBe(false);
   });
 
   it('classifies a building block, a behaviour and a rule only by the known types', () => {
@@ -348,8 +356,8 @@ describe('A design document an agent wrote', () => {
 
   /**
    * What the scanner found: the orders module; its Order, which implements
-   * Auditable and has a total; and Order.cancel, which takes an Order and
-   * uses it.
+   * Auditable, has a total and a rule with one scenario; and Order.cancel,
+   * which takes an Order.
    */
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
@@ -363,6 +371,22 @@ describe('A design document an agent wrote', () => {
         type: 'aggregate',
         implements: [AUDITABLE],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
+        rules: [
+          {
+            name: 'Paid orders only',
+            ruleType: 'State change',
+            scenarios: [
+              {
+                name: 'Cancelling a paid order',
+                description: 'The happy path.',
+                given: 'a paid order',
+                when: 'the customer cancels it',
+                // oxlint-disable-next-line unicorn/no-thenable
+                then: 'the order is cancelled', // NOSONAR
+              },
+            ],
+          },
+        ],
         source,
       },
     ],
@@ -374,7 +398,6 @@ describe('A design document an agent wrote', () => {
         type: 'Command',
         visibility: { kind: 'private' },
         input: [ORDER],
-        usedBuildingBlocks: [ORDER],
         source,
       },
     ],
@@ -489,6 +512,14 @@ describe('A design document an agent wrote', () => {
                       { name: 'total', description: { value: 'The sum.' } },
                     ],
                   },
+                  rules: {
+                    modified: [
+                      {
+                        name: 'Paid orders only',
+                        scenarios: { removed: ['Cancelling a paid order'] },
+                      },
+                    ],
+                  },
                 },
               ],
             },
@@ -497,7 +528,6 @@ describe('A design document an agent wrote', () => {
                 {
                   id: CANCEL,
                   input: { removed: [ORDER] },
-                  usedBuildingBlocks: { removed: [ORDER] },
                 },
               ],
             },
@@ -519,7 +549,15 @@ describe('A design document an agent wrote', () => {
                     removed: ['legacyFlag'],
                     modified: [{ name: 'discount' }],
                   },
-                  rules: { removed: ['Paid orders only'] },
+                  rules: {
+                    removed: ['Open orders only'],
+                    modified: [
+                      {
+                        name: 'Paid orders only',
+                        scenarios: { removed: ['Cancelling a shipped order'] },
+                      },
+                    ],
+                  },
                 },
               ],
             },
@@ -545,7 +583,11 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].rules.removed[Paid orders only]`,
+          path: `buildingBlocks.modified[${ORDER}].rules.removed[Open orders only]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].scenarios.removed[Cancelling a shipped order]`,
           reason: 'unknownElement',
         },
         {

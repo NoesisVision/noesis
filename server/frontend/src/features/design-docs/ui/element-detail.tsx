@@ -201,7 +201,6 @@ function BehaviourBody({
       <Description field={behaviour.description} at={at} />
       <Refs title="Input" set={behaviour.input} />
       <Refs title="Output" set={behaviour.output} />
-      <Refs title="Uses" set={behaviour.usedBuildingBlocks} />
     </Stack>
   );
 }

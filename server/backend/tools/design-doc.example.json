@@ -228,12 +228,6 @@
         "output": {
           "added": ["building_block|sales.refunds.RefundIssued"]
         },
-        "usedBuildingBlocks": {
-          "added": [
-            "building_block|sales.orders.Order",
-            "building_block|sales.refunds.RefundRepository"
-          ]
-        },
         "rules": {
           "added": [
             {
@@ -257,10 +251,6 @@
           "value": {
             "kind": "private"
           }
-        },
-        "usedBuildingBlocks": {
-          "added": ["building_block|sales.refunds.Refund"],
-          "removed": ["building_block|sales.credit-notes.CreditNote"]
         }
       }
     ]

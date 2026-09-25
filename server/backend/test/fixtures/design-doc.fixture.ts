@@ -106,6 +106,7 @@ export const designDocFixture = {
               description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
               ),
+              scenarios: noChanges,
             },
           ],
           removed: [],
@@ -204,19 +205,13 @@ export const designDocFixture = {
           added: ['building_block|sales.refunds.RefundIssued'],
           removed: [],
         },
-        usedBuildingBlocks: {
-          added: [
-            'building_block|sales.orders.Order',
-            'building_block|sales.refunds.RefundRepository',
-          ],
-          removed: [],
-        },
         rules: {
           added: [
             {
               name: 'Only paid orders are refundable',
               ruleType: byAgent('State change'),
               description: byAgent('An unpaid order has nothing to refund.'),
+              scenarios: noChanges,
             },
           ],
           removed: [],
@@ -235,10 +230,6 @@ export const designDocFixture = {
         visibility: byAgent({ kind: 'private' }),
         input: noAdditions,
         output: noAdditions,
-        usedBuildingBlocks: {
-          added: ['building_block|sales.refunds.Refund'],
-          removed: ['building_block|sales.credit-notes.CreditNote'],
-        },
         rules: noChanges,
         scenarios: noChanges,
       },
