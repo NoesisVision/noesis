@@ -11,7 +11,7 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "knip": "knip",
-    "test": "bun run --filter '*' test",
+    "test": "bun run --cwd server/backend test && bun run --cwd server/frontend test && bun run --cwd plugins/claude-code test",
     "test:e2e": "bun run --filter '*' test:e2e",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
