@@ -70,7 +70,8 @@
  * The search and the two fold buttons stay where they are while the outline
  * runs under them, so what is being looked for is still on screen among the
  * results of looking. Opaque in the pane's own colour, or the rows would
- * read straight through it.
+ * read straight through it, and edged along the bottom so that a row passing
+ * beneath reads as going under something rather than simply stopping.
  */
 .searchBar {
   position: sticky;
@@ -78,6 +79,8 @@
   z-index: 1;
   padding: var(--mantine-spacing-md) var(--mantine-spacing-md)
     var(--mantine-spacing-xs);
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   background-color: var(--pane-surface);
 }
 
