@@ -5,7 +5,11 @@ import {
   designDocsList,
 } from '../src/features/design-docs/design-docs.api';
 import { ApiError } from '../src/shared/api/client';
-import { designDocFixture } from './fixtures/design-doc.fixture';
+import {
+  designDocDetailFixture,
+  designDocFixture,
+  designDocPayloadFixture,
+} from './fixtures/design-doc.fixture';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
 const cache = new QueryClient({
@@ -28,13 +32,13 @@ it('requests the change-scoped list and forwards cancellation', async () => {
   expect(fetchSpy.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
 });
 
-it('unwraps the selected document and isolates documents between changes', async () => {
-  fetchSpy.mockResolvedValueOnce(Response.json({ document: designDocFixture }));
+it('rebuilds the outline beside the document, and isolates changes', async () => {
+  fetchSpy.mockResolvedValueOnce(Response.json(designDocPayloadFixture));
   expect(
     await cache.fetchQuery(
       designDocById('2026-01-01-scheduling', designDocFixture.id),
     ),
-  ).toEqual(designDocFixture);
+  ).toEqual(designDocDetailFixture);
   expect(fetchSpy.mock.calls[0]?.[0]).toBe(
     `/ui/changes/2026-01-01-scheduling/design-docs/${designDocFixture.id}`,
   );

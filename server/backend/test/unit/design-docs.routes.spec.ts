@@ -73,6 +73,19 @@ describe('ui design-docs routes', () => {
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
+  it('answers the document and nothing rebuilt from it', async () => {
+    await t.writeDesignDoc(change, designDocFixture);
+
+    const res = await app.request(`${BASE}/${designDocFixture.id}`);
+
+    // The tree a reader navigates the document by is the document itself,
+    // rebuilt; the page does that for itself.
+    expect(Object.keys((await res.json()) as object).toSorted()).toEqual([
+      'document',
+      'summary',
+    ]);
+  });
+
   // Authoring and removal are the agent's, through the MCP tools.
   it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
     await t.writeDesignDoc(change, designDocFixture);

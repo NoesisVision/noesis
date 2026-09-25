@@ -1,0 +1,261 @@
+/*
+ * Depth is drawn the way the sidebar draws it: one rail per level, each row
+ * contributing its own segment, so the line is continuous down a branch and
+ * stops where the branch does. The rails along the selected row's ancestry
+ * take the brand colour, which is what turns "there are levels" into "you are
+ * here, under that".
+ *
+ * Order matters below. A name is coloured by what the design does to it,
+ * then by whether it is on the way to the row in hand, then by being that
+ * row: each rule is as specific as the last, so the later one wins.
+ */
+
+.tree {
+  --model-tree-offset: 1.25rem;
+  --model-tree-rail: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+  --model-tree-rail-lit: light-dark(
+    var(--mantine-color-brand-4),
+    var(--mantine-color-brand-7)
+  );
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  position: relative;
+  margin: 0;
+  padding-left: var(--model-tree-offset);
+  list-style: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 12px;
+    left: calc(var(--model-tree-offset) / 2);
+    width: 1px;
+    border-radius: 1px;
+    background-color: var(--model-tree-rail);
+    transition: background-color 0.1s ease-in-out;
+  }
+
+  &[data-in-path]::before {
+    background-color: var(--model-tree-rail-lit);
+  }
+}
+
+.item {
+  list-style: none;
+
+  &:focus-visible {
+    outline: none;
+
+    & > .row {
+      outline: 2px solid var(--mantine-color-brand-filled);
+      outline-offset: -2px;
+    }
+  }
+}
+
+.row {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 2px var(--mantine-spacing-xs) 2px 2px;
+  border-radius: var(--mantine-radius-sm);
+  /* A click reads the row, so it says it can be clicked; and a second click
+     opens it, which should not leave the name half-selected behind it. */
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+}
+
+/*
+ * Chrome rather than content: it keeps its own quiet colour whatever the
+ * design does to the row, and a row with nothing under it keeps the space so
+ * that every name in a branch starts at the same place.
+ */
+.chevron {
+  display: inline-flex;
+  flex: none;
+  /*
+   * As tall as the row leaves it: a glyph the pointer aims at is easier to
+   * hit over the whole height of the line than over a square in the middle
+   * of it, and the hover it draws then reads as a column rather than a dot.
+   * The row's own padding is what it stops short of.
+   */
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  border-radius: var(--mantine-radius-xs);
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+  transition: background-color 0.1s ease-in-out;
+
+  & svg {
+    transition: transform 0.12s ease;
+  }
+
+  &[data-expanded] svg {
+    transform: rotate(90deg);
+  }
+
+  &[data-opens]:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-2),
+      var(--mantine-color-dark-4)
+    );
+    color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+  }
+}
+
+.icon {
+  flex: none;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
+/*
+ * An element is named by its address, so its name is set the way the address
+ * is: `Mantine`'s `Text` sets no family of its own, so the class alone does
+ * it, and the size comes down a step because a monospaced face at the same
+ * measure reads a size larger.
+ */
+.name {
+  overflow: hidden;
+  font-family: var(--mantine-font-family-monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The pattern gives way first: the name is what a row is for. */
+.pattern {
+  flex: 0 1 auto;
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Whatever the row has to say about itself, kept together on the right. */
+.trailing {
+  display: inline-flex;
+  flex: none;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  margin-left: auto;
+  padding-left: var(--mantine-spacing-xs);
+}
+
+.mark {
+  display: inline-flex;
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+}
+
+/*
+ * What the design does to a row, in the same three colours the badge beside
+ * it carries — `outline-change.ts` names them there and cannot be read from
+ * here. Never the only thing said: the word is on the badge either way.
+ */
+.item[data-change='added'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(
+      var(--mantine-color-green-9),
+      var(--mantine-color-green-4)
+    );
+  }
+}
+
+.item[data-change='modified'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(var(--mantine-color-cyan-8), var(--mantine-color-cyan-4));
+  }
+}
+
+.item[data-change='removed'] > .row {
+  & .name,
+  & .icon {
+    color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-4));
+  }
+  & .name {
+    text-decoration: line-through;
+  }
+}
+
+/*
+ * Under a query, a row that is only there to hold a match says so by giving
+ * way. Only its weight, not its colour: what the design does to it is still
+ * worth knowing while it is being searched for.
+ */
+.item[data-context]:not([data-selected]) > .row {
+  opacity: 0.75;
+}
+
+/*
+ * The way down to the row in hand, in a lighter brand blue than the row
+ * itself: a reader can follow the line from the context to where they are
+ * without mistaking any of it for where they are.
+ */
+.item[data-ancestor] > .row {
+  & .name {
+    font-weight: var(--mantine-font-weight-bold);
+  }
+
+  & .name,
+  & .icon {
+    color: light-dark(
+      var(--mantine-color-brand-6),
+      var(--mantine-color-brand-4)
+    );
+  }
+}
+
+/*
+ * The row in hand is filled, so everything on it has to be legible against
+ * that fill rather than against the pane: the name comes up to the lightest
+ * of the brand, and what the row says about itself — its kind, its pattern,
+ * its chevron, its diagram — a step behind it. Left alone, each of those
+ * would keep the colour it is given elsewhere, which is dark on dark here.
+ *
+ * Last of the three, so it wins on order where it ties with them on weight.
+ */
+.item[data-selected] > .row {
+  background-color: var(--mantine-color-brand-9);
+  color: var(--mantine-color-brand-0);
+
+  & .name {
+    color: var(--mantine-color-brand-0);
+  }
+
+  & .icon,
+  & .chevron,
+  & .pattern,
+  & .mark {
+    color: var(--mantine-color-brand-2);
+  }
+
+  & .chevron[data-opens]:hover {
+    background-color: var(--mantine-color-brand-7);
+    color: var(--mantine-color-brand-0);
+  }
+}
+
+/* Asked for no motion, the chevron is simply pointing the way it points. */
+@media (prefers-reduced-motion: reduce) {
+  .chevron svg {
+    transition-duration: 1ms;
+  }
+}

@@ -33,6 +33,9 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         if (detail === null) return c.json({ error: 'not_found' }, 404);
         // Encoded, so the client's type says what the JSON holds: element
         // ids as strings, not the value objects the service decodes them to.
+        // The document travels whole and nothing else: the tree a reader
+        // navigates it by is the same document rebuilt, which the page does
+        // for itself.
         return c.json({
           summary: detail.summary,
           document: z.encode(DesignDocument, detail.document),
