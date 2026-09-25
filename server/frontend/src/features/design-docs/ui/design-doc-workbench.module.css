@@ -77,8 +77,10 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-md)
-    var(--mantine-spacing-xs);
+  /* Even all round: the gap above the box came from the pane's gutter and
+     the one below it from the gap the outline used to sit at, which is not a
+     reason for the two to differ. */
+  padding: var(--mantine-spacing-md);
   border-bottom: 1px solid
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   background-color: var(--pane-surface);
