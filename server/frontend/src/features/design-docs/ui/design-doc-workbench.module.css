@@ -36,7 +36,18 @@
   min-height: 0;
 }
 
+/*
+ * The pane pads nothing itself: what it holds does. A scroll container's own
+ * padding is part of the box a sticky child is held inside, so a bar asking
+ * to stop at the top would stop a gutter below it, with the rows it is meant
+ * to cover running through the gap.
+ */
 .pane {
+  --pane-surface: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+
   overflow: auto;
   /*
    * Whoever moves the reading position — the tree, a step of the breadcrumb,
@@ -45,22 +56,47 @@
    */
   scroll-behavior: smooth;
   min-height: 0;
-  padding: var(--mantine-spacing-md);
   border: 1px solid
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   border-radius: var(--mantine-radius-sm);
-  background-color: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-7)
-  );
+  background-color: var(--pane-surface);
+}
+
+.paneBody {
+  padding: var(--mantine-spacing-md);
+}
+
+/*
+ * The search and the two fold buttons stay where they are while the outline
+ * runs under them, so what is being looked for is still on screen among the
+ * results of looking. Opaque in the pane's own colour, or the rows would
+ * read straight through it.
+ */
+.searchBar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-md)
+    var(--mantine-spacing-xs);
+  background-color: var(--pane-surface);
+}
+
+.outlineBody {
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md);
 }
 
 /*
  * Stacked, the page scrolls rather than the panes: two short scrollers one
- * above the other on a phone is worse than one long page.
+ * above the other on a phone is worse than one long page. Nothing sticks to
+ * a scroller the pane no longer is — the bar would pin itself over the shell
+ * instead.
  */
 .stacked .pane {
   overflow: visible;
+}
+
+.stacked .searchBar {
+  position: static;
 }
 
 /*

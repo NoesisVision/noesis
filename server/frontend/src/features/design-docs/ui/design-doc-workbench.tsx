@@ -102,25 +102,31 @@ export function DesignDocWorkbench({
 
       <Columns
         outline={
-          <Stack gap="xs">
-            <OutlineSearchBox controller={controller} />
-            <Outline controller={controller} empty={outline.length === 0} />
-          </Stack>
+          <>
+            <Box className={classes.searchBar}>
+              <OutlineSearchBox controller={controller} />
+            </Box>
+            <Box className={classes.outlineBody}>
+              <Outline controller={controller} empty={outline.length === 0} />
+            </Box>
+          </>
         }
         detail={
-          selected === null ? (
-            <Text c="dimmed">Choose an element to read it.</Text>
-          ) : (
-            <ElementDetail
-              node={selected}
-              path={controller.tree
-                .ancestryOf(selected.path)
-                .map((path) => controller.tree.byPath.get(path))
-                .filter((node) => node !== undefined)}
-              document={doc}
-              onSelect={controller.select}
-            />
-          )
+          <Box className={classes.paneBody}>
+            {selected === null ? (
+              <Text c="dimmed">Choose an element to read it.</Text>
+            ) : (
+              <ElementDetail
+                node={selected}
+                path={controller.tree
+                  .ancestryOf(selected.path)
+                  .map((path) => controller.tree.byPath.get(path))
+                  .filter((node) => node !== undefined)}
+                document={doc}
+                onSelect={controller.select}
+              />
+            )}
+          </Box>
         }
       />
     </Box>
