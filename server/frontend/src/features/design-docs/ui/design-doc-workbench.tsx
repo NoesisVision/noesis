@@ -6,7 +6,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import { type ReactNode, useMemo, useRef } from 'react';
+import { type ReactNode, type RefObject, useMemo, useRef } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -110,32 +110,25 @@ export function DesignDocWorkbench({
       </Group>
 
       <Columns
+        search={<OutlineSearchBox controller={controller} />}
         outline={
-          <>
-            <Box className={classes.searchBar}>
-              <OutlineSearchBox controller={controller} />
-            </Box>
-            <Box className={classes.outlineBody} ref={outlineBody}>
-              <Outline controller={controller} empty={outline.length === 0} />
-            </Box>
-          </>
+          <Outline controller={controller} empty={outline.length === 0} />
         }
+        outlineRef={outlineBody}
         detail={
-          <Box className={classes.paneBody}>
-            {selected === null ? (
-              <Text c="dimmed">Choose an element to read it.</Text>
-            ) : (
-              <ElementDetail
-                node={selected}
-                path={controller.tree
-                  .ancestryOf(selected.path)
-                  .map((path) => controller.tree.byPath.get(path))
-                  .filter((node) => node !== undefined)}
-                document={doc}
-                onSelect={(path) => controller.select(path, 'detail')}
-              />
-            )}
-          </Box>
+          selected === null ? (
+            <Text c="dimmed">Choose an element to read it.</Text>
+          ) : (
+            <ElementDetail
+              node={selected}
+              path={controller.tree
+                .ancestryOf(selected.path)
+                .map((path) => controller.tree.byPath.get(path))
+                .filter((node) => node !== undefined)}
+              document={doc}
+              onSelect={(path) => controller.select(path, 'detail')}
+            />
+          )
         }
       />
     </Box>
@@ -256,12 +249,21 @@ function toColumns(stored: string | undefined): number[] {
  * Side by side where there is room for it, and one under the other where
  * there is not: a phone has one column, and a splitter across it would only
  * be two things too narrow to read.
+ *
+ * The search is a slot of its own rather than part of the outline, because the
+ * pane is what decides that the bar stands still while the rows under it
+ * scroll.
  */
 function Columns({
+  search,
   outline,
+  outlineRef,
   detail,
 }: {
+  search: ReactNode;
   outline: ReactNode;
+  /** The outline's scroller, for a page that has to bring a row into it. */
+  outlineRef: RefObject<HTMLDivElement | null>;
   detail: ReactNode;
 }) {
   const wide = useMediaQuery(WIDE, true);
@@ -274,11 +276,22 @@ function Columns({
     getInitialValueInEffect: false,
   });
 
+  // One of the two branches renders, so the outline's scroller is one element.
+  const outlinePane = (
+    <>
+      <Box className={classes.searchBar}>{search}</Box>
+      <Box className={classes.outlineBody} ref={outlineRef}>
+        {outline}
+      </Box>
+    </>
+  );
+  const detailPane = <Box className={classes.paneBody}>{detail}</Box>;
+
   if (!wide) {
     return (
       <Stack gap="md" className={classes.stacked}>
-        <Box className={classes.pane}>{outline}</Box>
-        <Box className={classes.pane}>{detail}</Box>
+        <Box className={classes.pane}>{outlinePane}</Box>
+        <Box className={classes.pane}>{detailPane}</Box>
       </Stack>
     );
   }
@@ -297,14 +310,14 @@ function Columns({
         min="16rem"
         className={classes.pane}
       >
-        {outline}
+        {outlinePane}
       </Splitter.Pane>
       <Splitter.Pane
         defaultSize={columns[1] ?? DEFAULT_COLUMNS[1]!}
         min="20rem"
         className={classes.pane}
       >
-        {detail}
+        {detailPane}
       </Splitter.Pane>
     </Splitter>
   );
