@@ -7,9 +7,9 @@ import {
  * The JSON form, with every default spelled out, so that decoding and
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
- * a part of each kind, changed and unchanged fields of both authors, every
- * kind of type including a nested collection, a public behaviour. Passes
- * `DesignDocument.validateAddedItems`.
+ * a part of each kind, unchanged fields and changed fields of both authors,
+ * every kind of type including a nested collection, a public behaviour.
+ * Checked against itself, `DesignDocument.violationsOf` finds nothing.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -22,7 +22,7 @@ const byAgent = <const T>(value: T) => ({
   value,
   author: 'agent' as const,
 });
-const unchanged = { changed: false as const, author: 'agent' as const };
+const unchanged = { changed: false as const };
 const noChanges = { added: [], removed: [], modified: [] };
 const noAdditions = { added: [], removed: [] };
 
@@ -84,14 +84,14 @@ export const designDocFixture = {
             {
               name: 'notes',
               type: byAgent({
-                collectionOf: { collectionOf: { primitive: 'string' } },
+                collectionOf: { collectionOf: 'primitive|string' },
               }),
               description: byAgent('Notes per line, several per line.'),
               optional: byAgent(false),
             },
             {
               name: 'issuedAt',
-              type: byAgent({ primitive: 'datetime' }),
+              type: byAgent('primitive|datetime'),
               description: byAgent('When the refund was issued.'),
               optional: byAgent(true),
             },
@@ -172,7 +172,7 @@ export const designDocFixture = {
           modified: [
             {
               name: 'status',
-              type: { changed: false, author: 'human' },
+              type: unchanged,
               description: byAgent("Gains the 'partially_refunded' state."),
               optional: unchanged,
             },
@@ -197,7 +197,7 @@ export const designDocFixture = {
           added: [
             'building_block|sales.orders.OrderId',
             { collectionOf: 'building_block|sales.refunds.RefundLine' },
-            { primitive: 'string' },
+            'primitive|string',
           ],
           removed: [],
         },
@@ -250,3 +250,22 @@ export const designDocFixture = {
 
 /** The decoded form, as the service takes it. */
 export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
+
+/**
+ * The same design with every changed field written by an agent: what an
+ * agent may create, since only a human sets a human author.
+ */
+export const agentDesignDocFixture = asAgent(
+  designDocFixture,
+) as DesignDocumentInput;
+
+function asAgent(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(asAgent);
+  if (typeof node !== 'object' || node === null) return node;
+  return Object.fromEntries(
+    Object.entries(node).map(([key, value]) => [
+      key,
+      key === 'author' ? 'agent' : asAgent(value),
+    ]),
+  );
+}

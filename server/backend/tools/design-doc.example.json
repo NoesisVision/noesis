@@ -73,9 +73,7 @@
               "type": {
                 "value": {
                   "collectionOf": {
-                    "collectionOf": {
-                      "primitive": "string"
-                    }
+                    "collectionOf": "primitive|string"
                   }
                 }
               },
@@ -89,9 +87,7 @@
             {
               "name": "issuedAt",
               "type": {
-                "value": {
-                  "primitive": "datetime"
-                }
+                "value": "primitive|datetime"
               },
               "description": {
                 "value": "When the refund was issued."
@@ -188,8 +184,7 @@
             {
               "name": "status",
               "type": {
-                "changed": false,
-                "author": "human"
+                "changed": false
               },
               "description": {
                 "value": "Gains the 'partially_refunded' state."
@@ -227,9 +222,7 @@
             {
               "collectionOf": "building_block|sales.refunds.RefundLine"
             },
-            {
-              "primitive": "string"
-            }
+            "primitive|string"
           ]
         },
         "output": {

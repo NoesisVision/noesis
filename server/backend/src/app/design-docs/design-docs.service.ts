@@ -4,7 +4,11 @@ import type { ChangesService } from '#backend/app/changes/changes.service';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import type { DesignDocument, DesignDocumentContent } from './design-doc';
+import {
+  DesignDocument,
+  type DesignDocumentContent,
+  type DesignDocViolation,
+} from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
@@ -37,9 +41,25 @@ export class DesignDocNotFoundError extends Error {
   }
 }
 
+/** A version an agent wrote breaks the rules of `DesignDocument.violationsOf`. */
+export class InvalidDesignDocError extends Error {
+  readonly violations: DesignDocViolation[];
+
+  constructor(violations: DesignDocViolation[]) {
+    super(
+      `The design document breaks its rules:\n${violations
+        .map(({ path, reason }) => `- ${path}: ${reason}`)
+        .join('\n')}`,
+    );
+    this.name = 'InvalidDesignDocError';
+    this.violations = violations;
+  }
+}
+
 /**
  * Callers validate before calling in. The service mints the id of a new
- * document; an update names it.
+ * document; an update names it. Every write comes from an agent, so each is
+ * checked against the stored version first.
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
@@ -60,7 +80,7 @@ export class DesignDocsService {
   /**
    * Creates the design document in the change, at an id minted from today's date
    * and its name. A name already used that day in the change gets the next
-   * free suffix.
+   * free suffix. Throws `InvalidDesignDocError` when it breaks the rules.
    */
   create(
     change: ChangeId,
@@ -68,6 +88,7 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
+      assertValid(document);
       const id = await freeSlugId(
         DesignDocId,
         document.name,
@@ -80,7 +101,11 @@ export class DesignDocsService {
     });
   }
 
-  /** Replaces the design document at `id` whole; never creates one. */
+  /**
+   * Replaces the design document at `id` whole; never creates one. Throws
+   * `InvalidDesignDocError` when the new version breaks the rules against the
+   * stored one.
+   */
   update(
     change: ChangeId,
     id: DesignDocId,
@@ -88,9 +113,9 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
-      if ((await this.docs.get(change, id)) === null) {
-        throw new DesignDocNotFoundError(change, id);
-      }
+      const existing = await this.docs.get(change, id);
+      if (existing === null) throw new DesignDocNotFoundError(change, id);
+      assertValid(document, existing);
       const updated: DesignDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
@@ -120,4 +145,12 @@ function summarize({
   implemented,
 }: DesignDocument): DesignDocSummary {
   return { id, name, implemented };
+}
+
+function assertValid(
+  document: DesignDocumentContent,
+  existing?: DesignDocument,
+): void {
+  const violations = DesignDocument.violationsOf(document, existing);
+  if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

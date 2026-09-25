@@ -9,6 +9,7 @@ import {
   type DesignDocSummary,
   DesignDocSummarySchema,
   type DesignDocsService,
+  InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -17,7 +18,10 @@ import {
 } from '../tool-names';
 import { failure, success } from '../tool-result';
 import { inChangeInput, withChange } from './change-scoped';
-import { DESIGN_DOC_SHAPE } from './create-design-doc-in-change.tool';
+import {
+  DESIGN_DOC_SHAPE,
+  violationsFailure,
+} from './create-design-doc-in-change.tool';
 
 const SUBJECT = 'design document';
 
@@ -73,6 +77,7 @@ async function update(
         `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
       );
     }
+    if (error instanceof InvalidDesignDocError) return violationsFailure(error);
     throw error;
   }
 }

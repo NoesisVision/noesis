@@ -8,19 +8,18 @@ export const DesignDocFieldAuthor = z
 export type DesignDocFieldAuthor = z.infer<typeof DesignDocFieldAuthor>;
 
 const changedDesignDocFieldSchema = <Value extends z.ZodType>(value: Value) =>
-  z.object({
+  z.strictObject({
     changed: z.literal(true).default(true),
     value,
     author: DesignDocFieldAuthor.default('agent'),
   });
 
-export interface ChangedDesignDocField<T> extends z.infer<
+export type ChangedDesignDocField<T> = z.infer<
   ReturnType<typeof changedDesignDocFieldSchema<z.ZodType<T>>>
-> {}
+>;
 
 const unchangedDesignDocFieldSchema = z.strictObject({
   changed: z.literal(false),
-  author: DesignDocFieldAuthor.default('agent'),
 });
 
 export type UnchangedDesignDocField = z.infer<
@@ -40,13 +39,17 @@ export const DesignDocField = Object.assign(designDocFieldSchema, {
     value: T,
     author: DesignDocFieldAuthor = 'agent',
   ): ChangedDesignDocField<T> => ({ changed: true, value, author }),
-  is: (candidate: unknown): candidate is DesignDocField<unknown> =>
-    typeof candidate === 'object' &&
-    candidate !== null &&
-    'changed' in candidate &&
-    typeof candidate.changed === 'boolean' &&
-    'author' in candidate &&
-    DesignDocFieldAuthor.safeParse(candidate.author).success,
+  is: (candidate: unknown): candidate is DesignDocField<unknown> => {
+    if (typeof candidate !== 'object' || candidate === null) return false;
+    if (!('changed' in candidate)) return false;
+    if (candidate.changed === false) return Object.keys(candidate).length === 1;
+    return (
+      candidate.changed === true &&
+      'value' in candidate &&
+      'author' in candidate &&
+      DesignDocFieldAuthor.safeParse(candidate.author).success
+    );
+  },
 });
 export type DesignDocField<T> =
   | ChangedDesignDocField<T>

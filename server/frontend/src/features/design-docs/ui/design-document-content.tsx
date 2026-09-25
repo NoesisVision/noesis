@@ -31,10 +31,12 @@ type DesignDocFieldInput<T> =
       value: T;
       author?: DesignDocFieldAuthor | undefined;
     }
-  | { changed: false; author?: DesignDocFieldAuthor | undefined };
+  | { changed: false };
 
 const valueOf = <T,>(field: DesignDocFieldInput<T> | undefined) =>
   field !== undefined && 'value' in field ? field.value : undefined;
+const authorOf = <T,>(field: DesignDocFieldInput<T> | undefined) =>
+  field !== undefined && 'value' in field ? field.author : undefined;
 
 interface ChangeSetInput<Item, Key> {
   added?: Item[] | undefined;
@@ -45,7 +47,6 @@ interface ChangeSetInput<Item, Key> {
 const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
 const typeOf = (type: BuildingBlockRefInput): string => {
   if (typeof type === 'string') return addressOf(type);
-  if ('primitive' in type) return type.primitive;
   return `${typeOf(type.collectionOf)}[]`;
 };
 const humanType = (type: string | null | undefined) =>
@@ -84,7 +85,7 @@ function Field({
           {value}
         </Text>
       )}
-      <AuthorBadge author={field?.author} />
+      <AuthorBadge author={authorOf(field)} />
     </>
   );
 }
@@ -219,7 +220,7 @@ function Property({ property }: { property: DesignedPropertyInput }) {
         {valueOf(property.optional) ? '?' : ''}:{' '}
         {type === undefined ? '?' : typeOf(type)}
       </code>
-      <AuthorBadge author={property.type?.author} />
+      <AuthorBadge author={authorOf(property.type)} />
       {valueOf(property.description) ? (
         <>
           {' — '}
@@ -289,7 +290,7 @@ function BuildingBlock({ block }: { block: DesignedBuildingBlockInput }) {
       </Title>
       <Text size="sm" c="dimmed">
         {humanType(valueOf(block.type))}
-        <AuthorBadge author={block.type?.author} />
+        <AuthorBadge author={authorOf(block.type)} />
       </Text>
       <Text>
         <Field field={block.description} />
