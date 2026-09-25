@@ -1,4 +1,4 @@
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from './model-outline.ts';
 import type { OutlineTree } from './outline-tree.ts';
 
 /*

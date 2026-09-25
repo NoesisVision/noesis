@@ -9,7 +9,7 @@ describe('outlineTree', () => {
     expect(tree.roots.map((node) => node.path)).toEqual(['module|shop']);
   });
 
-  it('keeps the order the server sent inside each parent', () => {
+  it('keeps the order it was projected in inside each parent', () => {
     expect(
       tree.childrenOf('module|shop.orders').map((node) => node.name),
     ).toEqual(['Orders', 'Order']);

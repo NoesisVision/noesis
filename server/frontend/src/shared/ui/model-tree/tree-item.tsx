@@ -1,9 +1,9 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
 import { MatchedText } from './matched-text.tsx';
+import type { OutlineNode } from './model-outline.ts';
 import { focusEdge, focusParent, focusSibling } from './row-focus.ts';
 import type { ModelTreeController } from './use-model-tree.ts';
 import classes from './model-tree.module.css';

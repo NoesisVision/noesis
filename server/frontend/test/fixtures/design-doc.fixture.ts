@@ -1,6 +1,6 @@
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { DesignDocSummary } from '#backend/app/design-docs/design-docs.service.ts';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
 export const designDocFixture = {
@@ -24,7 +24,7 @@ export const designDocFixture = {
 } satisfies DesignDocumentInput;
 
 /**
- * The same document as a tree, as the server rebuilds it: the two modules the
+ * The same document as a tree, as the client rebuilds it: the two modules the
  * block's id implies are in the outline though the document names neither.
  */
 const designDocOutlineFixture: OutlineNode[] = [
@@ -67,7 +67,7 @@ const designDocOutlineFixture: OutlineNode[] = [
 ];
 
 /** The whole of what `GET /ui/changes/:change/design-docs/:id` answers. */
-export const designDocDetailFixture = {
+export const designDocPayloadFixture = {
   summary: {
     // The wire carries the id as the string it is written as; the client's
     // type brands it back, and a fixture cannot mint a brand of its own.
@@ -76,5 +76,10 @@ export const designDocDetailFixture = {
     implemented: false,
   },
   document: designDocFixture,
+};
+
+/** What the page is handed: the answer, with the tree rebuilt from it. */
+export const designDocDetailFixture = {
+  ...designDocPayloadFixture,
   outline: designDocOutlineFixture,
 };

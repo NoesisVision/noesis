@@ -1,4 +1,4 @@
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
+import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
 
 const node = (over: Partial<OutlineNode> & Pick<OutlineNode, 'path'>) =>
   ({
@@ -15,7 +15,7 @@ const node = (over: Partial<OutlineNode> & Pick<OutlineNode, 'path'>) =>
   }) satisfies OutlineNode;
 
 /*
- * A whole small model in the order the server sends it: a context nothing
+ * A whole small model in the order it is projected in: a context nothing
  * changed, a module removed with nothing under it, a module added, and inside
  * it a repository before an aggregate — the reading order, not the alphabet —
  * with the aggregate holding a behaviour, a property and a diagram.

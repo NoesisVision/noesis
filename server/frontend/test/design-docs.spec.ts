@@ -8,6 +8,7 @@ import { ApiError } from '../src/shared/api/client';
 import {
   designDocDetailFixture,
   designDocFixture,
+  designDocPayloadFixture,
 } from './fixtures/design-doc.fixture';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
@@ -31,8 +32,8 @@ it('requests the change-scoped list and forwards cancellation', async () => {
   expect(fetchSpy.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
 });
 
-it('keeps the document and its outline together, and isolates changes', async () => {
-  fetchSpy.mockResolvedValueOnce(Response.json(designDocDetailFixture));
+it('rebuilds the outline beside the document, and isolates changes', async () => {
+  fetchSpy.mockResolvedValueOnce(Response.json(designDocPayloadFixture));
   expect(
     await cache.fetchQuery(
       designDocById('2026-01-01-scheduling', designDocFixture.id),

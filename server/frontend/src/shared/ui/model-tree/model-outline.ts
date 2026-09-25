@@ -2,12 +2,12 @@
  * The shape a reader wants a model in: one tree, whatever it was rebuilt from.
  * A design document projects into it by folding its change sets together; the
  * scanned system model will project into the same nodes, so both are read
- * through one tree.
+ * through one tree. The projections are the reader's, so they live here and
+ * not on the server: the wire carries what the graph holds, and the tree is
+ * rebuilt from it on the way to the page.
  *
  * The nodes come out flat and in pre-order, already sorted, because a node's
- * subtree is then the run of nodes after it that are deeper than it is, and
- * because a flat array survives the wire's type inference where a recursive
- * one does not.
+ * subtree is then the run of nodes after it that are deeper than it is.
  */
 
 const OUTLINE_KINDS = [

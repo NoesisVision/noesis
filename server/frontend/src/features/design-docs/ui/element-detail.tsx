@@ -6,6 +6,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import { CHANGE_COLOUR } from '#/shared/ui/model-tree/outline-change.ts';
 import type {
   DesignDocumentInput,
@@ -16,7 +17,6 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { OutlineNode } from '#backend/app/model-outline/model-outline.ts';
 import classes from './element-detail.module.css';
 
 /*

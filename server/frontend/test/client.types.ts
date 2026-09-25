@@ -13,18 +13,15 @@ export async function checkJsonClient(client: typeof api) {
   await client.changes[':id'].$get({ param: {} });
 }
 
-// The outline crosses the wire as a usable array, not as `unknown`: a flat
-// shape is what survives hono's JSON inference, where a recursive one does not.
-export async function checkOutlineClient(client: typeof api) {
+// The document crosses the wire as the shape an outline is projected from,
+// not as `unknown`, and the outline itself is no part of the answer.
+export async function checkDesignDocClient(client: typeof api) {
   const data = await client.changes[':change']['design-docs'][':id'].$get({
     param: { change: 'test-2', id: 'doc-refunds' },
   });
-  const first = data.outline[0];
-  const name: string | undefined = first?.name;
-  const depth: number | undefined = first?.depth;
-  const parent: string | null | undefined = first?.parentPath;
-  void [name, depth, parent];
-  // @ts-expect-error The outline names the kinds it knows.
-  const kind: 'nonsense' = data.outline[0]!.kind;
-  void kind;
+  const id: string | undefined = data.document.buildingBlocks?.added?.[0]?.id;
+  const name: string = data.document.name.value;
+  void [id, name];
+  // @ts-expect-error The tree is the reader's; the wire carries none.
+  void data.outline;
 }

@@ -1,4 +1,3 @@
-import { BuildingBlockId, ElementId, ModuleId } from '#backend/app/element-id';
 import {
   drawsDiagram,
   inReadingOrder,
@@ -6,19 +5,16 @@ import {
   type OutlineKind,
   type OutlineNode,
   patternLabelOf,
-} from '#backend/app/model-outline/model-outline';
+} from '#/shared/ui/model-tree/model-outline.ts';
 import type {
-  DesignDocument,
-  DesignedBehaviour,
-  DesignedBehaviourChangeSet,
-  DesignedBuildingBlock,
-  DesignedBuildingBlockChangeSet,
-  DesignedDomainModule,
-  DesignedDomainModuleChangeSet,
-  DesignedPropertyChangeSet,
-  DesignedRuleChangeSet,
-  DesignedScenarioChangeSet,
-} from './design-doc';
+  DesignDocumentInput,
+  DesignedBehaviourInput,
+  DesignedBuildingBlockInput,
+  DesignedDomainModuleInput,
+  DesignedPropertyInput,
+  DesignedRuleInput,
+  DesignedScenarioInput,
+} from '#backend/app/design-docs/design-doc.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -26,7 +22,17 @@ import type {
  * and nothing about what contains what, so every relation here is read back
  * out of the ids, and an ancestor the document never mentions is conjured
  * unchanged rather than left as a hole under one of its descendants.
+ *
+ * The document is read as the wire carries it — ids are plain strings, and a
+ * field the writer left out is absent rather than defaulted.
  */
+
+/** What a design does to one collection, as the JSON form spells it. */
+interface ChangeSetInput<Item, Key> {
+  added?: Item[] | undefined;
+  removed?: Key[] | undefined;
+  modified?: Item[] | undefined;
+}
 
 /** Where an element sits, read out of its id and nothing else. */
 interface Place {
@@ -34,7 +40,7 @@ interface Place {
   parentPath: string | null;
 }
 
-export function outlineOf(document: DesignDocument): OutlineNode[] {
+export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
@@ -45,68 +51,61 @@ export function outlineOf(document: DesignDocument): OutlineNode[] {
 
 function addModules(
   nodes: Map<string, OutlineNode>,
-  modules: DesignedDomainModuleChangeSet,
+  modules: ChangeSetInput<DesignedDomainModuleInput, string> | undefined,
 ): void {
-  const add = (module: DesignedDomainModule, change: OutlineChange) =>
-    put(nodes, element(module.id, change, null, module.description.value));
-
-  for (const module of modules.added) add(module, 'added');
-  for (const module of modules.modified) add(module, 'modified');
-  for (const id of modules.removed) put(nodes, element(id, 'removed'));
+  for (const [module, change] of named(modules))
+    put(nodes, element(module.id, change, null, module.description?.value));
+  for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
 function addBuildingBlocks(
   nodes: Map<string, OutlineNode>,
-  blocks: DesignedBuildingBlockChangeSet,
+  blocks: ChangeSetInput<DesignedBuildingBlockInput, string> | undefined,
 ): void {
-  const add = (block: DesignedBuildingBlock, change: OutlineChange) => {
+  for (const [block, change] of named(blocks)) {
     put(
       nodes,
-      element(block.id, change, block.type.value, block.description.value),
+      element(
+        block.id,
+        change,
+        block.type?.value ?? null,
+        block.description?.value,
+      ),
     );
     addProperties(nodes, block.id, block.properties);
     addRules(nodes, block.id, block.rules);
     addScenarios(nodes, block.id, block.scenarios);
-  };
-
-  for (const block of blocks.added) add(block, 'added');
-  for (const block of blocks.modified) add(block, 'modified');
-  for (const id of blocks.removed) put(nodes, element(id, 'removed'));
+  }
+  for (const id of blocks?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
 function addBehaviours(
   nodes: Map<string, OutlineNode>,
-  behaviours: DesignedBehaviourChangeSet,
+  behaviours: ChangeSetInput<DesignedBehaviourInput, string> | undefined,
 ): void {
-  const add = (behaviour: DesignedBehaviour, change: OutlineChange) => {
+  for (const [behaviour, change] of named(behaviours)) {
     put(
       nodes,
       element(
         behaviour.id,
         change,
-        behaviour.type.value,
-        behaviour.description.value,
+        behaviour.type?.value ?? null,
+        behaviour.description?.value,
       ),
     );
     addRules(nodes, behaviour.id, behaviour.rules);
     addScenarios(nodes, behaviour.id, behaviour.scenarios);
-  };
-
-  for (const behaviour of behaviours.added) add(behaviour, 'added');
-  for (const behaviour of behaviours.modified) add(behaviour, 'modified');
-  for (const id of behaviours.removed) put(nodes, element(id, 'removed'));
+  }
+  for (const id of behaviours?.removed ?? [])
+    put(nodes, element(id, 'removed'));
 }
 
 function addProperties(
   nodes: Map<string, OutlineNode>,
-  owner: ElementId,
-  properties: DesignedPropertyChangeSet | undefined,
+  owner: string,
+  properties: ChangeSetInput<DesignedPropertyInput, string> | undefined,
 ): void {
-  if (properties === undefined) return;
-  const add = (
-    property: DesignedPropertyChangeSet['added'][number],
-    change: OutlineChange,
-  ) =>
+  for (const [property, change] of named(properties))
     put(
       nodes,
       part(
@@ -114,27 +113,20 @@ function addProperties(
         'property',
         property.name.value,
         change,
-        property.type.value,
-        property.description.value,
+        property.type?.value ?? null,
+        property.description?.value,
       ),
     );
-
-  for (const property of properties.added) add(property, 'added');
-  for (const property of properties.modified) add(property, 'modified');
-  for (const name of properties.removed)
+  for (const name of properties?.removed ?? [])
     put(nodes, part(owner, 'property', name, 'removed'));
 }
 
 function addRules(
   nodes: Map<string, OutlineNode>,
-  owner: ElementId,
-  rules: DesignedRuleChangeSet | undefined,
+  owner: string,
+  rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
 ): void {
-  if (rules === undefined) return;
-  const add = (
-    rule: DesignedRuleChangeSet['added'][number],
-    change: OutlineChange,
-  ) =>
+  for (const [rule, change] of named(rules))
     put(
       nodes,
       part(
@@ -142,27 +134,20 @@ function addRules(
         'rule',
         rule.name.value,
         change,
-        rule.ruleType,
-        rule.description.value,
+        rule.ruleType ?? null,
+        rule.description?.value,
       ),
     );
-
-  for (const rule of rules.added) add(rule, 'added');
-  for (const rule of rules.modified) add(rule, 'modified');
-  for (const name of rules.removed)
+  for (const name of rules?.removed ?? [])
     put(nodes, part(owner, 'rule', name, 'removed'));
 }
 
 function addScenarios(
   nodes: Map<string, OutlineNode>,
-  owner: ElementId,
-  scenarios: DesignedScenarioChangeSet | undefined,
+  owner: string,
+  scenarios: ChangeSetInput<DesignedScenarioInput, string> | undefined,
 ): void {
-  if (scenarios === undefined) return;
-  const add = (
-    scenario: DesignedScenarioChangeSet['added'][number],
-    change: OutlineChange,
-  ) =>
+  for (const [scenario, change] of named(scenarios))
     put(
       nodes,
       part(
@@ -174,11 +159,16 @@ function addScenarios(
         scenario.description.value,
       ),
     );
-
-  for (const scenario of scenarios.added) add(scenario, 'added');
-  for (const scenario of scenarios.modified) add(scenario, 'modified');
-  for (const name of scenarios.removed)
+  for (const name of scenarios?.removed ?? [])
     put(nodes, part(owner, 'scenario', name, 'removed'));
+}
+
+/** Every item the design spells out, with what it does to it; removals are keys, not items. */
+function* named<Item>(
+  set: ChangeSetInput<Item, string> | undefined,
+): Generator<[Item, OutlineChange]> {
+  for (const item of set?.added ?? []) yield [item, 'added'];
+  for (const item of set?.modified ?? []) yield [item, 'modified'];
 }
 
 /**
@@ -196,7 +186,7 @@ function addImpliedAncestors(nodes: Map<string, OutlineNode>): void {
   for (const node of nodes.values()) {
     let { parentPath } = node;
     while (parentPath !== null && !present(parentPath)) {
-      const ancestor = element(parentPath as ElementId, 'unchanged');
+      const ancestor = element(parentPath, 'unchanged');
       implied.set(ancestor.path, ancestor);
       parentPath = ancestor.parentPath;
     }
@@ -210,10 +200,10 @@ function put(nodes: Map<string, OutlineNode>, node: OutlineNode): void {
 }
 
 function element(
-  id: ElementId,
+  id: string,
   change: OutlineChange,
   pattern: string | null = null,
-  description: string | null = null,
+  description: string | null | undefined = null,
 ): OutlineNode {
   const { kind, parentPath } = placeOf(id);
   return {
@@ -221,7 +211,7 @@ function element(
     parentPath,
     elementId: id,
     kind,
-    name: ElementId.nameOf(id),
+    name: nameOf(id),
     depth: 0,
     change,
     pattern,
@@ -231,12 +221,12 @@ function element(
 }
 
 function part(
-  owner: ElementId,
+  owner: string,
   kind: OutlineKind,
   name: string,
   change: OutlineChange,
   pattern: string | null = null,
-  description: string | null = null,
+  description: string | null | undefined = null,
 ): OutlineNode {
   return {
     // A part has no id of its own, so it is named under the element that owns
@@ -254,20 +244,31 @@ function part(
   };
 }
 
-/** The one place that reads containment out of an id. */
-function placeOf(id: ElementId): Place {
-  return ElementId.match<Place>(id, {
-    module: (moduleId) => ({
-      kind: 'module',
-      parentPath: ModuleId.parentOf(moduleId),
-    }),
-    buildingBlock: (blockId) => ({
-      kind: 'building_block',
-      parentPath: ModuleId.containing(blockId),
-    }),
-    behavior: (behaviorId) => ({
-      kind: 'behaviour',
-      parentPath: BuildingBlockId.containing(behaviorId),
-    }),
-  });
+const MODULE = 'module|';
+const BUILDING_BLOCK = 'building_block|';
+const BEHAVIOUR = 'behavior|';
+
+/** An id's address: its dotted path, without the kind it is written with. */
+const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
+
+/** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
+const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
+
+/**
+ * The one place that reads containment out of an id: the rule `ElementId`
+ * states on the server, read back off the strings the wire carries. A
+ * behaviour hangs under its building block, a building block and a submodule
+ * under their module, and a root module under nothing.
+ */
+function placeOf(id: string): Place {
+  const address = addressOf(id);
+  const cut = address.lastIndexOf('.');
+  const parentPath = (kind: string) =>
+    cut === -1 ? null : `${kind}${address.slice(0, cut)}`;
+
+  if (id.startsWith(BEHAVIOUR))
+    return { kind: 'behaviour', parentPath: parentPath(BUILDING_BLOCK) };
+  if (id.startsWith(BUILDING_BLOCK))
+    return { kind: 'building_block', parentPath: parentPath(MODULE) };
+  return { kind: 'module', parentPath: parentPath(MODULE) };
 }

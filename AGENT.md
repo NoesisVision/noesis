@@ -23,11 +23,13 @@ bun run lint                # oxlint (type-aware + backend layer rules); lint:fi
 bun run format              # oxfmt on code and Markdown; format:check to verify
 bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
-bun run test                # unit + integration in every workspace
+bun run test                # unit + integration in every workspace, one workspace at a time
 bun run test:e2e            # service boot, MCP session, SPA from source
 bun run build               # vite build of the SPA + service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins; CI fails if the result is not committed
 ```
+
+`test` walks the workspaces one at a time instead of with `--filter '*'`, which runs them at once: two of the suites pack the service, and that build empties `server/frontend/dist` and rewrites `server/backend/dist/ui`, so two of them together wipe the page out from under each other.
 
 Single test: run `bun test` inside the package with a path and/or name filter, e.g.
 
