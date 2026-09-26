@@ -2,9 +2,11 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { CreateSourceDocument } from '#backend/app/information-sources/source-document';
+import {
+  CreateSourceDocument,
+  type CreateSourceDocumentHandler,
+} from '#backend/app/information-sources/create-source-document';
 import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
@@ -20,7 +22,7 @@ const outputSchema = z
   .describe('The document as stored, with the id the server minted.');
 
 export function createDocumentInChangeTool(
-  documents: SourceDocumentsService,
+  createDocument: CreateSourceDocumentHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -38,22 +40,25 @@ export function createDocumentInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        create(documents, files, change, input.path),
+        create(createDocument, files, change, input.path),
       ),
   );
 }
 
 async function create(
-  documents: SourceDocumentsService,
+  createDocument: CreateSourceDocumentHandler,
   files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(CreateSourceDocument, path);
+  const document = await files.read(CreateSourceDocument.shape.document, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
-  return created(change, await documents.create(change, document.value));
+  return created(
+    change,
+    await createDocument.execute({ change, document: document.value }),
+  );
 }
 
 function created(

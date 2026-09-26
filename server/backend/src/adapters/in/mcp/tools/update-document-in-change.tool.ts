@@ -2,10 +2,12 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { UpdateSourceDocument } from '#backend/app/information-sources/source-document';
 import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
+import {
+  UpdateSourceDocument,
+  type UpdateSourceDocumentHandler,
+} from '#backend/app/information-sources/update-source-document';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -22,7 +24,7 @@ const outputSchema = z
   .describe('The document as stored.');
 
 export function updateDocumentInChangeTool(
-  documents: SourceDocumentsService,
+  updateDocument: UpdateSourceDocumentHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -44,24 +46,27 @@ export function updateDocumentInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        update(documents, files, change, input.id, input.path),
+        update(updateDocument, files, change, input.id, input.path),
       ),
   );
 }
 
 async function update(
-  documents: SourceDocumentsService,
+  updateDocument: UpdateSourceDocumentHandler,
   files: SessionFiles,
   change: ChangeId,
   id: SourceDocumentId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(UpdateSourceDocument, path);
+  const document = await files.read(UpdateSourceDocument.shape.document, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
   try {
-    return updated(change, await documents.update(change, id, document.value));
+    return updated(
+      change,
+      await updateDocument.execute({ change, id, document: document.value }),
+    );
   } catch (error) {
     // A missing change is `withChange`'s to answer.
     if (error instanceof NotFoundError && error.entity === 'document') {

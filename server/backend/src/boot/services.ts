@@ -3,11 +3,13 @@ import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.rep
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDoc } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { CreateSourceDocumentHandler } from '#backend/app/information-sources/create-source-document';
 import { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
 import { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
 import { SourceDocument } from '#backend/app/information-sources/source-document';
-import { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
+import { UpdateSourceDocumentHandler } from '#backend/app/information-sources/update-source-document';
 import { SearchService } from '#backend/app/search/search.service';
+import { Serial } from '#backend/app/serial';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -15,7 +17,8 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 export interface Services {
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: SourceDocumentsService;
+  createSourceDocument: CreateSourceDocumentHandler;
+  updateSourceDocument: UpdateSourceDocumentHandler;
   listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
   findSourceDocumentById: FindSourceDocumentByIdHandler;
   searchService: SearchService;
@@ -41,6 +44,8 @@ export function createServices(noesis: NoesisDir): Services {
     documentsRepository,
     localToday,
   );
+  // One queue for every document write, so a create and an update never interleave.
+  const documentWrites = new Serial();
   const findSourceDocumentById = new FindSourceDocumentByIdHandler(
     documentsRepository,
     changesService,
@@ -52,11 +57,16 @@ export function createServices(noesis: NoesisDir): Services {
       changesService,
       localToday,
     ),
-    documentsService: new SourceDocumentsService(
+    createSourceDocument: new CreateSourceDocumentHandler(
       documentsRepository,
       changesService,
-      findSourceDocumentById,
+      documentWrites,
       localToday,
+    ),
+    updateSourceDocument: new UpdateSourceDocumentHandler(
+      documentsRepository,
+      changesService,
+      documentWrites,
     ),
     listSourceDocumentsForChange: new ListSourceDocumentsForChangeHandler(
       documentsRepository,

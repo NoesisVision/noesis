@@ -44,7 +44,8 @@ export function serveMcp(options: McpOptions): McpHandle {
         sessionFiles,
         changesService: services.changesService,
         designDocsService: services.designDocsService,
-        documentsService: services.documentsService,
+        createSourceDocument: services.createSourceDocument,
+        updateSourceDocument: services.updateSourceDocument,
       }),
     {
       transport: new ServingTransport(options.onServing),

@@ -9,18 +9,16 @@ import {
   CreateDesignDoc,
   UpdateDesignDoc,
 } from '#backend/app/design-docs/design-doc';
-import {
-  CreateSourceDocument,
-  UpdateSourceDocument,
-} from '#backend/app/information-sources/source-document';
+import { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
+import { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import designDocExample from './design-doc.example.json';
 
 export const CONTRACTS = {
   'create-change': { schema: CreateChange },
   'update-change': { schema: UpdateChange },
-  'create-source-document': { schema: CreateSourceDocument },
-  'update-source-document': { schema: UpdateSourceDocument },
+  'create-source-document': { schema: CreateSourceDocument.shape.document },
+  'update-source-document': { schema: UpdateSourceDocument.shape.document },
   // Decoded, as every example is: the generator encodes it back to JSON,
   // with every default the file leaves out spelled out.
   'create-design-doc': {

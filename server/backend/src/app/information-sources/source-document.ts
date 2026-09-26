@@ -27,11 +27,3 @@ export const SourceDocument = z
     'A document of a change: the working file an agent writes, and graph/changes/<change>/<id>.document.json.',
   );
 export type SourceDocument = z.infer<typeof SourceDocument>;
-
-/** The working file of a new document: the server mints its id. */
-export const CreateSourceDocument = SourceDocument.omit({ id: true });
-export type CreateSourceDocument = z.infer<typeof CreateSourceDocument>;
-
-/** The working file of a document update: the id travels beside it. */
-export const UpdateSourceDocument = SourceDocument.omit({ id: true });
-export type UpdateSourceDocument = z.infer<typeof UpdateSourceDocument>;

@@ -34,7 +34,8 @@ beforeEach(async () => {
     sessionFiles: files,
     changesService: noesis.changesService,
     designDocsService: noesis.designDocsService,
-    documentsService: noesis.documentsService,
+    createSourceDocument: noesis.createSourceDocument,
+    updateSourceDocument: noesis.updateSourceDocument,
   });
   client = new Client({ name: 'mcp-spec', version: '0.0.0' });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
