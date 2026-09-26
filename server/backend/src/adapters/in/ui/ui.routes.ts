@@ -37,23 +37,10 @@ export function createUiApp(deps: UiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
     .onError(answerError)
-    .route('/search', createSearchApp({ searchService: deps.searchService }))
-    .route(
-      '/changes',
-      createChangesApp({
-        createChange: deps.createChange,
-        listChanges: deps.listChanges,
-        findChange: deps.findChange,
-      }),
-    )
-    .route(
-      '/changes/:change/design-docs',
-      createDesignDocsApp({ findDesignDoc: deps.findDesignDoc }),
-    )
-    .route(
-      '/changes/:change/source-documents',
-      createSourceDocumentsApp({ findSourceDocument: deps.findSourceDocument }),
-    );
+    .route('/search', createSearchApp(deps))
+    .route('/changes', createChangesApp(deps))
+    .route('/changes/:change/design-docs', createDesignDocsApp(deps))
+    .route('/changes/:change/source-documents', createSourceDocumentsApp(deps));
 }
 
 /**

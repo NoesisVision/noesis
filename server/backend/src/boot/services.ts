@@ -13,23 +13,8 @@ import { SearchService } from '#backend/app/search/search.service';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** The application layer, shared by the MCP tools and the ui routes. */
-export interface Services {
-  createChange: CreateChangeHandler;
-  updateChange: UpdateChangeHandler;
-  addDesignDocToChange: AddDesignDocToChangeHandler;
-  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
-  addDocumentToChange: AddDocumentToChangeHandler;
-  updateDocumentInChange: UpdateDocumentInChangeHandler;
-  listChanges: ListChangesHandler;
-  findChange: FindChangeHandler;
-  findDesignDoc: FindDesignDocHandler;
-  findSourceDocument: FindSourceDocumentHandler;
-  searchService: SearchService;
-}
-
 /** Wires the change files under `.noesis/` to the handlers that use them. */
-export function createServices(noesis: NoesisDir): Services {
+export function createServices(noesis: NoesisDir) {
   const changes = new NoesisChangesRepository(noesis);
   return {
     createChange: new CreateChangeHandler(changes, localToday),
@@ -45,3 +30,6 @@ export function createServices(noesis: NoesisDir): Services {
     searchService: new SearchService(),
   };
 }
+
+/** The application layer, shared by the MCP tools and the ui routes. */
+export type Services = ReturnType<typeof createServices>;

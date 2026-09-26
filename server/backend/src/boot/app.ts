@@ -18,17 +18,7 @@ export function createApp(deps: UiDeps) {
           skip: (c) => c.req.path === '/internal/health',
         }),
       )
-      .route(
-        '/ui',
-        createUiApp({
-          searchService: deps.searchService,
-          createChange: deps.createChange,
-          listChanges: deps.listChanges,
-          findChange: deps.findChange,
-          findDesignDoc: deps.findDesignDoc,
-          findSourceDocument: deps.findSourceDocument,
-        }),
-      )
+      .route('/ui', createUiApp(deps))
       .route('/internal', createInternalApp())
   );
 }
