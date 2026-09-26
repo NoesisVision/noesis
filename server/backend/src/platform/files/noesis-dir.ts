@@ -22,6 +22,10 @@ export class NoesisDir {
     return this.resolve('logs');
   }
 
+  get sessionsDir(): string {
+    return this.resolve('sessions');
+  }
+
   /** An existing `.gitignore` only gains the lines it lacks. */
   async ensureInitialized(): Promise<void> {
     await this.createDirectories();
@@ -38,9 +42,12 @@ export class NoesisDir {
   /** Sessions booting at once may both append; Git tolerates the duplicate lines. */
   private async excludeUnversionedDirsFromGit(): Promise<void> {
     const existing = await this.readGitignore();
-    const missing = MissingLines.of(GITIGNORE_LINES, existing);
-    if (missing.isEmpty) return;
-    await appendFile(this.gitignorePath, missing.appendableTo(existing));
+    const present = new Set(existing.split(/\r?\n/).map((line) => line.trim()));
+    const missing = GITIGNORE_LINES.filter((line) => !present.has(line));
+    if (missing.length === 0) return;
+    // Starts on a fresh line even when the file lacks a trailing newline.
+    const lineBreak = existing === '' || existing.endsWith('\n') ? '' : '\n';
+    await appendFile(this.gitignorePath, `${lineBreak}${missing.join('\n')}\n`);
   }
 
   private async readGitignore(): Promise<string> {
@@ -50,28 +57,5 @@ export class NoesisDir {
 
   private get gitignorePath(): string {
     return this.resolve('.gitignore');
-  }
-}
-
-class MissingLines {
-  readonly lines: readonly string[];
-
-  private constructor(lines: readonly string[]) {
-    this.lines = lines;
-  }
-
-  static of(wanted: readonly string[], content: string): MissingLines {
-    const present = new Set(content.split(/\r?\n/).map((line) => line.trim()));
-    return new MissingLines(wanted.filter((line) => !present.has(line)));
-  }
-
-  get isEmpty(): boolean {
-    return this.lines.length === 0;
-  }
-
-  /** Starts on a fresh line even when `content` lacks a trailing newline. */
-  appendableTo(content: string): string {
-    const lineBreak = content === '' || content.endsWith('\n') ? '' : '\n';
-    return `${lineBreak}${this.lines.join('\n')}\n`;
   }
 }

@@ -11,7 +11,7 @@ import {
   serverLogger,
 } from '#backend/platform/logging/logging';
 import { production } from './process';
-import { RepositoryRoot } from './repository-root';
+import { resolveRepositoryRoot } from './repository-root';
 
 /** Where this process runs: the repository, its `.noesis/` and this session's scratch. */
 export interface Workspace {
@@ -29,7 +29,7 @@ export interface Workspace {
  */
 export async function openWorkspace(): Promise<Workspace> {
   const config = loadServerConfig();
-  const repositoryRoot = resolveRepositoryRoot(config);
+  const repositoryRoot = repositoryRootOrExit(config);
   const noesis = new NoesisDir(repositoryRoot);
   await noesis.ensureInitialized();
   await configureLogging({
@@ -47,11 +47,11 @@ export async function openWorkspace(): Promise<Workspace> {
   return { config, noesis, session, sessionFiles, log };
 }
 
-function resolveRepositoryRoot(config: ServerConfig): string {
-  const result = new RepositoryRoot({
+function repositoryRootOrExit(config: ServerConfig): string {
+  const result = resolveRepositoryRoot({
     root: config.root,
     cwd: process.cwd(),
-  }).resolve();
+  });
   if (!result.ok) {
     console.error(`[server] ${result.message}`);
     process.exit(1);

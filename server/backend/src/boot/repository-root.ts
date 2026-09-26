@@ -7,51 +7,30 @@ export type RootResult =
   | { ok: false; message: string };
 
 export interface RepositoryRootOptions {
+  /** `NOESIS_ROOT`; unset, the root is the checkout enclosing `cwd`. */
   root?: string | undefined;
   cwd: string;
 }
 
-export class RepositoryRoot {
-  private readonly configured: string | undefined;
-  private readonly cwd: string;
-
-  constructor(options: RepositoryRootOptions) {
-    this.configured = options.root;
-    this.cwd = options.cwd;
+export function resolveRepositoryRoot({
+  root,
+  cwd,
+}: RepositoryRootOptions): RootResult {
+  if (root !== undefined) {
+    const resolved = resolve(root);
+    return isDirectory(resolved)
+      ? { ok: true, root: resolved }
+      : { ok: false, message: `NOESIS_ROOT=${root} is not a directory.` };
   }
-
-  resolve(): RootResult {
-    return this.configured === undefined
-      ? this.fromEnclosingCheckout()
-      : this.fromConfiguredRoot(this.configured);
-  }
-
-  private fromConfiguredRoot(configured: string): RootResult {
-    const root = resolve(configured);
-    if (!isDirectory(root)) {
-      return {
-        ok: false,
-        message: `NOESIS_ROOT=${configured} is not a directory.`,
-      };
-    }
-    return { ok: true, root };
-  }
-
-  private fromEnclosingCheckout(): RootResult {
-    const found = findRepositoryRoot(this.cwd);
-    if (found === null) return this.noCheckoutAbove();
-    return { ok: true, root: found };
-  }
-
-  private noCheckoutAbove(): RootResult {
-    return {
-      ok: false,
-      message:
-        `No git repository found above ${resolve(this.cwd)}. ` +
-        'Start the service inside a checkout, or set NOESIS_ROOT to the ' +
-        'repository root.',
-    };
-  }
+  const found = findRepositoryRoot(cwd);
+  if (found !== null) return { ok: true, root: found };
+  return {
+    ok: false,
+    message:
+      `No git repository found above ${resolve(cwd)}. ` +
+      'Start the service inside a checkout, or set NOESIS_ROOT to the ' +
+      'repository root.',
+  };
 }
 
 /** `.git` is a directory in a checkout but a file in a worktree. */

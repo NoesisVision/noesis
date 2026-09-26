@@ -2,11 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import {
-  RepositoryRoot,
-  type RepositoryRootOptions,
-  type RootResult,
-} from '#backend/boot/repository-root';
+import { resolveRepositoryRoot as resolveRoot } from '#backend/boot/repository-root';
 
 let base: string;
 
@@ -15,9 +11,6 @@ beforeEach(async () => {
 });
 
 afterEach(() => rm(base, { recursive: true, force: true }));
-
-const resolveRoot = (options: RepositoryRootOptions): RootResult =>
-  new RepositoryRoot(options).resolve();
 
 describe('repository root', () => {
   it('walks up to the nearest directory holding .git', async () => {

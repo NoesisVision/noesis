@@ -8,7 +8,6 @@ import { SessionFiles } from './session-files';
 
 const log = serverLogger('session');
 
-const SESSIONS_DIR_NAME = 'sessions';
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -29,27 +28,23 @@ export class SessionDir {
   constructor(noesis: NoesisDir, options: SessionDirOptions = {}) {
     this.id = options.id ?? uuidv7();
     this.repositoryRoot = noesis.root;
-    this.sessionsRoot = noesis.resolve(SESSIONS_DIR_NAME);
+    this.sessionsRoot = noesis.sessionsDir;
     this.path = join(this.sessionsRoot, this.id);
   }
 
   async open(): Promise<SessionFiles> {
     await mkdir(this.path, { recursive: true });
     await this.removeStaleSessionDirs();
-    return this.sessionFiles();
-  }
-
-  async dispose(): Promise<void> {
-    await rm(this.path, { recursive: true, force: true });
-  }
-
-  private async sessionFiles(): Promise<SessionFiles> {
     return new SessionFiles({
       repositoryRoot: this.repositoryRoot,
       sessionsRoot: this.sessionsRoot,
       realSessionsRoot: await realpath(this.sessionsRoot),
       dir: this.path,
     });
+  }
+
+  async dispose(): Promise<void> {
+    await rm(this.path, { recursive: true, force: true });
   }
 
   private async removeStaleSessionDirs(): Promise<void> {
