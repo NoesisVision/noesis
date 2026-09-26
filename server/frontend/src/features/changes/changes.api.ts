@@ -9,7 +9,7 @@ export class ChangeNotFoundError extends Error {
   }
 }
 
-/** Every change, newest first, each with its entries. */
+/** Every change by id descending (newest day first), each with its entries. */
 export const changesList = queryOptions({
   staleTime: 'static',
   queryKey: ['changes'] as const,

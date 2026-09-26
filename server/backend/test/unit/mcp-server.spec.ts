@@ -220,6 +220,7 @@ describe('update_change', () => {
     const path = await workingFile('change.json', {
       name: 'Payment retry',
       type: 'fix',
+      status: 'design',
     });
 
     const result = await call('update_change', { id: CHANGE, path });
@@ -228,6 +229,20 @@ describe('update_change', () => {
     expect(textOf(result)).toContain(`No change "${CHANGE}"`);
     expect(textOf(result)).toContain('list_changes');
     expect(await noesis.listChanges.handle()).toEqual([]);
+  });
+
+  it('refuses a file without a status, leaving the stored one as it was', async () => {
+    const id = await noesis.writeChange(CHANGE, { status: 'design' });
+    const path = await workingFile('change.json', {
+      name: 'Payment retry',
+      type: 'fix',
+    });
+
+    const result = await call('update_change', { id, path });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('→ at status');
+    expect((await noesis.stored(id)).status).toBe('design');
   });
 
   it('refuses an id that is not a dated id', async () => {
@@ -365,7 +380,7 @@ describe('add_document_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {
@@ -513,6 +528,22 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+    expect(textOf(result)).not.toContain('add the');
+  });
+
+  it('answers a file it cannot read as unreadable, not as invalid', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('update_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+      path: join(files.dir, 'missing.json'),
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toStartWith('Could not read the document:');
+    expect(textOf(result)).toContain('No file at');
   });
 });
 
@@ -562,7 +593,7 @@ describe('add_design_doc_to_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {

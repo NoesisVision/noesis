@@ -13,7 +13,12 @@ import {
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
-import { NO_ID, inChangeInput, withChange } from './change-scoped';
+import {
+  NO_ID,
+  inChangeInput,
+  unreadableFile,
+  withChange,
+} from './change-scoped';
 
 const SUBJECT = 'design document';
 
@@ -65,9 +70,7 @@ export function addDesignDocToChangeTool(
       annotations: CREATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        add(addDesignDoc, files, change, input.path),
-      ),
+      withChange(() => add(addDesignDoc, files, input.change, input.path)),
   );
 }
 
@@ -79,7 +82,7 @@ async function add(
 ): Promise<CallToolResult> {
   const document = await files.read(AddDesignDocToChange.shape.designDoc, path);
   if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
+    return unreadableFile(SUBJECT, document.error);
   }
   try {
     return added(

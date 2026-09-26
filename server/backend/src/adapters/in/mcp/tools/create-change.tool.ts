@@ -8,8 +8,8 @@ import {
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { NO_ID, workingFilePath } from './change-scoped';
+import { success } from '../tool-result';
+import { NO_ID, unreadableFile, workingFilePath } from './change-scoped';
 
 const SUBJECT = 'change';
 
@@ -49,7 +49,7 @@ async function create(
 ): Promise<CallToolResult> {
   const change = await files.read(CreateChange, path);
   if (change.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${change.error}`);
+    return unreadableFile(SUBJECT, change.error);
   }
   return created(await createChange.handle(change.value));
 }

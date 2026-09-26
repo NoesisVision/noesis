@@ -9,7 +9,10 @@ export class ListChangesHandler implements Handler<void, ChangeWithEntries[]> {
     this.changes = changes;
   }
 
-  /** Newest first: the id starts with the creation date. */
+  /**
+   * By id descending. The id starts with the creation date, so the newest day
+   * comes first; changes of one day follow each other by name, not by time.
+   */
   async handle(): Promise<ChangeWithEntries[]> {
     const changes = (await this.changes.list()).toReversed();
     return changes.map((change) => ({

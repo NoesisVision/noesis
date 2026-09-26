@@ -30,7 +30,7 @@ the working file: `title`, `date` and `content`, never an id.
 2. **Pick the change.** Call `list_changes`. When the user named a change
    (an id, a name or a tracker key) and exactly one listed change matches,
    use its id. Otherwise ask the user which change the document belongs
-   to, offering the listed changes by name, key and id, newest first, plus
+   to, offering the listed changes by name, key and id, newest day first, plus
    the option of a new change. Do not choose for the user, not even when
    there is only one change or the file's subject seems to fit one. For a
    new change, or when the list is empty, use the `add-change` skill

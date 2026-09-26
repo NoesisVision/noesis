@@ -10,8 +10,13 @@ import {
   ADD_DOCUMENT_TO_CHANGE,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { NO_ID, inChangeInput, withChange } from './change-scoped';
+import { success } from '../tool-result';
+import {
+  NO_ID,
+  inChangeInput,
+  unreadableFile,
+  withChange,
+} from './change-scoped';
 
 const SUBJECT = 'document';
 
@@ -37,9 +42,7 @@ export function addDocumentToChangeTool(
       annotations: CREATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        add(addDocument, files, change, input.path),
-      ),
+      withChange(() => add(addDocument, files, input.change, input.path)),
   );
 }
 
@@ -51,7 +54,7 @@ async function add(
 ): Promise<CallToolResult> {
   const document = await files.read(AddDocumentToChange.shape.document, path);
   if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
+    return unreadableFile(SUBJECT, document.error);
   }
   return added(
     change,

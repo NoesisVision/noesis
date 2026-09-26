@@ -18,7 +18,7 @@ const outputSchema = z
     changes: z
       .array(ChangeWithEntries)
       .describe(
-        'Every change, newest first, each with its design documents, then its documents, oldest first. Empty when there is none yet.',
+        'Every change by id descending — newest day first, changes of one day by name — each with its design documents, then its documents, oldest first. Empty when there is none yet.',
       ),
   })
   .describe('The changes of this repository.');
@@ -31,7 +31,7 @@ export function listChangesTool(
     {
       title: 'List changes',
       description:
-        'Lists every change in the repository, newest first, each with its id, name, tracker key, type and status, and the ids of its design documents and documents. Use it to find the id of a change the user refers to by name or key, the id of a design document or document to update, or to offer the user the changes to choose from.',
+        'Lists every change in the repository by id descending, so newest day first, each with its id, name, tracker key, type and status, and the ids of its design documents and documents. Use it to find the id of a change the user refers to by name or key, the id of a design document or document to update, or to offer the user the changes to choose from.',
       inputSchema,
       outputSchema,
       annotations: READ_ONLY,
@@ -50,7 +50,7 @@ function summary(changes: ChangeWithEntries[]): string {
     return `There are no changes yet. Create one with ${CREATE_CHANGE}.`;
   }
   const count = changes.length === 1 ? '1 change' : `${changes.length} changes`;
-  return [`${count}, newest first:`, ...changes.flatMap(lines)].join('\n');
+  return [`${count}, newest day first:`, ...changes.flatMap(lines)].join('\n');
 }
 
 function lines(change: ChangeWithEntries): string[] {

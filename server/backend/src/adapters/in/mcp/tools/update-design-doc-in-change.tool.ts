@@ -19,7 +19,7 @@ import {
   DESIGN_DOC_SHAPE,
   violationsFailure,
 } from './add-design-doc-to-change.tool';
-import { inChangeInput, withChange } from './change-scoped';
+import { inChangeInput, unreadableFile, withChange } from './change-scoped';
 
 const SUBJECT = 'design document';
 
@@ -49,8 +49,8 @@ export function updateDesignDocInChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        update(updateDesignDoc, files, change, input.id, input.path),
+      withChange(() =>
+        update(updateDesignDoc, files, input.change, input.id, input.path),
       ),
   );
 }
@@ -67,7 +67,7 @@ async function update(
     path,
   );
   if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
+    return unreadableFile(SUBJECT, document.error);
   }
   try {
     return updated(

@@ -115,7 +115,11 @@ describe('UpdateChangeHandler', () => {
     await expect(
       t.updateChange.handle({
         id: NOPE,
-        change: UpdateChange.parse({ name: 'Missing', type: 'fix' }),
+        change: UpdateChange.parse({
+          name: 'Missing',
+          type: 'fix',
+          status: 'design',
+        }),
       }),
     ).rejects.toMatchObject({ entity: 'change' });
     expect(await t.listChanges.handle()).toEqual([]);

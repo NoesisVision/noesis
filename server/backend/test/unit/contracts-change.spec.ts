@@ -10,19 +10,24 @@ describe('ChangeSnapshot', () => {
     id: '2026-09-13-payment-retry',
     name: 'Payment retry',
     type: 'feature' as const,
+    status: 'discovery' as const,
     version: 1,
     designDocs: [],
     sourceDocuments: [],
   };
 
-  it('starts a new change in discovery, with no key and no description', () => {
+  it('defaults to no key and no description', () => {
     expect(Change.parse(minimal)).toEqual({
       ...minimal,
       id: Change.shape.id.parse(minimal.id),
       key: '',
-      status: 'discovery',
       description: '',
     });
+  });
+
+  it('requires a status: an update that leaves it out must not reset it', () => {
+    const { status: _, ...withoutStatus } = minimal;
+    expect(Change.safeParse(withoutStatus).success).toBe(false);
   });
 
   it('trims the name and requires a type', () => {

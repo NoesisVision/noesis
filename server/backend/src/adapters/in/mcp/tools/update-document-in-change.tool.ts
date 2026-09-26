@@ -14,7 +14,7 @@ import {
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
-import { inChangeInput, withChange } from './change-scoped';
+import { inChangeInput, unreadableFile, withChange } from './change-scoped';
 
 const SUBJECT = 'document';
 
@@ -44,8 +44,8 @@ export function updateDocumentInChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        update(updateDocument, files, change, input.id, input.path),
+      withChange(() =>
+        update(updateDocument, files, input.change, input.id, input.path),
       ),
   );
 }
@@ -62,7 +62,7 @@ async function update(
     path,
   );
   if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
+    return unreadableFile(SUBJECT, document.error);
   }
   try {
     return updated(

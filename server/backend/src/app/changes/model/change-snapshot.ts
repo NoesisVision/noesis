@@ -43,8 +43,8 @@ export const ChangeSnapshot = z
     type: ChangeType.describe(
       'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
     ),
-    status: ChangeStatus.default('discovery').describe(
-      'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out; an update carries the value list_changes returned.',
+    status: ChangeStatus.describe(
+      'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out and starts in discovery; an update always names it, carrying the value list_changes returned unless the change moves on.',
     ),
     description: z
       .string()

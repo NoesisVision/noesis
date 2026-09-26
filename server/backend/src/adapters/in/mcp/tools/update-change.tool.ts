@@ -8,11 +8,10 @@ import {
 } from '#backend/app/changes/model/change-snapshot';
 import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
 import type { Handler } from '#backend/app/handler';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { workingFilePath } from './change-scoped';
+import { success } from '../tool-result';
+import { unreadableFile, withChange, workingFilePath } from './change-scoped';
 
 const SUBJECT = 'change';
 
@@ -37,7 +36,7 @@ export function updateChangeTool(
           path: workingFilePath(
             files,
             SUBJECT,
-            `{ "name", "type", "key", "status", "description" }, without "id". Carry the "status" ${LIST_CHANGES} returned unless the change moves on; left out, it goes back to discovery.`,
+            `{ "name", "type", "key", "status", "description" }, without "id". "status" is required: carry the one ${LIST_CHANGES} returned unless the change moves on.`,
           ),
         })
         .describe(
@@ -46,7 +45,8 @@ export function updateChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) => update(updateChange, files, input.id, input.path),
+    (input) =>
+      withChange(() => update(updateChange, files, input.id, input.path)),
   );
 }
 
@@ -58,19 +58,9 @@ async function update(
 ): Promise<CallToolResult> {
   const change = await files.read(UpdateChange, path);
   if (change.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${change.error}`);
+    return unreadableFile(SUBJECT, change.error);
   }
-  try {
-    return updated(await updateChange.handle({ id, change: change.value }));
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return failure(
-        error.message,
-        `Find its id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-      );
-    }
-    throw error;
-  }
+  return updated(await updateChange.handle({ id, change: change.value }));
 }
 
 function updated(change: ChangeSummary): CallToolResult {
