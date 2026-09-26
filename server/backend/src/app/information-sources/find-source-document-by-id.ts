@@ -14,7 +14,6 @@ export const FindSourceDocumentById = z.object({
 });
 export type FindSourceDocumentById = z.infer<typeof FindSourceDocumentById>;
 
-/** Only reads: its dependencies are narrowed to the methods that read. */
 export class FindSourceDocumentByIdHandler implements Handler<
   FindSourceDocumentById,
   SourceDocument

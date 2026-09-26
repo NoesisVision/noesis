@@ -46,10 +46,6 @@ export function createServices(noesis: NoesisDir): Services {
   );
   // One queue for every document write, so a create and an update never interleave.
   const documentWrites = new Serial();
-  const findSourceDocumentById = new FindSourceDocumentByIdHandler(
-    documentsRepository,
-    changesService,
-  );
   return {
     changesService,
     designDocsService: new DesignDocsService(
@@ -72,7 +68,10 @@ export function createServices(noesis: NoesisDir): Services {
       documentsRepository,
       changesService,
     ),
-    findSourceDocumentById,
+    findSourceDocumentById: new FindSourceDocumentByIdHandler(
+      documentsRepository,
+      changesService,
+    ),
     searchService: new SearchService(),
   };
 }

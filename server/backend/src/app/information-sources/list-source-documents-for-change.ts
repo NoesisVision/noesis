@@ -14,7 +14,6 @@ export type ListSourceDocumentsForChange = z.infer<
   typeof ListSourceDocumentsForChange
 >;
 
-/** Only reads: its dependencies are narrowed to the methods that read. */
 export class ListSourceDocumentsForChangeHandler implements Handler<
   ListSourceDocumentsForChange,
   SourceDocumentSummary[]
@@ -27,7 +26,7 @@ export class ListSourceDocumentsForChangeHandler implements Handler<
     this.changes = changes;
   }
 
-  /** Oldest first: the id starts with the creation date. */
+  /** Oldest first. */
   async handle(
     query: ListSourceDocumentsForChange,
   ): Promise<SourceDocumentSummary[]> {

@@ -77,10 +77,6 @@ export async function testNoesis(): Promise<TestNoesis> {
   );
   // One queue for every document write, so a create and an update never interleave.
   const documentWrites = new Serial();
-  const findSourceDocumentById = new FindSourceDocumentByIdHandler(
-    documentsRepository,
-    changesService,
-  );
   return {
     root,
     noesis,
@@ -108,7 +104,10 @@ export async function testNoesis(): Promise<TestNoesis> {
       documentsRepository,
       changesService,
     ),
-    findSourceDocumentById,
+    findSourceDocumentById: new FindSourceDocumentByIdHandler(
+      documentsRepository,
+      changesService,
+    ),
     changesDir: noesis.resolve('graph', 'changes'),
     createChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);
