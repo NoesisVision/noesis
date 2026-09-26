@@ -58,7 +58,7 @@ export const outlineFixture: OutlineNode[] = [
     hasDiagram: true,
   }),
   node({
-    path: 'behavior|shop.orders.Order.place',
+    path: 'behaviour|shop.orders.Order.place',
     parentPath: 'building_block|shop.orders.Order',
     kind: 'behaviour',
     name: 'place',

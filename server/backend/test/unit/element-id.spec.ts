@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
-  BehaviorId,
+  BehaviourId,
   BuildingBlockId,
   ElementId,
   ElementName,
@@ -110,69 +110,69 @@ describe('BuildingBlockId', () => {
   });
 });
 
-describe('BehaviorId', () => {
+describe('BehaviourId', () => {
   it('needs a building block before its name', () => {
-    expect(BehaviorId.safeParse('behavior|sales.Refund.issue').success).toBe(
+    expect(BehaviourId.safeParse('behaviour|sales.Refund.issue').success).toBe(
       true,
     );
-    expect(BehaviorId.safeParse('behavior|sales.Refund').success).toBe(false);
+    expect(BehaviourId.safeParse('behaviour|sales.Refund').success).toBe(false);
     expect(
-      BehaviorId.safeParse('building_block|sales.Refund.issue').success,
+      BehaviourId.safeParse('building_block|sales.Refund.issue').success,
     ).toBe(false);
   });
 
   it('is built on its building block and knows it', () => {
     const block = BuildingBlockId.parse('building_block|sales.orders.Refund');
-    const behavior = BehaviorId.within(block, 'issue');
-    expect(behavior).toBe(
-      BehaviorId.parse('behavior|sales.orders.Refund.issue'),
+    const behaviour = BehaviourId.within(block, 'issue');
+    expect(behaviour).toBe(
+      BehaviourId.parse('behaviour|sales.orders.Refund.issue'),
     );
-    expect(BuildingBlockId.containing(behavior)).toBe(block);
-    expect(ModuleId.containing(behavior)).toBe(
+    expect(BuildingBlockId.containing(behaviour)).toBe(block);
+    expect(ModuleId.containing(behaviour)).toBe(
       ModuleId.parse('module|sales.orders'),
     );
-    expect(ElementId.nameOf(behavior)).toBe('issue');
+    expect(ElementId.nameOf(behaviour)).toBe('issue');
   });
 });
 
 describe('ElementId', () => {
   it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
-    for (const value of ['module|a', 'building_block|a.b', 'behavior|a.b.c']) {
+    for (const value of ['module|a', 'building_block|a.b', 'behaviour|a.b.c']) {
       expect(ElementId.parse(value)).toBe(value as ElementId);
     }
-    for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
+    for (const value of ['thing|a', 'a', '|a', 'module|', 'behaviour|a.b']) {
       expect(ElementId.safeParse(value).success).toBe(false);
     }
   });
 
   it('tells the kinds apart', () => {
-    const ids = ['module|a', 'building_block|a.b', 'behavior|a.b.c'].map((v) =>
+    const ids = ['module|a', 'building_block|a.b', 'behaviour|a.b.c'].map((v) =>
       ElementId.parse(v),
     );
     expect(ids.map(ElementId.isModule)).toEqual([true, false, false]);
     expect(ids.map(ElementId.isBuildingBlock)).toEqual([false, true, false]);
-    expect(ids.map(ElementId.isBehavior)).toEqual([false, false, true]);
+    expect(ids.map(ElementId.isBehaviour)).toEqual([false, false, true]);
     expect(
       ids.map((id) =>
         ElementId.match(id, {
           module: () => 'module',
           buildingBlock: () => 'building block',
-          behavior: () => 'behavior',
+          behaviour: () => 'behaviour',
         }),
       ),
-    ).toEqual(['module', 'building block', 'behavior']);
+    ).toEqual(['module', 'building block', 'behaviour']);
   });
 
   it('reports a bad element at its path', () => {
     const Dto = z.object({ elements: z.array(ElementId) });
-    const result = Dto.safeParse({ elements: ['module|a', 'behavior|a.b'] });
+    const result = Dto.safeParse({ elements: ['module|a', 'behaviour|a.b'] });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.path).toEqual(['elements', 1]);
   });
 
   it('is the same string on the wire and in the domain', () => {
     const Dto = z.object({ elements: z.array(ElementId) });
-    const wire = { elements: ['module|a', 'behavior|a.b.c'] };
+    const wire = { elements: ['module|a', 'behaviour|a.b.c'] };
     expect(z.encode(Dto, Dto.parse(wire))).toEqual(wire);
   });
 });

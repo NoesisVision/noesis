@@ -14,7 +14,7 @@ import {
  */
 
 const ORDER = 'building_block|sales.orders.Order';
-const PLACE = 'behavior|sales.orders.Order.place';
+const PLACE = 'behaviour|sales.orders.Order.place';
 
 const module = {
   id: 'module|sales.orders',

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  BehaviorId,
+  BehaviourId,
   BuildingBlockId,
   ElementName,
   ModuleId,
@@ -62,7 +62,7 @@ export const DesignedBuildingBlock = z.strictObject({
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 
 export const DesignedBehaviour = z.strictObject({
-  id: BehaviorId,
+  id: BehaviourId,
   name: DesignDocField(ElementName),
   type: DesignDocField(BehaviourType),
   description: DesignDocField(z.string()),
@@ -80,7 +80,7 @@ const designDocSchema = z.strictObject({
   description: z.string(),
   modules: changeSetSchema(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSetSchema(DesignedBuildingBlock, BuildingBlockId),
-  behaviours: changeSetSchema(DesignedBehaviour, BehaviorId),
+  behaviours: changeSetSchema(DesignedBehaviour, BehaviourId),
   implemented: z
     .boolean()
     .default(false)

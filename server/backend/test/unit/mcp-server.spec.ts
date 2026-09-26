@@ -725,13 +725,13 @@ describe('update_design_doc_in_change', () => {
       id: designDocAdded,
       path: await workingFile('design-doc.json', {
         ...designDoc,
-        behaviours: { removed: ['behavior|sales.orders.Order.cancel'] },
+        behaviours: { removed: ['behaviour|sales.orders.Order.cancel'] },
       }),
     });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(
-      '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
+      '- behaviours.removed[behaviour|sales.orders.Order.cancel]: nothing is scanned yet',
     );
     expect(
       await noesis.findDesignDoc.handle({

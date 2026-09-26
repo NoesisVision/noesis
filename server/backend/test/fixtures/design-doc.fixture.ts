@@ -186,7 +186,7 @@ export const designDocFixture = {
   behaviours: {
     added: [
       {
-        id: 'behavior|sales.refunds.Refund.issue',
+        id: 'behaviour|sales.refunds.Refund.issue',
         name: byAgent('issue'),
         type: byHuman('Command'),
         description: byAgent(
@@ -220,10 +220,10 @@ export const designDocFixture = {
         scenarios: noChanges,
       },
     ],
-    removed: ['behavior|sales.credit-notes.CreditNote.issue'],
+    removed: ['behaviour|sales.credit-notes.CreditNote.issue'],
     modified: [
       {
-        id: 'behavior|sales.orders.Order.cancel',
+        id: 'behaviour|sales.orders.Order.cancel',
         name: unchanged,
         type: unchanged,
         description: unchanged,

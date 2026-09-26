@@ -46,7 +46,7 @@ describe('outlineOf', () => {
   });
 
   it('hangs a behaviour under its building block, and that under its module', () => {
-    expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
+    expect(at('behaviour|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behaviour',
       name: 'issue',
       pattern: 'Command',
@@ -121,7 +121,7 @@ describe('outlineOf', () => {
     ).toBe('removed');
     expect(
       at(
-        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
+        'behaviour|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
     ).toBe('State change');
   });
@@ -134,7 +134,7 @@ describe('outlineOf', () => {
   it('marks the one element whose description draws a diagram', () => {
     expect(
       outline.filter((node) => node.hasDiagram).map((node) => node.path),
-    ).toEqual(['behavior|sales.refunds.Refund.issue']);
+    ).toEqual(['behaviour|sales.refunds.Refund.issue']);
   });
 
   it('says nothing about a document that designs nothing', () => {

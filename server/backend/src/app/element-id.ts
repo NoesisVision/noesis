@@ -28,8 +28,8 @@ export const ModuleId = Object.assign(moduleIdSchema, {
     moduleIdSchema.parse(`${MODULE_KIND}|${ElementName.parse(name)}`),
   within: (parent: ModuleId, name: string) =>
     moduleIdSchema.parse(`${MODULE_KIND}|${childPath(parent, name)}`),
-  containing: (id: BuildingBlockId | BehaviorId) => {
-    const block = ElementId.isBehavior(id)
+  containing: (id: BuildingBlockId | BehaviourId) => {
+    const block = ElementId.isBehaviour(id)
       ? BuildingBlockId.containing(id)
       : id;
     return moduleIdSchema.parse(`${MODULE_KIND}|${parentPathOf(block)}`);
@@ -57,41 +57,41 @@ export const BuildingBlockId = Object.assign(buildingBlockIdSchema, {
     buildingBlockIdSchema.parse(
       `${BUILDING_BLOCK_KIND}|${childPath(parent, name)}`,
     ),
-  containing: (id: BehaviorId) =>
+  containing: (id: BehaviourId) =>
     buildingBlockIdSchema.parse(`${BUILDING_BLOCK_KIND}|${parentPathOf(id)}`),
 });
 export type BuildingBlockId = z.infer<typeof buildingBlockIdSchema>;
 
-const BEHAVIOR_KIND = 'behavior';
-const behaviorIdSchema = z
+const BEHAVIOUR_KIND = 'behaviour';
+const behaviourIdSchema = z
   .string()
-  .regex(idPattern(BEHAVIOR_KIND, 2), 'Invalid BehaviorId')
+  .regex(idPattern(BEHAVIOUR_KIND, 2), 'Invalid BehaviourId')
   .describe(
-    "A behavior's id: 'behavior|', then its building block's path, then its name, e.g. 'behavior|sales.orders.Refund.issue'.",
+    "A behaviour's id: 'behaviour|', then its building block's path, then its name, e.g. 'behaviour|sales.orders.Refund.issue'.",
   )
-  .brand<'BehaviorId'>();
-export const BehaviorId = Object.assign(behaviorIdSchema, {
+  .brand<'BehaviourId'>();
+export const BehaviourId = Object.assign(behaviourIdSchema, {
   within: (parent: BuildingBlockId, name: string) =>
-    behaviorIdSchema.parse(`${BEHAVIOR_KIND}|${childPath(parent, name)}`),
+    behaviourIdSchema.parse(`${BEHAVIOUR_KIND}|${childPath(parent, name)}`),
 });
-export type BehaviorId = z.infer<typeof behaviorIdSchema>;
+export type BehaviourId = z.infer<typeof behaviourIdSchema>;
 
 const elementIdSchema = z.union([
   moduleIdSchema,
   buildingBlockIdSchema,
-  behaviorIdSchema,
+  behaviourIdSchema,
 ]);
 export const ElementId = Object.assign(elementIdSchema, {
   nameOf: (id: ElementId): ElementName => pathOf(id).split('.').at(-1)!,
   isModule: (id: ElementId): id is ModuleId => id.startsWith(`${MODULE_KIND}|`),
   isBuildingBlock: (id: ElementId): id is BuildingBlockId =>
     id.startsWith(`${BUILDING_BLOCK_KIND}|`),
-  isBehavior: (id: ElementId): id is BehaviorId =>
-    id.startsWith(`${BEHAVIOR_KIND}|`),
+  isBehaviour: (id: ElementId): id is BehaviourId =>
+    id.startsWith(`${BEHAVIOUR_KIND}|`),
   match: <R>(id: ElementId, on: ElementIdHandlers<R>): R => {
     if (ElementId.isModule(id)) return on.module(id);
     if (ElementId.isBuildingBlock(id)) return on.buildingBlock(id);
-    return on.behavior(id);
+    return on.behaviour(id);
   },
 });
 export type ElementId = z.infer<typeof elementIdSchema>;
@@ -99,7 +99,7 @@ export type ElementId = z.infer<typeof elementIdSchema>;
 type ElementIdHandlers<R> = {
   module: (id: ModuleId) => R;
   buildingBlock: (id: BuildingBlockId) => R;
-  behavior: (id: BehaviorId) => R;
+  behaviour: (id: BehaviourId) => R;
 };
 
 function pathOf(id: ElementId): string {

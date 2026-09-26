@@ -114,7 +114,7 @@ export const changedEverywhereFixture = {
   behaviours: {
     added: [
       {
-        id: 'behavior|sales.refunds.Refund.issue',
+        id: 'behaviour|sales.refunds.Refund.issue',
         type: human('Command'),
         description: agent(ISSUE_DIAGRAM),
         rules: {
@@ -127,7 +127,7 @@ export const changedEverywhereFixture = {
         },
       },
     ],
-    removed: ['behavior|sales.credit-notes.CreditNote.issue'],
-    modified: [{ id: 'behavior|sales.orders.Order.cancel' }],
+    removed: ['behaviour|sales.credit-notes.CreditNote.issue'],
+    modified: [{ id: 'behaviour|sales.orders.Order.cancel' }],
   },
 } satisfies DesignDocInput;

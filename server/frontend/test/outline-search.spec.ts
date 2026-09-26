@@ -48,7 +48,7 @@ describe('searchOutline', () => {
 
   it('wants every word, anywhere in the row, and asks of that row alone', () => {
     expect(found('place command')).toEqual([
-      'behavior|shop.orders.Order.place',
+      'behaviour|shop.orders.Order.place',
     ]);
     expect(found('place nonsense')).toEqual([]);
     // The name searched is the row's own; a behaviour is not found by the
@@ -79,7 +79,7 @@ describe('searchOutline', () => {
 
   it('keeps what a match holds, so opening one shows its contents', () => {
     expect(shown('aggregate')).toEqual([
-      'behavior|shop.orders.Order.place',
+      'behaviour|shop.orders.Order.place',
       'building_block|shop.orders.Order',
       'building_block|shop.orders.Order#property:total',
       'module|shop',

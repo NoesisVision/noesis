@@ -251,7 +251,7 @@ function part(
 
 const MODULE = 'module|';
 const BUILDING_BLOCK = 'building_block|';
-const BEHAVIOUR = 'behavior|';
+const BEHAVIOUR = 'behaviour|';
 
 /** An id's address: its dotted path, without the kind it is written with. */
 const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);

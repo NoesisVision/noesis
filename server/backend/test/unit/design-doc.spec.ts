@@ -14,7 +14,7 @@ import {
  */
 
 const REFUND = 'building_block|sales.refunds.Refund';
-const ISSUE = 'behavior|sales.refunds.Refund.issue';
+const ISSUE = 'behaviour|sales.refunds.Refund.issue';
 
 const design = (patch: Record<string, unknown> = {}) => ({
   id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
@@ -349,7 +349,7 @@ describe('The visibility of a behaviour', () => {
 describe('A design document an agent wrote', () => {
   const ORDERS = 'module|sales.orders';
   const ORDER = 'building_block|sales.orders.Order';
-  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const CANCEL = 'behaviour|sales.orders.Order.cancel';
   const source = { path: 'src/sales/orders/order.ts' };
 
   const AUDITABLE = 'building_block|sales.shared.Auditable';
@@ -479,7 +479,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: { modified: [{ id: missing }] },
-            behaviours: { removed: ['behavior|sales.orders.Order.ship'] },
+            behaviours: { removed: ['behaviour|sales.orders.Order.ship'] },
           }),
           scanned,
         ),
@@ -489,7 +489,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: 'behaviours.removed[behavior|sales.orders.Order.ship]',
+          path: 'behaviours.removed[behaviour|sales.orders.Order.ship]',
           reason: 'unknownElement',
         },
       ]);

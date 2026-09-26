@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import {
-  BehaviorId,
+  BehaviourId,
   BuildingBlockId,
   ElementName,
   ModuleId,
@@ -138,7 +138,7 @@ export const ScannedBuildingBlock = z.strictObject({
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
 export const ScannedBehaviour = z.strictObject({
-  id: BehaviorId,
+  id: BehaviourId,
   buildingBlockId: BuildingBlockId,
   name: ElementName,
   type: BehaviourType,
