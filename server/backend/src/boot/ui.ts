@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import type { ServerConfig } from '#backend/platform/config/config';
-import { StaticAssets } from '#backend/platform/http/static-assets';
+import { pageBuilt, staticAssets } from '#backend/platform/http/static-assets';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { createApp } from './app';
 import { openBrowser } from './browser';
@@ -52,13 +52,13 @@ export class UiHost {
     const app = createApp(services);
 
     const uiDirectory = this.uiDirectory();
-    const ui = new StaticAssets(uiDirectory);
-    if (!(await ui.exists())) {
+    if (!(await pageBuilt(uiDirectory))) {
       log.warn('no built page in {path}; run the build or use `bun run dev`', {
         path: uiDirectory,
       });
     }
 
+    const page = staticAssets(uiDirectory);
     // Bun matches routes by specificity, so `/ui/*` beats `/*` and a surface
     // 404 is never swallowed by the page.
     const server = Bun.serve({
@@ -69,7 +69,7 @@ export class UiHost {
         '/internal/*': app.fetch,
         // A built file, or the page itself: every client route renders the
         // SPA, which then reads the path it was opened at.
-        '/*': (request: Request) => ui.respond(request),
+        '/*': page.fetch,
       },
     });
     const url = `http://localhost:${server.port}/`;

@@ -105,7 +105,7 @@ describe('SPA serving (e2e)', () => {
       headers: { 'accept-encoding': 'gzip' },
     });
     expect(zipped.headers.get('content-encoding')).toBe('gzip');
-    expect(zipped.headers.get('vary')).toContain('accept-encoding');
+    expect(zipped.headers.get('vary')).toMatch(/accept-encoding/i);
     // Bun decodes the body, so the saving is read off the header instead.
     expect(Number(zipped.headers.get('content-length'))).toBeLessThan(raw / 2);
   });

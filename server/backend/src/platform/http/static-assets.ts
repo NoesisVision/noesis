@@ -1,111 +1,69 @@
-import { join, normalize, resolve, sep } from 'node:path';
+import { stat } from 'node:fs/promises';
+import { join } from 'node:path';
+import { type Context, Hono } from 'hono';
+import { serveStatic } from 'hono/serve-static';
 
-/** What is worth compressing: text, and nothing already compressed. */
-const COMPRESSIBLE =
-  /^(?:text\/|application\/(?:javascript|json|xml|wasm)|image\/svg)/;
+const IMMUTABLE = 'public, max-age=31536000, immutable';
 
-/** Below this, the header costs more than the compression saves. */
-const COMPRESS_FROM_BYTES = 1024;
+/**
+ * The built SPA on disk, read on each request. A built file, or its `.gz`
+ * beside it when the browser accepts gzip (the build writes one for every
+ * text asset worth compressing); the page for a client route; or a 404 —
+ * never the page where a file was asked for. A missing chunk answered with
+ * `index.html` reaches the browser as HTML it tries to parse as JavaScript,
+ * and the error names the wrong thing entirely.
+ */
+export function staticAssets(root: string) {
+  const served = {
+    root,
+    precompressed: true,
+    onFound: cacheFor,
+    getContent,
+    isDir,
+  };
+  const file = serveStatic(served);
+  const page = serveStatic({ ...served, path: 'index.html' });
+  return new Hono()
+    .use(file)
+    .use(async (c, next) => {
+      if (namesAFile(c.req.path)) return c.text('Not found', 404);
+      await next();
+    })
+    .use(page)
+    .all('*', (c) => c.text('The page has not been built.', 503));
+}
 
-interface Asset {
-  bytes: Uint8Array;
-  gzipped: Uint8Array | null;
-  type: string;
-  /** A built asset carries its content hash in its name and never changes. */
-  immutable: boolean;
+export function pageBuilt(root: string): Promise<boolean> {
+  return Bun.file(join(root, 'index.html')).exists();
 }
 
 /**
- * The built SPA on disk. Its files are read and compressed once and then held,
- * because the whole directory is a few megabytes, one process serves one
- * session, and a reader opening a document with a diagram in it pulls a
- * handful of chunks at once.
+ * The bytes, or `null` for anything this process cannot read as a file — it is
+ * absent as far as a reader is concerned. Hono's own Bun reader lets the
+ * filesystem's refusal through: a path off the request line need not be one
+ * it will even look at (a null byte, too long a name), and that is a 500
+ * where a 404 is meant.
  */
-export class StaticAssets {
-  /** Named by the build, so a hashed asset name means exactly one body. */
-  private readonly cache = new Map<string, Asset>();
-  private readonly root: string;
-  private readonly indexPath: string;
-
-  constructor(root: string) {
-    this.root = resolve(root);
-    this.indexPath = join(this.root, 'index.html');
+async function getContent(path: string): Promise<ArrayBuffer | null> {
+  try {
+    const file = Bun.file(path);
+    return (await file.exists()) ? await file.arrayBuffer() : null;
+  } catch {
+    return null;
   }
+}
 
-  /**
-   * The built file, the page for a client route, or a 404 — never the page
-   * where a file was asked for. A missing chunk answered with `index.html`
-   * reaches the browser as HTML it tries to parse as JavaScript, and the
-   * error names the wrong thing entirely.
-   */
-  async respond(request: Request): Promise<Response> {
-    const pathname = new URL(request.url).pathname;
-    const acceptEncoding = request.headers.get('accept-encoding') ?? '';
-
-    const file = await this.read(pathname);
-    if (file !== null) return this.asResponse(file, acceptEncoding);
-
-    if (namesAFile(pathname)) {
-      return new Response('Not found', { status: 404 });
-    }
-    const page = await this.load(this.indexPath, false);
-    if (page === null) {
-      return new Response('The page has not been built.', { status: 503 });
-    }
-    return this.asResponse(page, acceptEncoding);
+async function isDir(path: string): Promise<boolean> {
+  try {
+    return (await stat(path)).isDirectory();
+  } catch {
+    return false;
   }
+}
 
-  async exists(): Promise<boolean> {
-    return Bun.file(this.indexPath).exists();
-  }
-
-  private async read(pathname: string): Promise<Asset | null> {
-    const file = this.locate(pathname);
-    if (file === null) return null;
-    return this.load(file, isHashed(pathname));
-  }
-
-  private async load(file: string, immutable: boolean): Promise<Asset | null> {
-    const held = this.cache.get(file);
-    if (held !== undefined) return held;
-
-    const bytes = await readBytes(file);
-    if (bytes === null) return null;
-
-    const handle = Bun.file(file);
-    const type = handle.type || 'application/octet-stream';
-    const asset: Asset = {
-      bytes,
-      gzipped: worthGzipping(type, bytes) ? Bun.gzipSync(bytes) : null,
-      type,
-      immutable,
-    };
-    this.cache.set(file, asset);
-    return asset;
-  }
-
-  /** `null` for a path that climbs out of the directory or names it. */
-  private locate(pathname: string): string | null {
-    const decoded = safeDecode(pathname);
-    if (decoded === null || decoded.endsWith('/')) return null;
-    const file = resolve(join(this.root, normalize(decoded)));
-    return file.startsWith(this.root + sep) ? file : null;
-  }
-
-  private asResponse(asset: Asset, acceptEncoding: string): Response {
-    const headers = new Headers({
-      'content-type': asset.type,
-      'cache-control': asset.immutable
-        ? 'public, max-age=31536000, immutable'
-        : 'no-cache',
-      vary: 'accept-encoding',
-    });
-    if (asset.gzipped !== null && acceptsGzip(acceptEncoding)) {
-      headers.set('content-encoding', 'gzip');
-      return new Response(asset.gzipped, { headers });
-    }
-    return new Response(asset.bytes, { headers });
-  }
+/** A built asset carries its content hash in its name and never changes. */
+function cacheFor(path: string, c: Context): void {
+  c.header('cache-control', isHashed(path) ? IMMUTABLE : 'no-cache');
 }
 
 /**
@@ -115,35 +73,6 @@ export class StaticAssets {
 function namesAFile(pathname: string): boolean {
   const last = pathname.split('/').at(-1) ?? '';
   return last.includes('.');
-}
-
-function worthGzipping(type: string, bytes: Uint8Array): boolean {
-  return COMPRESSIBLE.test(type) && bytes.byteLength >= COMPRESS_FROM_BYTES;
-}
-
-function acceptsGzip(header: string): boolean {
-  return header
-    .split(',')
-    .some((part) => part.trim().split(';')[0]?.trim() === 'gzip');
-}
-
-/**
- * The bytes, or `null` for anything this process cannot read as a file — it is
- * absent as far as a reader is concerned. A path off the request line need not
- * be one the filesystem will even look at: too long a name is an error, not a
- * miss, and it would otherwise leave the route with nothing to answer.
- */
-async function readBytes(
-  file: string,
-): Promise<Uint8Array<ArrayBuffer> | null> {
-  try {
-    const handle = Bun.file(file);
-    return (await handle.exists())
-      ? new Uint8Array(await handle.arrayBuffer())
-      : null;
-  } catch {
-    return null;
-  }
 }
 
 /** As long as the hash vite emits. */
@@ -159,19 +88,10 @@ const BASE64URL = /^[A-Za-z0-9_-]+$/;
  * request line, and a pattern whose leading `-` is also inside its own class
  * backtracks.
  */
-function isHashed(pathname: string): boolean {
-  const name = pathname.slice(pathname.lastIndexOf('/') + 1);
+function isHashed(path: string): boolean {
+  const name = path.slice(path.lastIndexOf('/') + 1);
   const dot = name.lastIndexOf('.');
   const start = dot - HASH_LENGTH;
   if (start < 2 || name[start - 1] !== '-') return false;
   return BASE64URL.test(name.slice(start, dot));
-}
-
-function safeDecode(pathname: string): string | null {
-  try {
-    const decoded = decodeURIComponent(pathname);
-    return decoded.includes('\0') ? null : decoded;
-  } catch {
-    return null;
-  }
 }
