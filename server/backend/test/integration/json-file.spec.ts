@@ -39,7 +39,7 @@ describe('readJsonFile', () => {
 
   it('answers a missing file as unreadable, never null', async () => {
     const result = await readJsonFile(join(dir, 'missing.json'), schema);
-    expect(result._unsafeUnwrapErr()).toStartWith('Unreadable JSON:');
+    expect(result._unsafeUnwrapErr()).toStartWith('Unreadable file:');
   });
 
   it('answers broken JSON as unreadable', async () => {

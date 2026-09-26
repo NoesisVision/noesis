@@ -32,7 +32,7 @@ export async function readJsonFile<T>(
   try {
     text = await readFile(path, 'utf8');
   } catch (error) {
-    return err(`Unreadable JSON: ${String(error)}`);
+    return err(`Unreadable file: ${String(error)}`);
   }
   return parseJson(text, schema);
 }

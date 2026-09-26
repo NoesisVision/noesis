@@ -80,7 +80,7 @@ export class StaticAssets {
     const held = this.cache.get(file);
     if (held !== undefined) return held;
 
-    const bytes = await read(file);
+    const bytes = await readBytes(file);
     if (bytes === null) return null;
 
     const handle = Bun.file(file);
@@ -144,7 +144,9 @@ function acceptsGzip(header: string): boolean {
  * be one the filesystem will even look at: too long a name is an error, not a
  * miss, and it would otherwise leave the route with nothing to answer.
  */
-async function read(file: string): Promise<Uint8Array<ArrayBuffer> | null> {
+async function readBytes(
+  file: string,
+): Promise<Uint8Array<ArrayBuffer> | null> {
   try {
     const handle = Bun.file(file);
     return (await handle.exists())
