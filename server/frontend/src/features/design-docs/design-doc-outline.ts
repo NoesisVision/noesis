@@ -7,7 +7,7 @@ import {
   patternLabelOf,
 } from '#/shared/ui/model-tree/model-outline.ts';
 import type {
-  DesignDocumentInput,
+  DesignDocInput,
   DesignedBehaviourInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
@@ -42,7 +42,7 @@ interface Place {
   parentPath: string | null;
 }
 
-export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
+export function outlineOf(document: DesignDocInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);

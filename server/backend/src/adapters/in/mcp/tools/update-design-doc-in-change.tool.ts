@@ -2,11 +2,10 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
+import { UpdateDesignDoc } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import {
-  type DesignDocSummary,
-  DesignDocSummarySchema,
+  DesignDocSummary,
   type DesignDocsService,
   InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
@@ -26,7 +25,7 @@ import {
 const SUBJECT = 'design document';
 
 const outputSchema = z
-  .object({ designDoc: DesignDocSummarySchema })
+  .object({ designDoc: DesignDocSummary })
   .describe('The design document as stored.');
 
 export function updateDesignDocInChangeTool(
@@ -64,7 +63,7 @@ async function update(
   id: DesignDocId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(DesignDocumentContent, path);
+  const document = await files.read(UpdateDesignDoc, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

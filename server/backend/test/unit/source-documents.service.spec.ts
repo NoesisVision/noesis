@@ -1,18 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
-  type Document,
-  DocumentContentSchema,
-} from '#backend/app/information-sources/document';
-import { DocumentId } from '#backend/app/information-sources/document-id';
-import { type DocumentsService } from '#backend/app/information-sources/documents.service';
+  CreateSourceDocument,
+  type SourceDocument,
+  UpdateSourceDocument,
+} from '#backend/app/information-sources/source-document';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
+import { type SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeId.parse('2026-01-01-booking');
 const NOPE = ChangeId.parse('2026-01-01-nope');
-const ID = DocumentId.parse('2026-09-18-booking-rules-v2');
+const ID = SourceDocumentId.parse('2026-09-18-booking-rules-v2');
 
-const document: Document = {
+const document: SourceDocument = {
   id: ID,
   title: 'Booking Rules — v2',
   date: '2026-09-18',
@@ -20,7 +21,7 @@ const document: Document = {
 };
 
 let t: TestNoesis;
-let service: DocumentsService;
+let service: SourceDocumentsService;
 
 beforeEach(async () => {
   t = await testNoesis();
@@ -30,7 +31,7 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-describe('DocumentsService', () => {
+describe('SourceDocumentsService', () => {
   it('lists oldest first, by id', async () => {
     for (const id of [
       '2026-09-10-newer',
@@ -41,15 +42,15 @@ describe('DocumentsService', () => {
     }
 
     expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      DocumentId.parse('2026-09-01-older'),
-      DocumentId.parse('2026-09-10-also-newer'),
-      DocumentId.parse('2026-09-10-newer'),
+      SourceDocumentId.parse('2026-09-01-older'),
+      SourceDocumentId.parse('2026-09-10-also-newer'),
+      SourceDocumentId.parse('2026-09-10-newer'),
     ]);
   });
 
   it('refuses a document that does not exist', async () => {
     await expect(
-      service.findById(CHANGE, DocumentId.parse('2026-01-01-missing')),
+      service.findById(CHANGE, SourceDocumentId.parse('2026-01-01-missing')),
     ).rejects.toMatchObject({ entity: 'document' });
   });
 
@@ -63,8 +64,8 @@ describe('DocumentsService', () => {
   });
 });
 
-describe('DocumentsService.create', () => {
-  const content = DocumentContentSchema.parse({
+describe('SourceDocumentsService.create', () => {
+  const content = CreateSourceDocument.parse({
     title: 'Booking Rules — v2',
     date: '2026-09-18',
     content: 'A slot may be booked once.',
@@ -73,7 +74,7 @@ describe('DocumentsService.create', () => {
   it("mints the id from today's date and the title, not the document's date", async () => {
     const created = await service.create(CHANGE, content);
 
-    const id = DocumentId.parse('2026-09-24-booking-rules-v2');
+    const id = SourceDocumentId.parse('2026-09-24-booking-rules-v2');
     expect(created).toEqual({ id, title: content.title, date: content.date });
     expect(await service.findById(CHANGE, id)).toEqual({
       id,
@@ -85,7 +86,7 @@ describe('DocumentsService.create', () => {
     await service.create(CHANGE, content);
 
     expect((await service.create(CHANGE, content)).id).toBe(
-      DocumentId.parse('2026-09-24-booking-rules-v2-2'),
+      SourceDocumentId.parse('2026-09-24-booking-rules-v2-2'),
     );
   });
 
@@ -113,8 +114,8 @@ describe('DocumentsService.create', () => {
   });
 });
 
-describe('DocumentsService.update', () => {
-  const content = DocumentContentSchema.parse({
+describe('SourceDocumentsService.update', () => {
+  const content = UpdateSourceDocument.parse({
     title: 'Booking rules',
     date: '2026-09-18',
     content: 'A slot may be booked once.',
@@ -137,7 +138,7 @@ describe('DocumentsService.update', () => {
   });
 
   it('refuses an id that names no document in the change, and creates nothing', async () => {
-    const missing = DocumentId.parse('2026-09-24-missing');
+    const missing = SourceDocumentId.parse('2026-09-24-missing');
 
     await expect(
       service.update(CHANGE, missing, content),

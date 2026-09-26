@@ -6,33 +6,33 @@ import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import {
-  type Document,
-  type DocumentContent,
-  DocumentSchema,
-} from './document';
-import { DocumentId } from './document-id';
-import type { DocumentsRepository } from './documents.repository';
+  type CreateSourceDocument,
+  SourceDocument,
+  type UpdateSourceDocument,
+} from './source-document';
+import { SourceDocumentId } from './source-document-id';
+import type { SourceDocumentsRepository } from './source-documents.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
-export const DocumentSummarySchema = DocumentSchema.pick({
+export const SourceDocumentSummary = SourceDocument.pick({
   id: true,
   title: true,
   date: true,
 });
-export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
+export type SourceDocumentSummary = z.infer<typeof SourceDocumentSummary>;
 
 /**
  * Callers validate before calling in. The service mints the id of a new
  * document; an update names it.
  */
-export class DocumentsService {
-  private readonly docs: DocumentsRepository;
+export class SourceDocumentsService {
+  private readonly docs: SourceDocumentsRepository;
   private readonly changesService: ChangesService;
   private readonly today: Today;
   private readonly writes = new Serial();
 
   constructor(
-    docs: DocumentsRepository,
+    docs: SourceDocumentsRepository,
     changesService: ChangesService,
     today: Today,
   ) {
@@ -48,17 +48,17 @@ export class DocumentsService {
    */
   create(
     change: ChangeId,
-    document: DocumentContent,
-  ): Promise<DocumentSummary> {
+    document: CreateSourceDocument,
+  ): Promise<SourceDocumentSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
       const id = await freeSlugId(
-        DocumentId,
+        SourceDocumentId,
         document.title,
         this.today(),
         async (candidate) => (await this.docs.get(change, candidate)) !== null,
       );
-      const created: Document = { id, ...document };
+      const created: SourceDocument = { id, ...document };
       await this.docs.save(change, created);
       return summarize(created);
     });
@@ -67,32 +67,32 @@ export class DocumentsService {
   /** Replaces the document at `id` whole; never creates one. */
   update(
     change: ChangeId,
-    id: DocumentId,
-    document: DocumentContent,
-  ): Promise<DocumentSummary> {
+    id: SourceDocumentId,
+    document: UpdateSourceDocument,
+  ): Promise<SourceDocumentSummary> {
     return this.writes.run(async () => {
       await this.getOrThrow(change, id);
-      const updated: Document = { id, ...document };
+      const updated: SourceDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
     });
   }
 
   /** Oldest first: the id starts with the creation date. */
-  async list(change: ChangeId): Promise<DocumentSummary[]> {
+  async list(change: ChangeId): Promise<SourceDocumentSummary[]> {
     await this.changesService.assertExists(change);
     return (await this.docs.list(change)).map(summarize);
   }
 
-  findById(change: ChangeId, id: DocumentId): Promise<Document> {
+  findById(change: ChangeId, id: SourceDocumentId): Promise<SourceDocument> {
     return this.getOrThrow(change, id);
   }
 
   /** The change is checked first, so a missing change is the one named. */
   private async getOrThrow(
     change: ChangeId,
-    id: DocumentId,
-  ): Promise<Document> {
+    id: SourceDocumentId,
+  ): Promise<SourceDocument> {
     await this.changesService.assertExists(change);
     const document = await this.docs.get(change, id);
     if (document === null) throw new NotFoundError('document', id, change);
@@ -100,6 +100,6 @@ export class DocumentsService {
   }
 }
 
-function summarize({ id, title, date }: Document): DocumentSummary {
+function summarize({ id, title, date }: SourceDocument): SourceDocumentSummary {
   return { id, title, date };
 }

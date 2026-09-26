@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import { DesignDoc } from '#backend/app/design-docs/design-doc';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   designDocFixture,
@@ -39,8 +39,7 @@ const addingIssue = (behaviour: object) =>
     },
   });
 
-const isValid = (document: unknown) =>
-  DesignDocument.safeParse(document).success;
+const isValid = (document: unknown) => DesignDoc.safeParse(document).success;
 
 describe('A design document', () => {
   it('is identified by its creation date and name', () => {
@@ -54,14 +53,14 @@ describe('A design document', () => {
   });
 
   it('is not implemented until marked so', () => {
-    expect(DesignDocument.parse(design()).implemented).toBe(false);
-    expect(
-      DesignDocument.parse(design({ implemented: true })).implemented,
-    ).toBe(true);
+    expect(DesignDoc.parse(design()).implemented).toBe(false);
+    expect(DesignDoc.parse(design({ implemented: true })).implemented).toBe(
+      true,
+    );
   });
 
   it('changes nothing in a part it leaves out', () => {
-    const parsed = DesignDocument.parse(addingRefund({}));
+    const parsed = DesignDoc.parse(addingRefund({}));
 
     expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
     expect(parsed.buildingBlocks.added[0]?.properties).toEqual({
@@ -92,15 +91,15 @@ describe('A design document', () => {
   });
 
   it('reads back exactly as it was written', () => {
-    const parsed = DesignDocument.parse(designDocFixture);
+    const parsed = DesignDoc.parse(designDocFixture);
 
-    expect(z.encode(DesignDocument, parsed)).toEqual(designDocFixture);
+    expect(z.encode(DesignDoc, parsed)).toEqual(designDocFixture);
   });
 });
 
 describe('The elements a design changes', () => {
   it('adds and modifies an element whole, and removes one by its id', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       design({
         modules: {
           added: [{ id: 'module|sales.refunds', name: { value: 'refunds' } }],
@@ -134,7 +133,7 @@ describe('The elements a design changes', () => {
   });
 
   it('removes a property, a rule or a scenario by its name', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       addingRefund({
         properties: { removed: ['legacyFlag'] },
         rules: { removed: ['Refund only paid orders'] },
@@ -149,7 +148,7 @@ describe('The elements a design changes', () => {
   });
 
   it('holds the scenarios of a building block, a behaviour and a rule', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       addingRefund({
         rules: {
           modified: [
@@ -171,7 +170,7 @@ describe('The elements a design changes', () => {
   });
 
   it('adds and removes an implemented interface by its id', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       design({
         buildingBlocks: {
           modified: [
@@ -237,14 +236,13 @@ describe('The elements a design changes', () => {
 
 describe('A field of a design', () => {
   it('is unchanged when the design leaves it out', () => {
-    const block = DesignDocument.parse(addingRefund({})).buildingBlocks
-      .added[0]!;
+    const block = DesignDoc.parse(addingRefund({})).buildingBlocks.added[0]!;
 
     expect(block.description).toEqual({ changed: false });
   });
 
   it('is a change when it has a value, written by the agent unless a human wrote it', () => {
-    const block = DesignDocument.parse(
+    const block = DesignDoc.parse(
       addingRefund({
         description: { value: 'Money back.' },
         type: { value: 'aggregate', author: 'human' },
@@ -404,10 +402,7 @@ describe('A design document an agent wrote', () => {
   });
 
   const validate = (document: unknown, systemModel?: SystemModel) =>
-    DesignDocument.validateAgentGenerated(
-      DesignDocument.parse(document),
-      systemModel,
-    );
+    DesignDoc.validateAgentGenerated(DesignDoc.parse(document), systemModel);
 
   describe('for a green field, where nothing is scanned yet', () => {
     it('adds elements', () => {

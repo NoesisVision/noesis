@@ -38,7 +38,7 @@ export const DesignedRule = z.strictObject({
   name: ElementName,
   ruleType: DesignDocField(RuleType),
   description: DesignDocField(z.string()),
-  scenarios: changeSet(DesignedScenario, ElementName),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
 });
 export type DesignedRule = z.infer<typeof DesignedRule>;
 
@@ -54,10 +54,10 @@ export const DesignedBuildingBlock = z.strictObject({
   name: DesignDocField(ElementName),
   type: DesignDocField(BuildingBlockType),
   description: DesignDocField(z.string()),
-  implements: changeSet(BuildingBlockId),
-  properties: changeSet(DesignedProperty, ElementName),
-  rules: changeSet(DesignedRule, ElementName),
-  scenarios: changeSet(DesignedScenario, ElementName),
+  implements: changeSetSchema(BuildingBlockId),
+  properties: changeSetSchema(DesignedProperty, ElementName),
+  rules: changeSetSchema(DesignedRule, ElementName),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
 });
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 
@@ -67,35 +67,35 @@ export const DesignedBehaviour = z.strictObject({
   type: DesignDocField(BehaviourType),
   description: DesignDocField(z.string()),
   visibility: DesignDocField(Visibility),
-  input: changeSet(BuildingBlockRef),
-  output: changeSet(BuildingBlockRef),
-  rules: changeSet(DesignedRule, ElementName),
-  scenarios: changeSet(DesignedScenario, ElementName),
+  input: changeSetSchema(BuildingBlockRef),
+  output: changeSetSchema(BuildingBlockRef),
+  rules: changeSetSchema(DesignedRule, ElementName),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
 });
 export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
 
-const designDocumentSchema = z.strictObject({
+const designDocSchema = z.strictObject({
   id: DesignDocId.describe(
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
   ),
   name: z.string().describe('The design document name.'),
   description: z.string(),
-  modules: changeSet(DesignedDomainModule, ModuleId),
-  buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
-  behaviours: changeSet(DesignedBehaviour, BehaviorId),
+  modules: changeSetSchema(DesignedDomainModule, ModuleId),
+  buildingBlocks: changeSetSchema(DesignedBuildingBlock, BuildingBlockId),
+  behaviours: changeSetSchema(DesignedBehaviour, BehaviorId),
   implemented: z
     .boolean()
     .default(false)
     .describe('Whether the design is marked as implemented.'),
 });
 
-export const DesignDocument = Object.assign(designDocumentSchema, {
+export const DesignDoc = Object.assign(designDocSchema, {
   /**
    * The rules a design document written by an agent follows. Without a
    * system model it is a green field: there is nothing to modify or remove.
    */
   validateAgentGenerated: (
-    document: DesignDocumentContent,
+    document: DesignDocCommand,
     systemModel?: SystemModel,
   ): DesignDocViolation[] => [
     ...changesMissingFrom(systemModel, document),
@@ -103,7 +103,7 @@ export const DesignDocument = Object.assign(designDocumentSchema, {
     ...humanAuthoredFields(document),
   ],
 });
-export type DesignDocument = z.infer<typeof designDocumentSchema>;
+export type DesignDoc = z.infer<typeof designDocSchema>;
 
 export interface DesignDocViolation {
   path: string;
@@ -114,14 +114,18 @@ export interface DesignDocViolation {
     | 'humanAuthor';
 }
 
-export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
+export type DesignDocInput = z.input<typeof designDocSchema>;
 
-/** The working file of a design document: the server mints the id of a new one; an update names it beside the file. */
-// TODO: Czy to jest optymalne rozwiązanie? Może przenieść jako kontrakt serwisu aplikacyjnego - command CreateDesignDocument.
-export const DesignDocumentContent = designDocumentSchema.omit({
-  id: true,
-});
-export type DesignDocumentContent = z.infer<typeof DesignDocumentContent>;
+/** The working file of a new design document: the server mints its id. */
+export const CreateDesignDoc = designDocSchema.omit({ id: true });
+export type CreateDesignDoc = z.infer<typeof CreateDesignDoc>;
+
+/** The working file of a design document update: the id travels beside it. */
+export const UpdateDesignDoc = designDocSchema.omit({ id: true });
+export type UpdateDesignDoc = z.infer<typeof UpdateDesignDoc>;
+
+/** Either working file: what the rules for a design an agent wrote check. */
+type DesignDocCommand = Omit<DesignDoc, 'id'>;
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
@@ -149,12 +153,12 @@ type ChangeSet<
   >
 >;
 
-function changeSet<Item extends z.ZodType>(item: Item): ChangeSet<Item>;
-function changeSet<Item extends z.ZodType, Key extends z.ZodType>(
+function changeSetSchema<Item extends z.ZodType>(item: Item): ChangeSet<Item>;
+function changeSetSchema<Item extends z.ZodType, Key extends z.ZodType>(
   item: Item,
   key: Key,
 ): ChangeSet<Item, Key>;
-function changeSet(item: z.ZodType, key?: z.ZodType) {
+function changeSetSchema(item: z.ZodType, key?: z.ZodType) {
   if (key === undefined) {
     return z
       .strictObject({
@@ -180,7 +184,7 @@ function changeSet(item: z.ZodType, key?: z.ZodType) {
  */
 function changesMissingFrom(
   systemModel: SystemModel | undefined,
-  document: DesignDocumentContent,
+  document: DesignDocCommand,
 ): DesignDocViolation[] {
   const reason =
     systemModel === undefined ? 'changedInGreenField' : 'unknownElement';
@@ -257,16 +261,14 @@ function isObject(value: unknown): value is object {
 }
 
 function unchangedFieldsInAddedItems(
-  document: DesignDocumentContent,
+  document: DesignDocCommand,
 ): DesignDocViolation[] {
   return [...fieldsOf(document, '')]
     .filter(([path, field]) => !field.changed && isInAddedItem(path))
     .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' }));
 }
 
-function humanAuthoredFields(
-  document: DesignDocumentContent,
-): DesignDocViolation[] {
+function humanAuthoredFields(document: DesignDocCommand): DesignDocViolation[] {
   return [...fieldsOf(document, '')]
     .filter(([, field]) => field.changed && field.author === 'human')
     .map(([path]) => ({ path, reason: 'humanAuthor' }));

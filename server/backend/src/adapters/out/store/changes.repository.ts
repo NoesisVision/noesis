@@ -1,4 +1,4 @@
-import { type Change, ChangeSchema } from '#backend/app/changes/change';
+import { Change } from '#backend/app/changes/change';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
 import { JsonCollection } from '#backend/platform/files/json-collection';
@@ -13,11 +13,7 @@ export class NoesisChangesRepository implements ChangesRepository {
   private readonly changes: JsonCollection<Change>;
 
   constructor(noesis: NoesisDir) {
-    this.changes = new JsonCollection(
-      ChangeSchema,
-      changesDir(noesis),
-      'change',
-    );
+    this.changes = new JsonCollection(Change, changesDir(noesis), 'change');
   }
 
   get(id: ChangeId): Promise<Change | null> {

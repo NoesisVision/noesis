@@ -1,7 +1,7 @@
 import { type Context, Hono } from 'hono';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { SearchService } from '#backend/app/search/search.service';
 import { serverLogger } from '#backend/platform/logging/server-logger';
@@ -16,7 +16,7 @@ export interface UiDeps {
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+  documentsService: SourceDocumentsService;
 }
 
 export function createUiApp(deps: UiDeps) {

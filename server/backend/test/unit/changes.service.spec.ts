@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   type Change,
-  ChangeContentSchema,
-  NewChangeSchema,
+  UpdateChange,
+  CreateChange,
 } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
@@ -28,7 +28,7 @@ const change = (id: string, overrides: Partial<Change> = {}): Change => ({
 
 describe('ChangesService', () => {
   it('lets a tracker key repeat across changes', async () => {
-    const draft = NewChangeSchema.parse({
+    const draft = CreateChange.parse({
       name: 'Payment retry',
       type: 'fix',
       key: 'NOE-1',
@@ -108,7 +108,7 @@ describe('ChangesService', () => {
 });
 
 describe('ChangesService.create', () => {
-  const draft = NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' });
+  const draft = CreateChange.parse({ name: 'Payment retry', type: 'fix' });
 
   it("mints the id from today's date and the name, and starts in discovery", async () => {
     const created = await t.changesService.create(draft);
@@ -150,12 +150,12 @@ describe('ChangesService.create', () => {
 describe('ChangesService.update', () => {
   it('replaces the change at its id, which a rename leaves as it was', async () => {
     const { id } = await t.changesService.create(
-      NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' }),
+      CreateChange.parse({ name: 'Payment retry', type: 'fix' }),
     );
 
     const updated = await t.changesService.update(
       id,
-      ChangeContentSchema.parse({
+      UpdateChange.parse({
         name: 'Payment retries',
         type: 'feature',
         status: 'design',
@@ -176,7 +176,7 @@ describe('ChangesService.update', () => {
     await expect(
       t.changesService.update(
         missing,
-        ChangeContentSchema.parse({ name: 'Missing', type: 'fix' }),
+        UpdateChange.parse({ name: 'Missing', type: 'fix' }),
       ),
     ).rejects.toMatchObject({ entity: 'change' });
     expect(await t.changesService.list()).toEqual([]);

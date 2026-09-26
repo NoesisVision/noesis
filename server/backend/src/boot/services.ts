@@ -1,10 +1,10 @@
 import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { ChangesService } from '#backend/app/changes/changes.service';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import { DesignDoc } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { DocumentSchema } from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
+import { SourceDocument } from '#backend/app/information-sources/source-document';
+import { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { SearchService } from '#backend/app/search/search.service';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -13,7 +13,7 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 export interface Services {
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+  documentsService: SourceDocumentsService;
   searchService: SearchService;
 }
 
@@ -22,12 +22,12 @@ export function createServices(noesis: NoesisDir): Services {
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new ChangeOwnedRepository(
     noesis,
-    DesignDocument,
+    DesignDoc,
     'design-doc',
   );
   const documentsRepository = new ChangeOwnedRepository(
     noesis,
-    DocumentSchema,
+    SourceDocument,
     'document',
   );
 
@@ -44,7 +44,7 @@ export function createServices(noesis: NoesisDir): Services {
       changesService,
       localToday,
     ),
-    documentsService: new DocumentsService(
+    documentsService: new SourceDocumentsService(
       documentsRepository,
       changesService,
       localToday,

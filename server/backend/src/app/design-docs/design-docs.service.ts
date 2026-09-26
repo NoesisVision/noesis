@@ -6,22 +6,23 @@ import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import {
-  DesignDocument,
-  type DesignDocumentContent,
+  type CreateDesignDoc,
+  DesignDoc,
   type DesignDocViolation,
+  type UpdateDesignDoc,
 } from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
-export const DesignDocSummarySchema = DesignDocument.pick({
+export const DesignDocSummary = DesignDoc.pick({
   id: true,
   name: true,
   implemented: true,
 });
-export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
+export type DesignDocSummary = z.infer<typeof DesignDocSummary>;
 
-/** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
+/** A design document an agent wrote breaks the rules of `DesignDoc.validateAgentGenerated`. */
 export class InvalidDesignDocError extends Error {
   readonly violations: DesignDocViolation[];
 
@@ -64,7 +65,7 @@ export class DesignDocsService {
    */
   create(
     change: ChangeId,
-    document: DesignDocumentContent,
+    document: CreateDesignDoc,
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
@@ -75,7 +76,7 @@ export class DesignDocsService {
         this.today(),
         async (candidate) => (await this.docs.get(change, candidate)) !== null,
       );
-      const created: DesignDocument = { id, ...document };
+      const created: DesignDoc = { id, ...document };
       await this.docs.save(change, created);
       return summarize(created);
     });
@@ -88,12 +89,12 @@ export class DesignDocsService {
   update(
     change: ChangeId,
     id: DesignDocId,
-    document: DesignDocumentContent,
+    document: UpdateDesignDoc,
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.getOrThrow(change, id);
       assertValid(document);
-      const updated: DesignDocument = { id, ...document };
+      const updated: DesignDoc = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
     });
@@ -105,7 +106,7 @@ export class DesignDocsService {
     return (await this.docs.list(change)).map(summarize);
   }
 
-  findById(change: ChangeId, id: DesignDocId): Promise<DesignDocument> {
+  findById(change: ChangeId, id: DesignDocId): Promise<DesignDoc> {
     return this.getOrThrow(change, id);
   }
 
@@ -113,7 +114,7 @@ export class DesignDocsService {
   private async getOrThrow(
     change: ChangeId,
     id: DesignDocId,
-  ): Promise<DesignDocument> {
+  ): Promise<DesignDoc> {
     await this.changesService.assertExists(change);
     const document = await this.docs.get(change, id);
     if (document === null)
@@ -122,16 +123,12 @@ export class DesignDocsService {
   }
 }
 
-function summarize({
-  id,
-  name,
-  implemented,
-}: DesignDocument): DesignDocSummary {
+function summarize({ id, name, implemented }: DesignDoc): DesignDocSummary {
   return { id, name, implemented };
 }
 
 /** No system model is scanned yet, so every design is a green field. */
-function assertValid(document: DesignDocumentContent): void {
-  const violations = DesignDocument.validateAgentGenerated(document);
+function assertValid(document: Omit<DesignDoc, 'id'>): void {
+  const violations = DesignDoc.validateAgentGenerated(document);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

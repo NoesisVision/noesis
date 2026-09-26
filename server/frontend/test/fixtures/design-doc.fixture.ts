@@ -1,6 +1,6 @@
 import {
-  DesignDocument,
-  type DesignDocumentInput,
+  DesignDoc,
+  type DesignDocInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
 
@@ -24,7 +24,7 @@ export const designDocFixture = {
   },
   behaviours: { added: [], removed: [], modified: [] },
   implemented: false,
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;
 
 /**
  * The same document as a tree, as the client rebuilds it: the two modules the
@@ -71,7 +71,7 @@ const designDocOutlineFixture: OutlineNode[] = [
 
 /** The whole of what `GET /ui/changes/:change/design-docs/:id` answers. */
 export const designDocPayloadFixture = {
-  document: DesignDocument.parse(designDocFixture),
+  document: DesignDoc.parse(designDocFixture),
 };
 
 /** What the page is handed: the answer, with the tree rebuilt from it. */

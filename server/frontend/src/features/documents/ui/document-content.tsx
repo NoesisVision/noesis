@@ -3,11 +3,15 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
-import type { Document } from '#backend/app/information-sources/document.ts';
+import type { SourceDocument } from '#backend/app/information-sources/source-document.ts';
 import { DocumentsIcon } from '../documents.model.ts';
 
 /** The document is imported material: its markdown is shown as written. */
-export function DocumentContent({ document: doc }: { document: Document }) {
+export function DocumentContent({
+  document: doc,
+}: {
+  document: SourceDocument;
+}) {
   return (
     <ReadingPane
       title={doc.title}

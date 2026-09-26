@@ -8,15 +8,12 @@ import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import {
-  DesignDocument,
-  type DesignDocumentInput,
+  DesignDoc,
+  type DesignDocInput,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import {
-  type Document,
-  DocumentSchema,
-} from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
+import { SourceDocument } from '#backend/app/information-sources/source-document';
+import { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The day every service in a spec mints its ids on. */
@@ -28,11 +25,11 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  designDocsRepository: ChangeOwnedRepository<DesignDocument>;
-  documentsRepository: ChangeOwnedRepository<Document>;
+  designDocsRepository: ChangeOwnedRepository<DesignDoc>;
+  documentsRepository: ChangeOwnedRepository<SourceDocument>;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+  documentsService: SourceDocumentsService;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
   /** Writes a change with placeholder data. */
@@ -41,14 +38,11 @@ export interface TestNoesis {
     overrides?: Partial<Change>,
   ): Promise<ChangeId>;
   /** Writes a design document into the change, bypassing the service. */
-  writeDesignDoc(
-    change: ChangeId,
-    document: DesignDocumentInput,
-  ): Promise<void>;
+  writeDesignDoc(change: ChangeId, document: DesignDocInput): Promise<void>;
   /** Writes a document into the change, bypassing the service. */
   writeDocument(
     change: ChangeId,
-    document: z.input<typeof DocumentSchema>,
+    document: z.input<typeof SourceDocument>,
   ): Promise<void>;
   cleanup(): Promise<void>;
 }
@@ -60,12 +54,12 @@ export async function testNoesis(): Promise<TestNoesis> {
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new ChangeOwnedRepository(
     noesis,
-    DesignDocument,
+    DesignDoc,
     'design-doc',
   );
   const documentsRepository = new ChangeOwnedRepository(
     noesis,
-    DocumentSchema,
+    SourceDocument,
     'document',
   );
   const changesService = new ChangesService(
@@ -86,7 +80,7 @@ export async function testNoesis(): Promise<TestNoesis> {
       changesService,
       TODAY,
     ),
-    documentsService: new DocumentsService(
+    documentsService: new SourceDocumentsService(
       documentsRepository,
       changesService,
       TODAY,
@@ -107,9 +101,9 @@ export async function testNoesis(): Promise<TestNoesis> {
       return parsed;
     },
     writeDesignDoc: (change, document) =>
-      designDocsRepository.save(change, DesignDocument.parse(document)),
+      designDocsRepository.save(change, DesignDoc.parse(document)),
     writeDocument: (change, document) =>
-      documentsRepository.save(change, DocumentSchema.parse(document)),
+      documentsRepository.save(change, SourceDocument.parse(document)),
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
 }

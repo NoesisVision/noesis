@@ -3,12 +3,11 @@ import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import {
-  DesignDocumentContent,
+  CreateDesignDoc,
   type DesignDocViolation,
 } from '#backend/app/design-docs/design-doc';
 import {
-  type DesignDocSummary,
-  DesignDocSummarySchema,
+  DesignDocSummary,
   type DesignDocsService,
   InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
@@ -49,7 +48,7 @@ export function violationsFailure(
 }
 
 const outputSchema = z
-  .object({ designDoc: DesignDocSummarySchema })
+  .object({ designDoc: DesignDocSummary })
   .describe('The design document as stored, with the id the server minted.');
 
 export function createDesignDocInChangeTool(
@@ -82,7 +81,7 @@ async function create(
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(DesignDocumentContent, path);
+  const document = await files.read(CreateDesignDoc, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }

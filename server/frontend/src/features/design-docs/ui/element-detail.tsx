@@ -9,7 +9,7 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import { CHANGE_COLOUR } from '#/shared/ui/model-tree/outline-change.ts';
 import type {
-  DesignDocumentInput,
+  DesignDocInput,
   DesignedBehaviourInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
@@ -54,7 +54,7 @@ export function ElementDetail({
   node: OutlineNode;
   /** The line from the top of the tree down to the node, the node last. */
   path: readonly OutlineNode[];
-  document: DesignDocumentInput;
+  document: DesignDocInput;
   /** Takes the reader to another element, as the tree itself would. */
   onSelect: (path: string) => void;
 }) {
@@ -128,7 +128,7 @@ function Body({
   document: doc,
 }: {
   node: OutlineNode;
-  document: DesignDocumentInput;
+  document: DesignDocInput;
 }) {
   if (node.change === 'removed') {
     return (
@@ -210,7 +210,7 @@ function PartBody({
   document: doc,
 }: {
   node: OutlineNode;
-  document: DesignDocumentInput;
+  document: DesignDocInput;
 }) {
   const owner = node.parentPath;
   if (owner === null) return null;

@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { type Change, ChangeSchema } from '#backend/app/changes/change';
+import { Change } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
@@ -13,7 +13,7 @@ const inputSchema = z
 const outputSchema = z
   .object({
     changes: z
-      .array(ChangeSchema)
+      .array(Change)
       .describe('Every change, newest first. Empty when there is none yet.'),
   })
   .describe('The changes of this repository.');

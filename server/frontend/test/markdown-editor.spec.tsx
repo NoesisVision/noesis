@@ -1,7 +1,7 @@
 import { expect, it } from 'bun:test';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { DocumentId } from '#backend/app/information-sources/document-id.ts';
+import type { SourceDocumentId } from '#backend/app/information-sources/source-document-id.ts';
 import { DocumentContent } from '../src/features/documents/ui/document-content';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { MarkdownEditor } from '../src/shared/ui/markdown-editor';
@@ -69,7 +69,7 @@ it('heads the document page itself and opens the editor under it', () => {
   const html = render(
     <DocumentContent
       document={{
-        id: '2026-09-12-payment-retry-policy' as DocumentId,
+        id: '2026-09-12-payment-retry-policy' as SourceDocumentId,
         title: 'Payment retry policy',
         date: '2026-09-12',
         content: '# Payment retry policy\n\nRetry twice, then stop.',
@@ -85,7 +85,7 @@ it('says an empty document is empty rather than opening an editor on it', () => 
   const html = render(
     <DocumentContent
       document={{
-        id: '2026-09-12-empty' as DocumentId,
+        id: '2026-09-12-empty' as SourceDocumentId,
         title: 'Empty',
         date: '2026-09-12',
         content: '   ',

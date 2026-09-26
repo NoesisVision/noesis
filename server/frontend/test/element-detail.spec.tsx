@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { DesignDocInput } from '#backend/app/design-docs/design-doc.ts';
 import { ElementDetail } from '../src/features/design-docs/ui/element-detail';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
@@ -65,7 +65,7 @@ const document = {
   },
   behaviours: { added: [], removed: [], modified: [] },
   implemented: false,
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;
 
 const node = (over: Partial<OutlineNode> & Pick<OutlineNode, 'path'>) =>
   ({

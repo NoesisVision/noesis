@@ -2,13 +2,12 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentContentSchema } from '#backend/app/information-sources/document';
-import { DocumentId } from '#backend/app/information-sources/document-id';
+import { UpdateSourceDocument } from '#backend/app/information-sources/source-document';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import {
-  type DocumentsService,
-  type DocumentSummary,
-  DocumentSummarySchema,
-} from '#backend/app/information-sources/documents.service';
+  type SourceDocumentsService,
+  SourceDocumentSummary,
+} from '#backend/app/information-sources/source-documents.service';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -21,11 +20,11 @@ import { inChangeInput, withChange } from './change-scoped';
 const SUBJECT = 'document';
 
 const outputSchema = z
-  .object({ document: DocumentSummarySchema })
+  .object({ document: SourceDocumentSummary })
   .describe('The document as stored.');
 
 export function updateDocumentInChangeTool(
-  documents: DocumentsService,
+  documents: SourceDocumentsService,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -38,7 +37,7 @@ export function updateDocumentInChangeTool(
         SUBJECT,
         '{ "title", "date", "content" }, without "id".',
       ).extend({
-        id: DocumentId.describe(
+        id: SourceDocumentId.describe(
           `The id of the document to update, as ${CREATE_DOCUMENT_IN_CHANGE} answered it.`,
         ),
       }),
@@ -53,13 +52,13 @@ export function updateDocumentInChangeTool(
 }
 
 async function update(
-  documents: DocumentsService,
+  documents: SourceDocumentsService,
   files: SessionFiles,
   change: ChangeId,
-  id: DocumentId,
+  id: SourceDocumentId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(DocumentContentSchema, path);
+  const document = await files.read(UpdateSourceDocument, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
@@ -77,7 +76,10 @@ async function update(
   }
 }
 
-function updated(change: ChangeId, document: DocumentSummary): CallToolResult {
+function updated(
+  change: ChangeId,
+  document: SourceDocumentSummary,
+): CallToolResult {
   return success(
     `Updated document ${document.id} ("${document.title}") in ${change}.`,
     { document },

@@ -4,7 +4,7 @@ import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import type { SearchService } from '#backend/app/search/search.service';
 
 // No surface is guarded: the server runs on the developer's own machine.
@@ -12,7 +12,7 @@ export interface AppDeps {
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+  documentsService: SourceDocumentsService;
 }
 
 // Keep the .route() chain unbroken: Hono infers the route tree from this

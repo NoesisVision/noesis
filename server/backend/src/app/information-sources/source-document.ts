@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { DocumentId } from './document-id';
+import { SourceDocumentId } from './source-document-id';
 
-export const DocumentSchema = z
+export const SourceDocument = z
   .object({
-    id: DocumentId.describe(
+    id: SourceDocumentId.describe(
       "The document id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'; unique within the change. Minted by the server when the document is created and never changed, so it keeps the original title.",
     ),
     title: z
@@ -26,8 +26,12 @@ export const DocumentSchema = z
   .describe(
     'A document of a change: the working file an agent writes, and graph/changes/<change>/<id>.document.json.',
   );
-export type Document = z.infer<typeof DocumentSchema>;
+export type SourceDocument = z.infer<typeof SourceDocument>;
 
-/** The working file of a document: the server mints the id of a new one; an update names it beside the file. */
-export const DocumentContentSchema = DocumentSchema.omit({ id: true });
-export type DocumentContent = z.infer<typeof DocumentContentSchema>;
+/** The working file of a new document: the server mints its id. */
+export const CreateSourceDocument = SourceDocument.omit({ id: true });
+export type CreateSourceDocument = z.infer<typeof CreateSourceDocument>;
+
+/** The working file of a document update: the id travels beside it. */
+export const UpdateSourceDocument = SourceDocument.omit({ id: true });
+export type UpdateSourceDocument = z.infer<typeof UpdateSourceDocument>;

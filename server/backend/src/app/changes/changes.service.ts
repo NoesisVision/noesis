@@ -1,10 +1,10 @@
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
-import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
+import type { SourceDocumentsRepository } from '#backend/app/information-sources/source-documents.repository';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import type { Change, ChangeContent, NewChange } from './change';
+import type { Change, UpdateChange, CreateChange } from './change';
 import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
@@ -12,14 +12,14 @@ import type { ChangesRepository } from './changes.repository';
 export class ChangesService {
   private readonly changes: ChangesRepository;
   private readonly designDocs: DesignDocsRepository;
-  private readonly documents: DocumentsRepository;
+  private readonly documents: SourceDocumentsRepository;
   private readonly today: Today;
   private readonly writes = new Serial();
 
   constructor(
     changes: ChangesRepository,
     designDocs: DesignDocsRepository,
-    documents: DocumentsRepository,
+    documents: SourceDocumentsRepository,
     today: Today,
   ) {
     this.changes = changes;
@@ -78,7 +78,7 @@ export class ChangesService {
    * Creates the change in discovery, at an id minted from today's date and
    * its name. A name already used that day gets the next free suffix.
    */
-  create(change: NewChange): Promise<Change> {
+  create(change: CreateChange): Promise<Change> {
     return this.writes.run(async () => {
       const id = await freeSlugId(
         ChangeId,
@@ -93,7 +93,7 @@ export class ChangesService {
   }
 
   /** Replaces the change at `id` whole; never creates one. */
-  update(id: ChangeId, change: ChangeContent): Promise<Change> {
+  update(id: ChangeId, change: UpdateChange): Promise<Change> {
     return this.writes.run(async () => {
       await this.assertExists(id);
       const updated: Change = { id, ...change };

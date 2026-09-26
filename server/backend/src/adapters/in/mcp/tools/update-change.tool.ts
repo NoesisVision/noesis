@@ -1,11 +1,7 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  type Change,
-  ChangeContentSchema,
-  ChangeSchema,
-} from '#backend/app/changes/change';
+import { UpdateChange, Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { NotFoundError } from '#backend/app/not-found-error';
@@ -17,7 +13,7 @@ import { workingFilePath } from './change-scoped';
 const SUBJECT = 'change';
 
 const outputSchema = z
-  .object({ change: ChangeSchema })
+  .object({ change: Change })
   .describe('The change as stored.');
 
 export function updateChangeTool(
@@ -56,7 +52,7 @@ async function update(
   id: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const change = await files.read(ChangeContentSchema, path);
+  const change = await files.read(UpdateChange, path);
   if (change.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${change.error}`);
   }

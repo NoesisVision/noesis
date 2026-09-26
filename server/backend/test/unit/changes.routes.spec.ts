@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentId } from '#backend/app/information-sources/document-id';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import { SearchService } from '#backend/app/search/search.service';
 import {
   decodedDesignDocFixture,
@@ -69,7 +69,7 @@ describe('ui changes routes', () => {
     await t.createChange('2026-09-14-newer', { name: 'Newer change' });
     await t.writeDesignDoc(older, designDocFixture);
     const document = {
-      id: DocumentId.parse('2026-09-12-stakeholder-interview'),
+      id: SourceDocumentId.parse('2026-09-12-stakeholder-interview'),
       title: 'Stakeholder interview',
       date: '2026-09-12',
       content: 'What they said.',

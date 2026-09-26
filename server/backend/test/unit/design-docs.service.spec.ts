@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
-  DesignDocument,
-  DesignDocumentContent,
-  type DesignDocumentInput,
+  DesignDoc,
+  CreateDesignDoc,
+  type DesignDocInput,
   type DesignDocViolation,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
@@ -26,8 +26,8 @@ const MINTED = DesignDocId.parse('2026-09-24-partial-refunds-for-orders');
 const STORED = decodedDesignDocFixture.id;
 
 /** A design as an agent's working file holds it: everything but the id. */
-const contentOf = ({ id: _id, ...content }: DesignDocumentInput) =>
-  DesignDocumentContent.parse(content);
+const contentOf = ({ id: _id, ...content }: DesignDocInput) =>
+  CreateDesignDoc.parse(content);
 
 /** What an agent may write while nothing is scanned: every field its own, adding elements only. */
 const byAgent = contentOf(greenFieldDesignDocFixture);
@@ -122,7 +122,7 @@ describe('Creating a design document', () => {
 
     expect(created.id).toBe(MINTED);
     expect(await service.findById(CHANGE, MINTED)).toEqual(
-      DesignDocument.parse({ ...greenFieldDesignDocFixture, id: MINTED }),
+      DesignDoc.parse({ ...greenFieldDesignDocFixture, id: MINTED }),
     );
   });
 

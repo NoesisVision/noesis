@@ -16,9 +16,11 @@ already in the change, named by that id.
 
 ## Contract
 
-- Shape: `${CLAUDE_PLUGIN_ROOT}/contracts/document.schema.json`, a JSON
-  Schema. Read it now, not from memory. It is the working file: `title`,
-  `date` and `content`, never an id.
+- New document: `${CLAUDE_PLUGIN_ROOT}/contracts/create-source-document.schema.json`.
+- Update: `${CLAUDE_PLUGIN_ROOT}/contracts/update-source-document.schema.json`.
+
+Both are JSON Schema. Read the one you need now, not from memory. Each is
+the working file: `title`, `date` and `content`, never an id.
 
 ## Steps
 

@@ -10,7 +10,7 @@ import {
   type SessionFiles,
 } from '#backend/adapters/in/mcp/session-files';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { DocumentId } from '#backend/app/information-sources/document-id';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,
@@ -286,7 +286,7 @@ describe('create_document_in_change', () => {
     expect(textOf(result)).toContain(`Created document ${DOCUMENT_ID}`);
     const stored = await noesis.documentsService.findById(
       change,
-      DocumentId.parse(DOCUMENT_ID),
+      SourceDocumentId.parse(DOCUMENT_ID),
     );
     expect(stored.content).toBe(document.content);
   });

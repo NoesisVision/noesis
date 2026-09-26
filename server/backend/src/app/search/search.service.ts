@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Deliberately generic: the command palette, the only consumer, renders every
 // entity as a titled row that may navigate somewhere.
-export const searchResultSchema = z.object({
+export const SearchResult = z.object({
   type: z.string(),
   id: z.string(),
   title: z.string(),
@@ -10,7 +10,7 @@ export const searchResultSchema = z.object({
   href: z.string().optional(),
 });
 
-export type SearchResult = z.infer<typeof searchResultSchema>;
+export type SearchResult = z.infer<typeof SearchResult>;
 
 export type SearchProvider = (query: string) => Promise<SearchResult[]>;
 

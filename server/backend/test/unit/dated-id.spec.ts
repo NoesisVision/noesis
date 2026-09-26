@@ -2,12 +2,12 @@ import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { DocumentId } from '#backend/app/information-sources/document-id';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 
 describe.each([
   ['ChangeId', ChangeId],
   ['DesignDocId', DesignDocId],
-  ['DocumentId', DocumentId],
+  ['SourceDocumentId', SourceDocumentId],
 ] as const)('%s', (_name, Id) => {
   it('parses a creation date, then a slug', () => {
     for (const good of [

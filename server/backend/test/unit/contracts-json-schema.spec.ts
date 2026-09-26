@@ -44,7 +44,7 @@ describe('the generated JSON Schema contracts', () => {
   });
 
   it('shows a value object as the string an agent writes', () => {
-    const { properties } = schemaOf('design-document') as {
+    const { properties } = schemaOf('create-design-doc') as {
       properties: {
         modules: {
           properties: {
@@ -62,24 +62,26 @@ describe('the generated JSON Schema contracts', () => {
 
   it('asks for no id in any working file: the server mints it', () => {
     for (const name of [
-      'new-change',
-      'change',
-      'document',
-      'design-document',
+      'create-change',
+      'update-change',
+      'create-source-document',
+      'update-source-document',
+      'create-design-doc',
+      'update-design-doc',
     ]) {
       const { properties } = schemaOf(name) as {
         properties: Record<string, unknown>;
       };
       expect(Object.keys(properties)).not.toContain('id');
     }
-    const { properties } = schemaOf('new-change') as {
+    const { properties } = schemaOf('create-change') as {
       properties: Record<string, unknown>;
     };
     expect(Object.keys(properties)).not.toContain('status');
   });
 
   it('keeps the descriptions an agent reads', () => {
-    const { properties } = schemaOf('change') as {
+    const { properties } = schemaOf('update-change') as {
       properties: { name: { description?: string } };
     };
     expect(properties.name.description).toBeTruthy();

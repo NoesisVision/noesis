@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentId } from '#backend/app/information-sources/document-id';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { routeParams } from '../route-params';
 
 export interface DocumentsDeps {
-  documentsService: DocumentsService;
+  documentsService: SourceDocumentsService;
 }
 
 /**
@@ -24,7 +24,7 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
     .get(
       '/:id',
-      routeParams({ change: ChangeId, id: DocumentId }),
+      routeParams({ change: ChangeId, id: SourceDocumentId }),
       async (c) => {
         const { change, id } = c.req.valid('param');
         return c.json({

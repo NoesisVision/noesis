@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import type { Document } from '#backend/app/information-sources/document';
-import { DocumentId } from '#backend/app/information-sources/document-id';
+import type { SourceDocument } from '#backend/app/information-sources/source-document';
+import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import { SearchService } from '#backend/app/search/search.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -15,8 +15,8 @@ const CHANGE = '2026-01-01-booking';
 const ID = '2026-09-18-booking-rules';
 const BASE = `/changes/${CHANGE}/documents`;
 
-const document: Document = {
-  id: DocumentId.parse(ID),
+const document: SourceDocument = {
+  id: SourceDocumentId.parse(ID),
   title: 'Booking Rules',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -79,7 +79,7 @@ describe('ui documents routes', () => {
     expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
     expect((await t.documentsService.list(change)).map((d) => d.id)).toEqual([
-      DocumentId.parse(ID),
+      SourceDocumentId.parse(ID),
     ]);
   });
 

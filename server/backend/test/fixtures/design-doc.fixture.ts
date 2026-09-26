@@ -1,6 +1,6 @@
 import {
-  DesignDocument,
-  type DesignDocumentInput,
+  DesignDoc,
+  type DesignDocInput,
 } from '#backend/app/design-docs/design-doc';
 
 /*
@@ -236,17 +236,17 @@ export const designDocFixture = {
     ],
   },
   implemented: false,
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;
 
 /** The decoded form, as the service takes it. */
-export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
+export const decodedDesignDocFixture = DesignDoc.decode(designDocFixture);
 
 /*
  * What an agent may write while nothing is scanned yet: the same design with
  * every field written by the agent, adding elements only.
  */
 const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
-export const greenFieldDesignDocFixture: DesignDocumentInput = {
+export const greenFieldDesignDocFixture: DesignDocInput = {
   ...byAgentOnly,
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },

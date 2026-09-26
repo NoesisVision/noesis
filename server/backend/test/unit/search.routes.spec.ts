@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
 import {
   SearchService,
-  searchResultSchema,
+  SearchResult,
 } from '#backend/app/search/search.service';
 
-const responseSchema = z.object({ results: z.array(searchResultSchema) });
+const responseSchema = z.object({ results: z.array(SearchResult) });
 
 describe('ui search routes', () => {
   it('answers with an empty result list while no provider is registered', async () => {

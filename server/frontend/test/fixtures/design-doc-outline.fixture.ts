@@ -1,4 +1,4 @@
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { DesignDocInput } from '#backend/app/design-docs/design-doc.ts';
 
 /*
  * A design that changes something at every level, in the JSON form the wire
@@ -130,4 +130,4 @@ export const changedEverywhereFixture = {
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
     modified: [{ id: 'behavior|sales.orders.Order.cancel' }],
   },
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;

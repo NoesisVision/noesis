@@ -2,12 +2,11 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentContentSchema } from '#backend/app/information-sources/document';
+import { CreateSourceDocument } from '#backend/app/information-sources/source-document';
 import {
-  type DocumentsService,
-  type DocumentSummary,
-  DocumentSummarySchema,
-} from '#backend/app/information-sources/documents.service';
+  type SourceDocumentsService,
+  SourceDocumentSummary,
+} from '#backend/app/information-sources/source-documents.service';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
@@ -19,11 +18,11 @@ import { NO_ID, inChangeInput, withChange } from './change-scoped';
 const SUBJECT = 'document';
 
 const outputSchema = z
-  .object({ document: DocumentSummarySchema })
+  .object({ document: SourceDocumentSummary })
   .describe('The document as stored, with the id the server minted.');
 
 export function createDocumentInChangeTool(
-  documents: DocumentsService,
+  documents: SourceDocumentsService,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -47,19 +46,22 @@ export function createDocumentInChangeTool(
 }
 
 async function create(
-  documents: DocumentsService,
+  documents: SourceDocumentsService,
   files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(DocumentContentSchema, path);
+  const document = await files.read(CreateSourceDocument, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
   return created(change, await documents.create(change, document.value));
 }
 
-function created(change: ChangeId, document: DocumentSummary): CallToolResult {
+function created(
+  change: ChangeId,
+  document: SourceDocumentSummary,
+): CallToolResult {
   return success(
     `Created document ${document.id} ("${document.title}") in ${change}. Refer to it by this id.`,
     { document },
