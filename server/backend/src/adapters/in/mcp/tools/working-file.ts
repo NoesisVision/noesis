@@ -1,9 +1,9 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { type ZodType, z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { LIST_CHANGES } from '#backend/adapters/in/mcp/tool-names';
+import { failure } from '#backend/adapters/in/mcp/tool-result';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import { LIST_CHANGES } from '../tool-names';
-import { failure } from '../tool-result';
 
 /**
  * The `path` parameter of every tool that reads a working file. The scratch

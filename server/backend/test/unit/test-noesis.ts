@@ -12,7 +12,7 @@ import { FindSourceDocumentHandler } from '#backend/app/changes/find-source-docu
 import { ListChangesHandler } from '#backend/app/changes/list-changes';
 import { Change } from '#backend/app/changes/model/change';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import type { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
+import { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
 import {
   DesignDoc,
   type DesignDocInput,
@@ -22,6 +22,7 @@ import { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
 import { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import { SearchService } from '#backend/app/search/search.service';
+import { readJsonFile } from '#backend/platform/files/json-file';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The day every handler in a spec mints its ids on. */
@@ -74,11 +75,11 @@ export async function testNoesis(): Promise<TestNoesis> {
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
 
-  const stored = async (id: ChangeId): Promise<ChangeSnapshot> => {
-    const change = await changesRepository.get(id);
-    if (change === null) throw new Error(`no change ${id}`);
-    return change.toSnapshot();
-  };
+  const changesDir = noesis.resolve('graph', 'changes');
+  const stored = async (id: ChangeId): Promise<ChangeSnapshot> =>
+    (
+      await readJsonFile(join(changesDir, `${id}.change.json`), ChangeSnapshot)
+    )._unsafeUnwrap();
   const own = async (
     id: ChangeId,
     add: (snapshot: ChangeSnapshot) => ChangeSnapshot,
@@ -107,7 +108,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     findDesignDoc: new FindDesignDocHandler(changesRepository),
     findSourceDocument: new FindSourceDocumentHandler(changesRepository),
     searchService: new SearchService(),
-    changesDir: noesis.resolve('graph', 'changes'),
+    changesDir,
     writeChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);
       const change = Change.create(parsed, {

@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
+import { routeParams } from '#backend/adapters/in/ui/route-params';
 import { FindDesignDoc } from '#backend/app/changes/find-design-doc';
 import type { DesignDoc } from '#backend/app/changes/model/design-doc';
 import type { Handler } from '#backend/app/handler';
-import { routeParams } from '../route-params';
 
 export interface DesignDocsDeps {
   findDesignDoc: Handler<FindDesignDoc, DesignDoc>;

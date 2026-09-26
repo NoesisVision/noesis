@@ -1,12 +1,12 @@
 // Stays first: the stdout guard has to be in place before any other module is
 // evaluated.
-import './boot/process';
+import '#backend/boot/process';
+import { installLifecycle } from '#backend/boot/lifecycle';
+import { serveMcp } from '#backend/boot/mcp';
+import { createServices } from '#backend/boot/services';
+import { UiHost } from '#backend/boot/ui';
+import { openWorkspace } from '#backend/boot/workspace';
 import { version } from '../package.json';
-import { installLifecycle } from './boot/lifecycle';
-import { serveMcp } from './boot/mcp';
-import { createServices } from './boot/services';
-import { UiHost } from './boot/ui';
-import { openWorkspace } from './boot/workspace';
 
 // The composition root. Boot is in two halves: the MCP surface starts at once
 // and answers the SDK's era probe in milliseconds; the ui comes up only once a

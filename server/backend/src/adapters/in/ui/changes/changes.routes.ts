@@ -1,4 +1,6 @@
 import { Hono } from 'hono';
+import { jsonBody } from '#backend/adapters/in/ui/json-body';
+import { routeParams } from '#backend/adapters/in/ui/route-params';
 import {
   FindChange,
   type FindChangeResult,
@@ -9,8 +11,6 @@ import {
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
-import { jsonBody } from '../json-body';
-import { routeParams } from '../route-params';
 
 export interface ChangesDeps {
   createChange: Handler<CreateChange, ChangeSummary>;

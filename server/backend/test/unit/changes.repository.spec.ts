@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { Change } from '#backend/app/changes/model/change';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { CreateChange } from '#backend/app/changes/model/change-snapshot';
 import { CreateSourceDocument } from '#backend/app/changes/model/source-document';
-import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { JsonFileError } from '#backend/platform/files/json-file';
 import {
   decodedDesignDocFixture,
@@ -104,8 +104,9 @@ describe('NoesisChangesRepository', () => {
     );
     await t.changesRepository.save(change);
 
-    const expected = { ...change.toSnapshot(), version: 1 };
-    expect((await read(id)).toSnapshot()).toEqual(expected);
+    const expected = change.toSnapshot();
+    expect(await t.stored(id)).toEqual(expected);
+    expect(expected.version).toBe(1);
     expect(await readdir(t.changesDir)).toEqual([
       '2026-01-01-with-file.change.json',
     ]);
@@ -168,7 +169,7 @@ describe('NoesisChangesRepository', () => {
 
   it('refuses data whose id is not one, and data that is not a change', async () => {
     const typed = await t.writeChange('2026-01-01-typed');
-    const before = (await read(typed)).toSnapshot();
+    const before = await t.stored(typed);
 
     await expect(
       t.changesRepository.save(

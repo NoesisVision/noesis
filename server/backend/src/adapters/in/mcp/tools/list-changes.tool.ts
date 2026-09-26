@@ -1,13 +1,20 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import {
+  defineTool,
+  READ_ONLY,
+  type ToolRegistration,
+} from '#backend/adapters/in/mcp/tool';
+import {
+  CREATE_CHANGE,
+  LIST_CHANGES,
+} from '#backend/adapters/in/mcp/tool-names';
+import { success } from '#backend/adapters/in/mcp/tool-result';
+import {
   type ChangeEntry,
   ChangeWithEntries,
 } from '#backend/app/changes/model/change-entry';
 import type { Handler } from '#backend/app/handler';
-import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
-import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
-import { success } from '../tool-result';
 
 const inputSchema = z
   .object({})

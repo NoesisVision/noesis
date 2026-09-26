@@ -1,4 +1,4 @@
-import { NotFoundError } from '#backend/app/not-found-error';
+import { NotFoundError } from '#backend/app/changes/not-found-error';
 import type { ChangeEntry } from './change-entry';
 import type { ChangeId } from './change-id';
 import type {
@@ -35,39 +35,41 @@ import {
  * holds the version it was read at, which a save checks.
  */
 export class Change {
-  private state: ChangeSnapshot;
+  private state: Omit<ChangeSnapshot, 'version'>;
+  /** The version it was read at; 0 for a change never saved. */
+  readonly version: number;
 
-  private constructor(state: ChangeSnapshot) {
+  private constructor(state: Omit<ChangeSnapshot, 'version'>, version: number) {
     this.state = state;
+    this.version = version;
   }
 
   /** Holds a copy: the arrays it owns are replaced, never changed in place. */
-  static fromSnapshot(snapshot: ChangeSnapshot): Change {
-    return new Change({ ...snapshot });
+  static fromSnapshot({ version, ...state }: ChangeSnapshot): Change {
+    return new Change(state, version);
   }
 
-  /** A change not saved yet: version 0, in discovery, owning nothing. */
+  /** A change not saved yet: in discovery, owning nothing. */
   static create(id: ChangeId, change: CreateChange): Change {
-    return new Change({
-      id,
-      ...change,
-      status: 'discovery',
-      version: 0,
-      designDocs: [],
-      sourceDocuments: [],
-    });
+    return new Change(
+      {
+        id,
+        ...change,
+        status: 'discovery',
+        designDocs: [],
+        sourceDocuments: [],
+      },
+      0,
+    );
   }
 
   get id(): ChangeId {
     return this.state.id;
   }
 
-  get version(): number {
-    return this.state.version;
-  }
-
+  /** What a save writes: the change whole, at the version after the one read. */
   toSnapshot(): ChangeSnapshot {
-    return { ...this.state };
+    return { ...this.state, version: this.version + 1 };
   }
 
   summary(): ChangeSummary {

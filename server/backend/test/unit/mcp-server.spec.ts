@@ -9,10 +9,10 @@ import {
   MAX_WORKING_FILE_BYTES,
   type SessionFiles,
 } from '#backend/adapters/in/mcp/session-files';
+import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
-import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,

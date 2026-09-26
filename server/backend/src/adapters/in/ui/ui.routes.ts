@@ -1,4 +1,9 @@
 import { type Context, Hono } from 'hono';
+import { createChangesApp } from '#backend/adapters/in/ui/changes/changes.routes';
+import { createDesignDocsApp } from '#backend/adapters/in/ui/design-docs/design-docs.routes';
+import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
+import { createSourceDocumentsApp } from '#backend/adapters/in/ui/source-documents/source-documents.routes';
+import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import type {
   FindChange,
   FindChangeResult,
@@ -12,15 +17,10 @@ import type {
 } from '#backend/app/changes/model/change-snapshot';
 import type { DesignDoc } from '#backend/app/changes/model/design-doc';
 import type { SourceDocument } from '#backend/app/changes/model/source-document';
-import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
+import { NotFoundError } from '#backend/app/changes/not-found-error';
 import type { Handler } from '#backend/app/handler';
-import { NotFoundError } from '#backend/app/not-found-error';
 import type { SearchService } from '#backend/app/search/search.service';
 import { serverLogger } from '#backend/platform/logging/server-logger';
-import { createChangesApp } from './changes/changes.routes';
-import { createDesignDocsApp } from './design-docs/design-docs.routes';
-import { createSearchApp } from './search/search.routes';
-import { createSourceDocumentsApp } from './source-documents/source-documents.routes';
 
 const log = serverLogger('ui');
 

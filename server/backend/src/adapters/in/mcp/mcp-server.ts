@@ -1,5 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { addDesignDocToChangeTool } from '#backend/adapters/in/mcp/tools/add-design-doc-to-change.tool';
+import { addSourceDocumentToChangeTool } from '#backend/adapters/in/mcp/tools/add-source-document-to-change.tool';
+import { createChangeTool } from '#backend/adapters/in/mcp/tools/create-change.tool';
+import { listChangesTool } from '#backend/adapters/in/mcp/tools/list-changes.tool';
+import { updateChangeTool } from '#backend/adapters/in/mcp/tools/update-change.tool';
+import { updateDesignDocInChangeTool } from '#backend/adapters/in/mcp/tools/update-design-doc-in-change.tool';
+import { updateSourceDocumentInChangeTool } from '#backend/adapters/in/mcp/tools/update-source-document-in-change.tool';
 import type { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import type { AddSourceDocumentToChange } from '#backend/app/changes/add-source-document-to-change';
 import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
@@ -14,14 +20,8 @@ import type { UpdateDesignDocInChange } from '#backend/app/changes/update-design
 import type { UpdateSourceDocumentInChange } from '#backend/app/changes/update-source-document-in-change';
 import type { Handler } from '#backend/app/handler';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import type { SessionFiles } from './session-files';
 import type { ToolRegistration } from './tool';
-import { addDesignDocToChangeTool } from './tools/add-design-doc-to-change.tool';
-import { addSourceDocumentToChangeTool } from './tools/add-source-document-to-change.tool';
-import { createChangeTool } from './tools/create-change.tool';
-import { listChangesTool } from './tools/list-changes.tool';
-import { updateChangeTool } from './tools/update-change.tool';
-import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
-import { updateSourceDocumentInChangeTool } from './tools/update-source-document-in-change.tool';
 
 export interface McpServerDeps {
   version: string;

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   CreateChange,
@@ -6,7 +7,6 @@ import {
 } from '#backend/app/changes/model/change-snapshot';
 import { CreateDesignDoc } from '#backend/app/changes/model/design-doc';
 import { CreateSourceDocument } from '#backend/app/changes/model/source-document';
-import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { greenFieldDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';

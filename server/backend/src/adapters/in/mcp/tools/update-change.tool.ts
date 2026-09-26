@@ -1,5 +1,16 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import {
+  UPDATE,
+  defineTool,
+  type ToolRegistration,
+} from '#backend/adapters/in/mcp/tool';
+import {
+  CREATE_CHANGE,
+  LIST_CHANGES,
+  UPDATE_CHANGE,
+} from '#backend/adapters/in/mcp/tool-names';
+import { success } from '#backend/adapters/in/mcp/tool-result';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   ChangeSummary,
@@ -7,9 +18,6 @@ import {
 } from '#backend/app/changes/model/change-snapshot';
 import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
 import type { Handler } from '#backend/app/handler';
-import { UPDATE, defineTool, type ToolRegistration } from '../tool';
-import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
-import { success } from '../tool-result';
 import { fromWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';

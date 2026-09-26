@@ -2,10 +2,13 @@ import type {
   CallToolResult,
   ServerContext,
 } from '@modelcontextprotocol/server';
+import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import type { DesignDocViolation } from '#backend/app/changes/model/design-doc';
 import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
-import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
-import { type Entity, NotFoundError } from '#backend/app/not-found-error';
+import {
+  type Entity,
+  NotFoundError,
+} from '#backend/app/changes/not-found-error';
 import { serverLogger } from '#backend/platform/logging/logging';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,

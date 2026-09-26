@@ -69,7 +69,8 @@ function brokenRules(write: () => unknown): DesignDocViolation['reason'][] {
 }
 
 describe('A new change', () => {
-  it('starts in discovery at version 0, owning nothing', () => {
+  it('starts in discovery, owning nothing, and saves as version 1', () => {
+    expect(change.version).toBe(0);
     expect(change.toSnapshot()).toEqual({
       id: ID,
       name: 'Booking',
@@ -77,7 +78,7 @@ describe('A new change', () => {
       type: 'feature',
       status: 'discovery',
       description: '',
-      version: 0,
+      version: 1,
       designDocs: [],
       sourceDocuments: [],
     });

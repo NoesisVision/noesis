@@ -1,4 +1,4 @@
-import type { ChangeId } from './changes/model/change-id';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
 
 /** What a lookup looks for, as a message names it. */
 export type Entity = 'change' | 'source document' | 'design document';

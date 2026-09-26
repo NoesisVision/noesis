@@ -1,6 +1,6 @@
 import type { Change } from '#backend/app/changes/model/change';
 import type { ChangeId } from '#backend/app/changes/model/change-id';
-import { NotFoundError } from '#backend/app/not-found-error';
+import { NotFoundError } from './not-found-error';
 
 export interface ChangesRepository {
   get(id: ChangeId): Promise<Change | null>;

@@ -1,4 +1,4 @@
-import type { ChangeId } from './changes/model/change-id';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
 
 /**
  * A save of a change read before another save of it. Surfaced, never retried:

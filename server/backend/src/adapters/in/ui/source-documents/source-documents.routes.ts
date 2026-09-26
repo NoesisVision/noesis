@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
+import { routeParams } from '#backend/adapters/in/ui/route-params';
 import { FindSourceDocument } from '#backend/app/changes/find-source-document';
 import type { SourceDocument } from '#backend/app/changes/model/source-document';
 import type { Handler } from '#backend/app/handler';
-import { routeParams } from '../route-params';
 
 export interface SourceDocumentsDeps {
   findSourceDocument: Handler<FindSourceDocument, SourceDocument>;
