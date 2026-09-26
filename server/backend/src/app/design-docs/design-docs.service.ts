@@ -23,11 +23,6 @@ export const DesignDocSummarySchema = z.object({
 });
 export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 
-export interface DesignDocDetail {
-  summary: DesignDocSummary;
-  document: DesignDocument;
-}
-
 /** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
 export class InvalidDesignDocError extends Error {
   readonly violations: DesignDocViolation[];
@@ -112,9 +107,8 @@ export class DesignDocsService {
     return (await this.docs.list(change)).map(summarize);
   }
 
-  async findById(change: ChangeId, id: DesignDocId): Promise<DesignDocDetail> {
-    const document = await this.getOrThrow(change, id);
-    return { summary: summarize(document), document };
+  findById(change: ChangeId, id: DesignDocId): Promise<DesignDocument> {
+    return this.getOrThrow(change, id);
   }
 
   /** The change is checked first, so a missing change is the one named. */

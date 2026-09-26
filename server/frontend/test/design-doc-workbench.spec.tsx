@@ -103,7 +103,7 @@ describe('DesignDocWorkbench', () => {
 });
 
 describe('DesignDocWorkbench, opened where it was left', () => {
-  const KEY = `noesis.designDocs.${designDocDetailFixture.summary.id}.expanded`;
+  const KEY = `noesis.designDocs.${designDocDetailFixture.document.id}.expanded`;
   const had = Object.hasOwn(globalThis, 'window');
 
   const leftShut = () => {

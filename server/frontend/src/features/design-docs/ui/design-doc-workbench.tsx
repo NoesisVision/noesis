@@ -64,8 +64,8 @@ export function DesignDocWorkbench({
 }) {
   const { document: doc, outline } = detail;
   const memory = useMemo(
-    () => expansionMemory(`noesis.designDocs.${detail.summary.id}.expanded`),
-    [detail.summary.id],
+    () => expansionMemory(`noesis.designDocs.${detail.document.id}.expanded`),
+    [detail.document.id],
   );
   const outlineBody = useRef<HTMLDivElement>(null);
   /* The row the reader picked in the outline itself, which is the one move the
@@ -114,7 +114,7 @@ export function DesignDocWorkbench({
         <IconHeading
           title={doc.name}
           icon={DesignDocsIcon}
-          description={detail.summary.implemented ? 'Implemented' : 'Draft'}
+          description={detail.document.implemented ? 'Implemented' : 'Draft'}
         />
         <ActionIcon
           variant="default"

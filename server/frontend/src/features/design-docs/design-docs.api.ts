@@ -18,7 +18,7 @@ export const designDocsList = (change: string | null) =>
   });
 
 /**
- * The whole answer, not just the document: the tree the reader navigates by
+ * The document with its outline beside it: the tree the reader navigates by
  * and the bodies it opens are one snapshot, and asking twice would give them
  * two. The tree is the document itself rebuilt, so it is projected here, once
  * per answer, rather than on every render of the page that reads it.

@@ -1,7 +1,5 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { routeParams } from '../route-params';
@@ -30,15 +28,8 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
       routeParams({ change: ChangeId, id: DesignDocId }),
       async (c) => {
         const { change, id } = c.req.valid('param');
-        const detail = await designDocsService.findById(change, id);
-        // Encoded, so the client's type says what the JSON holds: element
-        // ids as strings, not the value objects the service decodes them to.
-        // The document travels whole and nothing else: the tree a reader
-        // navigates it by is the same document rebuilt, which the page does
-        // for itself.
         return c.json({
-          summary: detail.summary,
-          document: z.encode(DesignDocument, detail.document),
+          document: await designDocsService.findById(change, id),
         });
       },
     );

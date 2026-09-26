@@ -90,7 +90,7 @@ describe('Reading the design documents of a change', () => {
   it('finds one whole, and refuses an id the change does not have', async () => {
     await t.writeDesignDoc(CHANGE, designDocFixture);
 
-    expect((await service.findById(CHANGE, STORED))?.document).toEqual(
+    expect(await service.findById(CHANGE, STORED)).toEqual(
       decodedDesignDocFixture,
     );
     await expect(
@@ -121,7 +121,7 @@ describe('Creating a design document', () => {
     const created = await service.create(CHANGE, byAgent);
 
     expect(created.id).toBe(MINTED);
-    expect((await service.findById(CHANGE, MINTED))?.document).toEqual(
+    expect(await service.findById(CHANGE, MINTED)).toEqual(
       DesignDocument.parse({ ...greenFieldDesignDocFixture, id: MINTED }),
     );
   });

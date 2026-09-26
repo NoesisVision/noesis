@@ -54,13 +54,13 @@ describe('ui design-docs routes', () => {
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
     const detail = (await res.json()) as {
-      summary: { id: string };
       document: {
+        id: string;
         description: string;
         buildingBlocks: { added: { id: string }[] };
       };
     };
-    expect(detail.summary.id).toBe(created.id);
+    expect(detail.document.id).toBe(created.id);
     expect(detail.document.description).toBe(designDocFixture.description);
     // Element ids travel as the strings they are written as.
     expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
@@ -82,7 +82,6 @@ describe('ui design-docs routes', () => {
     // rebuilt; the page does that for itself.
     expect(Object.keys((await res.json()) as object).toSorted()).toEqual([
       'document',
-      'summary',
     ]);
   });
 

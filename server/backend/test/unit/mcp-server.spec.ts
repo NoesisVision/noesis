@@ -483,7 +483,7 @@ describe('create_design_doc_in_change', () => {
       change,
       DESIGN_DOC_ID,
     );
-    expect(stored?.summary.name).toBe(designDoc.name);
+    expect(stored.name).toBe(designDoc.name);
   });
 
   it('reports an unknown change in-band', async () => {

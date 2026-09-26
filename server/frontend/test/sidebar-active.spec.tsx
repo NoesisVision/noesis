@@ -63,7 +63,6 @@ beforeAll(() => {
     if (url.includes('/design-docs/')) {
       return Promise.resolve(
         Response.json({
-          summary: { id: DOC, name: 'Partial refunds', implemented: false },
           document: EMPTY_DESIGN_DOC,
           outline: [],
         }),
@@ -72,12 +71,6 @@ beforeAll(() => {
     if (url.includes('/documents/')) {
       return Promise.resolve(
         Response.json({
-          summary: {
-            id: 'notes',
-            title: 'Notes',
-            date: '2026-01-01',
-            path: '/x',
-          },
           document: {
             document_id: 'notes',
             title: 'Notes',
