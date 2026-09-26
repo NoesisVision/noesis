@@ -179,7 +179,10 @@ describe('ui changes routes', () => {
     const missing = await app.request('/changes/2026-09-01-nope');
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ error: 'change_not_found' });
-    expect((await app.request('/changes/audit-log')).status).toBe(404);
-    expect((await app.request('/changes/Not%20An%20Id')).status).toBe(404);
+    for (const malformed of ['audit-log', 'Not%20An%20Id']) {
+      const res = await app.request(`/changes/${malformed}`);
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'change_not_found' });
+    }
   });
 });

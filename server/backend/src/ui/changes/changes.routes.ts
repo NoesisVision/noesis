@@ -21,8 +21,8 @@ export function createChangesApp(deps: ChangesDeps) {
       return c.json({ changes: await changesService.listWithEntries() });
     })
 
-    .get('/:change', routeParams({ change: ChangeId }), async (c) => {
-      const { change } = c.req.valid('param');
-      return c.json({ change: await changesService.findById(change) });
+    .get('/:id', routeParams({ id: ChangeId }), async (c) => {
+      const { id } = c.req.valid('param');
+      return c.json({ change: await changesService.findById(id) });
     });
 }
