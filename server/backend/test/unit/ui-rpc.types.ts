@@ -21,9 +21,16 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
   await client.changes[':change']['design-docs'].$get({
     param: { change: 'payment-retry' },
   });
-  // The ui surface only reads; the agent writes through the MCP tools.
-  // @ts-expect-error No change is created here.
-  await client.changes.$post({ json: { name: 'Retry', type: 'feature' } });
+  const created = await client.changes.$post({
+    json: { name: 'Retry', type: 'feature', key: '', description: '' },
+  });
+  if (created.status === 201) {
+    const id: string = (await created.json()).change.id;
+    void id;
+  }
+  // @ts-expect-error A change is created from its name and type, at least.
+  await client.changes.$post({ json: { name: 'Retry' } });
+  // What a change owns is written only by the agent, through the MCP tools.
   // @ts-expect-error No design document is created here.
   await client.changes[':change']['design-docs'].$post({
     param: { change: 'payment-retry' },

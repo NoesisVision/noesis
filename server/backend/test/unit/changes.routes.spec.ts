@@ -29,6 +29,13 @@ const document = {
   content: 'What they said.',
 };
 
+const post = (body: unknown) =>
+  app.request('/changes', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
 describe('ui changes routes', () => {
   it('returns an empty list when there are no changes', async () => {
     const response = await app.request('/changes');
@@ -37,11 +44,11 @@ describe('ui changes routes', () => {
   });
 
   it('lists each change newest first, with its entries, scoped to it', async () => {
-    const older = await t.createChange('2026-09-13-older', {
+    const older = await t.writeChange('2026-09-13-older', {
       name: 'Older change',
       key: 'NOE-142',
     });
-    await t.createChange('2026-09-14-newer', { name: 'Newer change' });
+    await t.writeChange('2026-09-14-newer', { name: 'Newer change' });
     await t.writeDesignDoc(older, designDocFixture);
     await t.writeDocument(older, document);
 
@@ -80,7 +87,7 @@ describe('ui changes routes', () => {
   });
 
   it('names the entries of a change in the order they were added', async () => {
-    const change = await t.createChange('2026-09-13-older');
+    const change = await t.writeChange('2026-09-13-older');
     for (const [id, title] of [
       [sourceDocumentId(3), 'Zoning rules'],
       [sourceDocumentId(1), 'Appointment booking'],
@@ -105,20 +112,49 @@ describe('ui changes routes', () => {
     ]);
   });
 
-  // Creating is the agent's, through the `create_change` tool.
-  it('writes nothing: POST is not a route of this surface', async () => {
-    const res = await app.request('/changes', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: 'Payment retry', type: 'feature' }),
+  it("creates a change at an id minted from today's date and its name, in discovery", async () => {
+    const res = await post({
+      name: 'Payment retry',
+      type: 'feature',
+      key: 'NOE-142',
     });
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      change: {
+        id: '2026-09-24-payment-retry',
+        name: 'Payment retry',
+        key: 'NOE-142',
+        type: 'feature',
+        status: 'discovery',
+        description: '',
+      },
+    });
+    expect(await ids()).toEqual(['2026-09-24-payment-retry']);
+  });
+
+  it('refuses a body that is not a change, creating nothing', async () => {
+    const res = await post({ name: 'Payment retry', type: 'feat' });
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'invalid_body' });
     expect(await ids()).toEqual([]);
   });
 
+  it('writes nothing a change owns: POST under a change is not a route', async () => {
+    const change = await t.writeChange('2026-09-01-audit-log');
+    for (const path of ['design-docs', 'source-documents']) {
+      const res = await app.request(`/changes/${change}/${path}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      });
+      expect(res.status).toBe(404);
+    }
+  });
+
   it('reads one change with what it owns summarised', async () => {
-    const change = await t.createChange('2026-09-01-audit-log', {
+    const change = await t.writeChange('2026-09-01-audit-log', {
       name: 'Audit log',
       type: 'improvement',
     });
@@ -162,7 +198,7 @@ describe('ui changes routes', () => {
   });
 
   it('answers a write that lost a race with 409', async () => {
-    const raced = await t.createChange('2026-09-01-raced');
+    const raced = await t.writeChange('2026-09-01-raced');
     const res = await createUiApp({
       ...t,
       listChanges: {

@@ -38,7 +38,7 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  createChangeHandler: CreateChangeHandler;
+  createChange: CreateChangeHandler;
   updateChange: UpdateChangeHandler;
   addDesignDocToChange: AddDesignDocToChangeHandler;
   updateDesignDocInChange: UpdateDesignDocInChangeHandler;
@@ -52,7 +52,7 @@ export interface TestNoesis {
   /** `graph/changes/`, where each change's file sits. */
   changesDir: string;
   /** Writes a change with placeholder data, bypassing the handlers. */
-  createChange(
+  writeChange(
     id: string | ChangeId,
     overrides?: Partial<ChangeFields>,
   ): Promise<ChangeId>;
@@ -90,7 +90,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     root,
     noesis,
     changesRepository,
-    createChangeHandler: new CreateChangeHandler(changesRepository, TODAY),
+    createChange: new CreateChangeHandler(changesRepository, TODAY),
     updateChange: new UpdateChangeHandler(changesRepository),
     addDesignDocToChange: new AddDesignDocToChangeHandler(changesRepository),
     updateDesignDocInChange: new UpdateDesignDocInChangeHandler(
@@ -106,7 +106,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     findSourceDocument: new FindSourceDocumentHandler(changesRepository),
     searchService: new SearchService(),
     changesDir: noesis.resolve('graph', 'changes'),
-    createChange: async (id, overrides = {}) => {
+    writeChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);
       const change = Change.create(parsed, {
         name: parsed,

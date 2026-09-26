@@ -6,6 +6,10 @@ import type {
 import type { FindDesignDoc } from '#backend/app/changes/find-design-doc';
 import type { FindSourceDocument } from '#backend/app/changes/find-source-document';
 import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
+import type {
+  ChangeSummary,
+  CreateChange,
+} from '#backend/app/changes/model/change-snapshot';
 import type { DesignDoc } from '#backend/app/changes/model/design-doc';
 import type { SourceDocument } from '#backend/app/changes/model/source-document';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
@@ -22,6 +26,7 @@ const log = serverLogger('ui');
 
 export interface UiDeps {
   searchService: SearchService;
+  createChange: Handler<CreateChange, ChangeSummary>;
   listChanges: Handler<void, ChangeWithEntries[]>;
   findChange: Handler<FindChange, FindChangeResult>;
   findDesignDoc: Handler<FindDesignDoc, DesignDoc>;
@@ -36,6 +41,7 @@ export function createUiApp(deps: UiDeps) {
     .route(
       '/changes',
       createChangesApp({
+        createChange: deps.createChange,
         listChanges: deps.listChanges,
         findChange: deps.findChange,
       }),

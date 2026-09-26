@@ -33,7 +33,6 @@ beforeEach(async () => {
   files = await new SessionDir(noesis.noesis).open();
   const server = createMcpServer({
     ...noesis,
-    createChange: noesis.createChangeHandler,
     version: '0.0.0-test',
     noesis: noesis.noesis,
     sessionFiles: files,
@@ -200,7 +199,7 @@ describe('create_change', () => {
 
 describe('update_change', () => {
   it('replaces the change at its id, which a rename leaves as it was', async () => {
-    const id = await noesis.createChange(CHANGE, { name: 'Payment retry' });
+    const id = await noesis.writeChange(CHANGE, { name: 'Payment retry' });
     const path = await workingFile('change.json', {
       name: 'Payment retries',
       type: 'feature',
@@ -254,11 +253,11 @@ describe('list_changes', () => {
   });
 
   it('lists every change with its id, newest first, in the text as well', async () => {
-    await noesis.createChange(CHANGE, {
+    await noesis.writeChange(CHANGE, {
       name: 'Payment retry',
       key: 'NOE-142',
     });
-    await noesis.createChange('2026-01-02-refund-rounding', {
+    await noesis.writeChange('2026-01-02-refund-rounding', {
       name: 'Refund rounding',
     });
 
@@ -280,7 +279,7 @@ describe('list_changes', () => {
   });
 
   it("names each change's design documents and documents, in the text as well", async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const designDocAdded = mintedId(
       await call('add_design_doc_to_change', {
         change,
@@ -326,7 +325,7 @@ describe('list_changes', () => {
 
 describe('add_document_to_change', () => {
   it('stores the document the working file holds, at a minted id', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', document);
 
     const result = await call('add_document_to_change', { change, path });
@@ -370,7 +369,7 @@ describe('add_document_to_change', () => {
   });
 
   it('refuses a path outside the scratch directory', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const outside = join(noesis.root, 'document.json');
     await writeFile(outside, JSON.stringify(document));
 
@@ -384,7 +383,7 @@ describe('add_document_to_change', () => {
   });
 
   it('answers a malformed document with the issues to fix', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', {
       title: 'Retry interview',
       content: 42,
@@ -402,7 +401,7 @@ describe('add_document_to_change', () => {
   });
 
   it('refuses a working file above the size limit without reading it', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const path = await workingFile(
       'huge.json',
       'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
@@ -418,7 +417,7 @@ describe('add_document_to_change', () => {
   });
 
   it('refuses a date that is not an ISO 8601 date', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', {
       ...document,
       date: 'last Tuesday',
@@ -434,7 +433,7 @@ describe('add_document_to_change', () => {
   });
 
   it('takes any title, even one with no letter in it', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', {
       ...document,
       title: '???',
@@ -449,7 +448,7 @@ describe('add_document_to_change', () => {
   });
 
   it('answers a file that is not JSON in-band', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', 'not json at all');
 
     const result = await call('add_document_to_change', {
@@ -464,7 +463,7 @@ describe('add_document_to_change', () => {
 
 describe('update_document_in_change', () => {
   it('replaces the document at its id, which a new title leaves as it was', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const documentId = mintedId(
       await call('add_document_to_change', {
         change,
@@ -491,7 +490,7 @@ describe('update_document_in_change', () => {
   });
 
   it('answers an id that names no document in-band, having created nothing', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
 
     const result = await call('update_document_in_change', {
       change,
@@ -519,7 +518,7 @@ describe('update_document_in_change', () => {
 
 describe('add_design_doc_to_change', () => {
   it('stores the design document the working file holds, at a minted id', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('design-doc.json', designDoc);
 
     const result = await call('add_design_doc_to_change', { change, path });
@@ -567,7 +566,7 @@ describe('add_design_doc_to_change', () => {
   });
 
   it('refuses a path outside the scratch directory', async () => {
-    await noesis.createChange(CHANGE);
+    await noesis.writeChange(CHANGE);
     const outside = join(noesis.root, 'design-doc.json');
     await writeFile(outside, JSON.stringify(designDoc));
 
@@ -581,7 +580,7 @@ describe('add_design_doc_to_change', () => {
   });
 
   it('answers a malformed design document with the issues to fix', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('design-doc.json', {
       ...designDoc,
       name: 42,
@@ -601,7 +600,7 @@ describe('add_design_doc_to_change', () => {
   });
 
   it('refuses a working file that names an id: the server mints it', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('design-doc.json', {
       ...designDoc,
       id: '2020-01-01-chosen-by-agent',
@@ -615,7 +614,7 @@ describe('add_design_doc_to_change', () => {
   });
 
   it('refuses a key the design document does not know, rather than dropping it', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('design-doc.json', {
       ...designDoc,
       modules: { added: [], removed: [], modified: [], renamed: [] },
@@ -629,7 +628,7 @@ describe('add_design_doc_to_change', () => {
   });
 
   it('answers a design document that breaks its rules with each field to fix', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const { id: _id, ...reviewed } = designDocFixture;
     const path = await workingFile('design-doc.json', reviewed);
 
@@ -650,7 +649,7 @@ describe('add_design_doc_to_change', () => {
 
 describe('update_design_doc_in_change', () => {
   it('replaces the design document at its id', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('design-doc.json', designDoc);
     const designDocAdded = mintedId(
       await call('add_design_doc_to_change', { change, path }),
@@ -677,7 +676,7 @@ describe('update_design_doc_in_change', () => {
   });
 
   it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
     const designDocAdded = mintedId(
       await call('add_design_doc_to_change', {
         change,
@@ -712,7 +711,7 @@ describe('update_design_doc_in_change', () => {
   });
 
   it('answers an id that names no design document in-band', async () => {
-    const change = await noesis.createChange(CHANGE);
+    const change = await noesis.writeChange(CHANGE);
 
     const result = await call('update_design_doc_in_change', {
       change,
@@ -730,7 +729,6 @@ describe('a write that lost a race', () => {
   it('answers in-band, saying to read the change again and retry', async () => {
     const raced = createMcpServer({
       ...noesis,
-      createChange: noesis.createChangeHandler,
       version: '0.0.0-test',
       noesis: noesis.noesis,
       sessionFiles: files,

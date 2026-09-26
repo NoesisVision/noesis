@@ -34,8 +34,8 @@ describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every id written, ascending', async () => {
     expect(await ids()).toEqual([]);
 
-    const audit = await t.createChange('2026-01-02-audit-log');
-    await t.createChange('2026-01-01-payment-retry');
+    const audit = await t.writeChange('2026-01-02-audit-log');
+    await t.writeChange('2026-01-01-payment-retry');
 
     expect(await ids()).toEqual([
       '2026-01-01-payment-retry',
@@ -51,7 +51,7 @@ describe('NoesisChangesRepository', () => {
     await mkdir(join(t.changesDir, '.hidden'), { recursive: true });
     await mkdir(join(t.changesDir, '2026-01-01-orphan'), { recursive: true });
     await writeFile(join(t.changesDir, 'README.md'), 'notes');
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
 
     expect(await ids()).toEqual(['2026-01-01-real']);
     expect(
@@ -60,7 +60,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses to list a change file that is not a change', async () => {
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
     await writeFile(
       join(t.changesDir, 'payment-retry.change.json'),
       JSON.stringify({ id: 'payment-retry', name: 'x', type: 'chore' }),
@@ -72,7 +72,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses to read a change file without a version', async () => {
-    const id = await t.createChange('2026-01-01-unversioned');
+    const id = await t.writeChange('2026-01-01-unversioned');
     const path = join(t.changesDir, `${id}.change.json`);
     const { version: _, ...unversioned } = JSON.parse(
       await readFile(path, 'utf8'),
@@ -120,7 +120,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('stores a design document as its JSON form, defaults spelled out', async () => {
-    const id = await t.createChange('2026-01-01-designed');
+    const id = await t.writeChange('2026-01-01-designed');
     await t.writeDesignDoc(id, designDocFixture);
 
     const stored = JSON.parse(
@@ -133,7 +133,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('counts every save in the version, starting at 1', async () => {
-    const id = await t.createChange('2026-01-01-counted');
+    const id = await t.writeChange('2026-01-01-counted');
     expect((await read(id)).version).toBe(1);
 
     await t.changesRepository.save(await read(id));
@@ -142,7 +142,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses a save on a version older than the stored one, keeping the stored one', async () => {
-    const id = await t.createChange('2026-01-01-raced');
+    const id = await t.writeChange('2026-01-01-raced');
     const first = await read(id);
     const second = await read(id);
     first.update({ ...first.summary(), status: 'design' });
@@ -157,7 +157,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses to create a change at an id another holds', async () => {
-    const id = await t.createChange('2026-01-01-taken');
+    const id = await t.writeChange('2026-01-01-taken');
 
     await expect(
       t.changesRepository.save(
@@ -167,7 +167,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses data whose id is not one, and data that is not a change', async () => {
-    const typed = await t.createChange('2026-01-01-typed');
+    const typed = await t.writeChange('2026-01-01-typed');
     const before = (await read(typed)).toSnapshot();
 
     await expect(

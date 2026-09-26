@@ -22,6 +22,7 @@ export function createApp(deps: UiDeps) {
         '/ui',
         createUiApp({
           searchService: deps.searchService,
+          createChange: deps.createChange,
           listChanges: deps.listChanges,
           findChange: deps.findChange,
           findDesignDoc: deps.findDesignDoc,

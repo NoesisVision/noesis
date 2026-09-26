@@ -28,7 +28,7 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  change = await t.createChange(CHANGE);
+  change = await t.writeChange(CHANGE);
   app = createUiApp(t);
 });
 

@@ -34,7 +34,7 @@ afterEach(() => t.cleanup());
 
 describe('CreateChangeHandler', () => {
   it("mints the id from today's date and the name, and starts in discovery", async () => {
-    const created = await t.createChangeHandler.handle(draft);
+    const created = await t.createChange.handle(draft);
 
     expect(created).toEqual({
       id: ChangeId.parse('2026-09-24-payment-retry'),
@@ -53,8 +53,8 @@ describe('CreateChangeHandler', () => {
   });
 
   it('gives a name already used today the next free suffix', async () => {
-    await t.createChangeHandler.handle(draft);
-    const second = await t.createChangeHandler.handle(draft);
+    await t.createChange.handle(draft);
+    const second = await t.createChange.handle(draft);
 
     expect(second.id).toBe(ChangeId.parse('2026-09-24-payment-retry-2'));
     expect(await t.listChanges.handle()).toHaveLength(2);
@@ -62,16 +62,16 @@ describe('CreateChangeHandler', () => {
 
   it('lets a tracker key repeat across changes', async () => {
     const keyed = { ...draft, key: 'NOE-1' };
-    await t.createChangeHandler.handle(keyed);
-    await t.createChangeHandler.handle({ ...keyed, name: 'Refund retry' });
+    await t.createChange.handle(keyed);
+    await t.createChange.handle({ ...keyed, name: 'Refund retry' });
 
     expect(await t.listChanges.handle()).toHaveLength(2);
   });
 
   it('refuses the second of two parallel creates that pick one id', async () => {
     const results = await Promise.allSettled([
-      t.createChangeHandler.handle(draft),
-      t.createChangeHandler.handle(draft),
+      t.createChange.handle(draft),
+      t.createChange.handle(draft),
     ]);
 
     expect(results.map((r) => r.status).sort()).toEqual([
@@ -86,7 +86,7 @@ describe('CreateChangeHandler', () => {
 
 describe('UpdateChangeHandler', () => {
   it('replaces the change at its id, which a rename leaves as it was', async () => {
-    await t.createChange(CHANGE);
+    await t.writeChange(CHANGE);
     await t.writeDocument(CHANGE, {
       id: sourceDocumentId(1),
       title: 'Notes',
@@ -123,7 +123,7 @@ describe('UpdateChangeHandler', () => {
 });
 
 describe('The handlers of what a change owns', () => {
-  beforeEach(() => t.createChange(CHANGE));
+  beforeEach(() => t.writeChange(CHANGE));
 
   it('store what they add in the change, answering its summary', async () => {
     const addedDesignDoc = await t.addDesignDocToChange.handle({
@@ -224,8 +224,8 @@ describe('The handlers of what a change owns', () => {
 
 describe('ListChangesHandler', () => {
   it('lists every change newest first, each with its own entries', async () => {
-    const older = await t.createChange('2026-01-01-older');
-    await t.createChange('2026-01-02-newer');
+    const older = await t.writeChange('2026-01-01-older');
+    await t.writeChange('2026-01-02-newer');
     await t.writeDocument(older, {
       id: sourceDocumentId(1),
       title: 'Notes',
@@ -244,7 +244,7 @@ describe('ListChangesHandler', () => {
 
 describe('FindChangeHandler', () => {
   it('answers the change with what it owns summarised', async () => {
-    await t.createChange(CHANGE, { name: 'Booking' });
+    await t.writeChange(CHANGE, { name: 'Booking' });
     const addedDocument = await t.addDocumentToChange.handle({
       change: CHANGE,
       document,
