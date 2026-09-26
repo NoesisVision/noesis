@@ -3,8 +3,8 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
-import type { SourceDocument } from '#backend/app/information-sources/source-document.ts';
-import { DocumentsIcon } from '../documents.model.ts';
+import type { SourceDocument } from '#backend/app/changes/source-document.ts';
+import { DocumentsIcon } from '../source-documents.model.ts';
 
 /** The document is imported material: its markdown is shown as written. */
 export function DocumentContent({

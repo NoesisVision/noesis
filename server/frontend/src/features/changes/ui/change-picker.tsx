@@ -6,7 +6,7 @@ import { Group } from '#/shared/design-system/group';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button';
-import type { Change } from '#backend/app/changes/change.ts';
+import type { ChangeSummary as Change } from '#backend/app/changes/change-snapshot.ts';
 import {
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,

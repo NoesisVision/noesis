@@ -1,6 +1,5 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { ApiError, api } from '#/shared/api/client.ts';
-import type { Change } from '#backend/app/changes/change.ts';
 import { useChangeId } from './current-change.ts';
 
 export class ChangeNotFoundError extends Error {
@@ -10,24 +9,17 @@ export class ChangeNotFoundError extends Error {
   }
 }
 
+/** Every change, newest first, each with its entries. */
 export const changesList = queryOptions({
   staleTime: 'static',
   queryKey: ['changes'] as const,
-  queryFn: async ({ signal }): Promise<Change[]> => {
+  queryFn: async ({ signal }) => {
     const data = await api.changes.$get({}, { init: { signal } });
     return data.changes;
   },
 });
 
-export const changesWithEntriesList = queryOptions({
-  staleTime: 'static',
-  queryKey: ['changes', 'with-entries'] as const,
-  queryFn: async ({ signal }) => {
-    const data = await api.changes.navigation.$get({}, { init: { signal } });
-    return data.changes;
-  },
-});
-
+/** One change, with its design documents and documents summarised. */
 export const changeById = (id: string) =>
   queryOptions({
     staleTime: 'static',
@@ -57,7 +49,7 @@ export const changeById = (id: string) =>
  */
 export function useChangesWithEntries() {
   const { changeId } = useChangeId();
-  const { data: changes } = useQuery(changesWithEntriesList);
+  const { data: changes } = useQuery(changesList);
   const activeChange =
     changes?.find((change) => change.id === changeId) ?? changes?.[0] ?? null;
   return { changes: changes ?? [], activeChange };

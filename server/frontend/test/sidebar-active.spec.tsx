@@ -33,7 +33,12 @@ const NAVIGATION = {
   status: 'design',
   entries: [
     { id: NOTES, name: 'Notes', kind: 'document' },
-    { id: DOC, name: 'Partial refunds', kind: 'design-doc' },
+    {
+      id: DOC,
+      name: 'Partial refunds',
+      kind: 'design-doc',
+      implemented: false,
+    },
   ],
 };
 
@@ -57,7 +62,7 @@ beforeAll(() => {
         : input instanceof URL
           ? input.href
           : input.url;
-    if (url.endsWith('/navigation')) {
+    if (url.endsWith('/ui/changes')) {
       return Promise.resolve(Response.json({ changes: [NAVIGATION] }));
     }
     if (url.includes('/design-docs/')) {
@@ -68,7 +73,7 @@ beforeAll(() => {
         }),
       );
     }
-    if (url.includes('/documents/')) {
+    if (url.includes('/source-documents/')) {
       return Promise.resolve(
         Response.json({
           document: {
@@ -80,13 +85,11 @@ beforeAll(() => {
         }),
       );
     }
-    if (url.endsWith('/design-docs')) {
-      return Promise.resolve(Response.json({ designDocs: [] }));
-    }
-    if (url.endsWith('/documents')) {
-      return Promise.resolve(Response.json({ documents: [] }));
-    }
-    return Promise.resolve(Response.json({ change: NAVIGATION }));
+    return Promise.resolve(
+      Response.json({
+        change: { ...NAVIGATION, designDocs: [], sourceDocuments: [] },
+      }),
+    );
   }) as typeof fetch);
 });
 

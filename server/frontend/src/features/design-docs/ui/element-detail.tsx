@@ -16,7 +16,7 @@ import type {
   DesignedPropertyInput,
   DesignedRuleInput,
   DesignedScenarioInput,
-} from '#backend/app/design-docs/design-doc.ts';
+} from '#backend/app/changes/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import {
   type DesignDocFieldInput,

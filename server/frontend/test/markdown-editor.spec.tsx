@@ -1,8 +1,8 @@
 import { expect, it } from 'bun:test';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { SourceDocumentId } from '#backend/app/information-sources/source-document-id.ts';
-import { DocumentContent } from '../src/features/documents/ui/document-content';
+import type { SourceDocumentId } from '#backend/app/changes/source-document-id.ts';
+import { DocumentContent } from '../src/features/source-documents/ui/document-content';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { MarkdownEditor } from '../src/shared/ui/markdown-editor';
 import {

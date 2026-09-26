@@ -1,6 +1,6 @@
 import { IconLayoutDashboard, IconTopologyStar3 } from '@tabler/icons-react';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
-import { DocumentsIcon } from '#/features/documents/documents.model.ts';
+import { DocumentsIcon } from '#/features/source-documents/source-documents.model.ts';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
