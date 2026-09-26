@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { z } from 'zod';
 import { ChangeOwnedRepository } from '#backend/adapters/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
 import type { Change } from '#backend/app/changes/change';
@@ -13,7 +14,6 @@ import {
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import {
   type Document,
-  type DocumentInput,
   DocumentSchema,
 } from '#backend/app/information-sources/document';
 import { DocumentsService } from '#backend/app/information-sources/documents.service';
@@ -46,7 +46,10 @@ export interface TestNoesis {
     document: DesignDocumentInput,
   ): Promise<void>;
   /** Writes a document into the change, bypassing the service. */
-  writeDocument(change: ChangeId, document: DocumentInput): Promise<void>;
+  writeDocument(
+    change: ChangeId,
+    document: z.input<typeof DocumentSchema>,
+  ): Promise<void>;
   cleanup(): Promise<void>;
 }
 

@@ -31,6 +31,3 @@ export type Document = z.infer<typeof DocumentSchema>;
 /** The working file of a document: the server mints the id of a new one; an update names it beside the file. */
 export const DocumentContentSchema = DocumentSchema.omit({ id: true });
 export type DocumentContent = z.infer<typeof DocumentContentSchema>;
-
-/** The JSON form: what the store holds and what the wire carries. */
-export type DocumentInput = z.input<typeof DocumentSchema>;
