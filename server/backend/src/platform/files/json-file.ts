@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
 import { z, type ZodType } from 'zod';
@@ -40,26 +40,16 @@ export async function readJsonFile<T>(
 /**
  * Validates, encodes, writes `path.<random>.tmp` and renames it over `path`,
  * so a reader never sees a half-written file. Creates the parent directory.
+ * Synchronous, so a check made just before it cannot be interleaved.
  */
-export async function writeJsonFile<T>(
-  path: string,
-  schema: ZodType<T>,
-  value: T,
-): Promise<void> {
-  const content = encodeJson(path, schema, value);
-  await mkdir(dirname(path), { recursive: true });
-  await replaceAtomically(path, content);
-}
-
-/** `writeJsonFile` without yielding, for a caller whose check before it must not be interleaved. */
-export function writeJsonFileSync<T>(
+export function writeJsonFile<T>(
   path: string,
   schema: ZodType<T>,
   value: T,
 ): void {
   const content = encodeJson(path, schema, value);
   mkdirSync(dirname(path), { recursive: true });
-  replaceAtomicallySync(path, content);
+  replaceAtomically(path, content);
 }
 
 export class JsonFileError extends Error {
@@ -88,18 +78,7 @@ function describeIssues(error: z.ZodError): string {
   return z.prettifyError(shown) + (more > 0 ? `\n… and ${more} more` : '');
 }
 
-async function replaceAtomically(path: string, content: string): Promise<void> {
-  const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
-  try {
-    await writeFile(temp, content);
-    await rename(temp, path);
-  } catch (error) {
-    await rm(temp, { force: true });
-    throw error;
-  }
-}
-
-function replaceAtomicallySync(path: string, content: string): void {
+function replaceAtomically(path: string, content: string): void {
   const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
   try {
     writeFileSync(temp, content);

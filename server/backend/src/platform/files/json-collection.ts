@@ -2,12 +2,7 @@ import { readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import {
-  JsonFileError,
-  parseJson,
-  writeJsonFile,
-  writeJsonFileSync,
-} from './json-file';
+import { JsonFileError, parseJson, writeJsonFile } from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -34,21 +29,27 @@ export class JsonCollection<T extends { id: string }> {
     this.suffix = `.${kind}.json`;
   }
 
-  /** `null` when absent; a `JsonFileError` when the file is broken. */
-  get(id: string): Promise<T | null> {
-    return this.read(id);
+  /**
+   * `null` when absent, a file gone since `readdir` (a `git checkout` under
+   * the walk) included; a `JsonFileError` when the file is broken.
+   */
+  async get(id: string): Promise<T | null> {
+    const path = this.pathOf(id);
+    let text: string;
+    try {
+      text = await readFile(path, 'utf8');
+    } catch (error) {
+      if (isMissing(error)) return null;
+      throw error;
+    }
+    return this.decode(path, id, text);
   }
 
   /** By id ascending; throws on the first broken file. */
   async list(): Promise<T[]> {
     const ids = (await this.listIds()).sort(byCodeUnit);
-    const entities = await Promise.all(ids.map((id) => this.read(id)));
+    const entities = await Promise.all(ids.map((id) => this.get(id)));
     return entities.filter((entity) => entity !== null);
-  }
-
-  // `async`, so a refused id rejects instead of throwing before the promise exists.
-  async save(entity: T): Promise<void> {
-    return writeJsonFile(this.pathOf(entity.id), this.schema, entity);
   }
 
   /**
@@ -62,7 +63,7 @@ export class JsonCollection<T extends { id: string }> {
     const text = readFileIfExistsSync(path);
     const stored = text === null ? null : this.decode(path, entity.id, text);
     if (!accepts(stored)) return false;
-    writeJsonFileSync(path, this.schema, entity);
+    writeJsonFile(path, this.schema, entity);
     return true;
   }
 
@@ -88,19 +89,6 @@ export class JsonCollection<T extends { id: string }> {
       }
     }
     return names.map((name) => name.slice(0, -this.suffix.length));
-  }
-
-  /** A file gone since `readdir` (a `git checkout` under the walk) is absent, not broken. */
-  private async read(id: string): Promise<T | null> {
-    const path = this.pathOf(id);
-    let text: string;
-    try {
-      text = await readFile(path, 'utf8');
-    } catch (error) {
-      if (isMissing(error)) return null;
-      throw error;
-    }
-    return this.decode(path, id, text);
   }
 
   private decode(path: string, id: string, text: string): T {

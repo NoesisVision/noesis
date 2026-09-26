@@ -77,7 +77,7 @@ describe('writeJsonFile', () => {
   it('writes the encoded value as pretty JSON with a trailing newline, creating the directory', async () => {
     const path = join(dir, 'nested', 'deeper', 'a.json');
 
-    await writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
 
     expect(await readFile(path, 'utf8')).toBe(
       `${JSON.stringify({ id: 'a', tags: [], size: '3' }, null, 2)}\n`,
@@ -87,8 +87,8 @@ describe('writeJsonFile', () => {
   it('leaves no temp file behind', async () => {
     const path = join(dir, 'a.json');
 
-    await writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
-    await writeJsonFile(path, schema, { id: 'a', tags: ['b'], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: ['b'], size: 3 });
 
     expect(await readdir(dir)).toEqual(['a.json']);
   });
@@ -97,10 +97,10 @@ describe('writeJsonFile', () => {
     const path = join(dir, 'a.json');
     const invalid = { id: 7 } as unknown as z.output<typeof schema>;
 
-    const write = writeJsonFile(path, schema, invalid);
+    const write = () => writeJsonFile(path, schema, invalid);
 
-    await expect(write).rejects.toBeInstanceOf(JsonFileError);
-    await expect(write).rejects.toThrow(path);
+    expect(write).toThrow(JsonFileError);
+    expect(write).toThrow(path);
     expect(await Bun.file(path).exists()).toBe(false);
   });
 });

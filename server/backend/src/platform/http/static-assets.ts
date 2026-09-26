@@ -52,7 +52,7 @@ export class StaticAssets {
   }
 
   /** `null` when the request names a file that is not there. */
-  async serve(request: Request): Promise<Response | null> {
+  private async serve(request: Request): Promise<Response | null> {
     const path = new URL(request.url).pathname;
     const asset = await this.read(path);
     if (asset === null) return null;
@@ -60,7 +60,7 @@ export class StaticAssets {
   }
 
   /** The page itself, for a client-side route that names no file. */
-  async serveIndex(request: Request): Promise<Response | null> {
+  private async serveIndex(request: Request): Promise<Response | null> {
     const asset = await this.load(this.indexPath, false);
     if (asset === null) return null;
     return this.asResponse(asset, request.headers.get('accept-encoding') ?? '');

@@ -28,6 +28,9 @@ afterEach(() => rm(dir, { recursive: true, force: true }));
 
 const note = (id: string, text = id): Note => ({ id, text });
 
+/** Writes whatever is stored. */
+const save = (entity: Note) => notes.saveIf(entity, () => true);
+
 async function writeRaw(name: string, content: unknown): Promise<void> {
   await mkdir(join(dir, 'notes'), { recursive: true });
   await writeFile(join(dir, 'notes', name), JSON.stringify(content));
@@ -40,7 +43,7 @@ describe('JsonCollection', () => {
   });
 
   it('saves each entity as <dir>/<id>.<kind>.json and reads it back', async () => {
-    await notes.save(note('2026-09-24-first', 'hello'));
+    save(note('2026-09-24-first', 'hello'));
 
     expect(await readdir(join(dir, 'notes'))).toEqual([
       '2026-09-24-first.note.json',
@@ -52,7 +55,7 @@ describe('JsonCollection', () => {
 
   it('lists by id ascending', async () => {
     for (const id of ['2026-09-25-b', '2026-09-24-c', '2026-09-26-a']) {
-      await notes.save(note(id));
+      save(note(id));
     }
 
     expect((await notes.list()).map(({ id }) => id)).toEqual([
@@ -63,7 +66,7 @@ describe('JsonCollection', () => {
   });
 
   it('lists only files of its own kind, never temp files', async () => {
-    await notes.save(note('a'));
+    save(note('a'));
     await writeRaw('b.other.json', note('b'));
     await writeRaw('c.note.json.abc123.tmp', note('c'));
     await mkdir(join(dir, 'notes', 'a'));
@@ -72,7 +75,7 @@ describe('JsonCollection', () => {
   });
 
   it('skips a listed file that is gone by the time it is read', async () => {
-    await notes.save(note('a'));
+    save(note('a'));
     await symlink(
       join(dir, 'nowhere.json'),
       join(dir, 'notes', 'gone.note.json'),
@@ -83,7 +86,7 @@ describe('JsonCollection', () => {
   });
 
   it('throws from list() and get() on broken JSON', async () => {
-    await notes.save(note('a'));
+    save(note('a'));
     await mkdir(join(dir, 'notes'), { recursive: true });
     await writeFile(join(dir, 'notes', 'b.note.json'), '{ "id": ');
 
@@ -119,14 +122,14 @@ describe('JsonCollection', () => {
   it('refuses an id that could name a path, before touching the disk', async () => {
     for (const id of ['../escape', 'a/b', '', 'Upper', '-leading', '.']) {
       await expect(notes.get(id)).rejects.toThrow('Invalid id');
-      await expect(notes.save(note(id))).rejects.toThrow('Invalid id');
+      expect(() => save(note(id))).toThrow('Invalid id');
     }
     expect(await readdir(dir)).toEqual([]);
   });
 
   it('accepts a content-hash id', async () => {
     const id = 'a3f1c2d4-0b9e-47aa-8c11-5e6f7a8b9c0d';
-    await notes.save(note(id));
+    save(note(id));
 
     expect(await notes.get(id)).toEqual(note(id));
   });

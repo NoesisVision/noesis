@@ -23,7 +23,7 @@ beforeEach(async () => {
 afterEach(() => rm(root, { recursive: true, force: true }));
 
 const get = (path: string, encoding = 'gzip') =>
-  ui.serve(
+  ui.respond(
     new Request(`http://localhost${path}`, {
       headers: { 'accept-encoding': encoding },
     }),
@@ -32,27 +32,27 @@ const get = (path: string, encoding = 'gzip') =>
 describe('static assets', () => {
   it('compresses a text asset and says what it did', async () => {
     const res = await get(HASHED);
-    expect(res?.status).toBe(200);
-    expect(res?.headers.get('content-encoding')).toBe('gzip');
-    expect(res?.headers.get('vary')).toBe('accept-encoding');
-    const body = await res?.arrayBuffer();
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-encoding')).toBe('gzip');
+    expect(res.headers.get('vary')).toBe('accept-encoding');
+    const body = await res.arrayBuffer();
     expect(body?.byteLength).toBeLessThan(BIG.length / 2);
   });
 
   it('sends the bytes themselves when gzip was not offered', async () => {
     const res = await get(HASHED, 'identity');
-    expect(res?.headers.get('content-encoding')).toBeNull();
-    expect(await res?.text()).toBe(BIG);
+    expect(res.headers.get('content-encoding')).toBeNull();
+    expect(await res.text()).toBe(BIG);
   });
 
   it('does not read `gzipped` out of another encoding name', async () => {
     const res = await get(HASHED, 'br, deflate');
-    expect(res?.headers.get('content-encoding')).toBeNull();
+    expect(res.headers.get('content-encoding')).toBeNull();
   });
 
   it('leaves a file too small to be worth compressing alone', async () => {
     const res = await get('/assets/tiny-AAAAAAAA.js');
-    expect(res?.headers.get('content-encoding')).toBeNull();
+    expect(res.headers.get('content-encoding')).toBeNull();
   });
 
   it('lets a hashed asset be cached forever and the page never', async () => {
@@ -64,17 +64,21 @@ describe('static assets', () => {
     );
   });
 
-  it('reports a file that is not there, so the page can answer instead', async () => {
-    expect(await get('/assets/gone-BBBBBBBB.js')).toBeNull();
-    const page = await ui.serveIndex(new Request('http://localhost/changes/x'));
-    expect(await page?.text()).toContain('<title>Noesis</title>');
+  it('answers a file that is not there with 404', async () => {
+    expect((await get('/assets/gone-BBBBBBBB.js')).status).toBe(404);
   });
 
   it('serves nothing from outside the directory it was given', async () => {
     await writeFile(join(root, '..', 'noesis-ui-secret.txt'), 'private');
-    expect(await get('/../noesis-ui-secret.txt')).toBeNull();
-    expect(await get('/%2e%2e/noesis-ui-secret.txt')).toBeNull();
-    expect(await get('/assets/../../noesis-ui-secret.txt')).toBeNull();
+    for (const path of [
+      '/../noesis-ui-secret.txt',
+      '/%2e%2e/noesis-ui-secret.txt',
+      '/assets/../../noesis-ui-secret.txt',
+    ]) {
+      const res = await get(path);
+      expect(res.status).toBe(404);
+      expect(await res.text()).not.toContain('private');
+    }
     await rm(join(root, '..', 'noesis-ui-secret.txt'), { force: true });
   });
 
