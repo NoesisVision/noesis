@@ -75,7 +75,7 @@ export class UiHost {
     const url = `http://localhost:${server.port}/`;
     // The e2e specs and a person alike find the UI by this line.
     log.info('listening on {url}', { url });
-    if (config.openBrowser) openBrowser(url);
+    if (config.openBrowser) void openBrowser(url);
     return server;
   }
 
