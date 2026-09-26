@@ -1,4 +1,3 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import {
@@ -9,7 +8,7 @@ import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
 import { success } from '../tool-result';
-import { NO_ID, unreadableFile, workingFilePath } from './change-scoped';
+import { NO_ID, fromWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -38,25 +37,19 @@ export function createChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) => create(createChange, files, input.path),
-  );
-}
-
-async function create(
-  createChange: Handler<CreateChange, ChangeSummary>,
-  files: SessionFiles,
-  path: string,
-): Promise<CallToolResult> {
-  const change = await files.read(CreateChange, path);
-  if (change.isErr()) {
-    return unreadableFile(SUBJECT, change.error);
-  }
-  return created(await createChange.handle(change.value));
-}
-
-function created(change: ChangeSummary): CallToolResult {
-  return success(
-    `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
-    { change },
+    (input) =>
+      fromWorkingFile(
+        files,
+        CreateChange,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const change = await createChange.handle(file);
+          return success(
+            `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
+            { change },
+          );
+        },
+      ),
   );
 }

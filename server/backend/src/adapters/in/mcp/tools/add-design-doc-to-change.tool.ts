@@ -1,52 +1,18 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
-import type { ChangeId } from '#backend/app/changes/model/change-id';
-import type { DesignDocViolation } from '#backend/app/changes/model/design-doc';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import {
-  NO_ID,
-  inChangeInput,
-  unreadableFile,
-  withChange,
-} from './change-scoped';
+import { success } from '../tool-result';
+import { DESIGN_DOC_SHAPE } from './design-doc-shape';
+import { NO_ID, fromWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
-
-/** The working file, as both design-document tools describe it. */
-export const DESIGN_DOC_SHAPE =
-  '{ "name", "description", "modules", "buildingBlocks", "behaviours" }. A field is { "value", "author" } when the design changes it, { "changed": false } or absent when it does not; each collection is a change set of { "added", "removed", "modified" }. Write every field as the agent: leave "author" out. Nothing is scanned yet, so a design only adds, at every level.';
-
-const FIXES: Record<DesignDocViolation['reason'], string> = {
-  changedInGreenField:
-    'nothing is scanned yet, so a design only adds; add this instead',
-  unknownElement:
-    'the scanned model has no such element or part; add it instead of modifying or removing it',
-  unchangedFieldInAddedItem:
-    'the item is new, so this field needs a { "value" }',
-  humanAuthor: 'write every field as the agent: leave "author" out',
-};
-
-/** The answer to a design document that breaks its rules, one line per field to fix. */
-export function violationsFailure(
-  error: InvalidDesignDocError,
-): CallToolResult {
-  return failure(
-    `Invalid ${SUBJECT}; fix each field and call again:`,
-    error.violations
-      .map(({ path, reason }) => `- ${path}: ${FIXES[reason]}`)
-      .join('\n'),
-  );
-}
 
 const outputSchema = z
   .object({ designDoc: DesignDocSummary })
@@ -70,34 +36,21 @@ export function addDesignDocToChangeTool(
       annotations: CREATE,
     },
     (input) =>
-      withChange(() => add(addDesignDoc, files, input.change, input.path)),
-  );
-}
-
-async function add(
-  addDesignDoc: Handler<AddDesignDocToChange, DesignDocSummary>,
-  files: SessionFiles,
-  change: ChangeId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(AddDesignDocToChange.shape.designDoc, path);
-  if (document.isErr()) {
-    return unreadableFile(SUBJECT, document.error);
-  }
-  try {
-    return added(
-      change,
-      await addDesignDoc.handle({ change, designDoc: document.value }),
-    );
-  } catch (error) {
-    if (error instanceof InvalidDesignDocError) return violationsFailure(error);
-    throw error;
-  }
-}
-
-function added(change: ChangeId, designDoc: DesignDocSummary): CallToolResult {
-  return success(
-    `Added design document ${designDoc.id} ("${designDoc.name}") to ${change}. Refer to it by this id.`,
-    { designDoc },
+      fromWorkingFile(
+        files,
+        AddDesignDocToChange.shape.designDoc,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const designDoc = await addDesignDoc.handle({
+            change: input.change,
+            designDoc: file,
+          });
+          return success(
+            `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,
+            { designDoc },
+          );
+        },
+      ),
   );
 }

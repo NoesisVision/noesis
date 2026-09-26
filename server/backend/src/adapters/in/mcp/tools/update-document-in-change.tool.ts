@@ -1,20 +1,17 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/model/change-id';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import { UpdateDocumentInChange } from '#backend/app/changes/update-document-in-change';
 import type { Handler } from '#backend/app/handler';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   ADD_DOCUMENT_TO_CHANGE,
   LIST_CHANGES,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { inChangeInput, unreadableFile, withChange } from './change-scoped';
+import { success } from '../tool-result';
+import { fromWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'document';
 
@@ -44,49 +41,22 @@ export function updateDocumentInChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(() =>
-        update(updateDocument, files, input.change, input.id, input.path),
+      fromWorkingFile(
+        files,
+        UpdateDocumentInChange.shape.document,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const document = await updateDocument.handle({
+            change: input.change,
+            id: input.id,
+            document: file,
+          });
+          return success(
+            `Updated document ${document.id} ("${document.title}") in ${input.change}.`,
+            { document },
+          );
+        },
       ),
-  );
-}
-
-async function update(
-  updateDocument: Handler<UpdateDocumentInChange, SourceDocumentSummary>,
-  files: SessionFiles,
-  change: ChangeId,
-  id: SourceDocumentId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(
-    UpdateDocumentInChange.shape.document,
-    path,
-  );
-  if (document.isErr()) {
-    return unreadableFile(SUBJECT, document.error);
-  }
-  try {
-    return updated(
-      change,
-      await updateDocument.handle({ change, id, document: document.value }),
-    );
-  } catch (error) {
-    // A missing change is `withChange`'s to answer.
-    if (error instanceof NotFoundError && error.entity === 'document') {
-      return failure(
-        error.message,
-        `Find its id with ${LIST_CHANGES}, or add the document with ${ADD_DOCUMENT_TO_CHANGE}.`,
-      );
-    }
-    throw error;
-  }
-}
-
-function updated(
-  change: ChangeId,
-  document: SourceDocumentSummary,
-): CallToolResult {
-  return success(
-    `Updated document ${document.id} ("${document.title}") in ${change}.`,
-    { document },
   );
 }

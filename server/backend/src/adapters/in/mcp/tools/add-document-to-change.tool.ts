@@ -1,8 +1,6 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { AddDocumentToChange } from '#backend/app/changes/add-document-to-change';
-import type { ChangeId } from '#backend/app/changes/model/change-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
@@ -11,12 +9,7 @@ import {
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { success } from '../tool-result';
-import {
-  NO_ID,
-  inChangeInput,
-  unreadableFile,
-  withChange,
-} from './change-scoped';
+import { NO_ID, fromWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'document';
 
@@ -42,32 +35,21 @@ export function addDocumentToChangeTool(
       annotations: CREATE,
     },
     (input) =>
-      withChange(() => add(addDocument, files, input.change, input.path)),
-  );
-}
-
-async function add(
-  addDocument: Handler<AddDocumentToChange, SourceDocumentSummary>,
-  files: SessionFiles,
-  change: ChangeId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(AddDocumentToChange.shape.document, path);
-  if (document.isErr()) {
-    return unreadableFile(SUBJECT, document.error);
-  }
-  return added(
-    change,
-    await addDocument.handle({ change, document: document.value }),
-  );
-}
-
-function added(
-  change: ChangeId,
-  document: SourceDocumentSummary,
-): CallToolResult {
-  return success(
-    `Added document ${document.id} ("${document.title}") to ${change}. Refer to it by this id.`,
-    { document },
+      fromWorkingFile(
+        files,
+        AddDocumentToChange.shape.document,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const document = await addDocument.handle({
+            change: input.change,
+            document: file,
+          });
+          return success(
+            `Added document ${document.id} ("${document.title}") to ${input.change}. Refer to it by this id.`,
+            { document },
+          );
+        },
+      ),
   );
 }

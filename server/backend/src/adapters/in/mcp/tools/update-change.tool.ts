@@ -1,4 +1,3 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { ChangeId } from '#backend/app/changes/model/change-id';
@@ -11,7 +10,7 @@ import type { Handler } from '#backend/app/handler';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
 import { success } from '../tool-result';
-import { unreadableFile, withChange, workingFilePath } from './change-scoped';
+import { fromWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -46,26 +45,21 @@ export function updateChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(() => update(updateChange, files, input.id, input.path)),
-  );
-}
-
-async function update(
-  updateChange: Handler<UpdateChangeCommand, ChangeSummary>,
-  files: SessionFiles,
-  id: ChangeId,
-  path: string,
-): Promise<CallToolResult> {
-  const change = await files.read(UpdateChange, path);
-  if (change.isErr()) {
-    return unreadableFile(SUBJECT, change.error);
-  }
-  return updated(await updateChange.handle({ id, change: change.value }));
-}
-
-function updated(change: ChangeSummary): CallToolResult {
-  return success(
-    `Updated change ${change.id} (${change.type}, ${change.status}).`,
-    { change },
+      fromWorkingFile(
+        files,
+        UpdateChange,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const change = await updateChange.handle({
+            id: input.id,
+            change: file,
+          });
+          return success(
+            `Updated change ${change.id} (${change.type}, ${change.status}).`,
+            { change },
+          );
+        },
+      ),
   );
 }

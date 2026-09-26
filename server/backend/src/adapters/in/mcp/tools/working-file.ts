@@ -1,12 +1,9 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
-import { z } from 'zod';
+import { type ZodType, z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import { NotFoundError } from '#backend/app/not-found-error';
-import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
+import { LIST_CHANGES } from '../tool-names';
 import { failure } from '../tool-result';
-
-const ID_EXAMPLE = '"2026-09-24-payment-retry"';
 
 /**
  * The `path` parameter of every tool that reads a working file. The scratch
@@ -34,7 +31,7 @@ export function inChangeInput(
   return z
     .object({
       change: ChangeId.describe(
-        `The id of the change the ${subject} belongs to, as ${LIST_CHANGES} lists it, e.g. ${ID_EXAMPLE}.`,
+        `The id of the change the ${subject} belongs to, as ${LIST_CHANGES} lists it, e.g. "2026-09-24-payment-retry".`,
       ),
       path: workingFilePath(files, subject, fileShape),
     })
@@ -46,26 +43,20 @@ export const NO_ID =
   'Leave "id" out: the server mints it when it creates the entity and answers with it.';
 
 /**
- * Runs `run`, answering in-band when the change it looks up does not exist.
- * The SDK has already answered an id that is not a change id at all.
+ * Reads the working file at `path` as `schema` and hands it to `run`. A file
+ * that cannot be read or does not fit is answered in-band, and `run` never
+ * sees it.
  */
-export async function withChange(
-  run: () => Promise<CallToolResult>,
+export async function fromWorkingFile<T>(
+  files: SessionFiles,
+  schema: ZodType<T>,
+  subject: string,
+  path: string,
+  run: (value: T) => Promise<CallToolResult>,
 ): Promise<CallToolResult> {
-  try {
-    return await run();
-  } catch (error) {
-    if (error instanceof NotFoundError && error.entity === 'change') {
-      return failure(
-        error.message,
-        `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-      );
-    }
-    throw error;
+  const file = await files.read(schema, path);
+  if (file.isErr()) {
+    return failure(`Could not read the ${subject}:\n${file.error}`);
   }
-}
-
-/** The answer to a working file that could not be read or does not fit its schema. */
-export function unreadableFile(subject: string, error: string): CallToolResult {
-  return failure(`Could not read the ${subject}:\n${error}`);
+  return run(file.value);
 }
