@@ -10,7 +10,7 @@ A document is a piece of source material a change is informed by. The user
 gives you a Markdown file; you wrap it in a JSON working file whose `content`
 is the file's text, verbatim, and hand that file's path to the service. The
 service checks the working file against the contract and stores it under the
-change. `create_document_in_change` adds a new document and answers with the
+change. `add_document_to_change` adds a new document and answers with the
 id the service minted for it; `update_document_in_change` replaces a document
 already in the change, named by that id.
 
@@ -36,7 +36,7 @@ the working file: `title`, `date` and `content`, never an id.
    new change, or when the list is empty, use the `add-change` skill
    first and add the document to the id it returns.
 3. **Find the scratch directory.** It is the absolute path named in the
-   description of the `path` parameter of `create_document_in_change`, of the
+   description of the `path` parameter of `add_document_to_change`, of the
    form `.noesis/sessions/<session>/`. Take it from there, never from memory: it
    changes every session.
 4. **Write the working file with the script**, never by hand, so the text is
@@ -55,7 +55,7 @@ the working file: `title`, `date` and `content`, never an id.
    "README"), a date when the text itself states when it was written or
    revised.
 
-5. **Save it.** For a new document, call `create_document_in_change`
+5. **Save it.** For a new document, call `add_document_to_change`
    (`change`, the working file's `path`). To replace a document you created
    earlier in this session, call `update_document_in_change` with the `id`
    the create answered with as well; the id stays as it was, even when the
@@ -82,6 +82,6 @@ the working file: `title`, `date` and `content`, never an id.
   translate, trim or fix it, and do not strip its front matter or heading.
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the document.
-- One call saves one document. Every `create_document_in_change` call adds
+- One call saves one document. Every `add_document_to_change` call adds
   a new document, so for several files run the steps once per file, and
   never create the same file twice.

@@ -1,4 +1,4 @@
-// Builds the working file of create_document_in_change and
+// Builds the working file of add_document_to_change and
 // update_document_in_change from a Markdown file. The text is copied by this
 // script, never retyped by the model, so `content` is the source byte for
 // byte. The file carries no id: the service mints it on create.

@@ -132,9 +132,9 @@ This is the invariant the rest of the design follows from:
   file there and passes a path; results too large to inline are written there and the agent reads
   them back. MCP messages carry coordinates, not content. The MCP server's `instructions` name
   the repository root and the session's scratch directory, so no tool call is needed to find them.
-- Writes are whole-file and atomic (write beside, then rename). When two agent sessions write the
-  same entity, the last write wins and each process's watcher picks up the other's file; there
-  are no locks and no hash preconditions.
+- Writes are whole-file and atomic (write beside, then rename). A change file carries a
+  `version`, and a save made on an older version than the stored one is refused rather than
+  written over it; there are no locks.
 
 ## Knowledge graph files
 
@@ -147,10 +147,9 @@ All knowledge graph files live under `.noesis/` at the repository root:
 │                               one subdirectory per service process, removed when it exits
 └── graph/
     ├── changes/
-    │   ├── <change>.change.json       one change
-    │   └── <change>/                  everything produced while working on it
-    │       ├── <id>.document.json       an imported document — title, date and verbatim content
-    │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
+    │   └── <change>.change.json       one change, whole: its imported documents (title, date and
+    │                                  verbatim content) and its design docs (designed models, as
+    │                                  diffs against the implemented system)
     └── system-models/
         └── <id>.system-model.json     the implemented model, projected from the code by the scanner
 ```
@@ -163,7 +162,7 @@ rewrites it from the source code, so nothing there is edited by hand.
 
 Imports and design docs are **scoped to a change**: a document is imported because some
 change is being worked on, and a design doc describes that change. Keeping them in the change's
-folder makes the unit of work the unit of review — the whole record of a change lands in one
+file makes the unit of work the unit of review — the whole record of a change lands in one
 place in a pull request. `system-models/` is change-independent: it tracks the code as it is,
 whichever change is in flight.
 
@@ -171,17 +170,20 @@ The knowledge graph is `.noesis/graph/`: one JSON file per entity, `<dir>/<id>.<
 read and written through one small collection class over one codec. Rules that hold across
 every kind:
 
-- **One shape.** Every entity, the change included, is a file named by its id and its kind. The
-  change's file sits beside its folder, not inside it, so a change with no documents yet has no
-  folder; the folder appears with its first child. A folder with no `.change.json` beside it is
-  an orphan (a `git checkout` that removed the change): the change list never sees it, and no
-  new child lands in it. Notes, source files and scratch space live outside `graph/` —
-  `sources/`, `sessions/` — and are not graph content.
-- **Folders nest by ownership, never by classification.** A change owns its documents and
-  design documents, so those sit in `graph/changes/<change>/`; `system-models/` is flat. Where
-  one object belongs under another by classification rather than ownership, the relation lives
-  in the data as a field naming the other object's id, so re-classifying is a one-field edit,
-  not a file move.
+- **One shape.** Every aggregate is a file named by its id and its kind, and holds what it owns.
+  A change is one: its documents and design documents live inside `<change>.change.json`, read
+  and written whole, and their ids are unique within it. Notes, source files and scratch space
+  live outside `graph/` — `sources/`, `sessions/` — and are not graph content.
+- **Files nest by ownership, never by classification.** A change owns its documents and design
+  documents, so they sit in its file; `system-models/` is flat. Where one object belongs under
+  another by classification rather than ownership, the relation lives in the data as a field
+  naming the other object's id, so re-classifying is a one-field edit, not a file move.
+- **A save checks the version it read.** A change file carries a `version`, 1 on create and one
+  more on every save. A save made on a version older than the stored one is refused, never
+  retried: the MCP tool answers that the agent should read the change again and repeat the
+  call, and the ui answers 409. The check and the write run without yielding, so within the one
+  process that serves a session nothing comes between them; across processes they are two
+  steps.
 - **The file name is the key.** The entity's id names its file and repeats in its body; a
   mismatch is a validation failure, so a hand-renamed file never answers to two ids. Ids match
   `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it,
