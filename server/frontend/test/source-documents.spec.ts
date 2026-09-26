@@ -15,7 +15,7 @@ afterEach(() => {
 afterAll(() => fetchSpy.mockRestore());
 
 const documentFixture = {
-  id: '2026-01-01-payment-retry-policy' as SourceDocumentId,
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c' as SourceDocumentId,
   title: 'Payment retry policy',
   date: '2026-09-12',
   content: 'Retry twice, then stop.',
@@ -27,18 +27,18 @@ it('unwraps the selected document and isolates documents between changes', async
     await cache.fetchQuery(
       sourceDocumentById(
         '2026-01-01-scheduling',
-        '2026-01-01-payment-retry-policy',
+        '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c',
       ),
     ),
   ).toEqual(documentFixture);
   expect(fetchSpy.mock.calls[0]?.[0]).toBe(
-    '/ui/changes/2026-01-01-scheduling/source-documents/2026-01-01-payment-retry-policy',
+    '/ui/changes/2026-01-01-scheduling/source-documents/0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c',
   );
   expect(
     cache.getQueryData(
       sourceDocumentById(
         '2026-01-02-billing',
-        '2026-01-01-payment-retry-policy',
+        '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c',
       ).queryKey,
     ),
   ).toBeUndefined();

@@ -5,11 +5,10 @@ import {
   UpdateChange,
 } from '#backend/app/changes/model/change-snapshot';
 import { CreateDesignDoc } from '#backend/app/changes/model/design-doc';
-import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
-import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { greenFieldDesignDocFixture } from '../fixtures/design-doc.fixture';
+import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // The test clock reads 2026-09-24.
@@ -89,7 +88,7 @@ describe('UpdateChangeHandler', () => {
   it('replaces the change at its id, which a rename leaves as it was', async () => {
     await t.createChange(CHANGE);
     await t.writeDocument(CHANGE, {
-      id: '2026-01-02-notes',
+      id: sourceDocumentId(1),
       title: 'Notes',
       date: '2026-01-02',
       content: '',
@@ -137,12 +136,12 @@ describe('The handlers of what a change owns', () => {
     });
 
     expect(addedDesignDoc).toEqual({
-      id: DesignDocId.parse('2026-09-24-partial-refunds-for-orders'),
+      id: expect.any(String),
       name: 'Partial refunds for orders',
       implemented: false,
     });
     expect(addedDocument).toEqual({
-      id: SourceDocumentId.parse('2026-09-24-booking-rules'),
+      id: expect.any(String),
       title: document.title,
       date: document.date,
     });
@@ -163,7 +162,7 @@ describe('The handlers of what a change owns', () => {
       change: CHANGE,
       document,
     });
-    const designDocId = (
+    const designDocAdded = (
       await t.addDesignDocToChange.handle({ change: CHANGE, designDoc })
     ).id;
 
@@ -174,7 +173,7 @@ describe('The handlers of what a change owns', () => {
     });
     await t.updateDesignDocInChange.handle({
       change: CHANGE,
-      id: designDocId,
+      id: designDocAdded,
       designDoc: { ...designDoc, implemented: true },
     });
 
@@ -185,17 +184,17 @@ describe('The handlers of what a change owns', () => {
   });
 
   it('refuse a change that does not exist, whatever they do', async () => {
-    const designDocId = DesignDocId.parse('2026-01-01-x');
-    const documentId = SourceDocumentId.parse('2026-01-01-x');
+    const designDocMissing = designDocId(99);
+    const documentId = sourceDocumentId(99);
     for (const call of [
       () => t.addDesignDocToChange.handle({ change: NOPE, designDoc }),
       () =>
         t.updateDesignDocInChange.handle({
           change: NOPE,
-          id: designDocId,
+          id: designDocMissing,
           designDoc,
         }),
-      () => t.findDesignDoc.handle({ change: NOPE, id: designDocId }),
+      () => t.findDesignDoc.handle({ change: NOPE, id: designDocMissing }),
       () => t.addDocumentToChange.handle({ change: NOPE, document }),
       () =>
         t.updateDocumentInChange.handle({
@@ -228,7 +227,7 @@ describe('ListChangesHandler', () => {
     const older = await t.createChange('2026-01-01-older');
     await t.createChange('2026-01-02-newer');
     await t.writeDocument(older, {
-      id: '2026-01-01-notes',
+      id: sourceDocumentId(1),
       title: 'Notes',
       date: '2026-01-01',
       content: '',
@@ -246,8 +245,14 @@ describe('ListChangesHandler', () => {
 describe('FindChangeHandler', () => {
   it('answers the change with what it owns summarised', async () => {
     await t.createChange(CHANGE, { name: 'Booking' });
-    await t.addDocumentToChange.handle({ change: CHANGE, document });
-    await t.addDesignDocToChange.handle({ change: CHANGE, designDoc });
+    const addedDocument = await t.addDocumentToChange.handle({
+      change: CHANGE,
+      document,
+    });
+    const addedDesignDoc = await t.addDesignDocToChange.handle({
+      change: CHANGE,
+      designDoc,
+    });
 
     expect(await t.findChange.handle({ id: CHANGE })).toEqual({
       id: CHANGE,
@@ -258,14 +263,14 @@ describe('FindChangeHandler', () => {
       description: '',
       designDocs: [
         {
-          id: DesignDocId.parse('2026-09-24-partial-refunds-for-orders'),
+          id: addedDesignDoc.id,
           name: 'Partial refunds for orders',
           implemented: false,
         },
       ],
       sourceDocuments: [
         {
-          id: SourceDocumentId.parse('2026-09-24-booking-rules'),
+          id: addedDocument.id,
           title: document.title,
           date: document.date,
         },

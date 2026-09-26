@@ -189,12 +189,12 @@ every kind:
   `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it,
   never silently answers as absent.
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
-  source imported twice lands under the same id rather than beside itself. A change, a document
-  and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
-  (`2026-09-24-payment-retry`): the service mints it once, when the entity is created, and
-  never re-derives it, so a retitled entity keeps its id. A title already used that day gets the
-  next free suffix (`-2`, `-3`, …). A change id is unique among changes; a document or
-  design-doc id only within its change. Ids sort by creation date.
+  source imported twice lands under the same id rather than beside itself. A change is keyed
+  by a dated slug, `YYYY-MM-DD-<slug of its title>` (`2026-09-24-payment-retry`): the service
+  mints it once, when the change is created, and never re-derives it, so a retitled change keeps
+  its id. A title already used that day gets the next free suffix (`-2`, `-3`, …), and change
+  ids sort by creation date. A document or a design document is keyed by a UUID the service
+  mints when it is added; its change keeps them in the order they were added.
 - **Creates and updates are separate.** A working file never carries an id. A create tool mints
   one and answers with it, so two creates of one title make two entities; an update tool takes
   the id as an argument, replaces that entity whole and refuses an id that names nothing. No

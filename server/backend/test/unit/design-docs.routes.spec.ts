@@ -5,6 +5,7 @@ import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { designDocId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
@@ -57,7 +58,7 @@ describe('ui design-docs routes', () => {
       'building_block|sales.refunds.RefundRepository',
     ]);
 
-    expect((await app.request(`${BASE}/2026-01-01-missing`)).status).toBe(404);
+    expect((await app.request(`${BASE}/${designDocId(99)}`)).status).toBe(404);
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
@@ -94,7 +95,7 @@ describe('ui design-docs routes', () => {
 
   it('404s a design document of a change that does not exist', async () => {
     const missing = '/changes/2026-01-01-nope/design-docs';
-    const res = await app.request(`${missing}/2026-01-01-x`);
+    const res = await app.request(`${missing}/${designDocId(99)}`);
     expect(res.status).toBe(404);
     expect(await res.json()).toEqual({ error: 'change_not_found' });
   });

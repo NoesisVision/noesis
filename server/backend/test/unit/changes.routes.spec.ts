@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { sourceDocumentId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -23,7 +23,7 @@ const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
 
 const document = {
-  id: SourceDocumentId.parse('2026-09-12-stakeholder-interview'),
+  id: sourceDocumentId(1),
   title: 'Stakeholder interview',
   date: '2026-09-12',
   content: 'What they said.',
@@ -79,12 +79,12 @@ describe('ui changes routes', () => {
     });
   });
 
-  it('names the entries of a change oldest first, by id', async () => {
+  it('names the entries of a change in the order they were added', async () => {
     const change = await t.createChange('2026-09-13-older');
     for (const [id, title] of [
-      ['2026-09-12-zoning-rules', 'Zoning rules'],
-      ['2026-09-10-appointment-booking', 'Appointment booking'],
-      ['2026-09-11-glossary', 'Glossary'],
+      [sourceDocumentId(3), 'Zoning rules'],
+      [sourceDocumentId(1), 'Appointment booking'],
+      [sourceDocumentId(2), 'Glossary'],
     ] as const) {
       await t.writeDocument(change, {
         id,
@@ -99,9 +99,9 @@ describe('ui changes routes', () => {
       changes: { entries: { name: string }[] }[];
     };
     expect(changes[0]?.entries.map((entry) => entry.name)).toEqual([
+      'Zoning rules',
       'Appointment booking',
       'Glossary',
-      'Zoning rules',
     ]);
   });
 

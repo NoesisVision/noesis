@@ -89,17 +89,3 @@ export async function freeSlugId<Id extends z.ZodType<string>>(
     if (!(await isTaken(id))) return id;
   }
 }
-
-/** `freeSlugId` against ids held in memory. */
-export function freeSlugIdAmong<Id extends z.ZodType<string>>(
-  schema: Id,
-  title: string,
-  date: string,
-  taken: ReadonlySet<string>,
-): z.output<Id> {
-  const candidates = slugIdCandidates(title, date);
-  for (;;) {
-    const id = schema.parse(candidates.next().value);
-    if (!taken.has(id)) return id;
-  }
-}

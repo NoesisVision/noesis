@@ -23,8 +23,8 @@ import {
   designDocFixture,
   greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
 
-const TODAY = '2026-09-24';
 const ID = ChangeId.parse('2026-01-01-booking');
 
 /** A design as an agent's working file holds it: everything but the id. */
@@ -86,7 +86,7 @@ describe('A new change', () => {
 
 describe('Updating a change', () => {
   it('replaces what it says of itself, keeping its id and what it owns', () => {
-    change.addSourceDocument(document, TODAY);
+    change.addSourceDocument(document);
 
     change.update(
       UpdateChange.parse({
@@ -109,27 +109,24 @@ describe('Updating a change', () => {
 });
 
 describe('Adding a design document', () => {
-  it("mints its id from today's date and its name", () => {
-    const added = change.addDesignDoc(byAgent, TODAY);
+  it('mints a UUID for its id', () => {
+    const added = change.addDesignDoc(byAgent);
 
-    const id = DesignDocId.parse('2026-09-24-partial-refunds-for-orders');
-    expect(added.id).toBe(id);
-    expect(change.designDoc(id)).toEqual(
-      DesignDoc.parse({ ...greenFieldDesignDocFixture, id }),
+    expect(DesignDocId.safeParse(added.id).success).toBe(true);
+    expect(change.designDoc(added.id)).toEqual(
+      DesignDoc.parse({ ...greenFieldDesignDocFixture, id: added.id }),
     );
   });
 
-  it('gives a name already used today the next free suffix, never overwriting', () => {
-    change.addDesignDoc(byAgent, TODAY);
+  it('mints a new id on every add, even for the same name', () => {
+    const first = change.addDesignDoc(byAgent);
 
-    expect(change.addDesignDoc(byAgent, TODAY).id).toBe(
-      DesignDocId.parse('2026-09-24-partial-refunds-for-orders-2'),
-    );
+    expect(change.addDesignDoc(byAgent).id).not.toBe(first.id);
     expect(change.designDocSummaries()).toHaveLength(2);
   });
 
   it('refuses a design that modifies or removes an element, as nothing is scanned yet', () => {
-    expect(brokenRules(() => change.addDesignDoc(removing, TODAY))).toEqual([
+    expect(brokenRules(() => change.addDesignDoc(removing))).toEqual([
       'changedInGreenField',
     ]);
     expect(change.designDocSummaries()).toEqual([]);
@@ -149,9 +146,9 @@ describe('Adding a design document', () => {
       },
     });
 
-    expect(
-      brokenRules(() => change.addDesignDoc(withHumanField, TODAY)),
-    ).toEqual(['humanAuthor']);
+    expect(brokenRules(() => change.addDesignDoc(withHumanField))).toEqual([
+      'humanAuthor',
+    ]);
     expect(change.designDocSummaries()).toEqual([]);
   });
 
@@ -163,7 +160,7 @@ describe('Adding a design document', () => {
       },
     });
 
-    expect(brokenRules(() => change.addDesignDoc(incomplete, TODAY))).toEqual([
+    expect(brokenRules(() => change.addDesignDoc(incomplete))).toEqual([
       'unchangedFieldInAddedItem',
     ]);
     expect(change.designDocSummaries()).toEqual([]);
@@ -172,7 +169,7 @@ describe('Adding a design document', () => {
 
 describe('Revising a design document', () => {
   it('replaces it whole at its id, which a new name leaves as it was', () => {
-    const { id } = change.addDesignDoc(byAgent, TODAY);
+    const { id } = change.addDesignDoc(byAgent);
 
     const revised = change.reviseDesignDoc(id, {
       ...byAgent,
@@ -191,7 +188,7 @@ describe('Revising a design document', () => {
   });
 
   it('refuses a version that breaks the rules, keeping the one it had', () => {
-    const { id } = change.addDesignDoc(byAgent, TODAY);
+    const { id } = change.addDesignDoc(byAgent);
     const before = change.designDoc(id);
 
     expect(brokenRules(() => change.reviseDesignDoc(id, removing))).toEqual([
@@ -211,69 +208,57 @@ describe('Revising a design document', () => {
 });
 
 describe('Reading the design documents of a change', () => {
-  it('summarises them oldest first, each by its name and whether it is implemented', () => {
-    const earlier = DesignDocId.parse('2025-12-31-another-design');
+  it('summarises them in the order they were added, each by its name and whether it is implemented', () => {
+    const later = designDocId(1);
     change = Change.fromSnapshot({
       ...change.toSnapshot(),
       designDocs: [
         DesignDoc.parse({ ...designDocFixture, implemented: true }),
         DesignDoc.parse({
           ...designDocFixture,
-          id: earlier,
+          id: later,
           name: 'Another design',
         }),
       ],
     });
 
     expect(change.designDocSummaries()).toEqual([
-      { id: earlier, name: 'Another design', implemented: false },
       {
         id: decodedDesignDocFixture.id,
         name: 'Partial refunds for orders',
         implemented: true,
       },
+      { id: later, name: 'Another design', implemented: false },
     ]);
   });
 
   it('refuses an id the change does not have', () => {
-    expect(() =>
-      change.designDoc(DesignDocId.parse('2026-01-01-missing')),
-    ).toThrow(expect.objectContaining({ entity: 'design document' }));
+    expect(() => change.designDoc(designDocId(99))).toThrow(
+      expect.objectContaining({ entity: 'design document' }),
+    );
   });
 });
 
 describe('Adding a document', () => {
-  it("mints its id from today's date and the title, not the document's date", () => {
-    const added = change.addSourceDocument(document, TODAY);
+  it('mints a UUID for its id', () => {
+    const added = change.addSourceDocument(document);
 
-    const id = SourceDocumentId.parse('2026-09-24-booking-rules-v2');
-    expect(added).toEqual({ id, ...document });
-    expect(change.sourceDocument(id)).toEqual(added);
+    expect(SourceDocumentId.safeParse(added.id).success).toBe(true);
+    expect(added).toEqual({ id: added.id, ...document });
+    expect(change.sourceDocument(added.id)).toEqual(added);
   });
 
-  it('gives a title already used today the next free suffix', () => {
-    change.addSourceDocument(document, TODAY);
+  it('mints a new id on every add, even for the same title', () => {
+    const first = change.addSourceDocument(document);
 
-    expect(change.addSourceDocument(document, TODAY).id).toBe(
-      SourceDocumentId.parse('2026-09-24-booking-rules-v2-2'),
-    );
-  });
-
-  it('mints the id a design document of the same name has', () => {
-    const designDoc = change.addDesignDoc(
-      { ...byAgent, name: document.title },
-      TODAY,
-    );
-
-    expect(change.addSourceDocument(document, TODAY).id).toBe(
-      SourceDocumentId.parse(designDoc.id),
-    );
+    expect(change.addSourceDocument(document).id).not.toBe(first.id);
+    expect(change.sourceDocumentSummaries()).toHaveLength(2);
   });
 });
 
 describe('Revising a document', () => {
   it('replaces it whole at its id, which a new title leaves as it was', () => {
-    const { id } = change.addSourceDocument(document, TODAY);
+    const { id } = change.addSourceDocument(document);
 
     change.reviseSourceDocument(id, {
       ...document,
@@ -290,29 +275,26 @@ describe('Revising a document', () => {
 
   it('refuses an id the change does not have, adding nothing', () => {
     expect(() =>
-      change.reviseSourceDocument(
-        SourceDocumentId.parse('2026-09-24-missing'),
-        document,
-      ),
+      change.reviseSourceDocument(sourceDocumentId(99), document),
     ).toThrow(expect.objectContaining({ entity: 'document', change: ID }));
     expect(change.sourceDocumentSummaries()).toEqual([]);
   });
 });
 
 describe('The entries of a change', () => {
-  it('names its design documents, then its documents, each oldest first', () => {
+  it('names its design documents, then its documents, each in the order they were added', () => {
     const doc = (id: string, title: string) =>
       SourceDocument.parse({ id, title, date: '2026-01-01', content: '' });
     change = Change.fromSnapshot({
       ...change.toSnapshot(),
       sourceDocuments: [
-        doc('2026-01-03-notes', 'Notes'),
-        doc('2026-01-02-interview', 'Interview'),
+        doc(sourceDocumentId(2), 'Notes'),
+        doc(sourceDocumentId(1), 'Interview'),
       ],
       designDocs: [
         DesignDoc.parse({
           ...designDocFixture,
-          id: '2026-01-05-retry-flow',
+          id: designDocId(1),
           name: 'Retry flow',
         }),
       ],
@@ -321,19 +303,19 @@ describe('The entries of a change', () => {
     expect(
       change.entries().map(({ kind, id, name }) => `${kind} ${id} ${name}`),
     ).toEqual([
-      'design-doc 2026-01-05-retry-flow Retry flow',
-      'document 2026-01-02-interview Interview',
-      'document 2026-01-03-notes Notes',
+      `design-doc ${designDocId(1)} Retry flow`,
+      `document ${sourceDocumentId(2)} Notes`,
+      `document ${sourceDocumentId(1)} Interview`,
     ]);
   });
 
   it('says of each design document whether it is implemented', () => {
-    change.addDesignDoc({ ...byAgent, implemented: true }, TODAY);
+    const { id } = change.addDesignDoc({ ...byAgent, implemented: true });
 
     expect(change.entries()).toEqual([
       {
         kind: 'design-doc',
-        id: DesignDocId.parse('2026-09-24-partial-refunds-for-orders'),
+        id,
         name: 'Partial refunds for orders',
         implemented: true,
       },

@@ -17,6 +17,7 @@ import {
   designDocFixture,
   greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
 import { textOf } from '../support/service-process';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -60,7 +61,8 @@ async function workingFile(name: string, contents: unknown): Promise<string> {
 const CHANGE = '2026-01-01-payment-retry';
 /** What the services mint from: `testNoesis` pins today to this day. */
 const TODAY = '2026-09-24';
-const DOCUMENT_ID = `${TODAY}-retry-interview`;
+/** An id no document has: every one added is minted anew. */
+const DOCUMENT_ID = sourceDocumentId(99);
 
 const document = {
   title: 'Retry interview',
@@ -69,10 +71,19 @@ const document = {
 };
 
 const { id: _designDocId, ...designDoc } = greenFieldDesignDocFixture;
-const DESIGN_DOC_ID = DesignDocId.parse(`${TODAY}-partial-refunds-for-orders`);
+/** An id no design document has. */
+const DESIGN_DOC_ID = designDocId(99);
 
 async function call(name: string, args: Record<string, unknown>) {
   return client.callTool({ name, arguments: args });
+}
+
+/** The id the server minted for what a call added. */
+function mintedId(
+  result: Awaited<ReturnType<typeof call>>,
+  key: 'document' | 'designDoc',
+): string {
+  return (result.structuredContent as Record<string, { id: string }>)[key]!.id;
 }
 
 describe('the MCP surface', () => {
@@ -270,14 +281,20 @@ describe('list_changes', () => {
 
   it("names each change's design documents and documents, in the text as well", async () => {
     const change = await noesis.createChange(CHANGE);
-    await call('add_design_doc_to_change', {
-      change,
-      path: await workingFile('design-doc.json', designDoc),
-    });
-    await call('add_document_to_change', {
-      change,
-      path: await workingFile('document.json', document),
-    });
+    const designDocAdded = mintedId(
+      await call('add_design_doc_to_change', {
+        change,
+        path: await workingFile('design-doc.json', designDoc),
+      }),
+      'designDoc',
+    );
+    const documentId = mintedId(
+      await call('add_document_to_change', {
+        change,
+        path: await workingFile('document.json', document),
+      }),
+      'document',
+    );
 
     const result = await client.callTool({ name: 'list_changes' });
 
@@ -286,17 +303,17 @@ describe('list_changes', () => {
         {
           id: CHANGE,
           entries: [
-            { kind: 'design-doc', id: DESIGN_DOC_ID, implemented: false },
-            { kind: 'document', id: DOCUMENT_ID, name: document.title },
+            { kind: 'design-doc', id: designDocAdded, implemented: false },
+            { kind: 'document', id: documentId, name: document.title },
           ],
         },
       ],
     });
     expect(textOf(result)).toContain(
-      `design document ${DESIGN_DOC_ID}: Partial refunds for orders (not implemented)`,
+      `design document ${designDocAdded}: Partial refunds for orders (not implemented)`,
     );
     expect(textOf(result)).toContain(
-      `document ${DOCUMENT_ID}: ${document.title}`,
+      `document ${documentId}: ${document.title}`,
     );
   });
 
@@ -315,13 +332,14 @@ describe('add_document_to_change', () => {
     const result = await call('add_document_to_change', { change, path });
 
     expect(result.isError).toBeFalsy();
+    const documentId = mintedId(result, 'document');
     expect(result.structuredContent).toEqual({
-      document: { id: DOCUMENT_ID, title: document.title, date: document.date },
+      document: { id: documentId, title: document.title, date: document.date },
     });
-    expect(textOf(result)).toContain(`Added document ${DOCUMENT_ID}`);
+    expect(textOf(result)).toContain(`Added document ${documentId}`);
     const stored = await noesis.findSourceDocument.handle({
       change,
-      id: SourceDocumentId.parse(DOCUMENT_ID),
+      id: SourceDocumentId.parse(documentId),
     });
     expect(stored.content).toBe(document.content);
   });
@@ -426,7 +444,7 @@ describe('add_document_to_change', () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
-      document: { id: `${TODAY}-untitled` },
+      document: { id: expect.any(String) },
     });
   });
 
@@ -447,14 +465,17 @@ describe('add_document_to_change', () => {
 describe('update_document_in_change', () => {
   it('replaces the document at its id, which a new title leaves as it was', async () => {
     const change = await noesis.createChange(CHANGE);
-    await call('add_document_to_change', {
-      change,
-      path: await workingFile('document.json', document),
-    });
+    const documentId = mintedId(
+      await call('add_document_to_change', {
+        change,
+        path: await workingFile('document.json', document),
+      }),
+      'document',
+    );
 
     const result = await call('update_document_in_change', {
       change,
-      id: DOCUMENT_ID,
+      id: documentId,
       path: await workingFile('document.json', {
         ...document,
         title: 'Retry interview, revised',
@@ -463,9 +484,9 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
-      document: { id: DOCUMENT_ID, title: 'Retry interview, revised' },
+      document: { id: documentId, title: 'Retry interview, revised' },
     });
-    expect(textOf(result)).toContain(`Updated document ${DOCUMENT_ID}`);
+    expect(textOf(result)).toContain(`Updated document ${documentId}`);
     expect((await noesis.stored(change)).sourceDocuments).toHaveLength(1);
   });
 
@@ -504,17 +525,18 @@ describe('add_design_doc_to_change', () => {
     const result = await call('add_design_doc_to_change', { change, path });
 
     expect(result.isError).toBeFalsy();
+    const designDocAdded = mintedId(result, 'designDoc');
     expect(result.structuredContent).toEqual({
       designDoc: {
-        id: DESIGN_DOC_ID,
+        id: designDocAdded,
         name: designDoc.name,
         implemented: false,
       },
     });
-    expect(textOf(result)).toContain(`Added design document ${DESIGN_DOC_ID}`);
+    expect(textOf(result)).toContain(`Added design document ${designDocAdded}`);
     const stored = await noesis.findDesignDoc.handle({
       change,
-      id: DESIGN_DOC_ID,
+      id: DesignDocId.parse(designDocAdded),
     });
     expect(stored.name).toBe(designDoc.name);
   });
@@ -630,11 +652,14 @@ describe('update_design_doc_in_change', () => {
   it('replaces the design document at its id', async () => {
     const change = await noesis.createChange(CHANGE);
     const path = await workingFile('design-doc.json', designDoc);
-    await call('add_design_doc_to_change', { change, path });
+    const designDocAdded = mintedId(
+      await call('add_design_doc_to_change', { change, path }),
+      'designDoc',
+    );
 
     const result = await call('update_design_doc_in_change', {
       change,
-      id: DESIGN_DOC_ID,
+      id: designDocAdded,
       path: await workingFile('design-doc.json', {
         ...designDoc,
         implemented: true,
@@ -643,28 +668,31 @@ describe('update_design_doc_in_change', () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
-      designDoc: { id: DESIGN_DOC_ID, implemented: true },
+      designDoc: { id: designDocAdded, implemented: true },
     });
     expect(textOf(result)).toContain(
-      `Updated design document ${DESIGN_DOC_ID}`,
+      `Updated design document ${designDocAdded}`,
     );
     expect((await noesis.stored(change)).designDocs).toHaveLength(1);
   });
 
   it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
     const change = await noesis.createChange(CHANGE);
-    await call('add_design_doc_to_change', {
-      change,
-      path: await workingFile('design-doc.json', designDoc),
-    });
+    const designDocAdded = mintedId(
+      await call('add_design_doc_to_change', {
+        change,
+        path: await workingFile('design-doc.json', designDoc),
+      }),
+      'designDoc',
+    );
     const stored = await noesis.findDesignDoc.handle({
       change,
-      id: DESIGN_DOC_ID,
+      id: DesignDocId.parse(designDocAdded),
     });
 
     const result = await call('update_design_doc_in_change', {
       change,
-      id: DESIGN_DOC_ID,
+      id: designDocAdded,
       path: await workingFile('design-doc.json', {
         ...designDoc,
         behaviours: { removed: ['behavior|sales.orders.Order.cancel'] },
@@ -676,7 +704,10 @@ describe('update_design_doc_in_change', () => {
       '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
     );
     expect(
-      await noesis.findDesignDoc.handle({ change, id: DESIGN_DOC_ID }),
+      await noesis.findDesignDoc.handle({
+        change,
+        id: DesignDocId.parse(designDocAdded),
+      }),
     ).toEqual(stored);
   });
 

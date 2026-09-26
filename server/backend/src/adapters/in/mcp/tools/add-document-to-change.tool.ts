@@ -27,7 +27,7 @@ export function addDocumentToChangeTool(
     ADD_DOCUMENT_TO_CHANGE,
     {
       title: 'Add document to change',
-      description: `Adds a document to a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The server mints its id from today's date and the title, and every call adds a new document, so revise one you added with ${UPDATE_DOCUMENT_IN_CHANGE}. Write the document to a JSON working file under the session scratch directory and pass its path.`,
+      description: `Adds a document to a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The server mints its id, a UUID, and every call adds a new document, so revise one you added with ${UPDATE_DOCUMENT_IN_CHANGE}. Write the document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,

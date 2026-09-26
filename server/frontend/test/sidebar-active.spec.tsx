@@ -22,8 +22,8 @@ import { getContext } from '../src/shared/query/query-client';
  */
 
 const CHANGE = '2026-01-01-scheduling';
-const NOTES = '2026-01-01-notes';
-const DOC = '2026-01-02-partial-refunds';
+const NOTES = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c';
+const DOC = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b';
 
 const NAVIGATION = {
   id: CHANGE,

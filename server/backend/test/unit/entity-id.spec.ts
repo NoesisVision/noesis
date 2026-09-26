@@ -4,11 +4,7 @@ import { ChangeId } from '#backend/app/changes/model/change-id';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 
-describe.each([
-  ['ChangeId', ChangeId],
-  ['DesignDocId', DesignDocId],
-  ['SourceDocumentId', SourceDocumentId],
-] as const)('%s', (_name, Id) => {
+describe.each([['ChangeId', ChangeId]] as const)('%s', (_name, Id) => {
   it('parses a creation date, then a slug', () => {
     for (const good of [
       '2026-09-24-payment-retry',
@@ -51,5 +47,37 @@ describe.each([
     for (const id of ['2026-09-24-payment-retry', '2024-02-29-x']) {
       expect(pattern.test(id)).toBe(Id.safeParse(id).success);
     }
+  });
+});
+
+describe.each([
+  ['DesignDocId', DesignDocId],
+  ['SourceDocumentId', SourceDocumentId],
+] as const)('%s', (_name, Id) => {
+  const UUID = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b';
+
+  it('parses a UUID', () => {
+    expect(Id.parse(UUID)).toBe(Id.parse(UUID));
+  });
+
+  it.each([
+    ['a dated slug', '2026-09-24-payment-retry'],
+    ['a UUID without its hyphens', UUID.replaceAll('-', '')],
+    ['a path separator', `${UUID}/x`],
+  ])('refuses %s', (_case, bad) => {
+    expect(() => Id.parse(bad)).toThrow(z.ZodError);
+  });
+
+  it('generates a new UUID every time', () => {
+    const ids = new Set([Id.generate(), Id.generate(), Id.generate()]);
+
+    expect(ids.size).toBe(3);
+    for (const id of ids) expect(Id.safeParse(id).success).toBe(true);
+  });
+
+  it('advertises a UUID in the JSON Schema', () => {
+    const schema = z.toJSONSchema(Id, { io: 'input' });
+    expect(schema).toMatchObject({ type: 'string', format: 'uuid' });
+    expect(new RegExp(String(schema.pattern)).test(UUID)).toBe(true);
   });
 });

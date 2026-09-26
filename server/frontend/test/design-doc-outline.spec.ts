@@ -140,7 +140,7 @@ describe('outlineOf', () => {
   it('says nothing about a document that designs nothing', () => {
     expect(
       outlineOf({
-        id: '2026-01-01-empty',
+        id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c',
         name: 'Empty',
         description: '',
       }),

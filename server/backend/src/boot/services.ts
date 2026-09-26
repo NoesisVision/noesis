@@ -34,9 +34,9 @@ export function createServices(noesis: NoesisDir): Services {
   return {
     createChange: new CreateChangeHandler(changes, localToday),
     updateChange: new UpdateChangeHandler(changes),
-    addDesignDocToChange: new AddDesignDocToChangeHandler(changes, localToday),
+    addDesignDocToChange: new AddDesignDocToChangeHandler(changes),
     updateDesignDocInChange: new UpdateDesignDocInChangeHandler(changes),
-    addDocumentToChange: new AddDocumentToChangeHandler(changes, localToday),
+    addDocumentToChange: new AddDocumentToChangeHandler(changes),
     updateDocumentInChange: new UpdateDocumentInChangeHandler(changes),
     listChanges: new ListChangesHandler(changes),
     findChange: new FindChangeHandler(changes),

@@ -17,7 +17,7 @@ const REFUND = 'building_block|sales.refunds.Refund';
 const ISSUE = 'behavior|sales.refunds.Refund.issue';
 
 const design = (patch: Record<string, unknown> = {}) => ({
-  id: '2026-01-01-partial-refunds',
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
   name: 'Partial refunds',
   description: 'Let a clerk refund single order lines.',
   ...patch,
@@ -42,9 +42,11 @@ const addingIssue = (behaviour: object) =>
 const isValid = (document: unknown) => DesignDoc.safeParse(document).success;
 
 describe('A design document', () => {
-  it('is identified by its creation date and name', () => {
-    expect(isValid(design({ id: '2026-01-01-partial-refunds' }))).toBe(true);
-    expect(isValid(design({ id: 'partial-refunds' }))).toBe(false);
+  it('is identified by a UUID', () => {
+    expect(
+      isValid(design({ id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b' })),
+    ).toBe(true);
+    expect(isValid(design({ id: '2026-01-01-partial-refunds' }))).toBe(false);
   });
 
   it('always has a name and a description', () => {

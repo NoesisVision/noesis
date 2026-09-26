@@ -1,5 +1,4 @@
 import { NotFoundError } from '#backend/app/not-found-error';
-import { freeSlugIdAmong } from '#backend/app/slug-id';
 import type { ChangeEntry } from './change-entry';
 import type { ChangeId } from './change-id';
 import type {
@@ -81,19 +80,12 @@ export class Change {
   }
 
   /**
-   * Adds the design document at an id minted from `today` and its name. A
-   * name already used that day gets the next free suffix. Throws
-   * `InvalidDesignDocError` when it breaks the rules.
+   * Adds the design document at a new id. Throws `InvalidDesignDocError` when
+   * it breaks the rules.
    */
-  addDesignDoc(document: CreateDesignDoc, today: string): DesignDoc {
+  addDesignDoc(document: CreateDesignDoc): DesignDoc {
     assertValid(document);
-    const id = freeSlugIdAmong(
-      DesignDocId,
-      document.name,
-      today,
-      idsOf(this.state.designDocs),
-    );
-    const added: DesignDoc = { id, ...document };
+    const added: DesignDoc = { id: DesignDocId.generate(), ...document };
     this.state.designDocs = [...this.state.designDocs, added];
     return added;
   }
@@ -117,26 +109,17 @@ export class Change {
     return found;
   }
 
-  /** Oldest first: the id starts with the creation date. */
+  /** Oldest first: each is appended when added. */
   designDocSummaries(): DesignDocSummary[] {
-    return byId(this.state.designDocs).map(summarizeDesignDoc);
+    return this.state.designDocs.map(summarizeDesignDoc);
   }
 
-  /**
-   * Adds the document at an id minted from `today` and its title. A title
-   * already used that day gets the next free suffix.
-   */
-  addSourceDocument(
-    document: SourceDocumentFile,
-    today: string,
-  ): SourceDocument {
-    const id = freeSlugIdAmong(
-      SourceDocumentId,
-      document.title,
-      today,
-      idsOf(this.state.sourceDocuments),
-    );
-    const added: SourceDocument = { id, ...document };
+  /** Adds the document at a new id. */
+  addSourceDocument(document: SourceDocumentFile): SourceDocument {
+    const added: SourceDocument = {
+      id: SourceDocumentId.generate(),
+      ...document,
+    };
     this.state.sourceDocuments = [...this.state.sourceDocuments, added];
     return added;
   }
@@ -160,9 +143,9 @@ export class Change {
     return found;
   }
 
-  /** Oldest first: the id starts with the creation date. */
+  /** Oldest first: each is appended when added. */
   sourceDocumentSummaries(): SourceDocumentSummary[] {
-    return byId(this.state.sourceDocuments).map(summarizeSourceDocument);
+    return this.state.sourceDocuments.map(summarizeSourceDocument);
   }
 
   /** The design documents, then the documents, each kind oldest first. */
@@ -185,13 +168,4 @@ export class Change {
 function assertValid(document: Omit<DesignDoc, 'id'>): void {
   const violations = DesignDoc.validateAgentGenerated(document);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
-}
-
-function idsOf(entities: readonly { id: string }[]): Set<string> {
-  return new Set(entities.map(({ id }) => id));
-}
-
-/** Ids are ASCII, so code-unit order is alphabetical without a locale. */
-function byId<T extends { id: string }>(entities: readonly T[]): T[] {
-  return entities.toSorted((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }

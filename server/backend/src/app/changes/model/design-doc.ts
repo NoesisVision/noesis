@@ -75,9 +75,7 @@ export const DesignedBehaviour = z.strictObject({
 export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
 
 const designDocSchema = z.strictObject({
-  id: DesignDocId.describe(
-    "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
-  ),
+  id: DesignDocId,
   name: z.string().describe('The design document name.'),
   description: z.string(),
   modules: changeSetSchema(DesignedDomainModule, ModuleId),

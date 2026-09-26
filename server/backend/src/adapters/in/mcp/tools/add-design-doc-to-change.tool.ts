@@ -55,7 +55,7 @@ export function addDesignDocToChangeTool(
     ADD_DESIGN_DOC_TO_CHANGE,
     {
       title: 'Add design document to change',
-      description: `Adds a design document to a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call adds a new design document, so revise one you added with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
+      description: `Adds a design document to a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id, a UUID, and every call adds a new design document, so revise one you added with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,

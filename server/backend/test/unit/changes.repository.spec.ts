@@ -101,7 +101,6 @@ describe('NoesisChangesRepository', () => {
         date: '2026-01-01',
         content: 'Said.',
       }),
-      '2026-01-01',
     );
     await t.changesRepository.save(change);
 

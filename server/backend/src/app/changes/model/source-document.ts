@@ -3,9 +3,7 @@ import { SourceDocumentId } from './source-document-id';
 
 export const SourceDocument = z
   .object({
-    id: SourceDocumentId.describe(
-      "The document id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'; unique within the change. Minted by the server when the document is created and never changed, so it keeps the original title.",
-    ),
+    id: SourceDocumentId,
     title: z
       .string()
       .trim()
@@ -17,7 +15,7 @@ export const SourceDocument = z
     date: z.iso
       .date()
       .describe(
-        'When the document was written or last revised, ISO 8601 date (YYYY-MM-DD). Independent of the creation date in the id.',
+        'When the document was written or last revised, ISO 8601 date (YYYY-MM-DD). Independent of when it was added.',
       ),
     content: z
       .string()

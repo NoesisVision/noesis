@@ -92,17 +92,11 @@ export async function testNoesis(): Promise<TestNoesis> {
     changesRepository,
     createChangeHandler: new CreateChangeHandler(changesRepository, TODAY),
     updateChange: new UpdateChangeHandler(changesRepository),
-    addDesignDocToChange: new AddDesignDocToChangeHandler(
-      changesRepository,
-      TODAY,
-    ),
+    addDesignDocToChange: new AddDesignDocToChangeHandler(changesRepository),
     updateDesignDocInChange: new UpdateDesignDocInChangeHandler(
       changesRepository,
     ),
-    addDocumentToChange: new AddDocumentToChangeHandler(
-      changesRepository,
-      TODAY,
-    ),
+    addDocumentToChange: new AddDocumentToChangeHandler(changesRepository),
     updateDocumentInChange: new UpdateDocumentInChangeHandler(
       changesRepository,
     ),

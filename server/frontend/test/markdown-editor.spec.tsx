@@ -69,7 +69,7 @@ it('heads the document page itself and opens the editor under it', () => {
   const html = render(
     <DocumentContent
       document={{
-        id: '2026-09-12-payment-retry-policy' as SourceDocumentId,
+        id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c' as SourceDocumentId,
         title: 'Payment retry policy',
         date: '2026-09-12',
         content: '# Payment retry policy\n\nRetry twice, then stop.',
@@ -85,7 +85,7 @@ it('says an empty document is empty rather than opening an editor on it', () => 
   const html = render(
     <DocumentContent
       document={{
-        id: '2026-09-12-empty' as SourceDocumentId,
+        id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1d' as SourceDocumentId,
         title: 'Empty',
         date: '2026-09-12',
         content: '   ',

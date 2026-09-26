@@ -3,6 +3,7 @@ import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/model/change-id';
 import type { SourceDocument } from '#backend/app/changes/model/source-document';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
+import { sourceDocumentId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
@@ -11,7 +12,7 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 // tests write them into the change directly.
 
 const CHANGE = '2026-01-01-booking';
-const ID = '2026-09-18-booking-rules';
+const ID = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c';
 const BASE = `/changes/${CHANGE}/source-documents`;
 
 const document: SourceDocument = {
@@ -50,9 +51,13 @@ describe('ui source-documents routes', () => {
       document: { id: ID, content: 'A slot may be booked once.' },
     });
 
-    expect((await app.request(`${BASE}/2026-09-18-missing`)).status).toBe(404);
+    expect((await app.request(`${BASE}/${sourceDocumentId(99)}`)).status).toBe(
+      404,
+    );
     expect((await app.request(`${BASE}/Not_An_Id`)).status).toBe(404);
-    expect((await app.request(`${BASE}/booking-rules`)).status).toBe(404);
+    expect((await app.request(`${BASE}/2026-09-18-booking-rules`)).status).toBe(
+      404,
+    );
   });
 
   // Adding, revising and removing are the agent's, through the MCP tools.

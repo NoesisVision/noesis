@@ -158,7 +158,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     const { document } = added.structuredContent as {
       document: { id: string };
     };
-    expect(document.id).toMatch(/^\d{4}-\d{2}-\d{2}-retry-interview$/);
+    expect(document.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-/);
     const stored = JSON.parse(
       await readFile(
         join(
