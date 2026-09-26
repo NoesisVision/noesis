@@ -22,9 +22,7 @@ const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
 export const ChangeSnapshot = z
   .object({
-    id: ChangeId.describe(
-      "The change's id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted by the server when the change is created and never changed, even when the name is.",
-    ),
+    id: ChangeId,
     name: z
       .string()
       .trim()

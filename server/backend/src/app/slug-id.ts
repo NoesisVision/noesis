@@ -22,7 +22,7 @@ const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*';
 const ID_PATTERN = new RegExp(`^${DATE}-${SLUG}$`);
 
 /**
- * The schema of an id a writer mints from an entity's creation date and title.
+ * The schema of an id a writer mints from an entity's creation date and name.
  * Only `[a-z0-9-]`, so an id can never climb out of its directory.
  */
 export function slugIdSchema(subject: string) {
@@ -34,30 +34,30 @@ export function slugIdSchema(subject: string) {
       `Invalid ${subject} id: expected e.g. '2026-09-24-payment-retry'`,
     )
     .describe(
-      `A ${subject}'s id: its creation date, then its title as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Names its file.`,
+      `A ${subject}'s id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted by the server when the ${subject} is created and never changed, even when the name is. Names its file.`,
     );
 }
 
 /**
- * The ids a new entity may take, best first: `date`, then a slug of `title`,
+ * The ids a new entity may take, best first: `date`, then a slug of `name`,
  * e.g. '2026-09-24-payment-retry', then the same with '-2', '-3', … for when
- * an entity of that title was already created that day. Endless: the writer
+ * an entity of that name was already created that day. Endless: the writer
  * takes the first one its store does not hold. `date` is an ISO date.
  */
 export function* slugIdCandidates(
-  title: string,
+  name: string,
   date: string,
 ): Generator<string, never> {
-  yield `${date}-${slugOf(title, '')}`;
+  yield `${date}-${slugOf(name, '')}`;
   for (let n = 2; ; n++) {
-    yield `${date}-${slugOf(title, `-${n}`)}`;
+    yield `${date}-${slugOf(name, `-${n}`)}`;
   }
 }
 
-/** The slug of `title`, cut so that it and `suffix` fit beside the date. */
-function slugOf(title: string, suffix: string): string {
+/** The slug of `name`, cut so that it and `suffix` fit beside the date. */
+function slugOf(name: string, suffix: string): string {
   const room = MAX_LENGTH - DATE_PREFIX_LENGTH - suffix.length;
-  return (slugify(title, room) || 'untitled') + suffix;
+  return (slugify(name, room) || 'untitled') + suffix;
 }
 
 function slugify(text: string, maxLength: number): string {
@@ -79,11 +79,11 @@ function slugify(text: string, maxLength: number): string {
  */
 export async function freeSlugId<Id extends z.ZodType<string>>(
   schema: Id,
-  title: string,
+  name: string,
   date: string,
   isTaken: (id: z.output<Id>) => Promise<boolean>,
 ): Promise<z.output<Id>> {
-  const candidates = slugIdCandidates(title, date);
+  const candidates = slugIdCandidates(name, date);
   for (;;) {
     const id = schema.parse(candidates.next().value);
     if (!(await isTaken(id))) return id;
