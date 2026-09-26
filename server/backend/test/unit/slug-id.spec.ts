@@ -28,6 +28,12 @@ describe('slugIdCandidates', () => {
     expect(first('Łódź Straße')).toBe('2026-09-24-lodz-strasse');
   });
 
+  it('transliterates other scripts, and umlauts the German way', () => {
+    expect(first('Привет мир')).toBe('2026-09-24-privet-mir');
+    expect(first('Ελληνικά')).toBe('2026-09-24-ellinika');
+    expect(first('München')).toBe('2026-09-24-muenchen');
+  });
+
   it('falls back to untitled when nothing is left to slug', () => {
     for (const empty of ['!!!', '   ', '日本語']) {
       expect(first(empty)).toBe('2026-09-24-untitled');

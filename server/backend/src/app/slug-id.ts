@@ -1,21 +1,10 @@
+import transliterate from '@sindresorhus/transliterate';
 import { z } from 'zod';
 
 /** Room for the date prefix inside the 64 characters a path segment gets. */
 const MAX_LENGTH = 64;
 /** `YYYY-MM-DD-`, before the slug. */
 const DATE_PREFIX_LENGTH = 11;
-/** Latin letters that NFKD leaves whole, so stripping marks can't reach them. */
-const TRANSLITERATIONS: Record<string, string> = {
-  ł: 'l',
-  ß: 'ss',
-  ø: 'o',
-  æ: 'ae',
-  œ: 'oe',
-  đ: 'd',
-  ð: 'd',
-  þ: 'th',
-  ı: 'i',
-};
 /** Zod's own `z.iso.date()` regex, leap years included, without its anchors. */
 const DATE = z.core.regexes.date.source.slice(1, -1);
 const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*';
@@ -61,11 +50,8 @@ function slugOf(name: string, suffix: string): string {
 }
 
 function slugify(text: string, maxLength: number): string {
-  return text
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
+  return transliterate(text)
     .toLowerCase()
-    .replace(/[łßøæœđðþı]/g, (letter) => TRANSLITERATIONS[letter] ?? letter)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, maxLength)
