@@ -6,12 +6,12 @@ import {
   type ServerConfig,
 } from '#backend/platform/config/config';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { RepositoryRoot } from '#backend/platform/files/repository-root';
 import {
   configureLogging,
   serverLogger,
 } from '#backend/platform/logging/logging';
 import { production } from './process';
+import { RepositoryRoot } from './repository-root';
 
 /** Where this process runs: the repository, its `.noesis/` and this session's scratch. */
 export interface Workspace {

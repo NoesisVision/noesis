@@ -6,7 +6,7 @@ import {
   RepositoryRoot,
   type RepositoryRootOptions,
   type RootResult,
-} from '#backend/platform/files/repository-root';
+} from '#backend/boot/repository-root';
 
 let base: string;
 
