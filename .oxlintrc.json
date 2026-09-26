@@ -14,14 +14,13 @@
     "docs/**/prototypes/**"
   ],
   "settings": {
-    // The backend's layers. A file belongs to the first
-    // element whose folder contains it; `root` catches what is left —
-    // `main.ts` and `boot/`, the composition root.
     "boundaries/include": [
       "server/backend/src/**/*.ts",
       "server/frontend/src/**/*.ts",
       "server/frontend/src/**/*.tsx"
     ],
+    // A file belongs to the first element that matches it; backend `root`
+    // catches `main.ts` and `boot/`, the composition root.
     "boundaries/elements": [
       {
         "type": "platform",
@@ -34,13 +33,15 @@
         "partialMatch": false
       },
       {
-        "type": "ui",
-        "pattern": "server/backend/src/adapters/in/ui/**",
+        "type": "adapter-in",
+        "pattern": "server/backend/src/adapters/in/*/**",
+        "capture": ["adapter"],
         "partialMatch": false
       },
       {
-        "type": "adapters",
-        "pattern": "server/backend/src/adapters/**",
+        "type": "adapter-out",
+        "pattern": "server/backend/src/adapters/out/*/**",
+        "capture": ["adapter"],
         "partialMatch": false
       },
       { "type": "root", "pattern": "server/backend/src" },
@@ -85,7 +86,6 @@
       {
         "default": "disallow",
         "policies": [
-          // platform is generic plumbing; it knows nothing of the layers above.
           {
             "from": { "element": { "type": "platform" } },
             "allow": {
@@ -94,8 +94,7 @@
               }
             }
           },
-          // app is the core: it declares the ports it needs and adapters
-          // implement them. Import the port, not platform.
+          // app declares the ports it needs and adapters implement them.
           {
             "from": { "element": { "type": "app" } },
             "allow": {
@@ -103,28 +102,39 @@
             }
           },
           {
-            "from": { "element": { "type": "adapters" } },
+            "from": { "element": { "type": "adapter-in" } },
             "allow": {
               "to": {
-                "element": {
-                  "type": ["adapters", "app", "platform"]
-                }
+                "element": [
+                  { "type": ["app", "platform"] },
+                  {
+                    "type": "adapter-in",
+                    "captured": {
+                      "adapter": "{{ from.element.captured.adapter }}"
+                    }
+                  }
+                ]
               }
             }
           },
           {
-            "from": { "element": { "type": "ui" } },
+            "from": { "element": { "type": "adapter-out" } },
             "allow": {
               "to": {
-                "element": {
-                  "type": ["ui", "app", "platform"]
-                }
+                "element": [
+                  { "type": ["app", "platform"] },
+                  {
+                    "type": "adapter-out",
+                    "captured": {
+                      "adapter": "{{ from.element.captured.adapter }}"
+                    }
+                  }
+                ]
               }
             }
           },
           // The frontend reads the backend's model and route types only.
-          // `fe-root` is where the generated route tree sits, so anything
-          // typed against routes imports it.
+          // `fe-root` holds the generated route tree.
           {
             "from": {
               "element": {
@@ -142,12 +152,10 @@
               "to": { "element": { "type": ["app", "root", "fe-root"] } }
             }
           },
-          // shared is the kernel: the client, the design system, routing ids.
           {
             "from": { "element": { "type": "fe-shared" } },
             "allow": { "to": { "element": { "type": "fe-shared" } } }
           },
-          // A feature's data access sees the kernel and its own module.
           {
             "from": { "element": { "type": "feature-api" } },
             "allow": {
@@ -157,14 +165,14 @@
                   { "type": "feature-api" },
                   {
                     "type": "feature-ui",
-                    "capture": { "feature": "{{from.feature}}" }
+                    "captured": {
+                      "feature": "{{ from.element.captured.feature }}"
+                    }
                   }
                 ]
               }
             }
           },
-          // A feature's components see the kernel, any feature's api, and
-          // their own feature's components — never another feature's ui.
           {
             "from": { "element": { "type": "feature-ui" } },
             "allow": {
@@ -174,13 +182,14 @@
                   { "type": "feature-api" },
                   {
                     "type": "feature-ui",
-                    "capture": { "feature": "{{from.feature}}" }
+                    "captured": {
+                      "feature": "{{ from.element.captured.feature }}"
+                    }
                   }
                 ]
               }
             }
           },
-          // The shell composes features; no feature may look back at it.
           {
             "from": { "element": { "type": "fe-shell" } },
             "allow": {
@@ -191,7 +200,6 @@
               }
             }
           },
-          // Route files are the wiring: they may reach anything.
           {
             "from": { "element": { "type": ["fe-routes", "fe-root"] } },
             "allow": {
@@ -209,13 +217,18 @@
               }
             }
           },
-          // Only the composition root wires everything; nothing imports it.
           {
             "from": { "element": { "type": "root" } },
             "allow": {
               "to": {
                 "element": {
-                  "type": ["root", "ui", "adapters", "app", "platform"]
+                  "type": [
+                    "root",
+                    "adapter-in",
+                    "adapter-out",
+                    "app",
+                    "platform"
+                  ]
                 }
               }
             }
@@ -252,35 +265,6 @@
         "react/only-export-components": [
           "error",
           { "allowExportNames": ["Route"] }
-        ]
-      }
-    },
-    {
-      // A feature's own files are siblings, reached relatively; the `#/`
-      // alias means crossing into another module, and only a feature's api
-      // may be crossed into. `boundaries` states the same rule but cannot
-      // compare captured values through oxlint's plugin bridge, so the
-      // cross-feature case is enforced here.
-      "files": ["server/frontend/src/features/**"],
-      "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "patterns": [
-              {
-                "group": ["@mantine/*"],
-                "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
-              },
-              {
-                "group": ["#/features/*/ui/**"],
-                "message": "A feature's components are private to it: import its `*.api.ts` or `*.model.ts` instead, and its own files relatively."
-              },
-              {
-                "group": ["#/shell/**"],
-                "message": "Features must not depend on the shell; the shell composes them."
-              }
-            ]
-          }
         ]
       }
     },
