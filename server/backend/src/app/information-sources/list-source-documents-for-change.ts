@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangeGuard } from '#backend/app/changes/changes.service';
+import type { Handler } from '#backend/app/handler';
 import {
   type SourceDocumentSummary,
   summarize,
@@ -14,7 +15,10 @@ export type ListSourceDocumentsForChange = z.infer<
 >;
 
 /** Only reads: its dependencies are narrowed to the methods that read. */
-export class ListSourceDocumentsForChangeHandler {
+export class ListSourceDocumentsForChangeHandler implements Handler<
+  ListSourceDocumentsForChange,
+  SourceDocumentSummary[]
+> {
   private readonly docs: SourceDocumentsReader;
   private readonly changes: ChangeGuard;
 

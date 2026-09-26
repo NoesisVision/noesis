@@ -2,8 +2,10 @@ import { McpServer } from '@modelcontextprotocol/server';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { CreateSourceDocumentHandler } from '#backend/app/information-sources/create-source-document';
-import type { UpdateSourceDocumentHandler } from '#backend/app/information-sources/update-source-document';
+import type { Handler } from '#backend/app/handler';
+import type { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
+import type { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
+import type { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
@@ -20,8 +22,8 @@ export interface McpServerDeps {
   sessionFiles: SessionFiles;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  createSourceDocument: CreateSourceDocumentHandler;
-  updateSourceDocument: UpdateSourceDocumentHandler;
+  createSourceDocument: Handler<CreateSourceDocument, SourceDocumentSummary>;
+  updateSourceDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>;
 }
 
 /**

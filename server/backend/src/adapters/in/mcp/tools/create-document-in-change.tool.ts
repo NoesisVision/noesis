@@ -2,10 +2,8 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import {
-  CreateSourceDocument,
-  type CreateSourceDocumentHandler,
-} from '#backend/app/information-sources/create-source-document';
+import type { Handler } from '#backend/app/handler';
+import { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
 import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -22,7 +20,7 @@ const outputSchema = z
   .describe('The document as stored, with the id the server minted.');
 
 export function createDocumentInChangeTool(
-  createDocument: CreateSourceDocumentHandler,
+  createDocument: Handler<CreateSourceDocument, SourceDocumentSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -46,7 +44,7 @@ export function createDocumentInChangeTool(
 }
 
 async function create(
-  createDocument: CreateSourceDocumentHandler,
+  createDocument: Handler<CreateSourceDocument, SourceDocumentSummary>,
   files: SessionFiles,
   change: ChangeId,
   path: string,

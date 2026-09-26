@@ -2,12 +2,10 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import type { Handler } from '#backend/app/handler';
 import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import {
-  UpdateSourceDocument,
-  type UpdateSourceDocumentHandler,
-} from '#backend/app/information-sources/update-source-document';
+import { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
@@ -24,7 +22,7 @@ const outputSchema = z
   .describe('The document as stored.');
 
 export function updateDocumentInChangeTool(
-  updateDocument: UpdateSourceDocumentHandler,
+  updateDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -52,7 +50,7 @@ export function updateDocumentInChangeTool(
 }
 
 async function update(
-  updateDocument: UpdateSourceDocumentHandler,
+  updateDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>,
   files: SessionFiles,
   change: ChangeId,
   id: SourceDocumentId,

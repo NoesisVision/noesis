@@ -1,17 +1,17 @@
 import { Hono } from 'hono';
-import {
-  FindSourceDocumentById,
-  type FindSourceDocumentByIdHandler,
-} from '#backend/app/information-sources/find-source-document-by-id';
-import {
-  ListSourceDocumentsForChange,
-  type ListSourceDocumentsForChangeHandler,
-} from '#backend/app/information-sources/list-source-documents-for-change';
+import type { Handler } from '#backend/app/handler';
+import { FindSourceDocumentById } from '#backend/app/information-sources/find-source-document-by-id';
+import { ListSourceDocumentsForChange } from '#backend/app/information-sources/list-source-documents-for-change';
+import type { SourceDocument } from '#backend/app/information-sources/source-document';
+import type { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
 import { routeParams } from '../route-params';
 
 export interface DocumentsDeps {
-  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
-  findSourceDocumentById: FindSourceDocumentByIdHandler;
+  listSourceDocumentsForChange: Handler<
+    ListSourceDocumentsForChange,
+    SourceDocumentSummary[]
+  >;
+  findSourceDocumentById: Handler<FindSourceDocumentById, SourceDocument>;
 }
 
 /**

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { getInChange } from '#backend/app/changes/change-owned';
 import type { ChangeGuard } from '#backend/app/changes/changes.service';
+import type { Handler } from '#backend/app/handler';
 import type { Serial } from '#backend/app/serial';
 import { type SourceDocument, SourceDocumentFile } from './source-document';
 import { SourceDocumentId } from './source-document-id';
@@ -19,7 +20,10 @@ export const UpdateSourceDocument = z.object({
 });
 export type UpdateSourceDocument = z.infer<typeof UpdateSourceDocument>;
 
-export class UpdateSourceDocumentHandler {
+export class UpdateSourceDocumentHandler implements Handler<
+  UpdateSourceDocument,
+  SourceDocumentSummary
+> {
   private readonly docs: SourceDocumentsRepository;
   private readonly changes: ChangeGuard;
   private readonly writes: Serial;

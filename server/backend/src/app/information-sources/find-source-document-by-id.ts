@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { getInChange } from '#backend/app/changes/change-owned';
 import type { ChangeGuard } from '#backend/app/changes/changes.service';
+import type { Handler } from '#backend/app/handler';
 import type { SourceDocument } from './source-document';
 import { SourceDocumentId } from './source-document-id';
 import type { SourceDocumentsReader } from './source-documents.repository';
@@ -14,7 +15,10 @@ export const FindSourceDocumentById = z.object({
 export type FindSourceDocumentById = z.infer<typeof FindSourceDocumentById>;
 
 /** Only reads: its dependencies are narrowed to the methods that read. */
-export class FindSourceDocumentByIdHandler {
+export class FindSourceDocumentByIdHandler implements Handler<
+  FindSourceDocumentById,
+  SourceDocument
+> {
   private readonly docs: SourceDocumentsReader;
   private readonly changes: ChangeGuard;
 
