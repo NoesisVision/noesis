@@ -65,7 +65,7 @@ async function update(
   try {
     return updated(
       change,
-      await updateDocument.execute({ change, id, document: document.value }),
+      await updateDocument.handle({ change, id, document: document.value }),
     );
   } catch (error) {
     // A missing change is `withChange`'s to answer.

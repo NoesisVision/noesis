@@ -25,7 +25,7 @@ export function createDocumentsApp(deps: DocumentsDeps) {
   return new Hono()
     .get('/', routeParams(ListSourceDocumentsForChange.shape), async (c) => {
       return c.json({
-        documents: await listSourceDocumentsForChange.execute(
+        documents: await listSourceDocumentsForChange.handle(
           c.req.valid('param'),
         ),
       });
@@ -33,7 +33,7 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
     .get('/:id', routeParams(FindSourceDocumentById.shape), async (c) => {
       return c.json({
-        document: await findSourceDocumentById.execute(c.req.valid('param')),
+        document: await findSourceDocumentById.handle(c.req.valid('param')),
       });
     });
 }

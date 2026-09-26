@@ -27,7 +27,7 @@ export class FindSourceDocumentByIdHandler {
   }
 
   /** The change is checked first, so a missing change is the one named. */
-  async execute(query: FindSourceDocumentById): Promise<SourceDocument> {
+  async handle(query: FindSourceDocumentById): Promise<SourceDocument> {
     await this.changes.assertExists(query.change);
     const document = await this.docs.get(query.change, query.id);
     if (document === null) {

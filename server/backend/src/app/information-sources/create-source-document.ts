@@ -42,7 +42,7 @@ export class CreateSourceDocumentHandler {
    * and its title. A title already used that day in the change gets the next
    * free suffix.
    */
-  execute(command: CreateSourceDocument): Promise<SourceDocumentSummary> {
+  handle(command: CreateSourceDocument): Promise<SourceDocumentSummary> {
     const { change, document } = command;
     return this.writes.run(async () => {
       await this.changes.assertExists(change);

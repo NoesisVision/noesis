@@ -26,7 +26,7 @@ describe('CreateSourceDocumentHandler', () => {
   });
 
   it("mints the id from today's date and the title, not the document's date", async () => {
-    const created = await t.createSourceDocument.execute({
+    const created = await t.createSourceDocument.handle({
       change: CHANGE,
       document: content,
     });
@@ -34,7 +34,7 @@ describe('CreateSourceDocumentHandler', () => {
     const id = SourceDocumentId.parse('2026-09-24-booking-rules-v2');
     expect(created).toEqual({ id, title: content.title, date: content.date });
     expect(
-      await t.findSourceDocumentById.execute({ change: CHANGE, id: id }),
+      await t.findSourceDocumentById.handle({ change: CHANGE, id: id }),
     ).toEqual({
       id,
       ...content,
@@ -42,11 +42,11 @@ describe('CreateSourceDocumentHandler', () => {
   });
 
   it('gives a title already used today in the change the next free suffix', async () => {
-    await t.createSourceDocument.execute({ change: CHANGE, document: content });
+    await t.createSourceDocument.handle({ change: CHANGE, document: content });
 
     expect(
       (
-        await t.createSourceDocument.execute({
+        await t.createSourceDocument.handle({
           change: CHANGE,
           document: content,
         })
@@ -56,14 +56,14 @@ describe('CreateSourceDocumentHandler', () => {
 
   it('mints the same id in another change', async () => {
     const other = await t.createChange('2026-01-01-billing');
-    const first = await t.createSourceDocument.execute({
+    const first = await t.createSourceDocument.handle({
       change: CHANGE,
       document: content,
     });
 
     expect(
       (
-        await t.createSourceDocument.execute({
+        await t.createSourceDocument.handle({
           change: other,
           document: content,
         })
@@ -73,19 +73,19 @@ describe('CreateSourceDocumentHandler', () => {
 
   it('gives parallel creates of one title different ids', async () => {
     const created = await Promise.all([
-      t.createSourceDocument.execute({ change: CHANGE, document: content }),
-      t.createSourceDocument.execute({ change: CHANGE, document: content }),
+      t.createSourceDocument.handle({ change: CHANGE, document: content }),
+      t.createSourceDocument.handle({ change: CHANGE, document: content }),
     ]);
 
     expect(new Set(created.map((d) => d.id)).size).toBe(2);
     expect(
-      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+      await t.listSourceDocumentsForChange.handle({ change: CHANGE }),
     ).toHaveLength(2);
   });
 
   it('refuses a change that has no directory', async () => {
     await expect(
-      t.createSourceDocument.execute({ change: NOPE, document: content }),
+      t.createSourceDocument.handle({ change: NOPE, document: content }),
     ).rejects.toMatchObject({
       entity: 'change',
     });
@@ -100,12 +100,12 @@ describe('UpdateSourceDocumentHandler', () => {
   });
 
   it('replaces the document at its id, which a new title leaves as it was', async () => {
-    const { id } = await t.createSourceDocument.execute({
+    const { id } = await t.createSourceDocument.handle({
       change: CHANGE,
       document: content,
     });
 
-    const updated = await t.updateSourceDocument.execute({
+    const updated = await t.updateSourceDocument.handle({
       change: CHANGE,
       id,
       document: {
@@ -116,14 +116,14 @@ describe('UpdateSourceDocumentHandler', () => {
     });
 
     expect(updated.id).toBe(id);
-    const stored = await t.findSourceDocumentById.execute({
+    const stored = await t.findSourceDocumentById.handle({
       change: CHANGE,
       id,
     });
     expect(stored.title).toBe('Booking rules v3');
     expect(stored.content).toBe('A slot may be booked twice.');
     expect(
-      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+      await t.listSourceDocumentsForChange.handle({ change: CHANGE }),
     ).toHaveLength(1);
   });
 
@@ -131,20 +131,20 @@ describe('UpdateSourceDocumentHandler', () => {
     const missing = SourceDocumentId.parse('2026-09-24-missing');
 
     await expect(
-      t.updateSourceDocument.execute({
+      t.updateSourceDocument.handle({
         change: CHANGE,
         id: missing,
         document: content,
       }),
     ).rejects.toMatchObject({ entity: 'document' });
     expect(
-      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+      await t.listSourceDocumentsForChange.handle({ change: CHANGE }),
     ).toEqual([]);
   });
 
   it('refuses a change that has no directory', async () => {
     await expect(
-      t.updateSourceDocument.execute({
+      t.updateSourceDocument.handle({
         change: NOPE,
         id: ID,
         document: content,

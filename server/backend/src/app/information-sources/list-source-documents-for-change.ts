@@ -27,7 +27,7 @@ export class ListSourceDocumentsForChangeHandler {
   }
 
   /** Oldest first: the id starts with the creation date. */
-  async execute(
+  async handle(
     query: ListSourceDocumentsForChange,
   ): Promise<SourceDocumentSummary[]> {
     await this.changes.assertExists(query.change);

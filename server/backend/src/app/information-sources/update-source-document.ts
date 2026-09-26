@@ -34,7 +34,7 @@ export class UpdateSourceDocumentHandler {
     this.writes = writes;
   }
 
-  execute(command: UpdateSourceDocument): Promise<SourceDocumentSummary> {
+  handle(command: UpdateSourceDocument): Promise<SourceDocumentSummary> {
     const { change, id, document } = command;
     return this.writes.run(async () => {
       // Update never creates: the change, then the document, must exist.

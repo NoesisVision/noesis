@@ -285,7 +285,7 @@ describe('create_document_in_change', () => {
       document: { id: DOCUMENT_ID, title: document.title, date: document.date },
     });
     expect(textOf(result)).toContain(`Created document ${DOCUMENT_ID}`);
-    const stored = await noesis.findSourceDocumentById.execute({
+    const stored = await noesis.findSourceDocumentById.handle({
       change,
       id: SourceDocumentId.parse(DOCUMENT_ID),
     });
@@ -433,7 +433,7 @@ describe('update_document_in_change', () => {
     });
     expect(textOf(result)).toContain(`Updated document ${DOCUMENT_ID}`);
     expect(
-      await noesis.listSourceDocumentsForChange.execute({ change: change }),
+      await noesis.listSourceDocumentsForChange.handle({ change: change }),
     ).toHaveLength(1);
   });
 
@@ -450,7 +450,7 @@ describe('update_document_in_change', () => {
     expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
     expect(textOf(result)).toContain('create_document_in_change');
     expect(
-      await noesis.listSourceDocumentsForChange.execute({ change: change }),
+      await noesis.listSourceDocumentsForChange.handle({ change: change }),
     ).toEqual([]);
   });
 

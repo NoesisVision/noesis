@@ -80,7 +80,7 @@ describe('ui documents routes', () => {
     expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
     expect(
-      (await t.listSourceDocumentsForChange.execute({ change: change })).map(
+      (await t.listSourceDocumentsForChange.handle({ change: change })).map(
         (d) => d.id,
       ),
     ).toEqual([SourceDocumentId.parse(ID)]);

@@ -57,7 +57,7 @@ async function create(
   }
   return created(
     change,
-    await createDocument.execute({ change, document: document.value }),
+    await createDocument.handle({ change, document: document.value }),
   );
 }
 

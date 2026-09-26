@@ -35,7 +35,7 @@ describe('source document queries', () => {
     }
 
     expect(
-      (await t.listSourceDocumentsForChange.execute({ change: CHANGE })).map(
+      (await t.listSourceDocumentsForChange.handle({ change: CHANGE })).map(
         (d) => d.id,
       ),
     ).toEqual([
@@ -47,7 +47,7 @@ describe('source document queries', () => {
 
   it('refuses a document that does not exist', async () => {
     await expect(
-      t.findSourceDocumentById.execute({
+      t.findSourceDocumentById.handle({
         change: CHANGE,
         id: SourceDocumentId.parse('2026-01-01-missing'),
       }),
@@ -56,12 +56,12 @@ describe('source document queries', () => {
 
   it('refuses every query on a change that has no directory', async () => {
     await expect(
-      t.listSourceDocumentsForChange.execute({ change: NOPE }),
+      t.listSourceDocumentsForChange.handle({ change: NOPE }),
     ).rejects.toMatchObject({
       entity: 'change',
     });
     await expect(
-      t.findSourceDocumentById.execute({ change: NOPE, id: ID }),
+      t.findSourceDocumentById.handle({ change: NOPE, id: ID }),
     ).rejects.toMatchObject({
       entity: 'change',
     });
