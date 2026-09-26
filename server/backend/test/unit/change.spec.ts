@@ -84,6 +84,18 @@ describe('A new change', () => {
   });
 });
 
+describe('A change read from a snapshot', () => {
+  it('leaves the snapshot it was read from as it was', () => {
+    const snapshot = change.toSnapshot();
+    const read = Change.fromSnapshot(snapshot);
+
+    read.addSourceDocument(document);
+
+    expect(snapshot.sourceDocuments).toEqual([]);
+    expect(read.toSnapshot().sourceDocuments).toHaveLength(1);
+  });
+});
+
 describe('Updating a change', () => {
   it('replaces what it says of itself, keeping its id and what it owns', () => {
     change.addSourceDocument(document);

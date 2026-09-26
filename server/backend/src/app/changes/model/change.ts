@@ -37,8 +37,9 @@ export class Change {
     this.state = state;
   }
 
+  /** Holds a copy: the arrays it owns are replaced, never changed in place. */
   static fromSnapshot(snapshot: ChangeSnapshot): Change {
-    return new Change(snapshot);
+    return new Change({ ...snapshot });
   }
 
   /** A change not saved yet: version 0, in discovery, owning nothing. */
@@ -62,11 +63,7 @@ export class Change {
   }
 
   toSnapshot(): ChangeSnapshot {
-    return {
-      ...this.state,
-      designDocs: [...this.state.designDocs],
-      sourceDocuments: [...this.state.sourceDocuments],
-    };
+    return { ...this.state };
   }
 
   summary(): ChangeSummary {
