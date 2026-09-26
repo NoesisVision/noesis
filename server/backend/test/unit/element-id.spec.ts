@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import fc from 'fast-check';
 import { z } from 'zod';
 import {
   BehaviourId,
@@ -174,5 +175,60 @@ describe('ElementId', () => {
     const Dto = z.object({ elements: z.array(ElementId) });
     const wire = { elements: ['module|a', 'behaviour|a.b.c'] };
     expect(z.encode(Dto, Dto.parse(wire))).toEqual(wire);
+  });
+});
+
+/** Any text `ElementName` takes: no separator, nothing padded on. */
+const elementName = fc
+  .string({ unit: 'grapheme', minLength: 1 })
+  .map((text) => text.replace(/[.|]/g, '-').trim())
+  .filter((text) => ElementName.safeParse(text).success);
+
+describe('element ids, for any names', () => {
+  it('give back the names and the containers they were built from', () => {
+    fc.assert(
+      fc.property(
+        elementName,
+        elementName,
+        elementName,
+        elementName,
+        (a, b, c, d) => {
+          const root = ModuleId.root(a);
+          const module = ModuleId.within(root, b);
+          const block = BuildingBlockId.within(module, c);
+          const behaviour = BehaviourId.within(block, d);
+
+          expect(ModuleId.parentOf(root)).toBeNull();
+          expect(ModuleId.parentOf(module)).toBe(root);
+          expect(ModuleId.containing(block)).toBe(module);
+          expect(BuildingBlockId.containing(behaviour)).toBe(block);
+          expect(ModuleId.containing(behaviour)).toBe(module);
+          expect(
+            [root, module, block, behaviour].map((id) => ElementId.nameOf(id)),
+          ).toEqual([a, b, c, d]);
+        },
+      ),
+    );
+  });
+
+  it('tell the kinds apart by their prefix alone', () => {
+    fc.assert(
+      fc.property(elementName, elementName, elementName, (a, b, c) => {
+        const module = ModuleId.root(a);
+        const block = BuildingBlockId.within(module, b);
+        const behaviour = BehaviourId.within(block, c);
+        const kind = (id: ElementId) =>
+          ElementId.match(id, {
+            module: () => 'module',
+            buildingBlock: () => 'buildingBlock',
+            behaviour: () => 'behaviour',
+          });
+        expect([module, block, behaviour].map(kind)).toEqual([
+          'module',
+          'buildingBlock',
+          'behaviour',
+        ]);
+      }),
+    );
   });
 });

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import addFormats from 'ajv-formats';
+import { Ajv2020 } from 'ajv/dist/2020';
 import { z } from 'zod';
 import { CONTRACTS } from '../../tools/contracts';
 import {
@@ -95,6 +97,22 @@ describe('the generated JSON Schema contracts', () => {
         schemaOf(name) as Parameters<typeof z.fromJSONSchema>[0],
       );
       expect(schema.safeParse(example).success).toBe(true);
+    }
+  });
+
+  // Zod reading its own output back proves little: an agent's validator
+  // reads the file as JSON Schema draft 2020-12, formats and all.
+  it('stands as JSON Schema a validator compiles, which then takes the example', () => {
+    for (const name of names) {
+      const ajv = new Ajv2020({ strict: true, allErrors: true });
+      addFormats(ajv);
+      const validate = ajv.compile(schemaOf(name));
+      expect(validate({})).toBe(false);
+      const example = files.get(`${name}.example.json`);
+      if (example === undefined) continue;
+      const accepted = validate(example);
+      expect(ajv.errorsText(validate.errors)).toBe('No errors');
+      expect(accepted).toBe(true);
     }
   });
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import fc from 'fast-check';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { slugIdCandidates } from '#backend/app/slug-id';
 
@@ -57,5 +58,29 @@ describe('slugIdCandidates', () => {
         expect(ChangeId.safeParse(id).success).toBe(true);
       }
     }
+  });
+
+  // Whatever a person calls a change, on any day: the writer never ends up
+  // with an id its own schema refuses.
+  it('yields ids the schema accepts, under 64 characters, for any name and day', () => {
+    const day = fc
+      .date({
+        min: new Date('1970-01-01'),
+        max: new Date('9999-12-31'),
+        noInvalidDate: true,
+      })
+      .map((date) => date.toISOString().slice(0, 10));
+    fc.assert(
+      fc.property(fc.string({ unit: 'grapheme' }), day, (name, date) => {
+        const candidates = slugIdCandidates(name, date);
+        const ids = Array.from({ length: 12 }, () => candidates.next().value);
+        for (const id of ids) {
+          expect(ChangeId.safeParse(id).success).toBe(true);
+          expect(id.length).toBeLessThanOrEqual(64);
+          expect(id.startsWith(`${date}-`)).toBe(true);
+        }
+        expect(new Set(ids).size).toBe(ids.length);
+      }),
+    );
   });
 });
