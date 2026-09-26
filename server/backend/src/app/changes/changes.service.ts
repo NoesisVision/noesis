@@ -9,6 +9,9 @@ import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
 
+/** What a service that works inside a change needs of the changes: that one exists. */
+export type ChangeGuard = Pick<ChangesService, 'assertExists'>;
+
 export class ChangesService {
   private readonly changes: ChangesRepository;
   private readonly designDocs: DesignDocsRepository;

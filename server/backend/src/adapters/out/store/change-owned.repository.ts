@@ -25,6 +25,10 @@ export class ChangeOwnedRepository<T extends { id: string }> {
     return this.owned(change).get(id);
   }
 
+  async has(change: ChangeId, id: T['id']): Promise<boolean> {
+    return (await this.get(change, id)) !== null;
+  }
+
   list(change: ChangeId): Promise<T[]> {
     return this.owned(change).list();
   }
