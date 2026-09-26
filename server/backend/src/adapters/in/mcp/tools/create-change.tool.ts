@@ -49,7 +49,7 @@ export function createChangeTool(
       const change = await createChange.handle(file);
       return {
         summary: `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
-        content: { change },
+        structuredContent: { change },
       };
     },
   );

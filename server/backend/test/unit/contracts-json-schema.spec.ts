@@ -98,8 +98,8 @@ describe('the generated JSON Schema contracts', () => {
     }
   });
 
-  // JSON Schema has no word for a refinement or a transform, so one written
-  // at the source would be dropped from the contract without a sound.
+  // JSON Schema has no word for a refinement, a transform or a trim, so one
+  // written at the source would be dropped from the contract without a sound.
   it('finds no rule under src/app/ that JSON Schema cannot state', async () => {
     const sources = (await readdir(appRoot, { recursive: true })).filter(
       (file) => file.endsWith('.ts'),
@@ -107,7 +107,10 @@ describe('the generated JSON Schema contracts', () => {
     for (const file of sources) {
       const source = await readFile(join(appRoot, file), 'utf8');
       if (!source.includes("from 'zod'")) continue;
-      expect(source).not.toMatch(/\.(refine|superRefine|transform|check)\(/);
+      // Off a schema, `)` before the dot: a `text.trim()` in plain code is fine.
+      expect(source).not.toMatch(
+        /\)\s*\.(refine|superRefine|transform|check|trim|overwrite)\(/,
+      );
     }
   });
 });

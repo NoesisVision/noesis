@@ -1,49 +1,42 @@
 import { describe, expect, it } from 'bun:test';
-import { parseServerConfig } from '#backend/platform/config/config';
+import { loadServerConfig } from '#backend/platform/config/config';
+import { ConfigurationError } from '#backend/platform/config/configuration-error';
 
 describe('server configuration', () => {
   it('starts on a bare environment, leaving the root to the .git walk', () => {
-    const result = parseServerConfig({});
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.config.root).toBe(undefined);
+    expect(loadServerConfig({}).root).toBe(undefined);
   });
 
   it('takes the repository root from the environment', () => {
-    const result = parseServerConfig({ NOESIS_ROOT: '/work/repo' });
-
-    expect(result.ok && result.config.root).toBe('/work/repo');
+    expect(loadServerConfig({ NOESIS_ROOT: '/work/repo' }).root).toBe(
+      '/work/repo',
+    );
   });
 
   it('opens the browser unless NOESIS_OPEN_BROWSER=0, on an ephemeral port unless PORT is set', () => {
-    expect(parseServerConfig({})).toMatchObject({
-      config: { openBrowser: true, port: 0 },
-    });
+    expect(loadServerConfig({})).toMatchObject({ openBrowser: true, port: 0 });
     expect(
-      parseServerConfig({ NOESIS_OPEN_BROWSER: '0', PORT: '3000' }),
-    ).toMatchObject({ config: { openBrowser: false, port: 3000 } });
-    expect(parseServerConfig({ PORT: 'many' }).ok).toBe(false);
+      loadServerConfig({ NOESIS_OPEN_BROWSER: '0', PORT: '3000' }),
+    ).toMatchObject({ openBrowser: false, port: 3000 });
+    expect(() => loadServerConfig({ PORT: 'many' })).toThrow(
+      ConfigurationError,
+    );
   });
 
   it('rejects an empty root rather than silently ignoring it', () => {
-    const result = parseServerConfig({ NOESIS_ROOT: '' });
+    const load = () => loadServerConfig({ NOESIS_ROOT: '' });
 
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.message).toContain('NOESIS_ROOT');
+    expect(load).toThrow(ConfigurationError);
+    expect(load).toThrow('NOESIS_ROOT');
   });
 
   it('logs at info unless NOESIS_LOG_LEVEL names a LogTape level, and refuses any other', () => {
-    expect(parseServerConfig({})).toMatchObject({
-      config: { logLevel: 'info' },
-    });
-    expect(parseServerConfig({ NOESIS_LOG_LEVEL: 'debug' })).toMatchObject({
-      config: { logLevel: 'debug' },
-    });
-    const loud = parseServerConfig({ NOESIS_LOG_LEVEL: 'loud' });
-    expect(loud.ok).toBe(false);
-    if (loud.ok) return;
-    expect(loud.message).toContain('NOESIS_LOG_LEVEL');
+    expect(loadServerConfig({}).logLevel).toBe('info');
+    expect(loadServerConfig({ NOESIS_LOG_LEVEL: 'debug' }).logLevel).toBe(
+      'debug',
+    );
+    const loud = () => loadServerConfig({ NOESIS_LOG_LEVEL: 'loud' });
+    expect(loud).toThrow(ConfigurationError);
+    expect(loud).toThrow('NOESIS_LOG_LEVEL');
   });
 });

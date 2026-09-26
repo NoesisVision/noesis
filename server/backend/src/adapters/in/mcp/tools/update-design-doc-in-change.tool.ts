@@ -59,7 +59,7 @@ export function updateDesignDocInChangeTool(
       });
       return {
         summary: `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,
-        content: { designDoc },
+        structuredContent: { designDoc },
       };
     },
   );

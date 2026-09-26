@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { unpaddedText } from '#backend/app/unpadded-text';
 import { ChangeId } from './change-id';
 import { DesignDoc } from './design-doc';
 import { SourceDocument } from './source-document';
@@ -24,15 +25,11 @@ const CHANGE_KEY_PATTERN = /^(?:[A-Z]{2,8}-\d+)?$/;
 export const ChangeSnapshot = z
   .object({
     id: ChangeId,
-    name: z
-      .string()
-      .trim()
-      .min(1)
+    name: unpaddedText()
       .max(120)
       .describe('The human title of the change, as people say it.'),
     key: z
       .string()
-      .trim()
       .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142, or is empty')
       .default('')
       .describe(

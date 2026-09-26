@@ -105,10 +105,11 @@ Both land on the same service layer. Neither bypasses it.
 
 ## Noesis service
 
-- **Services** own use-case orchestration and view assembly. They are the only callers of
+- **Handlers** own use-case orchestration and view assembly: one per command or query, each
+  loading an aggregate, calling it and saving it whole. They are the only callers of
   repositories, and the only component both entry points can see.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
-  kind, each responsible for its own canonical paths and file format.
+  aggregate, responsible for its canonical paths, file format and version check.
 - **Knowledge graph** _(not yet present)_ is an embedded in-memory database used as a cache over the JSON files in
   the repository. It is never authoritative: it is rebuilt from the files at every boot and
   nothing of it touches the disk.

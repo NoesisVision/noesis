@@ -52,7 +52,7 @@ export function addDesignDocToChangeTool(
       });
       return {
         summary: `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,
-        content: { designDoc },
+        structuredContent: { designDoc },
       };
     },
   );

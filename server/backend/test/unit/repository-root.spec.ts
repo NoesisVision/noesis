@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { resolveRepositoryRoot as resolveRoot } from '#backend/boot/repository-root';
+import { ConfigurationError } from '#backend/platform/config/configuration-error';
+import { resolveRepositoryRoot as resolveRoot } from '#backend/platform/config/repository-root';
 
 let base: string;
 
@@ -19,7 +20,7 @@ describe('repository root', () => {
     const nested = join(repo, 'server', 'backend');
     await mkdir(nested, { recursive: true });
 
-    expect(resolveRoot({ cwd: nested })).toEqual({ ok: true, root: repo });
+    expect(resolveRoot({ cwd: nested })).toBe(repo);
   });
 
   it('accepts a .git file, as a worktree has', async () => {
@@ -27,30 +28,28 @@ describe('repository root', () => {
     await mkdir(repo, { recursive: true });
     await writeFile(join(repo, '.git'), 'gitdir: /elsewhere\n');
 
-    expect(resolveRoot({ cwd: repo })).toEqual({ ok: true, root: repo });
+    expect(resolveRoot({ cwd: repo })).toBe(repo);
   });
 
   it('prefers NOESIS_ROOT when set, and refuses one that is not a directory', async () => {
     const explicit = join(base, 'explicit');
     await mkdir(explicit);
 
-    expect(resolveRoot({ root: explicit, cwd: base })).toEqual({
-      ok: true,
-      root: explicit,
-    });
+    expect(resolveRoot({ root: explicit, cwd: base })).toBe(explicit);
 
-    const missing = resolveRoot({ root: join(base, 'nope'), cwd: base });
-    expect(missing.ok).toBe(false);
-    if (missing.ok) return;
-    expect(missing.message).toContain('NOESIS_ROOT');
+    const missing = () => resolveRoot({ root: join(base, 'nope'), cwd: base });
+    expect(missing).toThrow(ConfigurationError);
+    expect(missing).toThrow('NOESIS_ROOT');
   });
 
   it('refuses to start outside a repository with a message naming the fix', () => {
-    const result = resolveRoot({ cwd: base });
-
     // The temp dir may sit under a git checkout on a developer machine; only
     // assert the shape of the refusal when it is not.
-    if (result.ok) return;
-    expect(result.message).toContain('NOESIS_ROOT');
+    try {
+      resolveRoot({ cwd: base });
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigurationError);
+      expect(String(error)).toContain('NOESIS_ROOT');
+    }
   });
 });

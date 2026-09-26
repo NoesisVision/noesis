@@ -30,8 +30,14 @@ describe('ChangeSnapshot', () => {
     expect(Change.safeParse(withoutStatus).success).toBe(false);
   });
 
-  it('trims the name and requires a type', () => {
-    expect(Change.parse({ ...minimal, name: '  Payment retry ' }).name).toBe(
+  it('refuses a padded name, as the shipped contract does, and requires a type', () => {
+    expect(
+      Change.safeParse({ ...minimal, name: ' Payment retry' }).success,
+    ).toBe(false);
+    expect(
+      Change.safeParse({ ...minimal, name: 'Payment retry ' }).success,
+    ).toBe(false);
+    expect(Change.parse({ ...minimal, name: 'Payment retry' }).name).toBe(
       'Payment retry',
     );
     const { type: _, ...withoutType } = minimal;

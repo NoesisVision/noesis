@@ -393,7 +393,6 @@ describe('A design document an agent wrote', () => {
     behaviours: [
       {
         id: CANCEL,
-        buildingBlockId: ORDER,
         name: 'cancel',
         type: 'command',
         visibility: { kind: 'private' },

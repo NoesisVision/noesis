@@ -43,7 +43,7 @@ export function listChangesTool(
     },
     async () => {
       const changes = await listChanges.handle();
-      return { summary: summary(changes), content: { changes } };
+      return { summary: summary(changes), structuredContent: { changes } };
     },
   );
 }

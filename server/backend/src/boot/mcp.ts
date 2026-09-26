@@ -3,7 +3,7 @@ import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { ServingTransport } from '#backend/adapters/in/mcp/serving-transport';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { serverLogger } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import type { Services } from './services';
 
 const log = serverLogger('mcp');

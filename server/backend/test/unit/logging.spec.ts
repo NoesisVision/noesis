@@ -6,8 +6,8 @@ import { reset, withContext } from '@logtape/logtape';
 import {
   configureLogging,
   LOG_FILE_NAME,
-  serverLogger,
 } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const logDir = await mkdtemp(join(tmpdir(), 'noesis-logs-'));
 

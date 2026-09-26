@@ -11,8 +11,6 @@ import {
 } from '@logtape/logtape';
 import { ROOT_CATEGORY } from './server-logger';
 
-export { serverLogger } from './server-logger';
-
 // stdout is the MCP transport and is never written to.
 
 export const LOG_FILE_NAME = 'noesis.log';

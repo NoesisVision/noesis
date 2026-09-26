@@ -1,6 +1,5 @@
 import { afterAll, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { SearchService } from '#backend/app/search/search.service';
 import { testNoesis } from './test-noesis';
 
 const t = await testNoesis();
@@ -19,9 +18,8 @@ describe('ui routes', () => {
   });
 
   it('answers an unforeseen failure as JSON, not a bare 500 page', async () => {
-    const failing = new SearchService();
-    failing.search = () => Promise.reject(new Error('disk on fire'));
-    const res = await createUiApp({ ...t, searchService: failing }).request(
+    const failing = { handle: () => Promise.reject(new Error('disk on fire')) };
+    const res = await createUiApp({ ...t, search: failing }).request(
       '/search?q=x',
     );
 

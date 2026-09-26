@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import type { ServerConfig } from '#backend/platform/config/config';
 import { StaticAssets } from '#backend/platform/http/static-assets';
-import { serverLogger } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import { createApp } from './app';
 import { openBrowser } from './browser';
 import { production } from './process';

@@ -58,7 +58,7 @@ export function updateChangeTool(
       });
       return {
         summary: `Updated change ${change.id} (${change.type}, ${change.status}).`,
-        content: { change },
+        structuredContent: { change },
       };
     },
   );

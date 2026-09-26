@@ -5,13 +5,12 @@ import {
   loadServerConfig,
   type ServerConfig,
 } from '#backend/platform/config/config';
+import { ConfigurationError } from '#backend/platform/config/configuration-error';
+import { resolveRepositoryRoot } from '#backend/platform/config/repository-root';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
-import {
-  configureLogging,
-  serverLogger,
-} from '#backend/platform/logging/logging';
+import { configureLogging } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import { production } from './process';
-import { resolveRepositoryRoot } from './repository-root';
 
 /** Where this process runs: the repository, its `.noesis/` and this session's scratch. */
 export interface Workspace {
@@ -28,8 +27,7 @@ export interface Workspace {
  * stderr and exits; from there on the log says what happened.
  */
 export async function openWorkspace(): Promise<Workspace> {
-  const config = loadServerConfig();
-  const repositoryRoot = repositoryRootOrExit(config);
+  const { config, repositoryRoot } = configuredOrExit();
   const noesis = new NoesisDir(repositoryRoot);
   await noesis.ensureInitialized();
   await configureLogging({
@@ -47,14 +45,18 @@ export async function openWorkspace(): Promise<Workspace> {
   return { config, noesis, session, sessionFiles, log };
 }
 
-function repositoryRootOrExit(config: ServerConfig): string {
-  const result = resolveRepositoryRoot({
-    root: config.root,
-    cwd: process.cwd(),
-  });
-  if (!result.ok) {
-    console.error(`[server] ${result.message}`);
+/** The environment and the repository, or the one reason the process will not start. */
+function configuredOrExit(): { config: ServerConfig; repositoryRoot: string } {
+  try {
+    const config = loadServerConfig(process.env);
+    const repositoryRoot = resolveRepositoryRoot({
+      root: config.root,
+      cwd: process.cwd(),
+    });
+    return { config, repositoryRoot };
+  } catch (error) {
+    if (!(error instanceof ConfigurationError)) throw error;
+    console.error(`[server] ${error.message}`);
     process.exit(1);
   }
-  return result.root;
 }

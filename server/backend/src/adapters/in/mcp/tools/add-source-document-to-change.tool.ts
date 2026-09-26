@@ -51,7 +51,7 @@ export function addSourceDocumentToChangeTool(
       });
       return {
         summary: `Added source document ${sourceDocument.id} ("${sourceDocument.title}") to ${input.change}. Refer to it by this id.`,
-        content: { sourceDocument },
+        structuredContent: { sourceDocument },
       };
     },
   );

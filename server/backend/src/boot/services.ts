@@ -9,7 +9,7 @@ import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
 import { updateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
 import { updateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
-import { SearchService } from '#backend/app/search/search.service';
+import { searchHandler } from '#backend/app/search/search';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -27,7 +27,7 @@ export function createServices(noesis: NoesisDir) {
     findChange: findChangeHandler(changes),
     findDesignDoc: findDesignDocHandler(changes),
     findSourceDocument: findSourceDocumentHandler(changes),
-    searchService: new SearchService(),
+    search: searchHandler(),
   };
 }
 

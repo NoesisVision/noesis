@@ -5,6 +5,8 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
+import { unpaddedText } from '#backend/app/unpadded-text';
+import { uuidIdSchema } from '#backend/app/uuid-id';
 
 export const BuildingBlockType = z.enum([
   'aggregate',
@@ -80,7 +82,10 @@ export const BuildingBlockRef: z.ZodType<
 
 export const Visibility = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('private') }),
-  z.strictObject({ kind: z.literal('public'), actors: z.array(z.string()) }),
+  z.strictObject({
+    kind: z.literal('public'),
+    actors: z.array(unpaddedText()),
+  }),
 ]);
 export type Visibility = z.infer<typeof Visibility>;
 
@@ -138,7 +143,6 @@ export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
 export const ScannedBehaviour = z.strictObject({
   id: BehaviourId,
-  buildingBlockId: BuildingBlockId,
   name: ElementName,
   type: BehaviourType,
   description: z.string().nullable().default(null),
@@ -151,11 +155,17 @@ export const ScannedBehaviour = z.strictObject({
 });
 export type ScannedBehaviour = z.infer<typeof ScannedBehaviour>;
 
+export const SystemModelId =
+  uuidIdSchema('system model').brand<'SystemModelId'>();
+export type SystemModelId = z.infer<typeof SystemModelId>;
+
 export const SystemModel = z
   .strictObject({
-    id: z.string(),
-    name: z.string(),
-    scannedAt: z.string(),
+    id: SystemModelId,
+    name: unpaddedText().describe('The scanned unit, as its build names it.'),
+    scannedAt: z.iso
+      .datetime()
+      .describe('When the scan ran, ISO 8601 date-time.'),
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviours: z.array(ScannedBehaviour).default([]),

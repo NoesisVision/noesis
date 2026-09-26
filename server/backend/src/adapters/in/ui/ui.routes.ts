@@ -9,14 +9,14 @@ import type { FindChangeHandler } from '#backend/app/changes/find-change';
 import type { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
 import type { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
 import type { ListChangesHandler } from '#backend/app/changes/list-changes';
-import { NotFoundError } from '#backend/app/changes/not-found-error';
-import type { SearchService } from '#backend/app/search/search.service';
+import { NotFoundError } from '#backend/app/changes/model/not-found-error';
+import type { SearchHandler } from '#backend/app/search/search';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const log = serverLogger('ui');
 
 export interface UiDeps {
-  searchService: SearchService;
+  search: SearchHandler;
   createChange: CreateChangeHandler;
   listChanges: ListChangesHandler;
   findChange: FindChangeHandler;
@@ -36,7 +36,7 @@ export function createUiApp(deps: UiDeps) {
 
 /**
  * Every route of the surface fails through here, so none of them catches: a
- * missing entity answers 404 and a write that lost a race 409, each with the
+ * missing or malformed entity answers 404 and a write that lost a race 409, each with the
  * code the page has a sentence for, and anything unforeseen is logged and
  * answers 500.
  */

@@ -1,13 +1,11 @@
 import { z } from 'zod';
+import { unpaddedText } from '#backend/app/unpadded-text';
 import { SourceDocumentId } from './source-document-id';
 
 export const SourceDocument = z
   .object({
     id: SourceDocumentId,
-    title: z
-      .string()
-      .trim()
-      .min(1)
+    title: unpaddedText()
       .max(200)
       .describe(
         'The source document title, free text. Two may share one; the id tells them apart.',

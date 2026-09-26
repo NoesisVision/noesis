@@ -2,6 +2,7 @@ import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
 import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
 import { createUiApp, type UiDeps } from '#backend/adapters/in/ui/ui.routes';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 
 // No surface is guarded: the server runs on the developer's own machine.
 // Keep the .route() chain unbroken: Hono infers the route tree from this
@@ -12,7 +13,7 @@ export function createApp(deps: UiDeps) {
       // `context: true` gives every log line in the request its request id.
       .use(
         honoLogger({
-          category: ['noesis', 'server', 'http'],
+          category: serverLogger('http').category,
           format: 'structured-common',
           context: true,
           skip: (c) => c.req.path === '/internal/health',

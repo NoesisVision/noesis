@@ -21,7 +21,7 @@ import { SourceDocument } from '#backend/app/changes/model/source-document';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
 import { updateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
 import { updateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
-import { SearchService } from '#backend/app/search/search.service';
+import { searchHandler } from '#backend/app/search/search';
 import type { Services } from '#backend/boot/services';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -91,7 +91,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     findChange: findChangeHandler(changesRepository),
     findDesignDoc: findDesignDocHandler(changesRepository),
     findSourceDocument: findSourceDocumentHandler(changesRepository),
-    searchService: new SearchService(),
+    search: searchHandler(),
     changesDir,
     writeChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);

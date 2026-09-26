@@ -58,7 +58,7 @@ export function updateSourceDocumentInChangeTool(
       });
       return {
         summary: `Updated source document ${sourceDocument.id} ("${sourceDocument.title}") in ${input.change}.`,
-        content: { sourceDocument },
+        structuredContent: { sourceDocument },
       };
     },
   );

@@ -29,7 +29,6 @@ const block = {
 };
 const behaviour = {
   id: PLACE,
-  buildingBlockId: ORDER,
   name: 'place',
   type: 'command',
   visibility: { kind: 'public', actors: ['Customer'] },
@@ -59,6 +58,9 @@ describe('A system model', () => {
     expect(isValid(model({ id: undefined }))).toBe(false);
     expect(isValid(model({ name: undefined }))).toBe(false);
     expect(isValid(model({ scannedAt: undefined }))).toBe(false);
+    expect(isValid(model({ scannedAt: 'yesterday' }))).toBe(false);
+    expect(isValid(model({ id: 'shop' }))).toBe(false);
+    expect(isValid(model({ name: ' shop' }))).toBe(false);
   });
 
   it('holds no element when the scanner found none', () => {
@@ -187,11 +189,6 @@ describe('A scanned property', () => {
 });
 
 describe('A scanned behaviour', () => {
-  it('belongs to a building block', () => {
-    expect(isValid(withBehaviour({ buildingBlockId: undefined }))).toBe(false);
-    expect(isValid(withBehaviour({ buildingBlockId: PLACE }))).toBe(false);
-  });
-
   it('is always classified as a command, an event or a query', () => {
     expect(isValid(withBehaviour({ type: 'query' }))).toBe(true);
     expect(isValid(withBehaviour({ type: undefined }))).toBe(false);

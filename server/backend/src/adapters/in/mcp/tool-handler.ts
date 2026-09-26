@@ -8,8 +8,8 @@ import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design
 import {
   type Entity,
   NotFoundError,
-} from '#backend/app/changes/not-found-error';
-import { serverLogger } from '#backend/platform/logging/logging';
+} from '#backend/app/changes/model/not-found-error';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
   ADD_SOURCE_DOCUMENT_TO_CHANGE,

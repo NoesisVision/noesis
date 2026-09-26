@@ -1,4 +1,3 @@
-import { NotFoundError } from '#backend/app/changes/not-found-error';
 import type { ChangeEntry } from './change-entry';
 import type { ChangeId } from './change-id';
 import type {
@@ -18,6 +17,7 @@ import {
   summarize as summarizeDesignDoc,
 } from './design-doc-summary';
 import { InvalidDesignDocError } from './invalid-design-doc-error';
+import { NotFoundError } from './not-found-error';
 import type {
   CreateSourceDocument,
   SourceDocument,

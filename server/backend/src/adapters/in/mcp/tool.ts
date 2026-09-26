@@ -19,13 +19,13 @@ interface ToolConfig<Input extends z.ZodObject, Output extends z.ZodObject> {
 }
 
 /**
- * What a tool answers when it succeeds: `content` is checked against the
- * tool's output schema by the compiler, and again by the SDK. A tool that
+ * What a tool answers when it succeeds: `structuredContent` is checked
+ * against the tool's output schema by the compiler, and again by the SDK. A tool that
  * cannot succeed throws, and `logged` answers it.
  */
 export interface ToolAnswer<Output extends z.ZodObject> {
   summary: string;
-  content: z.input<Output>;
+  structuredContent: z.input<Output>;
 }
 
 /**
@@ -44,8 +44,8 @@ export function defineTool<
   // cannot resolve while `Input` is still generic; for an object schema it is
   // exactly `(input: z.output<Input>, ctx) => ...`.
   const callback = logged(name, async (input: z.output<Input>) => {
-    const { summary, content } = await handler(input);
-    return success(summary, content);
+    const { summary, structuredContent } = await handler(input);
+    return success(summary, structuredContent);
   }) as ToolCallback<Input>;
   return (server) => {
     server.registerTool(name, config, callback);

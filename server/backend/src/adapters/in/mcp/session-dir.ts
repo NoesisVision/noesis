@@ -3,7 +3,7 @@ import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { serverLogger } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import { SessionFiles } from './session-files';
 
 const log = serverLogger('session');
