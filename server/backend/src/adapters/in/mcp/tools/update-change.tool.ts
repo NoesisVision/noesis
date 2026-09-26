@@ -53,7 +53,7 @@ export function updateChangeTool(
         async (file) => {
           const change = await updateChange.handle({
             id: input.id,
-            change: file,
+            ...file,
           });
           return success(
             `Updated change ${change.id} (${change.type}, ${change.status}).`,

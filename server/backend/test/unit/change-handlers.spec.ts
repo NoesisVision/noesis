@@ -5,7 +5,7 @@ import {
   UpdateChange,
 } from '#backend/app/changes/model/change-snapshot';
 import { CreateDesignDoc } from '#backend/app/changes/model/design-doc';
-import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
+import { CreateSourceDocument } from '#backend/app/changes/model/source-document';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { greenFieldDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
@@ -17,7 +17,7 @@ const NOPE = ChangeId.parse('2026-01-01-nope');
 
 const { id: _id, ...greenField } = greenFieldDesignDocFixture;
 const designDoc = CreateDesignDoc.parse(greenField);
-const document = SourceDocumentFile.parse({
+const document = CreateSourceDocument.parse({
   title: 'Booking rules',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
@@ -96,7 +96,7 @@ describe('UpdateChangeHandler', () => {
 
     const updated = await t.updateChange.handle({
       id: CHANGE,
-      change: UpdateChange.parse({
+      ...UpdateChange.parse({
         name: 'Payment retries',
         type: 'feature',
         status: 'design',
@@ -115,7 +115,7 @@ describe('UpdateChangeHandler', () => {
     await expect(
       t.updateChange.handle({
         id: NOPE,
-        change: UpdateChange.parse({
+        ...UpdateChange.parse({
           name: 'Missing',
           type: 'fix',
           status: 'design',
