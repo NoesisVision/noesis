@@ -15,9 +15,14 @@ export const AddDesignDocToChange = z.object({
 });
 export type AddDesignDocToChange = z.infer<typeof AddDesignDocToChange>;
 
+export type AddDesignDocToChangeHandler = Handler<
+  AddDesignDocToChange,
+  DesignDocSummary
+>;
+
 export function addDesignDocToChangeHandler(
   changes: ChangesRepository,
-): Handler<AddDesignDocToChange, DesignDocSummary> {
+): AddDesignDocToChangeHandler {
   return {
     /** Throws `InvalidDesignDocError` when the design document breaks its rules. */
     async handle(command) {

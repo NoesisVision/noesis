@@ -4,21 +4,12 @@ import { createDesignDocsApp } from '#backend/adapters/in/ui/design-docs/design-
 import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
 import { createSourceDocumentsApp } from '#backend/adapters/in/ui/source-documents/source-documents.routes';
 import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
-import type {
-  FindChange,
-  FindChangeResult,
-} from '#backend/app/changes/find-change';
-import type { FindDesignDoc } from '#backend/app/changes/find-design-doc';
-import type { FindSourceDocument } from '#backend/app/changes/find-source-document';
-import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
-import type {
-  ChangeSummary,
-  CreateChange,
-} from '#backend/app/changes/model/change-snapshot';
-import type { DesignDoc } from '#backend/app/changes/model/design-doc';
-import type { SourceDocument } from '#backend/app/changes/model/source-document';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
+import type { FindChangeHandler } from '#backend/app/changes/find-change';
+import type { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
+import type { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import { NotFoundError } from '#backend/app/changes/not-found-error';
-import type { Handler } from '#backend/app/handler';
 import type { SearchService } from '#backend/app/search/search.service';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
@@ -26,11 +17,11 @@ const log = serverLogger('ui');
 
 export interface UiDeps {
   searchService: SearchService;
-  createChange: Handler<CreateChange, ChangeSummary>;
-  listChanges: Handler<void, ChangeWithEntries[]>;
-  findChange: Handler<FindChange, FindChangeResult>;
-  findDesignDoc: Handler<FindDesignDoc, DesignDoc>;
-  findSourceDocument: Handler<FindSourceDocument, SourceDocument>;
+  createChange: CreateChangeHandler;
+  listChanges: ListChangesHandler;
+  findChange: FindChangeHandler;
+  findDesignDoc: FindDesignDocHandler;
+  findSourceDocument: FindSourceDocumentHandler;
 }
 
 export function createUiApp(deps: UiDeps) {

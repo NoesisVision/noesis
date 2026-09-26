@@ -17,9 +17,14 @@ export const UpdateDesignDocInChange = z.object({
 });
 export type UpdateDesignDocInChange = z.infer<typeof UpdateDesignDocInChange>;
 
+export type UpdateDesignDocInChangeHandler = Handler<
+  UpdateDesignDocInChange,
+  DesignDocSummary
+>;
+
 export function updateDesignDocInChangeHandler(
   changes: ChangesRepository,
-): Handler<UpdateDesignDocInChange, DesignDocSummary> {
+): UpdateDesignDocInChangeHandler {
   return {
     /**
      * Replaces the design document at `id` whole; never creates one. Throws

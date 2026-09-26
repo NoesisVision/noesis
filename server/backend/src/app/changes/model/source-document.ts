@@ -30,6 +30,10 @@ export type SourceDocument = z.infer<typeof SourceDocument>;
 export const CreateSourceDocument = SourceDocument.omit({ id: true });
 export type CreateSourceDocument = z.infer<typeof CreateSourceDocument>;
 
-/** The working file of a source document update: the id travels beside it. */
-export const UpdateSourceDocument = SourceDocument.omit({ id: true });
-export type UpdateSourceDocument = z.infer<typeof UpdateSourceDocument>;
+/**
+ * The working file of a source document update: the same shape, the id
+ * travelling beside it.
+ * @alias
+ */
+export const UpdateSourceDocument = CreateSourceDocument;
+export type UpdateSourceDocument = CreateSourceDocument;

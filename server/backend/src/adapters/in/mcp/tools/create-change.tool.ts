@@ -10,12 +10,12 @@ import {
   LIST_CHANGES,
   UPDATE_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
 import {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
-import type { Handler } from '#backend/app/handler';
-import { NO_ID, readWorkingFile, workingFilePath } from './working-file';
+import { NO_ID, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -24,7 +24,7 @@ const outputSchema = z
   .describe('The change as stored, with the id the server minted.');
 
 export function createChangeTool(
-  createChange: Handler<CreateChange, ChangeSummary>,
+  createChange: CreateChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -45,12 +45,7 @@ export function createChangeTool(
       annotations: CREATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        CreateChange,
-        SUBJECT,
-        input.path,
-      );
+      const file = await files.read(SUBJECT, CreateChange, input.path);
       const change = await createChange.handle(file);
       return {
         summary: `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,

@@ -12,10 +12,12 @@ import {
 } from '#backend/adapters/in/mcp/tool-names';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
-import type { Handler } from '#backend/app/handler';
+import {
+  UpdateDesignDocInChange,
+  type UpdateDesignDocInChangeHandler,
+} from '#backend/app/changes/update-design-doc-in-change';
 import { DESIGN_DOC_SHAPE } from './design-doc-shape';
-import { readWorkingFile, inChangeInput } from './working-file';
+import { inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
 
@@ -24,7 +26,7 @@ const outputSchema = z
   .describe('The design document as stored.');
 
 export function updateDesignDocInChangeTool(
-  updateDesignDoc: Handler<UpdateDesignDocInChange, DesignDocSummary>,
+  updateDesignDoc: UpdateDesignDocInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -45,10 +47,9 @@ export function updateDesignDocInChangeTool(
       annotations: UPDATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        UpdateDesignDocInChange.shape.designDoc,
+      const file = await files.read(
         SUBJECT,
+        UpdateDesignDocInChange.shape.designDoc,
         input.path,
       );
       const designDoc = await updateDesignDoc.handle({

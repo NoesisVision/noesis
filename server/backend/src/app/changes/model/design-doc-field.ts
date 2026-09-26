@@ -14,7 +14,7 @@ const changedDesignDocFieldSchema = <Value extends z.ZodType>(value: Value) =>
     author: DesignDocFieldAuthor.default('agent'),
   });
 
-export type ChangedDesignDocField<T> = z.infer<
+type ChangedDesignDocField<T> = z.infer<
   ReturnType<typeof changedDesignDocFieldSchema<z.ZodType<T>>>
 >;
 
@@ -22,9 +22,16 @@ const unchangedDesignDocFieldSchema = z.strictObject({
   changed: z.literal(false),
 });
 
-export type UnchangedDesignDocField = z.infer<
-  typeof unchangedDesignDocFieldSchema
->;
+type UnchangedDesignDocField = z.infer<typeof unchangedDesignDocFieldSchema>;
+
+const anyDesignDocField = z.discriminatedUnion('changed', [
+  z.strictObject({
+    changed: z.literal(true),
+    value: z.unknown(),
+    author: DesignDocFieldAuthor,
+  }),
+  unchangedDesignDocFieldSchema,
+]);
 
 const designDocFieldSchema = <Value extends z.ZodType>(value: Value) =>
   z
@@ -39,17 +46,9 @@ export const DesignDocField = Object.assign(designDocFieldSchema, {
     value: T,
     author: DesignDocFieldAuthor = 'agent',
   ): ChangedDesignDocField<T> => ({ changed: true, value, author }),
-  is: (candidate: unknown): candidate is DesignDocField<unknown> => {
-    if (typeof candidate !== 'object' || candidate === null) return false;
-    if (!('changed' in candidate)) return false;
-    if (candidate.changed === false) return Object.keys(candidate).length === 1;
-    return (
-      candidate.changed === true &&
-      'value' in candidate &&
-      'author' in candidate &&
-      DesignDocFieldAuthor.safeParse(candidate.author).success
-    );
-  },
+  /** A parsed field, defaults spelled out: what a walk over a document meets. */
+  is: (candidate: unknown): candidate is DesignDocField<unknown> =>
+    anyDesignDocField.safeParse(candidate).success,
 });
 export type DesignDocField<T> =
   | ChangedDesignDocField<T>

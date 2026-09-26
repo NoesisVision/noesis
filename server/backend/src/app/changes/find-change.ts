@@ -14,11 +14,11 @@ const FindChangeResult = ChangeSummary.extend({
   designDocs: z.array(DesignDocSummary),
   sourceDocuments: z.array(SourceDocumentSummary),
 });
-export type FindChangeResult = z.infer<typeof FindChangeResult>;
+type FindChangeResult = z.infer<typeof FindChangeResult>;
 
-export function findChangeHandler(
-  changes: ChangesReader,
-): Handler<FindChange, FindChangeResult> {
+export type FindChangeHandler = Handler<FindChange, FindChangeResult>;
+
+export function findChangeHandler(changes: ChangesReader): FindChangeHandler {
   return {
     /** Each kind oldest first. */
     async handle(query) {

@@ -9,10 +9,12 @@ import {
   ADD_SOURCE_DOCUMENT_TO_CHANGE,
   UPDATE_SOURCE_DOCUMENT_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { AddSourceDocumentToChange } from '#backend/app/changes/add-source-document-to-change';
+import {
+  AddSourceDocumentToChange,
+  type AddSourceDocumentToChangeHandler,
+} from '#backend/app/changes/add-source-document-to-change';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
-import type { Handler } from '#backend/app/handler';
-import { NO_ID, readWorkingFile, inChangeInput } from './working-file';
+import { NO_ID, inChangeInput } from './working-file';
 
 const SUBJECT = 'source document';
 
@@ -21,7 +23,7 @@ const outputSchema = z
   .describe('The source document as stored, with the id the server minted.');
 
 export function addSourceDocumentToChangeTool(
-  addSourceDocument: Handler<AddSourceDocumentToChange, SourceDocumentSummary>,
+  addSourceDocument: AddSourceDocumentToChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -38,10 +40,9 @@ export function addSourceDocumentToChangeTool(
       annotations: CREATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        AddSourceDocumentToChange.shape.sourceDocument,
+      const file = await files.read(
         SUBJECT,
+        AddSourceDocumentToChange.shape.sourceDocument,
         input.path,
       );
       const sourceDocument = await addSourceDocument.handle({

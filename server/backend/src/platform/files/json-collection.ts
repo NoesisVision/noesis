@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { JsonFileError, parseJson, writeJsonFile } from './json-file';
+import { decodeJson, JsonFileError, writeJsonFile } from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -92,15 +92,14 @@ export class JsonCollection<T extends { id: string }> {
   }
 
   private decode(path: string, id: string, text: string): T {
-    const result = parseJson(text, this.schema);
-    if (result.isErr()) throw new JsonFileError(path, result.error);
-    if (result.value.id !== id) {
+    const entity = decodeJson(path, text, this.schema);
+    if (entity.id !== id) {
       throw new JsonFileError(
         path,
-        `its id ${JSON.stringify(result.value.id)} does not match its file name.`,
+        `its id ${JSON.stringify(entity.id)} does not match its file name.`,
       );
     }
-    return result.value;
+    return entity;
   }
 }
 

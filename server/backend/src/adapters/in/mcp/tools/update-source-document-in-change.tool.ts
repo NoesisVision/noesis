@@ -12,9 +12,11 @@ import {
 } from '#backend/adapters/in/mcp/tool-names';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
-import { UpdateSourceDocumentInChange } from '#backend/app/changes/update-source-document-in-change';
-import type { Handler } from '#backend/app/handler';
-import { readWorkingFile, inChangeInput } from './working-file';
+import {
+  UpdateSourceDocumentInChange,
+  type UpdateSourceDocumentInChangeHandler,
+} from '#backend/app/changes/update-source-document-in-change';
+import { inChangeInput } from './working-file';
 
 const SUBJECT = 'source document';
 
@@ -23,10 +25,7 @@ const outputSchema = z
   .describe('The source document as stored.');
 
 export function updateSourceDocumentInChangeTool(
-  updateSourceDocument: Handler<
-    UpdateSourceDocumentInChange,
-    SourceDocumentSummary
-  >,
+  updateSourceDocument: UpdateSourceDocumentInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -47,10 +46,9 @@ export function updateSourceDocumentInChangeTool(
       annotations: UPDATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        UpdateSourceDocumentInChange.shape.sourceDocument,
+      const file = await files.read(
         SUBJECT,
+        UpdateSourceDocumentInChange.shape.sourceDocument,
         input.path,
       );
       const sourceDocument = await updateSourceDocument.handle({

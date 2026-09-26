@@ -96,7 +96,6 @@ export const ScannedProperty = z.strictObject({
   description: z.string().nullable().default(null),
   optional: z.boolean().default(false),
 });
-export type ScannedProperty = z.infer<typeof ScannedProperty>;
 
 export const ScannedScenario = z.strictObject({
   name: ElementName,

@@ -2,9 +2,9 @@ import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry'
 import type { Handler } from '#backend/app/handler';
 import type { ChangesReader } from './changes.repository';
 
-export function listChangesHandler(
-  changes: ChangesReader,
-): Handler<void, ChangeWithEntries[]> {
+export type ListChangesHandler = Handler<void, ChangeWithEntries[]>;
+
+export function listChangesHandler(changes: ChangesReader): ListChangesHandler {
   return {
     /**
      * By id descending. The id starts with the creation date, so the newest day

@@ -1,7 +1,6 @@
-import { type ZodType, z } from 'zod';
+import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { LIST_CHANGES } from '#backend/adapters/in/mcp/tool-names';
-import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 
 /**
@@ -40,18 +39,3 @@ export function inChangeInput(
 /** What a working file says of its id, which only the server mints. */
 export const NO_ID =
   'Leave "id" out: the server mints it when it creates the entity and answers with it.';
-
-/**
- * The working file at `path`, read as `schema`. Throws `WorkingFileError`
- * when it cannot be read or does not fit, which `logged` answers in-band.
- */
-export async function readWorkingFile<T>(
-  files: SessionFiles,
-  schema: ZodType<T>,
-  subject: string,
-  path: string,
-): Promise<T> {
-  const file = await files.read(schema, path);
-  if (file.isErr()) throw new WorkingFileError(subject, file.error);
-  return file.value;
-}

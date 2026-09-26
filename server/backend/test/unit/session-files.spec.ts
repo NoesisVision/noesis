@@ -9,9 +9,9 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { err } from 'neverthrow';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 let root: string;
@@ -31,6 +31,17 @@ afterEach(async () => {
   }
   extra = [];
 });
+
+/** Why the path was refused; throws when it was accepted. */
+async function refusal(resolve: Promise<unknown>): Promise<WorkingFileError> {
+  try {
+    await resolve;
+  } catch (error) {
+    if (error instanceof WorkingFileError) return error;
+    throw error;
+  }
+  throw new Error('expected the path to be refused');
+}
 
 /** A file another session wrote. */
 async function otherSessionFile(session: string): Promise<string> {
@@ -52,44 +63,45 @@ describe('SessionFiles.resolve', () => {
   });
 
   it('accepts an absolute path under sessions/', async () => {
-    expect((await files.resolve(file))._unsafeUnwrap()).toBe<string>(
+    expect(await files.resolve('doc', file)).toBe<string>(await realpath(file));
+  });
+
+  it('accepts a path relative to the repository root', async () => {
+    expect(await files.resolve('doc', relative(root, file))).toBe<string>(
       await realpath(file),
     );
   });
 
-  it('accepts a path relative to the repository root', async () => {
-    expect(
-      (await files.resolve(relative(root, file)))._unsafeUnwrap(),
-    ).toBe<string>(await realpath(file));
-  });
-
   it("accepts another session's file — skills need not know the id", async () => {
-    const result = await files.resolve(await otherSessionFile('s2'));
-    expect(result.isOk()).toBe(true);
+    await expect(
+      files.resolve('doc', await otherSessionFile('s2')),
+    ).resolves.toBeDefined();
   });
 
   it('refuses a path outside sessions/, naming the session directory', async () => {
     const outside = join(root, '.noesis', 'doc.json');
     await writeFile(outside, '{}');
 
-    const result = await files.resolve(outside);
+    const { subject, reason } = await refusal(files.resolve('doc', outside));
 
-    expect(result.isErr()).toBe(true);
-    const message = result._unsafeUnwrapErr();
-    expect(message).toContain('.noesis/sessions/');
-    expect(message).toContain(files.dir);
+    expect(subject).toBe('doc');
+    expect(reason).toContain('.noesis/sessions/');
+    expect(reason).toContain(files.dir);
   });
 
   it('refuses a path that climbs out of sessions/ with ..', async () => {
-    const result = await files.resolve(
-      join('.noesis', 'sessions', 's1', '..', '..', '.gitignore'),
-    );
-    expect(result.isErr()).toBe(true);
+    await expect(
+      files.resolve(
+        'doc',
+        join('.noesis', 'sessions', 's1', '..', '..', '.gitignore'),
+      ),
+    ).rejects.toBeInstanceOf(WorkingFileError);
   });
 
   it('refuses the sessions/ directory itself', async () => {
-    const result = await files.resolve(files.sessionsRoot);
-    expect(result.isErr()).toBe(true);
+    await expect(
+      files.resolve('doc', files.sessionsRoot),
+    ).rejects.toBeInstanceOf(WorkingFileError);
   });
 
   it('follows a symlink and refuses one that leaves sessions/', async () => {
@@ -98,9 +110,9 @@ describe('SessionFiles.resolve', () => {
     const link = join(files.dir, 'link.json');
     await symlink(target, link);
 
-    const result = await files.resolve(link);
-
-    expect(result.isErr()).toBe(true);
+    await expect(files.resolve('doc', link)).rejects.toBeInstanceOf(
+      WorkingFileError,
+    );
   });
 
   it('accepts the resolved spelling when the repository root is a symlink', async () => {
@@ -114,31 +126,29 @@ describe('SessionFiles.resolve', () => {
     const resolved = join(await realpath(linked.dir), 'doc.json');
     await writeFile(resolved, '{}');
 
-    expect((await linked.resolve(resolved))._unsafeUnwrap()).toBe<string>(
-      resolved,
-    );
+    expect(await linked.resolve('doc', resolved)).toBe<string>(resolved);
   });
 
   it('answers the path it checked, not the link it was given', async () => {
     const link = join(files.dir, 'link.json');
     await symlink(file, link);
 
-    expect((await files.resolve(link))._unsafeUnwrap()).toBe<string>(
-      await realpath(file),
-    );
+    expect(await files.resolve('doc', link)).toBe<string>(await realpath(file));
   });
 
   it('accepts a file whose name merely starts with two dots', async () => {
     const dotted = join(files.dir, '..draft.json');
     await writeFile(dotted, '{}');
 
-    const result = await files.resolve(dotted);
-
-    expect(result.isOk()).toBe(true);
+    await expect(files.resolve('doc', dotted)).resolves.toBeDefined();
   });
 
   it('reports a missing file', async () => {
-    const result = await files.resolve(join(files.dir, 'nope.json'));
-    expect(result).toEqual(err(`No file at ${join(files.dir, 'nope.json')}.`));
+    const missing = join(files.dir, 'nope.json');
+
+    const { reason } = await refusal(files.resolve('doc', missing));
+
+    expect(reason).toStartWith(`No file at ${missing}.`);
+    expect(reason).toContain(files.dir);
   });
 });

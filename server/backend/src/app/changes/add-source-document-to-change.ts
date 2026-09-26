@@ -17,9 +17,14 @@ export type AddSourceDocumentToChange = z.infer<
   typeof AddSourceDocumentToChange
 >;
 
+export type AddSourceDocumentToChangeHandler = Handler<
+  AddSourceDocumentToChange,
+  SourceDocumentSummary
+>;
+
 export function addSourceDocumentToChangeHandler(
   changes: ChangesRepository,
-): Handler<AddSourceDocumentToChange, SourceDocumentSummary> {
+): AddSourceDocumentToChangeHandler {
   return {
     async handle(command) {
       const change = await getChangeOrThrow(changes, command.change);

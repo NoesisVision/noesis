@@ -9,9 +9,11 @@ import { type ChangesReader, getChangeOrThrow } from './changes.repository';
 export const FindDesignDoc = z.object({ change: ChangeId, id: DesignDocId });
 export type FindDesignDoc = z.infer<typeof FindDesignDoc>;
 
+export type FindDesignDocHandler = Handler<FindDesignDoc, DesignDoc>;
+
 export function findDesignDocHandler(
   changes: ChangesReader,
-): Handler<FindDesignDoc, DesignDoc> {
+): FindDesignDocHandler {
   return {
     /** The change is looked up first, so a missing change is the one named. */
     async handle(query) {

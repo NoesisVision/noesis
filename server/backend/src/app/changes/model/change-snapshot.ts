@@ -18,7 +18,8 @@ export const CHANGE_STATUSES = [
 export const ChangeStatus = z.enum(CHANGE_STATUSES);
 export type ChangeStatus = z.infer<typeof ChangeStatus>;
 
-const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
+/** A tracker key, or nothing. */
+const CHANGE_KEY_PATTERN = /^(?:[A-Z]{2,8}-\d+)?$/;
 
 export const ChangeSnapshot = z
   .object({
@@ -32,8 +33,7 @@ export const ChangeSnapshot = z
     key: z
       .string()
       .trim()
-      .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142')
-      .or(z.literal(''))
+      .regex(CHANGE_KEY_PATTERN, 'A key looks like NOE-142, or is empty')
       .default('')
       .describe(
         'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',

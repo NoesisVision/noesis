@@ -9,11 +9,13 @@ import {
   ADD_DESIGN_DOC_TO_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
+import {
+  AddDesignDocToChange,
+  type AddDesignDocToChangeHandler,
+} from '#backend/app/changes/add-design-doc-to-change';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import type { Handler } from '#backend/app/handler';
 import { DESIGN_DOC_SHAPE } from './design-doc-shape';
-import { NO_ID, readWorkingFile, inChangeInput } from './working-file';
+import { NO_ID, inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
 
@@ -22,7 +24,7 @@ const outputSchema = z
   .describe('The design document as stored, with the id the server minted.');
 
 export function addDesignDocToChangeTool(
-  addDesignDoc: Handler<AddDesignDocToChange, DesignDocSummary>,
+  addDesignDoc: AddDesignDocToChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -39,10 +41,9 @@ export function addDesignDocToChangeTool(
       annotations: CREATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        AddDesignDocToChange.shape.designDoc,
+      const file = await files.read(
         SUBJECT,
+        AddDesignDocToChange.shape.designDoc,
         input.path,
       );
       const designDoc = await addDesignDoc.handle({

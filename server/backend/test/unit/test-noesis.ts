@@ -66,10 +66,8 @@ export async function testNoesis(): Promise<TestNoesis> {
   const changesRepository = new NoesisChangesRepository(noesis);
 
   const changesDir = noesis.resolve('graph', 'changes');
-  const stored = async (id: ChangeId): Promise<ChangeSnapshot> =>
-    (
-      await readJsonFile(join(changesDir, `${id}.change.json`), ChangeSnapshot)
-    )._unsafeUnwrap();
+  const stored = (id: ChangeId): Promise<ChangeSnapshot> =>
+    readJsonFile(join(changesDir, `${id}.change.json`), ChangeSnapshot);
   const own = async (
     id: ChangeId,
     add: (snapshot: ChangeSnapshot) => ChangeSnapshot,

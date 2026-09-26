@@ -12,9 +12,14 @@ export const FindSourceDocument = z.object({
 });
 export type FindSourceDocument = z.infer<typeof FindSourceDocument>;
 
+export type FindSourceDocumentHandler = Handler<
+  FindSourceDocument,
+  SourceDocument
+>;
+
 export function findSourceDocumentHandler(
   changes: ChangesReader,
-): Handler<FindSourceDocument, SourceDocument> {
+): FindSourceDocumentHandler {
   return {
     /** The change is looked up first, so a missing change is the one named. */
     async handle(query) {

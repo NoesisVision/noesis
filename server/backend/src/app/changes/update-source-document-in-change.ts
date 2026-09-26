@@ -19,9 +19,14 @@ export type UpdateSourceDocumentInChange = z.infer<
   typeof UpdateSourceDocumentInChange
 >;
 
+export type UpdateSourceDocumentInChangeHandler = Handler<
+  UpdateSourceDocumentInChange,
+  SourceDocumentSummary
+>;
+
 export function updateSourceDocumentInChangeHandler(
   changes: ChangesRepository,
-): Handler<UpdateSourceDocumentInChange, SourceDocumentSummary> {
+): UpdateSourceDocumentInChangeHandler {
   return {
     /** Replaces the source document at `id` whole; never creates one. */
     async handle(command) {

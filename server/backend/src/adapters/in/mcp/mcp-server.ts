@@ -6,19 +6,13 @@ import { listChangesTool } from '#backend/adapters/in/mcp/tools/list-changes.too
 import { updateChangeTool } from '#backend/adapters/in/mcp/tools/update-change.tool';
 import { updateDesignDocInChangeTool } from '#backend/adapters/in/mcp/tools/update-design-doc-in-change.tool';
 import { updateSourceDocumentInChangeTool } from '#backend/adapters/in/mcp/tools/update-source-document-in-change.tool';
-import type { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
-import type { AddSourceDocumentToChange } from '#backend/app/changes/add-source-document-to-change';
-import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
-import type {
-  ChangeSummary,
-  CreateChange,
-} from '#backend/app/changes/model/change-snapshot';
-import type { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import type { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
-import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
-import type { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
-import type { UpdateSourceDocumentInChange } from '#backend/app/changes/update-source-document-in-change';
-import type { Handler } from '#backend/app/handler';
+import type { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
+import type { AddSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
+import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import type { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
+import type { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { SessionFiles } from './session-files';
 import type { ToolRegistration } from './tool';
@@ -27,19 +21,13 @@ export interface McpServerDeps {
   version: string;
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
-  createChange: Handler<CreateChange, ChangeSummary>;
-  updateChange: Handler<UpdateChangeCommand, ChangeSummary>;
-  listChanges: Handler<void, ChangeWithEntries[]>;
-  addDesignDocToChange: Handler<AddDesignDocToChange, DesignDocSummary>;
-  updateDesignDocInChange: Handler<UpdateDesignDocInChange, DesignDocSummary>;
-  addSourceDocumentToChange: Handler<
-    AddSourceDocumentToChange,
-    SourceDocumentSummary
-  >;
-  updateSourceDocumentInChange: Handler<
-    UpdateSourceDocumentInChange,
-    SourceDocumentSummary
-  >;
+  createChange: CreateChangeHandler;
+  updateChange: UpdateChangeHandler;
+  listChanges: ListChangesHandler;
+  addDesignDocToChange: AddDesignDocToChangeHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
+  addSourceDocumentToChange: AddSourceDocumentToChangeHandler;
+  updateSourceDocumentInChange: UpdateSourceDocumentInChangeHandler;
 }
 
 /**

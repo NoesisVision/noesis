@@ -9,10 +9,12 @@ import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import type { ChangesRepository } from './changes.repository';
 
+export type CreateChangeHandler = Handler<CreateChange, ChangeSummary>;
+
 export function createChangeHandler(
   changes: ChangesRepository,
   today: Today,
-): Handler<CreateChange, ChangeSummary> {
+): CreateChangeHandler {
   return {
     /**
      * Creates the change in discovery, at an id minted from today's date and

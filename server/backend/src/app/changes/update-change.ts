@@ -7,7 +7,7 @@ import type { Handler } from '#backend/app/handler';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
 /** A new version of what a change says of itself: the working file, at the id it names. */
-export const UpdateChangeCommand = ChangeSnapshot.pick({
+const UpdateChangeCommand = ChangeSnapshot.pick({
   id: true,
   name: true,
   key: true,
@@ -15,11 +15,13 @@ export const UpdateChangeCommand = ChangeSnapshot.pick({
   status: true,
   description: true,
 });
-export type UpdateChangeCommand = z.infer<typeof UpdateChangeCommand>;
+type UpdateChangeCommand = z.infer<typeof UpdateChangeCommand>;
+
+export type UpdateChangeHandler = Handler<UpdateChangeCommand, ChangeSummary>;
 
 export function updateChangeHandler(
   changes: ChangesRepository,
-): Handler<UpdateChangeCommand, ChangeSummary> {
+): UpdateChangeHandler {
   return {
     /** Replaces the change at `id`, what it owns aside; never creates one. */
     async handle(command) {

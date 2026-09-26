@@ -2,39 +2,56 @@ import { randomBytes } from 'node:crypto';
 import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { err, ok, type Result } from 'neverthrow';
 import { z, type ZodType } from 'zod';
 
 /** One mistake repeated across a large array must not bury the first real cause. */
 const ISSUE_CAP = 20;
 
-/** Broken JSON or a schema failure, as one message. */
-export function parseJson<T>(
+/** A file that cannot be read as `schema`: its path, and what is wrong with it. */
+export class JsonFileError extends Error {
+  readonly path: string;
+  /** What is wrong, without the path: one message, the issues capped. */
+  readonly reason: string;
+
+  constructor(path: string, reason: string) {
+    super(`${path}: ${reason}`);
+    this.name = 'JsonFileError';
+    this.path = path;
+    this.reason = reason;
+  }
+}
+
+/** Throws `JsonFileError` for broken JSON or a schema failure. */
+export function decodeJson<T>(
+  path: string,
   text: string,
   schema: ZodType<T>,
-): Result<T, string> {
+): T {
   let json: unknown;
   try {
     json = JSON.parse(text);
   } catch (error) {
-    return err(`Unreadable JSON: ${String(error)}`);
+    throw new JsonFileError(path, `Unreadable JSON: ${String(error)}`);
   }
   const parsed = schema.safeParse(json);
-  return parsed.success ? ok(parsed.data) : err(describeIssues(parsed.error));
+  if (!parsed.success) {
+    throw new JsonFileError(path, describeIssues(parsed.error));
+  }
+  return parsed.data;
 }
 
-/** Unreadable file, broken JSON or schema failure, as one message. */
+/** Throws `JsonFileError` for an unreadable file, broken JSON or a schema failure. */
 export async function readJsonFile<T>(
   path: string,
   schema: ZodType<T>,
-): Promise<Result<T, string>> {
+): Promise<T> {
   let text: string;
   try {
     text = await readFile(path, 'utf8');
   } catch (error) {
-    return err(`Unreadable file: ${String(error)}`);
+    throw new JsonFileError(path, `Unreadable file: ${String(error)}`);
   }
-  return parseJson(text, schema);
+  return decodeJson(path, text, schema);
 }
 
 /**
@@ -50,16 +67,6 @@ export function writeJsonFile<T>(
   const content = encodeJson(path, schema, value);
   mkdirSync(dirname(path), { recursive: true });
   replaceAtomically(path, content);
-}
-
-export class JsonFileError extends Error {
-  readonly path: string;
-
-  constructor(path: string, message: string) {
-    super(`${path}: ${message}`);
-    this.name = 'JsonFileError';
-    this.path = path;
-  }
 }
 
 // A schema may decode into a value object (a codec); what is stored is the

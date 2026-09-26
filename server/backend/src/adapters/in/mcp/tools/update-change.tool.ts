@@ -15,9 +15,8 @@ import {
   ChangeSummary,
   UpdateChange,
 } from '#backend/app/changes/model/change-snapshot';
-import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
-import type { Handler } from '#backend/app/handler';
-import { readWorkingFile, workingFilePath } from './working-file';
+import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import { workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -26,7 +25,7 @@ const outputSchema = z
   .describe('The change as stored.');
 
 export function updateChangeTool(
-  updateChange: Handler<UpdateChangeCommand, ChangeSummary>,
+  updateChange: UpdateChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -52,12 +51,7 @@ export function updateChangeTool(
       annotations: UPDATE,
     },
     async (input) => {
-      const file = await readWorkingFile(
-        files,
-        UpdateChange,
-        SUBJECT,
-        input.path,
-      );
+      const file = await files.read(SUBJECT, UpdateChange, input.path);
       const change = await updateChange.handle({
         id: input.id,
         ...file,

@@ -119,9 +119,13 @@ export type DesignDocInput = z.input<typeof designDocSchema>;
 export const CreateDesignDoc = designDocSchema.omit({ id: true });
 export type CreateDesignDoc = z.infer<typeof CreateDesignDoc>;
 
-/** The working file of a design document update: the id travels beside it. */
-export const UpdateDesignDoc = designDocSchema.omit({ id: true });
-export type UpdateDesignDoc = z.infer<typeof UpdateDesignDoc>;
+/**
+ * The working file of a design document update: the same shape, the id
+ * travelling beside it.
+ * @alias
+ */
+export const UpdateDesignDoc = CreateDesignDoc;
+export type UpdateDesignDoc = CreateDesignDoc;
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;

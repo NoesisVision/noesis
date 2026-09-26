@@ -71,7 +71,6 @@ export class UiHost {
         // SPA, which then reads the path it was opened at.
         '/*': (request: Request) => ui.respond(request),
       },
-      fetch: app.fetch,
     });
     const url = `http://localhost:${server.port}/`;
     // The e2e specs and a person alike find the UI by this line.

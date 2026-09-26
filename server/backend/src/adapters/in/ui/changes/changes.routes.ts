@@ -1,21 +1,18 @@
 import { Hono } from 'hono';
 import { jsonBody } from '#backend/adapters/in/ui/json-body';
 import { routeParams } from '#backend/adapters/in/ui/route-params';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
 import {
   FindChange,
-  type FindChangeResult,
+  type FindChangeHandler,
 } from '#backend/app/changes/find-change';
-import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
-import {
-  type ChangeSummary,
-  CreateChange,
-} from '#backend/app/changes/model/change-snapshot';
-import type { Handler } from '#backend/app/handler';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
+import { CreateChange } from '#backend/app/changes/model/change-snapshot';
 
 export interface ChangesDeps {
-  createChange: Handler<CreateChange, ChangeSummary>;
-  listChanges: Handler<void, ChangeWithEntries[]>;
-  findChange: Handler<FindChange, FindChangeResult>;
+  createChange: CreateChangeHandler;
+  listChanges: ListChangesHandler;
+  findChange: FindChangeHandler;
 }
 
 /**

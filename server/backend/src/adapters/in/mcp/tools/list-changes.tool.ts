@@ -8,11 +8,11 @@ import {
   CREATE_CHANGE,
   LIST_CHANGES,
 } from '#backend/adapters/in/mcp/tool-names';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import {
   type ChangeEntry,
   ChangeWithEntries,
 } from '#backend/app/changes/model/change-entry';
-import type { Handler } from '#backend/app/handler';
 
 const inputSchema = z
   .object({})
@@ -29,7 +29,7 @@ const outputSchema = z
   .describe('The changes of this repository.');
 
 export function listChangesTool(
-  listChanges: Handler<void, ChangeWithEntries[]>,
+  listChanges: ListChangesHandler,
 ): ToolRegistration {
   return defineTool(
     LIST_CHANGES,

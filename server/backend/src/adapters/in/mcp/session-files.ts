@@ -1,8 +1,8 @@
 import { realpath, stat } from 'node:fs/promises';
 import { isAbsolute, normalize, relative, resolve, sep } from 'node:path';
-import { err, ok, type Result } from 'neverthrow';
 import type { ZodType } from 'zod';
-import { readJsonFile } from '#backend/platform/files/json-file';
+import { JsonFileError, readJsonFile } from '#backend/platform/files/json-file';
+import { WorkingFileError } from './working-file-error';
 
 declare const workingFilePathBrand: unique symbol;
 /** Checked by `resolve`: real, and under `.noesis/sessions/`. */
@@ -30,7 +30,8 @@ export interface SessionFilesLocation {
 /**
  * MCP messages carry paths into `.noesis/sessions/`, not content. This is
  * what the tools see of the session: where to write, and how a written file
- * is read back.
+ * is read back. Every refusal is a `WorkingFileError` naming `subject`, the
+ * thing the file was meant to hold, which `logged` answers in-band.
  */
 export class SessionFiles {
   readonly dir: string;
@@ -46,20 +47,16 @@ export class SessionFiles {
   }
 
   /** The payload is checked once — here, before any service sees it. */
-  async read<T>(schema: ZodType<T>, path: string): Promise<Result<T, string>> {
-    const resolved = await this.resolve(path);
-    if (resolved.isErr()) {
-      return err(
-        `${resolved.error} Write the file under ${this.dir} and pass that path.`,
-      );
-    }
-    const { size } = await stat(resolved.value);
+  async read<T>(subject: string, schema: ZodType<T>, path: string): Promise<T> {
+    const resolved = await this.resolve(subject, path);
+    const { size } = await stat(resolved);
     if (size > MAX_WORKING_FILE_BYTES) {
-      return err(
-        `${resolved.value} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
+      throw new WorkingFileError(
+        subject,
+        `${resolved} is ${size} bytes; a working file is at most ${MAX_WORKING_FILE_BYTES}. Pass the path of the document you wrote, or split it into documents of their own.`,
       );
     }
-    return readJsonFile(resolved.value, schema);
+    return decodeWorkingFile(subject, resolved, schema);
   }
 
   /**
@@ -69,16 +66,24 @@ export class SessionFiles {
    * symlinks resolved, so a link out of `sessions/` is refused and a
    * symlinked repository root is accepted under either spelling.
    */
-  async resolve(input: string): Promise<Result<WorkingFilePath, string>> {
+  async resolve(subject: string, input: string): Promise<WorkingFilePath> {
     const absolute = this.toAbsolute(input);
     const target = await realpathIfExists(absolute);
-    if (target === null) return noFileAt(absolute);
+    if (target === null) {
+      throw new WorkingFileError(
+        subject,
+        `No file at ${absolute}. Write the file under ${this.dir} and pass that path.`,
+      );
+    }
     if (!isInside(this.realSessionsRoot, target)) {
-      return this.notUnderSessions(input);
+      throw new WorkingFileError(
+        subject,
+        `${input} is not under ${relative(this.repositoryRoot, this.sessionsRoot)}/. Tools accept only paths under .noesis/sessions/; this session's directory is ${this.dir}.`,
+      );
     }
     // The checked path, not the spelled one: a link swapped in after the check
     // would otherwise be read in its place.
-    return ok(target as WorkingFilePath);
+    return target as WorkingFilePath;
   }
 
   private toAbsolute(input: string): string {
@@ -86,11 +91,21 @@ export class SessionFiles {
       ? normalize(input)
       : resolve(this.repositoryRoot, input);
   }
+}
 
-  private notUnderSessions(input: string): Result<never, string> {
-    return err(
-      `${input} is not under ${relative(this.repositoryRoot, this.sessionsRoot)}/. Tools accept only paths under .noesis/sessions/; this session's directory is ${this.dir}.`,
-    );
+/** A file that does not fit is the agent's mistake, told as one. */
+async function decodeWorkingFile<T>(
+  subject: string,
+  path: WorkingFilePath,
+  schema: ZodType<T>,
+): Promise<T> {
+  try {
+    return await readJsonFile(path, schema);
+  } catch (error) {
+    if (error instanceof JsonFileError) {
+      throw new WorkingFileError(subject, error.reason);
+    }
+    throw error;
   }
 }
 
@@ -109,8 +124,4 @@ async function realpathIfExists(path: string): Promise<string | null> {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw error;
   }
-}
-
-function noFileAt(path: string): Result<never, string> {
-  return err(`No file at ${path}.`);
 }
