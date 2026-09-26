@@ -10,7 +10,6 @@ import {
   LIST_CHANGES,
   UPDATE_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   ChangeSummary,
@@ -18,7 +17,7 @@ import {
 } from '#backend/app/changes/model/change-snapshot';
 import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
 import type { Handler } from '#backend/app/handler';
-import { fromWorkingFile, workingFilePath } from './working-file';
+import { readWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -52,22 +51,21 @@ export function updateChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         UpdateChange,
         SUBJECT,
         input.path,
-        async (file) => {
-          const change = await updateChange.handle({
-            id: input.id,
-            ...file,
-          });
-          return success(
-            `Updated change ${change.id} (${change.type}, ${change.status}).`,
-            { change },
-          );
-        },
-      ),
+      );
+      const change = await updateChange.handle({
+        id: input.id,
+        ...file,
+      });
+      return {
+        summary: `Updated change ${change.id} (${change.type}, ${change.status}).`,
+        content: { change },
+      };
+    },
   );
 }

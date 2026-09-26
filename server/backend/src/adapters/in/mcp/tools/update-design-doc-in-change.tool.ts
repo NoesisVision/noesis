@@ -10,13 +10,12 @@ import {
   LIST_CHANGES,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
 import { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
 import type { Handler } from '#backend/app/handler';
 import { DESIGN_DOC_SHAPE } from './design-doc-shape';
-import { fromWorkingFile, inChangeInput } from './working-file';
+import { readWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
 
@@ -45,23 +44,22 @@ export function updateDesignDocInChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         UpdateDesignDocInChange.shape.designDoc,
         SUBJECT,
         input.path,
-        async (file) => {
-          const designDoc = await updateDesignDoc.handle({
-            change: input.change,
-            id: input.id,
-            designDoc: file,
-          });
-          return success(
-            `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,
-            { designDoc },
-          );
-        },
-      ),
+      );
+      const designDoc = await updateDesignDoc.handle({
+        change: input.change,
+        id: input.id,
+        designDoc: file,
+      });
+      return {
+        summary: `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,
+        content: { designDoc },
+      };
+    },
   );
 }

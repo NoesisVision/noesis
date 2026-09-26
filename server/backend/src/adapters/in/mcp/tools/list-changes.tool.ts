@@ -1,4 +1,3 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import {
   defineTool,
@@ -9,7 +8,6 @@ import {
   CREATE_CHANGE,
   LIST_CHANGES,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import {
   type ChangeEntry,
   ChangeWithEntries,
@@ -43,12 +41,11 @@ export function listChangesTool(
       outputSchema,
       annotations: READ_ONLY,
     },
-    async () => listed(await listChanges.handle()),
+    async () => {
+      const changes = await listChanges.handle();
+      return { summary: summary(changes), content: { changes } };
+    },
   );
-}
-
-function listed(changes: ChangeWithEntries[]): CallToolResult {
-  return success(summary(changes), { changes });
 }
 
 /** The ids are in the text too, for hosts and models that read only that. */

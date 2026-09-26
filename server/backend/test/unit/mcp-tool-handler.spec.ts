@@ -3,6 +3,7 @@ import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
 import { logged } from '#backend/adapters/in/mcp/tool-handler';
 import { success } from '#backend/adapters/in/mcp/tool-result';
+import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
 import { textOf } from '../support/service-process';
 
 // The wrapper only hands it on, so its contents do not matter here.
@@ -63,5 +64,19 @@ describe('logged', () => {
     expect(record?.level).toBe('error');
     expect(record?.properties).toMatchObject({ tool: 'a_tool' });
     expect(String(record?.properties.error)).toContain('the disk went away');
+  });
+
+  it('answers a working file it cannot read in-band, without logging it', async () => {
+    const handler = logged('a_tool', async () => {
+      throw new WorkingFileError('change', 'No file at /x.json.');
+    });
+
+    const result = await handler({}, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(
+      'Could not read the change:\nNo file at /x.json.',
+    );
+    expect(records).toEqual([]);
   });
 });

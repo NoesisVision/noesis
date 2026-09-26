@@ -10,12 +10,11 @@ import {
   LIST_CHANGES,
   UPDATE_SOURCE_DOCUMENT_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import { UpdateSourceDocumentInChange } from '#backend/app/changes/update-source-document-in-change';
 import type { Handler } from '#backend/app/handler';
-import { fromWorkingFile, inChangeInput } from './working-file';
+import { readWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'source document';
 
@@ -47,23 +46,22 @@ export function updateSourceDocumentInChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         UpdateSourceDocumentInChange.shape.sourceDocument,
         SUBJECT,
         input.path,
-        async (file) => {
-          const sourceDocument = await updateSourceDocument.handle({
-            change: input.change,
-            id: input.id,
-            sourceDocument: file,
-          });
-          return success(
-            `Updated source document ${sourceDocument.id} ("${sourceDocument.title}") in ${input.change}.`,
-            { sourceDocument },
-          );
-        },
-      ),
+      );
+      const sourceDocument = await updateSourceDocument.handle({
+        change: input.change,
+        id: input.id,
+        sourceDocument: file,
+      });
+      return {
+        summary: `Updated source document ${sourceDocument.id} ("${sourceDocument.title}") in ${input.change}.`,
+        content: { sourceDocument },
+      };
+    },
   );
 }

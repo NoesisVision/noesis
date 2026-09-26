@@ -9,12 +9,11 @@ import {
   ADD_DESIGN_DOC_TO_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
 import type { Handler } from '#backend/app/handler';
 import { DESIGN_DOC_SHAPE } from './design-doc-shape';
-import { NO_ID, fromWorkingFile, inChangeInput } from './working-file';
+import { NO_ID, readWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
 
@@ -39,22 +38,21 @@ export function addDesignDocToChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         AddDesignDocToChange.shape.designDoc,
         SUBJECT,
         input.path,
-        async (file) => {
-          const designDoc = await addDesignDoc.handle({
-            change: input.change,
-            designDoc: file,
-          });
-          return success(
-            `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,
-            { designDoc },
-          );
-        },
-      ),
+      );
+      const designDoc = await addDesignDoc.handle({
+        change: input.change,
+        designDoc: file,
+      });
+      return {
+        summary: `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,
+        content: { designDoc },
+      };
+    },
   );
 }

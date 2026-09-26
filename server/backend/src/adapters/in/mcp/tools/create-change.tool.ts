@@ -10,13 +10,12 @@ import {
   LIST_CHANGES,
   UPDATE_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
-import { NO_ID, fromWorkingFile, workingFilePath } from './working-file';
+import { NO_ID, readWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -45,19 +44,18 @@ export function createChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         CreateChange,
         SUBJECT,
         input.path,
-        async (file) => {
-          const change = await createChange.handle(file);
-          return success(
-            `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
-            { change },
-          );
-        },
-      ),
+      );
+      const change = await createChange.handle(file);
+      return {
+        summary: `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
+        content: { change },
+      };
+    },
   );
 }

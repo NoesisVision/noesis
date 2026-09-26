@@ -1,8 +1,7 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { type ZodType, z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { LIST_CHANGES } from '#backend/adapters/in/mcp/tool-names';
-import { failure } from '#backend/adapters/in/mcp/tool-result';
+import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 
 /**
@@ -43,20 +42,16 @@ export const NO_ID =
   'Leave "id" out: the server mints it when it creates the entity and answers with it.';
 
 /**
- * Reads the working file at `path` as `schema` and hands it to `run`. A file
- * that cannot be read or does not fit is answered in-band, and `run` never
- * sees it.
+ * The working file at `path`, read as `schema`. Throws `WorkingFileError`
+ * when it cannot be read or does not fit, which `logged` answers in-band.
  */
-export async function fromWorkingFile<T>(
+export async function readWorkingFile<T>(
   files: SessionFiles,
   schema: ZodType<T>,
   subject: string,
   path: string,
-  run: (value: T) => Promise<CallToolResult>,
-): Promise<CallToolResult> {
+): Promise<T> {
   const file = await files.read(schema, path);
-  if (file.isErr()) {
-    return failure(`Could not read the ${subject}:\n${file.error}`);
-  }
-  return run(file.value);
+  if (file.isErr()) throw new WorkingFileError(subject, file.error);
+  return file.value;
 }

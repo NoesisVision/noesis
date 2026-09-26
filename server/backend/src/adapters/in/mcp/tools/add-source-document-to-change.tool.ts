@@ -9,11 +9,10 @@ import {
   ADD_SOURCE_DOCUMENT_TO_CHANGE,
   UPDATE_SOURCE_DOCUMENT_IN_CHANGE,
 } from '#backend/adapters/in/mcp/tool-names';
-import { success } from '#backend/adapters/in/mcp/tool-result';
 import { AddSourceDocumentToChange } from '#backend/app/changes/add-source-document-to-change';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import type { Handler } from '#backend/app/handler';
-import { NO_ID, fromWorkingFile, inChangeInput } from './working-file';
+import { NO_ID, readWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'source document';
 
@@ -38,22 +37,21 @@ export function addSourceDocumentToChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) =>
-      fromWorkingFile(
+    async (input) => {
+      const file = await readWorkingFile(
         files,
         AddSourceDocumentToChange.shape.sourceDocument,
         SUBJECT,
         input.path,
-        async (file) => {
-          const sourceDocument = await addSourceDocument.handle({
-            change: input.change,
-            sourceDocument: file,
-          });
-          return success(
-            `Added source document ${sourceDocument.id} ("${sourceDocument.title}") to ${input.change}. Refer to it by this id.`,
-            { sourceDocument },
-          );
-        },
-      ),
+      );
+      const sourceDocument = await addSourceDocument.handle({
+        change: input.change,
+        sourceDocument: file,
+      });
+      return {
+        summary: `Added source document ${sourceDocument.id} ("${sourceDocument.title}") to ${input.change}. Refer to it by this id.`,
+        content: { sourceDocument },
+      };
+    },
   );
 }

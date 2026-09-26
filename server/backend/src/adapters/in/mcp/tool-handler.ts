@@ -17,13 +17,14 @@ import {
   LIST_CHANGES,
 } from './tool-names';
 import { failure } from './tool-result';
+import { WorkingFileError } from './working-file-error';
 
 const log = serverLogger('mcp');
 
 /**
- * The last resort around a tool. What the handlers throw for a caller's
- * mistake — a missing entity, a write that lost a race, a design that breaks
- * its rules — is answered here, once, with what to do next. Anything else the
+ * The last resort around a tool. What a tool throws for a caller's mistake —
+ * a working file it cannot read, a missing entity, a write that lost a race,
+ * a design that breaks its rules — is answered here, once, with what to do next. Anything else the
  * SDK would turn into an in-band error silently, leaving nothing in
  * `.noesis/logs/` for the person whose session just failed; every handler is
  * registered through here, so the server keeps the record and the agent still
@@ -53,6 +54,7 @@ export function logged<Input>(
 }
 
 function foreseen(error: unknown): CallToolResult | null {
+  if (error instanceof WorkingFileError) return failure(error.message);
   if (error instanceof NotFoundError) {
     return failure(error.message, FIND_OR_ADD[error.entity]);
   }
