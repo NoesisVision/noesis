@@ -64,8 +64,8 @@ export const outlineFixture: OutlineNode[] = [
     name: 'place',
     depth: 3,
     change: 'added',
-    pattern: 'Command',
-    patternLabel: 'Command',
+    pattern: 'command',
+    patternLabel: 'command',
   }),
   node({
     path: 'building_block|shop.orders.Order#property:total',

@@ -22,14 +22,14 @@ export const BuildingBlockType = z.enum([
 export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
 
 export const RuleType = z.enum([
-  'Consistency',
-  'Structure',
-  'Computation',
-  'State change',
+  'consistency',
+  'structure',
+  'computation',
+  'state_change',
 ]);
 export type RuleType = z.infer<typeof RuleType>;
 
-export const BehaviourType = z.enum(['Command', 'Event', 'Query']);
+export const BehaviourType = z.enum(['command', 'event', 'query']);
 export type BehaviourType = z.infer<typeof BehaviourType>;
 
 const PRIMITIVE_KIND = 'primitive';
@@ -156,7 +156,7 @@ export const SystemModel = z
   .strictObject({
     id: z.string(),
     name: z.string(),
-    scanned_at: z.string(),
+    scannedAt: z.string(),
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviours: z.array(ScannedBehaviour).default([]),

@@ -49,8 +49,8 @@ describe('outlineOf', () => {
     expect(at('behaviour|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behaviour',
       name: 'issue',
-      pattern: 'Command',
-      patternLabel: 'Command',
+      pattern: 'command',
+      patternLabel: 'command',
       parentPath: 'building_block|sales.refunds.Refund',
       depth: 3,
     });
@@ -123,7 +123,7 @@ describe('outlineOf', () => {
       at(
         'behaviour|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
-    ).toBe('State change');
+    ).toBe('state_change');
   });
 
   it('names an element by its own name, never by its address', () => {

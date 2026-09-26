@@ -103,7 +103,7 @@
             {
               "name": "Refund never exceeds paid amount",
               "ruleType": {
-                "value": "Consistency"
+                "value": "consistency"
               },
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
@@ -203,7 +203,7 @@
           "value": "issue"
         },
         "type": {
-          "value": "Command",
+          "value": "command",
           "author": "human"
         },
         "description": {
@@ -233,7 +233,7 @@
             {
               "name": "Only paid orders are refundable",
               "ruleType": {
-                "value": "State change"
+                "value": "state_change"
               },
               "description": {
                 "value": "An unpaid order has nothing to refund."

@@ -222,13 +222,13 @@ describe('The elements a design changes', () => {
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
     );
-    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(true);
+    expect(isValid(addingIssue({ type: { value: 'command' } }))).toBe(true);
     expect(isValid(addingIssue({ type: { value: 'Request' } }))).toBe(false);
     expect(
       isValid(
         addingRefund({
           rules: {
-            added: [{ name: 'Paid only', ruleType: { value: 'Validation' } }],
+            added: [{ name: 'Paid only', ruleType: { value: 'validation' } }],
           },
         }),
       ),
@@ -362,7 +362,7 @@ describe('A design document an agent wrote', () => {
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
     name: 'shop',
-    scanned_at: '2026-09-25T08:00:00.000Z',
+    scannedAt: '2026-09-25T08:00:00.000Z',
     modules: [{ id: ORDERS, name: 'orders', source }],
     buildingBlocks: [
       {
@@ -374,7 +374,7 @@ describe('A design document an agent wrote', () => {
         rules: [
           {
             name: 'Paid orders only',
-            ruleType: 'State change',
+            ruleType: 'state_change',
             scenarios: [
               {
                 name: 'Cancelling a paid order',
@@ -395,7 +395,7 @@ describe('A design document an agent wrote', () => {
         id: CANCEL,
         buildingBlockId: ORDER,
         name: 'cancel',
-        type: 'Command',
+        type: 'command',
         visibility: { kind: 'private' },
         input: [ORDER],
         source,

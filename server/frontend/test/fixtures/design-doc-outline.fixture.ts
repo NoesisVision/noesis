@@ -62,7 +62,7 @@ export const changedEverywhereFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
-              ruleType: agent('Consistency'),
+              ruleType: agent('consistency'),
             },
           ],
         },
@@ -115,13 +115,13 @@ export const changedEverywhereFixture = {
     added: [
       {
         id: 'behaviour|sales.refunds.Refund.issue',
-        type: human('Command'),
+        type: human('command'),
         description: agent(ISSUE_DIAGRAM),
         rules: {
           added: [
             {
               name: 'Only paid orders are refundable',
-              ruleType: agent('State change'),
+              ruleType: agent('state_change'),
             },
           ],
         },

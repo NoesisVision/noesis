@@ -102,7 +102,7 @@ export const designDocFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
-              ruleType: byAgent('Consistency'),
+              ruleType: byAgent('consistency'),
               description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
               ),
@@ -188,7 +188,7 @@ export const designDocFixture = {
       {
         id: 'behaviour|sales.refunds.Refund.issue',
         name: byAgent('issue'),
-        type: byHuman('Command'),
+        type: byHuman('command'),
         description: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
@@ -209,7 +209,7 @@ export const designDocFixture = {
           added: [
             {
               name: 'Only paid orders are refundable',
-              ruleType: byAgent('State change'),
+              ruleType: byAgent('state_change'),
               description: byAgent('An unpaid order has nothing to refund.'),
               scenarios: noChanges,
             },
