@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'bun:test';
+import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import { SearchService } from '#backend/app/search/search.service';
-import { createUiApp } from '#backend/ui/ui.routes';
 import { testNoesis } from './test-noesis';
 
 const t = await testNoesis();

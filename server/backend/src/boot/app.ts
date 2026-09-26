@@ -1,11 +1,11 @@
 import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
+import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
+import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import type { SearchService } from '#backend/app/search/search.service';
-import { createInternalApp } from '#backend/ui/internal.routes';
-import { createUiApp } from '#backend/ui/ui.routes';
 
 // No surface is guarded: the server runs on the developer's own machine.
 export interface AppDeps {

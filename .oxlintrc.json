@@ -34,13 +34,13 @@
         "partialMatch": false
       },
       {
-        "type": "adapters",
-        "pattern": "server/backend/src/adapters/**",
+        "type": "ui",
+        "pattern": "server/backend/src/adapters/in/ui/**",
         "partialMatch": false
       },
       {
-        "type": "ui",
-        "pattern": "server/backend/src/ui/**",
+        "type": "adapters",
+        "pattern": "server/backend/src/adapters/**",
         "partialMatch": false
       },
       { "type": "root", "pattern": "server/backend/src" },

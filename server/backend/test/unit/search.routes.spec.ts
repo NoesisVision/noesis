@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
+import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
 import {
   SearchService,
   searchResultSchema,
 } from '#backend/app/search/search.service';
-import { createSearchApp } from '#backend/ui/search/search.routes';
 
 const responseSchema = z.object({ results: z.array(searchResultSchema) });
 

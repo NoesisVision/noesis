@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { Document } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SearchService } from '#backend/app/search/search.service';
-import { createUiApp } from '#backend/ui/ui.routes';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
