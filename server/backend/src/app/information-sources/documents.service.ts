@@ -1,19 +1,23 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import type { Document, DocumentContent } from './document';
+import {
+  type Document,
+  type DocumentContent,
+  DocumentSchema,
+} from './document';
 import { DocumentId } from './document-id';
 import type { DocumentsRepository } from './documents.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
-export const DocumentSummarySchema = z.object({
-  id: DocumentId,
-  title: z.string().describe('The document title, as stored.'),
-  date: z.string().describe('The date on the document, ISO 8601.'),
+export const DocumentSummarySchema = DocumentSchema.pick({
+  id: true,
+  title: true,
+  date: true,
 });
 export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 

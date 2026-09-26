@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { NotFoundError } from '#backend/app/not-found-error';
@@ -14,12 +14,10 @@ import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
-export const DesignDocSummarySchema = z.object({
-  id: DesignDocId,
-  name: z.string().describe('The design document name, as stored.'),
-  implemented: z
-    .boolean()
-    .describe('Whether the design is marked as implemented.'),
+export const DesignDocSummarySchema = DesignDocument.pick({
+  id: true,
+  name: true,
+  implemented: true,
 });
 export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 
