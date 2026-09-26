@@ -39,31 +39,20 @@ export class StaticAssets {
    * error names the wrong thing entirely.
    */
   async respond(request: Request): Promise<Response> {
-    const file = await this.serve(request);
-    if (file !== null) return file;
+    const pathname = new URL(request.url).pathname;
+    const acceptEncoding = request.headers.get('accept-encoding') ?? '';
 
-    if (namesAFile(new URL(request.url).pathname)) {
+    const file = await this.read(pathname);
+    if (file !== null) return this.asResponse(file, acceptEncoding);
+
+    if (namesAFile(pathname)) {
       return new Response('Not found', { status: 404 });
     }
-    return (
-      (await this.serveIndex(request)) ??
-      new Response('The page has not been built.', { status: 503 })
-    );
-  }
-
-  /** `null` when the request names a file that is not there. */
-  private async serve(request: Request): Promise<Response | null> {
-    const path = new URL(request.url).pathname;
-    const asset = await this.read(path);
-    if (asset === null) return null;
-    return this.asResponse(asset, request.headers.get('accept-encoding') ?? '');
-  }
-
-  /** The page itself, for a client-side route that names no file. */
-  private async serveIndex(request: Request): Promise<Response | null> {
-    const asset = await this.load(this.indexPath, false);
-    if (asset === null) return null;
-    return this.asResponse(asset, request.headers.get('accept-encoding') ?? '');
+    const page = await this.load(this.indexPath, false);
+    if (page === null) {
+      return new Response('The page has not been built.', { status: 503 });
+    }
+    return this.asResponse(page, acceptEncoding);
   }
 
   async exists(): Promise<boolean> {

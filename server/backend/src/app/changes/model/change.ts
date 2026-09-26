@@ -36,12 +36,11 @@ import {
  */
 export class Change {
   private state: Omit<ChangeSnapshot, 'version'>;
-  /** The version it was read at; 0 for a change never saved. */
-  readonly version: number;
+  private storedVersion: number;
 
   private constructor(state: Omit<ChangeSnapshot, 'version'>, version: number) {
     this.state = state;
-    this.version = version;
+    this.storedVersion = version;
   }
 
   /** Holds a copy: the arrays it owns are replaced, never changed in place. */
@@ -67,9 +66,19 @@ export class Change {
     return this.state.id;
   }
 
+  /** The version it was read at, or last saved as; 0 for a change never saved. */
+  get version(): number {
+    return this.storedVersion;
+  }
+
   /** What a save writes: the change whole, at the version after the one read. */
   toSnapshot(): ChangeSnapshot {
     return { ...this.state, version: this.version + 1 };
+  }
+
+  /** The repository stored `toSnapshot()`: the next save builds on that version. */
+  markSaved(): void {
+    this.storedVersion += 1;
   }
 
   summary(): ChangeSummary {

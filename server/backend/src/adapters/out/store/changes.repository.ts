@@ -44,5 +44,6 @@ export class NoesisChangesRepository implements ChangesRepository {
       (stored) => (stored?.version ?? 0) === change.version,
     );
     if (!saved) throw new ConcurrentModificationError(change.id);
+    change.markSaved();
   }
 }

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
 import {
+  createJsonFile,
   JsonFileError,
   readJsonFile,
   writeJsonFile,
@@ -107,6 +108,20 @@ describe('writeJsonFile', () => {
     writeJsonFile(path, schema, { id: 'a', tags: ['b'], size: 3 });
 
     expect(await readdir(dir)).toEqual(['a.json']);
+  });
+
+  it('creates a file only where none is, leaving an existing one as it was', async () => {
+    const path = join(dir, 'nested', 'a.json');
+
+    expect(createJsonFile(path, schema, { id: 'a', tags: [], size: 1 })).toBe(
+      true,
+    );
+    expect(createJsonFile(path, schema, { id: 'a', tags: [], size: 2 })).toBe(
+      false,
+    );
+
+    expect((await readJsonFile(path, schema)).size).toBe(1);
+    expect(await readdir(join(dir, 'nested'))).toEqual(['a.json']);
   });
 
   it('refuses a value the schema rejects, writing nothing', async () => {

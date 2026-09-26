@@ -102,11 +102,12 @@ describe('NoesisChangesRepository', () => {
         content: 'Said.',
       }),
     );
+    const expected = change.toSnapshot();
     await t.changesRepository.save(change);
 
-    const expected = change.toSnapshot();
     expect(await t.stored(id)).toEqual(expected);
     expect(expected.version).toBe(1);
+    expect(change.version).toBe(1);
     expect(await readdir(t.changesDir)).toEqual([
       '2026-01-01-with-file.change.json',
     ]);
@@ -140,6 +141,19 @@ describe('NoesisChangesRepository', () => {
     await t.changesRepository.save(await read(id));
 
     expect((await read(id)).version).toBe(2);
+  });
+
+  it('lets one instance be saved again: each save builds on the last', async () => {
+    const id = await t.writeChange('2026-01-01-twice');
+    const change = await read(id);
+
+    change.update({ ...change.summary(), status: 'design' });
+    await t.changesRepository.save(change);
+    change.update({ ...change.summary(), status: 'done' });
+    await t.changesRepository.save(change);
+
+    expect(change.version).toBe(3);
+    expect((await read(id)).summary().status).toBe('done');
   });
 
   it('refuses a save on a version older than the stored one, keeping the stored one', async () => {

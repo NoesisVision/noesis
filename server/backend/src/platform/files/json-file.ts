@@ -1,5 +1,11 @@
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  linkSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { z, type ZodType } from 'zod';
@@ -69,6 +75,22 @@ export function writeJsonFile<T>(
   replaceAtomically(path, content);
 }
 
+/**
+ * As `writeJsonFile`, but only where no file is: answers `false`, writing
+ * nothing, when one exists. The temp file is hard-linked to `path`, which the
+ * filesystem refuses atomically when the name is taken — so two processes
+ * creating the same entity cannot both succeed.
+ */
+export function createJsonFile<T>(
+  path: string,
+  schema: ZodType<T>,
+  value: T,
+): boolean {
+  const content = encodeJson(path, schema, value);
+  mkdirSync(dirname(path), { recursive: true });
+  return createAtomically(path, content);
+}
+
 // A schema may decode into a value object (a codec); what is stored is the
 // JSON side of it, which a read decodes again.
 function encodeJson<T>(path: string, schema: ZodType<T>, value: T): string {
@@ -86,7 +108,7 @@ function describeIssues(error: z.ZodError): string {
 }
 
 function replaceAtomically(path: string, content: string): void {
-  const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
+  const temp = tempPathBeside(path);
   try {
     writeFileSync(temp, content);
     renameSync(temp, path);
@@ -94,4 +116,22 @@ function replaceAtomically(path: string, content: string): void {
     rmSync(temp, { force: true });
     throw error;
   }
+}
+
+function createAtomically(path: string, content: string): boolean {
+  const temp = tempPathBeside(path);
+  try {
+    writeFileSync(temp, content);
+    linkSync(temp, path);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
+    throw error;
+  } finally {
+    rmSync(temp, { force: true });
+  }
+}
+
+function tempPathBeside(path: string): string {
+  return `${path}.${randomBytes(6).toString('hex')}.tmp`;
 }

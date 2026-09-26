@@ -2,7 +2,12 @@ import { readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { decodeJson, JsonFileError, writeJsonFile } from './json-file';
+import {
+  createJsonFile,
+  decodeJson,
+  JsonFileError,
+  writeJsonFile,
+} from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -56,13 +61,16 @@ export class JsonCollection<T extends { id: string }> {
    * Writes `entity` only when `accepts` takes the stored one, `null` when
    * there is none; answers whether it wrote. The read, the check and the
    * write never yield, so no other write of this process comes between them.
-   * Another process still can.
+   * Another process still can, except on a create: a file that appeared
+   * since the check refuses the write, so two processes creating one entity
+   * cannot both succeed.
    */
   saveIf(entity: T, accepts: (stored: T | null) => boolean): boolean {
     const path = this.pathOf(entity.id);
     const text = readFileIfExistsSync(path);
     const stored = text === null ? null : this.decode(path, entity.id, text);
     if (!accepts(stored)) return false;
+    if (stored === null) return createJsonFile(path, this.schema, entity);
     writeJsonFile(path, this.schema, entity);
     return true;
   }

@@ -63,7 +63,7 @@ function slugOf(name: string, suffix: string): string {
 function slugify(text: string, maxLength: number): string {
   return text
     .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[łßøæœđðþı]/g, (letter) => TRANSLITERATIONS[letter] ?? letter)
     .replace(/[^a-z0-9]+/g, '-')
