@@ -10,8 +10,8 @@ import {
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { err } from 'neverthrow';
-import { SessionDir } from '#backend/adapters/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/mcp/session-files';
+import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 let root: string;

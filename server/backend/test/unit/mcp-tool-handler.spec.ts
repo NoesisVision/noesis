@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
-import { logged } from '#backend/adapters/mcp/tool-handler';
-import { success } from '#backend/adapters/mcp/tool-result';
+import { logged } from '#backend/adapters/in/mcp/tool-handler';
+import { success } from '#backend/adapters/in/mcp/tool-result';
 import { textOf } from '../support/service-process';
 
 // The wrapper only hands it on, so its contents do not matter here.

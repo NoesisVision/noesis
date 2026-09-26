@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import {
   SESSION_MAX_AGE_MS,
   SessionDir,
-} from '#backend/adapters/mcp/session-dir';
+} from '#backend/adapters/in/mcp/session-dir';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

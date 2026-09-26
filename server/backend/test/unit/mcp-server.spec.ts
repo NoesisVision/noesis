@@ -3,12 +3,12 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
-import { createMcpServer } from '#backend/adapters/mcp/mcp-server';
-import { SessionDir } from '#backend/adapters/mcp/session-dir';
+import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
+import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import {
   MAX_WORKING_FILE_BYTES,
   type SessionFiles,
-} from '#backend/adapters/mcp/session-files';
+} from '#backend/adapters/in/mcp/session-files';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import {

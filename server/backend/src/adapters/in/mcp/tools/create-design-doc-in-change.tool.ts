@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { SessionFiles } from '#backend/adapters/mcp/session-files';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import {
   DesignDocumentContent,

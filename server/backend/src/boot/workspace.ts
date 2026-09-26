@@ -1,6 +1,6 @@
 import type { Logger } from '@logtape/logtape';
-import { SessionDir } from '#backend/adapters/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/mcp/session-files';
+import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import {
   loadServerConfig,
   type ServerConfig,

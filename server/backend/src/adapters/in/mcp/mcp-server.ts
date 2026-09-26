@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import type { SessionFiles } from '#backend/adapters/mcp/session-files';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
