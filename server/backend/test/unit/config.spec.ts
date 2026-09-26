@@ -33,4 +33,17 @@ describe('server configuration', () => {
     if (result.ok) return;
     expect(result.message).toContain('NOESIS_ROOT');
   });
+
+  it('logs at info unless NOESIS_LOG_LEVEL names a LogTape level, and refuses any other', () => {
+    expect(parseServerConfig({})).toMatchObject({
+      config: { logLevel: 'info' },
+    });
+    expect(parseServerConfig({ NOESIS_LOG_LEVEL: 'debug' })).toMatchObject({
+      config: { logLevel: 'debug' },
+    });
+    const loud = parseServerConfig({ NOESIS_LOG_LEVEL: 'loud' });
+    expect(loud.ok).toBe(false);
+    if (loud.ok) return;
+    expect(loud.message).toContain('NOESIS_LOG_LEVEL');
+  });
 });

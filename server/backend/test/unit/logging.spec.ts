@@ -6,7 +6,6 @@ import { reset, withContext } from '@logtape/logtape';
 import {
   configureLogging,
   LOG_FILE_NAME,
-  parseLogLevel,
   serverLogger,
 } from '#backend/platform/logging/logging';
 
@@ -18,13 +17,6 @@ afterAll(async () => {
 });
 
 describe('logging', () => {
-  it('parses NOESIS_LOG_LEVEL and falls back to info', () => {
-    expect(parseLogLevel('debug')).toBe('debug');
-    expect(parseLogLevel('warning')).toBe('warning');
-    expect(parseLogLevel('loud')).toBe('info');
-    expect(parseLogLevel(undefined)).toBe('info');
-  });
-
   it('writes JSON lines to .noesis/logs/noesis.log with category, properties and request context', async () => {
     await configureLogging({ logDir, production: true, level: 'warning' });
     const log = serverLogger('spec');

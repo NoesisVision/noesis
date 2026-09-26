@@ -6,7 +6,6 @@ import {
   dispose,
   getAnsiColorFormatter,
   getJsonLinesFormatter,
-  isLogLevel,
   type LogLevel,
   type Sink,
 } from '@logtape/logtape';
@@ -27,10 +26,6 @@ export interface LoggingOptions {
 }
 
 export const DEFAULT_LOG_LEVEL: LogLevel = 'info';
-
-export function parseLogLevel(value: string | undefined): LogLevel {
-  return value !== undefined && isLogLevel(value) ? value : DEFAULT_LOG_LEVEL;
-}
 
 export async function configureLogging(options: LoggingOptions): Promise<void> {
   const jsonLines = getJsonLinesFormatter();
