@@ -2,26 +2,35 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import type { Change } from '#backend/app/changes/change';
+import { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
+import { AddDocumentToChangeHandler } from '#backend/app/changes/add-document-to-change';
+import { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangesService } from '#backend/app/changes/changes.service';
+import type { ChangeSnapshot } from '#backend/app/changes/change-snapshot';
+import { CreateChangeHandler } from '#backend/app/changes/create-change';
 import {
   DesignDoc,
   type DesignDocInput,
-} from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { CreateSourceDocumentHandler } from '#backend/app/information-sources/create-source-document';
-import { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
-import { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
-import { SourceDocument } from '#backend/app/information-sources/source-document';
-import { UpdateSourceDocumentHandler } from '#backend/app/information-sources/update-source-document';
-import { Serial } from '#backend/app/serial';
+} from '#backend/app/changes/design-doc';
+import { FindChangeHandler } from '#backend/app/changes/find-change';
+import { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
+import { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
+import { ListChangesHandler } from '#backend/app/changes/list-changes';
+import { SourceDocument } from '#backend/app/changes/source-document';
+import { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
+import { UpdateDocumentInChangeHandler } from '#backend/app/changes/update-document-in-change';
+import { SearchService } from '#backend/app/search/search.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** The day every service in a spec mints its ids on. */
+/** The day every handler in a spec mints its ids on. */
 const TODAY = () => '2026-09-24';
+
+type ChangeFields = Omit<
+  ChangeSnapshot,
+  'id' | 'version' | 'designDocs' | 'sourceDocuments'
+>;
 
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
@@ -29,28 +38,33 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  designDocsRepository: ChangeOwnedRepository<DesignDoc>;
-  documentsRepository: ChangeOwnedRepository<SourceDocument>;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  createSourceDocument: CreateSourceDocumentHandler;
-  updateSourceDocument: UpdateSourceDocumentHandler;
-  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
-  findSourceDocumentById: FindSourceDocumentByIdHandler;
-  /** `graph/changes/`, where each change's file and folder sit. */
+  createChangeHandler: CreateChangeHandler;
+  updateChange: UpdateChangeHandler;
+  addDesignDocToChange: AddDesignDocToChangeHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
+  addDocumentToChange: AddDocumentToChangeHandler;
+  updateDocumentInChange: UpdateDocumentInChangeHandler;
+  listChanges: ListChangesHandler;
+  findChange: FindChangeHandler;
+  findDesignDoc: FindDesignDocHandler;
+  findSourceDocument: FindSourceDocumentHandler;
+  searchService: SearchService;
+  /** `graph/changes/`, where each change's file sits. */
   changesDir: string;
-  /** Writes a change with placeholder data. */
+  /** Writes a change with placeholder data, bypassing the handlers. */
   createChange(
     id: string | ChangeId,
-    overrides?: Partial<Change>,
+    overrides?: Partial<ChangeFields>,
   ): Promise<ChangeId>;
-  /** Writes a design document into the change, bypassing the service. */
+  /** Writes a design document into the change, bypassing the handlers. */
   writeDesignDoc(change: ChangeId, document: DesignDocInput): Promise<void>;
-  /** Writes a document into the change, bypassing the service. */
+  /** Writes a document into the change, bypassing the handlers. */
   writeDocument(
     change: ChangeId,
     document: z.input<typeof SourceDocument>,
   ): Promise<void>;
+  /** The change as stored, whole. */
+  stored(change: ChangeId): Promise<ChangeSnapshot>;
   cleanup(): Promise<void>;
 }
 
@@ -59,74 +73,71 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
-    noesis,
-    DesignDoc,
-    'design-doc',
-  );
-  const documentsRepository = new ChangeOwnedRepository(
-    noesis,
-    SourceDocument,
-    'document',
-  );
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    TODAY,
-  );
-  // One queue for every document write, so a create and an update never interleave.
-  const documentWrites = new Serial();
+
+  const stored = async (id: ChangeId): Promise<ChangeSnapshot> => {
+    const change = await changesRepository.get(id);
+    if (change === null) throw new Error(`no change ${id}`);
+    return change.toSnapshot();
+  };
+  const own = async (
+    id: ChangeId,
+    add: (snapshot: ChangeSnapshot) => ChangeSnapshot,
+  ): Promise<void> => {
+    await changesRepository.save(Change.fromSnapshot(add(await stored(id))));
+  };
+
   return {
     root,
     noesis,
     changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
+    createChangeHandler: new CreateChangeHandler(changesRepository, TODAY),
+    updateChange: new UpdateChangeHandler(changesRepository),
+    addDesignDocToChange: new AddDesignDocToChangeHandler(
+      changesRepository,
       TODAY,
     ),
-    createSourceDocument: new CreateSourceDocumentHandler(
-      documentsRepository,
-      changesService,
-      documentWrites,
+    updateDesignDocInChange: new UpdateDesignDocInChangeHandler(
+      changesRepository,
+    ),
+    addDocumentToChange: new AddDocumentToChangeHandler(
+      changesRepository,
       TODAY,
     ),
-    updateSourceDocument: new UpdateSourceDocumentHandler(
-      documentsRepository,
-      changesService,
-      documentWrites,
+    updateDocumentInChange: new UpdateDocumentInChangeHandler(
+      changesRepository,
     ),
-    listSourceDocumentsForChange: new ListSourceDocumentsForChangeHandler(
-      documentsRepository,
-      changesService,
-    ),
-    findSourceDocumentById: new FindSourceDocumentByIdHandler(
-      documentsRepository,
-      changesService,
-    ),
+    listChanges: new ListChangesHandler(changesRepository),
+    findChange: new FindChangeHandler(changesRepository),
+    findDesignDoc: new FindDesignDocHandler(changesRepository),
+    findSourceDocument: new FindSourceDocumentHandler(changesRepository),
+    searchService: new SearchService(),
     changesDir: noesis.resolve('graph', 'changes'),
     createChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);
-      const change: Change = {
-        id: parsed,
+      const change = Change.create(parsed, {
         name: parsed,
         key: '',
         type: 'chore',
-        status: 'discovery',
         description: '',
-        ...overrides,
-      };
+      });
+      change.update({ ...change.summary(), ...overrides });
       await changesRepository.save(change);
       return parsed;
     },
     writeDesignDoc: (change, document) =>
-      designDocsRepository.save(change, DesignDoc.parse(document)),
+      own(change, (snapshot) => ({
+        ...snapshot,
+        designDocs: [...snapshot.designDocs, DesignDoc.parse(document)],
+      })),
     writeDocument: (change, document) =>
-      documentsRepository.save(change, SourceDocument.parse(document)),
+      own(change, (snapshot) => ({
+        ...snapshot,
+        sourceDocuments: [
+          ...snapshot.sourceDocuments,
+          SourceDocument.parse(document),
+        ],
+      })),
+    stored,
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
 }

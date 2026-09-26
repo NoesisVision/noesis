@@ -1,77 +1,47 @@
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { ChangesService } from '#backend/app/changes/changes.service';
-import { DesignDoc } from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { CreateSourceDocumentHandler } from '#backend/app/information-sources/create-source-document';
-import { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
-import { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
-import { SourceDocument } from '#backend/app/information-sources/source-document';
-import { UpdateSourceDocumentHandler } from '#backend/app/information-sources/update-source-document';
+import { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
+import { AddDocumentToChangeHandler } from '#backend/app/changes/add-document-to-change';
+import { CreateChangeHandler } from '#backend/app/changes/create-change';
+import { FindChangeHandler } from '#backend/app/changes/find-change';
+import { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
+import { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
+import { ListChangesHandler } from '#backend/app/changes/list-changes';
+import { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
+import { UpdateDocumentInChangeHandler } from '#backend/app/changes/update-document-in-change';
 import { SearchService } from '#backend/app/search/search.service';
-import { Serial } from '#backend/app/serial';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The application layer, shared by the MCP tools and the ui routes. */
 export interface Services {
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  createSourceDocument: CreateSourceDocumentHandler;
-  updateSourceDocument: UpdateSourceDocumentHandler;
-  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
-  findSourceDocumentById: FindSourceDocumentByIdHandler;
+  createChange: CreateChangeHandler;
+  updateChange: UpdateChangeHandler;
+  addDesignDocToChange: AddDesignDocToChangeHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
+  addDocumentToChange: AddDocumentToChangeHandler;
+  updateDocumentInChange: UpdateDocumentInChangeHandler;
+  listChanges: ListChangesHandler;
+  findChange: FindChangeHandler;
+  findDesignDoc: FindDesignDocHandler;
+  findSourceDocument: FindSourceDocumentHandler;
   searchService: SearchService;
 }
 
-/** Wires the file repositories under `.noesis/` to the services that use them. */
+/** Wires the change files under `.noesis/` to the handlers that use them. */
 export function createServices(noesis: NoesisDir): Services {
-  const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
-    noesis,
-    DesignDoc,
-    'design-doc',
-  );
-  const documentsRepository = new ChangeOwnedRepository(
-    noesis,
-    SourceDocument,
-    'document',
-  );
-
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    localToday,
-  );
-  // One queue for every document write, so a create and an update never interleave.
-  const documentWrites = new Serial();
+  const changes = new NoesisChangesRepository(noesis);
   return {
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-      localToday,
-    ),
-    createSourceDocument: new CreateSourceDocumentHandler(
-      documentsRepository,
-      changesService,
-      documentWrites,
-      localToday,
-    ),
-    updateSourceDocument: new UpdateSourceDocumentHandler(
-      documentsRepository,
-      changesService,
-      documentWrites,
-    ),
-    listSourceDocumentsForChange: new ListSourceDocumentsForChangeHandler(
-      documentsRepository,
-      changesService,
-    ),
-    findSourceDocumentById: new FindSourceDocumentByIdHandler(
-      documentsRepository,
-      changesService,
-    ),
+    createChange: new CreateChangeHandler(changes, localToday),
+    updateChange: new UpdateChangeHandler(changes),
+    addDesignDocToChange: new AddDesignDocToChangeHandler(changes, localToday),
+    updateDesignDocInChange: new UpdateDesignDocInChangeHandler(changes),
+    addDocumentToChange: new AddDocumentToChangeHandler(changes, localToday),
+    updateDocumentInChange: new UpdateDocumentInChangeHandler(changes),
+    listChanges: new ListChangesHandler(changes),
+    findChange: new FindChangeHandler(changes),
+    findDesignDoc: new FindDesignDocHandler(changes),
+    findSourceDocument: new FindSourceDocumentHandler(changes),
     searchService: new SearchService(),
   };
 }
