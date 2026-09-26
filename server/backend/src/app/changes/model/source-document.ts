@@ -26,6 +26,10 @@ export const SourceDocument = z
   .describe('A source document of a change, as its change file holds it.');
 export type SourceDocument = z.infer<typeof SourceDocument>;
 
-/** The working file an agent writes: a source document without its id, which the server mints. */
-export const SourceDocumentFile = SourceDocument.omit({ id: true });
-export type SourceDocumentFile = z.infer<typeof SourceDocumentFile>;
+/** The working file of a new source document: the server mints its id. */
+export const CreateSourceDocument = SourceDocument.omit({ id: true });
+export type CreateSourceDocument = z.infer<typeof CreateSourceDocument>;
+
+/** The working file of a source document update: the id travels beside it. */
+export const UpdateSourceDocument = SourceDocument.omit({ id: true });
+export type UpdateSourceDocument = z.infer<typeof UpdateSourceDocument>;

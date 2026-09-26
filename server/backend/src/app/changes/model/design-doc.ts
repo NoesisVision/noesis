@@ -91,9 +91,10 @@ export const DesignDoc = Object.assign(designDocSchema, {
   /**
    * The rules a design document written by an agent follows. Without a
    * system model it is a green field: there is nothing to modify or remove.
+   * An update's working file has the same shape as a new one's.
    */
   validateAgentGenerated: (
-    document: DesignDocCommand,
+    document: CreateDesignDoc,
     systemModel?: SystemModel,
   ): DesignDocViolation[] => [
     ...changesMissingFrom(systemModel, document),
@@ -121,9 +122,6 @@ export type CreateDesignDoc = z.infer<typeof CreateDesignDoc>;
 /** The working file of a design document update: the id travels beside it. */
 export const UpdateDesignDoc = designDocSchema.omit({ id: true });
 export type UpdateDesignDoc = z.infer<typeof UpdateDesignDoc>;
-
-/** Either working file: what the rules for a design an agent wrote check. */
-type DesignDocCommand = Omit<DesignDoc, 'id'>;
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
@@ -182,7 +180,7 @@ function changeSetSchema(item: z.ZodType, key?: z.ZodType) {
  */
 function changesMissingFrom(
   systemModel: SystemModel | undefined,
-  document: DesignDocCommand,
+  document: CreateDesignDoc,
 ): DesignDocViolation[] {
   const reason =
     systemModel === undefined ? 'changedInGreenField' : 'unknownElement';
@@ -259,14 +257,14 @@ function isObject(value: unknown): value is object {
 }
 
 function unchangedFieldsInAddedItems(
-  document: DesignDocCommand,
+  document: CreateDesignDoc,
 ): DesignDocViolation[] {
   return [...fieldsOf(document, '')]
     .filter(([path, field]) => !field.changed && isInAddedItem(path))
     .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' }));
 }
 
-function humanAuthoredFields(document: DesignDocCommand): DesignDocViolation[] {
+function humanAuthoredFields(document: CreateDesignDoc): DesignDocViolation[] {
   return [...fieldsOf(document, '')]
     .filter(([, field]) => field.changed && field.author === 'human')
     .map(([path]) => ({ path, reason: 'humanAuthor' }));

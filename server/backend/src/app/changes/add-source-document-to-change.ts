@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
+import { CreateSourceDocument } from '#backend/app/changes/model/source-document';
 import {
   type SourceDocumentSummary,
   summarize,
@@ -11,7 +11,7 @@ import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 /** A new source document for the change. `sourceDocument` is the working file: the server mints its id. */
 export const AddSourceDocumentToChange = z.object({
   change: ChangeId,
-  sourceDocument: SourceDocumentFile,
+  sourceDocument: CreateSourceDocument,
 });
 export type AddSourceDocumentToChange = z.infer<
   typeof AddSourceDocumentToChange

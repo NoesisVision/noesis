@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
+import { UpdateSourceDocument } from '#backend/app/changes/model/source-document';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import {
   type SourceDocumentSummary,
@@ -13,7 +13,7 @@ import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 export const UpdateSourceDocumentInChange = z.object({
   change: ChangeId,
   id: SourceDocumentId,
-  sourceDocument: SourceDocumentFile,
+  sourceDocument: UpdateSourceDocument,
 });
 export type UpdateSourceDocumentInChange = z.infer<
   typeof UpdateSourceDocumentInChange

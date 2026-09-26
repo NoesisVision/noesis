@@ -18,7 +18,11 @@ import {
   summarize as summarizeDesignDoc,
 } from './design-doc-summary';
 import { InvalidDesignDocError } from './invalid-design-doc-error';
-import type { SourceDocument, SourceDocumentFile } from './source-document';
+import type {
+  CreateSourceDocument,
+  SourceDocument,
+  UpdateSourceDocument,
+} from './source-document';
 import { SourceDocumentId } from './source-document-id';
 import {
   type SourceDocumentSummary,
@@ -112,7 +116,7 @@ export class Change {
   }
 
   /** Adds the source document at a new id. */
-  addSourceDocument(document: SourceDocumentFile): SourceDocument {
+  addSourceDocument(document: CreateSourceDocument): SourceDocument {
     const added: SourceDocument = {
       id: SourceDocumentId.generate(),
       ...document,
@@ -124,7 +128,7 @@ export class Change {
   /** Replaces the source document at `id` whole; never adds one. */
   reviseSourceDocument(
     id: SourceDocumentId,
-    document: SourceDocumentFile,
+    document: UpdateSourceDocument,
   ): SourceDocument {
     this.sourceDocument(id);
     const revised: SourceDocument = { id, ...document };
@@ -163,7 +167,7 @@ export class Change {
 }
 
 /** No system model is scanned yet, so every design is a green field. */
-function assertValid(document: Omit<DesignDoc, 'id'>): void {
+function assertValid(document: CreateDesignDoc): void {
   const violations = DesignDoc.validateAgentGenerated(document);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

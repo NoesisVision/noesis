@@ -15,7 +15,7 @@ import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import {
   SourceDocument,
-  SourceDocumentFile,
+  CreateSourceDocument,
 } from '#backend/app/changes/model/source-document';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import {
@@ -42,7 +42,7 @@ const removing = contentOf({
   },
 });
 
-const document = SourceDocumentFile.parse({
+const document = CreateSourceDocument.parse({
   title: 'Booking Rules — v2',
   date: '2026-09-18',
   content: 'A slot may be booked once.',
