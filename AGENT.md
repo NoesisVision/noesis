@@ -52,7 +52,7 @@ The agent host starts **one stdio MCP process per session** (`server/backend/src
 | -------- | ------------------------------------------------------------------------------ | ------------------------------ |
 | platform | `platform/` (files, http, logging, config)                                     | platform only                  |
 | app      | `app/` (the domain model and its zod schemas, services, ports, file contracts) | app                            |
-| adapters | `adapters/` (`store/` over `JsonCollection`, `in/mcp/`)                        | adapters, app, platform        |
+| adapters | `adapters/` (`out/store/` over `JsonCollection`, `in/mcp/`)                    | adapters, app, platform        |
 | ui       | `adapters/in/ui/` (Hono `/ui` and `/internal` routes)                          | ui, app, platform              |
 | root     | `main.ts` and `boot/` (the composition root: workspace, services, MCP, ui)     | everything; nothing imports it |
 

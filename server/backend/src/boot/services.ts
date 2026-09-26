@@ -1,5 +1,5 @@
-import { ChangeOwnedRepository } from '#backend/adapters/store/change-owned.repository';
-import { NoesisChangesRepository } from '#backend/adapters/store/changes.repository';
+import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
