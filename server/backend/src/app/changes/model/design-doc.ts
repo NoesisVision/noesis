@@ -284,7 +284,7 @@ function* fieldsOf(
     yield [path, node];
   } else if (Array.isArray(node)) {
     for (const item of node) yield* fieldsOf(item, `${path}[${keyOf(item)}]`);
-  } else if (typeof node === 'object' && node !== null) {
+  } else if (isObject(node)) {
     for (const [name, child] of Object.entries(node)) {
       yield* fieldsOf(child, path === '' ? name : `${path}.${name}`);
     }
@@ -292,7 +292,7 @@ function* fieldsOf(
 }
 
 function keyOf(item: unknown): string {
-  if (typeof item !== 'object' || item === null) return String(item);
+  if (!isObject(item)) return String(item);
   if ('id' in item && typeof item.id === 'string') return item.id;
   if ('name' in item && typeof item.name === 'string') return item.name;
   return JSON.stringify(item);
