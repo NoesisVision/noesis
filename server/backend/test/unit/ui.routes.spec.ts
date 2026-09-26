@@ -11,7 +11,8 @@ describe('ui routes', () => {
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
+    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
+    findSourceDocumentById: t.findSourceDocumentById,
   });
 
   it('has no greeting any more', async () => {
@@ -30,7 +31,8 @@ describe('ui routes', () => {
       searchService: failing,
       changesService: t.changesService,
       designDocsService: t.designDocsService,
-      documentsService: t.documentsService,
+      listSourceDocumentsForChange: t.listSourceDocumentsForChange,
+      findSourceDocumentById: t.findSourceDocumentById,
     }).request('/search?q=x');
 
     expect(res.status).toBe(500);

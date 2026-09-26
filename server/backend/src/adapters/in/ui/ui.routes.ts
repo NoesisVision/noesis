@@ -1,7 +1,8 @@
 import { type Context, Hono } from 'hono';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
+import type { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
+import type { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { SearchService } from '#backend/app/search/search.service';
 import { serverLogger } from '#backend/platform/logging/server-logger';
@@ -16,7 +17,8 @@ export interface UiDeps {
   searchService: SearchService;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
-  documentsService: SourceDocumentsService;
+  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
+  findSourceDocumentById: FindSourceDocumentByIdHandler;
 }
 
 export function createUiApp(deps: UiDeps) {
@@ -34,7 +36,10 @@ export function createUiApp(deps: UiDeps) {
     )
     .route(
       '/changes/:change/documents',
-      createDocumentsApp({ documentsService: deps.documentsService }),
+      createDocumentsApp({
+        listSourceDocumentsForChange: deps.listSourceDocumentsForChange,
+        findSourceDocumentById: deps.findSourceDocumentById,
+      }),
     );
 }
 

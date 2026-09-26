@@ -27,7 +27,8 @@ beforeEach(async () => {
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
+    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
+    findSourceDocumentById: t.findSourceDocumentById,
   });
 });
 

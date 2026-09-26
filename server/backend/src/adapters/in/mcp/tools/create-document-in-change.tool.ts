@@ -3,10 +3,8 @@ import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { CreateSourceDocument } from '#backend/app/information-sources/source-document';
-import {
-  type SourceDocumentsService,
-  SourceDocumentSummary,
-} from '#backend/app/information-sources/source-documents.service';
+import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,

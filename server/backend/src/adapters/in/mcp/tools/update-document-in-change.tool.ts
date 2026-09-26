@@ -4,10 +4,8 @@ import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { UpdateSourceDocument } from '#backend/app/information-sources/source-document';
 import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import {
-  type SourceDocumentsService,
-  SourceDocumentSummary,
-} from '#backend/app/information-sources/source-documents.service';
+import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {

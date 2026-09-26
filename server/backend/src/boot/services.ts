@@ -3,6 +3,8 @@ import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.rep
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDoc } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
+import { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
 import { SourceDocument } from '#backend/app/information-sources/source-document';
 import { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { SearchService } from '#backend/app/search/search.service';
@@ -14,6 +16,8 @@ export interface Services {
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: SourceDocumentsService;
+  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
+  findSourceDocumentById: FindSourceDocumentByIdHandler;
   searchService: SearchService;
 }
 
@@ -37,6 +41,10 @@ export function createServices(noesis: NoesisDir): Services {
     documentsRepository,
     localToday,
   );
+  const findSourceDocumentById = new FindSourceDocumentByIdHandler(
+    documentsRepository,
+    changesService,
+  );
   return {
     changesService,
     designDocsService: new DesignDocsService(
@@ -47,8 +55,14 @@ export function createServices(noesis: NoesisDir): Services {
     documentsService: new SourceDocumentsService(
       documentsRepository,
       changesService,
+      findSourceDocumentById,
       localToday,
     ),
+    listSourceDocumentsForChange: new ListSourceDocumentsForChangeHandler(
+      documentsRepository,
+      changesService,
+    ),
+    findSourceDocumentById,
     searchService: new SearchService(),
   };
 }

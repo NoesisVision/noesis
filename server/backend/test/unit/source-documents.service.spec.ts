@@ -2,23 +2,15 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
   CreateSourceDocument,
-  type SourceDocument,
   UpdateSourceDocument,
 } from '#backend/app/information-sources/source-document';
 import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import { type SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
+import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeId.parse('2026-01-01-booking');
 const NOPE = ChangeId.parse('2026-01-01-nope');
 const ID = SourceDocumentId.parse('2026-09-18-booking-rules-v2');
-
-const document: SourceDocument = {
-  id: ID,
-  title: 'Booking Rules — v2',
-  date: '2026-09-18',
-  content: 'A slot may be booked once.',
-};
 
 let t: TestNoesis;
 let service: SourceDocumentsService;
@@ -30,39 +22,6 @@ beforeEach(async () => {
 });
 
 afterEach(() => t.cleanup());
-
-describe('SourceDocumentsService', () => {
-  it('lists oldest first, by id', async () => {
-    for (const id of [
-      '2026-09-10-newer',
-      '2026-09-01-older',
-      '2026-09-10-also-newer',
-    ]) {
-      await t.writeDocument(CHANGE, { ...document, id });
-    }
-
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      SourceDocumentId.parse('2026-09-01-older'),
-      SourceDocumentId.parse('2026-09-10-also-newer'),
-      SourceDocumentId.parse('2026-09-10-newer'),
-    ]);
-  });
-
-  it('refuses a document that does not exist', async () => {
-    await expect(
-      service.findById(CHANGE, SourceDocumentId.parse('2026-01-01-missing')),
-    ).rejects.toMatchObject({ entity: 'document' });
-  });
-
-  it('refuses every operation on a change that has no directory', async () => {
-    await expect(service.list(NOPE)).rejects.toMatchObject({
-      entity: 'change',
-    });
-    await expect(service.findById(NOPE, ID)).rejects.toMatchObject({
-      entity: 'change',
-    });
-  });
-});
 
 describe('SourceDocumentsService.create', () => {
   const content = CreateSourceDocument.parse({
@@ -76,7 +35,9 @@ describe('SourceDocumentsService.create', () => {
 
     const id = SourceDocumentId.parse('2026-09-24-booking-rules-v2');
     expect(created).toEqual({ id, title: content.title, date: content.date });
-    expect(await service.findById(CHANGE, id)).toEqual({
+    expect(
+      await t.findSourceDocumentById.execute({ change: CHANGE, id: id }),
+    ).toEqual({
       id,
       ...content,
     });
@@ -104,7 +65,9 @@ describe('SourceDocumentsService.create', () => {
     ]);
 
     expect(new Set(created.map((d) => d.id)).size).toBe(2);
-    expect(await service.list(CHANGE)).toHaveLength(2);
+    expect(
+      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+    ).toHaveLength(2);
   });
 
   it('refuses a change that has no directory', async () => {
@@ -131,10 +94,15 @@ describe('SourceDocumentsService.update', () => {
     });
 
     expect(updated.id).toBe(id);
-    const stored = await service.findById(CHANGE, id);
+    const stored = await t.findSourceDocumentById.execute({
+      change: CHANGE,
+      id: id,
+    });
     expect(stored.title).toBe('Booking rules v3');
     expect(stored.content).toBe('A slot may be booked twice.');
-    expect(await service.list(CHANGE)).toHaveLength(1);
+    expect(
+      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+    ).toHaveLength(1);
   });
 
   it('refuses an id that names no document in the change, and creates nothing', async () => {
@@ -143,7 +111,9 @@ describe('SourceDocumentsService.update', () => {
     await expect(
       service.update(CHANGE, missing, content),
     ).rejects.toMatchObject({ entity: 'document' });
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(
+      await t.listSourceDocumentsForChange.execute({ change: CHANGE }),
+    ).toEqual([]);
   });
 
   it('refuses a change that has no directory', async () => {

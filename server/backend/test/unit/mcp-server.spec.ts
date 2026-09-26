@@ -284,10 +284,10 @@ describe('create_document_in_change', () => {
       document: { id: DOCUMENT_ID, title: document.title, date: document.date },
     });
     expect(textOf(result)).toContain(`Created document ${DOCUMENT_ID}`);
-    const stored = await noesis.documentsService.findById(
+    const stored = await noesis.findSourceDocumentById.execute({
       change,
-      SourceDocumentId.parse(DOCUMENT_ID),
-    );
+      id: SourceDocumentId.parse(DOCUMENT_ID),
+    });
     expect(stored.content).toBe(document.content);
   });
 
@@ -431,7 +431,9 @@ describe('update_document_in_change', () => {
       document: { id: DOCUMENT_ID, title: 'Retry interview, revised' },
     });
     expect(textOf(result)).toContain(`Updated document ${DOCUMENT_ID}`);
-    expect(await noesis.documentsService.list(change)).toHaveLength(1);
+    expect(
+      await noesis.listSourceDocumentsForChange.execute({ change: change }),
+    ).toHaveLength(1);
   });
 
   it('answers an id that names no document in-band, having created nothing', async () => {
@@ -446,7 +448,9 @@ describe('update_document_in_change', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
     expect(textOf(result)).toContain('create_document_in_change');
-    expect(await noesis.documentsService.list(change)).toEqual([]);
+    expect(
+      await noesis.listSourceDocumentsForChange.execute({ change: change }),
+    ).toEqual([]);
   });
 
   it('reports an unknown change in-band', async () => {

@@ -12,6 +12,8 @@ import {
   type DesignDocInput,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { FindSourceDocumentByIdHandler } from '#backend/app/information-sources/find-source-document-by-id';
+import { ListSourceDocumentsForChangeHandler } from '#backend/app/information-sources/list-source-documents-for-change';
 import { SourceDocument } from '#backend/app/information-sources/source-document';
 import { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
@@ -30,6 +32,8 @@ export interface TestNoesis {
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: SourceDocumentsService;
+  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
+  findSourceDocumentById: FindSourceDocumentByIdHandler;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
   /** Writes a change with placeholder data. */
@@ -68,6 +72,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     documentsRepository,
     TODAY,
   );
+  const findSourceDocumentById = new FindSourceDocumentByIdHandler(
+    documentsRepository,
+    changesService,
+  );
   return {
     root,
     noesis,
@@ -83,8 +91,14 @@ export async function testNoesis(): Promise<TestNoesis> {
     documentsService: new SourceDocumentsService(
       documentsRepository,
       changesService,
+      findSourceDocumentById,
       TODAY,
     ),
+    listSourceDocumentsForChange: new ListSourceDocumentsForChangeHandler(
+      documentsRepository,
+      changesService,
+    ),
+    findSourceDocumentById,
     changesDir: noesis.resolve('graph', 'changes'),
     createChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);

@@ -1,43 +1,42 @@
-import type { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import {
-  type CreateSourceDocument,
+import type { FindSourceDocumentByIdHandler } from './find-source-document-by-id';
+import type {
+  CreateSourceDocument,
   SourceDocument,
-  type UpdateSourceDocument,
+  UpdateSourceDocument,
 } from './source-document';
 import { SourceDocumentId } from './source-document-id';
+import {
+  type SourceDocumentSummary,
+  summarize,
+} from './source-document-summary';
 import type { SourceDocumentsRepository } from './source-documents.repository';
 
-/** What callers get back: plain data, so every adapter can send it as is. */
-export const SourceDocumentSummary = SourceDocument.pick({
-  id: true,
-  title: true,
-  date: true,
-});
-export type SourceDocumentSummary = z.infer<typeof SourceDocumentSummary>;
-
 /**
+ * The commands on documents; the query handlers beside it answer the queries.
  * Callers validate before calling in. The service mints the id of a new
  * document; an update names it.
  */
 export class SourceDocumentsService {
   private readonly docs: SourceDocumentsRepository;
   private readonly changesService: ChangesService;
+  private readonly findById: FindSourceDocumentByIdHandler;
   private readonly today: Today;
   private readonly writes = new Serial();
 
   constructor(
     docs: SourceDocumentsRepository,
     changesService: ChangesService,
+    findById: FindSourceDocumentByIdHandler,
     today: Today,
   ) {
     this.docs = docs;
     this.changesService = changesService;
+    this.findById = findById;
     this.today = today;
   }
 
@@ -71,35 +70,10 @@ export class SourceDocumentsService {
     document: UpdateSourceDocument,
   ): Promise<SourceDocumentSummary> {
     return this.writes.run(async () => {
-      await this.getOrThrow(change, id);
+      await this.findById.execute({ change, id });
       const updated: SourceDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
     });
   }
-
-  /** Oldest first: the id starts with the creation date. */
-  async list(change: ChangeId): Promise<SourceDocumentSummary[]> {
-    await this.changesService.assertExists(change);
-    return (await this.docs.list(change)).map(summarize);
-  }
-
-  findById(change: ChangeId, id: SourceDocumentId): Promise<SourceDocument> {
-    return this.getOrThrow(change, id);
-  }
-
-  /** The change is checked first, so a missing change is the one named. */
-  private async getOrThrow(
-    change: ChangeId,
-    id: SourceDocumentId,
-  ): Promise<SourceDocument> {
-    await this.changesService.assertExists(change);
-    const document = await this.docs.get(change, id);
-    if (document === null) throw new NotFoundError('document', id, change);
-    return document;
-  }
-}
-
-function summarize({ id, title, date }: SourceDocument): SourceDocumentSummary {
-  return { id, title, date };
 }

@@ -1,11 +1,17 @@
 import { Hono } from 'hono';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import type { SourceDocumentsService } from '#backend/app/information-sources/source-documents.service';
+import {
+  FindSourceDocumentById,
+  type FindSourceDocumentByIdHandler,
+} from '#backend/app/information-sources/find-source-document-by-id';
+import {
+  ListSourceDocumentsForChange,
+  type ListSourceDocumentsForChangeHandler,
+} from '#backend/app/information-sources/list-source-documents-for-change';
 import { routeParams } from '../route-params';
 
 export interface DocumentsDeps {
-  documentsService: SourceDocumentsService;
+  listSourceDocumentsForChange: ListSourceDocumentsForChangeHandler;
+  findSourceDocumentById: FindSourceDocumentByIdHandler;
 }
 
 /**
@@ -13,23 +19,21 @@ export interface DocumentsDeps {
  * and change through the MCP tools, so the browser surface never writes one.
  */
 export function createDocumentsApp(deps: DocumentsDeps) {
-  const { documentsService } = deps;
+  const { listSourceDocumentsForChange, findSourceDocumentById } = deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', routeParams({ change: ChangeId }), async (c) => {
-      const { change } = c.req.valid('param');
-      return c.json({ documents: await documentsService.list(change) });
+    .get('/', routeParams(ListSourceDocumentsForChange.shape), async (c) => {
+      return c.json({
+        documents: await listSourceDocumentsForChange.execute(
+          c.req.valid('param'),
+        ),
+      });
     })
 
-    .get(
-      '/:id',
-      routeParams({ change: ChangeId, id: SourceDocumentId }),
-      async (c) => {
-        const { change, id } = c.req.valid('param');
-        return c.json({
-          document: await documentsService.findById(change, id),
-        });
-      },
-    );
+    .get('/:id', routeParams(FindSourceDocumentById.shape), async (c) => {
+      return c.json({
+        document: await findSourceDocumentById.execute(c.req.valid('param')),
+      });
+    });
 }

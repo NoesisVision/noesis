@@ -33,7 +33,8 @@ beforeEach(async () => {
     searchService: new SearchService(),
     changesService: t.changesService,
     designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
+    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
+    findSourceDocumentById: t.findSourceDocumentById,
   });
 });
 
@@ -78,9 +79,11 @@ describe('ui documents routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
-    expect((await t.documentsService.list(change)).map((d) => d.id)).toEqual([
-      SourceDocumentId.parse(ID),
-    ]);
+    expect(
+      (await t.listSourceDocumentsForChange.execute({ change: change })).map(
+        (d) => d.id,
+      ),
+    ).toEqual([SourceDocumentId.parse(ID)]);
   });
 
   it('404s every route of a change that does not exist', async () => {
