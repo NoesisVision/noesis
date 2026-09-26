@@ -24,7 +24,8 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
     .get(
       '/:id',
-      routeParams({ change: ChangeId, id: DocumentId }), async (c) => {
+      routeParams({ change: ChangeId, id: DocumentId }),
+      async (c) => {
         const { change, id } = c.req.valid('param');
         return c.json({
           document: await documentsService.findById(change, id),
