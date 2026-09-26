@@ -6,7 +6,13 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import { type ReactNode, useMemo } from 'react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -22,8 +28,10 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { ModelTree } from '#/shared/ui/model-tree/model-tree.tsx';
 import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
+import { revealRow } from '#/shared/ui/model-tree/reveal-row.ts';
 import {
   type ModelTreeController,
+  type SelectSource,
   useModelTree,
 } from '#/shared/ui/model-tree/use-model-tree.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
@@ -51,7 +59,7 @@ export function DesignDocWorkbench({
   detail: DesignDocDetail;
   node: string | null;
   query: string;
-  onSelect: (path: string) => void;
+  onSelect: (path: string, source: SelectSource) => void;
   onQuery: (query: string) => void;
 }) {
   const { document: doc, outline } = detail;
@@ -59,17 +67,40 @@ export function DesignDocWorkbench({
     () => expansionMemory(`noesis.designDocs.${detail.summary.id}.expanded`),
     [detail.summary.id],
   );
-  // An address naming an element this document no longer has is not an error
-  // to show the reader: the design was rewritten, and the top of the tree is
-  // where they would have started anyway.
-  const known = outline.some((element) => element.path === node);
+  const outlineBody = useRef<HTMLDivElement>(null);
+  /* The row the reader picked in the outline itself, which is the one move the
+     outline must not answer by scrolling. */
+  const picked = useRef<string | null>(null);
   const controller = useModelTree(outline, {
-    selected: known ? node : (outline[0]?.path ?? null),
-    onSelect,
+    selected: node,
+    // Noted before the page is told, so that whatever the page does with the
+    // move — navigating, rendering — the note is already there to be read.
+    onSelect: (path, source) => {
+      if (source === 'tree') picked.current = path;
+      onSelect(path, source);
+    },
     query,
     onQuery,
     memory,
   });
+  /*
+   * The outline follows the reading position, however it moved: a step of the
+   * breadcrumb, the row the tree opened at, a link into the middle of a design,
+   * Back or Forward. Watching where the reader is rather than listing the moves
+   * that put them there is what makes the last two work — they change the
+   * address and tell no one.
+   *
+   * The exception is a row clicked in the outline: it is already under the
+   * reader's eye, and centring it would take the neighbours they were reading
+   * out from under them. The note is cleared as it is read, so the same row
+   * arrived at again — by Forward, say — is scrolled to like any other.
+   */
+  const at = controller.selected;
+  useEffect(() => {
+    const own = picked.current === at;
+    picked.current = null;
+    if (!own && at !== null) revealRow(outlineBody.current, at);
+  }, [at]);
   const { ref, toggle, fullscreen } = useFullscreenElement<HTMLDivElement>();
   const fullscreenLabel = fullscreen ? 'Exit full screen' : 'Full screen';
   // A browser that refuses leaves the pane as it is, which is what the button
@@ -101,32 +132,25 @@ export function DesignDocWorkbench({
       </Group>
 
       <Columns
+        search={<OutlineSearchBox controller={controller} />}
         outline={
-          <>
-            <Box className={classes.searchBar}>
-              <OutlineSearchBox controller={controller} />
-            </Box>
-            <Box className={classes.outlineBody}>
-              <Outline controller={controller} empty={outline.length === 0} />
-            </Box>
-          </>
+          <Outline controller={controller} empty={outline.length === 0} />
         }
+        outlineRef={outlineBody}
         detail={
-          <Box className={classes.paneBody}>
-            {selected === null ? (
-              <Text c="dimmed">Choose an element to read it.</Text>
-            ) : (
-              <ElementDetail
-                node={selected}
-                path={controller.tree
-                  .ancestryOf(selected.path)
-                  .map((path) => controller.tree.byPath.get(path))
-                  .filter((node) => node !== undefined)}
-                document={doc}
-                onSelect={controller.select}
-              />
-            )}
-          </Box>
+          selected === null ? (
+            <Text c="dimmed">Choose an element to read it.</Text>
+          ) : (
+            <ElementDetail
+              node={selected}
+              path={controller.tree
+                .ancestryOf(selected.path)
+                .map((path) => controller.tree.byPath.get(path))
+                .filter((node) => node !== undefined)}
+              document={doc}
+              onSelect={(path) => controller.select(path, 'detail')}
+            />
+          )
         }
       />
     </Box>
@@ -247,12 +271,21 @@ function toColumns(stored: string | undefined): number[] {
  * Side by side where there is room for it, and one under the other where
  * there is not: a phone has one column, and a splitter across it would only
  * be two things too narrow to read.
+ *
+ * The search is a slot of its own rather than part of the outline, because the
+ * pane is what decides that the bar stands still while the rows under it
+ * scroll.
  */
 function Columns({
+  search,
   outline,
+  outlineRef,
   detail,
 }: {
+  search: ReactNode;
   outline: ReactNode;
+  /** The outline's scroller, for a page that has to bring a row into it. */
+  outlineRef: RefObject<HTMLDivElement | null>;
   detail: ReactNode;
 }) {
   const wide = useMediaQuery(WIDE, true);
@@ -265,11 +298,22 @@ function Columns({
     getInitialValueInEffect: false,
   });
 
+  // One of the two branches renders, so the outline's scroller is one element.
+  const outlinePane = (
+    <>
+      <Box className={classes.searchBar}>{search}</Box>
+      <Box className={classes.outlineBody} ref={outlineRef}>
+        {outline}
+      </Box>
+    </>
+  );
+  const detailPane = <Box className={classes.paneBody}>{detail}</Box>;
+
   if (!wide) {
     return (
       <Stack gap="md" className={classes.stacked}>
-        <Box className={classes.pane}>{outline}</Box>
-        <Box className={classes.pane}>{detail}</Box>
+        <Box className={classes.pane}>{outlinePane}</Box>
+        <Box className={classes.pane}>{detailPane}</Box>
       </Stack>
     );
   }
@@ -288,14 +332,14 @@ function Columns({
         min="16rem"
         className={classes.pane}
       >
-        {outline}
+        {outlinePane}
       </Splitter.Pane>
       <Splitter.Pane
         defaultSize={columns[1] ?? DEFAULT_COLUMNS[1]!}
         min="20rem"
         className={classes.pane}
       >
-        {detail}
+        {detailPane}
       </Splitter.Pane>
     </Splitter>
   );

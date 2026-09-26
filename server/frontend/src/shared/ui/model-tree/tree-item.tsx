@@ -56,7 +56,7 @@ export function TreeItem({
   // meant it.
   const onClick = (event: MouseEvent<HTMLLIElement>) => {
     event.stopPropagation();
-    select(node.path);
+    select(node.path, 'tree');
   };
 
   const onDoubleClick = (event: MouseEvent<HTMLLIElement>) => {
@@ -102,7 +102,7 @@ export function TreeItem({
       case 'Enter':
       case ' ':
         handled();
-        return select(node.path);
+        return select(node.path, 'tree');
       default:
     }
   };

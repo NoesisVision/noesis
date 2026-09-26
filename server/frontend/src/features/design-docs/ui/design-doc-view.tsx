@@ -19,8 +19,14 @@ export function DesignDocView() {
       id={docId}
       node={node ?? null}
       query={q ?? ''}
-      onSelect={(next) => {
-        void navigate({ search: (prev) => ({ ...prev, node: next }) });
+      onSelect={(next, source) => {
+        void navigate({
+          search: (prev) => ({ ...prev, node: next }),
+          // The row the outline opens at is not a place the reader went: it
+          // names where they already are, so it takes the entry they arrived
+          // on rather than leaving one for Back to walk through.
+          replace: source === 'init',
+        });
       }}
       // Typing is not a place to come back to, so a query replaces the entry
       // it is in rather than adding one per keystroke.
