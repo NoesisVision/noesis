@@ -1,4 +1,3 @@
-import { flattenErrors, sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import {
   FindChange,
@@ -10,6 +9,7 @@ import {
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
+import { jsonBody } from '../json-body';
 import { routeParams } from '../route-params';
 
 export interface ChangesDeps {
@@ -31,21 +31,10 @@ export function createChangesApp(deps: ChangesDeps) {
       return c.json({ changes: await listChanges.handle() });
     })
 
-    .post(
-      '/',
-      sValidator('json', CreateChange, (result, c) => {
-        if (!result.success) {
-          return c.json(
-            { error: 'invalid_body', issues: flattenErrors(result.error) },
-            400,
-          );
-        }
-      }),
-      async (c) => {
-        const change = await createChange.handle(c.req.valid('json'));
-        return c.json({ change }, 201);
-      },
-    )
+    .post('/', jsonBody(CreateChange), async (c) => {
+      const change = await createChange.handle(c.req.valid('json'));
+      return c.json({ change }, 201);
+    })
 
     .get('/:id', routeParams(FindChange.shape), async (c) => {
       return c.json({ change: await findChange.handle(c.req.valid('param')) });
