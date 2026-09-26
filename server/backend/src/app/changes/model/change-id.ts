@@ -1,6 +1,5 @@
 import type { z } from 'zod';
-import { slugIdSchema } from '#backend/app/slug-id.ts';
+import { slugIdSchema } from '#backend/app/slug-id';
 
-const changeIdSchema = slugIdSchema('change').brand<'ChangeId'>();
-export const ChangeId = changeIdSchema;
-export type ChangeId = z.infer<typeof changeIdSchema>;
+export const ChangeId = slugIdSchema('change').brand<'ChangeId'>();
+export type ChangeId = z.infer<typeof ChangeId>;
