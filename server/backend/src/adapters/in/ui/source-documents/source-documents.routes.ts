@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { FindSourceDocument } from '#backend/app/changes/find-source-document';
-import type { SourceDocument } from '#backend/app/changes/source-document';
+import type { SourceDocument } from '#backend/app/changes/model/source-document';
 import type { Handler } from '#backend/app/handler';
 import { routeParams } from '../route-params';
 

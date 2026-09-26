@@ -11,9 +11,9 @@
       // of the domain model.
       "entry": [
         "src/main.ts",
-        "src/app/changes/design-doc.ts",
+        "src/app/changes/model/design-doc.ts",
         "src/app/element-id.ts",
-        "src/app/changes/design-doc-field.ts",
+        "src/app/changes/model/design-doc-field.ts",
         "src/app/system-model/system-model.ts",
         "test/**/*.types.ts"
       ]

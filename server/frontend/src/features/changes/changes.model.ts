@@ -1,7 +1,7 @@
 import type {
   ChangeStatus,
   ChangeType,
-} from '#backend/app/changes/change-snapshot.ts';
+} from '#backend/app/changes/model/change-snapshot.ts';
 
 export const CHANGE_STATUS_META: Record<
   ChangeStatus,

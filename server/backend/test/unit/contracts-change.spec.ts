@@ -3,7 +3,7 @@ import {
   CHANGE_STATUSES,
   CHANGE_TYPES,
   ChangeSnapshot as Change,
-} from '#backend/app/changes/change-snapshot';
+} from '#backend/app/changes/model/change-snapshot';
 
 describe('ChangeSnapshot', () => {
   const minimal = {

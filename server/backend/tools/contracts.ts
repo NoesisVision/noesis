@@ -7,12 +7,12 @@ import type { z } from 'zod';
 import {
   CreateChange,
   UpdateChange,
-} from '#backend/app/changes/change-snapshot';
+} from '#backend/app/changes/model/change-snapshot';
 import {
   CreateDesignDoc,
   UpdateDesignDoc,
-} from '#backend/app/changes/design-doc';
-import { SourceDocumentFile } from '#backend/app/changes/source-document';
+} from '#backend/app/changes/model/design-doc';
+import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import designDocExample from './design-doc.example.json';
 

@@ -1,7 +1,7 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { failure } from '../tool-result';

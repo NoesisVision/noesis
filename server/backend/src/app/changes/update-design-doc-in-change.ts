@@ -1,10 +1,13 @@
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { UpdateDesignDoc } from '#backend/app/changes/model/design-doc';
+import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
+import {
+  type DesignDocSummary,
+  summarize,
+} from '#backend/app/changes/model/design-doc-summary';
 import type { Handler } from '#backend/app/handler';
-import { ChangeId } from './change-id';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
-import { UpdateDesignDoc } from './design-doc';
-import { DesignDocId } from './design-doc-id';
-import { type DesignDocSummary, summarize } from './design-doc-summary';
 
 /** A new version of a design document. `designDoc` is the working file: the id travels beside it. */
 export const UpdateDesignDocInChange = z.object({

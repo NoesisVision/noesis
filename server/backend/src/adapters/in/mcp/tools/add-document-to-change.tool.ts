@@ -2,8 +2,8 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { AddDocumentToChange } from '#backend/app/changes/add-document-to-change';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {

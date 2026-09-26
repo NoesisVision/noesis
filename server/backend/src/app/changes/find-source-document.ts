@@ -1,9 +1,9 @@
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import type { SourceDocument } from '#backend/app/changes/model/source-document';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import type { Handler } from '#backend/app/handler';
-import { ChangeId } from './change-id';
 import { type ChangesReader, getChangeOrThrow } from './changes.repository';
-import type { SourceDocument } from './source-document';
-import { SourceDocumentId } from './source-document-id';
 
 /** One document of a change, whole. */
 export const FindSourceDocument = z.object({

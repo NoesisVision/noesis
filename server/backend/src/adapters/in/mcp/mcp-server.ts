@@ -2,13 +2,13 @@ import { McpServer } from '@modelcontextprotocol/server';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import type { AddDocumentToChange } from '#backend/app/changes/add-document-to-change';
-import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
+import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
 import type {
   ChangeSummary,
   CreateChange,
-} from '#backend/app/changes/change-snapshot';
-import type { DesignDocSummary } from '#backend/app/changes/design-doc-summary';
-import type { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
+} from '#backend/app/changes/model/change-snapshot';
+import type { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
+import type { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
 import type { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
 import type { UpdateDocumentInChange } from '#backend/app/changes/update-document-in-change';

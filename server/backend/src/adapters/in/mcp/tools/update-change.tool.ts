@@ -1,11 +1,11 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   ChangeSummary,
   UpdateChange,
-} from '#backend/app/changes/change-snapshot';
+} from '#backend/app/changes/model/change-snapshot';
 import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';

@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { Change } from '#backend/app/changes/change';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { Change } from '#backend/app/changes/model/change';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   CreateChange,
   UpdateChange,
-} from '#backend/app/changes/change-snapshot';
+} from '#backend/app/changes/model/change-snapshot';
 import {
   CreateDesignDoc,
   DesignDoc,
   type DesignDocInput,
   type DesignDocViolation,
-} from '#backend/app/changes/design-doc';
-import { DesignDocId } from '#backend/app/changes/design-doc-id';
-import { InvalidDesignDocError } from '#backend/app/changes/invalid-design-doc-error';
+} from '#backend/app/changes/model/design-doc';
+import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
+import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import {
   SourceDocument,
   SourceDocumentFile,
-} from '#backend/app/changes/source-document';
-import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+} from '#backend/app/changes/model/source-document';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import {
   decodedDesignDocFixture,
   designDocFixture,

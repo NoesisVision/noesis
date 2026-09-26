@@ -1,10 +1,13 @@
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { CreateDesignDoc } from '#backend/app/changes/model/design-doc';
+import {
+  type DesignDocSummary,
+  summarize,
+} from '#backend/app/changes/model/design-doc-summary';
 import type { Handler } from '#backend/app/handler';
 import type { Today } from '#backend/app/today';
-import { ChangeId } from './change-id';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
-import { CreateDesignDoc } from './design-doc';
-import { type DesignDocSummary, summarize } from './design-doc-summary';
 
 /** A new design document for the change. `designDoc` is the working file: the server mints its id. */
 export const AddDesignDocToChange = z.object({

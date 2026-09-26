@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
 import {
   FindChange,
   type FindChangeResult,
 } from '#backend/app/changes/find-change';
+import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
 import type { Handler } from '#backend/app/handler';
 import { routeParams } from '../route-params';
 

@@ -1,9 +1,9 @@
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import type { DesignDoc } from '#backend/app/changes/model/design-doc';
+import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import type { Handler } from '#backend/app/handler';
-import { ChangeId } from './change-id';
 import { type ChangesReader, getChangeOrThrow } from './changes.repository';
-import type { DesignDoc } from './design-doc';
-import { DesignDocId } from './design-doc-id';
 
 /** One design document of a change, whole. */
 export const FindDesignDoc = z.object({ change: ChangeId, id: DesignDocId });

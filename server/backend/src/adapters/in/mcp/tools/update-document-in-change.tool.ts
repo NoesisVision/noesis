@@ -1,9 +1,9 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import { SourceDocumentId } from '#backend/app/changes/source-document-id';
-import { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
+import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import { UpdateDocumentInChange } from '#backend/app/changes/update-document-in-change';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';

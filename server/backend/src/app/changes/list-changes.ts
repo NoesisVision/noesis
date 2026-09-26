@@ -1,5 +1,5 @@
+import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
 import type { Handler } from '#backend/app/handler';
-import type { ChangeWithEntries } from './change-entry';
 import type { ChangesReader } from './changes.repository';
 
 export class ListChangesHandler implements Handler<void, ChangeWithEntries[]> {

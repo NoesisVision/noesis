@@ -4,7 +4,7 @@ import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import {
   ChangeSummary,
   CreateChange,
-} from '#backend/app/changes/change-snapshot';
+} from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';

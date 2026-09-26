@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   CreateChange,
   UpdateChange,
-} from '#backend/app/changes/change-snapshot';
-import { CreateDesignDoc } from '#backend/app/changes/design-doc';
-import { DesignDocId } from '#backend/app/changes/design-doc-id';
-import { SourceDocumentFile } from '#backend/app/changes/source-document';
-import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+} from '#backend/app/changes/model/change-snapshot';
+import { CreateDesignDoc } from '#backend/app/changes/model/design-doc';
+import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
+import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { greenFieldDesignDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';

@@ -1,13 +1,13 @@
 import { type Context, Hono } from 'hono';
-import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
-import type { DesignDoc } from '#backend/app/changes/design-doc';
 import type {
   FindChange,
   FindChangeResult,
 } from '#backend/app/changes/find-change';
 import type { FindDesignDoc } from '#backend/app/changes/find-design-doc';
 import type { FindSourceDocument } from '#backend/app/changes/find-source-document';
-import type { SourceDocument } from '#backend/app/changes/source-document';
+import type { ChangeWithEntries } from '#backend/app/changes/model/change-entry';
+import type { DesignDoc } from '#backend/app/changes/model/design-doc';
+import type { SourceDocument } from '#backend/app/changes/model/source-document';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';

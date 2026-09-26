@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import type { Handler } from '#backend/app/handler';
-import { ChangeId } from './change-id';
-import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
-import { SourceDocumentFile } from './source-document';
-import { SourceDocumentId } from './source-document-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import {
   type SourceDocumentSummary,
   summarize,
-} from './source-document-summary';
+} from '#backend/app/changes/model/source-document-summary';
+import type { Handler } from '#backend/app/handler';
+import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
 /** A new version of a document. `document` is the working file: the id travels beside it. */
 export const UpdateDocumentInChange = z.object({

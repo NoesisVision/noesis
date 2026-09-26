@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { ChangeId } from '#backend/app/changes/change-id';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   decodedDesignDocFixture,
   designDocFixture,

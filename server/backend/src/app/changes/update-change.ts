@@ -1,6 +1,9 @@
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import type {
+  ChangeSummary,
+  UpdateChange,
+} from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
-import type { ChangeId } from './change-id';
-import type { ChangeSummary, UpdateChange } from './change-snapshot';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
 /** A new version of what a change says of itself. `change` is the working file: the id travels beside it. */

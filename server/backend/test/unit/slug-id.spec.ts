@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 import { slugIdCandidates } from '#backend/app/slug-id';
 
 const DAY = '2026-09-24';

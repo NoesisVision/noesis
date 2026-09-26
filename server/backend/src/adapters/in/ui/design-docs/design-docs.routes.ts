@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { DesignDoc } from '#backend/app/changes/design-doc';
 import { FindDesignDoc } from '#backend/app/changes/find-design-doc';
+import type { DesignDoc } from '#backend/app/changes/model/design-doc';
 import type { Handler } from '#backend/app/handler';
 import { routeParams } from '../route-params';
 

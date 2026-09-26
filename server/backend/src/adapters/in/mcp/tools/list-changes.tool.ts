@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   type ChangeEntry,
   ChangeWithEntries,
-} from '#backend/app/changes/change-entry';
+} from '#backend/app/changes/model/change-entry';
 import type { Handler } from '#backend/app/handler';
 import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';

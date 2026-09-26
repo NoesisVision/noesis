@@ -2,10 +2,10 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import type { DesignDocViolation } from '#backend/app/changes/design-doc';
-import { DesignDocSummary } from '#backend/app/changes/design-doc-summary';
-import { InvalidDesignDocError } from '#backend/app/changes/invalid-design-doc-error';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import type { DesignDocViolation } from '#backend/app/changes/model/design-doc';
+import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
+import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {

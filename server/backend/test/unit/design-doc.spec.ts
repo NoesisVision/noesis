@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { DesignDoc } from '#backend/app/changes/design-doc';
+import { DesignDoc } from '#backend/app/changes/model/design-doc';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   designDocFixture,

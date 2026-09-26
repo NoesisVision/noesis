@@ -1,4 +1,4 @@
-import type { DesignDocInput } from '#backend/app/changes/design-doc.ts';
+import type { DesignDocInput } from '#backend/app/changes/model/design-doc.ts';
 
 /*
  * A design that changes something at every level, in the JSON form the wire

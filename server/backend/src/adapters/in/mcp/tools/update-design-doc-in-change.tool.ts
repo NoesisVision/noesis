@@ -1,10 +1,10 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocId } from '#backend/app/changes/design-doc-id';
-import { DesignDocSummary } from '#backend/app/changes/design-doc-summary';
-import { InvalidDesignDocError } from '#backend/app/changes/invalid-design-doc-error';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
+import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
+import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';

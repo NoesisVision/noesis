@@ -1,7 +1,7 @@
-import { Change } from '#backend/app/changes/change';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import { ChangeSnapshot } from '#backend/app/changes/change-snapshot';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
+import { Change } from '#backend/app/changes/model/change';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
+import { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';

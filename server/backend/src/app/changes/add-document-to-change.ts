@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import type { Handler } from '#backend/app/handler';
-import type { Today } from '#backend/app/today';
-import { ChangeId } from './change-id';
-import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
-import { SourceDocumentFile } from './source-document';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { SourceDocumentFile } from '#backend/app/changes/model/source-document';
 import {
   type SourceDocumentSummary,
   summarize,
-} from './source-document-summary';
+} from '#backend/app/changes/model/source-document-summary';
+import type { Handler } from '#backend/app/handler';
+import type { Today } from '#backend/app/today';
+import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
 /** A new document for the change. `document` is the working file: the server mints its id. */
 export const AddDocumentToChange = z.object({

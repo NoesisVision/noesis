@@ -1,9 +1,12 @@
+import { Change } from '#backend/app/changes/model/change';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import type {
+  ChangeSummary,
+  CreateChange,
+} from '#backend/app/changes/model/change-snapshot';
 import type { Handler } from '#backend/app/handler';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import { Change } from './change';
-import { ChangeId } from './change-id';
-import type { ChangeSummary, CreateChange } from './change-snapshot';
 import type { ChangesRepository } from './changes.repository';
 
 export class CreateChangeHandler implements Handler<

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import {
   decodedDesignDocFixture,

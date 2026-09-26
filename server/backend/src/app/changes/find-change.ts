@@ -1,10 +1,10 @@
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { ChangeSummary } from '#backend/app/changes/model/change-snapshot';
+import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
+import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import type { Handler } from '#backend/app/handler';
-import { ChangeId } from './change-id';
-import { ChangeSummary } from './change-snapshot';
 import { type ChangesReader, getChangeOrThrow } from './changes.repository';
-import { DesignDocSummary } from './design-doc-summary';
-import { SourceDocumentSummary } from './source-document-summary';
 
 /** One change, with what it owns summarised. */
 export const FindChange = z.object({ id: ChangeId });

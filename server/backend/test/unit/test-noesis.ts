@@ -5,19 +5,19 @@ import type { z } from 'zod';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
 import { AddDocumentToChangeHandler } from '#backend/app/changes/add-document-to-change';
-import { Change } from '#backend/app/changes/change';
-import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeSnapshot } from '#backend/app/changes/change-snapshot';
 import { CreateChangeHandler } from '#backend/app/changes/create-change';
-import {
-  DesignDoc,
-  type DesignDocInput,
-} from '#backend/app/changes/design-doc';
 import { FindChangeHandler } from '#backend/app/changes/find-change';
 import { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
 import { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
 import { ListChangesHandler } from '#backend/app/changes/list-changes';
-import { SourceDocument } from '#backend/app/changes/source-document';
+import { Change } from '#backend/app/changes/model/change';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import type { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
+import {
+  DesignDoc,
+  type DesignDocInput,
+} from '#backend/app/changes/model/design-doc';
+import { SourceDocument } from '#backend/app/changes/model/source-document';
 import { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
 import { UpdateDocumentInChangeHandler } from '#backend/app/changes/update-document-in-change';

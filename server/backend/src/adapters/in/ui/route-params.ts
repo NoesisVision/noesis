@@ -1,6 +1,6 @@
 import { sValidator } from '@hono/standard-validator';
 import { z } from 'zod';
-import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangeId } from '#backend/app/changes/model/change-id';
 
 /**
  * Parses the route params into their value objects, read back with

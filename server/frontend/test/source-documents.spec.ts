@@ -1,6 +1,6 @@
 import { afterAll, afterEach, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
-import type { SourceDocumentId } from '#backend/app/changes/source-document-id.ts';
+import type { SourceDocumentId } from '#backend/app/changes/model/source-document-id.ts';
 import { sourceDocumentById } from '../src/features/source-documents/source-documents.api';
 import { ApiError } from '../src/shared/api/client';
 

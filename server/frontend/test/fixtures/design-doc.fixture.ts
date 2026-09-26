@@ -1,7 +1,7 @@
 import {
   DesignDoc,
   type DesignDocInput,
-} from '#backend/app/changes/design-doc.ts';
+} from '#backend/app/changes/model/design-doc.ts';
 import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
