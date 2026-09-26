@@ -16,23 +16,18 @@ const FindChangeResult = ChangeSummary.extend({
 });
 export type FindChangeResult = z.infer<typeof FindChangeResult>;
 
-export class FindChangeHandler implements Handler<
-  FindChange,
-  FindChangeResult
-> {
-  private readonly changes: ChangesReader;
-
-  constructor(changes: ChangesReader) {
-    this.changes = changes;
-  }
-
-  /** Each kind oldest first. */
-  async handle(query: FindChange): Promise<FindChangeResult> {
-    const change = await getChangeOrThrow(this.changes, query.id);
-    return {
-      ...change.summary(),
-      designDocs: change.designDocSummaries(),
-      sourceDocuments: change.sourceDocumentSummaries(),
-    };
-  }
+export function findChangeHandler(
+  changes: ChangesReader,
+): Handler<FindChange, FindChangeResult> {
+  return {
+    /** Each kind oldest first. */
+    async handle(query) {
+      const change = await getChangeOrThrow(changes, query.id);
+      return {
+        ...change.summary(),
+        designDocs: change.designDocSummaries(),
+        sourceDocuments: change.sourceDocumentSummaries(),
+      };
+    },
+  };
 }

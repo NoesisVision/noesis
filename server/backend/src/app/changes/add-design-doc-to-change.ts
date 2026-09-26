@@ -15,21 +15,16 @@ export const AddDesignDocToChange = z.object({
 });
 export type AddDesignDocToChange = z.infer<typeof AddDesignDocToChange>;
 
-export class AddDesignDocToChangeHandler implements Handler<
-  AddDesignDocToChange,
-  DesignDocSummary
-> {
-  private readonly changes: ChangesRepository;
-
-  constructor(changes: ChangesRepository) {
-    this.changes = changes;
-  }
-
-  /** Throws `InvalidDesignDocError` when the design document breaks its rules. */
-  async handle(command: AddDesignDocToChange): Promise<DesignDocSummary> {
-    const change = await getChangeOrThrow(this.changes, command.change);
-    const added = change.addDesignDoc(command.designDoc);
-    await this.changes.save(change);
-    return summarize(added);
-  }
+export function addDesignDocToChangeHandler(
+  changes: ChangesRepository,
+): Handler<AddDesignDocToChange, DesignDocSummary> {
+  return {
+    /** Throws `InvalidDesignDocError` when the design document breaks its rules. */
+    async handle(command) {
+      const change = await getChangeOrThrow(changes, command.change);
+      const added = change.addDesignDoc(command.designDoc);
+      await changes.save(change);
+      return summarize(added);
+    },
+  };
 }

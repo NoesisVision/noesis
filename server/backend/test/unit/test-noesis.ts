@@ -3,13 +3,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
-import { AddSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
-import { CreateChangeHandler } from '#backend/app/changes/create-change';
-import { FindChangeHandler } from '#backend/app/changes/find-change';
-import { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
-import { FindSourceDocumentHandler } from '#backend/app/changes/find-source-document';
-import { ListChangesHandler } from '#backend/app/changes/list-changes';
+import { addDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
+import { addSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
+import { createChangeHandler } from '#backend/app/changes/create-change';
+import { findChangeHandler } from '#backend/app/changes/find-change';
+import { findDesignDocHandler } from '#backend/app/changes/find-design-doc';
+import { findSourceDocumentHandler } from '#backend/app/changes/find-source-document';
+import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { Change } from '#backend/app/changes/model/change';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
@@ -18,10 +18,11 @@ import {
   type DesignDocInput,
 } from '#backend/app/changes/model/design-doc';
 import { SourceDocument } from '#backend/app/changes/model/source-document';
-import { UpdateChangeHandler } from '#backend/app/changes/update-change';
-import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
-import { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
+import { updateChangeHandler } from '#backend/app/changes/update-change';
+import { updateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
+import { updateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import { SearchService } from '#backend/app/search/search.service';
+import type { Services } from '#backend/boot/services';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -35,21 +36,10 @@ type ChangeFields = Omit<
 
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
-export interface TestNoesis {
+export interface TestNoesis extends Services {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  createChange: CreateChangeHandler;
-  updateChange: UpdateChangeHandler;
-  addDesignDocToChange: AddDesignDocToChangeHandler;
-  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
-  addSourceDocumentToChange: AddSourceDocumentToChangeHandler;
-  updateSourceDocumentInChange: UpdateSourceDocumentInChangeHandler;
-  listChanges: ListChangesHandler;
-  findChange: FindChangeHandler;
-  findDesignDoc: FindDesignDocHandler;
-  findSourceDocument: FindSourceDocumentHandler;
-  searchService: SearchService;
   /** `graph/changes/`, where each change's file sits. */
   changesDir: string;
   /** Writes a change with placeholder data, bypassing the handlers. */
@@ -91,22 +81,18 @@ export async function testNoesis(): Promise<TestNoesis> {
     root,
     noesis,
     changesRepository,
-    createChange: new CreateChangeHandler(changesRepository, TODAY),
-    updateChange: new UpdateChangeHandler(changesRepository),
-    addDesignDocToChange: new AddDesignDocToChangeHandler(changesRepository),
-    updateDesignDocInChange: new UpdateDesignDocInChangeHandler(
-      changesRepository,
-    ),
-    addSourceDocumentToChange: new AddSourceDocumentToChangeHandler(
-      changesRepository,
-    ),
-    updateSourceDocumentInChange: new UpdateSourceDocumentInChangeHandler(
-      changesRepository,
-    ),
-    listChanges: new ListChangesHandler(changesRepository),
-    findChange: new FindChangeHandler(changesRepository),
-    findDesignDoc: new FindDesignDocHandler(changesRepository),
-    findSourceDocument: new FindSourceDocumentHandler(changesRepository),
+    createChange: createChangeHandler(changesRepository, TODAY),
+    updateChange: updateChangeHandler(changesRepository),
+    addDesignDocToChange: addDesignDocToChangeHandler(changesRepository),
+    updateDesignDocInChange: updateDesignDocInChangeHandler(changesRepository),
+    addSourceDocumentToChange:
+      addSourceDocumentToChangeHandler(changesRepository),
+    updateSourceDocumentInChange:
+      updateSourceDocumentInChangeHandler(changesRepository),
+    listChanges: listChangesHandler(changesRepository),
+    findChange: findChangeHandler(changesRepository),
+    findDesignDoc: findDesignDocHandler(changesRepository),
+    findSourceDocument: findSourceDocumentHandler(changesRepository),
     searchService: new SearchService(),
     changesDir,
     writeChange: async (id, overrides = {}) => {

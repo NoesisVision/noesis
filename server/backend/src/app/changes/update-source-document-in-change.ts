@@ -19,26 +19,19 @@ export type UpdateSourceDocumentInChange = z.infer<
   typeof UpdateSourceDocumentInChange
 >;
 
-export class UpdateSourceDocumentInChangeHandler implements Handler<
-  UpdateSourceDocumentInChange,
-  SourceDocumentSummary
-> {
-  private readonly changes: ChangesRepository;
-
-  constructor(changes: ChangesRepository) {
-    this.changes = changes;
-  }
-
-  /** Replaces the source document at `id` whole; never creates one. */
-  async handle(
-    command: UpdateSourceDocumentInChange,
-  ): Promise<SourceDocumentSummary> {
-    const change = await getChangeOrThrow(this.changes, command.change);
-    const revised = change.reviseSourceDocument(
-      command.id,
-      command.sourceDocument,
-    );
-    await this.changes.save(change);
-    return summarize(revised);
-  }
+export function updateSourceDocumentInChangeHandler(
+  changes: ChangesRepository,
+): Handler<UpdateSourceDocumentInChange, SourceDocumentSummary> {
+  return {
+    /** Replaces the source document at `id` whole; never creates one. */
+    async handle(command) {
+      const change = await getChangeOrThrow(changes, command.change);
+      const revised = change.reviseSourceDocument(
+        command.id,
+        command.sourceDocument,
+      );
+      await changes.save(change);
+      return summarize(revised);
+    },
+  };
 }

@@ -17,24 +17,19 @@ export const UpdateDesignDocInChange = z.object({
 });
 export type UpdateDesignDocInChange = z.infer<typeof UpdateDesignDocInChange>;
 
-export class UpdateDesignDocInChangeHandler implements Handler<
-  UpdateDesignDocInChange,
-  DesignDocSummary
-> {
-  private readonly changes: ChangesRepository;
-
-  constructor(changes: ChangesRepository) {
-    this.changes = changes;
-  }
-
-  /**
-   * Replaces the design document at `id` whole; never creates one. Throws
-   * `InvalidDesignDocError` when the new version breaks the rules.
-   */
-  async handle(command: UpdateDesignDocInChange): Promise<DesignDocSummary> {
-    const change = await getChangeOrThrow(this.changes, command.change);
-    const revised = change.reviseDesignDoc(command.id, command.designDoc);
-    await this.changes.save(change);
-    return summarize(revised);
-  }
+export function updateDesignDocInChangeHandler(
+  changes: ChangesRepository,
+): Handler<UpdateDesignDocInChange, DesignDocSummary> {
+  return {
+    /**
+     * Replaces the design document at `id` whole; never creates one. Throws
+     * `InvalidDesignDocError` when the new version breaks the rules.
+     */
+    async handle(command) {
+      const change = await getChangeOrThrow(changes, command.change);
+      const revised = change.reviseDesignDoc(command.id, command.designDoc);
+      await changes.save(change);
+      return summarize(revised);
+    },
+  };
 }

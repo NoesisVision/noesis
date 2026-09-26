@@ -17,22 +17,17 @@ export const UpdateChangeCommand = ChangeSnapshot.pick({
 });
 export type UpdateChangeCommand = z.infer<typeof UpdateChangeCommand>;
 
-export class UpdateChangeHandler implements Handler<
-  UpdateChangeCommand,
-  ChangeSummary
-> {
-  private readonly changes: ChangesRepository;
-
-  constructor(changes: ChangesRepository) {
-    this.changes = changes;
-  }
-
-  /** Replaces the change at `id`, what it owns aside; never creates one. */
-  async handle(command: UpdateChangeCommand): Promise<ChangeSummary> {
-    const { id, ...fields } = command;
-    const change = await getChangeOrThrow(this.changes, id);
-    change.update(fields);
-    await this.changes.save(change);
-    return change.summary();
-  }
+export function updateChangeHandler(
+  changes: ChangesRepository,
+): Handler<UpdateChangeCommand, ChangeSummary> {
+  return {
+    /** Replaces the change at `id`, what it owns aside; never creates one. */
+    async handle(command) {
+      const { id, ...fields } = command;
+      const change = await getChangeOrThrow(changes, id);
+      change.update(fields);
+      await changes.save(change);
+      return change.summary();
+    },
+  };
 }

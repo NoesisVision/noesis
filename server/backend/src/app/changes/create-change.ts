@@ -9,31 +9,25 @@ import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import type { ChangesRepository } from './changes.repository';
 
-export class CreateChangeHandler implements Handler<
-  CreateChange,
-  ChangeSummary
-> {
-  private readonly changes: ChangesRepository;
-  private readonly today: Today;
-
-  constructor(changes: ChangesRepository, today: Today) {
-    this.changes = changes;
-    this.today = today;
-  }
-
-  /**
-   * Creates the change in discovery, at an id minted from today's date and
-   * its name. A name already used that day gets the next free suffix.
-   */
-  async handle(command: CreateChange): Promise<ChangeSummary> {
-    const id = await freeSlugId(
-      ChangeId,
-      command.name,
-      this.today(),
-      async (candidate) => (await this.changes.get(candidate)) !== null,
-    );
-    const created = Change.create(id, command);
-    await this.changes.save(created);
-    return created.summary();
-  }
+export function createChangeHandler(
+  changes: ChangesRepository,
+  today: Today,
+): Handler<CreateChange, ChangeSummary> {
+  return {
+    /**
+     * Creates the change in discovery, at an id minted from today's date and
+     * its name. A name already used that day gets the next free suffix.
+     */
+    async handle(command) {
+      const id = await freeSlugId(
+        ChangeId,
+        command.name,
+        today(),
+        async (candidate) => (await changes.get(candidate)) !== null,
+      );
+      const created = Change.create(id, command);
+      await changes.save(created);
+      return created.summary();
+    },
+  };
 }

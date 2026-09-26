@@ -17,22 +17,15 @@ export type AddSourceDocumentToChange = z.infer<
   typeof AddSourceDocumentToChange
 >;
 
-export class AddSourceDocumentToChangeHandler implements Handler<
-  AddSourceDocumentToChange,
-  SourceDocumentSummary
-> {
-  private readonly changes: ChangesRepository;
-
-  constructor(changes: ChangesRepository) {
-    this.changes = changes;
-  }
-
-  async handle(
-    command: AddSourceDocumentToChange,
-  ): Promise<SourceDocumentSummary> {
-    const change = await getChangeOrThrow(this.changes, command.change);
-    const added = change.addSourceDocument(command.sourceDocument);
-    await this.changes.save(change);
-    return summarize(added);
-  }
+export function addSourceDocumentToChangeHandler(
+  changes: ChangesRepository,
+): Handler<AddSourceDocumentToChange, SourceDocumentSummary> {
+  return {
+    async handle(command) {
+      const change = await getChangeOrThrow(changes, command.change);
+      const added = change.addSourceDocument(command.sourceDocument);
+      await changes.save(change);
+      return summarize(added);
+    },
+  };
 }

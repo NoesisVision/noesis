@@ -9,16 +9,14 @@ import { type ChangesReader, getChangeOrThrow } from './changes.repository';
 export const FindDesignDoc = z.object({ change: ChangeId, id: DesignDocId });
 export type FindDesignDoc = z.infer<typeof FindDesignDoc>;
 
-export class FindDesignDocHandler implements Handler<FindDesignDoc, DesignDoc> {
-  private readonly changes: ChangesReader;
-
-  constructor(changes: ChangesReader) {
-    this.changes = changes;
-  }
-
-  /** The change is looked up first, so a missing change is the one named. */
-  async handle(query: FindDesignDoc): Promise<DesignDoc> {
-    const change = await getChangeOrThrow(this.changes, query.change);
-    return change.designDoc(query.id);
-  }
+export function findDesignDocHandler(
+  changes: ChangesReader,
+): Handler<FindDesignDoc, DesignDoc> {
+  return {
+    /** The change is looked up first, so a missing change is the one named. */
+    async handle(query) {
+      const change = await getChangeOrThrow(changes, query.change);
+      return change.designDoc(query.id);
+    },
+  };
 }

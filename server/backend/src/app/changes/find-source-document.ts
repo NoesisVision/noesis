@@ -12,19 +12,14 @@ export const FindSourceDocument = z.object({
 });
 export type FindSourceDocument = z.infer<typeof FindSourceDocument>;
 
-export class FindSourceDocumentHandler implements Handler<
-  FindSourceDocument,
-  SourceDocument
-> {
-  private readonly changes: ChangesReader;
-
-  constructor(changes: ChangesReader) {
-    this.changes = changes;
-  }
-
-  /** The change is looked up first, so a missing change is the one named. */
-  async handle(query: FindSourceDocument): Promise<SourceDocument> {
-    const change = await getChangeOrThrow(this.changes, query.change);
-    return change.sourceDocument(query.id);
-  }
+export function findSourceDocumentHandler(
+  changes: ChangesReader,
+): Handler<FindSourceDocument, SourceDocument> {
+  return {
+    /** The change is looked up first, so a missing change is the one named. */
+    async handle(query) {
+      const change = await getChangeOrThrow(changes, query.change);
+      return change.sourceDocument(query.id);
+    },
+  };
 }
