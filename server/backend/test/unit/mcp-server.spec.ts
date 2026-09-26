@@ -318,7 +318,11 @@ describe('list_changes', () => {
           id: CHANGE,
           entries: [
             { kind: 'design-doc', id: designDocAdded, implemented: false },
-            { kind: 'source-document', id: documentId, name: document.title },
+            {
+              kind: 'source-document',
+              id: documentId,
+              title: document.title,
+            },
           ],
         },
       ],

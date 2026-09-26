@@ -9,7 +9,10 @@ export const SourceDocumentSummary = SourceDocument.pick({
 });
 export type SourceDocumentSummary = z.infer<typeof SourceDocumentSummary>;
 
-/** Parsing strips every key the summary does not pick. */
-export function summarize(document: SourceDocument): SourceDocumentSummary {
-  return SourceDocumentSummary.parse(document);
+export function summarize({
+  id,
+  title,
+  date,
+}: SourceDocument): SourceDocumentSummary {
+  return { id, title, date };
 }

@@ -79,7 +79,12 @@ describe('ui changes routes', () => {
               name: decodedDesignDocFixture.name,
               implemented: false,
             },
-            { kind: 'source-document', id: document.id, name: document.title },
+            {
+              kind: 'source-document',
+              id: document.id,
+              title: document.title,
+              date: document.date,
+            },
           ],
         },
       ],
@@ -103,9 +108,9 @@ describe('ui changes routes', () => {
 
     const response = await app.request('/changes');
     const { changes } = (await response.json()) as {
-      changes: { entries: { name: string }[] }[];
+      changes: { entries: { title: string }[] }[];
     };
-    expect(changes[0]?.entries.map((entry) => entry.name)).toEqual([
+    expect(changes[0]?.entries.map((entry) => entry.title)).toEqual([
       'Zoning rules',
       'Appointment booking',
       'Glossary',

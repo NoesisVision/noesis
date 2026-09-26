@@ -1,16 +1,12 @@
 import { z } from 'zod';
 import { ChangeSummary } from './change-snapshot';
 import { DesignDocSummary } from './design-doc-summary';
-import { SourceDocumentId } from './source-document-id';
+import { SourceDocumentSummary } from './source-document-summary';
 
 /** One design document or source document of a change, as a list of them names it. */
 const ChangeEntry = z.discriminatedUnion('kind', [
   DesignDocSummary.extend({ kind: z.literal('design-doc') }),
-  z.object({
-    kind: z.literal('source-document'),
-    id: SourceDocumentId,
-    name: z.string(),
-  }),
+  SourceDocumentSummary.extend({ kind: z.literal('source-document') }),
 ]);
 export type ChangeEntry = z.infer<typeof ChangeEntry>;
 

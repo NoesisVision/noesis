@@ -159,8 +159,7 @@ export class Change {
       })),
       ...this.sourceDocumentSummaries().map((doc): ChangeEntry => ({
         kind: 'source-document',
-        id: doc.id,
-        name: doc.title,
+        ...doc,
       })),
     ];
   }

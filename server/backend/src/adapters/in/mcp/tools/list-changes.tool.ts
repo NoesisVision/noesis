@@ -63,7 +63,7 @@ function lines(change: ChangeWithEntries): string[] {
 
 function entryLine(entry: ChangeEntry): string {
   if (entry.kind === 'source-document') {
-    return `  - source document ${entry.id}: ${entry.name}`;
+    return `  - source document ${entry.id}: ${entry.title}`;
   }
   const state = entry.implemented ? 'implemented' : 'not implemented';
   return `  - design document ${entry.id}: ${entry.name} (${state})`;

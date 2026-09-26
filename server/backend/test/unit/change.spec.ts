@@ -315,7 +315,15 @@ describe('The entries of a change', () => {
     });
 
     expect(
-      change.entries().map(({ kind, id, name }) => `${kind} ${id} ${name}`),
+      change
+        .entries()
+        .map((entry) =>
+          [
+            entry.kind,
+            entry.id,
+            entry.kind === 'design-doc' ? entry.name : entry.title,
+          ].join(' '),
+        ),
     ).toEqual([
       `design-doc ${designDocId(1)} Retry flow`,
       `source-document ${sourceDocumentId(2)} Notes`,
