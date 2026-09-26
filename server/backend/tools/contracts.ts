@@ -4,21 +4,23 @@
 // a whole working file, never with an id: the server mints it on create, and
 // an update names it beside the file.
 import type { z } from 'zod';
-import { CreateChange, UpdateChange } from '#backend/app/changes/change';
+import {
+  CreateChange,
+  UpdateChange,
+} from '#backend/app/changes/change-snapshot';
 import {
   CreateDesignDoc,
   UpdateDesignDoc,
-} from '#backend/app/design-docs/design-doc';
-import { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
-import { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
+} from '#backend/app/changes/design-doc';
+import { SourceDocumentFile } from '#backend/app/changes/source-document';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import designDocExample from './design-doc.example.json';
 
 export const CONTRACTS = {
   'create-change': { schema: CreateChange },
   'update-change': { schema: UpdateChange },
-  'create-source-document': { schema: CreateSourceDocument.shape.document },
-  'update-source-document': { schema: UpdateSourceDocument.shape.document },
+  'create-source-document': { schema: SourceDocumentFile },
+  'update-source-document': { schema: SourceDocumentFile },
   // Decoded, as every example is: the generator encodes it back to JSON,
   // with every default the file leaves out spelled out.
   'create-design-doc': {

@@ -1,16 +1,23 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import type { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
+import type { AddDocumentToChange } from '#backend/app/changes/add-document-to-change';
+import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
+import type {
+  ChangeSummary,
+  CreateChange,
+} from '#backend/app/changes/change-snapshot';
+import type { DesignDocSummary } from '#backend/app/changes/design-doc-summary';
+import type { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
+import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
+import type { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
+import type { UpdateDocumentInChange } from '#backend/app/changes/update-document-in-change';
 import type { Handler } from '#backend/app/handler';
-import type { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
-import type { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import type { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { ToolRegistration } from './tool';
+import { addDesignDocToChangeTool } from './tools/add-design-doc-to-change.tool';
+import { addDocumentToChangeTool } from './tools/add-document-to-change.tool';
 import { createChangeTool } from './tools/create-change.tool';
-import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';
-import { createDocumentInChangeTool } from './tools/create-document-in-change.tool';
 import { listChangesTool } from './tools/list-changes.tool';
 import { updateChangeTool } from './tools/update-change.tool';
 import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
@@ -20,15 +27,21 @@ export interface McpServerDeps {
   version: string;
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  createSourceDocument: Handler<CreateSourceDocument, SourceDocumentSummary>;
-  updateSourceDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>;
+  createChange: Handler<CreateChange, ChangeSummary>;
+  updateChange: Handler<UpdateChangeCommand, ChangeSummary>;
+  listChanges: Handler<void, ChangeWithEntries[]>;
+  addDesignDocToChange: Handler<AddDesignDocToChange, DesignDocSummary>;
+  updateDesignDocInChange: Handler<UpdateDesignDocInChange, DesignDocSummary>;
+  addDocumentToChange: Handler<AddDocumentToChange, SourceDocumentSummary>;
+  updateDocumentInChange: Handler<
+    UpdateDocumentInChange,
+    SourceDocumentSummary
+  >;
 }
 
 /**
- * The agent's surface onto the same services the ui calls. Tools stay thin —
- * each registers its schemas and hands one call to one service method.
+ * The agent's surface onto the same handlers the ui calls. Tools stay thin —
+ * each registers its schemas and hands one call to one handler.
  */
 export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer(
@@ -47,13 +60,16 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    createChangeTool(deps.changesService, deps.sessionFiles),
-    updateChangeTool(deps.changesService, deps.sessionFiles),
-    listChangesTool(deps.changesService),
-    createDocumentInChangeTool(deps.createSourceDocument, deps.sessionFiles),
-    updateDocumentInChangeTool(deps.updateSourceDocument, deps.sessionFiles),
-    createDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
-    updateDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
+    createChangeTool(deps.createChange, deps.sessionFiles),
+    updateChangeTool(deps.updateChange, deps.sessionFiles),
+    listChangesTool(deps.listChanges),
+    addDocumentToChangeTool(deps.addDocumentToChange, deps.sessionFiles),
+    updateDocumentInChangeTool(deps.updateDocumentInChange, deps.sessionFiles),
+    addDesignDocToChangeTool(deps.addDesignDocToChange, deps.sessionFiles),
+    updateDesignDocInChangeTool(
+      deps.updateDesignDocInChange,
+      deps.sessionFiles,
+    ),
   ];
 }
 

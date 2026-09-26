@@ -1,28 +1,28 @@
 import { Hono } from 'hono';
-import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
+import {
+  FindChange,
+  type FindChangeResult,
+} from '#backend/app/changes/find-change';
+import type { Handler } from '#backend/app/handler';
 import { routeParams } from '../route-params';
 
 export interface ChangesDeps {
-  changesService: ChangesService;
+  listChanges: Handler<void, ChangeWithEntries[]>;
+  findChange: Handler<FindChange, FindChangeResult>;
 }
 
 /** Mounted at `/ui/changes`, read only: a change is created by the agent through the MCP tools. */
 export function createChangesApp(deps: ChangesDeps) {
-  const { changesService } = deps;
+  const { listChanges, findChange } = deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
     .get('/', async (c) => {
-      return c.json({ changes: await changesService.list() });
+      return c.json({ changes: await listChanges.handle() });
     })
 
-    .get('/navigation', async (c) => {
-      return c.json({ changes: await changesService.listWithEntries() });
-    })
-
-    .get('/:id', routeParams({ id: ChangeId }), async (c) => {
-      const { id } = c.req.valid('param');
-      return c.json({ change: await changesService.findById(id) });
+    .get('/:id', routeParams(FindChange.shape), async (c) => {
+      return c.json({ change: await findChange.handle(c.req.valid('param')) });
     });
 }

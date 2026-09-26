@@ -1,9 +1,13 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { UpdateChange, Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import {
+  ChangeSummary,
+  UpdateChange,
+} from '#backend/app/changes/change-snapshot';
+import type { UpdateChangeCommand } from '#backend/app/changes/update-change';
+import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
@@ -13,18 +17,18 @@ import { workingFilePath } from './change-scoped';
 const SUBJECT = 'change';
 
 const outputSchema = z
-  .object({ change: Change })
+  .object({ change: ChangeSummary })
   .describe('The change as stored.');
 
 export function updateChangeTool(
-  changes: ChangesService,
+  updateChange: Handler<UpdateChangeCommand, ChangeSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     UPDATE_CHANGE,
     {
       title: 'Update change',
-      description: `Replaces an existing change whole: its name, type, key, status and description. The id stays as it was, even when the name changes. Never creates a change; use ${CREATE_CHANGE} for that. Write the change to a JSON working file under the session scratch directory and pass its path with the change's id.`,
+      description: `Replaces what an existing change says of itself: its name, type, key, status and description. Its documents and design documents stay as they are. The id stays as it was, even when the name changes. Never creates a change; use ${CREATE_CHANGE} for that. Write the change to a JSON working file under the session scratch directory and pass its path with the change's id.`,
       inputSchema: z
         .object({
           id: ChangeId.describe(
@@ -42,12 +46,12 @@ export function updateChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) => update(changes, files, input.id, input.path),
+    (input) => update(updateChange, files, input.id, input.path),
   );
 }
 
 async function update(
-  changes: ChangesService,
+  updateChange: Handler<UpdateChangeCommand, ChangeSummary>,
   files: SessionFiles,
   id: ChangeId,
   path: string,
@@ -57,7 +61,7 @@ async function update(
     return failure(`Invalid ${SUBJECT}:\n${change.error}`);
   }
   try {
-    return updated(await changes.update(id, change.value));
+    return updated(await updateChange.handle({ id, change: change.value }));
   } catch (error) {
     if (error instanceof NotFoundError) {
       return failure(
@@ -69,7 +73,7 @@ async function update(
   }
 }
 
-function updated(change: Change): CallToolResult {
+function updated(change: ChangeSummary): CallToolResult {
   return success(
     `Updated change ${change.id} (${change.type}, ${change.status}).`,
     { change },

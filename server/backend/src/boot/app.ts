@@ -1,31 +1,12 @@
 import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
 import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
-import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { Handler } from '#backend/app/handler';
-import type { FindSourceDocumentById } from '#backend/app/information-sources/find-source-document-by-id';
-import type { ListSourceDocumentsForChange } from '#backend/app/information-sources/list-source-documents-for-change';
-import type { SourceDocument } from '#backend/app/information-sources/source-document';
-import type { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import type { SearchService } from '#backend/app/search/search.service';
+import { createUiApp, type UiDeps } from '#backend/adapters/in/ui/ui.routes';
 
 // No surface is guarded: the server runs on the developer's own machine.
-export interface AppDeps {
-  searchService: SearchService;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  listSourceDocumentsForChange: Handler<
-    ListSourceDocumentsForChange,
-    SourceDocumentSummary[]
-  >;
-  findSourceDocumentById: Handler<FindSourceDocumentById, SourceDocument>;
-}
-
 // Keep the .route() chain unbroken: Hono infers the route tree from this
 // expression for the typed RPC client (`hc`).
-export function createApp(deps: AppDeps) {
+export function createApp(deps: UiDeps) {
   return (
     new Hono()
       // `context: true` gives every log line in the request its request id.
@@ -41,10 +22,10 @@ export function createApp(deps: AppDeps) {
         '/ui',
         createUiApp({
           searchService: deps.searchService,
-          changesService: deps.changesService,
-          designDocsService: deps.designDocsService,
-          listSourceDocumentsForChange: deps.listSourceDocumentsForChange,
-          findSourceDocumentById: deps.findSourceDocumentById,
+          listChanges: deps.listChanges,
+          findChange: deps.findChange,
+          findDesignDoc: deps.findDesignDoc,
+          findSourceDocument: deps.findSourceDocument,
         }),
       )
       .route('/internal', createInternalApp())

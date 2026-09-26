@@ -1,19 +1,15 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import {
-  CreateDesignDoc,
-  type DesignDocViolation,
-} from '#backend/app/design-docs/design-doc';
-import {
-  DesignDocSummary,
-  type DesignDocsService,
-  InvalidDesignDocError,
-} from '#backend/app/design-docs/design-docs.service';
+import type { DesignDocViolation } from '#backend/app/changes/design-doc';
+import { DesignDocSummary } from '#backend/app/changes/design-doc-summary';
+import { InvalidDesignDocError } from '#backend/app/changes/invalid-design-doc-error';
+import type { Handler } from '#backend/app/handler';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
-  CREATE_DESIGN_DOC_IN_CHANGE,
+  ADD_DESIGN_DOC_TO_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
@@ -51,15 +47,15 @@ const outputSchema = z
   .object({ designDoc: DesignDocSummary })
   .describe('The design document as stored, with the id the server minted.');
 
-export function createDesignDocInChangeTool(
-  designDocs: DesignDocsService,
+export function addDesignDocToChangeTool(
+  addDesignDoc: Handler<AddDesignDocToChange, DesignDocSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
-    CREATE_DESIGN_DOC_IN_CHANGE,
+    ADD_DESIGN_DOC_TO_CHANGE,
     {
-      title: 'Create design document in change',
-      description: `Creates a design document in a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call creates a new design document, so revise one you created with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
+      title: 'Add design document to change',
+      description: `Adds a design document to a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call adds a new design document, so revise one you added with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,
@@ -70,35 +66,35 @@ export function createDesignDocInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        create(designDocs, files, change, input.path),
+        add(addDesignDoc, files, change, input.path),
       ),
   );
 }
 
-async function create(
-  designDocs: DesignDocsService,
+async function add(
+  addDesignDoc: Handler<AddDesignDocToChange, DesignDocSummary>,
   files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(CreateDesignDoc, path);
+  const document = await files.read(AddDesignDocToChange.shape.designDoc, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
   try {
-    return created(change, await designDocs.create(change, document.value));
+    return added(
+      change,
+      await addDesignDoc.handle({ change, designDoc: document.value }),
+    );
   } catch (error) {
     if (error instanceof InvalidDesignDocError) return violationsFailure(error);
     throw error;
   }
 }
 
-function created(
-  change: ChangeId,
-  designDoc: DesignDocSummary,
-): CallToolResult {
+function added(change: ChangeId, designDoc: DesignDocSummary): CallToolResult {
   return success(
-    `Created design document ${designDoc.id} ("${designDoc.name}") in ${change}. Refer to it by this id.`,
+    `Added design document ${designDoc.id} ("${designDoc.name}") to ${change}. Refer to it by this id.`,
     { designDoc },
   );
 }

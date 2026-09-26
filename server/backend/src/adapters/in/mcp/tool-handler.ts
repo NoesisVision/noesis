@@ -2,7 +2,9 @@ import type {
   CallToolResult,
   ServerContext,
 } from '@modelcontextprotocol/server';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { serverLogger } from '#backend/platform/logging/logging';
+import { LIST_CHANGES } from './tool-names';
 import { failure } from './tool-result';
 
 const log = serverLogger('mcp');
@@ -12,7 +14,9 @@ const log = serverLogger('mcp');
  * what it does not, the SDK would turn into an in-band error
  * silently, leaving nothing in `.noesis/logs/` for the person whose session
  * just failed. Every handler is registered through here, so the server keeps
- * the record and the agent still gets an answer it can read.
+ * the record and the agent still gets an answer it can read. A write that lost
+ * a race to another is foreseen by every tool that writes, so it is answered
+ * here, once.
  */
 export function logged<Input>(
   tool: string,
@@ -22,6 +26,7 @@ export function logged<Input>(
     try {
       return await handler(input, ctx);
     } catch (error) {
+      if (error instanceof ConcurrentModificationError) return conflict(error);
       log.error('{tool} failed unexpectedly: {error}', {
         tool,
         error: String(error),
@@ -33,6 +38,13 @@ export function logged<Input>(
       );
     }
   };
+}
+
+function conflict(error: ConcurrentModificationError): CallToolResult {
+  return failure(
+    `${error.message} Nothing was written.`,
+    `Another call wrote to the change while this one ran. Read it again with ${LIST_CHANGES}, then repeat this call with what you still mean to write.`,
+  );
 }
 
 function message(error: unknown): string {

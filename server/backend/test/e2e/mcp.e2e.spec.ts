@@ -72,7 +72,7 @@ const exists = (path: string) =>
  */
 async function sessionDir(client: Client): Promise<string> {
   const { tools } = await client.listTools();
-  const path = tools.find((tool) => tool.name === 'create_document_in_change')
+  const path = tools.find((tool) => tool.name === 'add_document_to_change')
     ?.inputSchema.properties?.path as { description?: string } | undefined;
   const match = /scratch directory, (\S+?),/.exec(path?.description ?? '');
   if (!match?.[1]) throw new Error('no scratch directory in the tool schema');
@@ -111,9 +111,9 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
   it('offers the seven tools it was started with', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_design_doc_to_change',
+      'add_document_to_change',
       'create_change',
-      'create_design_doc_in_change',
-      'create_document_in_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
@@ -121,7 +121,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     ]);
   });
 
-  it('creates a change and a document, each written to the scratch directory', async () => {
+  it('creates a change and adds a document to it, each written to the scratch directory', async () => {
     const changeFile = join(await sessionDir(client), 'change.json');
     await writeFile(
       changeFile,
@@ -150,7 +150,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const added = await client.callTool({
-      name: 'create_document_in_change',
+      name: 'add_document_to_change',
       arguments: { change: change.id, path },
     });
 
@@ -159,15 +159,20 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
       document: { id: string };
     };
     expect(document.id).toMatch(/^\d{4}-\d{2}-\d{2}-retry-interview$/);
-    const stored = join(
-      service.repoRoot,
-      '.noesis',
-      'graph',
-      'changes',
-      change.id,
-      `${document.id}.document.json`,
-    );
-    expect(await exists(stored)).toBe(true);
+    const stored = JSON.parse(
+      await readFile(
+        join(
+          service.repoRoot,
+          '.noesis',
+          'graph',
+          'changes',
+          `${change.id}.change.json`,
+        ),
+        'utf8',
+      ),
+    ) as { version: number; sourceDocuments: { id: string }[] };
+    expect(stored.version).toBe(2);
+    expect(stored.sourceDocuments.map((d) => d.id)).toEqual([document.id]);
   }, 15_000);
 
   it('answers an unknown change in-band, having written nothing', async () => {
@@ -182,14 +187,16 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const result = await client.callTool({
-      name: 'create_document_in_change',
+      name: 'add_document_to_change',
       arguments: { change: '2026-09-18-booking', path },
     });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('No change "2026-09-18-booking"');
     const changes = join(service.repoRoot, '.noesis', 'graph', 'changes');
-    expect(await exists(join(changes, '2026-09-18-booking'))).toBe(false);
+    expect(await exists(join(changes, '2026-09-18-booking.change.json'))).toBe(
+      false,
+    );
   });
 
   it('deletes the scratch directory when the session ends', async () => {
@@ -224,9 +231,9 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
 
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_design_doc_to_change',
+      'add_document_to_change',
       'create_change',
-      'create_design_doc_in_change',
-      'create_document_in_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',

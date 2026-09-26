@@ -2,14 +2,15 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+import { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
+import { UpdateDocumentInChange } from '#backend/app/changes/update-document-in-change';
 import type { Handler } from '#backend/app/handler';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
-import { UpdateSourceDocument } from '#backend/app/information-sources/update-source-document';
 import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
-  CREATE_DOCUMENT_IN_CHANGE,
+  ADD_DOCUMENT_TO_CHANGE,
+  LIST_CHANGES,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
@@ -22,21 +23,21 @@ const outputSchema = z
   .describe('The document as stored.');
 
 export function updateDocumentInChangeTool(
-  updateDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>,
+  updateDocument: Handler<UpdateDocumentInChange, SourceDocumentSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
     UPDATE_DOCUMENT_IN_CHANGE,
     {
       title: 'Update document in change',
-      description: `Replaces an existing document of a change whole. The id stays as it was, even when the title changes. Never creates a document; use ${CREATE_DOCUMENT_IN_CHANGE} for that. Write the document to a JSON working file under the session scratch directory and pass its path with the document's id.`,
+      description: `Replaces an existing document of a change whole. The id stays as it was, even when the title changes. Never adds a document; use ${ADD_DOCUMENT_TO_CHANGE} for that. Write the document to a JSON working file under the session scratch directory and pass its path with the document's id.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,
         '{ "title", "date", "content" }, without "id".',
       ).extend({
         id: SourceDocumentId.describe(
-          `The id of the document to update, as ${CREATE_DOCUMENT_IN_CHANGE} answered it.`,
+          `The id of the document to update, as ${ADD_DOCUMENT_TO_CHANGE} answered it or ${LIST_CHANGES} lists it.`,
         ),
       }),
       outputSchema,
@@ -50,13 +51,16 @@ export function updateDocumentInChangeTool(
 }
 
 async function update(
-  updateDocument: Handler<UpdateSourceDocument, SourceDocumentSummary>,
+  updateDocument: Handler<UpdateDocumentInChange, SourceDocumentSummary>,
   files: SessionFiles,
   change: ChangeId,
   id: SourceDocumentId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(UpdateSourceDocument.shape.document, path);
+  const document = await files.read(
+    UpdateDocumentInChange.shape.document,
+    path,
+  );
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
@@ -70,7 +74,7 @@ async function update(
     if (error instanceof NotFoundError && error.entity === 'document') {
       return failure(
         error.message,
-        `Pass the id ${CREATE_DOCUMENT_IN_CHANGE} answered with, or create the document with it.`,
+        `Find its id with ${LIST_CHANGES}, or add the document with ${ADD_DOCUMENT_TO_CHANGE}.`,
       );
     }
     throw error;

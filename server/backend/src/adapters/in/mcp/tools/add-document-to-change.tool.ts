@@ -1,13 +1,13 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { AddDocumentToChange } from '#backend/app/changes/add-document-to-change';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import { SourceDocumentSummary } from '#backend/app/changes/source-document-summary';
 import type { Handler } from '#backend/app/handler';
-import { CreateSourceDocument } from '#backend/app/information-sources/create-source-document';
-import { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
-  CREATE_DOCUMENT_IN_CHANGE,
+  ADD_DOCUMENT_TO_CHANGE,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { failure, success } from '../tool-result';
@@ -19,15 +19,15 @@ const outputSchema = z
   .object({ document: SourceDocumentSummary })
   .describe('The document as stored, with the id the server minted.');
 
-export function createDocumentInChangeTool(
-  createDocument: Handler<CreateSourceDocument, SourceDocumentSummary>,
+export function addDocumentToChangeTool(
+  addDocument: Handler<AddDocumentToChange, SourceDocumentSummary>,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
-    CREATE_DOCUMENT_IN_CHANGE,
+    ADD_DOCUMENT_TO_CHANGE,
     {
-      title: 'Create document in change',
-      description: `Creates a document in a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The server mints its id from today's date and the title, and every call creates a new document, so revise one you created with ${UPDATE_DOCUMENT_IN_CHANGE}. Write the document to a JSON working file under the session scratch directory and pass its path.`,
+      title: 'Add document to change',
+      description: `Adds a document to a change: a piece of source material the change is informed by — a transcript, a spec, a note, a page of research. The server mints its id from today's date and the title, and every call adds a new document, so revise one you added with ${UPDATE_DOCUMENT_IN_CHANGE}. Write the document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,
@@ -38,33 +38,33 @@ export function createDocumentInChangeTool(
     },
     (input) =>
       withChange(input.change, SUBJECT, (change) =>
-        create(createDocument, files, change, input.path),
+        add(addDocument, files, change, input.path),
       ),
   );
 }
 
-async function create(
-  createDocument: Handler<CreateSourceDocument, SourceDocumentSummary>,
+async function add(
+  addDocument: Handler<AddDocumentToChange, SourceDocumentSummary>,
   files: SessionFiles,
   change: ChangeId,
   path: string,
 ): Promise<CallToolResult> {
-  const document = await files.read(CreateSourceDocument.shape.document, path);
+  const document = await files.read(AddDocumentToChange.shape.document, path);
   if (document.isErr()) {
     return failure(`Invalid ${SUBJECT}:\n${document.error}`);
   }
-  return created(
+  return added(
     change,
-    await createDocument.handle({ change, document: document.value }),
+    await addDocument.handle({ change, document: document.value }),
   );
 }
 
-function created(
+function added(
   change: ChangeId,
   document: SourceDocumentSummary,
 ): CallToolResult {
   return success(
-    `Created document ${document.id} ("${document.title}") in ${change}. Refer to it by this id.`,
+    `Added document ${document.id} ("${document.title}") to ${change}. Refer to it by this id.`,
     { document },
   );
 }

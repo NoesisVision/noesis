@@ -1,5 +1,4 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { SearchService } from '#backend/app/search/search.service';
 import { createApp } from '#backend/boot/app';
 import { testNoesis } from './test-noesis';
 
@@ -7,13 +6,7 @@ const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('app', () => {
-  const app = createApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
-    findSourceDocumentById: t.findSourceDocumentById,
-  });
+  const app = createApp(t);
 
   it('echoes an incoming x-request-id on the response', async () => {
     const res = await app.request('/ui/changes', {

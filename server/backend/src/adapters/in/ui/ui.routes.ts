@@ -1,30 +1,31 @@
 import { type Context, Hono } from 'hono';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import type { ChangeWithEntries } from '#backend/app/changes/change-entry';
+import type { DesignDoc } from '#backend/app/changes/design-doc';
+import type {
+  FindChange,
+  FindChangeResult,
+} from '#backend/app/changes/find-change';
+import type { FindDesignDoc } from '#backend/app/changes/find-design-doc';
+import type { FindSourceDocument } from '#backend/app/changes/find-source-document';
+import type { SourceDocument } from '#backend/app/changes/source-document';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import type { Handler } from '#backend/app/handler';
-import type { FindSourceDocumentById } from '#backend/app/information-sources/find-source-document-by-id';
-import type { ListSourceDocumentsForChange } from '#backend/app/information-sources/list-source-documents-for-change';
-import type { SourceDocument } from '#backend/app/information-sources/source-document';
-import type { SourceDocumentSummary } from '#backend/app/information-sources/source-document-summary';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { SearchService } from '#backend/app/search/search.service';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { createChangesApp } from './changes/changes.routes';
 import { createDesignDocsApp } from './design-docs/design-docs.routes';
-import { createDocumentsApp } from './documents/documents.routes';
 import { createSearchApp } from './search/search.routes';
+import { createSourceDocumentsApp } from './source-documents/source-documents.routes';
 
 const log = serverLogger('ui');
 
 export interface UiDeps {
   searchService: SearchService;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  listSourceDocumentsForChange: Handler<
-    ListSourceDocumentsForChange,
-    SourceDocumentSummary[]
-  >;
-  findSourceDocumentById: Handler<FindSourceDocumentById, SourceDocument>;
+  listChanges: Handler<void, ChangeWithEntries[]>;
+  findChange: Handler<FindChange, FindChangeResult>;
+  findDesignDoc: Handler<FindDesignDoc, DesignDoc>;
+  findSourceDocument: Handler<FindSourceDocument, SourceDocument>;
 }
 
 export function createUiApp(deps: UiDeps) {
@@ -34,30 +35,34 @@ export function createUiApp(deps: UiDeps) {
     .route('/search', createSearchApp({ searchService: deps.searchService }))
     .route(
       '/changes',
-      createChangesApp({ changesService: deps.changesService }),
+      createChangesApp({
+        listChanges: deps.listChanges,
+        findChange: deps.findChange,
+      }),
     )
     .route(
       '/changes/:change/design-docs',
-      createDesignDocsApp({ designDocsService: deps.designDocsService }),
+      createDesignDocsApp({ findDesignDoc: deps.findDesignDoc }),
     )
     .route(
-      '/changes/:change/documents',
-      createDocumentsApp({
-        listSourceDocumentsForChange: deps.listSourceDocumentsForChange,
-        findSourceDocumentById: deps.findSourceDocumentById,
-      }),
+      '/changes/:change/source-documents',
+      createSourceDocumentsApp({ findSourceDocument: deps.findSourceDocument }),
     );
 }
 
 /**
  * Every route of the surface fails through here, so none of them catches: a
- * missing entity answers 404 with the code the page has a sentence for, and
- * anything unforeseen is logged and answers 500.
+ * missing entity answers 404 and a write that lost a race 409, each with the
+ * code the page has a sentence for, and anything unforeseen is logged and
+ * answers 500.
  */
 function answerError(error: Error, c: Context) {
   if (error instanceof NotFoundError) {
     const code = error.entity === 'change' ? 'change_not_found' : 'not_found';
     return c.json({ error: code }, 404);
+  }
+  if (error instanceof ConcurrentModificationError) {
+    return c.json({ error: 'conflict' }, 409);
   }
   log.error('{method} {path} failed unexpectedly: {error}', {
     method: c.req.method,

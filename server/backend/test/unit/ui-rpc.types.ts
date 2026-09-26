@@ -10,15 +10,17 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
     const name: string = (await found.json()).change.name;
     void name;
   }
-  const designDocs = await client.changes[':change']['design-docs'].$get({
+  if (found.status === 200) {
+    const { change } = await found.json();
+    void change.designDocs;
+    void change.sourceDocuments;
+    // @ts-expect-error Successful responses retain their inferred fields.
+    void change.nonexistent;
+  }
+  // @ts-expect-error The change lists its design documents.
+  await client.changes[':change']['design-docs'].$get({
     param: { change: 'payment-retry' },
   });
-  if (designDocs.status === 200) {
-    const body = await designDocs.json();
-    void body.designDocs;
-    // @ts-expect-error Successful responses retain their inferred fields.
-    void body.nonexistent;
-  }
   // The ui surface only reads; the agent writes through the MCP tools.
   // @ts-expect-error No change is created here.
   await client.changes.$post({ json: { name: 'Retry', type: 'feature' } });
@@ -32,7 +34,7 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
     param: { change: 'payment-retry', id: 'doc-1' },
   });
   // @ts-expect-error No document is added here.
-  await client.changes[':change'].documents.$post({
+  await client.changes[':change']['source-documents'].$post({
     param: { change: 'payment-retry' },
     json: { document: {} },
   });

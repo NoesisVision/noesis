@@ -9,8 +9,10 @@ import {
   MAX_WORKING_FILE_BYTES,
   type SessionFiles,
 } from '#backend/adapters/in/mcp/session-files';
-import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
+import { ChangeId } from '#backend/app/changes/change-id';
+import { DesignDocId } from '#backend/app/changes/design-doc-id';
+import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,
@@ -29,13 +31,11 @@ beforeEach(async () => {
   noesis = await testNoesis();
   files = await new SessionDir(noesis.noesis).open();
   const server = createMcpServer({
+    ...noesis,
+    createChange: noesis.createChangeHandler,
     version: '0.0.0-test',
     noesis: noesis.noesis,
     sessionFiles: files,
-    changesService: noesis.changesService,
-    designDocsService: noesis.designDocsService,
-    createSourceDocument: noesis.createSourceDocument,
-    updateSourceDocument: noesis.updateSourceDocument,
   });
   client = new Client({ name: 'mcp-spec', version: '0.0.0' });
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
@@ -96,7 +96,9 @@ describe('the MCP surface', () => {
 
   it('advertises every create as adding anew and every update as an idempotent overwrite', async () => {
     const { tools } = await client.listTools();
-    for (const tool of tools.filter((t) => t.name.startsWith('create_'))) {
+    const creates = tools.filter((t) => /^(create|add)_/.test(t.name));
+    expect(creates).toHaveLength(3);
+    for (const tool of creates) {
       expect(tool.annotations).toMatchObject({
         readOnlyHint: false,
         destructiveHint: false,
@@ -115,9 +117,9 @@ describe('the MCP surface', () => {
   it('offers exactly the seven tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'add_design_doc_to_change',
+      'add_document_to_change',
       'create_change',
-      'create_design_doc_in_change',
-      'create_document_in_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
@@ -146,7 +148,7 @@ describe('create_change', () => {
       change: { id, ...change, status: 'discovery', description: '' },
     });
     expect(textOf(result)).toContain(`Created change ${id}`);
-    expect(await noesis.changesService.list()).toHaveLength(1);
+    expect(await noesis.listChanges.handle()).toHaveLength(1);
   });
 
   it('creates a new change on every call, never overwriting one', async () => {
@@ -158,7 +160,7 @@ describe('create_change', () => {
     expect(again.structuredContent).toMatchObject({
       change: { id: `${TODAY}-payment-retry-2` },
     });
-    expect(await noesis.changesService.list()).toHaveLength(2);
+    expect(await noesis.listChanges.handle()).toHaveLength(2);
   });
 
   it('starts the change in discovery, whatever status the file names', async () => {
@@ -181,7 +183,7 @@ describe('create_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('→ at type');
-    expect(await noesis.changesService.list()).toEqual([]);
+    expect(await noesis.listChanges.handle()).toEqual([]);
   });
 });
 
@@ -201,7 +203,7 @@ describe('update_change', () => {
       change: { id: CHANGE, name: 'Payment retries', status: 'design' },
     });
     expect(textOf(result)).toContain(`Updated change ${CHANGE}`);
-    expect(await noesis.changesService.list()).toHaveLength(1);
+    expect(await noesis.listChanges.handle()).toHaveLength(1);
   });
 
   it('answers an id that names no change in-band, having created nothing', async () => {
@@ -215,7 +217,7 @@ describe('update_change', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No change "${CHANGE}"`);
     expect(textOf(result)).toContain('list_changes');
-    expect(await noesis.changesService.list()).toEqual([]);
+    expect(await noesis.listChanges.handle()).toEqual([]);
   });
 
   it('refuses an id that is not a dated id', async () => {
@@ -227,7 +229,7 @@ describe('update_change', () => {
     const result = await call('update_change', { id: 'payment-retry', path });
 
     expect(result.isError).toBe(true);
-    expect(await noesis.changesService.list()).toEqual([]);
+    expect(await noesis.listChanges.handle()).toEqual([]);
   });
 });
 
@@ -259,10 +261,42 @@ describe('list_changes', () => {
       '2026-01-02-refund-rounding',
       CHANGE,
     ]);
-    expect(changes).toEqual(await noesis.changesService.list());
+    expect(changes).toEqual(await noesis.listChanges.handle());
     expect(textOf(result)).toContain(`${CHANGE} [NOE-142]: Payment retry`);
     expect(textOf(result)).toContain(
       '2026-01-02-refund-rounding: Refund rounding',
+    );
+  });
+
+  it("names each change's design documents and documents, in the text as well", async () => {
+    const change = await noesis.createChange(CHANGE);
+    await call('add_design_doc_to_change', {
+      change,
+      path: await workingFile('design-doc.json', designDoc),
+    });
+    await call('add_document_to_change', {
+      change,
+      path: await workingFile('document.json', document),
+    });
+
+    const result = await client.callTool({ name: 'list_changes' });
+
+    expect(result.structuredContent).toMatchObject({
+      changes: [
+        {
+          id: CHANGE,
+          entries: [
+            { kind: 'design-doc', id: DESIGN_DOC_ID, implemented: false },
+            { kind: 'document', id: DOCUMENT_ID, name: document.title },
+          ],
+        },
+      ],
+    });
+    expect(textOf(result)).toContain(
+      `design document ${DESIGN_DOC_ID}: Partial refunds for orders (not implemented)`,
+    );
+    expect(textOf(result)).toContain(
+      `document ${DOCUMENT_ID}: ${document.title}`,
     );
   });
 
@@ -273,19 +307,19 @@ describe('list_changes', () => {
   });
 });
 
-describe('create_document_in_change', () => {
+describe('add_document_to_change', () => {
   it('stores the document the working file holds, at a minted id', async () => {
     const change = await noesis.createChange(CHANGE);
     const path = await workingFile('document.json', document);
 
-    const result = await call('create_document_in_change', { change, path });
+    const result = await call('add_document_to_change', { change, path });
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toEqual({
       document: { id: DOCUMENT_ID, title: document.title, date: document.date },
     });
-    expect(textOf(result)).toContain(`Created document ${DOCUMENT_ID}`);
-    const stored = await noesis.findSourceDocumentById.handle({
+    expect(textOf(result)).toContain(`Added document ${DOCUMENT_ID}`);
+    const stored = await noesis.findSourceDocument.handle({
       change,
       id: SourceDocumentId.parse(DOCUMENT_ID),
     });
@@ -295,7 +329,7 @@ describe('create_document_in_change', () => {
   it('reports an unknown change in-band and writes nothing', async () => {
     const path = await workingFile('document.json', document);
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: '2026-01-01-no-such-change',
       path,
     });
@@ -308,7 +342,7 @@ describe('create_document_in_change', () => {
   it('reports a value that is not a change id at all', async () => {
     const path = await workingFile('document.json', document);
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: 'Payment Retry',
       path,
     });
@@ -322,7 +356,7 @@ describe('create_document_in_change', () => {
     const outside = join(noesis.root, 'document.json');
     await writeFile(outside, JSON.stringify(document));
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: CHANGE,
       path: outside,
     });
@@ -338,7 +372,7 @@ describe('create_document_in_change', () => {
       content: 42,
     });
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -356,7 +390,7 @@ describe('create_document_in_change', () => {
       'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
     );
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -372,7 +406,7 @@ describe('create_document_in_change', () => {
       date: 'last Tuesday',
     });
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -388,7 +422,7 @@ describe('create_document_in_change', () => {
       title: '???',
     });
 
-    const result = await call('create_document_in_change', { change, path });
+    const result = await call('add_document_to_change', { change, path });
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
@@ -400,7 +434,7 @@ describe('create_document_in_change', () => {
     await noesis.createChange(CHANGE);
     const path = await workingFile('document.json', 'not json at all');
 
-    const result = await call('create_document_in_change', {
+    const result = await call('add_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -413,7 +447,7 @@ describe('create_document_in_change', () => {
 describe('update_document_in_change', () => {
   it('replaces the document at its id, which a new title leaves as it was', async () => {
     const change = await noesis.createChange(CHANGE);
-    await call('create_document_in_change', {
+    await call('add_document_to_change', {
       change,
       path: await workingFile('document.json', document),
     });
@@ -432,9 +466,7 @@ describe('update_document_in_change', () => {
       document: { id: DOCUMENT_ID, title: 'Retry interview, revised' },
     });
     expect(textOf(result)).toContain(`Updated document ${DOCUMENT_ID}`);
-    expect(
-      await noesis.listSourceDocumentsForChange.handle({ change: change }),
-    ).toHaveLength(1);
+    expect((await noesis.stored(change)).sourceDocuments).toHaveLength(1);
   });
 
   it('answers an id that names no document in-band, having created nothing', async () => {
@@ -448,10 +480,8 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
-    expect(textOf(result)).toContain('create_document_in_change');
-    expect(
-      await noesis.listSourceDocumentsForChange.handle({ change: change }),
-    ).toEqual([]);
+    expect(textOf(result)).toContain('add_document_to_change');
+    expect((await noesis.stored(change)).sourceDocuments).toEqual([]);
   });
 
   it('reports an unknown change in-band', async () => {
@@ -466,12 +496,12 @@ describe('update_document_in_change', () => {
   });
 });
 
-describe('create_design_doc_in_change', () => {
+describe('add_design_doc_to_change', () => {
   it('stores the design document the working file holds, at a minted id', async () => {
     const change = await noesis.createChange(CHANGE);
     const path = await workingFile('design-doc.json', designDoc);
 
-    const result = await call('create_design_doc_in_change', { change, path });
+    const result = await call('add_design_doc_to_change', { change, path });
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toEqual({
@@ -481,20 +511,18 @@ describe('create_design_doc_in_change', () => {
         implemented: false,
       },
     });
-    expect(textOf(result)).toContain(
-      `Created design document ${DESIGN_DOC_ID}`,
-    );
-    const stored = await noesis.designDocsService.findById(
+    expect(textOf(result)).toContain(`Added design document ${DESIGN_DOC_ID}`);
+    const stored = await noesis.findDesignDoc.handle({
       change,
-      DESIGN_DOC_ID,
-    );
+      id: DESIGN_DOC_ID,
+    });
     expect(stored.name).toBe(designDoc.name);
   });
 
   it('reports an unknown change in-band', async () => {
     const path = await workingFile('design-doc.json', designDoc);
 
-    const result = await call('create_design_doc_in_change', {
+    const result = await call('add_design_doc_to_change', {
       change: '2026-01-01-no-such-change',
       path,
     });
@@ -507,7 +535,7 @@ describe('create_design_doc_in_change', () => {
   it('reports a value that is not a change id at all', async () => {
     const path = await workingFile('design-doc.json', designDoc);
 
-    const result = await call('create_design_doc_in_change', {
+    const result = await call('add_design_doc_to_change', {
       change: 'Payment Retry',
       path,
     });
@@ -521,7 +549,7 @@ describe('create_design_doc_in_change', () => {
     const outside = join(noesis.root, 'design-doc.json');
     await writeFile(outside, JSON.stringify(designDoc));
 
-    const result = await call('create_design_doc_in_change', {
+    const result = await call('add_design_doc_to_change', {
       change: CHANGE,
       path: outside,
     });
@@ -538,7 +566,7 @@ describe('create_design_doc_in_change', () => {
       buildingBlocks: { added: [{ id: 'not an id' }] },
     });
 
-    const result = await call('create_design_doc_in_change', {
+    const result = await call('add_design_doc_to_change', {
       change: CHANGE,
       path,
     });
@@ -547,7 +575,7 @@ describe('create_design_doc_in_change', () => {
     const text = textOf(result);
     expect(text).toContain('→ at name');
     expect(text).toContain('→ at buildingBlocks');
-    expect(await noesis.designDocsService.list(change)).toEqual([]);
+    expect((await noesis.stored(change)).designDocs).toEqual([]);
   });
 
   it('refuses a working file that names an id: the server mints it', async () => {
@@ -557,11 +585,11 @@ describe('create_design_doc_in_change', () => {
       id: '2020-01-01-chosen-by-agent',
     });
 
-    const result = await call('create_design_doc_in_change', { change, path });
+    const result = await call('add_design_doc_to_change', { change, path });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('Unrecognized key: "id"');
-    expect(await noesis.designDocsService.list(change)).toEqual([]);
+    expect((await noesis.stored(change)).designDocs).toEqual([]);
   });
 
   it('refuses a key the design document does not know, rather than dropping it', async () => {
@@ -571,7 +599,7 @@ describe('create_design_doc_in_change', () => {
       modules: { added: [], removed: [], modified: [], renamed: [] },
     });
 
-    const result = await call('create_design_doc_in_change', { change, path });
+    const result = await call('add_design_doc_to_change', { change, path });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('Unrecognized key: "renamed"');
@@ -583,7 +611,7 @@ describe('create_design_doc_in_change', () => {
     const { id: _id, ...reviewed } = designDocFixture;
     const path = await workingFile('design-doc.json', reviewed);
 
-    const result = await call('create_design_doc_in_change', { change, path });
+    const result = await call('add_design_doc_to_change', { change, path });
 
     expect(result.isError).toBe(true);
     const text = textOf(result);
@@ -594,7 +622,7 @@ describe('create_design_doc_in_change', () => {
     expect(text).toContain(
       '- modules.modified[module|sales.orders].description: write every field as the agent',
     );
-    expect(await noesis.designDocsService.list(change)).toEqual([]);
+    expect((await noesis.stored(change)).designDocs).toEqual([]);
   });
 });
 
@@ -602,7 +630,7 @@ describe('update_design_doc_in_change', () => {
   it('replaces the design document at its id', async () => {
     const change = await noesis.createChange(CHANGE);
     const path = await workingFile('design-doc.json', designDoc);
-    await call('create_design_doc_in_change', { change, path });
+    await call('add_design_doc_to_change', { change, path });
 
     const result = await call('update_design_doc_in_change', {
       change,
@@ -620,19 +648,19 @@ describe('update_design_doc_in_change', () => {
     expect(textOf(result)).toContain(
       `Updated design document ${DESIGN_DOC_ID}`,
     );
-    expect(await noesis.designDocsService.list(change)).toHaveLength(1);
+    expect((await noesis.stored(change)).designDocs).toHaveLength(1);
   });
 
   it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
     const change = await noesis.createChange(CHANGE);
-    await call('create_design_doc_in_change', {
+    await call('add_design_doc_to_change', {
       change,
       path: await workingFile('design-doc.json', designDoc),
     });
-    const stored = await noesis.designDocsService.findById(
+    const stored = await noesis.findDesignDoc.handle({
       change,
-      DESIGN_DOC_ID,
-    );
+      id: DESIGN_DOC_ID,
+    });
 
     const result = await call('update_design_doc_in_change', {
       change,
@@ -648,7 +676,7 @@ describe('update_design_doc_in_change', () => {
       '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
     );
     expect(
-      await noesis.designDocsService.findById(change, DESIGN_DOC_ID),
+      await noesis.findDesignDoc.handle({ change, id: DESIGN_DOC_ID }),
     ).toEqual(stored);
   });
 
@@ -663,6 +691,43 @@ describe('update_design_doc_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No design document "${DESIGN_DOC_ID}"`);
-    expect(await noesis.designDocsService.list(change)).toEqual([]);
+    expect((await noesis.stored(change)).designDocs).toEqual([]);
+  });
+});
+
+describe('a write that lost a race', () => {
+  it('answers in-band, saying to read the change again and retry', async () => {
+    const raced = createMcpServer({
+      ...noesis,
+      createChange: noesis.createChangeHandler,
+      version: '0.0.0-test',
+      noesis: noesis.noesis,
+      sessionFiles: files,
+      addDocumentToChange: {
+        handle: () =>
+          Promise.reject(
+            new ConcurrentModificationError(ChangeId.parse(CHANGE)),
+          ),
+      },
+    });
+    const racedClient = new Client({ name: 'mcp-spec', version: '0.0.0' });
+    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      raced.connect(serverSide),
+      racedClient.connect(clientSide),
+    ]);
+
+    const result = await racedClient.callTool({
+      name: 'add_document_to_change',
+      arguments: {
+        change: CHANGE,
+        path: await workingFile('document.json', document),
+      },
+    });
+    await racedClient.close();
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Nothing was written');
+    expect(textOf(result)).toContain('list_changes');
   });
 });

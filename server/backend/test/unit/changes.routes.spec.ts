@@ -1,9 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { Change } from '#backend/app/changes/change';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import { SearchService } from '#backend/app/search/search.service';
+import { SourceDocumentId } from '#backend/app/changes/source-document-id';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -16,13 +14,7 @@ let app: ReturnType<typeof createUiApp>;
 beforeEach(async () => {
   t = await testNoesis();
   // Through the whole surface: its error handler answers a missing change.
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
-    findSourceDocumentById: t.findSourceDocumentById,
-  });
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
@@ -30,54 +22,30 @@ afterEach(() => t.cleanup());
 const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
 
-const post = (body: unknown) =>
-  app.request('/changes', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-/** Writes a change as the agent's tools leave it, bypassing the service. */
-const add = async (
-  id: string,
-  name: string,
-  key = '',
-  type: Change['type'] = 'feature',
-): Promise<Change> => {
-  const change: Change = {
-    id: ChangeId.parse(id),
-    name,
-    key,
-    type,
-    status: 'discovery',
-    description: '',
-  };
-  await t.changesRepository.save(change);
-  return change;
+const document = {
+  id: SourceDocumentId.parse('2026-09-12-stakeholder-interview'),
+  title: 'Stakeholder interview',
+  date: '2026-09-12',
+  content: 'What they said.',
 };
 
 describe('ui changes routes', () => {
   it('returns an empty list when there are no changes', async () => {
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with its entries, scoped to it', async () => {
+  it('lists each change newest first, with its entries, scoped to it', async () => {
     const older = await t.createChange('2026-09-13-older', {
       name: 'Older change',
+      key: 'NOE-142',
     });
     await t.createChange('2026-09-14-newer', { name: 'Newer change' });
     await t.writeDesignDoc(older, designDocFixture);
-    const document = {
-      id: SourceDocumentId.parse('2026-09-12-stakeholder-interview'),
-      title: 'Stakeholder interview',
-      date: '2026-09-12',
-      content: 'What they said.',
-    };
     await t.writeDocument(older, document);
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       changes: [
@@ -93,7 +61,7 @@ describe('ui changes routes', () => {
         {
           id: '2026-09-13-older',
           name: 'Older change',
-          key: '',
+          key: 'NOE-142',
           type: 'chore',
           status: 'discovery',
           description: '',
@@ -102,6 +70,7 @@ describe('ui changes routes', () => {
               kind: 'design-doc',
               id: decodedDesignDocFixture.id,
               name: decodedDesignDocFixture.name,
+              implemented: false,
             },
             { kind: 'document', id: document.id, name: document.title },
           ],
@@ -125,7 +94,7 @@ describe('ui changes routes', () => {
       });
     }
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     const { changes } = (await response.json()) as {
       changes: { entries: { name: string }[] }[];
     };
@@ -136,47 +105,52 @@ describe('ui changes routes', () => {
     ]);
   });
 
-  it('lists what is stored, whole', async () => {
-    const change = await add(
-      '2026-09-01-payment-retry',
-      'Payment retry',
-      'NOE-142',
-    );
-
-    const listed = await app.request('/changes');
-    expect(listed.status).toBe(200);
-    expect(await listed.json()).toEqual({ changes: [change] });
-    expect(await ids()).toEqual(['2026-09-01-payment-retry']);
-  });
-
   // Creating is the agent's, through the `create_change` tool.
   it('writes nothing: POST is not a route of this surface', async () => {
-    const res = await post({ name: 'Payment retry', type: 'feature' });
+    const res = await app.request('/changes', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Payment retry', type: 'feature' }),
+    });
 
     expect(res.status).toBe(404);
     expect(await ids()).toEqual([]);
   });
 
-  it('lists newest first', async () => {
-    await add('2026-09-01-older', 'Older', '', 'chore');
-    await add('2026-09-02-newer', 'Newer', '', 'fix');
-    const { changes } = (await (await app.request('/changes')).json()) as {
-      changes: Change[];
-    };
-    expect(changes.map((c) => c.id)).toEqual([
-      ChangeId.parse('2026-09-02-newer'),
-      ChangeId.parse('2026-09-01-older'),
-    ]);
+  it('reads one change with what it owns summarised', async () => {
+    const change = await t.createChange('2026-09-01-audit-log', {
+      name: 'Audit log',
+      type: 'improvement',
+    });
+    await t.writeDesignDoc(change, designDocFixture);
+    await t.writeDocument(change, document);
+
+    const found = await app.request('/changes/2026-09-01-audit-log');
+
+    expect(found.status).toBe(200);
+    expect(await found.json()).toEqual({
+      change: {
+        id: '2026-09-01-audit-log',
+        name: 'Audit log',
+        key: '',
+        type: 'improvement',
+        status: 'discovery',
+        description: '',
+        designDocs: [
+          {
+            id: decodedDesignDocFixture.id,
+            name: decodedDesignDocFixture.name,
+            implemented: false,
+          },
+        ],
+        sourceDocuments: [
+          { id: document.id, title: document.title, date: document.date },
+        ],
+      },
+    });
   });
 
-  it('reads one change by id and 404s an unknown or unsafe one', async () => {
-    await add('2026-09-01-audit-log', 'Audit log', '', 'improvement');
-    const found = await app.request('/changes/2026-09-01-audit-log');
-    expect(found.status).toBe(200);
-    expect(((await found.json()) as { change: Change }).change.name).toBe(
-      'Audit log',
-    );
-
+  it('404s an unknown or unsafe change id', async () => {
     const missing = await app.request('/changes/2026-09-01-nope');
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ error: 'change_not_found' });
@@ -185,5 +159,18 @@ describe('ui changes routes', () => {
       expect(res.status).toBe(404);
       expect(await res.json()).toEqual({ error: 'change_not_found' });
     }
+  });
+
+  it('answers a write that lost a race with 409', async () => {
+    const raced = await t.createChange('2026-09-01-raced');
+    const res = await createUiApp({
+      ...t,
+      listChanges: {
+        handle: () => Promise.reject(new ConcurrentModificationError(raced)),
+      },
+    }).request('/changes');
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'conflict' });
   });
 });

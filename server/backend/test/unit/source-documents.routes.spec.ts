@@ -1,19 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/change-id';
-import type { SourceDocument } from '#backend/app/information-sources/source-document';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
-import { SearchService } from '#backend/app/search/search.service';
+import type { SourceDocument } from '#backend/app/changes/source-document';
+import { SourceDocumentId } from '#backend/app/changes/source-document-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
-// mount path (`/changes/:change/documents`), which is what is under test.
+// mount path (`/changes/:change/source-documents`), which is what is under test.
 // The surface only reads; documents get in through the MCP tools, so the
-// tests seed them through the service.
+// tests write them into the change directly.
 
 const CHANGE = '2026-01-01-booking';
 const ID = '2026-09-18-booking-rules';
-const BASE = `/changes/${CHANGE}/documents`;
+const BASE = `/changes/${CHANGE}/source-documents`;
 
 const document: SourceDocument = {
   id: SourceDocumentId.parse(ID),
@@ -29,27 +28,17 @@ let app: ReturnType<typeof createUiApp>;
 beforeEach(async () => {
   t = await testNoesis();
   change = await t.createChange(CHANGE);
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
-    findSourceDocumentById: t.findSourceDocumentById,
-  });
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
 
-describe('ui documents routes', () => {
-  it('lists the stored documents of the change', async () => {
+describe('ui source-documents routes', () => {
+  // The change lists them: `GET /changes/:id`.
+  it('lists nothing of its own', async () => {
     await t.writeDocument(change, document);
 
-    const listed = await app.request(BASE);
-    expect(listed.status).toBe(200);
-    const { documents } = (await listed.json()) as {
-      documents: { id: string }[];
-    };
-    expect(documents.map((d) => d.id)).toEqual([ID]);
+    expect((await app.request(BASE)).status).toBe(404);
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
@@ -79,17 +68,17 @@ describe('ui documents routes', () => {
     expect((await send('POST', BASE)).status).toBe(404);
     expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
-    expect(
-      (await t.listSourceDocumentsForChange.handle({ change: change })).map(
-        (d) => d.id,
-      ),
-    ).toEqual([SourceDocumentId.parse(ID)]);
+    expect((await t.stored(change)).sourceDocuments.map((d) => d.id)).toEqual([
+      SourceDocumentId.parse(ID),
+    ]);
   });
 
-  it('404s every route of a change that does not exist', async () => {
-    const other = '/changes/2026-01-01-nope/documents';
+  it('404s a document of a change that does not exist', async () => {
+    const res = await app.request(
+      `/changes/2026-01-01-nope/source-documents/${ID}`,
+    );
 
-    expect((await app.request(other)).status).toBe(404);
-    expect((await app.request(`${other}/${ID}`)).status).toBe(404);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'change_not_found' });
   });
 });

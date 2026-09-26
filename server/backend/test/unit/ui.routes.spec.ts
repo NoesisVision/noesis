@@ -7,13 +7,7 @@ const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('ui routes', () => {
-  const app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    listSourceDocumentsForChange: t.listSourceDocumentsForChange,
-    findSourceDocumentById: t.findSourceDocumentById,
-  });
+  const app = createUiApp(t);
 
   it('has no greeting any more', async () => {
     expect((await app.request('/hello')).status).toBe(404);
@@ -27,13 +21,9 @@ describe('ui routes', () => {
   it('answers an unforeseen failure as JSON, not a bare 500 page', async () => {
     const failing = new SearchService();
     failing.search = () => Promise.reject(new Error('disk on fire'));
-    const res = await createUiApp({
-      searchService: failing,
-      changesService: t.changesService,
-      designDocsService: t.designDocsService,
-      listSourceDocumentsForChange: t.listSourceDocumentsForChange,
-      findSourceDocumentById: t.findSourceDocumentById,
-    }).request('/search?q=x');
+    const res = await createUiApp({ ...t, searchService: failing }).request(
+      '/search?q=x',
+    );
 
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: 'internal' });
