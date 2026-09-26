@@ -23,9 +23,7 @@ export const SourceDocument = z
       .string()
       .describe('The document text, verbatim. Revised whenever it changes.'),
   })
-  .describe(
-    'A document of a change: the working file an agent writes, and graph/changes/<change>/<id>.document.json.',
-  );
+  .describe('A document of a change, as its change file holds it.');
 export type SourceDocument = z.infer<typeof SourceDocument>;
 
 /** The working file an agent writes: a document without its id, which the server mints. */

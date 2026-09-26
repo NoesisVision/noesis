@@ -1,7 +1,7 @@
 import {
   DesignDoc,
   type DesignDocInput,
-} from '#backend/app/design-docs/design-doc';
+} from '#backend/app/changes/design-doc';
 
 /*
  * The JSON form, with every default spelled out, so that decoding and

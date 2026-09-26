@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { SourceDocumentId } from '#backend/app/information-sources/source-document-id';
+import { DesignDocId } from '#backend/app/changes/design-doc-id';
+import { SourceDocumentId } from '#backend/app/changes/source-document-id';
 
 describe.each([
   ['ChangeId', ChangeId],

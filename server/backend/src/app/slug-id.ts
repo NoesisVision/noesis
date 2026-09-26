@@ -74,8 +74,8 @@ function slugify(text: string, maxLength: number): string {
 
 /**
  * The first of `slugIdCandidates` that `isTaken` turns down, as `schema`
- * parses it. The caller runs this and the write that takes the id as one
- * step, so two writers never pick the same one.
+ * parses it. Two writers may pick the same one; the store refuses the second
+ * write.
  */
 export async function freeSlugId<Id extends z.ZodType<string>>(
   schema: Id,
@@ -87,5 +87,19 @@ export async function freeSlugId<Id extends z.ZodType<string>>(
   for (;;) {
     const id = schema.parse(candidates.next().value);
     if (!(await isTaken(id))) return id;
+  }
+}
+
+/** `freeSlugId` against ids held in memory. */
+export function freeSlugIdAmong<Id extends z.ZodType<string>>(
+  schema: Id,
+  title: string,
+  date: string,
+  taken: ReadonlySet<string>,
+): z.output<Id> {
+  const candidates = slugIdCandidates(title, date);
+  for (;;) {
+    const id = schema.parse(candidates.next().value);
+    if (!taken.has(id)) return id;
   }
 }

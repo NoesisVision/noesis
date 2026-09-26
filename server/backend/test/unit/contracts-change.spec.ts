@@ -2,14 +2,17 @@ import { describe, expect, it } from 'bun:test';
 import {
   CHANGE_STATUSES,
   CHANGE_TYPES,
-  Change,
-} from '#backend/app/changes/change';
+  ChangeSnapshot as Change,
+} from '#backend/app/changes/change-snapshot';
 
-describe('Change', () => {
+describe('ChangeSnapshot', () => {
   const minimal = {
     id: '2026-09-13-payment-retry',
     name: 'Payment retry',
     type: 'feature' as const,
+    version: 1,
+    designDocs: [],
+    sourceDocuments: [],
   };
 
   it('starts a new change in discovery, with no key and no description', () => {
@@ -26,9 +29,8 @@ describe('Change', () => {
     expect(Change.parse({ ...minimal, name: '  Payment retry ' }).name).toBe(
       'Payment retry',
     );
-    expect(Change.safeParse({ id: minimal.id, name: 'No type' }).success).toBe(
-      false,
-    );
+    const { type: _, ...withoutType } = minimal;
+    expect(Change.safeParse(withoutType).success).toBe(false);
   });
 
   it('rejects an empty name', () => {
@@ -59,6 +61,12 @@ describe('Change', () => {
       'implementation',
       'done',
     ]);
+  });
+
+  it('requires a version of 1 or more', () => {
+    const { version: _, ...unversioned } = minimal;
+    expect(Change.safeParse(unversioned).success).toBe(false);
+    expect(Change.safeParse({ ...minimal, version: 0 }).success).toBe(false);
   });
 
   it('rejects a type or status outside the vocabulary', () => {
