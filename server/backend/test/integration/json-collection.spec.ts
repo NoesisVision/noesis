@@ -130,4 +130,16 @@ describe('JsonCollection', () => {
 
     expect(await notes.get(id)).toEqual(note(id));
   });
+
+  it('saves only when the check takes what is stored, telling which it did', async () => {
+    const absent = (stored: Note | null) => stored === null;
+
+    expect(notes.saveIf(note('a', 'first'), absent)).toBe(true);
+    expect(notes.saveIf(note('a', 'second'), absent)).toBe(false);
+    expect(
+      notes.saveIf(note('a', 'third'), (stored) => stored?.text === 'first'),
+    ).toBe(true);
+
+    expect(await notes.get('a')).toEqual(note('a', 'third'));
+  });
 });

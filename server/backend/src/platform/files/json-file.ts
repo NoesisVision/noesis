@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
@@ -45,14 +46,20 @@ export async function writeJsonFile<T>(
   schema: ZodType<T>,
   value: T,
 ): Promise<void> {
-  // A schema may decode into a value object (a codec); what is stored is the
-  // JSON side of it, which a read decodes again.
-  const encoded = schema.safeEncode(value);
-  if (!encoded.success) {
-    throw new JsonFileError(path, describeIssues(encoded.error));
-  }
+  const content = encodeJson(path, schema, value);
   await mkdir(dirname(path), { recursive: true });
-  await replaceAtomically(path, `${JSON.stringify(encoded.data, null, 2)}\n`);
+  await replaceAtomically(path, content);
+}
+
+/** `writeJsonFile` without yielding, for a caller whose check before it must not be interleaved. */
+export function writeJsonFileSync<T>(
+  path: string,
+  schema: ZodType<T>,
+  value: T,
+): void {
+  const content = encodeJson(path, schema, value);
+  mkdirSync(dirname(path), { recursive: true });
+  replaceAtomicallySync(path, content);
 }
 
 export class JsonFileError extends Error {
@@ -63,6 +70,16 @@ export class JsonFileError extends Error {
     this.name = 'JsonFileError';
     this.path = path;
   }
+}
+
+// A schema may decode into a value object (a codec); what is stored is the
+// JSON side of it, which a read decodes again.
+function encodeJson<T>(path: string, schema: ZodType<T>, value: T): string {
+  const encoded = schema.safeEncode(value);
+  if (!encoded.success) {
+    throw new JsonFileError(path, describeIssues(encoded.error));
+  }
+  return `${JSON.stringify(encoded.data, null, 2)}\n`;
 }
 
 function describeIssues(error: z.ZodError): string {
@@ -78,6 +95,17 @@ async function replaceAtomically(path: string, content: string): Promise<void> {
     await rename(temp, path);
   } catch (error) {
     await rm(temp, { force: true });
+    throw error;
+  }
+}
+
+function replaceAtomicallySync(path: string, content: string): void {
+  const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
+  try {
+    writeFileSync(temp, content);
+    renameSync(temp, path);
+  } catch (error) {
+    rmSync(temp, { force: true });
     throw error;
   }
 }

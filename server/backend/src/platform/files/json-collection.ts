@@ -1,7 +1,13 @@
+import { readFileSync } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { JsonFileError, parseJson, writeJsonFile } from './json-file';
+import {
+  JsonFileError,
+  parseJson,
+  writeJsonFile,
+  writeJsonFileSync,
+} from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -14,7 +20,8 @@ function byCodeUnit(a: string, b: string): number {
 /**
  * One entity per file, `<dir>/<id>.<kind>.json`. No locks: the atomic rename
  * in `writeJsonFile` is the whole guarantee, so the last complete write wins,
- * across processes too.
+ * across processes too, unless the writer checks what it replaces with
+ * `saveIf`.
  */
 export class JsonCollection<T extends { id: string }> {
   private readonly schema: ZodType<T>;
@@ -42,6 +49,21 @@ export class JsonCollection<T extends { id: string }> {
   // `async`, so a refused id rejects instead of throwing before the promise exists.
   async save(entity: T): Promise<void> {
     return writeJsonFile(this.pathOf(entity.id), this.schema, entity);
+  }
+
+  /**
+   * Writes `entity` only when `accepts` takes the stored one, `null` when
+   * there is none; answers whether it wrote. The read, the check and the
+   * write never yield, so no other write of this process comes between them.
+   * Another process still can.
+   */
+  saveIf(entity: T, accepts: (stored: T | null) => boolean): boolean {
+    const path = this.pathOf(entity.id);
+    const text = readFileIfExistsSync(path);
+    const stored = text === null ? null : this.decode(path, entity.id, text);
+    if (!accepts(stored)) return false;
+    writeJsonFileSync(path, this.schema, entity);
+    return true;
   }
 
   private pathOf(id: string): string {
@@ -78,6 +100,10 @@ export class JsonCollection<T extends { id: string }> {
       if (isMissing(error)) return null;
       throw error;
     }
+    return this.decode(path, id, text);
+  }
+
+  private decode(path: string, id: string, text: string): T {
     const result = parseJson(text, this.schema);
     if (result.isErr()) throw new JsonFileError(path, result.error);
     if (result.value.id !== id) {
@@ -87,6 +113,15 @@ export class JsonCollection<T extends { id: string }> {
       );
     }
     return result.value;
+  }
+}
+
+function readFileIfExistsSync(path: string): string | null {
+  try {
+    return readFileSync(path, 'utf8');
+  } catch (error) {
+    if (isMissing(error)) return null;
+    throw error;
   }
 }
 
