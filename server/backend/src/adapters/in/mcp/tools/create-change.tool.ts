@@ -24,7 +24,7 @@ export function createChangeTool(
     CREATE_CHANGE,
     {
       title: 'Create change',
-      description: `Creates a change: the unit of work everything else in Noesis hangs off. The change is what a feature, fix, improvement or chore is called here, and it collects the documents that inform it and the design documents that describe it. The server mints its id from today's date and the name, and every call creates a new change, so check ${LIST_CHANGES} first and use ${UPDATE_CHANGE} for one that exists. Write the change to a JSON working file under the session scratch directory and pass its path.`,
+      description: `Creates a change: the unit of work everything else in Noesis hangs off. The change is what a feature, fix, improvement or chore is called here, and it collects the source documents that inform it and the design documents that describe it. The server mints its id from today's date and the name, and every call creates a new change, so check ${LIST_CHANGES} first and use ${UPDATE_CHANGE} for one that exists. Write the change to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: z
         .object({
           path: workingFilePath(

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { z } from 'zod';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
-import { AddDocumentToChangeHandler } from '#backend/app/changes/add-document-to-change';
+import { AddSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
 import { CreateChangeHandler } from '#backend/app/changes/create-change';
 import { FindChangeHandler } from '#backend/app/changes/find-change';
 import { FindDesignDocHandler } from '#backend/app/changes/find-design-doc';
@@ -20,7 +20,7 @@ import {
 import { SourceDocument } from '#backend/app/changes/model/source-document';
 import { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
-import { UpdateDocumentInChangeHandler } from '#backend/app/changes/update-document-in-change';
+import { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import { SearchService } from '#backend/app/search/search.service';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -42,8 +42,8 @@ export interface TestNoesis {
   updateChange: UpdateChangeHandler;
   addDesignDocToChange: AddDesignDocToChangeHandler;
   updateDesignDocInChange: UpdateDesignDocInChangeHandler;
-  addDocumentToChange: AddDocumentToChangeHandler;
-  updateDocumentInChange: UpdateDocumentInChangeHandler;
+  addSourceDocumentToChange: AddSourceDocumentToChangeHandler;
+  updateSourceDocumentInChange: UpdateSourceDocumentInChangeHandler;
   listChanges: ListChangesHandler;
   findChange: FindChangeHandler;
   findDesignDoc: FindDesignDocHandler;
@@ -96,8 +96,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     updateDesignDocInChange: new UpdateDesignDocInChangeHandler(
       changesRepository,
     ),
-    addDocumentToChange: new AddDocumentToChangeHandler(changesRepository),
-    updateDocumentInChange: new UpdateDocumentInChangeHandler(
+    addSourceDocumentToChange: new AddSourceDocumentToChangeHandler(
+      changesRepository,
+    ),
+    updateSourceDocumentInChange: new UpdateSourceDocumentInChangeHandler(
       changesRepository,
     ),
     listChanges: new ListChangesHandler(changesRepository),

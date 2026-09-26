@@ -26,7 +26,7 @@ export function updateChangeTool(
     UPDATE_CHANGE,
     {
       title: 'Update change',
-      description: `Replaces what an existing change says of itself: its name, type, key, status and description. Its documents and design documents stay as they are. The id stays as it was, even when the name changes. Never creates a change; use ${CREATE_CHANGE} for that. Write the change to a JSON working file under the session scratch directory and pass its path with the change's id.`,
+      description: `Replaces what an existing change says of itself: its name, type, key, status and description. Its source documents and design documents stay as they are. The id stays as it was, even when the name changes. Never creates a change; use ${CREATE_CHANGE} for that. Write the change to a JSON working file under the session scratch directory and pass its path with the change's id.`,
       inputSchema: z
         .object({
           id: ChangeId.describe(

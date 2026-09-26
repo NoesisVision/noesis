@@ -43,16 +43,16 @@ describe('ui design-docs routes', () => {
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
     const detail = (await res.json()) as {
-      document: {
+      designDoc: {
         id: string;
         description: string;
         buildingBlocks: { added: { id: string }[] };
       };
     };
-    expect(detail.document.id).toBe(created.id);
-    expect(detail.document.description).toBe(designDocFixture.description);
+    expect(detail.designDoc.id).toBe(created.id);
+    expect(detail.designDoc.description).toBe(designDocFixture.description);
     // Element ids travel as the strings they are written as.
-    expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
+    expect(detail.designDoc.buildingBlocks.added.map((b) => b.id)).toEqual([
       'building_block|sales.refunds.Refund',
       'building_block|sales.refunds.RefundIssued',
       'building_block|sales.refunds.RefundRepository',
@@ -70,7 +70,7 @@ describe('ui design-docs routes', () => {
     // The tree a reader navigates the document by is the document itself,
     // rebuilt; the page does that for itself.
     expect(Object.keys((await res.json()) as object).toSorted()).toEqual([
-      'document',
+      'designDoc',
     ]);
   });
 

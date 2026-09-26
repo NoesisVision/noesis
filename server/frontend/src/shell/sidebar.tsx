@@ -61,7 +61,7 @@ function changeNavChildren(
   const entries = change?.entries ?? [];
   return {
     [DOCUMENTS_NAV.to]: entries
-      .filter((entry) => entry.kind === 'document')
+      .filter((entry) => entry.kind === 'source-document')
       .map(({ id, name }) => ({
         id,
         name,

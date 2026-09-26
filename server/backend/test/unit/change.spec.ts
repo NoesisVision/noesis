@@ -288,7 +288,9 @@ describe('Revising a document', () => {
   it('refuses an id the change does not have, adding nothing', () => {
     expect(() =>
       change.reviseSourceDocument(sourceDocumentId(99), document),
-    ).toThrow(expect.objectContaining({ entity: 'document', change: ID }));
+    ).toThrow(
+      expect.objectContaining({ entity: 'source document', change: ID }),
+    );
     expect(change.sourceDocumentSummaries()).toEqual([]);
   });
 });
@@ -316,8 +318,8 @@ describe('The entries of a change', () => {
       change.entries().map(({ kind, id, name }) => `${kind} ${id} ${name}`),
     ).toEqual([
       `design-doc ${designDocId(1)} Retry flow`,
-      `document ${sourceDocumentId(2)} Notes`,
-      `document ${sourceDocumentId(1)} Interview`,
+      `source-document ${sourceDocumentId(2)} Notes`,
+      `source-document ${sourceDocumentId(1)} Interview`,
     ]);
   });
 

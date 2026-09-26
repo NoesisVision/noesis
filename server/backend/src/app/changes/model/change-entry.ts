@@ -3,11 +3,11 @@ import { ChangeSummary } from './change-snapshot';
 import { DesignDocSummary } from './design-doc-summary';
 import { SourceDocumentId } from './source-document-id';
 
-/** One design document or document of a change, as a list of them names it. */
+/** One design document or source document of a change, as a list of them names it. */
 const ChangeEntry = z.discriminatedUnion('kind', [
   DesignDocSummary.extend({ kind: z.literal('design-doc') }),
   z.object({
-    kind: z.literal('document'),
+    kind: z.literal('source-document'),
     id: SourceDocumentId,
     name: z.string(),
   }),

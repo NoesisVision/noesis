@@ -79,7 +79,7 @@ describe('ui changes routes', () => {
               name: decodedDesignDocFixture.name,
               implemented: false,
             },
-            { kind: 'document', id: document.id, name: document.title },
+            { kind: 'source-document', id: document.id, name: document.title },
           ],
         },
       ],

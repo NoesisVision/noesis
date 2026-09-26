@@ -71,7 +71,7 @@ const designDocOutlineFixture: OutlineNode[] = [
 
 /** The whole of what `GET /ui/changes/:change/design-docs/:id` answers. */
 export const designDocPayloadFixture = {
-  document: DesignDoc.parse(designDocFixture),
+  designDoc: DesignDoc.parse(designDocFixture),
 };
 
 /** What the page is handed: the answer, with the tree rebuilt from it. */

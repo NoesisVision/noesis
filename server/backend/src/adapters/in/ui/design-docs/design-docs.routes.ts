@@ -19,7 +19,7 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono().get('/:id', routeParams(FindDesignDoc.shape), async (c) => {
     return c.json({
-      document: await findDesignDoc.handle(c.req.valid('param')),
+      designDoc: await findDesignDoc.handle(c.req.valid('param')),
     });
   });
 }

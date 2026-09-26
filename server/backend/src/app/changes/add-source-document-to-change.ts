@@ -8,15 +8,17 @@ import {
 import type { Handler } from '#backend/app/handler';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
-/** A new document for the change. `document` is the working file: the server mints its id. */
-export const AddDocumentToChange = z.object({
+/** A new source document for the change. `sourceDocument` is the working file: the server mints its id. */
+export const AddSourceDocumentToChange = z.object({
   change: ChangeId,
-  document: SourceDocumentFile,
+  sourceDocument: SourceDocumentFile,
 });
-export type AddDocumentToChange = z.infer<typeof AddDocumentToChange>;
+export type AddSourceDocumentToChange = z.infer<
+  typeof AddSourceDocumentToChange
+>;
 
-export class AddDocumentToChangeHandler implements Handler<
-  AddDocumentToChange,
+export class AddSourceDocumentToChangeHandler implements Handler<
+  AddSourceDocumentToChange,
   SourceDocumentSummary
 > {
   private readonly changes: ChangesRepository;
@@ -25,9 +27,11 @@ export class AddDocumentToChangeHandler implements Handler<
     this.changes = changes;
   }
 
-  async handle(command: AddDocumentToChange): Promise<SourceDocumentSummary> {
+  async handle(
+    command: AddSourceDocumentToChange,
+  ): Promise<SourceDocumentSummary> {
     const change = await getChangeOrThrow(this.changes, command.change);
-    const added = change.addSourceDocument(command.document);
+    const added = change.addSourceDocument(command.sourceDocument);
     await this.changes.save(change);
     return summarize(added);
   }

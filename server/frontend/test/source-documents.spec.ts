@@ -22,7 +22,9 @@ const documentFixture = {
 };
 
 it('unwraps the selected document and isolates documents between changes', async () => {
-  fetchSpy.mockResolvedValueOnce(Response.json({ document: documentFixture }));
+  fetchSpy.mockResolvedValueOnce(
+    Response.json({ sourceDocument: documentFixture }),
+  );
   expect(
     await cache.fetchQuery(
       sourceDocumentById(

@@ -3,7 +3,7 @@ import type { z } from 'zod';
 import { uuidIdSchema } from '#backend/app/uuid-id';
 
 const sourceDocumentIdSchema =
-  uuidIdSchema('document').brand<'SourceDocumentId'>();
+  uuidIdSchema('source document').brand<'SourceDocumentId'>();
 
 export const SourceDocumentId = Object.assign(sourceDocumentIdSchema, {
   generate: () => sourceDocumentIdSchema.parse(uuidv7()),

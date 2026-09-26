@@ -26,7 +26,7 @@ import {
 } from './source-document-summary';
 
 /**
- * A change and the design documents and documents it owns, read and written
+ * A change and the design documents and source documents it owns, read and written
  * whole. It mints the ids of what it owns, so they are unique within it, and
  * holds the version it was read at, which a save checks.
  */
@@ -111,7 +111,7 @@ export class Change {
     return this.state.designDocs.map(summarizeDesignDoc);
   }
 
-  /** Adds the document at a new id. */
+  /** Adds the source document at a new id. */
   addSourceDocument(document: SourceDocumentFile): SourceDocument {
     const added: SourceDocument = {
       id: SourceDocumentId.generate(),
@@ -121,7 +121,7 @@ export class Change {
     return added;
   }
 
-  /** Replaces the document at `id` whole; never adds one. */
+  /** Replaces the source document at `id` whole; never adds one. */
   reviseSourceDocument(
     id: SourceDocumentId,
     document: SourceDocumentFile,
@@ -136,7 +136,8 @@ export class Change {
 
   sourceDocument(id: SourceDocumentId): SourceDocument {
     const found = this.state.sourceDocuments.find((doc) => doc.id === id);
-    if (found === undefined) throw new NotFoundError('document', id, this.id);
+    if (found === undefined)
+      throw new NotFoundError('source document', id, this.id);
     return found;
   }
 
@@ -145,7 +146,7 @@ export class Change {
     return this.state.sourceDocuments.map(summarizeSourceDocument);
   }
 
-  /** The design documents, then the documents, each kind oldest first. */
+  /** The design documents, then the source documents, each kind oldest first. */
   entries(): ChangeEntry[] {
     return [
       ...this.designDocSummaries().map((doc): ChangeEntry => ({
@@ -153,7 +154,7 @@ export class Change {
         ...doc,
       })),
       ...this.sourceDocumentSummaries().map((doc): ChangeEntry => ({
-        kind: 'document',
+        kind: 'source-document',
         id: doc.id,
         name: doc.title,
       })),

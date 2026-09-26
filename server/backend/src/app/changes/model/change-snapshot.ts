@@ -63,7 +63,7 @@ export const ChangeSnapshot = z
       .describe('The design documents of the change.'),
     sourceDocuments: z
       .array(SourceDocument)
-      .describe('The documents that inform the change.'),
+      .describe('The source documents that inform the change.'),
   })
   .describe(
     'One change with everything it owns: graph/changes/<id>.change.json.',

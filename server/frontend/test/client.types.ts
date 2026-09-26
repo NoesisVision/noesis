@@ -19,8 +19,8 @@ export async function checkDesignDocClient(client: typeof api) {
   const data = await client.changes[':change']['design-docs'][':id'].$get({
     param: { change: 'test-2', id: 'doc-refunds' },
   });
-  const id: string | undefined = data.document.buildingBlocks?.added?.[0]?.id;
-  const name: string = data.document.name;
+  const id: string | undefined = data.designDoc.buildingBlocks?.added?.[0]?.id;
+  const name: string = data.designDoc.name;
   void [id, name];
   // @ts-expect-error The tree is the reader's; the wire carries none.
   void data.outline;

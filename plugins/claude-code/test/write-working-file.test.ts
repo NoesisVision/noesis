@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 import {
   buildWorkingFile,
   titleOf,
-} from '../skills/add-document-to-change/scripts/write-working-file';
+} from '../skills/add-source-document-to-change/scripts/write-working-file';
 
 const script = fileURLToPath(
   new URL(
-    '../skills/add-document-to-change/scripts/write-working-file.ts',
+    '../skills/add-source-document-to-change/scripts/write-working-file.ts',
     import.meta.url,
   ),
 );

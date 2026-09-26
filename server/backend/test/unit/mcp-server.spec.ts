@@ -80,7 +80,7 @@ async function call(name: string, args: Record<string, unknown>) {
 /** The id the server minted for what a call added. */
 function mintedId(
   result: Awaited<ReturnType<typeof call>>,
-  key: 'document' | 'designDoc',
+  key: 'sourceDocument' | 'designDoc',
 ): string {
   return (result.structuredContent as Record<string, { id: string }>)[key]!.id;
 }
@@ -128,12 +128,12 @@ describe('the MCP surface', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_design_doc_to_change',
-      'add_document_to_change',
+      'add_source_document_to_change',
       'create_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
-      'update_document_in_change',
+      'update_source_document_in_change',
     ]);
     for (const tool of tools) {
       expect(tool.inputSchema.type).toBe('object');
@@ -303,11 +303,11 @@ describe('list_changes', () => {
       'designDoc',
     );
     const documentId = mintedId(
-      await call('add_document_to_change', {
+      await call('add_source_document_to_change', {
         change,
         path: await workingFile('document.json', document),
       }),
-      'document',
+      'sourceDocument',
     );
 
     const result = await client.callTool({ name: 'list_changes' });
@@ -318,7 +318,7 @@ describe('list_changes', () => {
           id: CHANGE,
           entries: [
             { kind: 'design-doc', id: designDocAdded, implemented: false },
-            { kind: 'document', id: documentId, name: document.title },
+            { kind: 'source-document', id: documentId, name: document.title },
           ],
         },
       ],
@@ -327,7 +327,7 @@ describe('list_changes', () => {
       `design document ${designDocAdded}: Partial refunds for orders (not implemented)`,
     );
     expect(textOf(result)).toContain(
-      `document ${documentId}: ${document.title}`,
+      `source document ${documentId}: ${document.title}`,
     );
   });
 
@@ -338,19 +338,26 @@ describe('list_changes', () => {
   });
 });
 
-describe('add_document_to_change', () => {
+describe('add_source_document_to_change', () => {
   it('stores the document the working file holds, at a minted id', async () => {
     const change = await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', document);
 
-    const result = await call('add_document_to_change', { change, path });
+    const result = await call('add_source_document_to_change', {
+      change,
+      path,
+    });
 
     expect(result.isError).toBeFalsy();
-    const documentId = mintedId(result, 'document');
+    const documentId = mintedId(result, 'sourceDocument');
     expect(result.structuredContent).toEqual({
-      document: { id: documentId, title: document.title, date: document.date },
+      sourceDocument: {
+        id: documentId,
+        title: document.title,
+        date: document.date,
+      },
     });
-    expect(textOf(result)).toContain(`Added document ${documentId}`);
+    expect(textOf(result)).toContain(`Added source document ${documentId}`);
     const stored = await noesis.findSourceDocument.handle({
       change,
       id: SourceDocumentId.parse(documentId),
@@ -361,7 +368,7 @@ describe('add_document_to_change', () => {
   it('reports an unknown change in-band and writes nothing', async () => {
     const path = await workingFile('document.json', document);
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: '2026-01-01-no-such-change',
       path,
     });
@@ -374,7 +381,7 @@ describe('add_document_to_change', () => {
   it('reports a value that is not a change id at all', async () => {
     const path = await workingFile('document.json', document);
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: 'Payment Retry',
       path,
     });
@@ -388,7 +395,7 @@ describe('add_document_to_change', () => {
     const outside = join(noesis.root, 'document.json');
     await writeFile(outside, JSON.stringify(document));
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: CHANGE,
       path: outside,
     });
@@ -404,7 +411,7 @@ describe('add_document_to_change', () => {
       content: 42,
     });
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -422,7 +429,7 @@ describe('add_document_to_change', () => {
       'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
     );
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -438,7 +445,7 @@ describe('add_document_to_change', () => {
       date: 'last Tuesday',
     });
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -454,11 +461,14 @@ describe('add_document_to_change', () => {
       title: '???',
     });
 
-    const result = await call('add_document_to_change', { change, path });
+    const result = await call('add_source_document_to_change', {
+      change,
+      path,
+    });
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
-      document: { id: expect.any(String) },
+      sourceDocument: { id: expect.any(String) },
     });
   });
 
@@ -466,7 +476,7 @@ describe('add_document_to_change', () => {
     await noesis.writeChange(CHANGE);
     const path = await workingFile('document.json', 'not json at all');
 
-    const result = await call('add_document_to_change', {
+    const result = await call('add_source_document_to_change', {
       change: CHANGE,
       path,
     });
@@ -476,18 +486,18 @@ describe('add_document_to_change', () => {
   });
 });
 
-describe('update_document_in_change', () => {
+describe('update_source_document_in_change', () => {
   it('replaces the document at its id, which a new title leaves as it was', async () => {
     const change = await noesis.writeChange(CHANGE);
     const documentId = mintedId(
-      await call('add_document_to_change', {
+      await call('add_source_document_to_change', {
         change,
         path: await workingFile('document.json', document),
       }),
-      'document',
+      'sourceDocument',
     );
 
-    const result = await call('update_document_in_change', {
+    const result = await call('update_source_document_in_change', {
       change,
       id: documentId,
       path: await workingFile('document.json', {
@@ -498,29 +508,29 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toMatchObject({
-      document: { id: documentId, title: 'Retry interview, revised' },
+      sourceDocument: { id: documentId, title: 'Retry interview, revised' },
     });
-    expect(textOf(result)).toContain(`Updated document ${documentId}`);
+    expect(textOf(result)).toContain(`Updated source document ${documentId}`);
     expect((await noesis.stored(change)).sourceDocuments).toHaveLength(1);
   });
 
   it('answers an id that names no document in-band, having created nothing', async () => {
     const change = await noesis.writeChange(CHANGE);
 
-    const result = await call('update_document_in_change', {
+    const result = await call('update_source_document_in_change', {
       change,
       id: DOCUMENT_ID,
       path: await workingFile('document.json', document),
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
-    expect(textOf(result)).toContain('add_document_to_change');
+    expect(textOf(result)).toContain(`No source document "${DOCUMENT_ID}"`);
+    expect(textOf(result)).toContain('add_source_document_to_change');
     expect((await noesis.stored(change)).sourceDocuments).toEqual([]);
   });
 
   it('reports an unknown change in-band', async () => {
-    const result = await call('update_document_in_change', {
+    const result = await call('update_source_document_in_change', {
       change: '2026-01-01-no-such-change',
       id: DOCUMENT_ID,
       path: await workingFile('document.json', document),
@@ -535,14 +545,14 @@ describe('update_document_in_change', () => {
   it('answers a file it cannot read as unreadable, not as invalid', async () => {
     const change = await noesis.writeChange(CHANGE);
 
-    const result = await call('update_document_in_change', {
+    const result = await call('update_source_document_in_change', {
       change,
       id: DOCUMENT_ID,
       path: join(files.dir, 'missing.json'),
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toStartWith('Could not read the document:');
+    expect(textOf(result)).toStartWith('Could not read the source document:');
     expect(textOf(result)).toContain('No file at');
   });
 });
@@ -763,7 +773,7 @@ describe('a write that lost a race', () => {
       version: '0.0.0-test',
       noesis: noesis.noesis,
       sessionFiles: files,
-      addDocumentToChange: {
+      addSourceDocumentToChange: {
         handle: () =>
           Promise.reject(
             new ConcurrentModificationError(ChangeId.parse(CHANGE)),
@@ -778,7 +788,7 @@ describe('a write that lost a race', () => {
     ]);
 
     const result = await racedClient.callTool({
-      name: 'add_document_to_change',
+      name: 'add_source_document_to_change',
       arguments: {
         change: CHANGE,
         path: await workingFile('document.json', document),

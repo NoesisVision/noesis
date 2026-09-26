@@ -16,7 +16,7 @@ export const designDocById = (change: string, id: string) =>
         { param: { change, id } },
         { init: { signal } },
       );
-      return { ...detail, outline: outlineOf(detail.document) };
+      return { ...detail, outline: outlineOf(detail.designDoc) };
     },
     retry: false,
   });

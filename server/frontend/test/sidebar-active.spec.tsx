@@ -32,7 +32,7 @@ const NAVIGATION = {
   type: 'feature',
   status: 'design',
   entries: [
-    { id: NOTES, name: 'Notes', kind: 'document' },
+    { id: NOTES, name: 'Notes', kind: 'source-document' },
     {
       id: DOC,
       name: 'Partial refunds',
@@ -68,7 +68,7 @@ beforeAll(() => {
     if (url.includes('/design-docs/')) {
       return Promise.resolve(
         Response.json({
-          document: EMPTY_DESIGN_DOC,
+          designDoc: EMPTY_DESIGN_DOC,
           outline: [],
         }),
       );
@@ -76,8 +76,8 @@ beforeAll(() => {
     if (url.includes('/source-documents/')) {
       return Promise.resolve(
         Response.json({
-          document: {
-            document_id: 'notes',
+          sourceDocument: {
+            id: 'notes',
             title: 'Notes',
             date: '2026-01-01',
             content: 'Notes.',

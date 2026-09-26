@@ -134,9 +134,9 @@ describe('The handlers of what a change owns', () => {
       change: CHANGE,
       designDoc,
     });
-    const addedDocument = await t.addDocumentToChange.handle({
+    const addedDocument = await t.addSourceDocumentToChange.handle({
       change: CHANGE,
-      document,
+      sourceDocument: document,
     });
 
     expect(addedDesignDoc).toEqual({
@@ -162,18 +162,18 @@ describe('The handlers of what a change owns', () => {
   });
 
   it('store what they revise in the change', async () => {
-    const { id } = await t.addDocumentToChange.handle({
+    const { id } = await t.addSourceDocumentToChange.handle({
       change: CHANGE,
-      document,
+      sourceDocument: document,
     });
     const designDocAdded = (
       await t.addDesignDocToChange.handle({ change: CHANGE, designDoc })
     ).id;
 
-    await t.updateDocumentInChange.handle({
+    await t.updateSourceDocumentInChange.handle({
       change: CHANGE,
       id,
-      document: { ...document, content: 'Twice.' },
+      sourceDocument: { ...document, content: 'Twice.' },
     });
     await t.updateDesignDocInChange.handle({
       change: CHANGE,
@@ -199,12 +199,16 @@ describe('The handlers of what a change owns', () => {
           designDoc,
         }),
       () => t.findDesignDoc.handle({ change: NOPE, id: designDocMissing }),
-      () => t.addDocumentToChange.handle({ change: NOPE, document }),
       () =>
-        t.updateDocumentInChange.handle({
+        t.addSourceDocumentToChange.handle({
+          change: NOPE,
+          sourceDocument: document,
+        }),
+      () =>
+        t.updateSourceDocumentInChange.handle({
           change: NOPE,
           id: documentId,
-          document,
+          sourceDocument: document,
         }),
       () => t.findSourceDocument.handle({ change: NOPE, id: documentId }),
       () => t.findChange.handle({ id: NOPE }),
@@ -215,8 +219,14 @@ describe('The handlers of what a change owns', () => {
 
   it('refuse the second of two parallel adds, keeping the first', async () => {
     const results = await Promise.allSettled([
-      t.addDocumentToChange.handle({ change: CHANGE, document }),
-      t.addDocumentToChange.handle({ change: CHANGE, document }),
+      t.addSourceDocumentToChange.handle({
+        change: CHANGE,
+        sourceDocument: document,
+      }),
+      t.addSourceDocumentToChange.handle({
+        change: CHANGE,
+        sourceDocument: document,
+      }),
     ]);
 
     const refused = results.filter((r) => r.status === 'rejected');
@@ -249,9 +259,9 @@ describe('ListChangesHandler', () => {
 describe('FindChangeHandler', () => {
   it('answers the change with what it owns summarised', async () => {
     await t.writeChange(CHANGE, { name: 'Booking' });
-    const addedDocument = await t.addDocumentToChange.handle({
+    const addedDocument = await t.addSourceDocumentToChange.handle({
       change: CHANGE,
-      document,
+      sourceDocument: document,
     });
     const addedDesignDoc = await t.addDesignDocToChange.handle({
       change: CHANGE,

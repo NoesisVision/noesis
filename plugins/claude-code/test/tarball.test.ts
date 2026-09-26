@@ -55,8 +55,8 @@ test('ships exactly the expected plugin files', async () => {
     'contracts/update-source-document.schema.json',
     'contracts/create-change.schema.json',
     'contracts/update-change.schema.json',
-    'skills/add-document-to-change/SKILL.md',
-    'skills/add-document-to-change/scripts/write-working-file.ts',
+    'skills/add-source-document-to-change/SKILL.md',
+    'skills/add-source-document-to-change/scripts/write-working-file.ts',
     'skills/add-change/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
@@ -153,12 +153,12 @@ test('the service the pin resolves to boots and lists tools', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
       'add_design_doc_to_change',
-      'add_document_to_change',
+      'add_source_document_to_change',
       'create_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
-      'update_document_in_change',
+      'update_source_document_in_change',
     ]);
   } finally {
     await client.close();

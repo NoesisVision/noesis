@@ -1,5 +1,5 @@
-// Builds the working file of add_document_to_change and
-// update_document_in_change from a Markdown file. The text is copied by this
+// Builds the working file of add_source_document_to_change and
+// update_source_document_in_change from a Markdown file. The text is copied by this
 // script, never retyped by the model, so `content` is the source byte for
 // byte. The file carries no id: the service mints it on create.
 //
@@ -69,7 +69,7 @@ async function main(): Promise<void> {
   const bytes = Buffer.byteLength(json);
   if (bytes > MAX_WORKING_FILE_BYTES) {
     throw new Error(
-      `The working file would be ${bytes} bytes; the service accepts at most ${MAX_WORKING_FILE_BYTES}. Split the source into documents of their own.`,
+      `The working file would be ${bytes} bytes; the service accepts at most ${MAX_WORKING_FILE_BYTES}. Split the source into source documents of their own.`,
     );
   }
 

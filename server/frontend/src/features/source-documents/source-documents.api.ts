@@ -9,7 +9,7 @@ export const sourceDocumentById = (change: string, id: string) =>
         { param: { change, id } },
         { init: { signal } },
       );
-      return data.document;
+      return data.sourceDocument;
     },
     retry: false,
   });

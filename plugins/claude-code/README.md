@@ -32,7 +32,7 @@ in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
 The service exposes seven MCP tools: `create_change`, `update_change`,
-`list_changes`, `add_document_to_change`, `update_document_in_change`,
+`list_changes`, `add_source_document_to_change`, `update_source_document_in_change`,
 `add_design_doc_to_change` and `update_design_doc_in_change`. Tools never
 take content inline. The agent writes
 a working file to the session's scratch directory (`.noesis/sessions/<session>/`,
@@ -56,9 +56,9 @@ nothing.
   generated files.
 - `skills/` — the skills that drive the tools, one folder per skill.
   `add-change` opens or updates a change through `create_change` or
-  `update_change`; `add-document-to-change` takes a Markdown file, asks which
+  `update_change`; `add-source-document-to-change` takes a Markdown file, asks which
   change from `list_changes` it belongs to and adds it through
-  `add_document_to_change`, building the working file with its
+  `add_source_document_to_change`, building the working file with its
   `scripts/write-working-file.ts` so the text is copied, not retyped. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the

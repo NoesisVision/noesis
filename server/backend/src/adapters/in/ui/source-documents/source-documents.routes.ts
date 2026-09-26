@@ -9,7 +9,7 @@ export interface SourceDocumentsDeps {
 }
 
 /**
- * Mounted at `/ui/changes/:change/source-documents`, read only: documents get
+ * Mounted at `/ui/changes/:change/source-documents`, read only: source documents get
  * in and change through the MCP tools, so the browser surface never writes
  * one. The change lists them.
  */
@@ -22,7 +22,7 @@ export function createSourceDocumentsApp(deps: SourceDocumentsDeps) {
     routeParams(FindSourceDocument.shape),
     async (c) => {
       return c.json({
-        document: await findSourceDocument.handle(c.req.valid('param')),
+        sourceDocument: await findSourceDocument.handle(c.req.valid('param')),
       });
     },
   );

@@ -48,7 +48,7 @@ describe('ui source-documents routes', () => {
     const res = await app.request(`${BASE}/${ID}`);
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({
-      document: { id: ID, content: 'A slot may be booked once.' },
+      sourceDocument: { id: ID, content: 'A slot may be booked once.' },
     });
 
     expect((await app.request(`${BASE}/${sourceDocumentId(99)}`)).status).toBe(

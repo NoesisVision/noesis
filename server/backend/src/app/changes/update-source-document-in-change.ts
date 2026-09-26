@@ -9,16 +9,18 @@ import {
 import type { Handler } from '#backend/app/handler';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
-/** A new version of a document. `document` is the working file: the id travels beside it. */
-export const UpdateDocumentInChange = z.object({
+/** A new version of a source document. `sourceDocument` is the working file: the id travels beside it. */
+export const UpdateSourceDocumentInChange = z.object({
   change: ChangeId,
   id: SourceDocumentId,
-  document: SourceDocumentFile,
+  sourceDocument: SourceDocumentFile,
 });
-export type UpdateDocumentInChange = z.infer<typeof UpdateDocumentInChange>;
+export type UpdateSourceDocumentInChange = z.infer<
+  typeof UpdateSourceDocumentInChange
+>;
 
-export class UpdateDocumentInChangeHandler implements Handler<
-  UpdateDocumentInChange,
+export class UpdateSourceDocumentInChangeHandler implements Handler<
+  UpdateSourceDocumentInChange,
   SourceDocumentSummary
 > {
   private readonly changes: ChangesRepository;
@@ -27,12 +29,15 @@ export class UpdateDocumentInChangeHandler implements Handler<
     this.changes = changes;
   }
 
-  /** Replaces the document at `id` whole; never creates one. */
+  /** Replaces the source document at `id` whole; never creates one. */
   async handle(
-    command: UpdateDocumentInChange,
+    command: UpdateSourceDocumentInChange,
   ): Promise<SourceDocumentSummary> {
     const change = await getChangeOrThrow(this.changes, command.change);
-    const revised = change.reviseSourceDocument(command.id, command.document);
+    const revised = change.reviseSourceDocument(
+      command.id,
+      command.sourceDocument,
+    );
     await this.changes.save(change);
     return summarize(revised);
   }

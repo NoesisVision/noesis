@@ -5,7 +5,7 @@ import { SourceDocumentId } from '#backend/app/changes/model/source-document-id'
 import type { Handler } from '#backend/app/handler';
 import { type ChangesReader, getChangeOrThrow } from './changes.repository';
 
-/** One document of a change, whole. */
+/** One source document of a change, whole. */
 export const FindSourceDocument = z.object({
   change: ChangeId,
   id: SourceDocumentId,

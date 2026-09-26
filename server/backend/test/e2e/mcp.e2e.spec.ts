@@ -72,8 +72,9 @@ const exists = (path: string) =>
  */
 async function sessionDir(client: Client): Promise<string> {
   const { tools } = await client.listTools();
-  const path = tools.find((tool) => tool.name === 'add_document_to_change')
-    ?.inputSchema.properties?.path as { description?: string } | undefined;
+  const path = tools.find(
+    (tool) => tool.name === 'add_source_document_to_change',
+  )?.inputSchema.properties?.path as { description?: string } | undefined;
   const match = /scratch directory, (\S+?),/.exec(path?.description ?? '');
   if (!match?.[1]) throw new Error('no scratch directory in the tool schema');
   return match[1];
@@ -112,12 +113,12 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_design_doc_to_change',
-      'add_document_to_change',
+      'add_source_document_to_change',
       'create_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
-      'update_document_in_change',
+      'update_source_document_in_change',
     ]);
   });
 
@@ -150,13 +151,13 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const added = await client.callTool({
-      name: 'add_document_to_change',
+      name: 'add_source_document_to_change',
       arguments: { change: change.id, path },
     });
 
     expect(added.isError).toBeFalsy();
-    const { document } = added.structuredContent as {
-      document: { id: string };
+    const { sourceDocument: document } = added.structuredContent as {
+      sourceDocument: { id: string };
     };
     expect(document.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-/);
     const stored = JSON.parse(
@@ -187,7 +188,7 @@ describe('MCP over stdio on the 2026-07-28 revision (e2e)', () => {
     );
 
     const result = await client.callTool({
-      name: 'add_document_to_change',
+      name: 'add_source_document_to_change',
       arguments: { change: '2026-09-18-booking', path },
     });
 
@@ -232,12 +233,12 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'add_design_doc_to_change',
-      'add_document_to_change',
+      'add_source_document_to_change',
       'create_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
-      'update_document_in_change',
+      'update_source_document_in_change',
     ]);
 
     const path = join(await sessionDir(client), 'change.json');

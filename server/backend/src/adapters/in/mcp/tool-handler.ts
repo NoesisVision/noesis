@@ -9,7 +9,7 @@ import { type Entity, NotFoundError } from '#backend/app/not-found-error';
 import { serverLogger } from '#backend/platform/logging/logging';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
-  ADD_DOCUMENT_TO_CHANGE,
+  ADD_SOURCE_DOCUMENT_TO_CHANGE,
   CREATE_CHANGE,
   LIST_CHANGES,
 } from './tool-names';
@@ -72,7 +72,7 @@ function foreseen(error: unknown): CallToolResult | null {
 
 const FIND_OR_ADD: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-  document: `Find its id with ${LIST_CHANGES}, or add the document with ${ADD_DOCUMENT_TO_CHANGE}.`,
+  'source document': `Find its id with ${LIST_CHANGES}, or add the source document with ${ADD_SOURCE_DOCUMENT_TO_CHANGE}.`,
   'design document': `Find its id with ${LIST_CHANGES}, or add the design document with ${ADD_DESIGN_DOC_TO_CHANGE}.`,
 };
 

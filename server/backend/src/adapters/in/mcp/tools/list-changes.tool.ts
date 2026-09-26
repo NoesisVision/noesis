@@ -18,7 +18,7 @@ const outputSchema = z
     changes: z
       .array(ChangeWithEntries)
       .describe(
-        'Every change by id descending — newest day first, changes of one day by name — each with its design documents, then its documents, oldest first. Empty when there is none yet.',
+        'Every change by id descending — newest day first, changes of one day by name — each with its design documents, then its source documents, oldest first. Empty when there is none yet.',
       ),
   })
   .describe('The changes of this repository.');
@@ -31,7 +31,7 @@ export function listChangesTool(
     {
       title: 'List changes',
       description:
-        'Lists every change in the repository by id descending, so newest day first, each with its id, name, tracker key, type and status, and the ids of its design documents and documents. Use it to find the id of a change the user refers to by name or key, the id of a design document or document to update, or to offer the user the changes to choose from.',
+        'Lists every change in the repository by id descending, so newest day first, each with its id, name, tracker key, type and status, and the ids of its design documents and source documents. Use it to find the id of a change the user refers to by name or key, the id of a design document or source document to update, or to offer the user the changes to choose from.',
       inputSchema,
       outputSchema,
       annotations: READ_ONLY,
@@ -62,8 +62,8 @@ function lines(change: ChangeWithEntries): string[] {
 }
 
 function entryLine(entry: ChangeEntry): string {
-  if (entry.kind === 'document') {
-    return `  - document ${entry.id}: ${entry.name}`;
+  if (entry.kind === 'source-document') {
+    return `  - source document ${entry.id}: ${entry.name}`;
   }
   const state = entry.implemented ? 'implemented' : 'not implemented';
   return `  - design document ${entry.id}: ${entry.name} (${state})`;
