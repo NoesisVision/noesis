@@ -29,13 +29,10 @@ export function createDocumentsApp(deps: DocumentsDeps) {
       routeParams({ change: ChangeId, id: DocumentId }),
       async (c) => {
         const { change, id } = c.req.valid('param');
-        const detail = await documentsService.findById(change, id);
+        const document = await documentsService.findById(change, id);
         // Encoded, so the client's type says what the JSON holds: the id as a
         // plain string, not the branded one the service holds.
-        return c.json({
-          summary: detail.summary,
-          document: z.encode(DocumentSchema, detail.document),
-        });
+        return c.json({ document: z.encode(DocumentSchema, document) });
       },
     );
 }

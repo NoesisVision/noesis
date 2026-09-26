@@ -17,11 +17,6 @@ export const DocumentSummarySchema = z.object({
 });
 export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 
-export interface DocumentDetail {
-  summary: DocumentSummary;
-  document: Document;
-}
-
 /**
  * Callers validate before calling in. The service mints the id of a new
  * document; an update names it.
@@ -85,9 +80,8 @@ export class DocumentsService {
     return (await this.docs.list(change)).map(summarize);
   }
 
-  async findById(change: ChangeId, id: DocumentId): Promise<DocumentDetail> {
-    const document = await this.getOrThrow(change, id);
-    return { summary: summarize(document), document };
+  findById(change: ChangeId, id: DocumentId): Promise<Document> {
+    return this.getOrThrow(change, id);
   }
 
   /** The change is checked first, so a missing change is the one named. */

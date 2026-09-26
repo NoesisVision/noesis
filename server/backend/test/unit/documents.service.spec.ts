@@ -75,7 +75,7 @@ describe('DocumentsService.create', () => {
 
     const id = DocumentId.parse('2026-09-24-booking-rules-v2');
     expect(created).toEqual({ id, title: content.title, date: content.date });
-    expect((await service.findById(CHANGE, id))?.document).toEqual({
+    expect(await service.findById(CHANGE, id)).toEqual({
       id,
       ...content,
     });
@@ -131,8 +131,8 @@ describe('DocumentsService.update', () => {
 
     expect(updated.id).toBe(id);
     const stored = await service.findById(CHANGE, id);
-    expect(stored?.document.title).toBe('Booking rules v3');
-    expect(stored?.document.content).toBe('A slot may be booked twice.');
+    expect(stored.title).toBe('Booking rules v3');
+    expect(stored.content).toBe('A slot may be booked twice.');
     expect(await service.list(CHANGE)).toHaveLength(1);
   });
 

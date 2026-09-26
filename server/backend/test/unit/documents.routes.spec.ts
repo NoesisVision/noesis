@@ -57,8 +57,7 @@ describe('ui documents routes', () => {
     const res = await app.request(`${BASE}/${ID}`);
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({
-      summary: { id: ID },
-      document: { content: 'A slot may be booked once.' },
+      document: { id: ID, content: 'A slot may be booked once.' },
     });
 
     expect((await app.request(`${BASE}/2026-09-18-missing`)).status).toBe(404);

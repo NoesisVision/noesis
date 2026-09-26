@@ -288,7 +288,7 @@ describe('create_document_in_change', () => {
       change,
       DocumentId.parse(DOCUMENT_ID),
     );
-    expect(stored?.document.content).toBe(document.content);
+    expect(stored.content).toBe(document.content);
   });
 
   it('reports an unknown change in-band and writes nothing', async () => {
