@@ -3,8 +3,8 @@ import type { AppType } from '#backend/boot/app.types';
 
 // Compile-only contract checks; this function is never invoked.
 export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
-  const found = await client.changes[':id'].$get({
-    param: { id: 'payment-retry' },
+  const found = await client.changes[':change'].$get({
+    param: { change: 'payment-retry' },
   });
   if (found.status === 200) {
     const name: string = (await found.json()).change.name;

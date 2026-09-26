@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
 import { ChangeId } from '#backend/app/changes/change-id';
-import {
-  ChangeNotFoundError,
-  type ChangesService,
-} from '#backend/app/changes/changes.service';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import { routeParams } from '../route-params';
 
 export interface ChangesDeps {
   changesService: ChangesService;
@@ -23,16 +21,8 @@ export function createChangesApp(deps: ChangesDeps) {
       return c.json({ changes: await changesService.listWithEntries() });
     })
 
-    .get('/:id', async (c) => {
-      const id = ChangeId.safeParse(c.req.param('id'));
-      if (!id.success) return c.json({ error: 'change_not_found' }, 404);
-      try {
-        return c.json({ change: await changesService.findById(id.data) });
-      } catch (error) {
-        if (error instanceof ChangeNotFoundError) {
-          return c.json({ error: 'change_not_found' }, 404);
-        }
-        throw error;
-      }
+    .get('/:change', routeParams({ change: ChangeId }), async (c) => {
+      const { change } = c.req.valid('param');
+      return c.json({ change: await changesService.findById(change) });
     });
 }

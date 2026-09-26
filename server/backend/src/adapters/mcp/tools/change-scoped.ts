@@ -2,7 +2,7 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/mcp/session-files';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { failure } from '../tool-result';
 
@@ -65,7 +65,7 @@ export async function withChange(
   try {
     return await run(change.data);
   } catch (error) {
-    if (error instanceof ChangeNotFoundError) {
+    if (error instanceof NotFoundError && error.entity === 'change') {
       return noSuchChange(error, subject);
     }
     throw error;
@@ -79,10 +79,7 @@ function notAChangeId(value: string): CallToolResult {
   );
 }
 
-function noSuchChange(
-  error: ChangeNotFoundError,
-  subject: string,
-): CallToolResult {
+function noSuchChange(error: NotFoundError, subject: string): CallToolResult {
   return failure(
     error.message,
     `Create it with ${CREATE_CHANGE} first, then add the ${subject} to its id.`,

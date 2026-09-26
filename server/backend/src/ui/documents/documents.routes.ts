@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
-import { inChange } from '../changes/in-change';
+import { routeParams } from '../route-params';
 
 export interface DocumentsDeps {
   documentsService: DocumentsService;
@@ -18,24 +19,23 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', async (c) => {
-      return inChange(c, async (change) =>
-        c.json({ documents: await documentsService.list(change) }),
-      );
+    .get('/', routeParams({ change: ChangeId }), async (c) => {
+      const { change } = c.req.valid('param');
+      return c.json({ documents: await documentsService.list(change) });
     })
 
-    .get('/:id', async (c) => {
-      return inChange(c, async (change) => {
-        const id = DocumentId.safeParse(c.req.param('id'));
-        if (!id.success) return c.json({ error: 'not_found' }, 404);
-        const detail = await documentsService.findById(change, id.data);
-        if (detail === null) return c.json({ error: 'not_found' }, 404);
+    .get(
+      '/:id',
+      routeParams({ change: ChangeId, id: DocumentId }),
+      async (c) => {
+        const { change, id } = c.req.valid('param');
+        const detail = await documentsService.findById(change, id);
         // Encoded, so the client's type says what the JSON holds: the id as a
         // plain string, not the branded one the service holds.
         return c.json({
           summary: detail.summary,
           document: z.encode(DocumentSchema, detail.document),
         });
-      });
-    });
+      },
+    );
 }

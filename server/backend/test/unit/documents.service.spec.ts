@@ -1,15 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import {
   type Document,
   DocumentContentSchema,
 } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import {
-  DocumentNotFoundError,
-  type DocumentsService,
-} from '#backend/app/information-sources/documents.service';
+import { type DocumentsService } from '#backend/app/information-sources/documents.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeId.parse('2026-01-01-booking');
@@ -51,19 +47,19 @@ describe('DocumentsService', () => {
     ]);
   });
 
-  it('answers null for a document that does not exist', async () => {
-    expect(
-      await service.findById(CHANGE, DocumentId.parse('2026-01-01-missing')),
-    ).toBe(null);
+  it('refuses a document that does not exist', async () => {
+    await expect(
+      service.findById(CHANGE, DocumentId.parse('2026-01-01-missing')),
+    ).rejects.toMatchObject({ entity: 'document' });
   });
 
   it('refuses every operation on a change that has no directory', async () => {
-    await expect(service.list(NOPE)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
-    await expect(service.findById(NOPE, ID)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(service.list(NOPE)).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(service.findById(NOPE, ID)).rejects.toMatchObject({
+      entity: 'change',
+    });
   });
 });
 
@@ -111,9 +107,9 @@ describe('DocumentsService.create', () => {
   });
 
   it('refuses a change that has no directory', async () => {
-    await expect(service.create(NOPE, content)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(service.create(NOPE, content)).rejects.toMatchObject({
+      entity: 'change',
+    });
   });
 });
 
@@ -145,13 +141,13 @@ describe('DocumentsService.update', () => {
 
     await expect(
       service.update(CHANGE, missing, content),
-    ).rejects.toBeInstanceOf(DocumentNotFoundError);
+    ).rejects.toMatchObject({ entity: 'document' });
     expect(await service.list(CHANGE)).toEqual([]);
   });
 
   it('refuses a change that has no directory', async () => {
-    await expect(service.update(NOPE, ID, content)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(service.update(NOPE, ID, content)).rejects.toMatchObject({
+      entity: 'change',
+    });
   });
 });

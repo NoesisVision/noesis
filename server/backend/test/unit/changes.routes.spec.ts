@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { createChangesApp } from '#backend/ui/changes/changes.routes';
+import { SearchService } from '#backend/app/search/search.service';
+import { createUiApp } from '#backend/ui/ui.routes';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -10,11 +11,17 @@ import {
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
-let app: ReturnType<typeof createChangesApp>;
+let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  app = createChangesApp({ changesService: t.changesService });
+  // Through the whole surface: its error handler answers a missing change.
+  app = createUiApp({
+    searchService: new SearchService(),
+    changesService: t.changesService,
+    designDocsService: t.designDocsService,
+    documentsService: t.documentsService,
+  });
 });
 
 afterEach(() => t.cleanup());
@@ -23,7 +30,7 @@ const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
 
 const post = (body: unknown) =>
-  app.request('/', {
+  app.request('/changes', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
@@ -50,7 +57,7 @@ const add = async (
 
 describe('ui changes routes', () => {
   it('returns an empty list when there are no changes', async () => {
-    const response = await app.request('/navigation');
+    const response = await app.request('/changes/navigation');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
@@ -69,7 +76,7 @@ describe('ui changes routes', () => {
     };
     await t.writeDocument(older, document);
 
-    const response = await app.request('/navigation');
+    const response = await app.request('/changes/navigation');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       changes: [
@@ -117,7 +124,7 @@ describe('ui changes routes', () => {
       });
     }
 
-    const response = await app.request('/navigation');
+    const response = await app.request('/changes/navigation');
     const { changes } = (await response.json()) as {
       changes: { entries: { name: string }[] }[];
     };
@@ -135,7 +142,7 @@ describe('ui changes routes', () => {
       'NOE-142',
     );
 
-    const listed = await app.request('/');
+    const listed = await app.request('/changes');
     expect(listed.status).toBe(200);
     expect(await listed.json()).toEqual({ changes: [change] });
     expect(await ids()).toEqual(['2026-09-01-payment-retry']);
@@ -152,7 +159,7 @@ describe('ui changes routes', () => {
   it('lists newest first', async () => {
     await add('2026-09-01-older', 'Older', '', 'chore');
     await add('2026-09-02-newer', 'Newer', '', 'fix');
-    const { changes } = (await (await app.request('/')).json()) as {
+    const { changes } = (await (await app.request('/changes')).json()) as {
       changes: Change[];
     };
     expect(changes.map((c) => c.id)).toEqual([
@@ -163,16 +170,16 @@ describe('ui changes routes', () => {
 
   it('reads one change by id and 404s an unknown or unsafe one', async () => {
     await add('2026-09-01-audit-log', 'Audit log', '', 'improvement');
-    const found = await app.request('/2026-09-01-audit-log');
+    const found = await app.request('/changes/2026-09-01-audit-log');
     expect(found.status).toBe(200);
     expect(((await found.json()) as { change: Change }).change.name).toBe(
       'Audit log',
     );
 
-    const missing = await app.request('/2026-09-01-nope');
+    const missing = await app.request('/changes/2026-09-01-nope');
     expect(missing.status).toBe(404);
     expect(await missing.json()).toEqual({ error: 'change_not_found' });
-    expect((await app.request('/audit-log')).status).toBe(404);
-    expect((await app.request('/Not%20An%20Id')).status).toBe(404);
+    expect((await app.request('/changes/audit-log')).status).toBe(404);
+    expect((await app.request('/changes/Not%20An%20Id')).status).toBe(404);
   });
 });

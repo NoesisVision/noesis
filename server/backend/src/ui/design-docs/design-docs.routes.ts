@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { inChange } from '../changes/in-change';
+import { routeParams } from '../route-params';
 
 export interface DesignDocsDeps {
   designDocsService: DesignDocsService;
@@ -19,18 +20,17 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', async (c) => {
-      return inChange(c, async (change) =>
-        c.json({ designDocs: await designDocsService.list(change) }),
-      );
+    .get('/', routeParams({ change: ChangeId }), async (c) => {
+      const { change } = c.req.valid('param');
+      return c.json({ designDocs: await designDocsService.list(change) });
     })
 
-    .get('/:id', async (c) => {
-      return inChange(c, async (change) => {
-        const id = DesignDocId.safeParse(c.req.param('id'));
-        if (!id.success) return c.json({ error: 'not_found' }, 404);
-        const detail = await designDocsService.findById(change, id.data);
-        if (detail === null) return c.json({ error: 'not_found' }, 404);
+    .get(
+      '/:id',
+      routeParams({ change: ChangeId, id: DesignDocId }),
+      async (c) => {
+        const { change, id } = c.req.valid('param');
+        const detail = await designDocsService.findById(change, id);
         // Encoded, so the client's type says what the JSON holds: element
         // ids as strings, not the value objects the service decodes them to.
         // The document travels whole and nothing else: the tree a reader
@@ -40,6 +40,6 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
           summary: detail.summary,
           document: z.encode(DesignDocument, detail.document),
         });
-      });
-    });
+      },
+    );
 }

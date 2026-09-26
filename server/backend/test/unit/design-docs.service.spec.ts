@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import {
   DesignDocument,
   DesignDocumentContent,
@@ -9,7 +8,6 @@ import {
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import {
-  DesignDocNotFoundError,
   type DesignDocsService,
   InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
@@ -89,32 +87,32 @@ describe('Reading the design documents of a change', () => {
     ]);
   });
 
-  it('finds one whole, and nothing for an id the change does not have', async () => {
+  it('finds one whole, and refuses an id the change does not have', async () => {
     await t.writeDesignDoc(CHANGE, designDocFixture);
 
     expect((await service.findById(CHANGE, STORED))?.document).toEqual(
       decodedDesignDocFixture,
     );
-    expect(
-      await service.findById(CHANGE, DesignDocId.parse('2026-01-01-missing')),
-    ).toBe(null);
+    await expect(
+      service.findById(CHANGE, DesignDocId.parse('2026-01-01-missing')),
+    ).rejects.toMatchObject({ entity: 'design document' });
   });
 });
 
 describe('Every operation on design documents', () => {
   it('refuses a change that does not exist', async () => {
-    await expect(service.list(NOPE)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
-    await expect(service.findById(NOPE, STORED)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
-    await expect(service.create(NOPE, byAgent)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
-    await expect(service.update(NOPE, STORED, byAgent)).rejects.toBeInstanceOf(
-      ChangeNotFoundError,
-    );
+    await expect(service.list(NOPE)).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(service.findById(NOPE, STORED)).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(service.create(NOPE, byAgent)).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(service.update(NOPE, STORED, byAgent)).rejects.toMatchObject({
+      entity: 'change',
+    });
   });
 });
 
@@ -218,9 +216,9 @@ describe('Updating a design document', () => {
   });
 
   it('refuses an id the change does not have, creating nothing', async () => {
-    await expect(
-      service.update(CHANGE, STORED, byAgent),
-    ).rejects.toBeInstanceOf(DesignDocNotFoundError);
+    await expect(service.update(CHANGE, STORED, byAgent)).rejects.toMatchObject(
+      { entity: 'design document' },
+    );
     expect(await service.list(CHANGE)).toEqual([]);
   });
 });

@@ -5,11 +5,11 @@ import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
-  DocumentNotFoundError,
   type DocumentsService,
   type DocumentSummary,
   DocumentSummarySchema,
 } from '#backend/app/information-sources/documents.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
@@ -66,7 +66,8 @@ async function update(
   try {
     return updated(change, await documents.update(change, id, document.value));
   } catch (error) {
-    if (error instanceof DocumentNotFoundError) {
+    // A missing change is `withChange`'s to answer.
+    if (error instanceof NotFoundError && error.entity === 'document') {
       return failure(
         error.message,
         `Pass the id ${CREATE_DOCUMENT_IN_CHANGE} answered with, or create the document with it.`,

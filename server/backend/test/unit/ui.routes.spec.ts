@@ -22,4 +22,18 @@ describe('ui routes', () => {
     const res = await app.request('/changes');
     expect(res.status).toBe(200);
   });
+
+  it('answers an unforeseen failure as JSON, not a bare 500 page', async () => {
+    const failing = new SearchService();
+    failing.search = () => Promise.reject(new Error('disk on fire'));
+    const res = await createUiApp({
+      searchService: failing,
+      changesService: t.changesService,
+      designDocsService: t.designDocsService,
+      documentsService: t.documentsService,
+    }).request('/search?q=x');
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: 'internal' });
+  });
 });

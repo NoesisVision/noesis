@@ -6,21 +6,17 @@ import {
   dispose,
   getAnsiColorFormatter,
   getJsonLinesFormatter,
-  getLogger,
   isLogLevel,
-  type Logger,
   type LogLevel,
   type Sink,
 } from '@logtape/logtape';
+import { ROOT_CATEGORY } from './server-logger';
+
+export { serverLogger } from './server-logger';
 
 // stdout is the MCP transport and is never written to.
 
-const ROOT_CATEGORY = 'noesis';
 export const LOG_FILE_NAME = 'noesis.log';
-
-export function serverLogger(...segments: string[]): Logger {
-  return getLogger([ROOT_CATEGORY, 'server', ...segments]);
-}
 
 export interface LoggingOptions {
   /** Must already exist: created by `NoesisDir.ensureInitialized()`. */

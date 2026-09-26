@@ -5,7 +5,6 @@ import {
   NewChangeSchema,
 } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangeNotFoundError } from '#backend/app/changes/changes.service';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -86,7 +85,7 @@ describe('ChangesService', () => {
   it('refuses the entries of a change that does not exist', async () => {
     await expect(
       t.changesService.entries(ChangeId.parse('2026-01-01-missing')),
-    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+    ).rejects.toMatchObject({ entity: 'change' });
   });
 
   it('lists every change, newest first, with its own entries', async () => {
@@ -179,7 +178,7 @@ describe('ChangesService.update', () => {
         missing,
         ChangeContentSchema.parse({ name: 'Missing', type: 'fix' }),
       ),
-    ).rejects.toBeInstanceOf(ChangeNotFoundError);
+    ).rejects.toMatchObject({ entity: 'change' });
     expect(await t.changesService.list()).toEqual([]);
   });
 });

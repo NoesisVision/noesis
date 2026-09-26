@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
@@ -25,20 +26,6 @@ export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 export interface DesignDocDetail {
   summary: DesignDocSummary;
   document: DesignDocument;
-}
-
-export class DesignDocNotFoundError extends Error {
-  readonly change: ChangeId;
-  readonly id: DesignDocId;
-
-  constructor(change: ChangeId, id: DesignDocId) {
-    super(
-      `No design document ${JSON.stringify(id)} in change ${JSON.stringify(change)}.`,
-    );
-    this.name = 'DesignDocNotFoundError';
-    this.change = change;
-    this.id = id;
-  }
 }
 
 /** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
@@ -111,10 +98,7 @@ export class DesignDocsService {
     document: DesignDocumentContent,
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
-      await this.changesService.assertExists(change);
-      if ((await this.docs.get(change, id)) === null) {
-        throw new DesignDocNotFoundError(change, id);
-      }
+      await this.getOrThrow(change, id);
       assertValid(document);
       const updated: DesignDocument = { id, ...document };
       await this.docs.save(change, updated);
@@ -128,14 +112,21 @@ export class DesignDocsService {
     return (await this.docs.list(change)).map(summarize);
   }
 
-  async findById(
+  async findById(change: ChangeId, id: DesignDocId): Promise<DesignDocDetail> {
+    const document = await this.getOrThrow(change, id);
+    return { summary: summarize(document), document };
+  }
+
+  /** The change is checked first, so a missing change is the one named. */
+  private async getOrThrow(
     change: ChangeId,
     id: DesignDocId,
-  ): Promise<DesignDocDetail | null> {
+  ): Promise<DesignDocument> {
     await this.changesService.assertExists(change);
     const document = await this.docs.get(change, id);
-    if (document === null) return null;
-    return { summary: summarize(document), document };
+    if (document === null)
+      throw new NotFoundError('design document', id, change);
+    return document;
   }
 }
 

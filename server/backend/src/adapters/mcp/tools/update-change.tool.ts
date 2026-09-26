@@ -7,10 +7,8 @@ import {
   ChangeSchema,
 } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import {
-  ChangeNotFoundError,
-  type ChangesService,
-} from '#backend/app/changes/changes.service';
+import type { ChangesService } from '#backend/app/changes/changes.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
 import { failure, success } from '../tool-result';
@@ -65,7 +63,7 @@ async function update(
   try {
     return updated(await changes.update(id, change.value));
   } catch (error) {
-    if (error instanceof ChangeNotFoundError) {
+    if (error instanceof NotFoundError) {
       return failure(
         error.message,
         `Find its id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,

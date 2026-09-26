@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
@@ -19,20 +20,6 @@ export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
 export interface DocumentDetail {
   summary: DocumentSummary;
   document: Document;
-}
-
-export class DocumentNotFoundError extends Error {
-  readonly change: ChangeId;
-  readonly id: DocumentId;
-
-  constructor(change: ChangeId, id: DocumentId) {
-    super(
-      `No document ${JSON.stringify(id)} in change ${JSON.stringify(change)}.`,
-    );
-    this.name = 'DocumentNotFoundError';
-    this.change = change;
-    this.id = id;
-  }
 }
 
 /**
@@ -85,10 +72,7 @@ export class DocumentsService {
     document: DocumentContent,
   ): Promise<DocumentSummary> {
     return this.writes.run(async () => {
-      await this.changesService.assertExists(change);
-      if ((await this.docs.get(change, id)) === null) {
-        throw new DocumentNotFoundError(change, id);
-      }
+      await this.getOrThrow(change, id);
       const updated: Document = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
@@ -101,14 +85,20 @@ export class DocumentsService {
     return (await this.docs.list(change)).map(summarize);
   }
 
-  async findById(
+  async findById(change: ChangeId, id: DocumentId): Promise<DocumentDetail> {
+    const document = await this.getOrThrow(change, id);
+    return { summary: summarize(document), document };
+  }
+
+  /** The change is checked first, so a missing change is the one named. */
+  private async getOrThrow(
     change: ChangeId,
     id: DocumentId,
-  ): Promise<DocumentDetail | null> {
+  ): Promise<Document> {
     await this.changesService.assertExists(change);
     const document = await this.docs.get(change, id);
-    if (document === null) return null;
-    return { summary: summarize(document), document };
+    if (document === null) throw new NotFoundError('document', id, change);
+    return document;
   }
 }
 

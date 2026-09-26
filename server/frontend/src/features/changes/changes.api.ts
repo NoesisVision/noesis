@@ -34,8 +34,8 @@ export const changeById = (id: string) =>
     queryKey: ['changes', id] as const,
     queryFn: async ({ signal }) => {
       try {
-        const data = await api.changes[':id'].$get(
-          { param: { id } },
+        const data = await api.changes[':change'].$get(
+          { param: { change: id } },
           { init: { signal } },
         );
         return data.change;

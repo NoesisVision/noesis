@@ -5,12 +5,12 @@ import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import {
-  DesignDocNotFoundError,
   type DesignDocSummary,
   DesignDocSummarySchema,
   type DesignDocsService,
   InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
@@ -71,7 +71,8 @@ async function update(
   try {
     return updated(change, await designDocs.update(change, id, document.value));
   } catch (error) {
-    if (error instanceof DesignDocNotFoundError) {
+    // A missing change is `withChange`'s to answer.
+    if (error instanceof NotFoundError && error.entity === 'design document') {
       return failure(
         error.message,
         `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,

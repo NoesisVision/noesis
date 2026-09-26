@@ -1,5 +1,6 @@
 import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
 import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
@@ -7,16 +8,6 @@ import type { Change, ChangeContent, NewChange } from './change';
 import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
-
-export class ChangeNotFoundError extends Error {
-  readonly id: ChangeId;
-
-  constructor(id: ChangeId) {
-    super(`No change ${JSON.stringify(id)}.`);
-    this.name = 'ChangeNotFoundError';
-    this.id = id;
-  }
-}
 
 export class ChangesService {
   private readonly changes: ChangesRepository;
@@ -44,7 +35,7 @@ export class ChangesService {
 
   async findById(id: ChangeId): Promise<Change> {
     const found = await this.changes.get(id);
-    if (found === null) throw new ChangeNotFoundError(id);
+    if (found === null) throw new NotFoundError('change', id);
     return found;
   }
 
@@ -113,7 +104,7 @@ export class ChangesService {
 
   async assertExists(id: ChangeId): Promise<void> {
     if ((await this.changes.get(id)) === null) {
-      throw new ChangeNotFoundError(id);
+      throw new NotFoundError('change', id);
     }
   }
 }
