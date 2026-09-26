@@ -1,9 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
 import { api } from '#/shared/api/client.ts';
-import type { DocumentInput } from '#backend/app/information-sources/document.ts';
-
-/** The document as it arrives: its id is a plain string on the wire. */
-export type DocumentContents = DocumentInput;
 
 export const documentsList = (change: string | null) =>
   queryOptions({

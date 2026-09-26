@@ -1,7 +1,5 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import { routeParams } from '../route-params';
@@ -26,13 +24,11 @@ export function createDocumentsApp(deps: DocumentsDeps) {
 
     .get(
       '/:id',
-      routeParams({ change: ChangeId, id: DocumentId }),
-      async (c) => {
+      routeParams({ change: ChangeId, id: DocumentId }), async (c) => {
         const { change, id } = c.req.valid('param');
-        const document = await documentsService.findById(change, id);
-        // Encoded, so the client's type says what the JSON holds: the id as a
-        // plain string, not the branded one the service holds.
-        return c.json({ document: z.encode(DocumentSchema, document) });
+        return c.json({
+          document: await documentsService.findById(change, id),
+        });
       },
     );
 }

@@ -1,5 +1,6 @@
 import { afterAll, afterEach, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
+import type { DocumentId } from '#backend/app/information-sources/document-id.ts';
 import {
   documentById,
   documentsList,
@@ -17,7 +18,7 @@ afterEach(() => {
 afterAll(() => fetchSpy.mockRestore());
 
 const documentFixture = {
-  id: '2026-01-01-payment-retry-policy',
+  id: '2026-01-01-payment-retry-policy' as DocumentId,
   title: 'Payment retry policy',
   date: '2026-09-12',
   content: 'Retry twice, then stop.',
