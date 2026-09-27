@@ -22,7 +22,7 @@ export function describeFailure(error: unknown): Failure {
       code: 'Offline',
       title: 'Cannot reach Noesis',
       description:
-        'The service answers beside your agent session, and stops when that session closes.',
+        'The service runs while an agent session uses this project, and stops a few minutes after the last one closes.',
     };
   }
   return {

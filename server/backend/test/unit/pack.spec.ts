@@ -9,11 +9,7 @@ import { mkdir, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  listeningUrl,
-  serviceEnv,
-  startServing,
-} from '../support/service-process';
+import { listeningUrl, serviceEnv } from '../support/service-process';
 
 const serviceRoot = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -87,10 +83,9 @@ test('the packed bin serves the page when launched from another directory', asyn
   const child = spawn('bun', [join(serviceRoot, 'dist', 'main.js')], {
     cwd: projectDir,
     env: serviceEnv(projectDir),
-    stdio: ['pipe', 'ignore', 'pipe'],
+    stdio: ['ignore', 'ignore', 'pipe'],
   });
   try {
-    startServing(child);
     const base = await listeningUrl(child, 15_000);
     const page = await fetch(`${base}/`);
     expect(page.status).toBe(200);

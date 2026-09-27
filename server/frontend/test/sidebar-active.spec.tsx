@@ -22,8 +22,8 @@ import { getContext } from '../src/shared/query/query-client';
  */
 
 const CHANGE = '2026-01-01-scheduling';
-const NOTES = '2026-01-01-notes';
-const DOC = '2026-01-02-partial-refunds';
+const NOTES = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c';
+const DOC = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b';
 
 const NAVIGATION = {
   id: CHANGE,
@@ -32,8 +32,13 @@ const NAVIGATION = {
   type: 'feature',
   status: 'design',
   entries: [
-    { id: NOTES, name: 'Notes', kind: 'document' },
-    { id: DOC, name: 'Partial refunds', kind: 'design-doc' },
+    { id: NOTES, name: 'Notes', kind: 'source-document' },
+    {
+      id: DOC,
+      name: 'Partial refunds',
+      kind: 'design-doc',
+      implemented: false,
+    },
   ],
 };
 
@@ -57,22 +62,22 @@ beforeAll(() => {
         : input instanceof URL
           ? input.href
           : input.url;
-    if (url.endsWith('/navigation')) {
+    if (url.endsWith('/ui/changes')) {
       return Promise.resolve(Response.json({ changes: [NAVIGATION] }));
     }
     if (url.includes('/design-docs/')) {
       return Promise.resolve(
         Response.json({
-          document: EMPTY_DESIGN_DOC,
+          designDoc: EMPTY_DESIGN_DOC,
           outline: [],
         }),
       );
     }
-    if (url.includes('/documents/')) {
+    if (url.includes('/source-documents/')) {
       return Promise.resolve(
         Response.json({
-          document: {
-            document_id: 'notes',
+          sourceDocument: {
+            id: 'notes',
             title: 'Notes',
             date: '2026-01-01',
             content: 'Notes.',
@@ -80,13 +85,11 @@ beforeAll(() => {
         }),
       );
     }
-    if (url.endsWith('/design-docs')) {
-      return Promise.resolve(Response.json({ designDocs: [] }));
-    }
-    if (url.endsWith('/documents')) {
-      return Promise.resolve(Response.json({ documents: [] }));
-    }
-    return Promise.resolve(Response.json({ change: NAVIGATION }));
+    return Promise.resolve(
+      Response.json({
+        change: { ...NAVIGATION, designDocs: [], sourceDocuments: [] },
+      }),
+    );
   }) as typeof fetch);
 });
 

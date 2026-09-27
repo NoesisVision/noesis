@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Change } from '#backend/app/changes/change';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import { Change } from '#backend/app/changes/model/change';
+import { ChangeId } from '#backend/app/changes/model/change-id';
+import { CreateChange } from '#backend/app/changes/model/change-snapshot';
+import { CreateSourceDocument } from '#backend/app/changes/model/source-document';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { JsonFileError } from '#backend/platform/files/json-file';
 import {
   decodedDesignDocFixture,
@@ -22,12 +24,18 @@ afterEach(() => t.cleanup());
 const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
 
+const read = async (id: ChangeId): Promise<Change> => {
+  const change = await t.changesRepository.get(id);
+  if (change === null) throw new Error(`no change ${id}`);
+  return change;
+};
+
 describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every id written, ascending', async () => {
     expect(await ids()).toEqual([]);
 
-    const audit = await t.createChange('2026-01-02-audit-log');
-    await t.createChange('2026-01-01-payment-retry');
+    const audit = await t.writeChange('2026-01-02-audit-log');
+    await t.writeChange('2026-01-01-payment-retry');
 
     expect(await ids()).toEqual([
       '2026-01-01-payment-retry',
@@ -43,7 +51,7 @@ describe('NoesisChangesRepository', () => {
     await mkdir(join(t.changesDir, '.hidden'), { recursive: true });
     await mkdir(join(t.changesDir, '2026-01-01-orphan'), { recursive: true });
     await writeFile(join(t.changesDir, 'README.md'), 'notes');
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
 
     expect(await ids()).toEqual(['2026-01-01-real']);
     expect(
@@ -52,7 +60,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses to list a change file that is not a change', async () => {
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
     await writeFile(
       join(t.changesDir, 'payment-retry.change.json'),
       JSON.stringify({ id: 'payment-retry', name: 'x', type: 'chore' }),
@@ -63,18 +71,43 @@ describe('NoesisChangesRepository', () => {
     );
   });
 
-  it('round-trips a change through graph/changes/<id>.change.json', async () => {
-    const change: Change = {
-      id: ChangeId.parse('2026-01-01-with-file'),
-      name: 'With file',
-      key: 'NOE-1',
-      type: 'feature',
-      status: 'design',
-      description: 'notes',
-    };
+  it('refuses to read a change file without a version', async () => {
+    const id = await t.writeChange('2026-01-01-unversioned');
+    const path = join(t.changesDir, `${id}.change.json`);
+    const { version: _, ...unversioned } = JSON.parse(
+      await readFile(path, 'utf8'),
+    ) as Record<string, unknown>;
+    await writeFile(path, JSON.stringify(unversioned));
+
+    await expect(t.changesRepository.get(id)).rejects.toBeInstanceOf(
+      JsonFileError,
+    );
+  });
+
+  it('round-trips a change and what it owns through graph/changes/<id>.change.json', async () => {
+    const id = ChangeId.parse('2026-01-01-with-file');
+    const change = Change.create(
+      id,
+      CreateChange.parse({
+        name: 'With file',
+        key: 'NOE-1',
+        type: 'feature',
+        description: 'notes',
+      }),
+    );
+    change.addSourceDocument(
+      CreateSourceDocument.parse({
+        title: 'Notes',
+        date: '2026-01-01',
+        content: 'Said.',
+      }),
+    );
+    const expected = change.toSnapshot();
     await t.changesRepository.save(change);
 
-    expect(await t.changesRepository.get(change.id)).toEqual(change);
+    expect(await t.stored(id)).toEqual(expected);
+    expect(expected.version).toBe(1);
+    expect(change.version).toBe(1);
     expect(await readdir(t.changesDir)).toEqual([
       '2026-01-01-with-file.change.json',
     ]);
@@ -85,45 +118,89 @@ describe('NoesisChangesRepository', () => {
           'utf8',
         ),
       ),
-    ).toEqual(change);
+    ).toEqual(expected);
   });
 
-  it('replaces the change and keeps what it owns', async () => {
-    const kept = await t.createChange('2026-01-01-kept', {
-      status: 'discovery',
-    });
-    await t.writeDesignDoc(kept, designDocFixture);
-    const before = await t.changesRepository.get(kept);
-    if (before === null) throw new Error('the change was not written');
+  it('stores a design document as its JSON form, defaults spelled out', async () => {
+    const id = await t.writeChange('2026-01-01-designed');
+    await t.writeDesignDoc(id, designDocFixture);
 
-    await t.changesRepository.save({ ...before, status: 'design' });
+    const stored = JSON.parse(
+      await readFile(join(t.changesDir, `${id}.change.json`), 'utf8'),
+    ) as { designDocs: unknown[] };
+    expect(stored.designDocs).toEqual([designDocFixture]);
+    expect((await read(id)).designDoc(decodedDesignDocFixture.id)).toEqual(
+      decodedDesignDocFixture,
+    );
+  });
 
-    expect((await t.changesRepository.get(kept))?.status).toBe('design');
-    expect(
-      await t.designDocsRepository.get(kept, decodedDesignDocFixture.id),
-    ).toEqual(DesignDocument.parse(designDocFixture));
-    expect((await readdir(join(t.changesDir, kept))).sort()).toEqual([
-      `${designDocFixture.id}.design-doc.json`,
-    ]);
+  it('counts every save in the version, starting at 1', async () => {
+    const id = await t.writeChange('2026-01-01-counted');
+    expect((await read(id)).version).toBe(1);
+
+    await t.changesRepository.save(await read(id));
+
+    expect((await read(id)).version).toBe(2);
+  });
+
+  it('lets one instance be saved again: each save builds on the last', async () => {
+    const id = await t.writeChange('2026-01-01-twice');
+    const change = await read(id);
+
+    change.update({ ...change.summary(), status: 'design' });
+    await t.changesRepository.save(change);
+    change.update({ ...change.summary(), status: 'done' });
+    await t.changesRepository.save(change);
+
+    expect(change.version).toBe(3);
+    expect((await read(id)).summary().status).toBe('done');
+  });
+
+  it('refuses a save on a version older than the stored one, keeping the stored one', async () => {
+    const id = await t.writeChange('2026-01-01-raced');
+    const first = await read(id);
+    const second = await read(id);
+    first.update({ ...first.summary(), status: 'design' });
+    await t.changesRepository.save(first);
+
+    second.update({ ...second.summary(), status: 'done' });
+
+    await expect(t.changesRepository.save(second)).rejects.toBeInstanceOf(
+      ConcurrentModificationError,
+    );
+    expect((await read(id)).summary().status).toBe('design');
+  });
+
+  it('refuses to create a change at an id another holds', async () => {
+    const id = await t.writeChange('2026-01-01-taken');
+
+    await expect(
+      t.changesRepository.save(
+        Change.create(id, CreateChange.parse({ name: 'Again', type: 'fix' })),
+      ),
+    ).rejects.toBeInstanceOf(ConcurrentModificationError);
   });
 
   it('refuses data whose id is not one, and data that is not a change', async () => {
-    const typed = await t.createChange('2026-01-01-typed');
-    const before = await t.changesRepository.get(typed);
-    if (before === null) throw new Error('the change was not written');
+    const typed = await t.writeChange('2026-01-01-typed');
+    const before = await t.stored(typed);
 
     await expect(
-      t.changesRepository.save({
-        ...before,
-        id: 'Not An Id',
-      } as unknown as typeof before),
+      t.changesRepository.save(
+        Change.fromSnapshot({
+          ...before,
+          id: 'Not An Id',
+        } as unknown as typeof before),
+      ),
     ).rejects.toThrow();
     await expect(
-      t.changesRepository.save({
-        ...before,
-        status: 'shipped',
-      } as unknown as typeof before),
+      t.changesRepository.save(
+        Change.fromSnapshot({
+          ...before,
+          status: 'shipped',
+        } as unknown as typeof before),
+      ),
     ).rejects.toBeInstanceOf(JsonFileError);
-    expect((await t.changesRepository.get(typed))?.status).toBe('discovery');
+    expect((await read(typed)).summary().status).toBe('discovery');
   });
 });

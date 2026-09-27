@@ -1,4 +1,4 @@
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { DesignDocInput } from '#backend/app/changes/model/design-doc.ts';
 
 /*
  * A design that changes something at every level, in the JSON form the wire
@@ -22,7 +22,7 @@ const ISSUE_DIAGRAM = [
 ].join('\n');
 
 export const changedEverywhereFixture = {
-  id: '2026-01-01-partial-refunds-for-orders',
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
   name: 'Partial refunds for orders',
   description: 'Refund single order lines.',
   modules: {
@@ -62,7 +62,7 @@ export const changedEverywhereFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
-              ruleType: agent('Consistency'),
+              ruleType: agent('consistency'),
             },
           ],
         },
@@ -114,20 +114,20 @@ export const changedEverywhereFixture = {
   behaviours: {
     added: [
       {
-        id: 'behavior|sales.refunds.Refund.issue',
-        type: human('Command'),
+        id: 'behaviour|sales.refunds.Refund.issue',
+        type: human('command'),
         description: agent(ISSUE_DIAGRAM),
         rules: {
           added: [
             {
               name: 'Only paid orders are refundable',
-              ruleType: agent('State change'),
+              ruleType: agent('state_change'),
             },
           ],
         },
       },
     ],
-    removed: ['behavior|sales.credit-notes.CreditNote.issue'],
-    modified: [{ id: 'behavior|sales.orders.Order.cancel' }],
+    removed: ['behaviour|sales.credit-notes.CreditNote.issue'],
+    modified: [{ id: 'behaviour|sales.orders.Order.cancel' }],
   },
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;

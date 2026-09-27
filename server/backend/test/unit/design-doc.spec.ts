@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import { DesignDoc } from '#backend/app/changes/model/design-doc';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   designDocFixture,
@@ -14,10 +14,10 @@ import {
  */
 
 const REFUND = 'building_block|sales.refunds.Refund';
-const ISSUE = 'behavior|sales.refunds.Refund.issue';
+const ISSUE = 'behaviour|sales.refunds.Refund.issue';
 
 const design = (patch: Record<string, unknown> = {}) => ({
-  id: '2026-01-01-partial-refunds',
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
   name: 'Partial refunds',
   description: 'Let a clerk refund single order lines.',
   ...patch,
@@ -39,13 +39,14 @@ const addingIssue = (behaviour: object) =>
     },
   });
 
-const isValid = (document: unknown) =>
-  DesignDocument.safeParse(document).success;
+const isValid = (document: unknown) => DesignDoc.safeParse(document).success;
 
 describe('A design document', () => {
-  it('is identified by its creation date and name', () => {
-    expect(isValid(design({ id: '2026-01-01-partial-refunds' }))).toBe(true);
-    expect(isValid(design({ id: 'partial-refunds' }))).toBe(false);
+  it('is identified by a UUID', () => {
+    expect(
+      isValid(design({ id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b' })),
+    ).toBe(true);
+    expect(isValid(design({ id: '2026-01-01-partial-refunds' }))).toBe(false);
   });
 
   it('always has a name and a description', () => {
@@ -54,14 +55,14 @@ describe('A design document', () => {
   });
 
   it('is not implemented until marked so', () => {
-    expect(DesignDocument.parse(design()).implemented).toBe(false);
-    expect(
-      DesignDocument.parse(design({ implemented: true })).implemented,
-    ).toBe(true);
+    expect(DesignDoc.parse(design()).implemented).toBe(false);
+    expect(DesignDoc.parse(design({ implemented: true })).implemented).toBe(
+      true,
+    );
   });
 
   it('changes nothing in a part it leaves out', () => {
-    const parsed = DesignDocument.parse(addingRefund({}));
+    const parsed = DesignDoc.parse(addingRefund({}));
 
     expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
     expect(parsed.buildingBlocks.added[0]?.properties).toEqual({
@@ -92,15 +93,15 @@ describe('A design document', () => {
   });
 
   it('reads back exactly as it was written', () => {
-    const parsed = DesignDocument.parse(designDocFixture);
+    const parsed = DesignDoc.parse(designDocFixture);
 
-    expect(z.encode(DesignDocument, parsed)).toEqual(designDocFixture);
+    expect(z.encode(DesignDoc, parsed)).toEqual(designDocFixture);
   });
 });
 
 describe('The elements a design changes', () => {
   it('adds and modifies an element whole, and removes one by its id', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       design({
         modules: {
           added: [{ id: 'module|sales.refunds', name: { value: 'refunds' } }],
@@ -134,7 +135,7 @@ describe('The elements a design changes', () => {
   });
 
   it('removes a property, a rule or a scenario by its name', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       addingRefund({
         properties: { removed: ['legacyFlag'] },
         rules: { removed: ['Refund only paid orders'] },
@@ -149,7 +150,7 @@ describe('The elements a design changes', () => {
   });
 
   it('holds the scenarios of a building block, a behaviour and a rule', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       addingRefund({
         rules: {
           modified: [
@@ -171,7 +172,7 @@ describe('The elements a design changes', () => {
   });
 
   it('adds and removes an implemented interface by its id', () => {
-    const parsed = DesignDocument.parse(
+    const parsed = DesignDoc.parse(
       design({
         buildingBlocks: {
           modified: [
@@ -221,13 +222,13 @@ describe('The elements a design changes', () => {
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
     );
-    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(true);
+    expect(isValid(addingIssue({ type: { value: 'command' } }))).toBe(true);
     expect(isValid(addingIssue({ type: { value: 'Request' } }))).toBe(false);
     expect(
       isValid(
         addingRefund({
           rules: {
-            added: [{ name: 'Paid only', ruleType: { value: 'Validation' } }],
+            added: [{ name: 'Paid only', ruleType: { value: 'validation' } }],
           },
         }),
       ),
@@ -237,14 +238,13 @@ describe('The elements a design changes', () => {
 
 describe('A field of a design', () => {
   it('is unchanged when the design leaves it out', () => {
-    const block = DesignDocument.parse(addingRefund({})).buildingBlocks
-      .added[0]!;
+    const block = DesignDoc.parse(addingRefund({})).buildingBlocks.added[0]!;
 
     expect(block.description).toEqual({ changed: false });
   });
 
   it('is a change when it has a value, written by the agent unless a human wrote it', () => {
-    const block = DesignDocument.parse(
+    const block = DesignDoc.parse(
       addingRefund({
         description: { value: 'Money back.' },
         type: { value: 'aggregate', author: 'human' },
@@ -349,7 +349,7 @@ describe('The visibility of a behaviour', () => {
 describe('A design document an agent wrote', () => {
   const ORDERS = 'module|sales.orders';
   const ORDER = 'building_block|sales.orders.Order';
-  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const CANCEL = 'behaviour|sales.orders.Order.cancel';
   const source = { path: 'src/sales/orders/order.ts' };
 
   const AUDITABLE = 'building_block|sales.shared.Auditable';
@@ -362,7 +362,7 @@ describe('A design document an agent wrote', () => {
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
     name: 'shop',
-    scanned_at: '2026-09-25T08:00:00.000Z',
+    scannedAt: '2026-09-25T08:00:00.000Z',
     modules: [{ id: ORDERS, name: 'orders', source }],
     buildingBlocks: [
       {
@@ -374,7 +374,7 @@ describe('A design document an agent wrote', () => {
         rules: [
           {
             name: 'Paid orders only',
-            ruleType: 'State change',
+            ruleType: 'state_change',
             scenarios: [
               {
                 name: 'Cancelling a paid order',
@@ -393,9 +393,8 @@ describe('A design document an agent wrote', () => {
     behaviours: [
       {
         id: CANCEL,
-        buildingBlockId: ORDER,
         name: 'cancel',
-        type: 'Command',
+        type: 'command',
         visibility: { kind: 'private' },
         input: [ORDER],
         source,
@@ -404,10 +403,7 @@ describe('A design document an agent wrote', () => {
   });
 
   const validate = (document: unknown, systemModel?: SystemModel) =>
-    DesignDocument.validateAgentGenerated(
-      DesignDocument.parse(document),
-      systemModel,
-    );
+    DesignDoc.validateAgentGenerated(DesignDoc.parse(document), systemModel);
 
   describe('for a green field, where nothing is scanned yet', () => {
     it('adds elements', () => {
@@ -482,7 +478,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: { modified: [{ id: missing }] },
-            behaviours: { removed: ['behavior|sales.orders.Order.ship'] },
+            behaviours: { removed: ['behaviour|sales.orders.Order.ship'] },
           }),
           scanned,
         ),
@@ -492,7 +488,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: 'behaviours.removed[behavior|sales.orders.Order.ship]',
+          path: 'behaviours.removed[behaviour|sales.orders.Order.ship]',
           reason: 'unknownElement',
         },
       ]);

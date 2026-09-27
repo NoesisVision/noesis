@@ -1,0 +1,301 @@
+import { z } from 'zod';
+import {
+  BehaviourId,
+  BuildingBlockId,
+  ElementName,
+  ModuleId,
+} from '#backend/app/system-model/element-id';
+import {
+  BehaviourType,
+  BuildingBlockType,
+  RuleType,
+  BuildingBlockRef,
+  type SystemModel,
+  Visibility,
+} from '#backend/app/system-model/system-model';
+import { DesignDocField } from './design-doc-field';
+import { DesignDocId } from './design-doc-id';
+
+export const DesignedScenario = z.strictObject({
+  name: ElementName,
+  description: DesignDocField(z.string()),
+  given: DesignDocField(z.string()),
+  when: DesignDocField(z.string()),
+  // oxlint-disable-next-line unicorn/no-thenable
+  then: DesignDocField(z.string()), // NOSONAR
+});
+export type DesignedScenario = z.infer<typeof DesignedScenario>;
+
+export const DesignedProperty = z.strictObject({
+  name: ElementName,
+  type: DesignDocField(BuildingBlockRef),
+  description: DesignDocField(z.string()),
+  optional: DesignDocField(z.boolean()),
+});
+export type DesignedProperty = z.infer<typeof DesignedProperty>;
+
+export const DesignedRule = z.strictObject({
+  name: ElementName,
+  ruleType: DesignDocField(RuleType),
+  description: DesignDocField(z.string()),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
+});
+export type DesignedRule = z.infer<typeof DesignedRule>;
+
+export const DesignedDomainModule = z.strictObject({
+  id: ModuleId,
+  name: DesignDocField(ElementName),
+  description: DesignDocField(z.string()),
+});
+export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
+
+export const DesignedBuildingBlock = z.strictObject({
+  id: BuildingBlockId,
+  name: DesignDocField(ElementName),
+  type: DesignDocField(BuildingBlockType),
+  description: DesignDocField(z.string()),
+  implements: changeSetSchema(BuildingBlockId),
+  properties: changeSetSchema(DesignedProperty, ElementName),
+  rules: changeSetSchema(DesignedRule, ElementName),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
+});
+export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
+
+export const DesignedBehaviour = z.strictObject({
+  id: BehaviourId,
+  name: DesignDocField(ElementName),
+  type: DesignDocField(BehaviourType),
+  description: DesignDocField(z.string()),
+  visibility: DesignDocField(Visibility),
+  input: changeSetSchema(BuildingBlockRef),
+  output: changeSetSchema(BuildingBlockRef),
+  rules: changeSetSchema(DesignedRule, ElementName),
+  scenarios: changeSetSchema(DesignedScenario, ElementName),
+});
+export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
+
+const designDocSchema = z.strictObject({
+  id: DesignDocId,
+  name: z.string().describe('The design document name.'),
+  description: z.string(),
+  modules: changeSetSchema(DesignedDomainModule, ModuleId),
+  buildingBlocks: changeSetSchema(DesignedBuildingBlock, BuildingBlockId),
+  behaviours: changeSetSchema(DesignedBehaviour, BehaviourId),
+  implemented: z
+    .boolean()
+    .default(false)
+    .describe('Whether the design is marked as implemented.'),
+});
+
+export const DesignDoc = Object.assign(designDocSchema, {
+  /**
+   * The rules a design document written by an agent follows. Without a
+   * system model it is a green field: there is nothing to modify or remove.
+   * An update's working file has the same shape as a new one's.
+   */
+  validateAgentGenerated: (
+    document: CreateDesignDoc,
+    systemModel?: SystemModel,
+  ): DesignDocViolation[] => [
+    ...changesMissingFrom(systemModel, document),
+    ...unchangedFieldsInAddedItems(document),
+    ...humanAuthoredFields(document),
+  ],
+});
+export type DesignDoc = z.infer<typeof designDocSchema>;
+
+export interface DesignDocViolation {
+  path: string;
+  reason:
+    | 'changedInGreenField'
+    | 'unknownElement'
+    | 'unchangedFieldInAddedItem'
+    | 'humanAuthor';
+}
+
+export type DesignDocInput = z.input<typeof designDocSchema>;
+
+/** The working file of a new design document: the server mints its id. */
+export const CreateDesignDoc = designDocSchema.omit({ id: true });
+export type CreateDesignDoc = z.infer<typeof CreateDesignDoc>;
+
+/**
+ * The working file of a design document update: the same shape, the id
+ * travelling beside it.
+ * @alias
+ */
+export const UpdateDesignDoc = CreateDesignDoc;
+export type UpdateDesignDoc = CreateDesignDoc;
+
+export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
+export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
+export type DesignedBehaviourInput = z.input<typeof DesignedBehaviour>;
+export type DesignedPropertyInput = z.input<typeof DesignedProperty>;
+export type DesignedRuleInput = z.input<typeof DesignedRule>;
+export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
+
+type ChangeSet<
+  Item extends z.ZodType,
+  Key extends z.ZodType = never,
+> = z.ZodPrefault<
+  z.ZodObject<
+    [Key] extends [never]
+      ? {
+          added: z.ZodDefault<z.ZodArray<Item>>;
+          removed: z.ZodDefault<z.ZodArray<Item>>;
+        }
+      : {
+          added: z.ZodDefault<z.ZodArray<Item>>;
+          removed: z.ZodDefault<z.ZodArray<Key>>;
+          modified: z.ZodDefault<z.ZodArray<Item>>;
+        },
+    z.core.$strict
+  >
+>;
+
+function changeSetSchema<Item extends z.ZodType>(item: Item): ChangeSet<Item>;
+function changeSetSchema<Item extends z.ZodType, Key extends z.ZodType>(
+  item: Item,
+  key: Key,
+): ChangeSet<Item, Key>;
+function changeSetSchema(item: z.ZodType, key?: z.ZodType) {
+  if (key === undefined) {
+    return z
+      .strictObject({
+        added: z.array(item).default([]),
+        removed: z.array(item).default([]),
+      })
+      .prefault({});
+  }
+  return z
+    .strictObject({
+      added: z.array(item).default([]),
+      removed: z.array(key).default([]),
+      modified: z.array(item).default([]),
+    })
+    .prefault({});
+}
+
+/**
+ * Every element or part the document modifies or removes, at any level, that
+ * the system model lacks; all of them in a green field. An element's parts
+ * are matched by name: a designed block's `properties` against the scanned
+ * block's `properties`, and so on. Inside an added element nothing exists yet.
+ */
+function changesMissingFrom(
+  systemModel: SystemModel | undefined,
+  document: CreateDesignDoc,
+): DesignDocViolation[] {
+  const reason =
+    systemModel === undefined ? 'changedInGreenField' : 'unknownElement';
+  return [...partsMissingFrom(document, systemModel, '')].map((path) => ({
+    path,
+    reason,
+  }));
+}
+
+function* partsMissingFrom(
+  designed: object,
+  scanned: object | undefined,
+  path: string,
+): Generator<string> {
+  for (const [name, part] of Object.entries(designed)) {
+    if (!isChangeSet(part)) continue;
+    const counterpart: unknown =
+      scanned === undefined ? undefined : Reflect.get(scanned, name);
+    yield* changesMissingFromPart(
+      part,
+      Array.isArray(counterpart) ? counterpart : [],
+      path === '' ? name : `${path}.${name}`,
+    );
+  }
+}
+
+function* changesMissingFromPart(
+  changes: ChangeSetValue,
+  scanned: unknown[],
+  path: string,
+): Generator<string> {
+  const known = new Map(scanned.map((item) => [keyOf(item), item]));
+  for (const item of changes.added) {
+    if (isObject(item)) {
+      yield* partsMissingFrom(item, undefined, `${path}.added[${keyOf(item)}]`);
+    }
+  }
+  for (const key of changes.removed.map(keyOf)) {
+    if (!known.has(key)) yield `${path}.removed[${key}]`;
+  }
+  for (const item of changes.modified ?? []) {
+    const key = keyOf(item);
+    const found = known.get(key);
+    if (found === undefined) {
+      yield `${path}.modified[${key}]`;
+    } else if (isObject(item)) {
+      yield* partsMissingFrom(
+        item,
+        isObject(found) ? found : undefined,
+        `${path}.modified[${key}]`,
+      );
+    }
+  }
+}
+
+interface ChangeSetValue {
+  added: unknown[];
+  removed: unknown[];
+  modified?: unknown[];
+}
+
+function isChangeSet(value: unknown): value is ChangeSetValue {
+  return (
+    isObject(value) &&
+    'added' in value &&
+    Array.isArray(value.added) &&
+    'removed' in value &&
+    Array.isArray(value.removed)
+  );
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === 'object' && value !== null;
+}
+
+function unchangedFieldsInAddedItems(
+  document: CreateDesignDoc,
+): DesignDocViolation[] {
+  return [...fieldsOf(document, '')]
+    .filter(([path, field]) => !field.changed && isInAddedItem(path))
+    .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' }));
+}
+
+function humanAuthoredFields(document: CreateDesignDoc): DesignDocViolation[] {
+  return [...fieldsOf(document, '')]
+    .filter(([, field]) => field.changed && field.author === 'human')
+    .map(([path]) => ({ path, reason: 'humanAuthor' }));
+}
+
+function isInAddedItem(path: string): boolean {
+  return /(?:^|\.)added\[/.test(path);
+}
+
+function* fieldsOf(
+  node: unknown,
+  path: string,
+): Generator<[string, DesignDocField<unknown>]> {
+  if (DesignDocField.is(node)) {
+    yield [path, node];
+  } else if (Array.isArray(node)) {
+    for (const item of node) yield* fieldsOf(item, `${path}[${keyOf(item)}]`);
+  } else if (isObject(node)) {
+    for (const [name, child] of Object.entries(node)) {
+      yield* fieldsOf(child, path === '' ? name : `${path}.${name}`);
+    }
+  }
+}
+
+function keyOf(item: unknown): string {
+  if (!isObject(item)) return String(item);
+  if ('id' in item && typeof item.id === 'string') return item.id;
+  if ('name' in item && typeof item.name === 'string') return item.name;
+  return JSON.stringify(item);
+}

@@ -1,10 +1,17 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { compression } from 'vite-plugin-compression2';
 
 const backend = 'http://127.0.0.1:3001';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // The service serves `<file>.gz` beside each text asset when the browser
+    // accepts gzip, so nothing is compressed at request time. Below 1 kB the
+    // header costs more than the compression saves.
+    compression({ algorithms: ['gzip'], threshold: 1024 }),
+  ],
   build: {
     /*
      * Browsers that have `light-dark()`. Below this, LightningCSS — vite's

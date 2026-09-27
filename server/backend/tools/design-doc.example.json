@@ -103,7 +103,7 @@
             {
               "name": "Refund never exceeds paid amount",
               "ruleType": {
-                "value": "Consistency"
+                "value": "consistency"
               },
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
@@ -198,12 +198,12 @@
   "behaviours": {
     "added": [
       {
-        "id": "behavior|sales.refunds.Refund.issue",
+        "id": "behaviour|sales.refunds.Refund.issue",
         "name": {
           "value": "issue"
         },
         "type": {
-          "value": "Command",
+          "value": "command",
           "author": "human"
         },
         "description": {
@@ -233,7 +233,7 @@
             {
               "name": "Only paid orders are refundable",
               "ruleType": {
-                "value": "State change"
+                "value": "state_change"
               },
               "description": {
                 "value": "An unpaid order has nothing to refund."
@@ -243,10 +243,10 @@
         }
       }
     ],
-    "removed": ["behavior|sales.credit-notes.CreditNote.issue"],
+    "removed": ["behaviour|sales.credit-notes.CreditNote.issue"],
     "modified": [
       {
-        "id": "behavior|sales.orders.Order.cancel",
+        "id": "behaviour|sales.orders.Order.cancel",
         "visibility": {
           "value": {
             "kind": "private"

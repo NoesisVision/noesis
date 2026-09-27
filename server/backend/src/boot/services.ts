@@ -1,54 +1,35 @@
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { ChangesService } from '#backend/app/changes/changes.service';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { DocumentSchema } from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
-import { SearchService } from '#backend/app/search/search.service';
+import { addDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
+import { addSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
+import { createChangeHandler } from '#backend/app/changes/create-change';
+import { findChangeHandler } from '#backend/app/changes/find-change';
+import { findDesignDocHandler } from '#backend/app/changes/find-design-doc';
+import { findSourceDocumentHandler } from '#backend/app/changes/find-source-document';
+import { listChangesHandler } from '#backend/app/changes/list-changes';
+import { updateChangeHandler } from '#backend/app/changes/update-change';
+import { updateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
+import { updateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
+import { searchHandler } from '#backend/app/search/search';
 import { localToday } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** The application layer, shared by the MCP tools and the ui routes. */
-export interface Services {
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
-  searchService: SearchService;
-}
-
-/** Wires the file repositories under `.noesis/` to the services that use them. */
-export function createServices(noesis: NoesisDir): Services {
-  const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
-    noesis,
-    DesignDocument,
-    'design-doc',
-  );
-  const documentsRepository = new ChangeOwnedRepository(
-    noesis,
-    DocumentSchema,
-    'document',
-  );
-
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    localToday,
-  );
+/** Wires the change files under `.noesis/` to the handlers that use them. */
+export function createServices(noesis: NoesisDir) {
+  const changes = new NoesisChangesRepository(noesis);
   return {
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-      localToday,
-    ),
-    documentsService: new DocumentsService(
-      documentsRepository,
-      changesService,
-      localToday,
-    ),
-    searchService: new SearchService(),
+    createChange: createChangeHandler(changes, localToday),
+    updateChange: updateChangeHandler(changes),
+    addDesignDocToChange: addDesignDocToChangeHandler(changes),
+    updateDesignDocInChange: updateDesignDocInChangeHandler(changes),
+    addSourceDocumentToChange: addSourceDocumentToChangeHandler(changes),
+    updateSourceDocumentInChange: updateSourceDocumentInChangeHandler(changes),
+    listChanges: listChangesHandler(changes),
+    findChange: findChangeHandler(changes),
+    findDesignDoc: findDesignDocHandler(changes),
+    findSourceDocument: findSourceDocumentHandler(changes),
+    search: searchHandler(),
   };
 }
+
+/** The application layer, behind the `/ui` routes. */
+export type Services = ReturnType<typeof createServices>;

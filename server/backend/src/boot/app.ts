@@ -1,43 +1,39 @@
 import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
-import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
-import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
-import type { SearchService } from '#backend/app/search/search.service';
+import { refuseWhileDraining } from '#backend/adapters/in/ui/draining';
+import {
+  createInternalApp,
+  type InternalDeps,
+} from '#backend/adapters/in/ui/internal.routes';
+import { createUiApp, type UiDeps } from '#backend/adapters/in/ui/ui.routes';
+import { localHostOnly } from '#backend/platform/http/local-host-only';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 
-// No surface is guarded: the server runs on the developer's own machine.
-export interface AppDeps {
-  searchService: SearchService;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+export interface AppOptions {
+  internal: InternalDeps;
+  /** True once shutdown has begun. */
+  draining: () => boolean;
 }
 
+// No surface asks who is calling: the server runs on the developer's own
+// machine. It does ask which machine is named, against DNS rebinding.
 // Keep the .route() chain unbroken: Hono infers the route tree from this
 // expression for the typed RPC client (`hc`).
-export function createApp(deps: AppDeps) {
+export function createApp(deps: UiDeps, options: AppOptions) {
   return (
     new Hono()
+      .use(localHostOnly())
       // `context: true` gives every log line in the request its request id.
       .use(
         honoLogger({
-          category: ['noesis', 'server', 'http'],
+          category: serverLogger('http').category,
           format: 'structured-common',
           context: true,
           skip: (c) => c.req.path === '/internal/health',
         }),
       )
-      .route(
-        '/ui',
-        createUiApp({
-          searchService: deps.searchService,
-          changesService: deps.changesService,
-          designDocsService: deps.designDocsService,
-          documentsService: deps.documentsService,
-        }),
-      )
-      .route('/internal', createInternalApp())
+      .use(refuseWhileDraining(options.draining))
+      .route('/ui', createUiApp(deps))
+      .route('/internal', createInternalApp(options.internal))
   );
 }

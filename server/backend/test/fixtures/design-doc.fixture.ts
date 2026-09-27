@@ -1,7 +1,7 @@
 import {
-  DesignDocument,
-  type DesignDocumentInput,
-} from '#backend/app/design-docs/design-doc';
+  DesignDoc,
+  type DesignDocInput,
+} from '#backend/app/changes/model/design-doc';
 
 /*
  * The JSON form, with every default spelled out, so that decoding and
@@ -29,7 +29,7 @@ const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
 
 export const designDocFixture = {
-  id: '2026-01-01-partial-refunds-for-orders',
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
   name: 'Partial refunds for orders',
   description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',
@@ -102,7 +102,7 @@ export const designDocFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
-              ruleType: byAgent('Consistency'),
+              ruleType: byAgent('consistency'),
               description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
               ),
@@ -186,9 +186,9 @@ export const designDocFixture = {
   behaviours: {
     added: [
       {
-        id: 'behavior|sales.refunds.Refund.issue',
+        id: 'behaviour|sales.refunds.Refund.issue',
         name: byAgent('issue'),
-        type: byHuman('Command'),
+        type: byHuman('command'),
         description: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
@@ -209,7 +209,7 @@ export const designDocFixture = {
           added: [
             {
               name: 'Only paid orders are refundable',
-              ruleType: byAgent('State change'),
+              ruleType: byAgent('state_change'),
               description: byAgent('An unpaid order has nothing to refund.'),
               scenarios: noChanges,
             },
@@ -220,10 +220,10 @@ export const designDocFixture = {
         scenarios: noChanges,
       },
     ],
-    removed: ['behavior|sales.credit-notes.CreditNote.issue'],
+    removed: ['behaviour|sales.credit-notes.CreditNote.issue'],
     modified: [
       {
-        id: 'behavior|sales.orders.Order.cancel',
+        id: 'behaviour|sales.orders.Order.cancel',
         name: unchanged,
         type: unchanged,
         description: unchanged,
@@ -236,17 +236,17 @@ export const designDocFixture = {
     ],
   },
   implemented: false,
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;
 
 /** The decoded form, as the service takes it. */
-export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
+export const decodedDesignDocFixture = DesignDoc.decode(designDocFixture);
 
 /*
  * What an agent may write while nothing is scanned yet: the same design with
  * every field written by the agent, adding elements only.
  */
 const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
-export const greenFieldDesignDocFixture: DesignDocumentInput = {
+export const greenFieldDesignDocFixture: DesignDocInput = {
   ...byAgentOnly,
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },

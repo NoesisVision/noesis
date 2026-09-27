@@ -16,11 +16,11 @@ describe('outlineTree', () => {
   });
 
   it('reads the line from the top down to a node, the node last', () => {
-    expect(tree.ancestryOf('behavior|shop.orders.Order.place')).toEqual([
+    expect(tree.ancestryOf('behaviour|shop.orders.Order.place')).toEqual([
       'module|shop',
       'module|shop.orders',
       'building_block|shop.orders.Order',
-      'behavior|shop.orders.Order.place',
+      'behaviour|shop.orders.Order.place',
     ]);
     expect(tree.ancestryOf('module|shop')).toEqual(['module|shop']);
     expect(tree.ancestryOf('nothing|here')).toEqual([]);

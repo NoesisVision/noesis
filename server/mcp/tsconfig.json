@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The backend's source, whose app model, `/ui` route types and daemon
+    // registration the shim shares, resolves under its own alias here too.
+    "paths": {
+      "#mcp/*": ["./src/*"],
+      "#backend/*": ["../backend/src/*"]
+    }
+  }
+}

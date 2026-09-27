@@ -1,36 +1,67 @@
 import { Hono } from 'hono';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { routeParams } from '../route-params';
+import { jsonBody, workingFileLimit } from '#backend/adapters/in/ui/json-body';
+import { routeParams } from '#backend/adapters/in/ui/route-params';
+import {
+  AddDesignDocToChange,
+  type AddDesignDocToChangeHandler,
+} from '#backend/app/changes/add-design-doc-to-change';
+import {
+  FindDesignDoc,
+  type FindDesignDocHandler,
+} from '#backend/app/changes/find-design-doc';
+import {
+  UpdateDesignDocInChange,
+  type UpdateDesignDocInChangeHandler,
+} from '#backend/app/changes/update-design-doc-in-change';
 
 export interface DesignDocsDeps {
-  designDocsService: DesignDocsService;
+  addDesignDocToChange: AddDesignDocToChangeHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
+  findDesignDoc: FindDesignDocHandler;
 }
 
 /**
- * Mounted at `/ui/changes/:change/design-docs`, read only: design documents
- * are written and removed by the agent through the MCP tools, so the browser
- * surface never changes one.
+ * Mounted at `/ui/changes/:change/design-docs`. The bodies are the working
+ * files the MCP tools read; the change lists what it holds.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
-  const { designDocsService } = deps;
+  const { addDesignDocToChange, updateDesignDocInChange, findDesignDoc } = deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', routeParams({ change: ChangeId }), async (c) => {
-      const { change } = c.req.valid('param');
-      return c.json({ designDocs: await designDocsService.list(change) });
+    .post(
+      '/',
+      workingFileLimit,
+      routeParams(AddDesignDocToChange.pick({ change: true }).shape),
+      jsonBody(AddDesignDocToChange.shape.designDoc),
+      async (c) => {
+        const designDoc = await addDesignDocToChange.handle({
+          ...c.req.valid('param'),
+          designDoc: c.req.valid('json'),
+        });
+        return c.json({ designDoc }, 201);
+      },
+    )
+
+    .get('/:id', routeParams(FindDesignDoc.shape), async (c) => {
+      return c.json({
+        designDoc: await findDesignDoc.handle(c.req.valid('param')),
+      });
     })
 
-    .get(
+    .put(
       '/:id',
-      routeParams({ change: ChangeId, id: DesignDocId }),
+      workingFileLimit,
+      routeParams(
+        UpdateDesignDocInChange.pick({ change: true, id: true }).shape,
+      ),
+      jsonBody(UpdateDesignDocInChange.shape.designDoc),
       async (c) => {
-        const { change, id } = c.req.valid('param');
-        return c.json({
-          document: await designDocsService.findById(change, id),
+        const designDoc = await updateDesignDocInChange.handle({
+          ...c.req.valid('param'),
+          designDoc: c.req.valid('json'),
         });
+        return c.json({ designDoc });
       },
     );
 }

@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { ChangeId } from '#backend/app/changes/change-id';
-import { SearchService } from '#backend/app/search/search.service';
+import type { ChangeId } from '#backend/app/changes/model/change-id';
 import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { designDocId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/design-docs`), which is what is under test.
-// The surface only reads; documents get in through the MCP tools, so the
-// tests seed them through the service.
+// The reads are fed by writing into the change directly; the writes take the
+// same working file the MCP tools read.
 
 const CHANGE = '2026-01-01-booking';
 const BASE = `/changes/${CHANGE}/design-docs`;
@@ -22,29 +22,18 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  change = await t.createChange(CHANGE);
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  change = await t.writeChange(CHANGE);
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
-  it('lists the stored documents of the change', async () => {
+  // The change lists them: `GET /changes/:id`.
+  it('lists nothing of its own', async () => {
     await t.writeDesignDoc(change, designDocFixture);
 
-    const listed = await app.request(BASE);
-    expect(listed.status).toBe(200);
-    const { designDocs } = (await listed.json()) as {
-      designDocs: { name: string }[];
-    };
-    expect(designDocs.map((d) => d.name)).toEqual([
-      'Partial refunds for orders',
-    ]);
+    expect((await app.request(BASE)).status).toBe(404);
   });
 
   it('serves a stored document whole, and 404s a missing one', async () => {
@@ -54,22 +43,22 @@ describe('ui design-docs routes', () => {
     const res = await app.request(`${BASE}/${created.id}`);
     expect(res.status).toBe(200);
     const detail = (await res.json()) as {
-      document: {
+      designDoc: {
         id: string;
         description: string;
         buildingBlocks: { added: { id: string }[] };
       };
     };
-    expect(detail.document.id).toBe(created.id);
-    expect(detail.document.description).toBe(designDocFixture.description);
+    expect(detail.designDoc.id).toBe(created.id);
+    expect(detail.designDoc.description).toBe(designDocFixture.description);
     // Element ids travel as the strings they are written as.
-    expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
+    expect(detail.designDoc.buildingBlocks.added.map((b) => b.id)).toEqual([
       'building_block|sales.refunds.Refund',
       'building_block|sales.refunds.RefundIssued',
       'building_block|sales.refunds.RefundRepository',
     ]);
 
-    expect((await app.request(`${BASE}/2026-01-01-missing`)).status).toBe(404);
+    expect((await app.request(`${BASE}/${designDocId(99)}`)).status).toBe(404);
     expect((await app.request(`${BASE}/missing`)).status).toBe(404);
   });
 
@@ -81,37 +70,107 @@ describe('ui design-docs routes', () => {
     // The tree a reader navigates the document by is the document itself,
     // rebuilt; the page does that for itself.
     expect(Object.keys((await res.json()) as object).toSorted()).toEqual([
-      'document',
+      'designDoc',
     ]);
   });
 
-  // Authoring and removal are the agent's, through the MCP tools.
-  it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
+  const send = (method: string, path: string, body: unknown) =>
+    app.request(path, {
+      method,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+  const greenField = (name: string) => ({
+    name,
+    description: 'Refunds by line.',
+    modules: {
+      added: [
+        {
+          id: 'module|sales.refunds',
+          name: { value: 'refunds' },
+          description: { value: 'Giving money back.' },
+        },
+      ],
+    },
+  });
+
+  it('adds a design document at an id it mints, and revises it at that id', async () => {
+    const added = await send('POST', BASE, greenField('Partial refunds'));
+
+    expect(added.status).toBe(201);
+    const { designDoc } = (await added.json()) as {
+      designDoc: { id: string; name: string; implemented: boolean };
+    };
+    expect(designDoc).toMatchObject({
+      name: 'Partial refunds',
+      implemented: false,
+    });
+
+    const revised = await send(
+      'PUT',
+      `${BASE}/${designDoc.id}`,
+      greenField('Refunds by line'),
+    );
+
+    expect(revised.status).toBe(200);
+    expect(await revised.json()).toEqual({
+      designDoc: {
+        id: designDoc.id,
+        name: 'Refunds by line',
+        implemented: false,
+      },
+    });
+    expect((await t.stored(change)).designDocs.map((d) => d.name)).toEqual([
+      'Refunds by line',
+    ]);
+  });
+
+  it('answers a design document that breaks its rules with 422 and each violation', async () => {
+    const { id: _, ...file } = designDocFixture;
+    const res = await send('POST', BASE, file);
+
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as {
+      error: string;
+      violations: { path: string; reason: string }[];
+    };
+    expect(body.error).toBe('invalid_design_doc');
+    expect(body.violations).toContainEqual({
+      path: 'modules.removed[module|sales.credit-notes]',
+      reason: 'changedInGreenField',
+    });
+    expect((await t.stored(change)).designDocs).toEqual([]);
+  });
+
+  it('404s a revision of a design document the change does not hold', async () => {
+    const res = await send(
+      'PUT',
+      `${BASE}/${designDocId(99)}`,
+      greenField('Nothing'),
+    );
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({
+      error: 'not_found',
+      entity: 'design document',
+      id: designDocId(99),
+      change,
+    });
+  });
+
+  it('deletes nothing: DELETE is not a route of this surface', async () => {
     await t.writeDesignDoc(change, designDocFixture);
-    const created = decodedDesignDocFixture;
-    const send = (method: string, path: string) =>
-      app.request(path, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document: designDocFixture }),
-      });
+    const { id } = decodedDesignDocFixture;
 
-    expect((await send('POST', BASE)).status).toBe(404);
-    expect((await send('PUT', `${BASE}/${created.id}`)).status).toBe(404);
-    expect((await send('DELETE', `${BASE}/${created.id}`)).status).toBe(404);
-    expect((await t.designDocsService.list(change)).map((d) => d.id)).toEqual([
-      created.id,
-    ]);
+    expect((await send('DELETE', `${BASE}/${id}`, {})).status).toBe(404);
+    expect((await t.stored(change)).designDocs.map((d) => d.id)).toEqual([id]);
   });
 
-  it('404s every route of a change that does not exist', async () => {
+  it('404s a design document of a change that does not exist', async () => {
     const missing = '/changes/2026-01-01-nope/design-docs';
-    for (const res of [
-      await app.request(missing),
-      await app.request(`${missing}/2026-01-01-x`),
-    ]) {
-      expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: 'change_not_found' });
-    }
+    const res = await app.request(`${missing}/${designDocId(99)}`);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ error: 'change_not_found' });
   });
 });

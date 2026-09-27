@@ -1,18 +1,12 @@
 import { afterAll, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { SearchService } from '#backend/app/search/search.service';
 import { testNoesis } from './test-noesis';
 
 const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('ui routes', () => {
-  const app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  const app = createUiApp(t);
 
   it('has no greeting any more', async () => {
     expect((await app.request('/hello')).status).toBe(404);
@@ -24,14 +18,10 @@ describe('ui routes', () => {
   });
 
   it('answers an unforeseen failure as JSON, not a bare 500 page', async () => {
-    const failing = new SearchService();
-    failing.search = () => Promise.reject(new Error('disk on fire'));
-    const res = await createUiApp({
-      searchService: failing,
-      changesService: t.changesService,
-      designDocsService: t.designDocsService,
-      documentsService: t.documentsService,
-    }).request('/search?q=x');
+    const failing = { handle: () => Promise.reject(new Error('disk on fire')) };
+    const res = await createUiApp({ ...t, search: failing }).request(
+      '/search?q=x',
+    );
 
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: 'internal' });

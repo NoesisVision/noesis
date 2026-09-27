@@ -1,5 +1,4 @@
 import type { ChildProcess } from 'node:child_process';
-import type { Client } from '@modelcontextprotocol/client';
 
 // A throwaway repository root, so the run writes no `.noesis/` into the
 // checkout.
@@ -11,22 +10,7 @@ export function serviceEnv(repositoryRoot: string): Record<string, string> {
   return { ...env, NOESIS_ROOT: repositoryRoot, NOESIS_OPEN_BROWSER: '0' };
 }
 
-/**
- * The ui half waits for a session: the service answers the SDK's era probe
- * without it, so a spec that wants the page must first look like a host with
- * work to do. One `ping` is enough — anything but `server/discover` is.
- */
-export function startServing(child: ChildProcess): void {
-  child.stdin?.write(
-    `${JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'ping',
-    })}\n`,
-  );
-}
-
-// The port is ephemeral, so the URL is read from the service's own stderr
+// The port is ephemeral, so the URL is read from the daemon's own stderr
 // announcement.
 export function listeningUrl(
   child: ChildProcess,
@@ -56,11 +40,4 @@ export function listeningUrl(
       );
     });
   });
-}
-
-export function textOf(
-  result: Awaited<ReturnType<Client['callTool']>>,
-): string {
-  const [content] = result.content as { type: string; text: string }[];
-  return content?.text ?? '';
 }

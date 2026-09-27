@@ -7,14 +7,14 @@ import {
   patternLabelOf,
 } from '#/shared/ui/model-tree/model-outline.ts';
 import type {
-  DesignDocumentInput,
+  DesignDocInput,
   DesignedBehaviourInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
   DesignedPropertyInput,
   DesignedRuleInput,
   DesignedScenarioInput,
-} from '#backend/app/design-docs/design-doc.ts';
+} from '#backend/app/changes/model/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { refLabelOf, valueOf } from './design-doc-field.ts';
 
@@ -42,7 +42,7 @@ interface Place {
   parentPath: string | null;
 }
 
-export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
+export function outlineOf(document: DesignDocInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
@@ -251,7 +251,7 @@ function part(
 
 const MODULE = 'module|';
 const BUILDING_BLOCK = 'building_block|';
-const BEHAVIOUR = 'behavior|';
+const BEHAVIOUR = 'behaviour|';
 
 /** An id's address: its dotted path, without the kind it is written with. */
 const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);

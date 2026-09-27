@@ -61,10 +61,10 @@ function changeNavChildren(
   const entries = change?.entries ?? [];
   return {
     [DOCUMENTS_NAV.to]: entries
-      .filter((entry) => entry.kind === 'document')
-      .map(({ id, name }) => ({
+      .filter((entry) => entry.kind === 'source-document')
+      .map(({ id, title }) => ({
         id,
-        name,
+        name: title,
         link: {
           to: '/changes/$changeId/documents/$documentId',
           params: { changeId, documentId: id },

@@ -1,16 +1,13 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
-import {
-  SearchService,
-  searchResultSchema,
-} from '#backend/app/search/search.service';
+import { searchHandler, SearchResult } from '#backend/app/search/search';
 
-const responseSchema = z.object({ results: z.array(searchResultSchema) });
+const responseSchema = z.object({ results: z.array(SearchResult) });
 
 describe('ui search routes', () => {
   it('answers with an empty result list while no provider is registered', async () => {
-    const app = createSearchApp({ searchService: new SearchService() });
+    const app = createSearchApp({ search: searchHandler() });
 
     const res = await app.request('/?q=anything');
 
@@ -20,7 +17,7 @@ describe('ui search routes', () => {
 
   it('answers with an empty result list for a missing or blank query', async () => {
     const app = createSearchApp({
-      searchService: new SearchService([
+      search: searchHandler([
         async () => [{ type: 'document', id: 'd1', title: 'Never returned' }],
       ]),
     });
@@ -35,7 +32,7 @@ describe('ui search routes', () => {
   it('merges the results of every registered provider, trimmed query', async () => {
     const seen: string[] = [];
     const app = createSearchApp({
-      searchService: new SearchService([
+      search: searchHandler([
         async (q) => {
           seen.push(q);
           return [{ type: 'document', id: 'd1', title: 'Design doc' }];

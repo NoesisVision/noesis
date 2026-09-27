@@ -6,11 +6,7 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import {
-  listeningUrl,
-  serviceEnv,
-  startServing,
-} from '../support/service-process';
+import { listeningUrl, serviceEnv } from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
 
@@ -26,11 +22,9 @@ beforeAll(async () => {
   serverProcess = spawn('bun', ['run', 'src/main.ts'], {
     cwd: serviceRoot,
     env: serviceEnv(repoRoot),
-    // stdin stays open: the service treats a closed MCP stream as the end of
-    // the session and exits.
-    stdio: ['pipe', 'ignore', 'pipe'],
+    // A bare `noesis` is the daemon, started by hand: it runs until a signal.
+    stdio: ['ignore', 'ignore', 'pipe'],
   });
-  startServing(serverProcess);
   BASE = await listeningUrl(serverProcess, 15_000);
 }, 30_000);
 
@@ -105,7 +99,7 @@ describe('SPA serving (e2e)', () => {
       headers: { 'accept-encoding': 'gzip' },
     });
     expect(zipped.headers.get('content-encoding')).toBe('gzip');
-    expect(zipped.headers.get('vary')).toContain('accept-encoding');
+    expect(zipped.headers.get('vary')).toMatch(/accept-encoding/i);
     // Bun decodes the body, so the saving is read off the header instead.
     expect(Number(zipped.headers.get('content-length'))).toBeLessThan(raw / 2);
   });
@@ -128,7 +122,7 @@ describe('SPA serving (e2e)', () => {
   it('keeps the internal surface working', async () => {
     const res = await fetch(`${BASE}/internal/health`);
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: 'ok' });
+    expect(await res.json()).toMatchObject({ status: 'ok' });
   });
 
   it('does not swallow a missing asset into the SPA fallback', async () => {
@@ -145,11 +139,14 @@ describe('SPA serving (e2e)', () => {
     expect(await res.text()).not.toContain(INDEX_MARKER);
   });
 
-  it('exits when the MCP stream closes — the UI lives as long as the session', async () => {
+  it('exits on SIGTERM, releasing its lock — a daemon started by hand runs until a signal', async () => {
     const exited = new Promise<number | null>((r) =>
       serverProcess.on('exit', (code) => r(code)),
     );
-    serverProcess.stdin?.end();
+    serverProcess.kill('SIGTERM');
     expect(await exited).toBe(0);
+    expect(
+      await Bun.file(join(repoRoot, '.noesis', 'server.lock')).exists(),
+    ).toBe(false);
   }, 10_000);
 });

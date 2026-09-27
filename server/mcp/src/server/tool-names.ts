@@ -1,0 +1,9 @@
+/** Every tool's name, in one place, so a hint naming another tool cannot drift from it. */
+export const CREATE_CHANGE = 'create_change';
+export const UPDATE_CHANGE = 'update_change';
+export const LIST_CHANGES = 'list_changes';
+export const ADD_SOURCE_DOCUMENT_TO_CHANGE = 'add_source_document_to_change';
+export const UPDATE_SOURCE_DOCUMENT_IN_CHANGE =
+  'update_source_document_in_change';
+export const ADD_DESIGN_DOC_TO_CHANGE = 'add_design_doc_to_change';
+export const UPDATE_DESIGN_DOC_IN_CHANGE = 'update_design_doc_in_change';

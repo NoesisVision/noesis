@@ -49,12 +49,14 @@ test('ships exactly the expected plugin files', async () => {
     'LICENSE',
     'README.md',
     'contracts/README.md',
-    'contracts/design-document.schema.json',
-    'contracts/document.schema.json',
-    'contracts/change.schema.json',
-    'contracts/new-change.schema.json',
-    'skills/add-document-to-change/SKILL.md',
-    'skills/add-document-to-change/scripts/write-working-file.ts',
+    'contracts/create-design-doc.schema.json',
+    'contracts/update-design-doc.schema.json',
+    'contracts/create-source-document.schema.json',
+    'contracts/update-source-document.schema.json',
+    'contracts/create-change.schema.json',
+    'contracts/update-change.schema.json',
+    'skills/add-source-document-to-change/SKILL.md',
+    'skills/add-source-document-to-change/scripts/write-working-file.ts',
     'skills/add-change/SKILL.md',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
@@ -112,6 +114,7 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
   expect(service.command).toBe('${NOESIS_SERVICE_COMMAND:-bunx}');
   expect(service.args).toEqual([
     `\${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@${version}}`,
+    'attach',
   ]);
   // The service serves the project the plugin runs in, not its own cwd.
   expect(service.env.NOESIS_ROOT).toBe('${CLAUDE_PROJECT_DIR}');
@@ -134,15 +137,17 @@ test('the service the pin resolves to boots and lists tools', async () => {
   const projectDir = join(workDir, 'project');
   await mkdir(projectDir, { recursive: true });
 
+  const env = {
+    ...process.env,
+    NOESIS_ROOT: projectDir,
+    NOESIS_OPEN_BROWSER: '0',
+  };
+  const bin = join(serviceRoot, 'dist', 'main.js');
   const transport = new StdioClientTransport({
     command: 'bun',
-    args: [join(serviceRoot, 'dist', 'main.js')],
+    args: [bin, 'attach'],
     cwd: projectDir,
-    env: {
-      ...process.env,
-      NOESIS_ROOT: projectDir,
-      NOESIS_OPEN_BROWSER: '0',
-    },
+    env,
     stderr: 'ignore',
   });
   const client = new Client({ name: 'tarball-smoke-test', version: '0.0.0' });
@@ -150,15 +155,22 @@ test('the service the pin resolves to boots and lists tools', async () => {
     await client.connect(transport);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
+      'add_design_doc_to_change',
+      'add_source_document_to_change',
       'create_change',
-      'create_design_doc_in_change',
-      'create_document_in_change',
       'list_changes',
       'update_change',
       'update_design_doc_in_change',
-      'update_document_in_change',
+      'update_source_document_in_change',
     ]);
+    // Through the daemon the session starts: the bundle spawns itself.
+    const listed = await client.callTool({
+      name: 'list_changes',
+      arguments: {},
+    });
+    expect(listed.isError).toBeFalsy();
   } finally {
     await client.close();
+    spawnSync(process.execPath, [bin, 'stop'], { cwd: projectDir, env });
   }
 }, 120_000);

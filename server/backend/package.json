@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service — one daemon per repository serving the knowledge graph in .noesis/ and the browser UI, and a stdio MCP shim per agent session",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,8 +21,8 @@
   "scripts": {
     "build": "bun run --cwd ../frontend build:spa && NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' && bun run scripts/copy-ui.ts",
     "start": "bun dist/main.js",
-    "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
-    "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
+    "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts serve",
+    "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts serve",
     "check-types": "tsc --noEmit",
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",
@@ -34,12 +34,14 @@
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",
     "@logtape/logtape": "^2.3.4",
-    "@modelcontextprotocol/client": "2.0.0",
-    "@modelcontextprotocol/server": "2.0.0",
+    "@sindresorhus/transliterate": "^2.3.1",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "fast-check": "^4.10.2",
     "hono": "catalog:",
-    "neverthrow": "^8.2.0",
+    "open": "^11.0.4",
     "typescript": "catalog:",
     "uuid": "^14.0.2",
     "zod": "catalog:"

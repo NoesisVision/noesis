@@ -66,11 +66,12 @@ flowchart TB
 
 ## Zones
 
-**Processes** — the Noesis service, the agent, and the browser. Three separate processes on one
-machine, sharing the filesystem. The service is a stdio MCP process started by the agent host,
-one per agent session; it binds the HTTP API on an ephemeral port and opens the browser on it
-once at boot. There is no long-running daemon: the UI exists while an agent session does, and
-two sessions on one checkout are two processes over the same files.
+**Processes** — the Noesis service, the agent, and the browser, on one machine and sharing the
+filesystem. The service is split in two: one **daemon** per repository, which owns the graph and
+binds the HTTP API and the page on an ephemeral port, and one thin **shim** per agent session,
+which the agent host starts as a stdio MCP server and which calls the daemon over HTTP. However
+many sessions run in one checkout, there is one daemon, one port, one browser tab and one writer
+on the graph files.
 
 **File system** — the shared medium the three processes communicate through. It holds the
 **git repository** — the user's project, carrying the source code, the knowledge graph files
@@ -81,16 +82,39 @@ the user's project.
 
 ## Process model
 
-The service is one process per agent session, started by the agent host as a stdio MCP server
-(the plugin's `.mcp.json` launches `bunx @noesis-vision/noesis` with `NOESIS_ROOT` set to the
-project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
-working directory), ensures `.noesis/` and its `.gitignore`, opens its scratch directory under
-`.noesis/sessions/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
-opens the default browser on it once (`NOESIS_OPEN_BROWSER=0` suppresses this), and connects MCP
-on stdio. stdout belongs to MCP; every log line goes to stderr. When the host closes the stream
-the process removes its scratch directory, closes the database and exits — the UI lives exactly
-as long as the agent session. There is no daemon, no browser-only mode and no shared process
-between sessions; two sessions on one checkout are two processes over the same files.
+**The shim** (`noesis attach`) is what the plugin's `.mcp.json` launches for each agent session
+(`bunx @noesis-vision/noesis attach`, with `NOESIS_ROOT` set to the project). It locates the
+repository (`NOESIS_ROOT`, else the nearest `.git` above the working directory), ensures
+`.noesis/` and its `.gitignore`, opens its scratch directory under `.noesis/sessions/`, and serves
+MCP on stdio; stdout belongs to MCP and every log line goes to stderr and its own log file. It
+reads and checks each working file itself and sends it as the request body of the daemon's `/ui`
+route that writes it, so every tool call is an HTTP call to the daemon. The SDK's era probe costs
+nothing; the first message that is not the probe connects to the daemon, starting one detached
+(`serve --managed`) when `.noesis/server.lock` names no running process. A shim never starts a
+second daemon beside a live owner, and it refuses a daemon of another version in-band, naming
+`noesis stop`. A shim exits when its host closes or resets stdin, when it is reparented, or when
+its host sends nothing within 15 minutes of the launch; its session's scratch directory goes with
+it.
+
+**The daemon** (`noesis serve`, also a bare `noesis` and `bun run dev`) takes `.noesis/server.lock`
+before it binds — a lock is held while the process it names runs, checked by pid and process
+start time — builds the graph from the files, binds the HTTP API and the page on an ephemeral
+loopback port, rewrites the lock with its port and version, and opens the browser once
+(`NOESIS_OPEN_BROWSER=0` suppresses this). Each shim keeps an attach stream open
+(`/internal/attach`); one started by a shim exits once no session has been attached for five
+minutes, one started by hand runs until a signal. Its shutdown refuses new requests with 503,
+ends the attach streams, lets the requests in flight finish, stops the server and releases the
+lock. `noesis stop` ends the daemon of the current repository; attached shims start a fresh one
+on their next call.
+
+The source follows the same split, one workspace per thing that runs: the daemon is
+`server/backend`, the shim `server/mcp`, the page `server/frontend`. They ship as one package,
+`@noesis-vision/noesis`, whose single bin bundles the daemon and the shim and carries the built
+page beside it.
+
+**Direct mode** (`NOESIS_NO_DAEMON=1`) runs a session as one process, MCP and the page together,
+taking no lock — for sandboxes that refuse a detached spawn, and for CI. It is chosen explicitly,
+never as a fallback beside a live daemon.
 
 ## Entry points
 
@@ -98,17 +122,19 @@ Two, and only two.
 
 - **Browser UI** reaches the service over an HTTP API. One endpoint per view; the service
   assembles each screen's payload server-side.
-- **Agent** reaches the service over MCP. Tools are thin — parse arguments, call one service
-  method, shape the response.
+- **Agent** reaches the service over MCP, through the shim, which reaches it over the same HTTP
+  API as the browser. Tools are thin — parse arguments, read the working file, forward one call
+  through the typed API client, shape the response. They handle no command or query themselves.
 
-Both land on the same service layer. Neither bypasses it.
+Both land on the same routes, and the routes on the same service layer. Neither bypasses it.
 
 ## Noesis service
 
-- **Services** own use-case orchestration and view assembly. They are the only callers of
-  repositories, and the only component both entry points can see.
+- **Handlers** own use-case orchestration and view assembly: one per command or query, each
+  loading an aggregate, calling it and saving it whole. They are the only callers of
+  repositories, and only the HTTP routes call them.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
-  kind, each responsible for its own canonical paths and file format.
+  aggregate, responsible for its canonical paths, file format and version check.
 - **Knowledge graph** _(not yet present)_ is an embedded in-memory database used as a cache over the JSON files in
   the repository. It is never authoritative: it is rebuilt from the files at every boot and
   nothing of it touches the disk.
@@ -132,9 +158,9 @@ This is the invariant the rest of the design follows from:
   file there and passes a path; results too large to inline are written there and the agent reads
   them back. MCP messages carry coordinates, not content. The MCP server's `instructions` name
   the repository root and the session's scratch directory, so no tool call is needed to find them.
-- Writes are whole-file and atomic (write beside, then rename). When two agent sessions write the
-  same entity, the last write wins and each process's watcher picks up the other's file; there
-  are no locks and no hash preconditions.
+- Writes are whole-file and atomic (write beside, then rename). A change file carries a
+  `version`, and a save made on an older version than the stored one is refused rather than
+  written over it; there are no locks.
 
 ## Knowledge graph files
 
@@ -142,15 +168,16 @@ All knowledge graph files live under `.noesis/` at the repository root:
 
 ```
 <project>/.noesis/
-├── .gitignore                  written by the service on first run; contains `sessions/`
+├── .gitignore                  written by the service on first run; ignores `sessions/`, `logs/`, `server.lock*`
+├── server.lock                 the daemon serving this repository: pid, start time, port, version
+├── logs/                       one log per process: `noesis-serve.log`, `noesis-<session>.log`
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
-│                               one subdirectory per service process, removed when it exits
+│                               one subdirectory per session, removed when it ends
 └── graph/
     ├── changes/
-    │   ├── <change>.change.json       one change
-    │   └── <change>/                  everything produced while working on it
-    │       ├── <id>.document.json       an imported document — title, date and verbatim content
-    │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
+    │   └── <change>.change.json       one change, whole: its imported documents (title, date and
+    │                                  verbatim content) and its design docs (designed models, as
+    │                                  diffs against the implemented system)
     └── system-models/
         └── <id>.system-model.json     the implemented model, projected from the code by the scanner
 ```
@@ -163,7 +190,7 @@ rewrites it from the source code, so nothing there is edited by hand.
 
 Imports and design docs are **scoped to a change**: a document is imported because some
 change is being worked on, and a design doc describes that change. Keeping them in the change's
-folder makes the unit of work the unit of review — the whole record of a change lands in one
+file makes the unit of work the unit of review — the whole record of a change lands in one
 place in a pull request. `system-models/` is change-independent: it tracks the code as it is,
 whichever change is in flight.
 
@@ -171,28 +198,31 @@ The knowledge graph is `.noesis/graph/`: one JSON file per entity, `<dir>/<id>.<
 read and written through one small collection class over one codec. Rules that hold across
 every kind:
 
-- **One shape.** Every entity, the change included, is a file named by its id and its kind. The
-  change's file sits beside its folder, not inside it, so a change with no documents yet has no
-  folder; the folder appears with its first child. A folder with no `.change.json` beside it is
-  an orphan (a `git checkout` that removed the change): the change list never sees it, and no
-  new child lands in it. Notes, source files and scratch space live outside `graph/` —
-  `sources/`, `sessions/` — and are not graph content.
-- **Folders nest by ownership, never by classification.** A change owns its documents and
-  design documents, so those sit in `graph/changes/<change>/`; `system-models/` is flat. Where
-  one object belongs under another by classification rather than ownership, the relation lives
-  in the data as a field naming the other object's id, so re-classifying is a one-field edit,
-  not a file move.
+- **One shape.** Every aggregate is a file named by its id and its kind, and holds what it owns.
+  A change is one: its documents and design documents live inside `<change>.change.json`, read
+  and written whole, and their ids are unique within it. Notes, source files and scratch space
+  live outside `graph/` — `sources/`, `sessions/` — and are not graph content.
+- **Files nest by ownership, never by classification.** A change owns its documents and design
+  documents, so they sit in its file; `system-models/` is flat. Where one object belongs under
+  another by classification rather than ownership, the relation lives in the data as a field
+  naming the other object's id, so re-classifying is a one-field edit, not a file move.
+- **A save checks the version it read.** A change file carries a `version`, 1 on create and one
+  more on every save. A save made on a version older than the stored one is refused, never
+  retried: the MCP tool answers that the agent should read the change again and repeat the
+  call, and the ui answers 409. The check and the write run without yielding, so within the one
+  process that serves a session nothing comes between them; across processes they are two
+  steps.
 - **The file name is the key.** The entity's id names its file and repeats in its body; a
   mismatch is a validation failure, so a hand-renamed file never answers to two ids. Ids match
   `^[a-z0-9][a-z0-9-]*$`, so no id can name a path. A broken file fails the read that meets it,
   never silently answers as absent.
 - **Stable ids.** Imported sources are identified by the hash of their content, so the same
-  source imported twice lands under the same id rather than beside itself. A change, a document
-  and a design document are keyed by a dated slug, `YYYY-MM-DD-<slug of its title>`
-  (`2026-09-24-payment-retry`): the service mints it once, when the entity is created, and
-  never re-derives it, so a retitled entity keeps its id. A title already used that day gets the
-  next free suffix (`-2`, `-3`, …). A change id is unique among changes; a document or
-  design-doc id only within its change. Ids sort by creation date.
+  source imported twice lands under the same id rather than beside itself. A change is keyed
+  by a dated slug, `YYYY-MM-DD-<slug of its title>` (`2026-09-24-payment-retry`): the service
+  mints it once, when the change is created, and never re-derives it, so a retitled change keeps
+  its id. A title already used that day gets the next free suffix (`-2`, `-3`, …), and change
+  ids sort by creation date. A document or a design document is keyed by a UUID the service
+  mints when it is added; its change keeps them in the order they were added.
 - **Creates and updates are separate.** A working file never carries an id. A create tool mints
   one and answers with it, so two creates of one title make two entities; an update tool takes
   the id as an argument, replaces that entity whole and refuses an id that names nothing. No

@@ -62,10 +62,10 @@ export function DesignDocWorkbench({
   onSelect: (path: string, source: SelectSource) => void;
   onQuery: (query: string) => void;
 }) {
-  const { document: doc, outline } = detail;
+  const { designDoc: doc, outline } = detail;
   const memory = useMemo(
-    () => expansionMemory(`noesis.designDocs.${detail.document.id}.expanded`),
-    [detail.document.id],
+    () => expansionMemory(`noesis.designDocs.${doc.id}.expanded`),
+    [doc.id],
   );
   const outlineBody = useRef<HTMLDivElement>(null);
   /* The row the reader picked in the outline itself, which is the one move the
@@ -114,7 +114,7 @@ export function DesignDocWorkbench({
         <IconHeading
           title={doc.name}
           icon={DesignDocsIcon}
-          description={detail.document.implemented ? 'Implemented' : 'Draft'}
+          description={doc.implemented ? 'Implemented' : 'Draft'}
         />
         <ActionIcon
           variant="default"

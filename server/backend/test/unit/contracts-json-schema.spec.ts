@@ -2,6 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import addFormats from 'ajv-formats';
+import { Ajv2020 } from 'ajv/dist/2020';
 import { z } from 'zod';
 import { CONTRACTS } from '../../tools/contracts';
 import {
@@ -44,7 +46,7 @@ describe('the generated JSON Schema contracts', () => {
   });
 
   it('shows a value object as the string an agent writes', () => {
-    const { properties } = schemaOf('design-document') as {
+    const { properties } = schemaOf('create-design-doc') as {
       properties: {
         modules: {
           properties: {
@@ -62,24 +64,26 @@ describe('the generated JSON Schema contracts', () => {
 
   it('asks for no id in any working file: the server mints it', () => {
     for (const name of [
-      'new-change',
-      'change',
-      'document',
-      'design-document',
+      'create-change',
+      'update-change',
+      'create-source-document',
+      'update-source-document',
+      'create-design-doc',
+      'update-design-doc',
     ]) {
       const { properties } = schemaOf(name) as {
         properties: Record<string, unknown>;
       };
       expect(Object.keys(properties)).not.toContain('id');
     }
-    const { properties } = schemaOf('new-change') as {
+    const { properties } = schemaOf('create-change') as {
       properties: Record<string, unknown>;
     };
     expect(Object.keys(properties)).not.toContain('status');
   });
 
   it('keeps the descriptions an agent reads', () => {
-    const { properties } = schemaOf('change') as {
+    const { properties } = schemaOf('update-change') as {
       properties: { name: { description?: string } };
     };
     expect(properties.name.description).toBeTruthy();
@@ -96,8 +100,24 @@ describe('the generated JSON Schema contracts', () => {
     }
   });
 
-  // JSON Schema has no word for a refinement or a transform, so one written
-  // at the source would be dropped from the contract without a sound.
+  // Zod reading its own output back proves little: an agent's validator
+  // reads the file as JSON Schema draft 2020-12, formats and all.
+  it('stands as JSON Schema a validator compiles, which then takes the example', () => {
+    for (const name of names) {
+      const ajv = new Ajv2020({ strict: true, allErrors: true });
+      addFormats(ajv);
+      const validate = ajv.compile(schemaOf(name));
+      expect(validate({})).toBe(false);
+      const example = files.get(`${name}.example.json`);
+      if (example === undefined) continue;
+      const accepted = validate(example);
+      expect(ajv.errorsText(validate.errors)).toBe('No errors');
+      expect(accepted).toBe(true);
+    }
+  });
+
+  // JSON Schema has no word for a refinement, a transform or a trim, so one
+  // written at the source would be dropped from the contract without a sound.
   it('finds no rule under src/app/ that JSON Schema cannot state', async () => {
     const sources = (await readdir(appRoot, { recursive: true })).filter(
       (file) => file.endsWith('.ts'),
@@ -105,7 +125,10 @@ describe('the generated JSON Schema contracts', () => {
     for (const file of sources) {
       const source = await readFile(join(appRoot, file), 'utf8');
       if (!source.includes("from 'zod'")) continue;
-      expect(source).not.toMatch(/\.(refine|superRefine|transform|check)\(/);
+      // Off a schema, `)` before the dot: a `text.trim()` in plain code is fine.
+      expect(source).not.toMatch(
+        /\)\s*\.(refine|superRefine|transform|check|trim|overwrite)\(/,
+      );
     }
   });
 });

@@ -1,0 +1,77 @@
+import transliterate from '@sindresorhus/transliterate';
+import { z } from 'zod';
+
+/** Room for the date prefix inside the 64 characters a path segment gets. */
+const MAX_LENGTH = 64;
+/** `YYYY-MM-DD-`, before the slug. */
+const DATE_PREFIX_LENGTH = 11;
+/** Zod's own `z.iso.date()` regex, leap years included, without its anchors. */
+const DATE = z.core.regexes.date.source.slice(1, -1);
+const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*';
+const ID_PATTERN = new RegExp(`^${DATE}-${SLUG}$`);
+
+/**
+ * The schema of an id a writer mints from an entity's creation date and name.
+ * Only `[a-z0-9-]`, so an id can never climb out of its directory.
+ */
+export function slugIdSchema(subject: string) {
+  return z
+    .string()
+    .max(MAX_LENGTH, `Invalid ${subject} id: at most ${MAX_LENGTH} characters`)
+    .regex(
+      ID_PATTERN,
+      `Invalid ${subject} id: expected e.g. '2026-09-24-payment-retry'`,
+    )
+    .describe(
+      `A ${subject}'s id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-payment-retry'. Minted by the server when the ${subject} is created and never changed, even when the name is. Names its file.`,
+    );
+}
+
+/**
+ * The ids a new entity may take, best first: `date`, then a slug of `name`,
+ * e.g. '2026-09-24-payment-retry', then the same with '-2', '-3', … for when
+ * an entity of that name was already created that day. Endless: the writer
+ * takes the first one its store does not hold. `date` is an ISO date.
+ */
+export function* slugIdCandidates(
+  name: string,
+  date: string,
+): Generator<string, never> {
+  yield `${date}-${slugOf(name, '')}`;
+  for (let n = 2; ; n++) {
+    yield `${date}-${slugOf(name, `-${n}`)}`;
+  }
+}
+
+/** The slug of `name`, cut so that it and `suffix` fit beside the date. */
+function slugOf(name: string, suffix: string): string {
+  const room = MAX_LENGTH - DATE_PREFIX_LENGTH - suffix.length;
+  return (slugify(name, room) || 'untitled') + suffix;
+}
+
+function slugify(text: string, maxLength: number): string {
+  return transliterate(text)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, maxLength)
+    .replace(/-+$/, '');
+}
+
+/**
+ * The first of `slugIdCandidates` that `isTaken` turns down, as `schema`
+ * parses it. Two writers may pick the same one; the store refuses the second
+ * write.
+ */
+export async function freeSlugId<Id extends z.ZodType<string>>(
+  schema: Id,
+  name: string,
+  date: string,
+  isTaken: (id: z.output<Id>) => Promise<boolean>,
+): Promise<z.output<Id>> {
+  const candidates = slugIdCandidates(name, date);
+  for (;;) {
+    const id = schema.parse(candidates.next().value);
+    if (!(await isTaken(id))) return id;
+  }
+}

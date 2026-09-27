@@ -1,12 +1,12 @@
 import {
-  DesignDocument,
-  type DesignDocumentInput,
-} from '#backend/app/design-docs/design-doc.ts';
+  DesignDoc,
+  type DesignDocInput,
+} from '#backend/app/changes/model/design-doc.ts';
 import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
 export const designDocFixture = {
-  id: '2026-01-01-partial-refunds',
+  id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1b',
   name: 'Partial refunds',
   description: 'Refund single order lines.',
   modules: { added: [], removed: [], modified: [] },
@@ -24,7 +24,7 @@ export const designDocFixture = {
   },
   behaviours: { added: [], removed: [], modified: [] },
   implemented: false,
-} satisfies DesignDocumentInput;
+} satisfies DesignDocInput;
 
 /**
  * The same document as a tree, as the client rebuilds it: the two modules the
@@ -71,7 +71,7 @@ const designDocOutlineFixture: OutlineNode[] = [
 
 /** The whole of what `GET /ui/changes/:change/design-docs/:id` answers. */
 export const designDocPayloadFixture = {
-  document: DesignDocument.parse(designDocFixture),
+  designDoc: DesignDoc.parse(designDocFixture),
 };
 
 /** What the page is handed: the answer, with the tree rebuilt from it. */

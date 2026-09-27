@@ -1,23 +1,17 @@
-import { serverLogger } from '#backend/platform/logging/logging';
+import open from 'open';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const log = serverLogger('browser');
 
 // Best effort: a missing opener is logged, never fatal.
-export function openBrowser(url: string): void {
-  const command =
-    process.platform === 'darwin'
-      ? ['open', url]
-      : process.platform === 'win32'
-        ? ['cmd', '/c', 'start', '', url]
-        : ['xdg-open', url];
+export async function openBrowser(url: string): Promise<void> {
   try {
-    Bun.spawn(command, { stdout: 'ignore', stderr: 'ignore', stdin: 'ignore' })
-      .exited.then((code) => {
-        if (code !== 0) {
-          log.warn('could not open the browser (exit {code})', { code });
-        }
-      })
-      .catch(() => undefined);
+    const opener = await open(url);
+    opener.once('exit', (code) => {
+      if (code !== 0) {
+        log.warn('could not open the browser (exit {code})', { code });
+      }
+    });
   } catch (error) {
     log.warn('could not open the browser: {error}', { error: String(error) });
   }

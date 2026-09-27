@@ -1,0 +1,26 @@
+{
+  "name": "@noesis-vision/noesis-mcp",
+  "private": true,
+  "description": "The Noesis MCP server: one per agent session, on stdio, calling the repository's backend. Bundled into the service's bin by server/backend.",
+  "type": "module",
+  "imports": {
+    "#mcp/*": "./src/*",
+    "#backend/*": "../backend/src/*"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test test/unit",
+    "test:e2e": "bun test test/e2e"
+  },
+  "devDependencies": {
+    "@logtape/logtape": "^2.3.4",
+    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "hono": "catalog:",
+    "typescript": "catalog:",
+    "uuid": "^14.0.2",
+    "zod": "catalog:"
+  }
+}

@@ -5,23 +5,34 @@
 // an update names it beside the file.
 import type { z } from 'zod';
 import {
-  ChangeContentSchema,
-  NewChangeSchema,
-} from '#backend/app/changes/change';
-import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
-import { DocumentContentSchema } from '#backend/app/information-sources/document';
+  CreateChange,
+  UpdateChange,
+} from '#backend/app/changes/model/change-snapshot';
+import {
+  CreateDesignDoc,
+  UpdateDesignDoc,
+} from '#backend/app/changes/model/design-doc';
+import {
+  CreateSourceDocument,
+  UpdateSourceDocument,
+} from '#backend/app/changes/model/source-document';
 import { SystemModel } from '#backend/app/system-model/system-model';
-import designDocumentExample from './design-doc.example.json';
+import designDocExample from './design-doc.example.json';
 
 export const CONTRACTS = {
-  'new-change': { schema: NewChangeSchema },
-  change: { schema: ChangeContentSchema },
-  document: { schema: DocumentContentSchema },
-  'design-document': {
-    schema: DesignDocumentContent,
-    // Decoded, as every example is: the generator encodes it back to JSON,
-    // with every default the file leaves out spelled out.
-    example: DesignDocumentContent.parse(designDocumentExample),
+  'create-change': { schema: CreateChange },
+  'update-change': { schema: UpdateChange },
+  'create-source-document': { schema: CreateSourceDocument },
+  'update-source-document': { schema: UpdateSourceDocument },
+  // Decoded, as every example is: the generator encodes it back to JSON,
+  // with every default the file leaves out spelled out.
+  'create-design-doc': {
+    schema: CreateDesignDoc,
+    example: CreateDesignDoc.parse(designDocExample),
+  },
+  'update-design-doc': {
+    schema: UpdateDesignDoc,
+    example: UpdateDesignDoc.parse(designDocExample),
   },
   'system-model': { schema: SystemModel },
 } satisfies Record<string, { schema: z.ZodType; example?: unknown }>;

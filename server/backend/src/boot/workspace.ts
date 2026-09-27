@@ -1,60 +1,81 @@
 import type { Logger } from '@logtape/logtape';
-import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import {
   loadServerConfig,
   type ServerConfig,
 } from '#backend/platform/config/config';
+import { ConfigurationError } from '#backend/platform/config/configuration-error';
+import { resolveRepositoryRoot } from '#backend/platform/config/repository-root';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   configureLogging,
-  serverLogger,
+  SERVE_LOG_ID,
 } from '#backend/platform/logging/logging';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import { production } from './process';
-import { RepositoryRoot } from './repository-root';
 
-/** Where this process runs: the repository, its `.noesis/` and this session's scratch. */
-export interface Workspace {
+/** The repository this process serves, and its `.noesis/`. */
+export interface Repository {
   config: ServerConfig;
   noesis: NoesisDir;
-  session: SessionDir;
-  sessionFiles: SessionFiles;
+}
+
+/** Where a process runs: the repository, with logging configured. */
+export interface RepositoryWorkspace extends Repository {
   log: Logger;
 }
 
 /**
- * Everything that has to exist before either half of the server can start.
- * Logging needs `.noesis/logs/`, so a failure before that point prints to
- * stderr and exits; from there on the log says what happened.
+ * The environment and the repository, or the one reason the process will not
+ * start, printed to stderr before exiting. Nothing is created yet.
  */
-export async function openWorkspace(): Promise<Workspace> {
-  const config = loadServerConfig();
-  const repositoryRoot = resolveRepositoryRoot(config);
-  const noesis = new NoesisDir(repositoryRoot);
+export function locateRepository(): Repository {
+  const { config, repositoryRoot } = configuredOrExit();
+  return { config, noesis: new NoesisDir(repositoryRoot) };
+}
+
+/**
+ * The daemon's workspace: no session of its own, and one log file. A managed
+ * daemon's stderr already is that file, so it logs there once.
+ */
+export async function openDaemonWorkspace(
+  managed: boolean,
+): Promise<RepositoryWorkspace> {
+  const { config, noesis } = locateRepository();
   await noesis.ensureInitialized();
+  const log = await startLogging(config, noesis, SERVE_LOG_ID, !managed);
+  return { config, noesis, log };
+}
+
+/** Logs to stderr, unless told otherwise, and to `.noesis/logs/noesis-<fileId>.log`. */
+export async function startLogging(
+  config: ServerConfig,
+  noesis: NoesisDir,
+  fileId: string,
+  stderr: boolean,
+): Promise<Logger> {
   await configureLogging({
     logDir: noesis.logDir,
+    fileId,
     production,
     level: config.logLevel,
+    stderr,
   });
   const log = serverLogger();
   log.info('knowledge graph files in {path}', { path: noesis.path });
-
-  const session = new SessionDir(noesis);
-  const sessionFiles = await session.open();
-  log.info('session scratch directory {path}', { path: session.path });
-
-  return { config, noesis, session, sessionFiles, log };
+  return log;
 }
 
-function resolveRepositoryRoot(config: ServerConfig): string {
-  const result = new RepositoryRoot({
-    root: config.root,
-    cwd: process.cwd(),
-  }).resolve();
-  if (!result.ok) {
-    console.error(`[server] ${result.message}`);
+function configuredOrExit(): { config: ServerConfig; repositoryRoot: string } {
+  try {
+    const config = loadServerConfig(process.env);
+    const repositoryRoot = resolveRepositoryRoot({
+      root: config.root,
+      cwd: process.cwd(),
+    });
+    return { config, repositoryRoot };
+  } catch (error) {
+    if (!(error instanceof ConfigurationError)) throw error;
+    console.error(`[server] ${error.message}`);
     process.exit(1);
   }
-  return result.root;
 }

@@ -1,30 +1,51 @@
 import { join } from 'node:path';
+import type { Attachments } from '#backend/adapters/in/ui/internal.routes';
+import type { UiDeps } from '#backend/adapters/in/ui/ui.routes';
 import type { ServerConfig } from '#backend/platform/config/config';
-import { StaticAssets } from '#backend/platform/http/static-assets';
-import { serverLogger } from '#backend/platform/logging/logging';
+import { pageBuilt, staticAssets } from '#backend/platform/http/static-assets';
+import { serverLogger } from '#backend/platform/logging/server-logger';
 import { createApp } from './app';
 import { openBrowser } from './browser';
 import { production } from './process';
-import type { Services } from './services';
 
 const log = serverLogger('ui');
 
+/** How long a stop waits for requests in flight before it closes them. */
+const STOP_GRACE_MS = 5_000;
+
 type UiServer = ReturnType<typeof Bun.serve>;
+
+/** The server on its port: `port` is only unset for a unix socket, which this never binds. */
+interface Bound extends Listening {
+  server: UiServer;
+}
+
+/** Where the server listens, once it does. */
+export interface Listening {
+  /** The page's URL. */
+  url: string;
+  port: number;
+}
 
 export interface UiHostOptions {
   config: ServerConfig;
-  services: Services;
+  services: UiDeps;
+  version: string;
+  instance: string;
+  attachments: Attachments;
+  /** True once shutdown has begun; every route then answers 503. */
+  draining?: () => boolean;
 }
 
 /**
- * The ui half of the server: the page and its routes. Nothing waits on it —
- * the MCP tools run on the file repositories alone — so a session's first
- * request is answered while this comes up behind it, and a failure here
- * leaves the tools serving rather than killing the session.
+ * The page and its routes on a loopback port. A daemon awaits `listen()`,
+ * since it is nothing without them; a session serving in-process calls
+ * `start()` and serves its tools whether or not the page comes up.
  */
 export class UiHost {
   private readonly options: UiHostOptions;
-  private server: Promise<UiServer | null> | undefined;
+  private server: Promise<Bound> | undefined;
+  private listening: UiServer | undefined;
   private stopped = false;
 
   constructor(options: UiHostOptions) {
@@ -34,31 +55,59 @@ export class UiHost {
   /** Idempotent: the first call opens the server, later calls are no-ops. */
   start(): void {
     if (this.stopped) return;
-    this.server ??= this.open().catch((error: unknown) => {
+    this.listen().catch((error: unknown) => {
       log.error('the ui did not start: {error}', { error: String(error) });
-      return null;
     });
   }
 
-  /** Waits for a server still coming up, or nothing here knows what holds the port. */
-  async stop(): Promise<void> {
-    this.stopped = true;
-    const server = this.server === undefined ? null : await this.server;
-    await server?.stop();
+  /** Where the server listens; rejects when it cannot. */
+  async listen(): Promise<Listening> {
+    this.server ??= this.open();
+    const { url, port } = await this.server;
+    return { url, port };
   }
 
-  private async open(): Promise<UiServer> {
+  /**
+   * Waits for the requests in flight, then for nothing: whatever is still
+   * open after the grace is closed. An open attach stream would otherwise
+   * hold the stop forever.
+   */
+  async stop(): Promise<void> {
+    this.stopped = true;
+    const bound = await this.server?.catch(() => undefined);
+    if (bound === undefined) return;
+    const { server } = bound;
+    const force = setTimeout(() => {
+      log.warn('requests still open after {ms} ms — closing them', {
+        ms: STOP_GRACE_MS,
+      });
+      void server.stop(true);
+    }, STOP_GRACE_MS);
+    await server.stop();
+    clearTimeout(force);
+  }
+
+  private async open(): Promise<Bound> {
     const { config, services } = this.options;
-    const app = createApp(services);
+    const app = createApp(services, {
+      internal: {
+        version: this.options.version,
+        instance: this.options.instance,
+        attachments: this.options.attachments,
+        url: () => (this.listening ? urlOf(this.listening) : ''),
+        keepOpen: (request) => this.listening?.timeout(request, 0),
+      },
+      draining: this.options.draining ?? (() => false),
+    });
 
     const uiDirectory = this.uiDirectory();
-    const ui = new StaticAssets(uiDirectory);
-    if (!(await ui.exists())) {
+    if (!(await pageBuilt(uiDirectory))) {
       log.warn('no built page in {path}; run the build or use `bun run dev`', {
         path: uiDirectory,
       });
     }
 
+    const page = staticAssets(uiDirectory);
     // Bun matches routes by specificity, so `/ui/*` beats `/*` and a surface
     // 404 is never swallowed by the page.
     const server = Bun.serve({
@@ -69,15 +118,16 @@ export class UiHost {
         '/internal/*': app.fetch,
         // A built file, or the page itself: every client route renders the
         // SPA, which then reads the path it was opened at.
-        '/*': (request: Request) => ui.respond(request),
+        '/*': page.fetch,
       },
-      fetch: app.fetch,
     });
-    const url = `http://localhost:${server.port}/`;
+    if (server.port === undefined) throw new Error('the ui bound no port');
+    this.listening = server;
+    const url = urlOf(server);
     // The e2e specs and a person alike find the UI by this line.
     log.info('listening on {url}', { url });
-    if (config.openBrowser) openBrowser(url);
-    return server;
+    if (config.openBrowser) void openBrowser(url);
+    return { server, url, port: server.port };
   }
 
   /**
@@ -91,4 +141,8 @@ export class UiHost {
       ? join(import.meta.dir, 'ui')
       : join(import.meta.dir, '../../../frontend/dist');
   }
+}
+
+function urlOf(server: UiServer): string {
+  return `http://localhost:${server.port}/`;
 }

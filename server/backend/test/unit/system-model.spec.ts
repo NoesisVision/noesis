@@ -14,7 +14,7 @@ import {
  */
 
 const ORDER = 'building_block|sales.orders.Order';
-const PLACE = 'behavior|sales.orders.Order.place';
+const PLACE = 'behaviour|sales.orders.Order.place';
 
 const module = {
   id: 'module|sales.orders',
@@ -29,9 +29,8 @@ const block = {
 };
 const behaviour = {
   id: PLACE,
-  buildingBlockId: ORDER,
   name: 'place',
-  type: 'Command',
+  type: 'command',
   visibility: { kind: 'public', actors: ['Customer'] },
   source: { path: 'src/sales/orders/order.ts', line: 30 },
 };
@@ -39,7 +38,7 @@ const behaviour = {
 const model = (patch: Record<string, unknown> = {}) => ({
   id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
   name: 'shop',
-  scanned_at: '2026-09-25T08:00:00.000Z',
+  scannedAt: '2026-09-25T08:00:00.000Z',
   modules: [module],
   buildingBlocks: [block],
   behaviours: [behaviour],
@@ -58,7 +57,10 @@ describe('A system model', () => {
     expect(isValid(model())).toBe(true);
     expect(isValid(model({ id: undefined }))).toBe(false);
     expect(isValid(model({ name: undefined }))).toBe(false);
-    expect(isValid(model({ scanned_at: undefined }))).toBe(false);
+    expect(isValid(model({ scannedAt: undefined }))).toBe(false);
+    expect(isValid(model({ scannedAt: 'yesterday' }))).toBe(false);
+    expect(isValid(model({ id: 'shop' }))).toBe(false);
+    expect(isValid(model({ name: ' shop' }))).toBe(false);
   });
 
   it('holds no element when the scanner found none', () => {
@@ -187,13 +189,8 @@ describe('A scanned property', () => {
 });
 
 describe('A scanned behaviour', () => {
-  it('belongs to a building block', () => {
-    expect(isValid(withBehaviour({ buildingBlockId: undefined }))).toBe(false);
-    expect(isValid(withBehaviour({ buildingBlockId: PLACE }))).toBe(false);
-  });
-
   it('is always classified as a command, an event or a query', () => {
-    expect(isValid(withBehaviour({ type: 'Query' }))).toBe(true);
+    expect(isValid(withBehaviour({ type: 'query' }))).toBe(true);
     expect(isValid(withBehaviour({ type: undefined }))).toBe(false);
     expect(isValid(withBehaviour({ type: 'Request' }))).toBe(false);
   });
@@ -301,7 +298,7 @@ const scenario = {
   // oxlint-disable-next-line unicorn/no-thenable
   then: 'the order is placed', // NOSONAR
 };
-const rule = { name: 'Paid orders only', ruleType: 'State change' };
+const rule = { name: 'Paid orders only', ruleType: 'state_change' };
 
 describe('A scanned rule', () => {
   it('belongs to a building block or a behaviour', () => {
@@ -332,7 +329,7 @@ describe('A scanned rule', () => {
       isValid(withBlock({ rules: [{ ...rule, ruleType: undefined }] })),
     ).toBe(false);
     expect(
-      isValid(withBlock({ rules: [{ ...rule, ruleType: 'Validation' }] })),
+      isValid(withBlock({ rules: [{ ...rule, ruleType: 'validation' }] })),
     ).toBe(false);
   });
 

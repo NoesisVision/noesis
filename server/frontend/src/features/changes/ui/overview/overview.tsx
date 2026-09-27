@@ -1,13 +1,12 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { designDocsList } from '#/features/design-docs/design-docs.api.ts';
+import { useQuery } from '@tanstack/react-query';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
-import { documentsList } from '#/features/documents/documents.api.ts';
-import { DocumentsIcon } from '#/features/documents/documents.model.ts';
+import { DocumentsIcon } from '#/features/source-documents/source-documents.model.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { CardLink } from '#/shared/ui/card-link.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
+import { changeById } from '../../changes.api.ts';
 import { useChangeId } from '../../current-change.ts';
 import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
@@ -15,8 +14,12 @@ import { OverviewStat } from './overview-stat.tsx';
 
 export function OverviewView() {
   const { changeId } = useChangeId();
-  const documents = useQuery(documentsList(changeId));
-  const designDocs = useQuery(designDocsList(changeId));
+  const change = useQuery({
+    ...changeById(changeId ?? ''),
+    enabled: changeId !== null,
+  });
+  const documents = change.data?.sourceDocuments;
+  const designDocs = change.data?.designDocs;
 
   return (
     <Box>
@@ -28,14 +31,14 @@ export function OverviewView() {
                 <Grid.Col span={6}>
                   <OverviewStat title="Documents" Icon={DocumentsIcon}>
                     <ChangesLink to="/changes/$changeId/documents">
-                      {count(documents)}
+                      {documents?.length ?? '—'}
                     </ChangesLink>
                   </OverviewStat>
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
                     <ChangesLink to="/changes/$changeId/design-docs">
-                      {count(designDocs)}
+                      {designDocs?.length ?? '—'}
                     </ChangesLink>
                   </OverviewStat>
                 </Grid.Col>
@@ -47,10 +50,10 @@ export function OverviewView() {
       <OverviewSection
         mt={16}
         title="Documents"
-        empty={emptyText(documents, 'documents')}
+        empty={emptyText(change.isPending, 'documents')}
         items={
           changeId
-            ? (documents.data ?? []).map((document) => ({
+            ? (documents ?? []).map((document) => ({
                 id: document.id,
                 card: (
                   <CardLink
@@ -69,10 +72,10 @@ export function OverviewView() {
       <OverviewSection
         mt={16}
         title="Design Docs"
-        empty={emptyText(designDocs, 'design documents')}
+        empty={emptyText(change.isPending, 'design documents')}
         items={
           changeId
-            ? (designDocs.data ?? []).map((doc) => ({
+            ? (designDocs ?? []).map((doc) => ({
                 id: doc.id,
                 card: (
                   <CardLink
@@ -92,13 +95,10 @@ export function OverviewView() {
   );
 }
 
-/** An em dash until the list is in: a stat of 0 that turns into 12 misleads. */
-function count(query: UseQueryResult<{ length: number } | null>) {
-  return query.data?.length ?? '—';
-}
-
-// A failure never reaches here: it is thrown to the route's boundary.
-function emptyText(query: UseQueryResult<unknown>, what: string): string {
-  if (query.isPending) return `Loading ${what}…`;
+// An em dash stands in for a count until the change is in: a stat of 0 that
+// turns into 12 misleads. A failure never reaches here: it is thrown to the
+// route's boundary.
+function emptyText(pending: boolean, what: string): string {
+  if (pending) return `Loading ${what}…`;
   return `No ${what} yet for this change.`;
 }

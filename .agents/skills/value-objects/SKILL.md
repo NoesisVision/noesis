@@ -7,7 +7,7 @@ description: Create and use value objects (VOs) — domain primitives such as id
 
 A VO is a **branded Zod schema** plus the **functions** that build and read its values. At runtime the value is the primitive itself: a string stays a string. The brand exists only for the type checker, so a `ModuleId` cannot be passed where a `BuildingBlockId` is expected, and no plain string becomes a `ModuleId` without passing the schema.
 
-The reference implementation is `server/backend/src/app/element-id.ts`. Read it before you write a VO, and copy its shape.
+The reference implementation is `server/backend/src/app/system-model/element-id.ts`. Read it before you write a VO, and copy its shape.
 
 ## Why this shape
 
@@ -31,7 +31,7 @@ export const ModuleId = Object.assign(moduleIdSchema, {
   root: (name: string) => moduleIdSchema.parse(`${MODULE_KIND}|${ElementName.parse(name)}`),
   within: (parent: ModuleId, name: string) =>
     moduleIdSchema.parse(`${MODULE_KIND}|${childPath(parent, name)}`),
-  containing: (id: BuildingBlockId | BehaviorId) => {
+  containing: (id: BuildingBlockId | BehaviourId) => {
     /* … */
   },
   parentOf: (id: ModuleId) => {
@@ -52,13 +52,13 @@ Rules:
 - **Keep private what nothing else needs.** Share a pattern between VOs of one file through a private function, not an export.
 - **A part with its own rules is its own schema.** A factory that builds a value from parts parses each part with the part's schema (`ElementName.parse(name)`) before it builds the whole. Otherwise a part can smuggle a separator in, and the whole still matches the pattern (`within(module, 'x.y')` would nest one level too deep).
 - **A schema with no behaviour stays unbranded.** A name that is only checked, never built or navigated, is a plain `z.string()` schema with the same one-name rule (`ElementName`).
-- **Factories and operations are functions** in the `Object.assign` object. Write them in place as arrow functions. Do not overload them: an object literal cannot declare overloads without a cast. When one input kind has a different result type, give it its own function (`ModuleId.parentOf(module): ModuleId | null` beside `ModuleId.containing(blockOrBehavior): ModuleId`):
+- **Factories and operations are functions** in the `Object.assign` object. Write them in place as arrow functions. Do not overload them: an object literal cannot declare overloads without a cast. When one input kind has a different result type, give it its own function (`ModuleId.parentOf(module): ModuleId | null` beside `ModuleId.containing(blockOrBehaviour): ModuleId`):
   - A named factory (`root`, `within`, `fromTitle`) builds the value and ends in `xSchema.parse(...)`. It never casts.
   - Name the direction: `within(parent, name)` builds downward, `containing(id)` looks upward to a container of another kind, and `parentOf(id)` to the parent of the same kind. Keep these words across every VO of a family.
-  - A lookup lives on the VO it returns and accepts every kind it can answer for, so callers never chain: `ModuleId.containing(buildingBlockId)` and `ModuleId.containing(behaviorId)`, not `ModuleId.containing(BuildingBlockId.containing(behaviorId))`.
+  - A lookup lives on the VO it returns and accepts every kind it can answer for, so callers never chain: `ModuleId.containing(buildingBlockId)` and `ModuleId.containing(behaviourId)`, not `ModuleId.containing(BuildingBlockId.containing(behaviourId))`.
   - An operation takes the value first and returns a VO through its schema's `parse`.
   - An operation shared by several kinds of VO goes on their union: `ElementId.nameOf(id)`.
-- **Kinds of one family:** a private `z.union([...])` of the member schemas, exported through `Object.assign` like any VO, with the shared operations, `isX` type guards on a prefix or other cheap check, and an exhaustive `match(value, { … })`: `ElementId.isModule(id)`, `ElementId.match(id, { module, buildingBlock, behavior })`.
+- **Kinds of one family:** a private `z.union([...])` of the member schemas, exported through `Object.assign` like any VO, with the shared operations, `isX` type guards on a prefix or other cheap check, and an exhaustive `match(value, { … })`: `ElementId.isModule(id)`, `ElementId.match(id, { module, buildingBlock, behaviour })`.
 - **Synchronous, no I/O.** Uniqueness and existence checks belong in services.
 - **Never** `as X` outside tests, `class` VOs, `z.codec`, `.transform()`, `.refine()`, or an `equals` method.
 

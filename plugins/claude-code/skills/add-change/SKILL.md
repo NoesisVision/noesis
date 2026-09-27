@@ -14,8 +14,8 @@ write an id into the file.
 
 ## Contracts
 
-- New change: `${CLAUDE_PLUGIN_ROOT}/contracts/new-change.schema.json`.
-- Update: `${CLAUDE_PLUGIN_ROOT}/contracts/change.schema.json`, which adds
+- New change: `${CLAUDE_PLUGIN_ROOT}/contracts/create-change.schema.json`.
+- Update: `${CLAUDE_PLUGIN_ROOT}/contracts/update-change.schema.json`, which adds
   `status`.
 
 Both are JSON Schema. Read the one you need now, not from memory.

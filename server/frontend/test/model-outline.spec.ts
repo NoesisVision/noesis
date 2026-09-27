@@ -9,7 +9,7 @@ import {
 describe('patternLabelOf', () => {
   it('spells a pattern the way a reader types it', () => {
     expect(patternLabelOf('application_service')).toBe('application service');
-    expect(patternLabelOf('Command')).toBe('Command');
+    expect(patternLabelOf('state_change')).toBe('state change');
     expect(patternLabelOf(null)).toBeNull();
   });
 });

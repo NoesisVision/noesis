@@ -4,7 +4,8 @@
     // Same alias the frontend uses for this source, so backend files resolve
     // alike in both programs.
     "paths": {
-      "#backend/*": ["./src/*"]
+      "#backend/*": ["./src/*"],
+      "#mcp/*": ["../mcp/src/*"]
     }
   }
 }

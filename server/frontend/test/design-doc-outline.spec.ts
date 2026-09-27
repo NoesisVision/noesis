@@ -46,11 +46,11 @@ describe('outlineOf', () => {
   });
 
   it('hangs a behaviour under its building block, and that under its module', () => {
-    expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
+    expect(at('behaviour|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behaviour',
       name: 'issue',
-      pattern: 'Command',
-      patternLabel: 'Command',
+      pattern: 'command',
+      patternLabel: 'command',
       parentPath: 'building_block|sales.refunds.Refund',
       depth: 3,
     });
@@ -121,9 +121,9 @@ describe('outlineOf', () => {
     ).toBe('removed');
     expect(
       at(
-        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
+        'behaviour|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
-    ).toBe('State change');
+    ).toBe('state_change');
   });
 
   it('names an element by its own name, never by its address', () => {
@@ -134,13 +134,13 @@ describe('outlineOf', () => {
   it('marks the one element whose description draws a diagram', () => {
     expect(
       outline.filter((node) => node.hasDiagram).map((node) => node.path),
-    ).toEqual(['behavior|sales.refunds.Refund.issue']);
+    ).toEqual(['behaviour|sales.refunds.Refund.issue']);
   });
 
   it('says nothing about a document that designs nothing', () => {
     expect(
       outlineOf({
-        id: '2026-01-01-empty',
+        id: '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c',
         name: 'Empty',
         description: '',
       }),

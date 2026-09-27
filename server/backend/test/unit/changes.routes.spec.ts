@@ -1,13 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { Change } from '#backend/app/changes/change';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { DocumentId } from '#backend/app/information-sources/document-id';
-import { SearchService } from '#backend/app/search/search.service';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   decodedDesignDocFixture,
   designDocFixture,
 } from '../fixtures/design-doc.fixture';
+import { sourceDocumentId } from '../fixtures/ids.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -16,18 +15,20 @@ let app: ReturnType<typeof createUiApp>;
 beforeEach(async () => {
   t = await testNoesis();
   // Through the whole surface: its error handler answers a missing change.
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
 
 const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
+
+const document = {
+  id: sourceDocumentId(1),
+  title: 'Stakeholder interview',
+  date: '2026-09-12',
+  content: 'What they said.',
+};
 
 const post = (body: unknown) =>
   app.request('/changes', {
@@ -36,47 +37,42 @@ const post = (body: unknown) =>
     body: JSON.stringify(body),
   });
 
-/** Writes a change as the agent's tools leave it, bypassing the service. */
-const add = async (
-  id: string,
-  name: string,
-  key = '',
-  type: Change['type'] = 'feature',
-): Promise<Change> => {
-  const change: Change = {
-    id: ChangeId.parse(id),
-    name,
-    key,
-    type,
-    status: 'discovery',
-    description: '',
-  };
-  await t.changesRepository.save(change);
-  return change;
-};
+const patch = (id: string, body: unknown) =>
+  app.request(`/changes/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
 
 describe('ui changes routes', () => {
+  it('answers a body that is not JSON with 400, never 500', async () => {
+    for (const body of ['{', '']) {
+      const response = await app.request('/changes', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body,
+      });
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: 'invalid_body' });
+    }
+  });
+
   it('returns an empty list when there are no changes', async () => {
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
 
-  it('lists each change with its entries, scoped to it', async () => {
-    const older = await t.createChange('2026-09-13-older', {
+  it('lists each change newest first, with its entries, scoped to it', async () => {
+    const older = await t.writeChange('2026-09-13-older', {
       name: 'Older change',
+      key: 'NOE-142',
     });
-    await t.createChange('2026-09-14-newer', { name: 'Newer change' });
+    await t.writeChange('2026-09-14-newer', { name: 'Newer change' });
     await t.writeDesignDoc(older, designDocFixture);
-    const document = {
-      id: DocumentId.parse('2026-09-12-stakeholder-interview'),
-      title: 'Stakeholder interview',
-      date: '2026-09-12',
-      content: 'What they said.',
-    };
     await t.writeDocument(older, document);
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       changes: [
@@ -92,7 +88,7 @@ describe('ui changes routes', () => {
         {
           id: '2026-09-13-older',
           name: 'Older change',
-          key: '',
+          key: 'NOE-142',
           type: 'chore',
           status: 'discovery',
           description: '',
@@ -101,20 +97,26 @@ describe('ui changes routes', () => {
               kind: 'design-doc',
               id: decodedDesignDocFixture.id,
               name: decodedDesignDocFixture.name,
+              implemented: false,
             },
-            { kind: 'document', id: document.id, name: document.title },
+            {
+              kind: 'source-document',
+              id: document.id,
+              title: document.title,
+              date: document.date,
+            },
           ],
         },
       ],
     });
   });
 
-  it('names the entries of a change oldest first, by id', async () => {
-    const change = await t.createChange('2026-09-13-older');
+  it('names the entries of a change in the order they were added', async () => {
+    const change = await t.writeChange('2026-09-13-older');
     for (const [id, title] of [
-      ['2026-09-12-zoning-rules', 'Zoning rules'],
-      ['2026-09-10-appointment-booking', 'Appointment booking'],
-      ['2026-09-11-glossary', 'Glossary'],
+      [sourceDocumentId(3), 'Zoning rules'],
+      [sourceDocumentId(1), 'Appointment booking'],
+      [sourceDocumentId(2), 'Glossary'],
     ] as const) {
       await t.writeDocument(change, {
         id,
@@ -124,65 +126,172 @@ describe('ui changes routes', () => {
       });
     }
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     const { changes } = (await response.json()) as {
-      changes: { entries: { name: string }[] }[];
+      changes: { entries: { title: string }[] }[];
     };
-    expect(changes[0]?.entries.map((entry) => entry.name)).toEqual([
+    expect(changes[0]?.entries.map((entry) => entry.title)).toEqual([
+      'Zoning rules',
       'Appointment booking',
       'Glossary',
-      'Zoning rules',
     ]);
   });
 
-  it('lists what is stored, whole', async () => {
-    const change = await add(
-      '2026-09-01-payment-retry',
-      'Payment retry',
-      'NOE-142',
-    );
+  it("creates a change at an id minted from today's date and its name, in discovery", async () => {
+    const res = await post({
+      name: 'Payment retry',
+      type: 'feature',
+      key: 'NOE-142',
+    });
 
-    const listed = await app.request('/changes');
-    expect(listed.status).toBe(200);
-    expect(await listed.json()).toEqual({ changes: [change] });
-    expect(await ids()).toEqual(['2026-09-01-payment-retry']);
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      change: {
+        id: '2026-09-24-payment-retry',
+        name: 'Payment retry',
+        key: 'NOE-142',
+        type: 'feature',
+        status: 'discovery',
+        description: '',
+      },
+    });
+    expect(await ids()).toEqual(['2026-09-24-payment-retry']);
   });
 
-  // Creating is the agent's, through the `create_change` tool.
-  it('writes nothing: POST is not a route of this surface', async () => {
-    const res = await post({ name: 'Payment retry', type: 'feature' });
+  it('refuses a body that is not a change, creating nothing', async () => {
+    const res = await post({ name: 'Payment retry', type: 'feat' });
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'invalid_body' });
     expect(await ids()).toEqual([]);
   });
 
-  it('lists newest first', async () => {
-    await add('2026-09-01-older', 'Older', '', 'chore');
-    await add('2026-09-02-newer', 'Newer', '', 'fix');
-    const { changes } = (await (await app.request('/changes')).json()) as {
-      changes: Change[];
-    };
-    expect(changes.map((c) => c.id)).toEqual([
-      ChangeId.parse('2026-09-02-newer'),
-      ChangeId.parse('2026-09-01-older'),
-    ]);
+  it('updates what a change says of itself, at its id', async () => {
+    const change = await t.writeChange('2026-09-01-audit-log');
+
+    const res = await patch(change, {
+      name: 'Audit trail',
+      key: 'NOE-7',
+      type: 'feature',
+      status: 'design',
+      description: 'Who did what.',
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      change: {
+        id: change,
+        name: 'Audit trail',
+        key: 'NOE-7',
+        type: 'feature',
+        status: 'design',
+        description: 'Who did what.',
+      },
+    });
+    expect((await t.stored(change)).version).toBe(2);
   });
 
-  it('reads one change by id and 404s an unknown or unsafe one', async () => {
-    await add('2026-09-01-audit-log', 'Audit log', '', 'improvement');
-    const found = await app.request('/changes/2026-09-01-audit-log');
-    expect(found.status).toBe(200);
-    expect(((await found.json()) as { change: Change }).change.name).toBe(
-      'Audit log',
-    );
+  it('refuses an update without a status, or of an unknown change', async () => {
+    const change = await t.writeChange('2026-09-01-audit-log');
 
+    const invalid = await patch(change, { name: 'Audit', type: 'chore' });
+    expect(invalid.status).toBe(400);
+    expect(await invalid.json()).toMatchObject({ error: 'invalid_body' });
+
+    const unknown = await patch('2026-09-01-nope', {
+      name: 'Audit',
+      type: 'chore',
+      status: 'design',
+    });
+    expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toMatchObject({ error: 'change_not_found' });
+    expect((await t.stored(change)).version).toBe(1);
+  });
+
+  it('refuses a body larger than a working file, creating nothing', async () => {
+    const res = await post({
+      name: 'Payment retry',
+      type: 'feature',
+      description: 'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
+    });
+
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({
+      error: 'payload_too_large',
+      limit: MAX_WORKING_FILE_BYTES,
+    });
+    expect(await ids()).toEqual([]);
+  });
+
+  it('reads one change with what it owns summarised', async () => {
+    const change = await t.writeChange('2026-09-01-audit-log', {
+      name: 'Audit log',
+      type: 'improvement',
+    });
+    await t.writeDesignDoc(change, designDocFixture);
+    await t.writeDocument(change, document);
+
+    const found = await app.request('/changes/2026-09-01-audit-log');
+
+    expect(found.status).toBe(200);
+    expect(await found.json()).toEqual({
+      change: {
+        id: '2026-09-01-audit-log',
+        name: 'Audit log',
+        key: '',
+        type: 'improvement',
+        status: 'discovery',
+        description: '',
+        designDocs: [
+          {
+            id: decodedDesignDocFixture.id,
+            name: decodedDesignDocFixture.name,
+            implemented: false,
+          },
+        ],
+        sourceDocuments: [
+          { id: document.id, title: document.title, date: document.date },
+        ],
+      },
+    });
+  });
+
+  it('404s an unknown or unsafe change id', async () => {
     const missing = await app.request('/changes/2026-09-01-nope');
     expect(missing.status).toBe(404);
-    expect(await missing.json()).toEqual({ error: 'change_not_found' });
-    for (const malformed of ['audit-log', 'Not%20An%20Id']) {
-      const res = await app.request(`/changes/${malformed}`);
+    expect(await missing.json()).toEqual({
+      error: 'change_not_found',
+      entity: 'change',
+      id: '2026-09-01-nope',
+    });
+    for (const malformed of ['audit-log', 'Not An Id']) {
+      const res = await app.request(
+        `/changes/${encodeURIComponent(malformed)}`,
+      );
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: 'change_not_found' });
+      expect(await res.json()).toEqual({
+        error: 'change_not_found',
+        entity: 'change',
+        id: malformed,
+      });
     }
+  });
+
+  it('answers a write that lost a race with 409', async () => {
+    const raced = await t.writeChange('2026-09-01-raced');
+    const res = await createUiApp({
+      ...t,
+      listChanges: {
+        handle: () =>
+          Promise.reject(new ConcurrentModificationError('change', raced)),
+      },
+    }).request('/changes');
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({
+      error: 'conflict',
+      entity: 'change',
+      id: raced,
+    });
   });
 });
