@@ -13,6 +13,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { z } from 'zod';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/server-logger';
+import { processRunning } from '#backend/platform/process/process-identity';
 import { SessionFiles } from './session-files';
 
 const log = serverLogger('session');
@@ -129,14 +130,4 @@ async function ownerRunning(dir: string): Promise<boolean> {
     return false;
   }
   return processRunning(owner.pid);
-}
-
-/** Signal 0 checks without sending: `ESRCH` is no such process, `EPERM` one that is not ours. */
-function processRunning(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return (error as NodeJS.ErrnoException).code !== 'ESRCH';
-  }
 }

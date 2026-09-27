@@ -21,22 +21,34 @@ export const LOG_FILE_SUFFIX = '.log';
 export const LOG_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Each process logs to a file of its own, named by its session. One file
- * shared by every process cannot be rotated: the process that renames it
- * keeps writing to the new one, while every other keeps its descriptor on
- * the renamed file, then on nothing once that is unlinked.
+ * The daemon's file: the lock allows one daemon per repository at a time, so
+ * the name is fixed, and no sweep removes it.
  */
-export function logFileName(sessionId: string): string {
-  return `${LOG_FILE_PREFIX}${sessionId}${LOG_FILE_SUFFIX}`;
+export const SERVE_LOG_ID = 'serve';
+
+/**
+ * Each process logs to a file of its own: a session by its id, the daemon by
+ * `SERVE_LOG_ID`. One file shared by every process cannot be rotated: the
+ * process that renames it keeps writing to the new one, while every other
+ * keeps its descriptor on the renamed file, then on nothing once that is
+ * unlinked.
+ */
+export function logFileName(fileId: string): string {
+  return `${LOG_FILE_PREFIX}${fileId}${LOG_FILE_SUFFIX}`;
 }
 
 export interface LoggingOptions {
   /** Must already exist: created by `NoesisDir.ensureInitialized()`. */
   logDir: string;
-  /** Names this process's file. */
-  sessionId: string;
+  /** Names this process's file: `noesis-<fileId>.log`. */
+  fileId: string;
   /** JSON on stderr when true, coloured text otherwise. */
   production: boolean;
+  /**
+   * `false` when stderr is the log file itself — a managed daemon's — so
+   * each line is written once.
+   */
+  stderr?: boolean;
   level: LogLevel;
 }
 
@@ -48,22 +60,19 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
   const stderr: Sink = (record) => {
     process.stderr.write(stderrFormatter(record));
   };
-  const file = getFileSink(
-    join(options.logDir, logFileName(options.sessionId)),
-    {
-      formatter: jsonLines,
-      // Written through: a person tailing the file, or reading it after a
-      // crash, must see every line. Volume is one developer's session.
-      bufferSize: 0,
-    },
-  );
+  const file = getFileSink(join(options.logDir, logFileName(options.fileId)), {
+    formatter: jsonLines,
+    // Written through: a person tailing the file, or reading it after a
+    // crash, must see every line. Volume is one developer's session.
+    bufferSize: 0,
+  });
 
   await configure({
     sinks: { stderr, file },
     loggers: [
       {
         category: ROOT_CATEGORY,
-        sinks: ['stderr', 'file'],
+        sinks: options.stderr === false ? ['file'] : ['stderr', 'file'],
         lowestLevel: options.level,
       },
       // LogTape's own complaints (a sink that throws, a bad config) go to
@@ -76,7 +85,7 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
     ],
     contextLocalStorage: new AsyncLocalStorage(),
   });
-  await removeStaleLogs(options.logDir, options.sessionId);
+  await removeStaleLogs(options.logDir, options.fileId);
 }
 
 export async function disposeLogging(): Promise<void> {
@@ -85,15 +94,17 @@ export async function disposeLogging(): Promise<void> {
 
 /**
  * Sweeps the logs of sessions that ended long ago. A live session's file has
- * its last line's mtime, so age alone tells; this session's own file is
- * skipped regardless. Never worth failing a boot over.
+ * its last line's mtime, so age alone tells; this process's own file and the
+ * daemon's are skipped regardless. Never worth failing a boot over.
  */
-async function removeStaleLogs(logDir: string, sessionId: string) {
+async function removeStaleLogs(logDir: string, fileId: string) {
   const log = serverLogger('logging');
   const cutoff = Date.now() - LOG_MAX_AGE_MS;
   let removed = 0;
   for (const name of await listLogs(logDir)) {
-    if (name === logFileName(sessionId)) continue;
+    if (name === logFileName(fileId) || name === logFileName(SERVE_LOG_ID)) {
+      continue;
+    }
     const path = join(logDir, name);
     try {
       if ((await stat(path)).mtimeMs > cutoff) continue;

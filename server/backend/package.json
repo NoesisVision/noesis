@@ -21,8 +21,8 @@
   "scripts": {
     "build": "bun run --cwd ../frontend build:spa && NODE_ENV=production bun build src/main.ts --outdir dist --target bun --production --banner '#!/usr/bin/env bun' --entry-naming '[name].[ext]' && bun run scripts/copy-ui.ts",
     "start": "bun dist/main.js",
-    "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
-    "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
+    "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts serve",
+    "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts serve",
     "check-types": "tsc --noEmit",
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",

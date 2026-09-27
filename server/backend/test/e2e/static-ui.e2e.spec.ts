@@ -128,7 +128,7 @@ describe('SPA serving (e2e)', () => {
   it('keeps the internal surface working', async () => {
     const res = await fetch(`${BASE}/internal/health`);
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: 'ok' });
+    expect(await res.json()).toMatchObject({ status: 'ok' });
   });
 
   it('does not swallow a missing asset into the SPA fallback', async () => {

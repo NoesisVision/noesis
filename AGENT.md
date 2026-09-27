@@ -84,7 +84,7 @@ The SPA is built by **vite** (`bun run --cwd server/frontend build:spa` → `ser
 
 ### Logging
 
-LogTape everywhere. Get loggers via `serverLogger('<module>')` (from `platform/logging/server-logger`) / `uiLogger('<module>')`, never by spelling the category array (a library that wants one gets `serverLogger('<module>').category`); only `platform/logging/logging.ts` and `frontend/src/logging.ts` call `configure()`. Messages use named placeholders with a properties object (`log.info('indexed {files} files', { files })`), no string interpolation. Service logs go to stderr and `.noesis/logs/noesis-<session>.log`, one file per process (a shared file cannot be rotated across processes), swept after seven days; `NOESIS_LOG_LEVEL` sets the level.
+LogTape everywhere. Get loggers via `serverLogger('<module>')` (from `platform/logging/server-logger`) / `uiLogger('<module>')`, never by spelling the category array (a library that wants one gets `serverLogger('<module>').category`); only `platform/logging/logging.ts` and `frontend/src/logging.ts` call `configure()`. Messages use named placeholders with a properties object (`log.info('indexed {files} files', { files })`), no string interpolation. Service logs go to stderr and one file per process (a shared file cannot be rotated across processes): `.noesis/logs/noesis-<session>.log` for a session, `noesis-serve.log` for the daemon (a managed daemon has no terminal, so its stderr is that file and it logs to the file alone). Session logs are swept after seven days, the daemon's never; `NOESIS_LOG_LEVEL` sets the level.
 
 ### Plugin (`plugins/claude-code`)
 
@@ -109,4 +109,4 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 - A `PostToolUse` hook runs `oxfmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
 - Knip: a deliberate duplicate export carries an `@alias` JSDoc tag; entry points Knip cannot discover are listed in `knip.json`.
 - Skills live in `.agents/skills/`; `.claude/skills/<name>` is always a relative symlink, never a real directory. Third-party skills are hash-locked in `skills-lock.json` — do not hand-edit them; manage with `npx skills`.
-- Configuration is exactly `NOESIS_ROOT`, `NOESIS_OPEN_BROWSER=0`, `NOESIS_LOG_LEVEL`, `PORT` (dev only), `NODE_ENV=production` (build). Do not add env vars without a decision.
+- Configuration is exactly `NOESIS_ROOT`, `NOESIS_OPEN_BROWSER=0`, `NOESIS_LOG_LEVEL`, `PORT` (dev only), `NOESIS_GRACE_MS` (how long a managed daemon waits for a session, for the e2e specs), `NODE_ENV=production` (build). Do not add env vars without a decision.

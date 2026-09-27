@@ -1,37 +1,28 @@
 // Stays first: the stdout guard has to be in place before any other module is
 // evaluated.
 import '#backend/boot/process';
-import { installLifecycle } from '#backend/boot/lifecycle';
-import { createServices } from '#backend/boot/services';
-import { UiHost } from '#backend/boot/ui';
-import { serveMcp } from '#mcp/serve-mcp';
-import { openWorkspace } from '#mcp/workspace';
+import { serve } from '#backend/boot/serve';
+import { stop } from '#backend/boot/stop';
+import { serveInProcess } from '#mcp/in-process';
 import { version } from '../package.json';
 
-// The composition root. Boot is in two halves: the MCP surface starts at once
-// and answers the SDK's era probe in milliseconds; the ui comes up only once a
-// session is known to be served, or when a person starts the process by hand.
+// The composition root. `serve` runs the repository's daemon, which owns the
+// graph and the page, and `stop` ends it; a bare `noesis`, which the plugin
+// launches, still serves one session in one process.
 
-const { config, noesis, session, sessionFiles } = await openWorkspace();
-const services = createServices(noesis);
-const ui = new UiHost({ config, services });
-const lifecycle = installLifecycle({ dispose: release });
+const [command, ...flags] = process.argv.slice(2);
 
-const mcp = serveMcp({
-  version,
-  noesis,
-  sessionFiles,
-  services,
-  onServing: () => ui.start(),
-  onStdinEnd: () => void lifecycle.shutdown(),
-});
-
-// A terminal on stdin means nobody is speaking MCP — `bun run dev`, or the bin
-// started by hand — and the page is the whole point of that run.
-if (process.stdin.isTTY) ui.start();
-
-async function release(): Promise<void> {
-  await ui.stop();
-  await mcp.close();
-  await session.dispose();
+switch (command) {
+  case undefined:
+    await serveInProcess(version);
+    break;
+  case 'serve':
+    await serve(version, flags.includes('--managed'));
+    break;
+  case 'stop':
+    await stop();
+    break;
+  default:
+    console.error('Usage: noesis [serve [--managed] | stop]');
+    process.exit(2);
 }

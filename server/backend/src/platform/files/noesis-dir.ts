@@ -3,7 +3,12 @@ import { join } from 'node:path';
 
 const NOESIS_DIR_NAME = '.noesis';
 const UNVERSIONED_DIRS = ['sessions', 'logs'] as const;
-const GITIGNORE_LINES = UNVERSIONED_DIRS.map((dir) => `${dir}/`);
+/** The daemon's registration, with its reclaim guard and temporary files. */
+const SERVER_LOCK_NAME = 'server.lock';
+const GITIGNORE_LINES = [
+  ...UNVERSIONED_DIRS.map((dir) => `${dir}/`),
+  `${SERVER_LOCK_NAME}*`,
+];
 
 export class NoesisDir {
   readonly root: string;
@@ -24,6 +29,10 @@ export class NoesisDir {
 
   get sessionsDir(): string {
     return this.resolve('sessions');
+  }
+
+  get serverLockPath(): string {
+    return this.resolve(SERVER_LOCK_NAME);
   }
 
   /** An existing `.gitignore` only gains the lines it lacks. */

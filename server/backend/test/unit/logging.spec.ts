@@ -14,6 +14,7 @@ import {
   configureLogging,
   LOG_MAX_AGE_MS,
   logFileName,
+  SERVE_LOG_ID,
 } from '#backend/platform/logging/logging';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
@@ -44,7 +45,7 @@ describe('logging', () => {
   it('writes JSON lines to .noesis/logs/noesis-<session>.log with category, properties and request context', async () => {
     await configureLogging({
       logDir,
-      sessionId: 'abc',
+      fileId: 'abc',
       production: true,
       level: 'warning',
     });
@@ -69,15 +70,19 @@ describe('logging', () => {
     expect(typeof lines[0]['@timestamp']).toBe('string');
   });
 
-  it('sweeps logs of sessions older than the max age, keeps younger ones and other files', async () => {
+  it('sweeps logs of sessions older than the max age, keeps younger ones, the daemon log and other files', async () => {
     await reset();
     const old = await oldLog(logFileName('old'), LOG_MAX_AGE_MS + DAY_MS);
     const young = await oldLog(logFileName('young'), DAY_MS);
     const stray = await oldLog('notes.txt', LOG_MAX_AGE_MS + DAY_MS);
+    const daemon = await oldLog(
+      logFileName(SERVE_LOG_ID),
+      LOG_MAX_AGE_MS + DAY_MS,
+    );
 
     await configureLogging({
       logDir,
-      sessionId: 'me',
+      fileId: 'me',
       production: true,
       level: 'info',
     });
@@ -85,5 +90,6 @@ describe('logging', () => {
     expect(await exists(old)).toBe(false);
     expect(await exists(young)).toBe(true);
     expect(await exists(stray)).toBe(true);
+    expect(await exists(daemon)).toBe(true);
   });
 });

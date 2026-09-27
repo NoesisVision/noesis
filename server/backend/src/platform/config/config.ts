@@ -12,7 +12,12 @@ const envSchema = z.object({
   NOESIS_OPEN_BROWSER: z.string().optional(),
   PORT: z.coerce.number().int().min(0).max(65535).default(0),
   NOESIS_LOG_LEVEL: z.enum(getLogLevels()).default(DEFAULT_LOG_LEVEL),
+  NOESIS_GRACE_MS: milliseconds(5 * 60 * 1000),
 });
+
+function milliseconds(fallback: number) {
+  return z.coerce.number().int().min(0).default(fallback);
+}
 
 export interface ServerConfig {
   /** Unset: found by walking up from cwd to `.git`. */
@@ -20,6 +25,8 @@ export interface ServerConfig {
   openBrowser: boolean;
   port: number;
   logLevel: LogLevel;
+  /** How long a managed daemon waits with no session attached before it exits. */
+  graceMs: number;
 }
 
 /** Throws `ConfigurationError` for an environment the server cannot start on. */
@@ -35,5 +42,6 @@ export function loadServerConfig(env: NodeJS.ProcessEnv): ServerConfig {
     openBrowser: parsed.data.NOESIS_OPEN_BROWSER !== '0',
     port: parsed.data.PORT,
     logLevel: parsed.data.NOESIS_LOG_LEVEL,
+    graceMs: parsed.data.NOESIS_GRACE_MS,
   };
 }

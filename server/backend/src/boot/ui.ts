@@ -1,30 +1,39 @@
 import { join } from 'node:path';
+import type { Attachments } from '#backend/adapters/in/ui/internal.routes';
+import type { UiDeps } from '#backend/adapters/in/ui/ui.routes';
 import type { ServerConfig } from '#backend/platform/config/config';
 import { pageBuilt, staticAssets } from '#backend/platform/http/static-assets';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { createApp } from './app';
 import { openBrowser } from './browser';
 import { production } from './process';
-import type { Services } from './services';
 
 const log = serverLogger('ui');
+
+/** How long a stop waits for requests in flight before it closes them. */
+const STOP_GRACE_MS = 5_000;
 
 type UiServer = ReturnType<typeof Bun.serve>;
 
 export interface UiHostOptions {
   config: ServerConfig;
-  services: Services;
+  services: UiDeps;
+  version: string;
+  instance: string;
+  attachments: Attachments;
+  /** True once shutdown has begun; every route then answers 503. */
+  draining?: () => boolean;
 }
 
 /**
- * The ui half of the server: the page and its routes. Nothing waits on it —
- * the MCP tools run on the file repositories alone — so a session's first
- * request is answered while this comes up behind it, and a failure here
- * leaves the tools serving rather than killing the session.
+ * The page and its routes on a loopback port. A daemon awaits `listen()`,
+ * since it is nothing without them; a session serving in-process calls
+ * `start()` and serves its tools whether or not the page comes up.
  */
 export class UiHost {
   private readonly options: UiHostOptions;
-  private server: Promise<UiServer | null> | undefined;
+  private server: Promise<UiServer> | undefined;
+  private listening: UiServer | undefined;
   private stopped = false;
 
   constructor(options: UiHostOptions) {
@@ -34,22 +43,52 @@ export class UiHost {
   /** Idempotent: the first call opens the server, later calls are no-ops. */
   start(): void {
     if (this.stopped) return;
-    this.server ??= this.open().catch((error: unknown) => {
+    this.listen().catch((error: unknown) => {
       log.error('the ui did not start: {error}', { error: String(error) });
-      return null;
     });
   }
 
-  /** Waits for a server still coming up, or nothing here knows what holds the port. */
+  /** The page's URL, once the server listens; rejects when it cannot. */
+  async listen(): Promise<string> {
+    this.server ??= this.open();
+    return urlOf(await this.server);
+  }
+
+  get port(): number | undefined {
+    return this.listening?.port;
+  }
+
+  /**
+   * Waits for the requests in flight, then for nothing: whatever is still
+   * open after the grace is closed. An open attach stream would otherwise
+   * hold the stop forever.
+   */
   async stop(): Promise<void> {
     this.stopped = true;
-    const server = this.server === undefined ? null : await this.server;
-    await server?.stop();
+    const server = await this.server?.catch(() => undefined);
+    if (server === undefined) return;
+    const force = setTimeout(() => {
+      log.warn('requests still open after {ms} ms — closing them', {
+        ms: STOP_GRACE_MS,
+      });
+      void server.stop(true);
+    }, STOP_GRACE_MS);
+    await server.stop();
+    clearTimeout(force);
   }
 
   private async open(): Promise<UiServer> {
     const { config, services } = this.options;
-    const app = createApp(services);
+    const app = createApp(services, {
+      internal: {
+        version: this.options.version,
+        instance: this.options.instance,
+        attachments: this.options.attachments,
+        url: () => (this.listening ? urlOf(this.listening) : ''),
+        keepOpen: (request) => this.listening?.timeout(request, 0),
+      },
+      draining: this.options.draining ?? (() => false),
+    });
 
     const uiDirectory = this.uiDirectory();
     if (!(await pageBuilt(uiDirectory))) {
@@ -72,7 +111,8 @@ export class UiHost {
         '/*': page.fetch,
       },
     });
-    const url = `http://localhost:${server.port}/`;
+    this.listening = server;
+    const url = urlOf(server);
     // The e2e specs and a person alike find the UI by this line.
     log.info('listening on {url}', { url });
     if (config.openBrowser) void openBrowser(url);
@@ -90,4 +130,8 @@ export class UiHost {
       ? join(import.meta.dir, 'ui')
       : join(import.meta.dir, '../../../frontend/dist');
   }
+}
+
+function urlOf(server: UiServer): string {
+  return `http://localhost:${server.port}/`;
 }

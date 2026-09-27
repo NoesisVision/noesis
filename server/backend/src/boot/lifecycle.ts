@@ -16,8 +16,8 @@ export interface Lifecycle {
 }
 
 /**
- * One exit path for the process. Signals and the end of the MCP stream end
- * the session cleanly; an unhandled exception or rejection ends it too, since
+ * One exit path for the process. Signals, a host gone and a daemon left idle
+ * end it cleanly; an unhandled exception or rejection ends it too, since
  * nothing in the process is trusted afterwards — but through `shutdown()`,
  * so `.noesis/logs/` says why.
  */
@@ -46,7 +46,10 @@ export function installLifecycle(options: LifecycleOptions): Lifecycle {
   }
 
   for (const signal of SIGNALS) {
-    process.on(signal, () => void shutdown());
+    process.on(signal, () => {
+      log.info('received {signal} — shutting down', { signal });
+      void shutdown();
+    });
   }
   process.on('uncaughtException', (error) => crashed('exception', error));
   process.on('unhandledRejection', (reason) => crashed('rejection', reason));

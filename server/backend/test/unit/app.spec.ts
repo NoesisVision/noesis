@@ -1,12 +1,13 @@
 import { afterAll, describe, expect, it } from 'bun:test';
 import { createApp } from '#backend/boot/app';
+import { testAppOptions } from '../support/app-options';
 import { testNoesis } from './test-noesis';
 
 const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('app', () => {
-  const app = createApp(t);
+  const app = createApp(t, testAppOptions());
 
   it('echoes an incoming x-request-id on the response', async () => {
     const res = await app.request('/ui/changes', {
@@ -34,6 +35,15 @@ describe('app', () => {
     for (const path of ['/ui/changes', '/internal/health']) {
       const id = (await app.request(path)).headers.get('x-request-id');
       expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    }
+  });
+
+  it('answers every surface with 503 once shutdown has begun', async () => {
+    const draining = createApp(t, testAppOptions({ draining: () => true }));
+    for (const path of ['/ui/changes', '/internal/attach']) {
+      const res = await draining.request(path);
+      expect(res.status).toBe(503);
+      expect(await res.json()).toEqual({ error: 'shutting_down' });
     }
   });
 });
