@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
+import { Badge } from '#/shared/design-system/badge.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
@@ -144,13 +145,15 @@ export function TreeItem({
           {node.name}
         </MatchedText>
         {node.patternLabel !== null && (
-          <MatchedText
-            className={classes.pattern}
-            tokens={search.tokens}
-            dimmed
-          >
-            {node.patternLabel}
-          </MatchedText>
+          <Badge size="xs" variant="default">
+            <MatchedText
+              className={classes.pattern}
+              tokens={search.tokens}
+              dimmed
+            >
+              {node.patternLabel}
+            </MatchedText>
+          </Badge>
         )}
         <span className={classes.trailing}>
           {node.hasDiagram && <DiagramMark />}

@@ -244,7 +244,10 @@ function part(
     depth: 0,
     change,
     pattern,
-    patternLabel: patternLabelOf(pattern),
+    // Not written out as an element's pattern is: a property's is its type and
+    // a rule's is its kind, and both are spelled by whoever wrote them —
+    // `OrderId`, `RefundLine[]`, `date`, `State change`.
+    patternLabel: pattern,
     hasDiagram: drawsDiagram(description),
   };
 }

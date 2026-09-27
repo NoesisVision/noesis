@@ -7,10 +7,15 @@ import {
 } from '../src/shared/ui/model-tree/model-outline';
 
 describe('patternLabelOf', () => {
-  it('spells a pattern the way a reader types it', () => {
-    expect(patternLabelOf('application_service')).toBe('application service');
-    expect(patternLabelOf('Command')).toBe('Command');
+  it('writes out the vocabulary the model spells in lower case', () => {
+    expect(patternLabelOf('application_service')).toBe('Application Service');
+    expect(patternLabelOf('aggregate')).toBe('Aggregate');
+    expect(patternLabelOf('domain_event')).toBe('Domain Event');
     expect(patternLabelOf(null)).toBeNull();
+  });
+
+  it('leaves a word already written that way as it is', () => {
+    expect(patternLabelOf('Command')).toBe('Command');
   });
 });
 

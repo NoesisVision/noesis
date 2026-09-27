@@ -44,7 +44,7 @@ export const outlineFixture: OutlineNode[] = [
     depth: 2,
     change: 'added',
     pattern: 'repository',
-    patternLabel: 'repository',
+    patternLabel: 'Repository',
   }),
   node({
     path: 'building_block|shop.orders.Order',
@@ -54,7 +54,7 @@ export const outlineFixture: OutlineNode[] = [
     depth: 2,
     change: 'modified',
     pattern: 'aggregate',
-    patternLabel: 'aggregate',
+    patternLabel: 'Aggregate',
     hasDiagram: true,
   }),
   node({

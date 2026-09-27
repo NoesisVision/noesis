@@ -1,3 +1,5 @@
+import { titleCase } from '#/shared/ui/title-case.ts';
+
 /*
  * The shape a reader wants a model in: one tree, whatever it was rebuilt from.
  * A design document projects into it by folding its change sets together; the
@@ -39,7 +41,7 @@ export interface OutlineNode {
   change: OutlineChange;
   /** The pattern as the model spells it: `application_service`, `Command`, `Consistency`. */
   pattern: string | null;
-  /** The pattern as a reader types it, which is what a search matches against. */
+  /** The pattern as a reader reads it: `Application Service`, `OrderId`. */
   patternLabel: string | null;
   /** The description draws a diagram. */
   hasDiagram: boolean;
@@ -87,9 +89,18 @@ const indexIn = (order: readonly string[], value: string | null): number => {
   return index === -1 ? UNPLACED : index;
 };
 
-/** `application_service` as a reader says it, so that typing it finds it. */
+/**
+ * The model's own vocabulary as a reader reads it: `application_service`
+ * becomes `Application Service`. A search spells both sides plainly, so typing
+ * it still finds it.
+ *
+ * Only that vocabulary. A name somebody else spelled goes through untouched or
+ * not at all — written out, `OrderId` would come back as `Orderid` and a
+ * property typed `date` would read `Date` beside a `string[]` that kept its
+ * own spelling.
+ */
 export function patternLabelOf(pattern: string | null): string | null {
-  return pattern === null ? null : pattern.replaceAll('_', ' ');
+  return pattern === null ? null : titleCase(pattern.replaceAll('_', ' '));
 }
 
 /** The fence a diagram is written in, the one the reader draws. */

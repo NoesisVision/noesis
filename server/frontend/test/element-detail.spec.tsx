@@ -91,7 +91,7 @@ const outline: OutlineNode[] = [
     depth: 1,
     change: 'added',
     pattern: 'aggregate',
-    patternLabel: 'aggregate',
+    patternLabel: 'Aggregate',
     hasDiagram: true,
   }),
   node({

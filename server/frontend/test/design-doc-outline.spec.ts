@@ -126,6 +126,24 @@ describe('outlineOf', () => {
     ).toBe('State change');
   });
 
+  it('labels a part with its own type, spelled as the design spells it', () => {
+    const labelAt = (path: string) => at(path).patternLabel;
+    const refund = 'building_block|sales.refunds.Refund';
+    // A type is a name somebody wrote: writing it out would leave `Orderid`
+    // beside a `RefundLine[]` that kept its own spelling, and `date` — a
+    // primitive the model does spell in lower case — would read `Date`.
+    expect(labelAt(`${refund}#property:orderId`)).toBe('OrderId');
+    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine[]');
+    expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
+    expect(
+      labelAt(
+        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
+      ),
+    ).toBe('State change');
+    // An element's pattern is the model's own word, and is written out.
+    expect(labelAt(refund)).toBe('Aggregate');
+  });
+
   it('names an element by its own name, never by its address', () => {
     expect(at('building_block|sales.refunds.Refund').name).toBe('Refund');
     expect(at('module|sales.refunds').name).toBe('refunds');
