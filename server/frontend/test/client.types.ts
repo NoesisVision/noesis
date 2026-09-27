@@ -13,7 +13,7 @@ export async function checkJsonClient(client: typeof api) {
   // @ts-expect-error The result is already parsed JSON.
   data.json();
   // @ts-expect-error A call is a response until it is parsed.
-  (await client.changes.$get()).changes;
+  void (await client.changes.$get()).changes;
   // @ts-expect-error Request validation types remain intact.
   await client.changes[':id'].$get({ param: {} });
 }
