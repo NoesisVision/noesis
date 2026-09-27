@@ -1,4 +1,5 @@
 import { type Context, Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { createChangesApp } from '#backend/adapters/in/ui/changes/changes.routes';
 import { createDesignDocsApp } from '#backend/adapters/in/ui/design-docs/design-docs.routes';
 import { createSearchApp } from '#backend/adapters/in/ui/search/search.routes';
@@ -36,11 +37,17 @@ export function createUiApp(deps: UiDeps) {
 
 /**
  * Every route of the surface fails through here, so none of them catches: a
- * missing or malformed entity answers 404 and a write that lost a race 409, each with the
- * code the page has a sentence for, and anything unforeseen is logged and
- * answers 500.
+ * missing or malformed entity answers 404, a write that lost a race 409 and a
+ * body that is not JSON 400, each with the code the page has a sentence for,
+ * and anything unforeseen is logged and answers 500.
  */
 function answerError(error: Error, c: Context) {
+  // The validator throws before its hook sees a body it cannot parse.
+  if (error instanceof HTTPException) {
+    return error.status === 400
+      ? c.json({ error: 'invalid_body' }, 400)
+      : error.getResponse();
+  }
   if (error instanceof NotFoundError) {
     const code = error.entity === 'change' ? 'change_not_found' : 'not_found';
     return c.json({ error: code }, 404);

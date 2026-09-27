@@ -37,6 +37,18 @@ const post = (body: unknown) =>
   });
 
 describe('ui changes routes', () => {
+  it('answers a body that is not JSON with 400, never 500', async () => {
+    for (const body of ['{', '']) {
+      const response = await app.request('/changes', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body,
+      });
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: 'invalid_body' });
+    }
+  });
+
   it('returns an empty list when there are no changes', async () => {
     const response = await app.request('/changes');
     expect(response.status).toBe(200);
