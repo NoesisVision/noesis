@@ -1,8 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { mkdir, mkdtemp, rm, stat, utimes, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  stat,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
+  OWNER_FILE_NAME,
   SESSION_MAX_AGE_MS,
   SessionDir,
 } from '#backend/adapters/in/mcp/session-dir';
@@ -29,13 +38,27 @@ const exists = (path: string) =>
     () => false,
   );
 
-async function leftover(name: string, ageMs: number): Promise<string> {
+async function leftover(
+  name: string,
+  ageMs: number,
+  owner?: { pid: number },
+): Promise<string> {
   const dir = noesis.resolve('sessions', name);
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, 'draft.json'), '{}');
+  if (owner !== undefined) {
+    await writeFile(join(dir, OWNER_FILE_NAME), JSON.stringify(owner));
+  }
   const when = new Date(Date.now() - ageMs);
   await utimes(dir, when, when);
   return dir;
+}
+
+/** The pid of a process that has already exited. */
+async function deadPid(): Promise<number> {
+  const child = Bun.spawn(['true']);
+  await child.exited;
+  return child.pid;
 }
 
 describe('SessionDir', () => {
@@ -58,6 +81,30 @@ describe('SessionDir', () => {
     expect(await exists(old)).toBe(false);
     expect(await exists(young)).toBe(true);
     expect(await exists(session.path)).toBe(true);
+  });
+
+  it('names its own process as the owner of its directory', async () => {
+    const session = new SessionDir(noesis, { id: 'abc' });
+
+    await session.open();
+
+    const owner = JSON.parse(
+      await readFile(join(session.path, OWNER_FILE_NAME), 'utf8'),
+    );
+    expect(owner).toEqual({ pid: process.pid });
+  });
+
+  it('keeps an old directory whose owner still runs, sweeps one whose owner is gone', async () => {
+    const age = SESSION_MAX_AGE_MS + DAY_MS;
+    const live = await leftover('live', age, { pid: process.pid });
+    const dead = await leftover('dead', age, { pid: await deadPid() });
+    const unowned = await leftover('unowned', age);
+
+    await new SessionDir(noesis, { id: 'me' }).open();
+
+    expect(await exists(live)).toBe(true);
+    expect(await exists(dead)).toBe(false);
+    expect(await exists(unowned)).toBe(false);
   });
 
   it('never sweeps a file that is not a session directory', async () => {

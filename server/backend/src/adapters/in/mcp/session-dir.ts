@@ -1,7 +1,16 @@
 import type { Dirent } from 'node:fs';
-import { mkdir, readdir, realpath, rm, stat } from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  realpath,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { v7 as uuidv7 } from 'uuid';
+import { z } from 'zod';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { SessionFiles } from './session-files';
@@ -10,6 +19,16 @@ const log = serverLogger('session');
 
 /** Scratch left by a session that never shut down cleanly is swept after this. */
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Names the process a session directory belongs to, so a sweep can ask
+ * whether it still runs. The directory's own mtime cannot say: editing a
+ * file inside leaves it untouched, so a week-old session still at work looks
+ * abandoned by age alone.
+ */
+export const OWNER_FILE_NAME = 'owner.json';
+
+const Owner = z.object({ pid: z.number().int().positive() });
 
 export interface SessionDirOptions {
   id?: string;
@@ -34,6 +53,10 @@ export class SessionDir {
 
   async open(): Promise<SessionFiles> {
     await mkdir(this.path, { recursive: true });
+    await writeFile(
+      join(this.path, OWNER_FILE_NAME),
+      JSON.stringify({ pid: process.pid }),
+    );
     await this.removeStaleSessionDirs();
     return new SessionFiles({
       repositoryRoot: this.repositoryRoot,
@@ -74,10 +97,14 @@ export class SessionDir {
       .map((entry) => join(this.sessionsRoot, entry.name));
   }
 
-  /** A crashed session's leftovers are never worth failing a boot over. */
+  /**
+   * Stale: older than the cutoff and not owned by a running process. A
+   * crashed session's leftovers are never worth failing a boot over.
+   */
   private async removeIfStale(dir: string, cutoff: number): Promise<boolean> {
     try {
       if ((await stat(dir)).mtimeMs > cutoff) return false;
+      if (await ownerRunning(dir)) return false;
       await rm(dir, { recursive: true, force: true });
       return true;
     } catch (error) {
@@ -87,5 +114,28 @@ export class SessionDir {
       });
       return false;
     }
+  }
+}
+
+/** False for a directory without a readable owner: the sweep then goes by age. */
+async function ownerRunning(dir: string): Promise<boolean> {
+  let owner: z.infer<typeof Owner>;
+  try {
+    owner = Owner.parse(
+      JSON.parse(await readFile(join(dir, OWNER_FILE_NAME), 'utf8')),
+    );
+  } catch {
+    return false;
+  }
+  return processRunning(owner.pid);
+}
+
+/** Signal 0 checks without sending: `ESRCH` is no such process, `EPERM` one that is not ours. */
+function processRunning(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== 'ESRCH';
   }
 }
