@@ -2,13 +2,13 @@ import type {
   CallToolResult,
   ServerContext,
 } from '@modelcontextprotocol/server';
-import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import type { DesignDocViolation } from '#backend/app/changes/model/design-doc';
 import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import {
   type Entity,
   NotFoundError,
 } from '#backend/app/changes/model/not-found-error';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { BackendError } from '#mcp/backend/backend-error';
 import { ServiceCallError } from '#mcp/backend/noesis-api';
@@ -67,7 +67,7 @@ function foreseen(error: unknown): CallToolResult | null {
   if (error instanceof ConcurrentModificationError) {
     return failure(
       `${error.message} Nothing was written.`,
-      `Another call wrote to the change while this one ran. Read it again with ${LIST_CHANGES}, then repeat this call with what you still mean to write.`,
+      `Another call wrote to the ${error.entity} while this one ran. Read it again${READ_WITH[error.entity] ?? ''}, then repeat this call with what you still mean to write.`,
     );
   }
   if (error instanceof InvalidDesignDocError) {
@@ -85,6 +85,11 @@ const FIND_OR_ADD: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
   'source document': `Find its id with ${LIST_CHANGES}, or add the source document with ${ADD_SOURCE_DOCUMENT_TO_CHANGE}.`,
   'design document': `Find its id with ${LIST_CHANGES}, or add the design document with ${ADD_DESIGN_DOC_TO_CHANGE}.`,
+};
+
+/** The tool that reads each kind of aggregate again, after a write lost a race. */
+const READ_WITH: Partial<Record<string, string>> = {
+  change: ` with ${LIST_CHANGES}`,
 };
 
 const CALL_AGAIN: Record<ServiceCallError['kind'], string> = {

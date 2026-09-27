@@ -1,8 +1,8 @@
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
-import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { Change } from '#backend/app/changes/model/change';
 import type { ChangeId } from '#backend/app/changes/model/change-id';
 import { ChangeSnapshot } from '#backend/app/changes/model/change-snapshot';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -44,7 +44,7 @@ export class NoesisChangesRepository implements ChangesRepository {
       change.toSnapshot(),
       (stored) => (stored?.version ?? 0) === change.version,
     );
-    if (!saved) throw new ConcurrentModificationError(change.id);
+    if (!saved) throw new ConcurrentModificationError('change', change.id);
     change.markSaved();
   }
 }

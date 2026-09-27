@@ -2,7 +2,6 @@ import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
-import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import type { DesignDocViolation } from '#backend/app/changes/model/design-doc';
 import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
@@ -10,6 +9,7 @@ import {
   type Entity,
   NotFoundError,
 } from '#backend/app/changes/model/not-found-error';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const log = serverLogger('ui');
@@ -46,7 +46,11 @@ export const ErrorBody = z.discriminatedUnion('error', [
   }),
   z.object({ error: z.literal('change_not_found'), ...NotFoundFields }),
   z.object({ error: z.literal('not_found'), ...NotFoundFields }),
-  z.object({ error: z.literal('conflict'), change: ChangeId }),
+  z.object({
+    error: z.literal('conflict'),
+    entity: z.string(),
+    id: z.string(),
+  }),
   z.object({ error: z.literal('payload_too_large'), limit: z.int() }),
   z.object({
     error: z.literal('invalid_design_doc'),
@@ -114,7 +118,7 @@ export function decodeError(status: number, json: unknown): Error {
     case 'not_found':
       return new NotFoundError(body.entity, body.id, body.change);
     case 'conflict':
-      return new ConcurrentModificationError(body.change);
+      return new ConcurrentModificationError(body.entity, body.id);
     case 'invalid_design_doc':
       return new InvalidDesignDocError(body.violations);
     case 'invalid_body':
@@ -144,7 +148,7 @@ function encode(error: Error): ErrorBody | null {
     };
   }
   if (error instanceof ConcurrentModificationError) {
-    return { error: 'conflict', change: error.change };
+    return { error: 'conflict', entity: error.entity, id: error.id };
   }
   if (error instanceof InvalidDesignDocError) {
     return { error: 'invalid_design_doc', violations: error.violations };

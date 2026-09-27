@@ -120,7 +120,7 @@ layer. The codes the page already has a sentence for are kept:
 | ------ | ------------------------------- | --------------------------------------- | ----------------------------- |
 | 400    | `invalid_body`                  |                                         | unforeseen                    |
 | 404    | `change_not_found`, `not_found` | `entity`, `id`, `change` when it is set | `NotFoundError`               |
-| 409    | `conflict`                      | `change`                                | `ConcurrentModificationError` |
+| 409    | `conflict`                      | `entity`, `id`                          | `ConcurrentModificationError` |
 | 413    | `payload_too_large`             | `limit`                                 | unforeseen                    |
 | 422    | `invalid_design_doc`            | `violations` (`path`, `reason`)         | `InvalidDesignDocError`       |
 | 503    | `shutting_down`                 |                                         | `DaemonError`                 |

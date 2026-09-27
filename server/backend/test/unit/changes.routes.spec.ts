@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   decodedDesignDocFixture,
@@ -282,11 +282,16 @@ describe('ui changes routes', () => {
     const res = await createUiApp({
       ...t,
       listChanges: {
-        handle: () => Promise.reject(new ConcurrentModificationError(raced)),
+        handle: () =>
+          Promise.reject(new ConcurrentModificationError('change', raced)),
       },
     }).request('/changes');
 
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'conflict', change: raced });
+    expect(await res.json()).toEqual({
+      error: 'conflict',
+      entity: 'change',
+      id: raced,
+    });
   });
 });

@@ -682,7 +682,7 @@ describe('update_design_doc_in_change', () => {
 
 describe('a write that lost a race', () => {
   it('answers in-band, saying to read the change again and retry', async () => {
-    stub.answer(409, { error: 'conflict', change: CHANGE });
+    stub.answer(409, { error: 'conflict', entity: 'change', id: CHANGE });
 
     const result = await call('add_source_document_to_change', {
       change: CHANGE,

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { decodeError, ErrorBody } from '#backend/adapters/in/ui/error-body';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { InvalidDesignDocError } from '#backend/app/changes/model/invalid-design-doc-error';
 import { NotFoundError } from '#backend/app/changes/model/not-found-error';
+import { ConcurrentModificationError } from '#backend/app/concurrent-modification-error';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -58,7 +58,7 @@ describe('ErrorBody', () => {
   });
 
   it('rebuilds a write that lost a race', async () => {
-    const thrown = new ConcurrentModificationError(CHANGE);
+    const thrown = new ConcurrentModificationError('change', CHANGE);
     const { status, decoded } = await roundTrip(thrown);
     expect(status).toBe(409);
     expectSameError(decoded, thrown);
