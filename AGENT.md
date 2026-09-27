@@ -83,7 +83,7 @@ The SPA is built by **vite** (`bun run --cwd server/frontend build:spa` → `ser
 
 ### Logging
 
-LogTape everywhere. Get loggers via `serverLogger('<module>')` (from `platform/logging/server-logger`) / `uiLogger('<module>')`, never by spelling the category array (a library that wants one gets `serverLogger('<module>').category`); only `platform/logging/logging.ts` and `frontend/src/logging.ts` call `configure()`. Messages use named placeholders with a properties object (`log.info('indexed {files} files', { files })`), no string interpolation. Service logs go to stderr and `.noesis/logs/noesis.log`; `NOESIS_LOG_LEVEL` sets the level.
+LogTape everywhere. Get loggers via `serverLogger('<module>')` (from `platform/logging/server-logger`) / `uiLogger('<module>')`, never by spelling the category array (a library that wants one gets `serverLogger('<module>').category`); only `platform/logging/logging.ts` and `frontend/src/logging.ts` call `configure()`. Messages use named placeholders with a properties object (`log.info('indexed {files} files', { files })`), no string interpolation. Service logs go to stderr and `.noesis/logs/noesis-<session>.log`, one file per process (a shared file cannot be rotated across processes), swept after seven days; `NOESIS_LOG_LEVEL` sets the level.
 
 ### Plugin (`plugins/claude-code`)
 

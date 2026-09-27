@@ -40,8 +40,9 @@ export interface SessionDirOptions {
  */
 export class SessionDir {
   readonly path: string;
+  /** Minted here, so a caller may name things by it before `open()`. */
+  readonly id: string;
   private readonly sessionsRoot: string;
-  private readonly id: string;
   private readonly repositoryRoot: string;
 
   constructor(noesis: NoesisDir, options: SessionDirOptions = {}) {

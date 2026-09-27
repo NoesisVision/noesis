@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { getRotatingFileSink } from '@logtape/file';
+import { getFileSink } from '@logtape/file';
 import {
   configure,
   dispose,
@@ -9,15 +10,31 @@ import {
   type LogLevel,
   type Sink,
 } from '@logtape/logtape';
-import { ROOT_CATEGORY } from './server-logger';
+import { ROOT_CATEGORY, serverLogger } from './server-logger';
 
 // stdout is the MCP transport and is never written to.
 
-export const LOG_FILE_NAME = 'noesis.log';
+const LOG_FILE_PREFIX = 'noesis-';
+export const LOG_FILE_SUFFIX = '.log';
+
+/** A session's log is swept this long after its last line, at a later boot. */
+export const LOG_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Each process logs to a file of its own, named by its session. One file
+ * shared by every process cannot be rotated: the process that renames it
+ * keeps writing to the new one, while every other keeps its descriptor on
+ * the renamed file, then on nothing once that is unlinked.
+ */
+export function logFileName(sessionId: string): string {
+  return `${LOG_FILE_PREFIX}${sessionId}${LOG_FILE_SUFFIX}`;
+}
 
 export interface LoggingOptions {
   /** Must already exist: created by `NoesisDir.ensureInitialized()`. */
   logDir: string;
+  /** Names this process's file. */
+  sessionId: string;
   /** JSON on stderr when true, coloured text otherwise. */
   production: boolean;
   level: LogLevel;
@@ -31,14 +48,15 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
   const stderr: Sink = (record) => {
     process.stderr.write(stderrFormatter(record));
   };
-  const file = getRotatingFileSink(join(options.logDir, LOG_FILE_NAME), {
-    formatter: jsonLines,
-    maxSize: 5 * 1024 * 1024,
-    maxFiles: 5,
-    // Written through: a person tailing the file, or reading it after a
-    // crash, must see every line. Volume is one developer's session.
-    bufferSize: 0,
-  });
+  const file = getFileSink(
+    join(options.logDir, logFileName(options.sessionId)),
+    {
+      formatter: jsonLines,
+      // Written through: a person tailing the file, or reading it after a
+      // crash, must see every line. Volume is one developer's session.
+      bufferSize: 0,
+    },
+  );
 
   await configure({
     sinks: { stderr, file },
@@ -58,10 +76,52 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
     ],
     contextLocalStorage: new AsyncLocalStorage(),
   });
+  await removeStaleLogs(options.logDir, options.sessionId);
 }
 
 export async function disposeLogging(): Promise<void> {
   await dispose();
+}
+
+/**
+ * Sweeps the logs of sessions that ended long ago. A live session's file has
+ * its last line's mtime, so age alone tells; this session's own file is
+ * skipped regardless. Never worth failing a boot over.
+ */
+async function removeStaleLogs(logDir: string, sessionId: string) {
+  const log = serverLogger('logging');
+  const cutoff = Date.now() - LOG_MAX_AGE_MS;
+  let removed = 0;
+  for (const name of await listLogs(logDir)) {
+    if (name === logFileName(sessionId)) continue;
+    const path = join(logDir, name);
+    try {
+      if ((await stat(path)).mtimeMs > cutoff) continue;
+      await rm(path, { force: true });
+      removed += 1;
+    } catch (error) {
+      log.warn('could not sweep {path}: {error}', {
+        path,
+        error: String(error),
+      });
+    }
+  }
+  if (removed > 0) log.info('swept {swept} stale log(s)', { swept: removed });
+}
+
+async function listLogs(logDir: string): Promise<string[]> {
+  try {
+    return (await readdir(logDir)).filter(
+      (name) =>
+        name.startsWith(LOG_FILE_PREFIX) && name.endsWith(LOG_FILE_SUFFIX),
+    );
+  } catch (error) {
+    serverLogger('logging').warn('could not list {dir}: {error}', {
+      dir: logDir,
+      error: String(error),
+    });
+    return [];
+  }
 }
 
 function readableFormatter() {

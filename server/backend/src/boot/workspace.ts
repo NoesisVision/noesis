@@ -23,22 +23,25 @@ export interface Workspace {
 
 /**
  * Everything that has to exist before either half of the server can start.
- * Logging needs `.noesis/logs/`, so a failure before that point prints to
- * stderr and exits; from there on the log says what happened.
+ * Logging needs `.noesis/logs/` and the session's id, so a failure before
+ * that point prints to stderr and exits; from there on the log says what
+ * happened.
  */
 export async function openWorkspace(): Promise<Workspace> {
   const { config, repositoryRoot } = configuredOrExit();
   const noesis = new NoesisDir(repositoryRoot);
   await noesis.ensureInitialized();
+  // The session is named before logging, which files by it.
+  const session = new SessionDir(noesis);
   await configureLogging({
     logDir: noesis.logDir,
+    sessionId: session.id,
     production,
     level: config.logLevel,
   });
   const log = serverLogger();
   log.info('knowledge graph files in {path}', { path: noesis.path });
 
-  const session = new SessionDir(noesis);
   const sessionFiles = await session.open();
   log.info('session scratch directory {path}', { path: session.path });
 

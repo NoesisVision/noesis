@@ -3,12 +3,19 @@
 // modern revision and the 2025 fallback are both exercised here — an
 // InMemoryTransport pair cannot reach the modern era.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client, type ClientOptions } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
-import { LOG_FILE_NAME } from '#backend/platform/logging/logging';
+import { LOG_FILE_SUFFIX } from '#backend/platform/logging/logging';
 import { serviceEnv, textOf } from '../support/service-process';
 
 const serviceRoot = resolve(__dirname, '../..');
@@ -269,8 +276,17 @@ describe('the ui half (e2e)', () => {
 
   afterAll(() => service.client.close());
 
-  const logText = () =>
-    readFile(join(service.repoRoot, '.noesis', 'logs', LOG_FILE_NAME), 'utf8');
+  // Every process logs to a file of its own: the probe's and the server's.
+  const logText = async () => {
+    const dir = join(service.repoRoot, '.noesis', 'logs');
+    const names = (await readdir(dir)).filter((name) =>
+      name.endsWith(LOG_FILE_SUFFIX),
+    );
+    const texts = await Promise.all(
+      names.map((name) => readFile(join(dir, name), 'utf8')),
+    );
+    return texts.join('');
+  };
 
   it('starts on the first request that is not the era probe, in the serving process alone', async () => {
     // Both processes serve MCP: the throwaway probe and the one that stays.
