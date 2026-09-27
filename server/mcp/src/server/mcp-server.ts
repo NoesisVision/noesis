@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type { NoesisApi } from '#mcp/api/noesis-api';
+import type { NoesisApi } from '#mcp/backend/noesis-api';
 import type { SessionFiles } from '#mcp/session/session-files';
 import { addDesignDocToChangeTool } from '#mcp/tools/add-design-doc-to-change.tool';
 import { addSourceDocumentToChangeTool } from '#mcp/tools/add-source-document-to-change.tool';

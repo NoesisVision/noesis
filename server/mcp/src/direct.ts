@@ -1,10 +1,8 @@
 import { AttachCounter } from '#backend/boot/attach-counter';
-import { installLifecycle } from '#backend/boot/lifecycle';
 import { createServices } from '#backend/boot/services';
 import { UiHost } from '#backend/boot/ui';
-import { noesisApi } from '#mcp/api/noesis-api';
-import { watchHost } from './host-watch';
-import { serveMcp } from './serve-mcp';
+import { noesisApi } from '#mcp/backend/noesis-api';
+import { serveSession } from './serve-session';
 import type { Workspace } from './workspace';
 
 /**
@@ -15,36 +13,22 @@ import type { Workspace } from './workspace';
  * the graph is what the backend exists to prevent.
  */
 export function serveDirect(version: string, workspace: Workspace): void {
-  const { config, noesis, session, sessionFiles } = workspace;
-  const services = createServices(noesis);
+  const { config, noesis } = workspace;
   const ui = new UiHost({
     config,
-    services,
+    services: createServices(noesis),
     version,
     instance: crypto.randomUUID(),
     attachments: new AttachCounter({ graceMs: null, onIdle: () => {} }),
   });
-  const api = noesisApi(async () => {
-    await ui.listen();
-    return { origin: `http://127.0.0.1:${ui.port}`, lost: () => {} };
-  });
-  const lifecycle = installLifecycle({ dispose: release });
-  const watch = watchHost(config, lifecycle);
-
-  const mcp = serveMcp({
+  serveSession({
     version,
-    noesis,
-    sessionFiles,
-    api,
+    workspace,
+    api: noesisApi(async () => {
+      const { port } = await ui.listen();
+      return { origin: `http://127.0.0.1:${port}`, lost: () => {} };
+    }),
     onServing: () => ui.start(),
-    onFirstMessage: () => watch.noticeInput(),
+    dispose: () => ui.stop(),
   });
-  watch.start();
-
-  async function release(): Promise<void> {
-    watch.stop();
-    await ui.stop();
-    await mcp.close();
-    await session.dispose();
-  }
 }

@@ -1,5 +1,6 @@
 import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test';
 import { QueryClient } from '@tanstack/react-query';
+import { parseResponse } from 'hono/client';
 import {
   ChangeNotFoundError,
   changeById,
@@ -77,10 +78,12 @@ describe('change API errors', () => {
 
 it('unwraps nested routes and handles empty responses', async () => {
   fetchSpy.mockResolvedValueOnce(new Response(null, { status: 204 }));
-  const result = await api.changes[':change']['design-docs'][':id'].$get({
-    param: { change: 'retry', id: 'doc-1' },
-  });
-  expect(result).toBeNull();
+  const result = await parseResponse(
+    api.changes[':change']['design-docs'][':id'].$get({
+      param: { change: 'retry', id: 'doc-1' },
+    }),
+  );
+  expect(result).toBeUndefined();
   expect(fetchSpy.mock.calls[0]?.[0]).toBe(
     '/ui/changes/retry/design-docs/doc-1',
   );
@@ -90,5 +93,7 @@ it('rejects malformed success JSON', async () => {
   fetchSpy.mockResolvedValueOnce(
     new Response('{', { headers: { 'content-type': 'application/json' } }),
   );
-  await expect(api.changes.$get()).rejects.toBeInstanceOf(SyntaxError);
+  await expect(parseResponse(api.changes.$get())).rejects.toBeInstanceOf(
+    SyntaxError,
+  );
 });

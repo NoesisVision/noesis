@@ -1,9 +1,10 @@
+import { parseResponse } from 'hono/client';
 import { z } from 'zod';
 import {
   type ChangeEntry,
   ChangeWithEntries,
 } from '#backend/app/changes/model/change-entry';
-import type { NoesisApi } from '#mcp/api/noesis-api';
+import type { NoesisApi } from '#mcp/backend/noesis-api';
 import { defineTool, READ_ONLY, type ToolRegistration } from '#mcp/server/tool';
 import { CREATE_CHANGE, LIST_CHANGES } from '#mcp/server/tool-names';
 
@@ -33,7 +34,7 @@ export function listChangesTool(api: NoesisApi): ToolRegistration {
       annotations: READ_ONLY,
     },
     async () => {
-      const { changes } = await api.changes.$get();
+      const { changes } = await parseResponse(api.changes.$get());
       return { summary: summary(changes), structuredContent: { changes } };
     },
   );

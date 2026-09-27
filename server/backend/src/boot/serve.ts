@@ -1,6 +1,6 @@
 import { disposeLogging } from '#backend/platform/logging/logging';
 import { Daemon } from './daemon';
-import { type Lifecycle, installLifecycle } from './lifecycle';
+import { installLifecycle } from './lifecycle';
 import { createServices } from './services';
 import { openDaemonWorkspace } from './workspace';
 
@@ -11,14 +11,22 @@ import { openDaemonWorkspace } from './workspace';
  */
 export async function serve(version: string, managed: boolean): Promise<void> {
   const { config, noesis, log } = await openDaemonWorkspace(managed);
-  let lifecycle: Lifecycle | undefined;
+  // Installed before the daemon starts: a signal while it registers or binds
+  // goes through `shutdown()` too, and the grace timer it arms finds the
+  // lifecycle in place whenever it fires.
+  let daemon: Daemon | undefined;
+  const lifecycle = installLifecycle({
+    dispose: async () => {
+      await daemon?.shutdown();
+    },
+  });
   const start = await Daemon.start({
     config,
     noesis,
     version,
     services: createServices(noesis),
     managed,
-    onIdle: () => void lifecycle?.shutdown(),
+    onIdle: () => void lifecycle.shutdown(),
   }).catch(async (error: unknown) => {
     log.fatal('the daemon did not start: {error}', { error: String(error) });
     await disposeLogging();
@@ -39,6 +47,5 @@ export async function serve(version: string, managed: boolean): Promise<void> {
     process.exit(managed ? 0 : 1);
   }
 
-  const { daemon } = start;
-  lifecycle = installLifecycle({ dispose: () => daemon.shutdown() });
+  daemon = start.daemon;
 }

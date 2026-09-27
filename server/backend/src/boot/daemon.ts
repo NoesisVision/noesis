@@ -86,11 +86,8 @@ export class Daemon {
   }
 
   private async listen(): Promise<void> {
-    await this.ui.listen();
-    this.registration.publish({
-      port: this.ui.port ?? 0,
-      version: this.version,
-    });
+    const { port } = await this.ui.listen();
+    this.registration.publish({ port, version: this.version });
     this.attachments.startGrace();
   }
 }

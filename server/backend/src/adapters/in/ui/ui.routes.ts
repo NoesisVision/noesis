@@ -39,3 +39,6 @@ export function createUiApp(deps: UiDeps) {
     .route('/changes/:change/design-docs', createDesignDocsApp(deps))
     .route('/changes/:change/source-documents', createSourceDocumentsApp(deps));
 }
+
+/** Use with `hc<AppType>('/ui')`: the mount prefix is not part of the type. */
+export type AppType = ReturnType<typeof createUiApp>;

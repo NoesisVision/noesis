@@ -15,6 +15,18 @@ const STOP_GRACE_MS = 5_000;
 
 type UiServer = ReturnType<typeof Bun.serve>;
 
+/** The server on its port: `port` is only unset for a unix socket, which this never binds. */
+interface Bound extends Listening {
+  server: UiServer;
+}
+
+/** Where the server listens, once it does. */
+export interface Listening {
+  /** The page's URL. */
+  url: string;
+  port: number;
+}
+
 export interface UiHostOptions {
   config: ServerConfig;
   services: UiDeps;
@@ -32,7 +44,7 @@ export interface UiHostOptions {
  */
 export class UiHost {
   private readonly options: UiHostOptions;
-  private server: Promise<UiServer> | undefined;
+  private server: Promise<Bound> | undefined;
   private listening: UiServer | undefined;
   private stopped = false;
 
@@ -48,14 +60,11 @@ export class UiHost {
     });
   }
 
-  /** The page's URL, once the server listens; rejects when it cannot. */
-  async listen(): Promise<string> {
+  /** Where the server listens; rejects when it cannot. */
+  async listen(): Promise<Listening> {
     this.server ??= this.open();
-    return urlOf(await this.server);
-  }
-
-  get port(): number | undefined {
-    return this.listening?.port;
+    const { url, port } = await this.server;
+    return { url, port };
   }
 
   /**
@@ -65,8 +74,9 @@ export class UiHost {
    */
   async stop(): Promise<void> {
     this.stopped = true;
-    const server = await this.server?.catch(() => undefined);
-    if (server === undefined) return;
+    const bound = await this.server?.catch(() => undefined);
+    if (bound === undefined) return;
+    const { server } = bound;
     const force = setTimeout(() => {
       log.warn('requests still open after {ms} ms — closing them', {
         ms: STOP_GRACE_MS,
@@ -77,7 +87,7 @@ export class UiHost {
     clearTimeout(force);
   }
 
-  private async open(): Promise<UiServer> {
+  private async open(): Promise<Bound> {
     const { config, services } = this.options;
     const app = createApp(services, {
       internal: {
@@ -111,12 +121,13 @@ export class UiHost {
         '/*': page.fetch,
       },
     });
+    if (server.port === undefined) throw new Error('the ui bound no port');
     this.listening = server;
     const url = urlOf(server);
     // The e2e specs and a person alike find the UI by this line.
     log.info('listening on {url}', { url });
     if (config.openBrowser) void openBrowser(url);
-    return server;
+    return { server, url, port: server.port };
   }
 
   /**

@@ -1,10 +1,7 @@
-import { LIST_CHANGES } from '#mcp/server/tool-names';
-
 /**
- * The repository's backend could not serve a call: it could not be started or
- * reached, it runs another version, it holds the lock without answering, or a
- * call's outcome is unknown. The message says what to do; `logged` answers it
- * in-band as it is.
+ * The repository's backend could not take a call: it could not be started or
+ * reached, it runs another version, or it holds the lock without answering.
+ * The message says what to do; `logged` answers it in-band as it is.
  */
 export class BackendError extends Error {
   private constructor(message: string) {
@@ -27,18 +24,6 @@ export class BackendError extends Error {
   static notAnswering(pid: number): BackendError {
     return new BackendError(
       `The Noesis service (pid ${pid}) holds this repository but does not answer. Nothing was written. Ask the user to run \`noesis stop\` in the repository, then call again.`,
-    );
-  }
-
-  static shuttingDown(): BackendError {
-    return new BackendError(
-      'The Noesis service was shutting down, so nothing was written. Call again: the next call starts a fresh one.',
-    );
-  }
-
-  static outcomeUnknown(reason: string): BackendError {
-    return new BackendError(
-      `The call reached the Noesis service but no answer came back (${reason}), so whether it took effect is unknown. Read the change with ${LIST_CHANGES} before repeating the call.`,
     );
   }
 }

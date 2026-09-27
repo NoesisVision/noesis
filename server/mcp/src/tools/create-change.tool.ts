@@ -1,9 +1,10 @@
+import { parseResponse } from 'hono/client';
 import { z } from 'zod';
 import {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
-import type { NoesisApi } from '#mcp/api/noesis-api';
+import type { NoesisApi } from '#mcp/backend/noesis-api';
 import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   CREATE_CHANGE,
@@ -42,7 +43,7 @@ export function createChangeTool(
     },
     async (input) => {
       const file = await files.read(SUBJECT, CreateChange, input.path);
-      const { change } = await api.changes.$post({ json: file });
+      const { change } = await parseResponse(api.changes.$post({ json: file }));
       return {
         summary: `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
         structuredContent: { change },

@@ -1,4 +1,4 @@
-import { type NoesisApi, noesisApi } from '#mcp/api/noesis-api';
+import { type NoesisApi, noesisApi } from '#mcp/backend/noesis-api';
 
 /** A request the stub received, its body parsed. */
 export interface Received {

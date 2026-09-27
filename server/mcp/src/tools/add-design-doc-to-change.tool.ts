@@ -1,7 +1,8 @@
+import { parseResponse } from 'hono/client';
 import { z } from 'zod';
 import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import type { NoesisApi } from '#mcp/api/noesis-api';
+import type { NoesisApi } from '#mcp/backend/noesis-api';
 import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
@@ -40,10 +41,12 @@ export function addDesignDocToChangeTool(
         AddDesignDocToChange.shape.designDoc,
         input.path,
       );
-      const { designDoc } = await api.changes[':change']['design-docs'].$post({
-        param: { change: input.change },
-        json: file,
-      });
+      const { designDoc } = await parseResponse(
+        api.changes[':change']['design-docs'].$post({
+          param: { change: input.change },
+          json: file,
+        }),
+      );
       return {
         summary: `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,
         structuredContent: { designDoc },

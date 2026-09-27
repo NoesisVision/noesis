@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { parseResponse } from 'hono/client';
 import {
   currentProcess,
   type ProcessIdentity,
@@ -180,7 +181,7 @@ describe('BackendClient', () => {
     const api = backendApi(backend);
 
     const lists = await Promise.all(
-      Array.from({ length: 5 }, () => api.changes.$get()),
+      Array.from({ length: 5 }, () => parseResponse(api.changes.$get())),
     );
 
     expect(lists).toEqual(Array(5).fill({ changes: [] }));
@@ -202,7 +203,7 @@ describe('BackendClient', () => {
     );
     register = true;
 
-    expect(await api.changes.$get()).toEqual({ changes: [] });
+    expect(await parseResponse(api.changes.$get())).toEqual({ changes: [] });
     backend.close();
   });
 

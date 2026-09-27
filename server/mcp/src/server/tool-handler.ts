@@ -11,6 +11,7 @@ import {
 } from '#backend/app/changes/model/not-found-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 import { BackendError } from '#mcp/backend/backend-error';
+import { ServiceCallError } from '#mcp/backend/noesis-api';
 import { WorkingFileError } from '#mcp/session/working-file-error';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
@@ -57,6 +58,9 @@ export function logged<Input>(
 function foreseen(error: unknown): CallToolResult | null {
   if (error instanceof WorkingFileError) return failure(error.message);
   if (error instanceof BackendError) return failure(error.message);
+  if (error instanceof ServiceCallError) {
+    return failure(error.message, CALL_AGAIN[error.kind]);
+  }
   if (error instanceof NotFoundError) {
     return failure(error.message, FIND_OR_ADD[error.entity]);
   }
@@ -81,6 +85,11 @@ const FIND_OR_ADD: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
   'source document': `Find its id with ${LIST_CHANGES}, or add the source document with ${ADD_SOURCE_DOCUMENT_TO_CHANGE}.`,
   'design document': `Find its id with ${LIST_CHANGES}, or add the design document with ${ADD_DESIGN_DOC_TO_CHANGE}.`,
+};
+
+const CALL_AGAIN: Record<ServiceCallError['kind'], string> = {
+  shutting_down: 'Call again: the next call starts a fresh service.',
+  no_answer: `Read the change with ${LIST_CHANGES} before repeating the call: a write that landed would be made twice.`,
 };
 
 const FIXES: Record<DesignDocViolation['reason'], string> = {

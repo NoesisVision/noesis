@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
 import { BackendError } from '#mcp/backend/backend-error';
+import { ServiceCallError } from '#mcp/backend/noesis-api';
 import { logged } from '#mcp/server/tool-handler';
 import { success } from '#mcp/server/tool-result';
 import { WorkingFileError } from '#mcp/session/working-file-error';
@@ -93,6 +94,19 @@ describe('logged', () => {
     expect(textOf(result)).toBe(error.message);
     expect(textOf(result)).toContain('noesis stop');
     expect(textOf(result)).not.toContain('not a foreseen failure');
+    expect(records).toEqual([]);
+  });
+
+  it('answers a call the service gave no answer to in-band, saying to read before repeating', async () => {
+    const handler = logged('a_tool', async () => {
+      throw ServiceCallError.noAnswer('connection reset');
+    });
+
+    const result = await handler({}, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('whether it took effect is unknown');
+    expect(textOf(result)).toContain('list_changes');
     expect(records).toEqual([]);
   });
 });

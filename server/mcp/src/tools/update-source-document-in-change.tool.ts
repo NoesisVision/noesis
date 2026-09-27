@@ -1,8 +1,9 @@
+import { parseResponse } from 'hono/client';
 import { z } from 'zod';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import { UpdateSourceDocumentInChange } from '#backend/app/changes/update-source-document-in-change';
-import type { NoesisApi } from '#mcp/api/noesis-api';
+import type { NoesisApi } from '#mcp/backend/noesis-api';
 import { UPDATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   ADD_SOURCE_DOCUMENT_TO_CHANGE,
@@ -45,12 +46,12 @@ export function updateSourceDocumentInChangeTool(
         UpdateSourceDocumentInChange.shape.sourceDocument,
         input.path,
       );
-      const { sourceDocument } = await api.changes[':change'][
-        'source-documents'
-      ][':id'].$put({
-        param: { change: input.change, id: input.id },
-        json: file,
-      });
+      const { sourceDocument } = await parseResponse(
+        api.changes[':change']['source-documents'][':id'].$put({
+          param: { change: input.change, id: input.id },
+          json: file,
+        }),
+      );
       return {
         summary: `Updated source document ${sourceDocument.id} ("${sourceDocument.title}") in ${input.change}.`,
         structuredContent: { sourceDocument },

@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
+import { parseResponse } from 'hono/client';
 import { api } from '#/shared/api/client.ts';
 import { outlineOf } from './design-doc-outline.ts';
 
@@ -12,9 +13,11 @@ export const designDocById = (change: string, id: string) =>
   queryOptions({
     queryKey: ['changes', change, 'design-docs', id] as const,
     queryFn: async ({ signal }) => {
-      const detail = await api.changes[':change']['design-docs'][':id'].$get(
-        { param: { change, id } },
-        { init: { signal } },
+      const detail = await parseResponse(
+        api.changes[':change']['design-docs'][':id'].$get(
+          { param: { change, id } },
+          { init: { signal } },
+        ),
       );
       return { ...detail, outline: outlineOf(detail.designDoc) };
     },
