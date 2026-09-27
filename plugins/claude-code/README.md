@@ -24,12 +24,22 @@ Channels:
 
 ## How it runs
 
-Every Claude Code session starts its own Noesis service process over stdio. The service serves the project Claude Code runs in
-(`NOESIS_ROOT` is set to the project directory by `.mcp.json`), keeps the
-knowledge graph as JSON files in `.noesis/` at its root, and opens the
-browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
-in the environment to keep it closed. The UI lives as long as the session:
-when Claude Code exits, the service exits with it.
+Every Claude Code session starts a thin Noesis process over stdio
+(`noesis attach`), and every session in one project shares one Noesis
+service behind it. The first session to need the service starts it,
+detached; the rest find it through `.noesis/server.lock`. The service
+serves the project Claude Code runs in (`NOESIS_ROOT` is set to the project
+directory by `.mcp.json`), keeps the knowledge graph as JSON files in
+`.noesis/` at its root, and opens the browser UI once, when it starts, on an
+ephemeral port. Set `NOESIS_OPEN_BROWSER=0` in the environment to keep it
+closed. It exits five minutes after the last session leaves, so a
+`/reload-plugins` or a quick restart of Claude Code finds the same page.
+
+Run `bunx @noesis-vision/noesis stop` in the project to end the service at
+once — after an upgrade, for instance: a session refuses a service of
+another version and says so. Set `NOESIS_NO_DAEMON=1` to run each session as
+one process of its own instead, for sandboxes that refuse to start a
+detached process.
 
 The service exposes seven MCP tools: `create_change`, `update_change`,
 `list_changes`, `add_source_document_to_change`, `update_source_document_in_change`,

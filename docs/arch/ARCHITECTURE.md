@@ -66,11 +66,12 @@ flowchart TB
 
 ## Zones
 
-**Processes** — the Noesis service, the agent, and the browser. Three separate processes on one
-machine, sharing the filesystem. The service is a stdio MCP process started by the agent host,
-one per agent session; it binds the HTTP API on an ephemeral port and opens the browser on it
-once at boot. There is no long-running daemon: the UI exists while an agent session does, and
-two sessions on one checkout are two processes over the same files.
+**Processes** — the Noesis service, the agent, and the browser, on one machine and sharing the
+filesystem. The service is split in two: one **daemon** per repository, which owns the graph and
+binds the HTTP API and the page on an ephemeral port, and one thin **shim** per agent session,
+which the agent host starts as a stdio MCP server and which calls the daemon over HTTP. However
+many sessions run in one checkout, there is one daemon, one port, one browser tab and one writer
+on the graph files.
 
 **File system** — the shared medium the three processes communicate through. It holds the
 **git repository** — the user's project, carrying the source code, the knowledge graph files
@@ -81,16 +82,39 @@ the user's project.
 
 ## Process model
 
-The service is one process per agent session, started by the agent host as a stdio MCP server
-(the plugin's `.mcp.json` launches `bunx @noesis-vision/noesis` with `NOESIS_ROOT` set to the
-project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
-working directory), ensures `.noesis/` and its `.gitignore`, opens its scratch directory under
-`.noesis/sessions/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
-opens the default browser on it once (`NOESIS_OPEN_BROWSER=0` suppresses this), and connects MCP
-on stdio. stdout belongs to MCP; every log line goes to stderr. When the host closes the stream
-the process removes its scratch directory, closes the database and exits — the UI lives exactly
-as long as the agent session. There is no daemon, no browser-only mode and no shared process
-between sessions; two sessions on one checkout are two processes over the same files.
+**The shim** (`noesis attach`) is what the plugin's `.mcp.json` launches for each agent session
+(`bunx @noesis-vision/noesis attach`, with `NOESIS_ROOT` set to the project). It locates the
+repository (`NOESIS_ROOT`, else the nearest `.git` above the working directory), ensures
+`.noesis/` and its `.gitignore`, opens its scratch directory under `.noesis/sessions/`, and serves
+MCP on stdio; stdout belongs to MCP and every log line goes to stderr and its own log file. It
+reads and checks each working file itself and sends it as the request body of the daemon's `/ui`
+route that writes it, so every tool call is an HTTP call to the daemon. The SDK's era probe costs
+nothing; the first message that is not the probe connects to the daemon, starting one detached
+(`serve --managed`) when `.noesis/server.lock` names no running process. A shim never starts a
+second daemon beside a live owner, and it refuses a daemon of another version in-band, naming
+`noesis stop`. A shim exits when its host closes or resets stdin, when it is reparented, or when
+its host sends nothing within 15 minutes of the launch; its session's scratch directory goes with
+it.
+
+**The daemon** (`noesis serve`, also a bare `noesis` and `bun run dev`) takes `.noesis/server.lock`
+before it binds — a lock is held while the process it names runs, checked by pid and process
+start time — builds the graph from the files, binds the HTTP API and the page on an ephemeral
+loopback port, rewrites the lock with its port and version, and opens the browser once
+(`NOESIS_OPEN_BROWSER=0` suppresses this). Each shim keeps an attach stream open
+(`/internal/attach`); one started by a shim exits once no session has been attached for five
+minutes, one started by hand runs until a signal. Its shutdown refuses new requests with 503,
+ends the attach streams, lets the requests in flight finish, stops the server and releases the
+lock. `noesis stop` ends the daemon of the current repository; attached shims start a fresh one
+on their next call.
+
+The source follows the same split, one workspace per thing that runs: the daemon is
+`server/backend`, the shim `server/mcp`, the page `server/frontend`. They ship as one package,
+`@noesis-vision/noesis`, whose single bin bundles the daemon and the shim and carries the built
+page beside it.
+
+**Direct mode** (`NOESIS_NO_DAEMON=1`) runs a session as one process, MCP and the page together,
+taking no lock — for sandboxes that refuse a detached spawn, and for CI. It is chosen explicitly,
+never as a fallback beside a live daemon.
 
 ## Entry points
 
@@ -98,16 +122,17 @@ Two, and only two.
 
 - **Browser UI** reaches the service over an HTTP API. One endpoint per view; the service
   assembles each screen's payload server-side.
-- **Agent** reaches the service over MCP. Tools are thin — parse arguments, call one service
-  method, shape the response.
+- **Agent** reaches the service over MCP, through the shim, which reaches it over the same HTTP
+  API as the browser. Tools are thin — parse arguments, read the working file, forward one call
+  through the typed API client, shape the response. They handle no command or query themselves.
 
-Both land on the same service layer. Neither bypasses it.
+Both land on the same routes, and the routes on the same service layer. Neither bypasses it.
 
 ## Noesis service
 
 - **Handlers** own use-case orchestration and view assembly: one per command or query, each
   loading an aggregate, calling it and saving it whole. They are the only callers of
-  repositories, and the only component both entry points can see.
+  repositories, and only the HTTP routes call them.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
   aggregate, responsible for its canonical paths, file format and version check.
 - **Knowledge graph** _(not yet present)_ is an embedded in-memory database used as a cache over the JSON files in
@@ -143,9 +168,11 @@ All knowledge graph files live under `.noesis/` at the repository root:
 
 ```
 <project>/.noesis/
-├── .gitignore                  written by the service on first run; contains `sessions/`
+├── .gitignore                  written by the service on first run; ignores `sessions/`, `logs/`, `server.lock*`
+├── server.lock                 the daemon serving this repository: pid, start time, port, version
+├── logs/                       one log per process: `noesis-serve.log`, `noesis-<session>.log`
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
-│                               one subdirectory per service process, removed when it exits
+│                               one subdirectory per session, removed when it ends
 └── graph/
     ├── changes/
     │   └── <change>.change.json       one change, whole: its imported documents (title, date and

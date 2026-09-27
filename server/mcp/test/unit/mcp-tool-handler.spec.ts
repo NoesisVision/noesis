@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
-import { textOf } from '#backend-test/support/service-process';
+import { BackendError } from '#mcp/backend/backend-error';
 import { logged } from '#mcp/server/tool-handler';
 import { success } from '#mcp/server/tool-result';
 import { WorkingFileError } from '#mcp/session/working-file-error';
+import { textOf } from '../support/tool-result';
 
 // The wrapper only hands it on, so its contents do not matter here.
 const ctx = {} as ServerContext;
@@ -77,6 +78,21 @@ describe('logged', () => {
     expect(textOf(result)).toBe(
       'Could not read the change:\nNo file at /x.json.',
     );
+    expect(records).toEqual([]);
+  });
+
+  it('answers a backend that cannot serve in-band with its own advice, without logging it', async () => {
+    const error = BackendError.otherVersion('1.0.0', '2.0.0');
+    const handler = logged('a_tool', async () => {
+      throw error;
+    });
+
+    const result = await handler({}, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toBe(error.message);
+    expect(textOf(result)).toContain('noesis stop');
+    expect(textOf(result)).not.toContain('not a foreseen failure');
     expect(records).toEqual([]);
   });
 });

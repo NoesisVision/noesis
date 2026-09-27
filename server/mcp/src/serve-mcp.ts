@@ -1,7 +1,7 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import type { Services } from '#backend/boot/services';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/server-logger';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { createMcpServer } from '#mcp/server/mcp-server';
 import { ServingTransport } from '#mcp/server/serving-transport';
 import type { SessionFiles } from '#mcp/session/session-files';
@@ -12,11 +12,11 @@ export interface McpOptions {
   version: string;
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
-  services: Services;
+  api: NoesisApi;
   /** The first message proving this process serves a session, not the era probe. */
   onServing: () => void;
-  /** The host closed stdin: the session is over. */
-  onStdinEnd: () => void;
+  /** The host's first message, the probe's included. */
+  onFirstMessage: () => void;
 }
 
 export interface McpHandle {
@@ -24,22 +24,25 @@ export interface McpHandle {
 }
 
 /**
- * The MCP half of the server, on stdio. It costs milliseconds, because on the
+ * The MCP half of a session, on stdio. It costs milliseconds, because on the
  * modern era the SDK spawns a throwaway sibling process from the same command
- * to probe the protocol, and that process must not bind a port or open a
- * browser for a session it will never serve.
+ * to probe the protocol, and that process must not start a backend, bind a
+ * port or open a browser for a session it will never serve.
  *
  * `serveStdio` owns the transport and the era negotiation: the opening
  * exchange picks the protocol revision and pins one server to it for the
  * connection. The transport is ours only so that the first message that is
- * not `server/discover` can start the ui.
+ * not `server/discover` can start what the session needs.
  */
 export function serveMcp(options: McpOptions): McpHandle {
-  const { version, noesis, sessionFiles, services } = options;
+  const { version, noesis, sessionFiles, api } = options;
   const handle = serveStdio(
-    () => createMcpServer({ version, noesis, sessionFiles, ...services }),
+    () => createMcpServer({ version, noesis, sessionFiles, api }),
     {
-      transport: new ServingTransport(options.onServing),
+      transport: new ServingTransport({
+        onFirstMessage: options.onFirstMessage,
+        onServing: options.onServing,
+      }),
       onerror: (error) => {
         log.error('the MCP transport reported {error}', {
           error: String(error),
@@ -47,11 +50,6 @@ export function serveMcp(options: McpOptions): McpHandle {
       },
     },
   );
-  // The handle reports no end of stdin, which is what ends the session.
-  process.stdin.once('end', () => {
-    log.info('MCP stream closed — shutting down');
-    options.onStdinEnd();
-  });
   log.info('MCP server serving on stdio');
   return handle;
 }

@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import type { CreateChangeHandler } from '#backend/app/changes/create-change';
 import {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   CREATE_CHANGE,
@@ -20,7 +20,7 @@ const outputSchema = z
   .describe('The change as stored, with the id the server minted.');
 
 export function createChangeTool(
-  createChange: CreateChangeHandler,
+  api: NoesisApi,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -42,7 +42,7 @@ export function createChangeTool(
     },
     async (input) => {
       const file = await files.read(SUBJECT, CreateChange, input.path);
-      const change = await createChange.handle(file);
+      const { change } = await api.changes.$post({ json: file });
       return {
         summary: `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
         structuredContent: { change },

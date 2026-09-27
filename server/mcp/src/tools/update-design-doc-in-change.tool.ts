@@ -1,10 +1,8 @@
 import { z } from 'zod';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
-import {
-  UpdateDesignDocInChange,
-  type UpdateDesignDocInChangeHandler,
-} from '#backend/app/changes/update-design-doc-in-change';
+import { UpdateDesignDocInChange } from '#backend/app/changes/update-design-doc-in-change';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { UPDATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
@@ -22,7 +20,7 @@ const outputSchema = z
   .describe('The design document as stored.');
 
 export function updateDesignDocInChangeTool(
-  updateDesignDoc: UpdateDesignDocInChangeHandler,
+  api: NoesisApi,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -48,10 +46,11 @@ export function updateDesignDocInChangeTool(
         UpdateDesignDocInChange.shape.designDoc,
         input.path,
       );
-      const designDoc = await updateDesignDoc.handle({
-        change: input.change,
-        id: input.id,
-        designDoc: file,
+      const { designDoc } = await api.changes[':change']['design-docs'][
+        ':id'
+      ].$put({
+        param: { change: input.change, id: input.id },
+        json: file,
       });
       return {
         summary: `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,

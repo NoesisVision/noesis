@@ -13,8 +13,9 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
  * A save re-reads the stored version and refuses to write over any version
  * but the one the change was read at. The check and the atomic rename after
  * it are two steps that nothing else in this process runs between, but
- * another process could: enough for the one process that serves a session,
- * and for a `git checkout` under it, not a lock across processes.
+ * another process could: enough for the daemon, the one process that writes
+ * a repository's graph, and for a `git checkout` under it, not a lock across
+ * processes.
  */
 export class NoesisChangesRepository implements ChangesRepository {
   private readonly changes: JsonCollection<ChangeSnapshot>;

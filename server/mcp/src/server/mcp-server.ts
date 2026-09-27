@@ -1,12 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import type { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
-import type { AddSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
-import type { CreateChangeHandler } from '#backend/app/changes/create-change';
-import type { ListChangesHandler } from '#backend/app/changes/list-changes';
-import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
-import type { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
-import type { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import type { SessionFiles } from '#mcp/session/session-files';
 import { addDesignDocToChangeTool } from '#mcp/tools/add-design-doc-to-change.tool';
 import { addSourceDocumentToChangeTool } from '#mcp/tools/add-source-document-to-change.tool';
@@ -21,18 +15,13 @@ export interface McpServerDeps {
   version: string;
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
-  createChange: CreateChangeHandler;
-  updateChange: UpdateChangeHandler;
-  listChanges: ListChangesHandler;
-  addDesignDocToChange: AddDesignDocToChangeHandler;
-  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
-  addSourceDocumentToChange: AddSourceDocumentToChangeHandler;
-  updateSourceDocumentInChange: UpdateSourceDocumentInChangeHandler;
+  /** The `/ui` surface every tool forwards its call to. */
+  api: NoesisApi;
 }
 
 /**
- * The agent's surface onto the same handlers the ui calls. Tools stay thin —
- * each registers its schemas and hands one call to one handler.
+ * The agent's surface onto the `/ui` routes the page calls. Tools stay thin —
+ * each registers its schemas, reads its working file and forwards one call.
  */
 export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer(
@@ -51,22 +40,13 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    createChangeTool(deps.createChange, deps.sessionFiles),
-    updateChangeTool(deps.updateChange, deps.sessionFiles),
-    listChangesTool(deps.listChanges),
-    addSourceDocumentToChangeTool(
-      deps.addSourceDocumentToChange,
-      deps.sessionFiles,
-    ),
-    updateSourceDocumentInChangeTool(
-      deps.updateSourceDocumentInChange,
-      deps.sessionFiles,
-    ),
-    addDesignDocToChangeTool(deps.addDesignDocToChange, deps.sessionFiles),
-    updateDesignDocInChangeTool(
-      deps.updateDesignDocInChange,
-      deps.sessionFiles,
-    ),
+    createChangeTool(deps.api, deps.sessionFiles),
+    updateChangeTool(deps.api, deps.sessionFiles),
+    listChangesTool(deps.api),
+    addSourceDocumentToChangeTool(deps.api, deps.sessionFiles),
+    updateSourceDocumentInChangeTool(deps.api, deps.sessionFiles),
+    addDesignDocToChangeTool(deps.api, deps.sessionFiles),
+    updateDesignDocInChangeTool(deps.api, deps.sessionFiles),
   ];
 }
 

@@ -31,5 +31,5 @@ export function createServices(noesis: NoesisDir) {
   };
 }
 
-/** The application layer, shared by the MCP tools and the ui routes. */
+/** The application layer, behind the `/ui` routes. */
 export type Services = ReturnType<typeof createServices>;

@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import {
-  AddSourceDocumentToChange,
-  type AddSourceDocumentToChangeHandler,
-} from '#backend/app/changes/add-source-document-to-change';
+import { AddSourceDocumentToChange } from '#backend/app/changes/add-source-document-to-change';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   ADD_SOURCE_DOCUMENT_TO_CHANGE,
@@ -19,7 +17,7 @@ const outputSchema = z
   .describe('The source document as stored, with the id the server minted.');
 
 export function addSourceDocumentToChangeTool(
-  addSourceDocument: AddSourceDocumentToChangeHandler,
+  api: NoesisApi,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -41,10 +39,9 @@ export function addSourceDocumentToChangeTool(
         AddSourceDocumentToChange.shape.sourceDocument,
         input.path,
       );
-      const sourceDocument = await addSourceDocument.handle({
-        change: input.change,
-        sourceDocument: file,
-      });
+      const { sourceDocument } = await api.changes[':change'][
+        'source-documents'
+      ].$post({ param: { change: input.change }, json: file });
       return {
         summary: `Added source document ${sourceDocument.id} ("${sourceDocument.title}") to ${input.change}. Refer to it by this id.`,
         structuredContent: { sourceDocument },

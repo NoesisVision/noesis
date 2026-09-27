@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import {
-  AddDesignDocToChange,
-  type AddDesignDocToChangeHandler,
-} from '#backend/app/changes/add-design-doc-to-change';
+import { AddDesignDocToChange } from '#backend/app/changes/add-design-doc-to-change';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
@@ -20,7 +18,7 @@ const outputSchema = z
   .describe('The design document as stored, with the id the server minted.');
 
 export function addDesignDocToChangeTool(
-  addDesignDoc: AddDesignDocToChangeHandler,
+  api: NoesisApi,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -42,9 +40,9 @@ export function addDesignDocToChangeTool(
         AddDesignDocToChange.shape.designDoc,
         input.path,
       );
-      const designDoc = await addDesignDoc.handle({
-        change: input.change,
-        designDoc: file,
+      const { designDoc } = await api.changes[':change']['design-docs'].$post({
+        param: { change: input.change },
+        json: file,
       });
       return {
         summary: `Added design document ${designDoc.id} ("${designDoc.name}") to ${input.change}. Refer to it by this id.`,

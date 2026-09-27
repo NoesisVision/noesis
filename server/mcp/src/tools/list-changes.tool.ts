@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import {
   type ChangeEntry,
   ChangeWithEntries,
 } from '#backend/app/changes/model/change-entry';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { defineTool, READ_ONLY, type ToolRegistration } from '#mcp/server/tool';
 import { CREATE_CHANGE, LIST_CHANGES } from '#mcp/server/tool-names';
 
@@ -21,9 +21,7 @@ const outputSchema = z
   })
   .describe('The changes of this repository.');
 
-export function listChangesTool(
-  listChanges: ListChangesHandler,
-): ToolRegistration {
+export function listChangesTool(api: NoesisApi): ToolRegistration {
   return defineTool(
     LIST_CHANGES,
     {
@@ -35,7 +33,7 @@ export function listChangesTool(
       annotations: READ_ONLY,
     },
     async () => {
-      const changes = await listChanges.handle();
+      const { changes } = await api.changes.$get();
       return { summary: summary(changes), structuredContent: { changes } };
     },
   );

@@ -4,7 +4,7 @@ import {
   ChangeSummary,
   UpdateChange,
 } from '#backend/app/changes/model/change-snapshot';
-import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import type { NoesisApi } from '#mcp/api/noesis-api';
 import { UPDATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
 import {
   CREATE_CHANGE,
@@ -21,7 +21,7 @@ const outputSchema = z
   .describe('The change as stored.');
 
 export function updateChangeTool(
-  updateChange: UpdateChangeHandler,
+  api: NoesisApi,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -48,9 +48,9 @@ export function updateChangeTool(
     },
     async (input) => {
       const file = await files.read(SUBJECT, UpdateChange, input.path);
-      const change = await updateChange.handle({
-        id: input.id,
-        ...file,
+      const { change } = await api.changes[':id'].$patch({
+        param: { id: input.id },
+        json: file,
       });
       return {
         summary: `Updated change ${change.id} (${change.type}, ${change.status}).`,

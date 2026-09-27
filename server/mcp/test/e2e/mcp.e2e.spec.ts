@@ -1,5 +1,5 @@
-// Walks the two tools against the real service over stdio, the way an agent
-// host runs it. `serveStdio` picks the era from the client's opening, so the
+// Walks the tools against the real service over stdio, the way an agent host
+// runs it: `attach`, which starts the repository's backend. `serveStdio` picks the era from the client's opening, so the
 // modern revision and the 2025 fallback are both exercised here — an
 // InMemoryTransport pair cannot reach the modern era.
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
@@ -15,12 +15,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client, type ClientOptions } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { LOG_FILE_SUFFIX } from '#backend/platform/logging/logging';
 import {
   serviceEnv,
   serviceRoot,
-  textOf,
-} from '#backend-test/support/service-process';
-import { LOG_FILE_SUFFIX } from '#backend/platform/logging/logging';
+  stopService,
+} from '../support/service-process';
+import { textOf } from '../support/tool-result';
 
 interface Service {
   repoRoot: string;
@@ -29,7 +30,10 @@ interface Service {
 
 const started: Service[] = [];
 
-async function startService(options?: ClientOptions): Promise<Service> {
+async function startService(
+  options?: ClientOptions,
+  env: Record<string, string> = {},
+): Promise<Service> {
   const repoRoot = await mkdtemp(join(tmpdir(), 'noesis-root-'));
   const client = new Client(
     { name: 'mcp-e2e-test', version: '0.0.0' },
@@ -38,9 +42,9 @@ async function startService(options?: ClientOptions): Promise<Service> {
   await client.connect(
     new StdioClientTransport({
       command: 'bun',
-      args: ['run', 'src/main.ts'],
+      args: ['run', 'src/main.ts', 'attach'],
       cwd: serviceRoot,
-      env: serviceEnv(repoRoot),
+      env: { ...serviceEnv(repoRoot), ...env },
       stderr: 'ignore',
     }),
   );
@@ -51,6 +55,7 @@ async function startService(options?: ClientOptions): Promise<Service> {
 
 afterAll(async () => {
   for (const { repoRoot } of started) {
+    stopService(repoRoot);
     await rm(repoRoot, { recursive: true, force: true });
   }
 });
@@ -265,9 +270,9 @@ describe('MCP over stdio for a 2025-era host (e2e)', () => {
   }, 15_000);
 });
 
-// The ui waits for a session, so the SDK's throwaway era probe never binds a
-// port or opens a browser.
-describe('the ui half (e2e)', () => {
+// The backend waits for a session, so the SDK's throwaway era probe never
+// starts one, binds a port or opens a browser.
+describe('the backend behind a session (e2e)', () => {
   let service: Service;
 
   beforeAll(async () => {
@@ -278,29 +283,79 @@ describe('the ui half (e2e)', () => {
 
   afterAll(() => service.client.close());
 
-  // Every process logs to a file of its own: the probe's and the server's.
-  const logText = async () => {
-    const dir = join(service.repoRoot, '.noesis', 'logs');
-    const names = (await readdir(dir)).filter((name) =>
-      name.endsWith(LOG_FILE_SUFFIX),
-    );
-    const texts = await Promise.all(
-      names.map((name) => readFile(join(dir, name), 'utf8')),
-    );
-    return texts.join('');
-  };
+  const noesisPath = (...segments: string[]) =>
+    join(service.repoRoot, '.noesis', ...segments);
 
-  it('starts on the first request that is not the era probe, in the serving process alone', async () => {
+  it('starts on the first request that is not the era probe, once', async () => {
     // Both processes serve MCP: the throwaway probe and the one that stays.
     await until(
       async () =>
-        occurrences(await logText(), 'MCP server serving on stdio') === 2,
+        occurrences(
+          await logText(noesisPath('logs')),
+          'MCP server serving on stdio',
+        ) === 2,
     );
-    expect(await logText()).not.toContain('listening on');
+    expect(await exists(noesisPath('server.lock'))).toBe(false);
+    expect(await exists(noesisPath('logs', 'noesis-serve.log'))).toBe(false);
 
-    await service.client.listTools();
+    await service.client.callTool({ name: 'list_changes', arguments: {} });
 
-    await until(async () => (await logText()).includes('listening on'));
-    expect(occurrences(await logText(), 'listening on')).toBe(1);
+    expect(await exists(noesisPath('server.lock'))).toBe(true);
+    const serveLog = await readFile(
+      noesisPath('logs', 'noesis-serve.log'),
+      'utf8',
+    );
+    expect(occurrences(serveLog, 'listening on')).toBe(1);
+    const logs = (await readdir(noesisPath('logs'))).filter((name) =>
+      name.endsWith(LOG_FILE_SUFFIX),
+    );
+    expect(logs.filter((name) => name === 'noesis-serve.log')).toHaveLength(1);
   }, 30_000);
 });
+
+// For sandboxes that refuse a detached spawn: one process, MCP and ui
+// together, and no lock taken.
+describe('direct mode (e2e)', () => {
+  let service: Service;
+
+  beforeAll(async () => {
+    service = await startService(
+      { versionNegotiation: { mode: { pin: '2026-07-28' } } },
+      { NOESIS_NO_DAEMON: '1' },
+    );
+  }, 30_000);
+
+  afterAll(() => service.client.close());
+
+  it('serves the tools in-process, starts the ui on the first real request, and takes no lock', async () => {
+    const logs = join(service.repoRoot, '.noesis', 'logs');
+    expect(await logText(logs)).not.toContain('listening on');
+
+    const path = join(await sessionDir(service.client), 'change.json');
+    await writeFile(path, JSON.stringify({ name: 'Direct', type: 'chore' }));
+    const created = await service.client.callTool({
+      name: 'create_change',
+      arguments: { path },
+    });
+
+    expect(created.isError).toBeFalsy();
+    await until(async () => (await logText(logs)).includes('listening on'));
+    expect(occurrences(await logText(logs), 'listening on')).toBe(1);
+    expect(await exists(join(service.repoRoot, '.noesis', 'server.lock'))).toBe(
+      false,
+    );
+    expect(await exists(join(logs, 'noesis-serve.log'))).toBe(false);
+  }, 30_000);
+});
+
+// Every process logs to a file of its own: the probe's, the session's and
+// the backend's.
+async function logText(dir: string): Promise<string> {
+  const names = (await readdir(dir)).filter((name) =>
+    name.endsWith(LOG_FILE_SUFFIX),
+  );
+  const texts = await Promise.all(
+    names.map((name) => readFile(join(dir, name), 'utf8')),
+  );
+  return texts.join('');
+}

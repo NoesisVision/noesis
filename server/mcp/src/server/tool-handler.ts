@@ -10,6 +10,7 @@ import {
   NotFoundError,
 } from '#backend/app/changes/model/not-found-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
+import { BackendError } from '#mcp/backend/backend-error';
 import { WorkingFileError } from '#mcp/session/working-file-error';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
@@ -55,6 +56,7 @@ export function logged<Input>(
 
 function foreseen(error: unknown): CallToolResult | null {
   if (error instanceof WorkingFileError) return failure(error.message);
+  if (error instanceof BackendError) return failure(error.message);
   if (error instanceof NotFoundError) {
     return failure(error.message, FIND_OR_ADD[error.entity]);
   }

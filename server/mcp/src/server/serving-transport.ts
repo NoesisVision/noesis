@@ -5,6 +5,13 @@ import {
 } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 
+export interface ServingHooks {
+  /** Any message at all, the probe's included: the host is speaking. */
+  onFirstMessage?: () => void;
+  /** The first message that is not the era probe's. */
+  onServing: () => void;
+}
+
 /** The era probe's one and only request. */
 const DISCOVER = 'server/discover';
 
@@ -22,11 +29,12 @@ const DISCOVER = 'server/discover';
  */
 export class ServingTransport implements Transport {
   private readonly wire: StdioServerTransport;
-  private readonly onServing: () => void;
+  private readonly hooks: ServingHooks;
+  private heard = false;
   private serving = false;
 
-  constructor(onServing: () => void, wire = new StdioServerTransport()) {
-    this.onServing = onServing;
+  constructor(hooks: ServingHooks, wire = new StdioServerTransport()) {
+    this.hooks = hooks;
     this.wire = wire;
   }
 
@@ -55,9 +63,13 @@ export class ServingTransport implements Transport {
   }
 
   private notice(message: JSONRPCMessage): void {
+    if (!this.heard) {
+      this.heard = true;
+      this.hooks.onFirstMessage?.();
+    }
     if (this.serving) return;
     if (isJSONRPCRequest(message) && message.method === DISCOVER) return;
     this.serving = true;
-    this.onServing();
+    this.hooks.onServing();
   }
 }
