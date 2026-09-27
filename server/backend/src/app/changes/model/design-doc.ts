@@ -4,7 +4,7 @@ import {
   BuildingBlockId,
   ElementName,
   ModuleId,
-} from '#backend/app/element-id';
+} from '#backend/app/system-model/element-id';
 import {
   BehaviourType,
   BuildingBlockType,

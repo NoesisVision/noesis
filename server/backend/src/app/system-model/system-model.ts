@@ -1,12 +1,12 @@
 import { z } from 'zod';
+import { unpaddedText } from '#backend/app/unpadded-text';
+import { uuidIdSchema } from '#backend/app/uuid-id';
 import {
   BehaviourId,
   BuildingBlockId,
   ElementName,
   ModuleId,
-} from '#backend/app/element-id';
-import { unpaddedText } from '#backend/app/unpadded-text';
-import { uuidIdSchema } from '#backend/app/uuid-id';
+} from './element-id';
 
 export const BuildingBlockType = z.enum([
   'aggregate',

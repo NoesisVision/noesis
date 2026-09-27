@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import fc from 'fast-check';
 import { ChangeId } from '#backend/app/changes/model/change-id';
-import { slugIdCandidates } from '#backend/app/slug-id';
+import { slugIdCandidates } from '#backend/app/changes/model/slug-id';
 
 const DAY = '2026-09-24';
 

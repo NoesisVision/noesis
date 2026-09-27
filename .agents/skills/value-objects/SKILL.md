@@ -7,7 +7,7 @@ description: Create and use value objects (VOs) — domain primitives such as id
 
 A VO is a **branded Zod schema** plus the **functions** that build and read its values. At runtime the value is the primitive itself: a string stays a string. The brand exists only for the type checker, so a `ModuleId` cannot be passed where a `BuildingBlockId` is expected, and no plain string becomes a `ModuleId` without passing the schema.
 
-The reference implementation is `server/backend/src/app/element-id.ts`. Read it before you write a VO, and copy its shape.
+The reference implementation is `server/backend/src/app/system-model/element-id.ts`. Read it before you write a VO, and copy its shape.
 
 ## Why this shape
 

@@ -7,7 +7,7 @@ import {
   ElementId,
   ElementName,
   ModuleId,
-} from '#backend/app/element-id';
+} from '#backend/app/system-model/element-id';
 
 const BAD_NAMES = ['', ' ', ' a', 'a ', 'a.b', '.', 'a\tb ', 'a|b', '|'];
 

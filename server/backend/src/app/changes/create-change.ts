@@ -4,8 +4,8 @@ import type {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
+import { freeSlugId } from '#backend/app/changes/model/slug-id';
 import type { Handler } from '#backend/app/handler';
-import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import type { ChangesRepository } from './changes.repository';
 
