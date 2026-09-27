@@ -1,20 +1,16 @@
 import { z } from 'zod';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  CREATE,
-  defineTool,
-  type ToolRegistration,
-} from '#backend/adapters/in/mcp/tool';
-import {
-  CREATE_CHANGE,
-  LIST_CHANGES,
-  UPDATE_CHANGE,
-} from '#backend/adapters/in/mcp/tool-names';
 import type { CreateChangeHandler } from '#backend/app/changes/create-change';
 import {
   ChangeSummary,
   CreateChange,
 } from '#backend/app/changes/model/change-snapshot';
+import { CREATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
+import {
+  CREATE_CHANGE,
+  LIST_CHANGES,
+  UPDATE_CHANGE,
+} from '#mcp/server/tool-names';
+import type { SessionFiles } from '#mcp/session/session-files';
 import { NO_ID, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';

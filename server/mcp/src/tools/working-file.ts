@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { LIST_CHANGES } from '#backend/adapters/in/mcp/tool-names';
 import { ChangeId } from '#backend/app/changes/model/change-id';
+import { LIST_CHANGES } from '#mcp/server/tool-names';
+import type { SessionFiles } from '#mcp/session/session-files';
 
 /**
  * The `path` parameter of every tool that reads a working file. The scratch

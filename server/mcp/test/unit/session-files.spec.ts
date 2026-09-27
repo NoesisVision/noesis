@@ -9,10 +9,10 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
-import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { SessionDir } from '#mcp/session/session-dir';
+import type { SessionFiles } from '#mcp/session/session-files';
+import { WorkingFileError } from '#mcp/session/working-file-error';
 
 let root: string;
 let noesis: NoesisDir;

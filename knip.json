@@ -18,6 +18,10 @@
         "test/**/*.types.ts"
       ]
     },
+    "server/mcp": {
+      // Reached from the backend's bin, which bundles it.
+      "entry": ["src/serve-mcp.ts", "src/workspace.ts"]
+    },
     "server/frontend": {
       "entry": ["test/**/*.types.ts"]
     }

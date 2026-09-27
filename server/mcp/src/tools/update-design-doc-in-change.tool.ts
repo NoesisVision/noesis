@@ -1,21 +1,17 @@
 import { z } from 'zod';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  UPDATE,
-  defineTool,
-  type ToolRegistration,
-} from '#backend/adapters/in/mcp/tool';
-import {
-  ADD_DESIGN_DOC_TO_CHANGE,
-  LIST_CHANGES,
-  UPDATE_DESIGN_DOC_IN_CHANGE,
-} from '#backend/adapters/in/mcp/tool-names';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { DesignDocSummary } from '#backend/app/changes/model/design-doc-summary';
 import {
   UpdateDesignDocInChange,
   type UpdateDesignDocInChangeHandler,
 } from '#backend/app/changes/update-design-doc-in-change';
+import { UPDATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
+import {
+  ADD_DESIGN_DOC_TO_CHANGE,
+  LIST_CHANGES,
+  UPDATE_DESIGN_DOC_IN_CHANGE,
+} from '#mcp/server/tool-names';
+import type { SessionFiles } from '#mcp/session/session-files';
 import { DESIGN_DOC_SHAPE } from './design-doc-shape';
 import { inChangeInput } from './working-file';
 

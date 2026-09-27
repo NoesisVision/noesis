@@ -1,11 +1,4 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import { addDesignDocToChangeTool } from '#backend/adapters/in/mcp/tools/add-design-doc-to-change.tool';
-import { addSourceDocumentToChangeTool } from '#backend/adapters/in/mcp/tools/add-source-document-to-change.tool';
-import { createChangeTool } from '#backend/adapters/in/mcp/tools/create-change.tool';
-import { listChangesTool } from '#backend/adapters/in/mcp/tools/list-changes.tool';
-import { updateChangeTool } from '#backend/adapters/in/mcp/tools/update-change.tool';
-import { updateDesignDocInChangeTool } from '#backend/adapters/in/mcp/tools/update-design-doc-in-change.tool';
-import { updateSourceDocumentInChangeTool } from '#backend/adapters/in/mcp/tools/update-source-document-in-change.tool';
 import type { AddDesignDocToChangeHandler } from '#backend/app/changes/add-design-doc-to-change';
 import type { AddSourceDocumentToChangeHandler } from '#backend/app/changes/add-source-document-to-change';
 import type { CreateChangeHandler } from '#backend/app/changes/create-change';
@@ -14,7 +7,14 @@ import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import type { UpdateDesignDocInChangeHandler } from '#backend/app/changes/update-design-doc-in-change';
 import type { UpdateSourceDocumentInChangeHandler } from '#backend/app/changes/update-source-document-in-change';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import type { SessionFiles } from './session-files';
+import type { SessionFiles } from '#mcp/session/session-files';
+import { addDesignDocToChangeTool } from '#mcp/tools/add-design-doc-to-change.tool';
+import { addSourceDocumentToChangeTool } from '#mcp/tools/add-source-document-to-change.tool';
+import { createChangeTool } from '#mcp/tools/create-change.tool';
+import { listChangesTool } from '#mcp/tools/list-changes.tool';
+import { updateChangeTool } from '#mcp/tools/update-change.tool';
+import { updateDesignDocInChangeTool } from '#mcp/tools/update-design-doc-in-change.tool';
+import { updateSourceDocumentInChangeTool } from '#mcp/tools/update-source-document-in-change.tool';
 import type { ToolRegistration } from './tool';
 
 export interface McpServerDeps {

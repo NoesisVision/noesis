@@ -1,6 +1,5 @@
 import type { Logger } from '@logtape/logtape';
-import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { production } from '#backend/boot/process';
 import {
   loadServerConfig,
   type ServerConfig,
@@ -10,7 +9,8 @@ import { resolveRepositoryRoot } from '#backend/platform/config/repository-root'
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { configureLogging } from '#backend/platform/logging/logging';
 import { serverLogger } from '#backend/platform/logging/server-logger';
-import { production } from './process';
+import { SessionDir } from '#mcp/session/session-dir';
+import type { SessionFiles } from '#mcp/session/session-files';
 
 /** Where this process runs: the repository, its `.noesis/` and this session's scratch. */
 export interface Workspace {

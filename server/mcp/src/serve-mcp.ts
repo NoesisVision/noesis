@@ -1,10 +1,10 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
-import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
-import { ServingTransport } from '#backend/adapters/in/mcp/serving-transport';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import type { Services } from '#backend/boot/services';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/server-logger';
-import type { Services } from './services';
+import { createMcpServer } from '#mcp/server/mcp-server';
+import { ServingTransport } from '#mcp/server/serving-transport';
+import type { SessionFiles } from '#mcp/session/session-files';
 
 const log = serverLogger('mcp');
 

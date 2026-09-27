@@ -16,6 +16,7 @@
   "settings": {
     "boundaries/include": [
       "server/backend/src/**/*.ts",
+      "server/mcp/src/**/*.ts",
       "server/frontend/src/**/*.ts",
       "server/frontend/src/**/*.tsx"
     ],
@@ -45,6 +46,13 @@
         "partialMatch": false
       },
       { "type": "root", "pattern": "server/backend/src" },
+      // The MCP server a session runs: its own workspace, bundled into the
+      // backend's bin.
+      {
+        "type": "mcp",
+        "pattern": "server/mcp/src/**",
+        "partialMatch": false
+      },
       {
         "type": "feature-ui",
         "pattern": "server/frontend/src/features/*/ui/**",
@@ -227,9 +235,24 @@
                     "adapter-in",
                     "adapter-out",
                     "app",
-                    "platform"
+                    "platform",
+                    "mcp"
                   ]
                 }
+              }
+            }
+          },
+          // The shim shares the backend's model, its `/ui` error contract
+          // and route types, and the daemon's registration; direct mode
+          // composes the backend in-process.
+          {
+            "from": { "element": { "type": "mcp" } },
+            "allow": {
+              "to": {
+                "element": [
+                  { "type": ["mcp", "app", "platform", "root"] },
+                  { "type": "adapter-in", "captured": { "adapter": "ui" } }
+                ]
               }
             }
           }
@@ -239,7 +262,7 @@
   },
   "overrides": [
     {
-      "files": ["server/backend/**"],
+      "files": ["server/backend/**", "server/mcp/**"],
       "rules": { "typescript/no-floating-promises": "error" }
     },
     {

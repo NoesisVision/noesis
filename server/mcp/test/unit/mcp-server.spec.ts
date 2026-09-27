@@ -3,21 +3,24 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
-import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
-import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import {
+  designDocFixture,
+  greenFieldDesignDocFixture,
+} from '#backend-test/fixtures/design-doc.fixture';
+import {
+  designDocId,
+  sourceDocumentId,
+} from '#backend-test/fixtures/ids.fixture';
+import { textOf } from '#backend-test/support/service-process';
+import { type TestNoesis, testNoesis } from '#backend-test/unit/test-noesis';
 import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
-import {
-  designDocFixture,
-  greenFieldDesignDocFixture,
-} from '../fixtures/design-doc.fixture';
-import { designDocId, sourceDocumentId } from '../fixtures/ids.fixture';
-import { textOf } from '../support/service-process';
-import { type TestNoesis, testNoesis } from './test-noesis';
+import { createMcpServer } from '#mcp/server/mcp-server';
+import { SessionDir } from '#mcp/session/session-dir';
+import type { SessionFiles } from '#mcp/session/session-files';
 
 // A linked InMemoryTransport pair speaks the 2025 era only; the modern
 // revision is covered against the real stdio service in test/e2e.

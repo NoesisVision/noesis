@@ -10,6 +10,7 @@ import {
   NotFoundError,
 } from '#backend/app/changes/model/not-found-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
+import { WorkingFileError } from '#mcp/session/working-file-error';
 import {
   ADD_DESIGN_DOC_TO_CHANGE,
   ADD_SOURCE_DOCUMENT_TO_CHANGE,
@@ -17,7 +18,6 @@ import {
   LIST_CHANGES,
 } from './tool-names';
 import { failure } from './tool-result';
-import { WorkingFileError } from './working-file-error';
 
 const log = serverLogger('mcp');
 

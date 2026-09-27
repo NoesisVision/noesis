@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
-import { logged } from '#backend/adapters/in/mcp/tool-handler';
-import { success } from '#backend/adapters/in/mcp/tool-result';
-import { WorkingFileError } from '#backend/adapters/in/mcp/working-file-error';
-import { textOf } from '../support/service-process';
+import { textOf } from '#backend-test/support/service-process';
+import { logged } from '#mcp/server/tool-handler';
+import { success } from '#mcp/server/tool-result';
+import { WorkingFileError } from '#mcp/session/working-file-error';
 
 // The wrapper only hands it on, so its contents do not matter here.
 const ctx = {} as ServerContext;

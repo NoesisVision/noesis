@@ -2,10 +2,10 @@
 // evaluated.
 import '#backend/boot/process';
 import { installLifecycle } from '#backend/boot/lifecycle';
-import { serveMcp } from '#backend/boot/mcp';
 import { createServices } from '#backend/boot/services';
 import { UiHost } from '#backend/boot/ui';
-import { openWorkspace } from '#backend/boot/workspace';
+import { serveMcp } from '#mcp/serve-mcp';
+import { openWorkspace } from '#mcp/workspace';
 import { version } from '../package.json';
 
 // The composition root. Boot is in two halves: the MCP surface starts at once

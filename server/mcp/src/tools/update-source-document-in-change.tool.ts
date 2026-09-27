@@ -1,21 +1,17 @@
 import { z } from 'zod';
-import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  UPDATE,
-  defineTool,
-  type ToolRegistration,
-} from '#backend/adapters/in/mcp/tool';
-import {
-  ADD_SOURCE_DOCUMENT_TO_CHANGE,
-  LIST_CHANGES,
-  UPDATE_SOURCE_DOCUMENT_IN_CHANGE,
-} from '#backend/adapters/in/mcp/tool-names';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
 import { SourceDocumentSummary } from '#backend/app/changes/model/source-document-summary';
 import {
   UpdateSourceDocumentInChange,
   type UpdateSourceDocumentInChangeHandler,
 } from '#backend/app/changes/update-source-document-in-change';
+import { UPDATE, defineTool, type ToolRegistration } from '#mcp/server/tool';
+import {
+  ADD_SOURCE_DOCUMENT_TO_CHANGE,
+  LIST_CHANGES,
+  UPDATE_SOURCE_DOCUMENT_IN_CHANGE,
+} from '#mcp/server/tool-names';
+import type { SessionFiles } from '#mcp/session/session-files';
 import { inChangeInput } from './working-file';
 
 const SUBJECT = 'source document';

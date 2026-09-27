@@ -1,18 +1,11 @@
 import { z } from 'zod';
-import {
-  defineTool,
-  READ_ONLY,
-  type ToolRegistration,
-} from '#backend/adapters/in/mcp/tool';
-import {
-  CREATE_CHANGE,
-  LIST_CHANGES,
-} from '#backend/adapters/in/mcp/tool-names';
 import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import {
   type ChangeEntry,
   ChangeWithEntries,
 } from '#backend/app/changes/model/change-entry';
+import { defineTool, READ_ONLY, type ToolRegistration } from '#mcp/server/tool';
+import { CREATE_CHANGE, LIST_CHANGES } from '#mcp/server/tool-names';
 
 const inputSchema = z
   .object({})

@@ -12,13 +12,15 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { Client, type ClientOptions } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import {
+  serviceEnv,
+  serviceRoot,
+  textOf,
+} from '#backend-test/support/service-process';
 import { LOG_FILE_SUFFIX } from '#backend/platform/logging/logging';
-import { serviceEnv, textOf } from '../support/service-process';
-
-const serviceRoot = resolve(__dirname, '../..');
 
 interface Service {
   repoRoot: string;

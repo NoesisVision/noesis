@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The backend's source, whose app model the tools share, resolves under
+    // its own alias here too; so do its test helpers, for the specs.
+    "paths": {
+      "#mcp/*": ["./src/*"],
+      "#backend/*": ["../backend/src/*"],
+      "#backend-test/*": ["../backend/test/*"]
+    }
+  }
+}

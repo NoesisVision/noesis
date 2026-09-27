@@ -1,5 +1,9 @@
 import type { ChildProcess } from 'node:child_process';
+import { resolve } from 'node:path';
 import type { Client } from '@modelcontextprotocol/client';
+
+/** The backend workspace, whose `src/main.ts` is the one bin. */
+export const serviceRoot = resolve(__dirname, '../..');
 
 // A throwaway repository root, so the run writes no `.noesis/` into the
 // checkout.

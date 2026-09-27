@@ -10,12 +10,12 @@ import {
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   OWNER_FILE_NAME,
   SESSION_MAX_AGE_MS,
   SessionDir,
-} from '#backend/adapters/in/mcp/session-dir';
-import { NoesisDir } from '#backend/platform/files/noesis-dir';
+} from '#mcp/session/session-dir';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
