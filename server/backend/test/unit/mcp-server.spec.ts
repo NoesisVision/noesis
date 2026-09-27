@@ -5,14 +5,12 @@ import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import {
-  MAX_WORKING_FILE_BYTES,
-  type SessionFiles,
-} from '#backend/adapters/in/mcp/session-files';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
 import { ChangeId } from '#backend/app/changes/model/change-id';
 import { DesignDocId } from '#backend/app/changes/model/design-doc-id';
 import { SourceDocumentId } from '#backend/app/changes/model/source-document-id';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,

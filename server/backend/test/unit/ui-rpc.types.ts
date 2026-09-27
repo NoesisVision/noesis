@@ -30,19 +30,40 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
   }
   // @ts-expect-error A change is created from its name and type, at least.
   await client.changes.$post({ json: { name: 'Retry' } });
-  // What a change owns is written only by the agent, through the MCP tools.
-  // @ts-expect-error No design document is created here.
+  // What a change owns is written through the same working files the MCP
+  // tools read.
+  const added = await client.changes[':change']['source-documents'].$post({
+    param: { change: 'payment-retry' },
+    json: {
+      title: 'Interview',
+      date: '2026-09-12',
+      content: 'What they said.',
+    },
+  });
+  if (added.status === 201) {
+    const id: string = (await added.json()).sourceDocument.id;
+    void id;
+  }
+  await client.changes[':change']['design-docs'][':id'].$put({
+    param: { change: 'payment-retry', id: 'doc-1' },
+    json: { name: 'Retry', description: '' },
+  });
+  await client.changes[':id'].$patch({
+    param: { id: 'payment-retry' },
+    json: { name: 'Retry', type: 'fix', status: 'design' },
+  });
   await client.changes[':change']['design-docs'].$post({
     param: { change: 'payment-retry' },
+    // @ts-expect-error A design document is its working file, not wrapped in one.
     json: { document: {} },
   });
   // @ts-expect-error No design document is deleted here.
   await client.changes[':change']['design-docs'][':id'].$delete({
     param: { change: 'payment-retry', id: 'doc-1' },
   });
-  // @ts-expect-error No document is added here.
-  await client.changes[':change']['source-documents'].$post({
-    param: { change: 'payment-retry' },
-    json: { document: {} },
+  await client.changes[':id'].$patch({
+    param: { id: 'payment-retry' },
+    // @ts-expect-error An update names the status it leaves the change in.
+    json: { name: 'Retry', type: 'fix' },
   });
 }

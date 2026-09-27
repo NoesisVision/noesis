@@ -8,8 +8,8 @@ import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/source-documents`), which is what is under test.
-// The surface only reads; documents get in through the MCP tools, so the
-// tests write them into the change directly.
+// The reads are fed by writing into the change directly; the writes take the
+// same working file the MCP tools read.
 
 const CHANGE = '2026-01-01-booking';
 const ID = '0199a1b2-7c3d-7e4f-8a5b-6c7d8e9f0a1c';
@@ -60,19 +60,70 @@ describe('ui source-documents routes', () => {
     );
   });
 
-  // Adding, revising and removing are the agent's, through the MCP tools.
-  it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    await t.writeDocument(change, document);
-    const send = (method: string, path: string) =>
-      app.request(path, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document }),
-      });
+  const send = (method: string, path: string, body: unknown) =>
+    app.request(path, {
+      method,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
 
-    expect((await send('POST', BASE)).status).toBe(404);
-    expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
-    expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
+  const file = { title: 'Booking Rules', date: '2026-09-18', content: 'Once.' };
+
+  it('adds a source document at an id it mints, and revises it at that id', async () => {
+    const added = await send('POST', BASE, file);
+
+    expect(added.status).toBe(201);
+    const { sourceDocument } = (await added.json()) as {
+      sourceDocument: { id: string };
+    };
+    expect(sourceDocument.id).toMatch(/^[0-9a-f]{8}-/);
+    expect(sourceDocument).toMatchObject({
+      title: 'Booking Rules',
+      date: '2026-09-18',
+    });
+
+    const revised = await send('PUT', `${BASE}/${sourceDocument.id}`, {
+      ...file,
+      title: 'Booking rules, revised',
+    });
+
+    expect(revised.status).toBe(200);
+    expect(await revised.json()).toEqual({
+      sourceDocument: {
+        id: sourceDocument.id,
+        title: 'Booking rules, revised',
+        date: '2026-09-18',
+      },
+    });
+    expect(
+      (await t.stored(change)).sourceDocuments.map((d) => d.content),
+    ).toEqual(['Once.']);
+  });
+
+  it('refuses a body that is not a source document, adding nothing', async () => {
+    const res = await send('POST', BASE, { document: file });
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: 'invalid_body' });
+    expect((await t.stored(change)).sourceDocuments).toEqual([]);
+  });
+
+  it('404s a revision of a source document the change does not hold', async () => {
+    const res = await send('PUT', `${BASE}/${ID}`, file);
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({
+      error: 'not_found',
+      entity: 'source document',
+      id: ID,
+      change,
+    });
+  });
+
+  it('deletes nothing: DELETE is not a route of this surface', async () => {
+    await t.writeDocument(change, document);
+
+    expect((await send('DELETE', `${BASE}/${ID}`, {})).status).toBe(404);
     expect((await t.stored(change)).sourceDocuments.map((d) => d.id)).toEqual([
       SourceDocumentId.parse(ID),
     ]);
@@ -84,6 +135,6 @@ describe('ui source-documents routes', () => {
     );
 
     expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: 'change_not_found' });
+    expect(await res.json()).toMatchObject({ error: 'change_not_found' });
   });
 });

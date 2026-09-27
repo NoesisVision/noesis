@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import { ConcurrentModificationError } from '#backend/app/changes/concurrent-modification-error';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -32,6 +33,13 @@ const document = {
 const post = (body: unknown) =>
   app.request('/changes', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+const patch = (id: string, body: unknown) =>
+  app.request(`/changes/${id}`, {
+    method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
@@ -158,16 +166,61 @@ describe('ui changes routes', () => {
     expect(await ids()).toEqual([]);
   });
 
-  it('writes nothing a change owns: POST under a change is not a route', async () => {
+  it('updates what a change says of itself, at its id', async () => {
     const change = await t.writeChange('2026-09-01-audit-log');
-    for (const path of ['design-docs', 'source-documents']) {
-      const res = await app.request(`/changes/${change}/${path}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: '{}',
-      });
-      expect(res.status).toBe(404);
-    }
+
+    const res = await patch(change, {
+      name: 'Audit trail',
+      key: 'NOE-7',
+      type: 'feature',
+      status: 'design',
+      description: 'Who did what.',
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      change: {
+        id: change,
+        name: 'Audit trail',
+        key: 'NOE-7',
+        type: 'feature',
+        status: 'design',
+        description: 'Who did what.',
+      },
+    });
+    expect((await t.stored(change)).version).toBe(2);
+  });
+
+  it('refuses an update without a status, or of an unknown change', async () => {
+    const change = await t.writeChange('2026-09-01-audit-log');
+
+    const invalid = await patch(change, { name: 'Audit', type: 'chore' });
+    expect(invalid.status).toBe(400);
+    expect(await invalid.json()).toMatchObject({ error: 'invalid_body' });
+
+    const unknown = await patch('2026-09-01-nope', {
+      name: 'Audit',
+      type: 'chore',
+      status: 'design',
+    });
+    expect(unknown.status).toBe(404);
+    expect(await unknown.json()).toMatchObject({ error: 'change_not_found' });
+    expect((await t.stored(change)).version).toBe(1);
+  });
+
+  it('refuses a body larger than a working file, creating nothing', async () => {
+    const res = await post({
+      name: 'Payment retry',
+      type: 'feature',
+      description: 'x'.repeat(MAX_WORKING_FILE_BYTES + 1),
+    });
+
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({
+      error: 'payload_too_large',
+      limit: MAX_WORKING_FILE_BYTES,
+    });
+    expect(await ids()).toEqual([]);
   });
 
   it('reads one change with what it owns summarised', async () => {
@@ -206,11 +259,21 @@ describe('ui changes routes', () => {
   it('404s an unknown or unsafe change id', async () => {
     const missing = await app.request('/changes/2026-09-01-nope');
     expect(missing.status).toBe(404);
-    expect(await missing.json()).toEqual({ error: 'change_not_found' });
-    for (const malformed of ['audit-log', 'Not%20An%20Id']) {
-      const res = await app.request(`/changes/${malformed}`);
+    expect(await missing.json()).toEqual({
+      error: 'change_not_found',
+      entity: 'change',
+      id: '2026-09-01-nope',
+    });
+    for (const malformed of ['audit-log', 'Not An Id']) {
+      const res = await app.request(
+        `/changes/${encodeURIComponent(malformed)}`,
+      );
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: 'change_not_found' });
+      expect(await res.json()).toEqual({
+        error: 'change_not_found',
+        entity: 'change',
+        id: malformed,
+      });
     }
   });
 
@@ -224,6 +287,6 @@ describe('ui changes routes', () => {
     }).request('/changes');
 
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'conflict' });
+    expect(await res.json()).toEqual({ error: 'conflict', change: raced });
   });
 });

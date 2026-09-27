@@ -2,6 +2,7 @@ import { realpath, stat } from 'node:fs/promises';
 import { isAbsolute, normalize, relative, resolve, sep } from 'node:path';
 import type { ZodType } from 'zod';
 import { JsonFileError, readJsonFile } from '#backend/platform/files/json-file';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import { WorkingFileError } from './working-file-error';
 
 declare const workingFilePathBrand: unique symbol;
@@ -9,13 +10,6 @@ declare const workingFilePathBrand: unique symbol;
 export type WorkingFilePath = string & {
   readonly [workingFilePathBrand]: true;
 };
-
-/**
- * A working file is one document the agent just wrote, so anything this large
- * is the wrong path — an index, a log, a dump. Reading it would pull the whole
- * file into memory before the shape is known.
- */
-export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 export interface SessionFilesLocation {
   repositoryRoot: string;
