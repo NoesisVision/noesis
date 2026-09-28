@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
+import { refItems } from './change-list-items.ts';
 import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
+import { ChangeListSection } from './sections/change-list-section.tsx';
 import { DescriptionSection } from './sections/description-section.tsx';
-import { RefsSection } from './sections/refs-section.tsx';
 import { VisibilitySection } from './sections/visibility-section.tsx';
 
 export const behaviourSections = (
@@ -19,15 +20,19 @@ export const behaviourSections = (
       element,
       field: behaviour.description,
     }),
-    ...section(RefsSection, 'input', {
+    ...section(ChangeListSection, 'input', {
       element,
       title: 'Input',
-      set: behaviour.input,
+      kind: 'building_block',
+      items: refItems(behaviour.input),
+      monospace: true,
     }),
-    ...section(RefsSection, 'output', {
+    ...section(ChangeListSection, 'output', {
       element,
       title: 'Output',
-      set: behaviour.output,
+      kind: 'building_block',
+      items: refItems(behaviour.output),
+      monospace: true,
     }),
   ];
 };

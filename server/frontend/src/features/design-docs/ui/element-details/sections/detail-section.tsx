@@ -1,6 +1,6 @@
 import { IconAi, IconUser } from '@tabler/icons-react';
 import { clsx } from 'clsx';
-import type { ComponentProps, PropsWithChildren } from 'react';
+import type { ComponentProps, PropsWithChildren, ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
@@ -17,11 +17,14 @@ import classes from './detail-section.module.css';
 interface DetailSectionProps
   extends PropsWithChildren, ComponentProps<typeof Stack> {
   title?: string;
+  /** Decorative, before the title: the title already says what it shows. */
+  icon?: ReactNode;
   field?: DesignDocFieldInput<unknown>;
 }
 
 export function DetailSection({
   title,
+  icon,
   children,
   className,
   field,
@@ -40,6 +43,7 @@ export function DetailSection({
     >
       {!!title && (
         <Group gap="sm" align="center">
+          {icon}
           <Text className={classes.title} fw="bold" size="xs" tt="uppercase">
             {title}
           </Text>

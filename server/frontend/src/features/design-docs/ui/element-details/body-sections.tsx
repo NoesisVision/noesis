@@ -25,13 +25,10 @@ export const bodySections = (
   }
   if (node.elementId === null) return partSections(node, doc);
   const module = findById(doc.modules, node.elementId);
-  console.info('module', module);
   if (module) return moduleSections(module);
   const block = findById(doc.buildingBlocks, node.elementId);
-  console.info('block', block);
   if (block) return buildingBlockSections(block);
   const behaviour = findById(doc.behaviours, node.elementId);
-  console.info('behaviour', behaviour);
   if (behaviour) return behaviourSections(behaviour);
   return section(NoteSection, 'unchanged', {
     children:

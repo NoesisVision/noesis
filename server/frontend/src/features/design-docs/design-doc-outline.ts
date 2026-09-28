@@ -238,7 +238,7 @@ function part(
     // A part has no id of its own, so it is named under the element — or, for
     // a rule's scenario, the rule — that owns it; a name never carries the
     // separators, so the pair cannot collide.
-    path: `${owner}${PART_MARK}${kind}:${name}`,
+    path: partPathOf(owner, kind, name),
     parentPath: owner,
     elementId: null,
     kind,
@@ -256,6 +256,10 @@ function part(
 
 const PART_MARK = '#';
 const RULE_MARK = `${PART_MARK}rule:`;
+
+/** Where a part sits in the outline: under its owner, by its kind and name. */
+export const partPathOf = (owner: string, kind: OutlineKind, name: string) =>
+  `${owner}${PART_MARK}${kind}:${name}`;
 
 /**
  * What a part hangs under, read back off the path `part` gave its parent: the

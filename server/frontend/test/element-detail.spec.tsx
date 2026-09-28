@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import {
+  partItems,
+  propertyItems,
+} from '../src/features/design-docs/ui/element-details/change-list-items';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
@@ -180,6 +184,7 @@ const show = (path: string) => {
           .filter((step) => step !== undefined)}
         document={document}
         onSelect={() => {}}
+        has={(path) => tree.byPath.has(path)}
       />
     </MantineProvider>,
   );
@@ -260,6 +265,48 @@ describe('ElementDetail', () => {
     expect(html).toContain('the hold is released');
     // The trail runs through the rule the scenario belongs to.
     expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
+  });
+
+  it("lists a block's properties, rules and scenarios, each opening its row", () => {
+    const html = show('building_block|pay.Hold');
+    for (const title of ['Properties', 'Rules', 'Scenarios'])
+      expect(html).toContain(`>${title}<`);
+    for (const label of [
+      'amount?: pay.Money',
+      'A hold expires',
+      'A hold settles',
+    ])
+      expect(html).toMatch(
+        new RegExp(`<button[^>]*>(<[^>]+>)*${label.replace('?', '\\?')}<`),
+      );
+  });
+
+  it('points every listed item at the row the tree has for it', () => {
+    const hold = document.buildingBlocks.added[0]!;
+    const items = [
+      ...propertyItems(hold.id, hold.properties),
+      ...partItems(hold.id, 'rule', hold.rules),
+      ...partItems(hold.id, 'scenario', hold.scenarios),
+    ];
+    expect(items.length).toBe(3);
+    for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
+  });
+
+  it('lists an item with no row as text, not as a button', () => {
+    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <ElementDetail
+          node={hold}
+          path={[hold]}
+          document={document}
+          onSelect={() => {}}
+          has={() => false}
+        />
+      </MantineProvider>,
+    );
+    expect(html).toContain('A hold expires');
+    expect(html).not.toContain('<button');
   });
 
   it('has nothing to read about an element the design only removes', () => {
