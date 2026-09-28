@@ -109,7 +109,10 @@ export function shapeWithWayDown(
   tree: OutlineTree,
   path: string,
 ): SearchShape {
-  return tree.ancestryOf(path).slice(0, -1).reduce(openIn, shape);
+  return tree
+    .ancestryOf(path)
+    .slice(0, -1)
+    .reduce((current, ancestor) => openIn(current, ancestor), shape);
 }
 
 export function openIn(shape: SearchShape, path: string): SearchShape {
