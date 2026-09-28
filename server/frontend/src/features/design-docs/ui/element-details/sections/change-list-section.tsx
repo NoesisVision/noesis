@@ -18,8 +18,6 @@ interface ChangeListSectionProps {
   /** The kind of thing listed, which names the icon before the title. */
   kind: OutlineKind;
   items: ChangeListItem[];
-  /** Set for types and declarations, which read as code; not for prose names. */
-  monospace?: boolean;
 }
 
 /**
@@ -32,7 +30,6 @@ export function ChangeListSection({
   title,
   kind,
   items,
-  monospace = false,
 }: ChangeListSectionProps) {
   const { has, select } = useElementNavigation();
   const sorted = [...items].sort((a, b) => a.label.localeCompare(b.label));
@@ -41,9 +38,7 @@ export function ChangeListSection({
     <DetailSection title={title} icon={<KindIcon kind={kind} />}>
       <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
         {sorted.map(({ change, label, path }) => {
-          const ref = (
-            <Ref change={change} name={label} monospace={monospace} />
-          );
+          const ref = <Ref change={change} name={label} />;
           return (
             <List.Item key={`${change}:${label}`}>
               {path !== null && has(path) ? (
@@ -52,7 +47,8 @@ export function ChangeListSection({
                   onClick={() => select(path)}
                 >
                   <Group gap="xs">
-                    <ThemeIcon color="gray" size={16}>
+                    {/* Decorative: that the line opens a row is the button's to say. */}
+                    <ThemeIcon color="gray" size={16} aria-hidden="true">
                       <IconLink size={12} />
                     </ThemeIcon>
                     {ref}

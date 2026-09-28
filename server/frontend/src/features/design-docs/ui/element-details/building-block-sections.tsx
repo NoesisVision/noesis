@@ -23,14 +23,12 @@ export const buildingBlockSections = (
       title: 'Implements',
       kind: 'building_block',
       items: refItems(block.implements),
-      monospace: true,
     }),
     ...section(ChangeListSection, 'properties', {
       element,
       title: 'Properties',
       kind: 'property',
       items: propertyItems(block.id, block.properties),
-      monospace: true,
     }),
     ...childSections(element, 'building_block', block.id, tree),
     ...section(ChangeListSection, 'rules', {

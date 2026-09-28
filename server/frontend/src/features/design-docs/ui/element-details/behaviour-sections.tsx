@@ -25,14 +25,12 @@ export const behaviourSections = (
       title: 'Input',
       kind: 'building_block',
       items: refItems(behaviour.input),
-      monospace: true,
     }),
     ...section(ChangeListSection, 'output', {
       element,
       title: 'Output',
       kind: 'building_block',
       items: refItems(behaviour.output),
-      monospace: true,
     }),
     ...section(ChangeListSection, 'rules', {
       element,

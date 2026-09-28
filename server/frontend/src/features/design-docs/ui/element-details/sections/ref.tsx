@@ -9,7 +9,6 @@ export function Ref({
 }: {
   change: OutlineChange;
   name: string | undefined;
-  monospace?: boolean;
 }): ReactNode {
   // Before the early return: a hook runs on every render or on none.
   const getColor = useChangeColour();
