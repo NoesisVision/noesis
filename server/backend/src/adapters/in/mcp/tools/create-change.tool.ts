@@ -1,16 +1,11 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  type Change,
-  ChangeSchema,
-  NewChangeSchema,
-} from '#backend/app/changes/change';
+import { ChangeSchema, NewChangeSchema } from '#backend/app/changes/change';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { NO_ID, workingFilePath } from './change-scoped';
+import { success } from '../tool-result';
+import { fromWorkingFile, NO_ID, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -39,25 +34,19 @@ export function createChangeTool(
       outputSchema,
       annotations: CREATE,
     },
-    (input) => create(changes, files, input.path),
-  );
-}
-
-async function create(
-  changes: ChangesService,
-  files: SessionFiles,
-  path: string,
-): Promise<CallToolResult> {
-  const change = await files.read(NewChangeSchema, path);
-  if (change.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${change.error}`);
-  }
-  return created(await changes.create(change.value));
-}
-
-function created(change: Change): CallToolResult {
-  return success(
-    `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
-    { change },
+    (input) =>
+      fromWorkingFile(
+        files,
+        NewChangeSchema,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const change = await changes.create(file);
+          return success(
+            `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
+            { change },
+          );
+        },
+      ),
   );
 }

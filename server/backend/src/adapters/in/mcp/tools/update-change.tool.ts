@@ -1,18 +1,12 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import {
-  type Change,
-  ChangeContentSchema,
-  ChangeSchema,
-} from '#backend/app/changes/change';
+import { ChangeContentSchema, ChangeSchema } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesService } from '#backend/app/changes/changes.service';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { workingFilePath } from './change-scoped';
+import { success } from '../tool-result';
+import { fromWorkingFile, workingFilePath } from './working-file';
 
 const SUBJECT = 'change';
 
@@ -46,36 +40,19 @@ export function updateChangeTool(
       outputSchema,
       annotations: UPDATE,
     },
-    (input) => update(changes, files, input.id, input.path),
-  );
-}
-
-async function update(
-  changes: ChangesService,
-  files: SessionFiles,
-  id: ChangeId,
-  path: string,
-): Promise<CallToolResult> {
-  const change = await files.read(ChangeContentSchema, path);
-  if (change.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${change.error}`);
-  }
-  try {
-    return updated(await changes.update(id, change.value));
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return failure(
-        error.message,
-        `Find its id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-      );
-    }
-    throw error;
-  }
-}
-
-function updated(change: Change): CallToolResult {
-  return success(
-    `Updated change ${change.id} (${change.type}, ${change.status}).`,
-    { change },
+    (input) =>
+      fromWorkingFile(
+        files,
+        ChangeContentSchema,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const change = await changes.update(input.id, file);
+          return success(
+            `Updated change ${change.id} (${change.type}, ${change.status}).`,
+            { change },
+          );
+        },
+      ),
   );
 }

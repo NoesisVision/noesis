@@ -328,7 +328,7 @@ describe('create_document_in_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {
@@ -464,7 +464,7 @@ describe('update_document_in_change', () => {
     expect(await noesis.documentsService.list(change)).toEqual([]);
   });
 
-  it('reports an unknown change in-band', async () => {
+  it('reports an unknown change in-band, with where to find its id', async () => {
     const result = await call('update_document_in_change', {
       change: '2026-01-01-no-such-change',
       id: DOCUMENT_ID,
@@ -473,6 +473,21 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+  });
+
+  it('answers a file it cannot read as unreadable, not as invalid', async () => {
+    const change = await noesis.createChange(CHANGE);
+
+    const result = await call('update_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+      path: join(files.dir, 'missing.json'),
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toStartWith('Could not read the document:');
+    expect(textOf(result)).toContain('No file at');
   });
 });
 
@@ -523,7 +538,7 @@ describe('create_design_doc_in_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {

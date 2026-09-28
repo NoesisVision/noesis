@@ -1,11 +1,8 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import {
   type DocumentsService,
-  type DocumentSummary,
   DocumentSummarySchema,
 } from '#backend/app/information-sources/documents.service';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
@@ -13,8 +10,8 @@ import {
   CREATE_DOCUMENT_IN_CHANGE,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { NO_ID, inChangeInput, withChange } from './change-scoped';
+import { success } from '../tool-result';
+import { fromWorkingFile, inChangeInput, NO_ID } from './working-file';
 
 const SUBJECT = 'document';
 
@@ -40,28 +37,18 @@ export function createDocumentInChangeTool(
       annotations: CREATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        create(documents, files, change, input.path),
+      fromWorkingFile(
+        files,
+        DocumentContentSchema,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const document = await documents.create(input.change, file);
+          return success(
+            `Created document ${document.id} ("${document.title}") in ${input.change}. Refer to it by this id.`,
+            { document },
+          );
+        },
       ),
-  );
-}
-
-async function create(
-  documents: DocumentsService,
-  files: SessionFiles,
-  change: ChangeId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(DocumentContentSchema, path);
-  if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
-  }
-  return created(change, await documents.create(change, document.value));
-}
-
-function created(change: ChangeId, document: DocumentSummary): CallToolResult {
-  return success(
-    `Created document ${document.id} ("${document.title}") in ${change}. Refer to it by this id.`,
-    { document },
   );
 }

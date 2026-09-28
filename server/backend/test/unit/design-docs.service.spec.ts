@@ -7,10 +7,8 @@ import {
   type DesignDocViolation,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import {
-  type DesignDocsService,
-  InvalidDesignDocError,
-} from '#backend/app/design-docs/design-docs.service';
+import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
 import {
   decodedDesignDocFixture,
   designDocFixture,

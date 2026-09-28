@@ -5,13 +5,10 @@ import { NotFoundError } from '#backend/app/not-found-error';
 import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
-import {
-  DesignDocument,
-  type DesignDocumentContent,
-  type DesignDocViolation,
-} from './design-doc';
+import { DesignDocument, type DesignDocumentContent } from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
+import { InvalidDesignDocError } from './invalid-design-doc-error';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
 export const DesignDocSummarySchema = z.object({
@@ -22,21 +19,6 @@ export const DesignDocSummarySchema = z.object({
     .describe('Whether the design is marked as implemented.'),
 });
 export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
-
-/** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
-export class InvalidDesignDocError extends Error {
-  readonly violations: DesignDocViolation[];
-
-  constructor(violations: DesignDocViolation[]) {
-    super(
-      `The design document breaks its rules:\n${violations
-        .map(({ path, reason }) => `- ${path}: ${reason}`)
-        .join('\n')}`,
-    );
-    this.name = 'InvalidDesignDocError';
-    this.violations = violations;
-  }
-}
 
 /**
  * Callers validate before calling in. The service mints the id of a new

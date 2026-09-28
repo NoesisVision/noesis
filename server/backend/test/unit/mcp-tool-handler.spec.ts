@@ -3,6 +3,9 @@ import { configure, type LogRecord, reset } from '@logtape/logtape';
 import type { ServerContext } from '@modelcontextprotocol/server';
 import { logged } from '#backend/adapters/in/mcp/tool-handler';
 import { success } from '#backend/adapters/in/mcp/tool-result';
+import { ChangeId } from '#backend/app/changes/change-id';
+import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
+import { NotFoundError } from '#backend/app/not-found-error';
 import { textOf } from '../support/service-process';
 
 // The wrapper only hands it on, so its contents do not matter here.
@@ -63,5 +66,41 @@ describe('logged', () => {
     expect(record?.level).toBe('error');
     expect(record?.properties).toMatchObject({ tool: 'a_tool' });
     expect(String(record?.properties.error)).toContain('the disk went away');
+  });
+
+  it('answers a missing entity with where to find its id, logging nothing', async () => {
+    const change = ChangeId.parse('2026-01-01-booking');
+    const handler = logged('a_tool', async () => {
+      throw new NotFoundError('document', '2026-01-01-notes', change);
+    });
+
+    const result = await handler({}, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(
+      'No document "2026-01-01-notes" in change "2026-01-01-booking".',
+    );
+    expect(textOf(result)).toContain('create_document_in_change');
+    expect(records).toEqual([]);
+  });
+
+  it('answers a design document that breaks its rules with each field to fix', async () => {
+    const handler = logged('a_tool', async () => {
+      throw new InvalidDesignDocError([
+        {
+          path: 'modules.removed[module|sales]',
+          reason: 'changedInGreenField',
+        },
+      ]);
+    });
+
+    const result = await handler({}, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('fix each field and call again');
+    expect(textOf(result)).toContain(
+      '- modules.removed[module|sales]: nothing is scanned yet',
+    );
+    expect(records).toEqual([]);
   });
 });

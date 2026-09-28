@@ -1,22 +1,18 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import {
   type DocumentsService,
-  type DocumentSummary,
   DocumentSummarySchema,
 } from '#backend/app/information-sources/documents.service';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { inChangeInput, withChange } from './change-scoped';
+import { success } from '../tool-result';
+import { fromWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'document';
 
@@ -46,40 +42,18 @@ export function updateDocumentInChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        update(documents, files, change, input.id, input.path),
+      fromWorkingFile(
+        files,
+        DocumentContentSchema,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const document = await documents.update(input.change, input.id, file);
+          return success(
+            `Updated document ${document.id} ("${document.title}") in ${input.change}.`,
+            { document },
+          );
+        },
       ),
-  );
-}
-
-async function update(
-  documents: DocumentsService,
-  files: SessionFiles,
-  change: ChangeId,
-  id: DocumentId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(DocumentContentSchema, path);
-  if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
-  }
-  try {
-    return updated(change, await documents.update(change, id, document.value));
-  } catch (error) {
-    // A missing change is `withChange`'s to answer.
-    if (error instanceof NotFoundError && error.entity === 'document') {
-      return failure(
-        error.message,
-        `Pass the id ${CREATE_DOCUMENT_IN_CHANGE} answered with, or create the document with it.`,
-      );
-    }
-    throw error;
-  }
-}
-
-function updated(change: ChangeId, document: DocumentSummary): CallToolResult {
-  return success(
-    `Updated document ${document.id} ("${document.title}") in ${change}.`,
-    { document },
   );
 }
