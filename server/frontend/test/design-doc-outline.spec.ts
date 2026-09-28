@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'bun:test';
-import { outlineOf } from '../src/features/design-docs/design-doc-outline';
+import {
+  outlineOf,
+  ownerOfPart,
+} from '../src/features/design-docs/design-doc-outline';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline';
 import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
@@ -124,6 +127,32 @@ describe('outlineOf', () => {
         'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
     ).toBe('State change');
+  });
+
+  it("hangs a rule's own scenarios under the rule, not beside it", () => {
+    const rule =
+      'building_block|sales.refunds.Refund#rule:Refund never exceeds paid amount';
+    expect(childrenOf(rule)).toEqual([
+      'Refunding more than was paid',
+      'Refunding without a receipt',
+    ]);
+    expect(at(`${rule}#scenario:Refunding more than was paid`)).toMatchObject({
+      kind: 'scenario',
+      change: 'added',
+      parentPath: rule,
+      depth: at(rule).depth + 1,
+    });
+    expect(at(`${rule}#scenario:Refunding without a receipt`).change).toBe(
+      'removed',
+    );
+  });
+
+  it('reads the owner and the rule back off a part path', () => {
+    const block = 'building_block|sales.refunds.Refund';
+    expect(ownerOfPart(block)).toEqual({ elementId: block, rule: null });
+    expect(
+      ownerOfPart(`${block}#rule:Refund never exceeds paid amount`),
+    ).toEqual({ elementId: block, rule: 'Refund never exceeds paid amount' });
   });
 
   it('labels a part with its own type, spelled as the design spells it', () => {

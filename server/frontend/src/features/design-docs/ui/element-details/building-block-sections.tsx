@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { PropertiesSection } from '#/features/design-docs/ui/element-details/sections/properties-section.tsx';
 import type { DesignedBuildingBlockInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
@@ -19,6 +20,11 @@ export const buildingBlockSections = (
       element,
       title: 'Implements',
       set: block.implements,
+    }),
+    ...section(PropertiesSection, 'properties', {
+      element,
+      title: 'Properties',
+      properties: block.properties,
     }),
   ];
 };

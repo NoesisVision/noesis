@@ -63,6 +63,19 @@ export const changedEverywhereFixture = {
             {
               name: 'Refund never exceeds paid amount',
               ruleType: agent('Consistency'),
+              scenarios: {
+                added: [
+                  {
+                    name: 'Refunding more than was paid',
+                    given: agent('an order paid 100'),
+                    when: agent('support refunds 120'),
+                    // Gherkin's word; the fixture is never awaited.
+                    // oxlint-disable-next-line unicorn/no-thenable
+                    then: agent('the refund is refused'), // NOSONAR
+                  },
+                ],
+                removed: ['Refunding without a receipt'],
+              },
             },
           ],
         },

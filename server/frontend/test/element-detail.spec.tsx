@@ -47,7 +47,21 @@ const document = {
             {
               name: 'A hold expires',
               description: plain(''),
-              scenarios: { added: [], removed: [], modified: [] },
+              scenarios: {
+                added: [
+                  {
+                    name: 'An unpaid hold lapses',
+                    description: plain('The retry window closes.'),
+                    given: plain('a hold with no payment'),
+                    when: plain('an hour passes'),
+                    // Gherkin's word; the fixture is never awaited.
+                    // oxlint-disable-next-line unicorn/no-thenable
+                    then: plain('the hold is released'), // NOSONAR
+                  },
+                ],
+                removed: [],
+                modified: [],
+              },
             },
           ],
           removed: [],
@@ -122,6 +136,15 @@ const outline: OutlineNode[] = [
     kind: 'rule',
     name: 'A hold expires',
     depth: 2,
+    change: 'added',
+  }),
+  node({
+    path: 'building_block|pay.Hold#rule:A hold expires#scenario:An unpaid hold lapses',
+    parentPath: 'building_block|pay.Hold#rule:A hold expires',
+    elementId: null,
+    kind: 'scenario',
+    name: 'An unpaid hold lapses',
+    depth: 3,
     change: 'added',
   }),
   node({
@@ -228,6 +251,15 @@ describe('ElementDetail', () => {
     expect(html).toContain('When');
     expect(html).toContain('Then');
     expect(html).toContain('the hold settles');
+  });
+
+  it("reads a rule's own scenario through the rule", () => {
+    const html = show(
+      'building_block|pay.Hold#rule:A hold expires#scenario:An unpaid hold lapses',
+    );
+    expect(html).toContain('the hold is released');
+    // The trail runs through the rule the scenario belongs to.
+    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
   });
 
   it('has nothing to read about an element the design only removes', () => {

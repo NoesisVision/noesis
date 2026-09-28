@@ -14,7 +14,6 @@ interface ScenarioStepsSectionProps {
 }
 
 export function ScenarioStepsSection({ scenario }: ScenarioStepsSectionProps) {
-  console.info(scenario);
   return (
     <DetailSection title="Scenario">
       <DataList orientation="vertical">

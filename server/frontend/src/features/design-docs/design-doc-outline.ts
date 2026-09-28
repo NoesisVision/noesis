@@ -128,18 +128,19 @@ function addRules(
   owner: string,
   rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
 ): void {
-  for (const [rule, change] of named(rules))
-    put(
-      nodes,
-      part(
-        owner,
-        'rule',
-        rule.name,
-        change,
-        valueOf(rule.ruleType),
-        valueOf(rule.description),
-      ),
+  for (const [rule, change] of named(rules)) {
+    const node = part(
+      owner,
+      'rule',
+      rule.name,
+      change,
+      valueOf(rule.ruleType),
+      valueOf(rule.description),
     );
+    put(nodes, node);
+    // A rule's own scenarios hang under the rule, not beside it.
+    addScenarios(nodes, node.path, rule.scenarios);
+  }
   for (const name of rules?.removed ?? [])
     put(nodes, part(owner, 'rule', name, 'removed'));
 }
@@ -234,9 +235,10 @@ function part(
   description: string | null | undefined = null,
 ): OutlineNode {
   return {
-    // A part has no id of its own, so it is named under the element that owns
-    // it; a name never carries the separators, so the pair cannot collide.
-    path: `${owner}#${kind}:${name}`,
+    // A part has no id of its own, so it is named under the element — or, for
+    // a rule's scenario, the rule — that owns it; a name never carries the
+    // separators, so the pair cannot collide.
+    path: `${owner}${PART_MARK}${kind}:${name}`,
     parentPath: owner,
     elementId: null,
     kind,
@@ -249,6 +251,25 @@ function part(
     // `OrderId`, `RefundLine[]`, `date`, `State change`.
     patternLabel: pattern,
     hasDiagram: drawsDiagram(description),
+  };
+}
+
+const PART_MARK = '#';
+const RULE_MARK = `${PART_MARK}rule:`;
+
+/**
+ * What a part hangs under, read back off the path `part` gave its parent: the
+ * element that owns it and, for a scenario of a rule, that rule's name.
+ */
+export function ownerOfPart(parentPath: string): {
+  elementId: string;
+  rule: string | null;
+} {
+  const cut = parentPath.indexOf(RULE_MARK);
+  if (cut === -1) return { elementId: parentPath, rule: null };
+  return {
+    elementId: parentPath.slice(0, cut),
+    rule: parentPath.slice(cut + RULE_MARK.length),
   };
 }
 

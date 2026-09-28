@@ -16,7 +16,9 @@ export type DesignDocFieldInput<T> =
   | undefined;
 
 /** The value the design writes, or `null` when it leaves the field as it is. */
-export function valueOf<T>(field: DesignDocFieldInput<T>): T | null {
+export function valueOf<T>(
+  field: DesignDocFieldInput<T> | undefined,
+): T | null {
   return field !== undefined && 'value' in field ? field.value : null;
 }
 

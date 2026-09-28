@@ -1,5 +1,5 @@
 import { Code } from '#/shared/design-system/code.tsx';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import type { ChangeSetInput } from '../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';
@@ -23,7 +23,7 @@ export function RefsSection({ title, set }: RefsSectionProps) {
   const modified = (set?.modified ?? []).map(modifiedMapper);
   const removed = (set?.removed ?? []).map(removedMapper);
 
-  const total: { change: OutlineNode['change']; name: string }[] = [
+  const total: { change: OutlineChange; name: string }[] = [
     ...added,
     ...modified,
     ...removed,
