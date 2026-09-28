@@ -3,16 +3,8 @@
 // served, so a schema change that strands one fails here, not in a demo.
 import { describe, expect, it } from 'bun:test';
 import { resolve } from 'node:path';
-import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
-import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { ChangesService } from '#backend/app/changes/changes.service';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import { DocumentSchema } from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
-import { SearchService } from '#backend/app/search/search.service';
-import { localToday } from '#backend/app/today';
 import { createApp } from '#backend/boot/app';
+import { createServices } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const EXAMPLES = resolve(__dirname, '../../../../examples');
@@ -34,38 +26,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
 // Read only: the repositories open nothing that is not there, so the checkout
 // stays as committed.
 function appOver(repositoryRoot: string) {
-  const noesis = new NoesisDir(repositoryRoot);
-  const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new NoesisChangeOwnedRepository(
-    noesis,
-    DesignDocument,
-    'design-doc',
-  );
-  const documentsRepository = new NoesisChangeOwnedRepository(
-    noesis,
-    DocumentSchema,
-    'document',
-  );
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    localToday,
-  );
-  return createApp({
-    searchService: new SearchService(),
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-      localToday,
-    ),
-    documentsService: new DocumentsService(
-      documentsRepository,
-      changesService,
-      localToday,
-    ),
-  });
+  return createApp(createServices(new NoesisDir(repositoryRoot)));
 }
 
 interface NavigationChange {

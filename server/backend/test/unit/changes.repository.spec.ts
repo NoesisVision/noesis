@@ -26,8 +26,8 @@ describe('NoesisChangesRepository', () => {
   it('lists nothing before the first change, then every id written, ascending', async () => {
     expect(await ids()).toEqual([]);
 
-    const audit = await t.createChange('2026-01-02-audit-log');
-    await t.createChange('2026-01-01-payment-retry');
+    const audit = await t.writeChange('2026-01-02-audit-log');
+    await t.writeChange('2026-01-01-payment-retry');
 
     expect(await ids()).toEqual([
       '2026-01-01-payment-retry',
@@ -43,7 +43,7 @@ describe('NoesisChangesRepository', () => {
     await mkdir(join(t.changesDir, '.hidden'), { recursive: true });
     await mkdir(join(t.changesDir, '2026-01-01-orphan'), { recursive: true });
     await writeFile(join(t.changesDir, 'README.md'), 'notes');
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
 
     expect(await ids()).toEqual(['2026-01-01-real']);
     expect(
@@ -52,7 +52,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses to list a change file that is not a change', async () => {
-    await t.createChange('2026-01-01-real');
+    await t.writeChange('2026-01-01-real');
     await writeFile(
       join(t.changesDir, 'payment-retry.change.json'),
       JSON.stringify({ id: 'payment-retry', name: 'x', type: 'chore' }),
@@ -89,7 +89,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('replaces the change and keeps what it owns', async () => {
-    const kept = await t.createChange('2026-01-01-kept', {
+    const kept = await t.writeChange('2026-01-01-kept', {
       status: 'discovery',
     });
     await t.writeDesignDoc(kept, designDocFixture);
@@ -110,7 +110,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('refuses data whose id is not one, and data that is not a change', async () => {
-    const typed = await t.createChange('2026-01-01-typed');
+    const typed = await t.writeChange('2026-01-01-typed');
     const before = await t.changesRepository.get(typed);
     if (before === null) throw new Error('the change was not written');
 
@@ -130,7 +130,7 @@ describe('NoesisChangesRepository', () => {
   });
 
   it('creates only where no change is, and replaces only one that is', async () => {
-    const taken = await t.createChange('2026-01-01-taken', { name: 'First' });
+    const taken = await t.writeChange('2026-01-01-taken', { name: 'First' });
     const stored = await t.changesRepository.get(taken);
     if (stored === null) throw new Error('the change was not written');
     const missing = { ...stored, id: ChangeId.parse('2026-01-01-missing') };

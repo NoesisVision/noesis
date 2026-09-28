@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import {
-  type DocumentsService,
-  DocumentSummarySchema,
-} from '#backend/app/information-sources/documents.service';
+  CreateDocumentInChange,
+  type CreateDocumentInChangeHandler,
+} from '#backend/app/information-sources/create-document-in-change';
+import { DocumentSummarySchema } from '#backend/app/information-sources/document-summary';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
@@ -20,7 +20,7 @@ const outputSchema = z
   .describe('The document as stored, with the id the server minted.');
 
 export function createDocumentInChangeTool(
-  documents: DocumentsService,
+  createDocument: CreateDocumentInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -39,11 +39,14 @@ export function createDocumentInChangeTool(
     (input) =>
       fromWorkingFile(
         files,
-        DocumentContentSchema,
+        CreateDocumentInChange.shape.document,
         SUBJECT,
         input.path,
         async (file) => {
-          const document = await documents.create(input.change, file);
+          const document = await createDocument.handle({
+            change: input.change,
+            document: file,
+          });
           return success(
             `Created document ${document.id} ("${document.title}") in ${input.change}. Refer to it by this id.`,
             { document },

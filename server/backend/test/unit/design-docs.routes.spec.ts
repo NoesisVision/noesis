@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import { SearchService } from '#backend/app/search/search.service';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -25,13 +24,8 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  change = await t.createChange(CHANGE);
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  change = await t.writeChange(CHANGE);
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
@@ -109,20 +103,20 @@ describe('ui design-docs routes', () => {
     expect(await res.json()).toEqual({
       designDoc: { id: ID, name: byHuman.name, implemented: true },
     });
-    const stored = await t.designDocsService.findById(
+    const stored = await t.findDesignDoc.handle({
       change,
-      DesignDocId.parse(ID),
-    );
+      id: DesignDocId.parse(ID),
+    });
     expect(stored.implemented).toBe(true);
     expect(JSON.stringify(stored)).toContain('"author":"human"');
   });
 
   it('answers a revision that breaks the rules with each field to fix, keeping the stored one', async () => {
     await t.writeDesignDoc(change, greenFieldDesignDocFixture);
-    const stored = await t.designDocsService.findById(
+    const stored = await t.findDesignDoc.handle({
       change,
-      DesignDocId.parse(ID),
-    );
+      id: DesignDocId.parse(ID),
+    });
 
     const res = await send('PUT', `${BASE}/${ID}`, {
       ...byAgent,
@@ -143,7 +137,7 @@ describe('ui design-docs routes', () => {
       ],
     });
     expect(
-      await t.designDocsService.findById(change, DesignDocId.parse(ID)),
+      await t.findDesignDoc.handle({ change, id: DesignDocId.parse(ID) }),
     ).toEqual(stored);
   });
 
@@ -166,9 +160,9 @@ describe('ui design-docs routes', () => {
 
     expect((await send('POST', BASE, byAgent)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
-    expect((await t.designDocsService.list(change)).map((d) => d.id)).toEqual([
-      DesignDocId.parse(ID),
-    ]);
+    expect(
+      (await t.listDesignDocsInChange.handle({ change })).map((d) => d.id),
+    ).toEqual([DesignDocId.parse(ID)]);
   });
 
   it('404s every route of a change that does not exist', async () => {

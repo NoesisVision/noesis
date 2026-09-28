@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
+import { DesignDocSummarySchema } from '#backend/app/design-docs/design-doc-summary';
 import {
-  DesignDocSummarySchema,
-  type DesignDocsService,
-} from '#backend/app/design-docs/design-docs.service';
+  UpdateDesignDocInChange,
+  type UpdateDesignDocInChangeHandler,
+} from '#backend/app/design-docs/update-design-doc-in-change';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
@@ -22,7 +22,7 @@ const outputSchema = z
   .describe('The design document as stored.');
 
 export function updateDesignDocInChangeTool(
-  designDocs: DesignDocsService,
+  updateDesignDoc: UpdateDesignDocInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -45,16 +45,16 @@ export function updateDesignDocInChangeTool(
     (input) =>
       fromWorkingFile(
         files,
-        DesignDocumentContent,
+        UpdateDesignDocInChange.shape.designDoc,
         SUBJECT,
         input.path,
         async (file) => {
-          const designDoc = await designDocs.update(
-            input.change,
-            input.id,
-            file,
-            'agent',
-          );
+          const designDoc = await updateDesignDoc.handle({
+            change: input.change,
+            id: input.id,
+            designDoc: file,
+            writer: 'agent',
+          });
           return success(
             `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,
             { designDoc },

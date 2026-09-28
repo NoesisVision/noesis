@@ -3,7 +3,6 @@ import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { SearchService } from '#backend/app/search/search.service';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -16,12 +15,7 @@ let app: ReturnType<typeof createUiApp>;
 beforeEach(async () => {
   t = await testNoesis();
   // Through the whole surface: its error handler answers a missing change.
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
@@ -63,10 +57,10 @@ describe('ui changes routes', () => {
   });
 
   it('lists each change with its entries, scoped to it', async () => {
-    const older = await t.createChange('2026-09-13-older', {
+    const older = await t.writeChange('2026-09-13-older', {
       name: 'Older change',
     });
-    await t.createChange('2026-09-14-newer', { name: 'Newer change' });
+    await t.writeChange('2026-09-14-newer', { name: 'Newer change' });
     await t.writeDesignDoc(older, designDocFixture);
     const document = {
       id: DocumentId.parse('2026-09-12-stakeholder-interview'),
@@ -110,7 +104,7 @@ describe('ui changes routes', () => {
   });
 
   it('names the entries of a change oldest first, by id', async () => {
-    const change = await t.createChange('2026-09-13-older');
+    const change = await t.writeChange('2026-09-13-older');
     for (const [id, title] of [
       ['2026-09-12-zoning-rules', 'Zoning rules'],
       ['2026-09-10-appointment-booking', 'Appointment booking'],

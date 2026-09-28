@@ -1,6 +1,11 @@
-import type { DesignDocViolation } from './design-doc';
+import {
+  DesignDocument,
+  type DesignDocumentContent,
+  type DesignDocViolation,
+} from './design-doc';
+import type { DesignDocFieldAuthor } from './design-doc-field';
 
-/** A design document an agent wrote breaks the rules of `DesignDocument.validateAgentGenerated`. */
+/** A design document breaks the rules its writer follows. */
 export class InvalidDesignDocError extends Error {
   readonly violations: DesignDocViolation[];
 
@@ -13,4 +18,19 @@ export class InvalidDesignDocError extends Error {
     this.name = 'InvalidDesignDocError';
     this.violations = violations;
   }
+}
+
+/**
+ * Throws `InvalidDesignDocError` when the document breaks the rules `writer`
+ * follows. No system model is scanned yet, so every design is a green field.
+ */
+export function assertDesignDocFollowsRules(
+  document: DesignDocumentContent,
+  writer: DesignDocFieldAuthor,
+): void {
+  const violations =
+    writer === 'agent'
+      ? DesignDocument.validateAgentGenerated(document)
+      : DesignDocument.validateHumanEdited(document);
+  if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

@@ -16,7 +16,7 @@ const ENTITY_OF = new Map<z.core.$ZodType, Entity>([
  * Parses the route params into their value objects, read back with
  * `c.req.valid('param')`. A malformed id names nothing, so it is a
  * `NotFoundError` for the entity its schema stands for, answered where every
- * other one is. A malformed change id is the one named, as the services name
+ * other one is. A malformed change id is the one named, as the handlers name
  * a missing change before what it holds.
  *
  * Give one call every param of the route, parent ones included: Hono keeps

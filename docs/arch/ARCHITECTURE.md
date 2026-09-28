@@ -99,14 +99,15 @@ Two, and only two.
 - **Browser UI** reaches the service over an HTTP API. One endpoint per view; the service
   assembles each screen's payload server-side. The page also writes what a person may: it
   creates a change, revises a design document, and adds or removes a document.
-- **Agent** reaches the service over MCP. Tools are thin — parse arguments, call one service
-  method, shape the response.
+- **Agent** reaches the service over MCP. Tools are thin — parse arguments, hand one command
+  to one handler, shape the response.
 
 Both land on the same service layer. Neither bypasses it.
 
 ## Noesis service
 
-- **Services** own use-case orchestration and view assembly. They are the only callers of
+- **Services** own use-case orchestration and view assembly, as one handler per command or
+  query, built by a factory over the repositories it needs. They are the only callers of
   repositories, and the only component both entry points can see.
 - **File repositories** own the on-disk layout of the knowledge graph files — one repository per
   kind, each responsible for its own canonical paths and file format.

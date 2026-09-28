@@ -1,5 +1,4 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { SearchService } from '#backend/app/search/search.service';
 import { createApp } from '#backend/boot/app';
 import { testNoesis } from './test-noesis';
 
@@ -7,12 +6,7 @@ const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('app', () => {
-  const app = createApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  const app = createApp(t);
 
   it('echoes an incoming x-request-id on the response', async () => {
     const res = await app.request('/ui/changes', {
@@ -48,7 +42,7 @@ describe('app', () => {
     });
 
     expect(res.status).toBe(403);
-    expect(await t.changesService.list()).toEqual([]);
+    expect(await t.listChanges.handle()).toEqual([]);
   });
 
   it('takes a write the page sends from its own origin', async () => {
@@ -66,7 +60,7 @@ describe('app', () => {
   });
 
   it('takes a removal the page sends, and refuses one without a page behind it', async () => {
-    const change = await t.createChange('2026-01-01-booking');
+    const change = await t.writeChange('2026-01-01-booking');
     const url = `http://127.0.0.1:3000/ui/changes/${change}/documents/2026-01-01-notes`;
 
     const fromPage = await app.request(url, {

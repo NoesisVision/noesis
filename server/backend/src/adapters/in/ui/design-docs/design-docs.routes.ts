@@ -1,13 +1,23 @@
 import { Hono } from 'hono';
-import { ChangeId } from '#backend/app/changes/change-id';
-import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
-import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import {
+  FindDesignDoc,
+  type FindDesignDocHandler,
+} from '#backend/app/design-docs/find-design-doc';
+import {
+  ListDesignDocsInChange,
+  type ListDesignDocsInChangeHandler,
+} from '#backend/app/design-docs/list-design-docs-in-change';
+import {
+  UpdateDesignDocInChange,
+  type UpdateDesignDocInChangeHandler,
+} from '#backend/app/design-docs/update-design-doc-in-change';
 import { jsonBody, workingFileLimit } from '../json-body';
 import { routeParams } from '../route-params';
 
 export interface DesignDocsDeps {
-  designDocsService: DesignDocsService;
+  listDesignDocsInChange: ListDesignDocsInChangeHandler;
+  findDesignDoc: FindDesignDocHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
 }
 
 /**
@@ -16,39 +26,36 @@ export interface DesignDocsDeps {
  * may write fields in its own name.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
-  const { designDocsService } = deps;
+  const { listDesignDocsInChange, findDesignDoc, updateDesignDocInChange } =
+    deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', routeParams({ change: ChangeId }), async (c) => {
-      const { change } = c.req.valid('param');
-      return c.json({ designDocs: await designDocsService.list(change) });
+    .get('/', routeParams(ListDesignDocsInChange.shape), async (c) => {
+      return c.json({
+        designDocs: await listDesignDocsInChange.handle(c.req.valid('param')),
+      });
     })
 
-    .get(
-      '/:id',
-      routeParams({ change: ChangeId, id: DesignDocId }),
-      async (c) => {
-        const { change, id } = c.req.valid('param');
-        return c.json({
-          document: await designDocsService.findById(change, id),
-        });
-      },
-    )
+    .get('/:id', routeParams(FindDesignDoc.shape), async (c) => {
+      return c.json({
+        document: await findDesignDoc.handle(c.req.valid('param')),
+      });
+    })
 
     .put(
       '/:id',
       workingFileLimit,
-      routeParams({ change: ChangeId, id: DesignDocId }),
-      jsonBody(DesignDocumentContent),
+      routeParams(
+        UpdateDesignDocInChange.pick({ change: true, id: true }).shape,
+      ),
+      jsonBody(UpdateDesignDocInChange.shape.designDoc),
       async (c) => {
-        const { change, id } = c.req.valid('param');
-        const designDoc = await designDocsService.update(
-          change,
-          id,
-          c.req.valid('json'),
-          'human',
-        );
+        const designDoc = await updateDesignDocInChange.handle({
+          ...c.req.valid('param'),
+          designDoc: c.req.valid('json'),
+          writer: 'human',
+        });
         return c.json({ designDoc });
       },
     );

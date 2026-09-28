@@ -6,46 +6,41 @@ import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangesService } from '#backend/app/changes/changes.service';
 import {
   DesignDocument,
   type DesignDocumentInput,
 } from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import {
   type Document,
   DocumentSchema,
 } from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
+import { createServices, type Services } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** The day every service in a spec mints its ids on. */
+/** The day every handler in a spec mints its ids on. */
 const TODAY = () => '2026-09-24';
 
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
-export interface TestNoesis {
+export interface TestNoesis extends Services {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
   designDocsRepository: NoesisChangeOwnedRepository<DesignDocument>;
   documentsRepository: NoesisChangeOwnedRepository<Document>;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
-  /** Writes a change with placeholder data. */
-  createChange(
+  /** Writes a change with placeholder data, bypassing the handlers. */
+  writeChange(
     id: string | ChangeId,
     overrides?: Partial<Change>,
   ): Promise<ChangeId>;
-  /** Writes a design document into the change, bypassing the service. */
+  /** Writes a design document into the change, bypassing the handlers. */
   writeDesignDoc(
     change: ChangeId,
     document: DesignDocumentInput,
   ): Promise<void>;
-  /** Writes a document into the change, bypassing the service. */
+  /** Writes a document into the change, bypassing the handlers. */
   writeDocument(
     change: ChangeId,
     document: z.input<typeof DocumentSchema>,
@@ -68,31 +63,15 @@ export async function testNoesis(): Promise<TestNoesis> {
     DocumentSchema,
     'document',
   );
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    TODAY,
-  );
   return {
+    ...createServices(noesis, TODAY),
     root,
     noesis,
     changesRepository,
     designDocsRepository,
     documentsRepository,
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-      TODAY,
-    ),
-    documentsService: new DocumentsService(
-      documentsRepository,
-      changesService,
-      TODAY,
-    ),
     changesDir: noesis.resolve('graph', 'changes'),
-    createChange: async (id, overrides = {}) => {
+    writeChange: async (id, overrides = {}) => {
       const parsed = ChangeId.parse(id);
       const change: Change = {
         id: parsed,

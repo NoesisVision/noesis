@@ -6,7 +6,7 @@ import {
   NewChangeSchema,
 } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import { ChangesService } from '#backend/app/changes/changes.service';
+import { createChangeHandler } from '#backend/app/changes/create-change';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -28,17 +28,17 @@ const change = (id: string, overrides: Partial<Change> = {}): Change => ({
   ...overrides,
 });
 
-describe('ChangesService', () => {
+describe('Reading changes', () => {
   it('lets a tracker key repeat across changes', async () => {
     const draft = NewChangeSchema.parse({
       name: 'Payment retry',
       type: 'fix',
       key: 'NOE-1',
     });
-    await t.changesService.create(draft);
-    await t.changesService.create({ ...draft, name: 'Refund retry' });
+    await t.createChange.handle(draft);
+    await t.createChange.handle({ ...draft, name: 'Refund retry' });
 
-    expect(await t.changesService.list()).toHaveLength(2);
+    expect(await t.listChanges.handle()).toHaveLength(2);
   });
 
   it('lists newest first, by id', async () => {
@@ -46,7 +46,7 @@ describe('ChangesService', () => {
       await t.changesRepository.create(change(id));
     }
 
-    expect((await t.changesService.list()).map((c) => c.id)).toEqual([
+    expect((await t.listChanges.handle()).map((c) => c.id)).toEqual([
       ChangeId.parse('2026-03-01-a'),
       ChangeId.parse('2026-01-02-c'),
       ChangeId.parse('2026-01-02-b'),
@@ -54,7 +54,7 @@ describe('ChangesService', () => {
   });
 
   it("names a change's design docs, then its documents, each oldest first", async () => {
-    const id = await t.createChange('2026-01-01-payment-retry');
+    const id = await t.writeChange('2026-01-01-payment-retry');
     await t.writeDocument(id, {
       id: '2026-01-03-notes',
       title: 'Notes',
@@ -73,10 +73,10 @@ describe('ChangesService', () => {
       name: 'Retry flow',
     });
 
-    const entries = await t.changesService.entries(id);
+    const [listed] = await t.listChangesWithEntries.handle();
 
     expect(
-      entries.map(({ kind, id, name }) => `${kind} ${id} ${name}`),
+      listed?.entries.map(({ kind, id, name }) => `${kind} ${id} ${name}`),
     ).toEqual([
       'design-doc 2026-01-05-retry-flow Retry flow',
       'document 2026-01-02-interview Interview',
@@ -84,15 +84,9 @@ describe('ChangesService', () => {
     ]);
   });
 
-  it('refuses the entries of a change that does not exist', async () => {
-    await expect(
-      t.changesService.entries(ChangeId.parse('2026-01-01-missing')),
-    ).rejects.toMatchObject({ entity: 'change' });
-  });
-
   it('lists every change, newest first, with its own entries', async () => {
-    const older = await t.createChange('2026-01-01-older');
-    await t.createChange('2026-01-02-newer');
+    const older = await t.writeChange('2026-01-01-older');
+    await t.writeChange('2026-01-02-newer');
     await t.writeDocument(older, {
       id: '2026-01-01-notes',
       title: 'Notes',
@@ -100,7 +94,7 @@ describe('ChangesService', () => {
       content: '',
     });
 
-    const listed = await t.changesService.listWithEntries();
+    const listed = await t.listChangesWithEntries.handle();
 
     expect(listed.map(({ id, entries }) => `${id} ${entries.length}`)).toEqual([
       '2026-01-02-newer 0',
@@ -109,11 +103,11 @@ describe('ChangesService', () => {
   });
 });
 
-describe('ChangesService.create', () => {
+describe('CreateChangeHandler', () => {
   const draft = NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' });
 
   it("mints the id from today's date and the name, and starts in discovery", async () => {
-    const created = await t.changesService.create(draft);
+    const created = await t.createChange.handle(draft);
 
     expect(created).toEqual({
       id: ChangeId.parse('2026-09-24-payment-retry'),
@@ -123,22 +117,22 @@ describe('ChangesService.create', () => {
       status: 'discovery',
       description: '',
     });
-    expect(await t.changesService.findById(created.id)).toEqual(created);
+    expect(await t.findChange.handle({ id: created.id })).toEqual(created);
   });
 
   it('gives a name already used today the next free suffix', async () => {
-    await t.changesService.create(draft);
-    const second = await t.changesService.create(draft);
+    await t.createChange.handle(draft);
+    const second = await t.createChange.handle(draft);
 
     expect(second.id).toBe(ChangeId.parse('2026-09-24-payment-retry-2'));
-    expect(await t.changesService.list()).toHaveLength(2);
+    expect(await t.listChanges.handle()).toHaveLength(2);
   });
 
   it('gives parallel creates of one name different ids', async () => {
     const created = await Promise.all([
-      t.changesService.create(draft),
-      t.changesService.create(draft),
-      t.changesService.create(draft),
+      t.createChange.handle(draft),
+      t.createChange.handle(draft),
+      t.createChange.handle(draft),
     ]);
 
     expect(created.map((c) => c.id)).toEqual([
@@ -150,42 +144,40 @@ describe('ChangesService.create', () => {
 
   it('gives creates of one name from two sessions different ids', async () => {
     // Another session's service over the same files, as its own process has.
-    const otherSession = new ChangesService(
+    const otherSession = createChangeHandler(
       new NoesisChangesRepository(t.noesis),
-      t.designDocsRepository,
-      t.documentsRepository,
       () => '2026-09-24',
     );
 
     const created = await Promise.all([
-      t.changesService.create(draft),
-      otherSession.create(draft),
-      t.changesService.create(draft),
-      otherSession.create(draft),
+      t.createChange.handle(draft),
+      otherSession.handle(draft),
+      t.createChange.handle(draft),
+      otherSession.handle(draft),
     ]);
 
     expect(new Set(created.map((c) => c.id)).size).toBe(4);
-    expect(await t.changesService.list()).toHaveLength(4);
+    expect(await t.listChanges.handle()).toHaveLength(4);
   });
 });
 
-describe('ChangesService.update', () => {
+describe('UpdateChangeHandler', () => {
   it('replaces the change at its id, which a rename leaves as it was', async () => {
-    const { id } = await t.changesService.create(
+    const { id } = await t.createChange.handle(
       NewChangeSchema.parse({ name: 'Payment retry', type: 'fix' }),
     );
 
-    const updated = await t.changesService.update(
-      id,
-      ChangeContentSchema.parse({
+    const updated = await t.updateChange.handle({
+      id: id,
+      ...ChangeContentSchema.parse({
         name: 'Payment retries',
         type: 'feature',
         status: 'design',
       }),
-    );
+    });
 
     expect(updated.id).toBe(id);
-    expect(await t.changesService.list()).toEqual([updated]);
+    expect(await t.listChanges.handle()).toEqual([updated]);
     expect(updated).toMatchObject({
       name: 'Payment retries',
       status: 'design',
@@ -196,15 +188,15 @@ describe('ChangesService.update', () => {
     const missing = ChangeId.parse('2026-09-24-missing');
 
     await expect(
-      t.changesService.update(
-        missing,
-        ChangeContentSchema.parse({
+      t.updateChange.handle({
+        id: missing,
+        ...ChangeContentSchema.parse({
           name: 'Missing',
           type: 'fix',
           status: 'design',
         }),
-      ),
+      }),
     ).rejects.toMatchObject({ entity: 'change' });
-    expect(await t.changesService.list()).toEqual([]);
+    expect(await t.listChanges.handle()).toEqual([]);
   });
 });

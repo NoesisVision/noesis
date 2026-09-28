@@ -3,7 +3,6 @@ import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { Document } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { SearchService } from '#backend/app/search/search.service';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -27,13 +26,8 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  change = await t.createChange(CHANGE);
-  app = createUiApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  change = await t.writeChange(CHANGE);
+  app = createUiApp(t);
 });
 
 afterEach(() => t.cleanup());
@@ -81,10 +75,10 @@ describe('ui documents routes', () => {
     expect(await res.json()).toEqual({
       document: { id: minted, title: content.title, date: content.date },
     });
-    const stored = await t.documentsService.findById(
+    const stored = await t.findDocument.handle({
       change,
-      DocumentId.parse(minted),
-    );
+      id: DocumentId.parse(minted),
+    });
     expect(stored.content).toBe(content.content);
   });
 
@@ -95,7 +89,7 @@ describe('ui documents routes', () => {
     const body = (await res.json()) as { error: string; issues: unknown };
     expect(body.error).toBe('invalid_body');
     expect(JSON.stringify(body.issues)).toContain('date');
-    expect(await t.documentsService.list(change)).toEqual([]);
+    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
   });
 
   it('refuses a body that is not JSON, or not sent as JSON', async () => {
@@ -113,7 +107,7 @@ describe('ui documents routes', () => {
     expect(malformed.status).toBe(400);
     expect(await malformed.json()).toEqual({ error: 'invalid_body' });
     expect(asText.status).toBe(400);
-    expect(await t.documentsService.list(change)).toEqual([]);
+    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
   });
 
   it('refuses a body larger than a working file may be', async () => {
@@ -139,7 +133,7 @@ describe('ui documents routes', () => {
     expect(removed.status).toBe(204);
     expect(again.status).toBe(404);
     expect(await again.json()).toEqual({ error: 'not_found' });
-    expect(await t.documentsService.list(change)).toEqual([]);
+    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
   });
 
   it('never revises a document: PUT is not a route of this surface', async () => {
@@ -148,7 +142,7 @@ describe('ui documents routes', () => {
     const res = await send('PUT', `${BASE}/${ID}`, document);
 
     expect(res.status).toBe(404);
-    expect(await t.documentsService.findById(change, document.id)).toEqual(
+    expect(await t.findDocument.handle({ change, id: document.id })).toEqual(
       document,
     );
   });

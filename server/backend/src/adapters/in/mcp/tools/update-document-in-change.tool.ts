@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { DocumentContentSchema } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
+import { DocumentSummarySchema } from '#backend/app/information-sources/document-summary';
 import {
-  type DocumentsService,
-  DocumentSummarySchema,
-} from '#backend/app/information-sources/documents.service';
+  UpdateDocumentInChange,
+  type UpdateDocumentInChangeHandler,
+} from '#backend/app/information-sources/update-document-in-change';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
@@ -21,7 +21,7 @@ const outputSchema = z
   .describe('The document as stored.');
 
 export function updateDocumentInChangeTool(
-  documents: DocumentsService,
+  updateDocument: UpdateDocumentInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -44,11 +44,15 @@ export function updateDocumentInChangeTool(
     (input) =>
       fromWorkingFile(
         files,
-        DocumentContentSchema,
+        UpdateDocumentInChange.shape.document,
         SUBJECT,
         input.path,
         async (file) => {
-          const document = await documents.update(input.change, input.id, file);
+          const document = await updateDocument.handle({
+            change: input.change,
+            id: input.id,
+            document: file,
+          });
           return success(
             `Updated document ${document.id} ("${document.title}") in ${input.change}.`,
             { document },

@@ -7,7 +7,6 @@ import {
   type DesignDocViolation,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
 import {
   decodedDesignDocFixture,
@@ -42,12 +41,10 @@ const removing = contentOf({
 });
 
 let t: TestNoesis;
-let service: DesignDocsService;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.createChange(CHANGE);
-  service = t.designDocsService;
+  await t.writeChange(CHANGE);
 });
 
 afterEach(() => t.cleanup());
@@ -74,16 +71,17 @@ describe('Reading the design documents of a change', () => {
       name: 'Another design',
     });
 
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
-      earlier,
-      STORED,
-    ]);
+    expect(
+      (await t.listDesignDocsInChange.handle({ change: CHANGE })).map(
+        (d) => d.id,
+      ),
+    ).toEqual([earlier, STORED]);
   });
 
   it('summarises each by its name and whether it is implemented', async () => {
     await t.writeDesignDoc(CHANGE, { ...designDocFixture, implemented: true });
 
-    expect(await service.list(CHANGE)).toEqual([
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual([
       { id: STORED, name: 'Partial refunds for orders', implemented: true },
     ]);
   });
@@ -91,28 +89,42 @@ describe('Reading the design documents of a change', () => {
   it('finds one whole, and refuses an id the change does not have', async () => {
     await t.writeDesignDoc(CHANGE, designDocFixture);
 
-    expect(await service.findById(CHANGE, STORED)).toEqual(
-      decodedDesignDocFixture,
-    );
+    expect(
+      await t.findDesignDoc.handle({ change: CHANGE, id: STORED }),
+    ).toEqual(decodedDesignDocFixture);
     await expect(
-      service.findById(CHANGE, DesignDocId.parse('2026-01-01-missing')),
+      t.findDesignDoc.handle({
+        change: CHANGE,
+        id: DesignDocId.parse('2026-01-01-missing'),
+      }),
     ).rejects.toMatchObject({ entity: 'design document' });
   });
 });
 
 describe('Every operation on design documents', () => {
   it('refuses a change that does not exist', async () => {
-    await expect(service.list(NOPE)).rejects.toMatchObject({
-      entity: 'change',
-    });
-    await expect(service.findById(NOPE, STORED)).rejects.toMatchObject({
-      entity: 'change',
-    });
-    await expect(service.create(NOPE, byAgent)).rejects.toMatchObject({
+    await expect(
+      t.listDesignDocsInChange.handle({ change: NOPE }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
     await expect(
-      service.update(NOPE, STORED, byAgent, 'agent'),
+      t.findDesignDoc.handle({ change: NOPE, id: STORED }),
+    ).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(
+      t.createDesignDocInChange.handle({ change: NOPE, designDoc: byAgent }),
+    ).rejects.toMatchObject({
+      entity: 'change',
+    });
+    await expect(
+      t.updateDesignDocInChange.handle({
+        change: NOPE,
+        id: STORED,
+        designDoc: byAgent,
+        writer: 'agent',
+      }),
     ).rejects.toMatchObject({
       entity: 'change',
     });
@@ -121,28 +133,50 @@ describe('Every operation on design documents', () => {
 
 describe('Creating a design document', () => {
   it("stores it at an id minted from today's date and its name", async () => {
-    const created = await service.create(CHANGE, byAgent);
+    const created = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
     expect(created.id).toBe(MINTED);
-    expect(await service.findById(CHANGE, MINTED)).toEqual(
+    expect(
+      await t.findDesignDoc.handle({ change: CHANGE, id: MINTED }),
+    ).toEqual(
       DesignDocument.parse({ ...greenFieldDesignDocFixture, id: MINTED }),
     );
   });
 
   it('gives a name already used today the next free suffix, never overwriting', async () => {
-    await service.create(CHANGE, byAgent);
+    await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
-    expect((await service.create(CHANGE, byAgent)).id).toBe(
-      DesignDocId.parse('2026-09-24-partial-refunds-for-orders-2'),
-    );
-    expect(await service.list(CHANGE)).toHaveLength(2);
+    expect(
+      (
+        await t.createDesignDocInChange.handle({
+          change: CHANGE,
+          designDoc: byAgent,
+        })
+      ).id,
+    ).toBe(DesignDocId.parse('2026-09-24-partial-refunds-for-orders-2'));
+    expect(
+      await t.listDesignDocsInChange.handle({ change: CHANGE }),
+    ).toHaveLength(2);
   });
 
   it('refuses a design that modifies or removes an element, as nothing is scanned yet', async () => {
-    expect(await brokenRules(service.create(CHANGE, removing))).toEqual([
-      'changedInGreenField',
-    ]);
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(
+      await brokenRules(
+        t.createDesignDocInChange.handle({
+          change: CHANGE,
+          designDoc: removing,
+        }),
+      ),
+    ).toEqual(['changedInGreenField']);
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 
   it('refuses a field a human wrote, storing nothing', async () => {
@@ -159,10 +193,17 @@ describe('Creating a design document', () => {
       },
     });
 
-    expect(await brokenRules(service.create(CHANGE, withHumanField))).toEqual([
-      'humanAuthor',
-    ]);
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(
+      await brokenRules(
+        t.createDesignDocInChange.handle({
+          change: CHANGE,
+          designDoc: withHumanField,
+        }),
+      ),
+    ).toEqual(['humanAuthor']);
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 
   it('refuses an added element with a field left unchanged, storing nothing', async () => {
@@ -173,85 +214,147 @@ describe('Creating a design document', () => {
       },
     });
 
-    expect(await brokenRules(service.create(CHANGE, incomplete))).toEqual([
-      'unchangedFieldInAddedItem',
-    ]);
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(
+      await brokenRules(
+        t.createDesignDocInChange.handle({
+          change: CHANGE,
+          designDoc: incomplete,
+        }),
+      ),
+    ).toEqual(['unchangedFieldInAddedItem']);
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 });
 
 describe('Updating a design document', () => {
   it('replaces it whole at its id', async () => {
-    const { id } = await service.create(CHANGE, byAgent);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
-    const updated = await service.update(
-      CHANGE,
+    const updated = await t.updateDesignDocInChange.handle({
+      change: CHANGE,
       id,
-      { ...byAgent, implemented: true },
-      'agent',
-    );
+      designDoc: { ...byAgent, implemented: true },
+      writer: 'agent',
+    });
 
     expect(updated).toEqual({
       id,
       name: 'Partial refunds for orders',
       implemented: true,
     });
-    expect(await service.list(CHANGE)).toHaveLength(1);
+    expect(
+      await t.listDesignDocsInChange.handle({ change: CHANGE }),
+    ).toHaveLength(1);
   });
 
   it('keeps its id when the name changes', async () => {
-    const { id } = await service.create(CHANGE, byAgent);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
-    const renamed = await service.update(
-      CHANGE,
+    const renamed = await t.updateDesignDocInChange.handle({
+      change: CHANGE,
       id,
-      { ...byAgent, name: 'Refunds by line' },
-      'agent',
-    );
+      designDoc: { ...byAgent, name: 'Refunds by line' },
+      writer: 'agent',
+    });
 
     expect(renamed).toMatchObject({ id, name: 'Refunds by line' });
   });
 
   it('refuses a version that breaks the rules, keeping the stored one', async () => {
-    const { id } = await service.create(CHANGE, byAgent);
-    const stored = await service.findById(CHANGE, id);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
+    const stored = await t.findDesignDoc.handle({ change: CHANGE, id });
 
     expect(
-      await brokenRules(service.update(CHANGE, id, removing, 'agent')),
+      await brokenRules(
+        t.updateDesignDocInChange.handle({
+          change: CHANGE,
+          id,
+          designDoc: removing,
+          writer: 'agent',
+        }),
+      ),
     ).toEqual(['changedInGreenField']);
-    expect(await service.findById(CHANGE, id)).toEqual(stored);
+    expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toEqual(
+      stored,
+    );
   });
 
   it('takes the fields a human writes in their own name', async () => {
-    const { id } = await service.create(CHANGE, byAgent);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
-    await service.update(CHANGE, id, byHuman, 'human');
+    await t.updateDesignDocInChange.handle({
+      change: CHANGE,
+      id,
+      designDoc: byHuman,
+      writer: 'human',
+    });
 
-    expect(await service.findById(CHANGE, id)).toEqual(
+    expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toEqual(
       DesignDocument.parse({ ...humanEditedDesignDocFixture, id }),
     );
   });
 
   it("refuses an agent writing a field in a human's name", async () => {
-    const { id } = await service.create(CHANGE, byAgent);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
     expect(
-      await brokenRules(service.update(CHANGE, id, byHuman, 'agent')),
+      await brokenRules(
+        t.updateDesignDocInChange.handle({
+          change: CHANGE,
+          id,
+          designDoc: byHuman,
+          writer: 'agent',
+        }),
+      ),
     ).toContain('humanAuthor');
   });
 
   it('holds a human to the rules every design follows', async () => {
-    const { id } = await service.create(CHANGE, byAgent);
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
 
     expect(
-      await brokenRules(service.update(CHANGE, id, removing, 'human')),
+      await brokenRules(
+        t.updateDesignDocInChange.handle({
+          change: CHANGE,
+          id,
+          designDoc: removing,
+          writer: 'human',
+        }),
+      ),
     ).toEqual(['changedInGreenField']);
   });
 
   it('refuses an id the change does not have, creating nothing', async () => {
     await expect(
-      service.update(CHANGE, STORED, byAgent, 'agent'),
+      t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id: STORED,
+        designDoc: byAgent,
+        writer: 'agent',
+      }),
     ).rejects.toMatchObject({ entity: 'design document' });
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 });

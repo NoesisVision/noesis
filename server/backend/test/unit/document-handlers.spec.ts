@@ -5,7 +5,6 @@ import {
   DocumentContentSchema,
 } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { type DocumentsService } from '#backend/app/information-sources/documents.service';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 const CHANGE = ChangeId.parse('2026-01-01-booking');
@@ -20,17 +19,15 @@ const document: Document = {
 };
 
 let t: TestNoesis;
-let service: DocumentsService;
 
 beforeEach(async () => {
   t = await testNoesis();
-  await t.createChange(CHANGE);
-  service = t.documentsService;
+  await t.writeChange(CHANGE);
 });
 
 afterEach(() => t.cleanup());
 
-describe('DocumentsService', () => {
+describe('Reading the documents of a change', () => {
   it('lists oldest first, by id', async () => {
     for (const id of [
       '2026-09-10-newer',
@@ -40,7 +37,11 @@ describe('DocumentsService', () => {
       await t.writeDocument(CHANGE, { ...document, id });
     }
 
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([
+    expect(
+      (await t.listDocumentsInChange.handle({ change: CHANGE })).map(
+        (d) => d.id,
+      ),
+    ).toEqual([
       DocumentId.parse('2026-09-01-older'),
       DocumentId.parse('2026-09-10-also-newer'),
       DocumentId.parse('2026-09-10-newer'),
@@ -49,21 +50,28 @@ describe('DocumentsService', () => {
 
   it('refuses a document that does not exist', async () => {
     await expect(
-      service.findById(CHANGE, DocumentId.parse('2026-01-01-missing')),
+      t.findDocument.handle({
+        change: CHANGE,
+        id: DocumentId.parse('2026-01-01-missing'),
+      }),
     ).rejects.toMatchObject({ entity: 'document' });
   });
 
   it('refuses every operation on a change that has no directory', async () => {
-    await expect(service.list(NOPE)).rejects.toMatchObject({
+    await expect(
+      t.listDocumentsInChange.handle({ change: NOPE }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
-    await expect(service.findById(NOPE, ID)).rejects.toMatchObject({
+    await expect(
+      t.findDocument.handle({ change: NOPE, id: ID }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
   });
 });
 
-describe('DocumentsService.create', () => {
+describe('CreateDocumentInChangeHandler', () => {
   const content = DocumentContentSchema.parse({
     title: 'Booking Rules — v2',
     date: '2026-09-18',
@@ -71,61 +79,93 @@ describe('DocumentsService.create', () => {
   });
 
   it("mints the id from today's date and the title, not the document's date", async () => {
-    const created = await service.create(CHANGE, content);
+    const created = await t.createDocumentInChange.handle({
+      change: CHANGE,
+      document: content,
+    });
 
     const id = DocumentId.parse('2026-09-24-booking-rules-v2');
     expect(created).toEqual({ id, title: content.title, date: content.date });
-    expect(await service.findById(CHANGE, id)).toEqual({
+    expect(await t.findDocument.handle({ change: CHANGE, id })).toEqual({
       id,
       ...content,
     });
   });
 
   it('gives a title already used today in the change the next free suffix', async () => {
-    await service.create(CHANGE, content);
+    await t.createDocumentInChange.handle({
+      change: CHANGE,
+      document: content,
+    });
 
-    expect((await service.create(CHANGE, content)).id).toBe(
-      DocumentId.parse('2026-09-24-booking-rules-v2-2'),
-    );
+    expect(
+      (
+        await t.createDocumentInChange.handle({
+          change: CHANGE,
+          document: content,
+        })
+      ).id,
+    ).toBe(DocumentId.parse('2026-09-24-booking-rules-v2-2'));
   });
 
   it('mints the same id in another change', async () => {
-    const other = await t.createChange('2026-01-01-billing');
-    const first = await service.create(CHANGE, content);
+    const other = await t.writeChange('2026-01-01-billing');
+    const first = await t.createDocumentInChange.handle({
+      change: CHANGE,
+      document: content,
+    });
 
-    expect((await service.create(other, content)).id).toBe(first.id);
+    expect(
+      (
+        await t.createDocumentInChange.handle({
+          change: other,
+          document: content,
+        })
+      ).id,
+    ).toBe(first.id);
   });
 
   it('gives parallel creates of one title different ids', async () => {
     const created = await Promise.all([
-      service.create(CHANGE, content),
-      service.create(CHANGE, content),
+      t.createDocumentInChange.handle({ change: CHANGE, document: content }),
+      t.createDocumentInChange.handle({ change: CHANGE, document: content }),
     ]);
 
     expect(new Set(created.map((d) => d.id)).size).toBe(2);
-    expect(await service.list(CHANGE)).toHaveLength(2);
+    expect(
+      await t.listDocumentsInChange.handle({ change: CHANGE }),
+    ).toHaveLength(2);
   });
 
   it('stores every one of many documents added to one change at once', async () => {
     const titles = ['Interview', 'Spec', 'Meeting notes', 'Research'];
 
     await Promise.all(
-      titles.map((title) => service.create(CHANGE, { ...content, title })),
+      titles.map((title) =>
+        t.createDocumentInChange.handle({
+          change: CHANGE,
+          document: { ...content, title },
+        }),
+      ),
     );
 
-    expect((await service.list(CHANGE)).map((d) => d.title).sort()).toEqual(
-      titles.toSorted(),
-    );
+    expect(
+      (await t.listDocumentsInChange.handle({ change: CHANGE }))
+        .map((d) => d.title)
+        .sort(),
+    ).toEqual(titles.toSorted());
   });
 
   it('refuses a change that has no directory', async () => {
-    await expect(service.create(NOPE, content)).rejects.toMatchObject({
+    await expect(
+      t.createDocumentInChange.handle({ change: NOPE, document: content }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
   });
 });
 
-describe('DocumentsService.update', () => {
+describe('UpdateDocumentInChangeHandler', () => {
   const content = DocumentContentSchema.parse({
     title: 'Booking rules',
     date: '2026-09-18',
@@ -133,59 +173,90 @@ describe('DocumentsService.update', () => {
   });
 
   it('replaces the document at its id, which a new title leaves as it was', async () => {
-    const { id } = await service.create(CHANGE, content);
+    const { id } = await t.createDocumentInChange.handle({
+      change: CHANGE,
+      document: content,
+    });
 
-    const updated = await service.update(CHANGE, id, {
-      ...content,
-      title: 'Booking rules v3',
-      content: 'A slot may be booked twice.',
+    const updated = await t.updateDocumentInChange.handle({
+      change: CHANGE,
+      id,
+      document: {
+        ...content,
+        title: 'Booking rules v3',
+        content: 'A slot may be booked twice.',
+      },
     });
 
     expect(updated.id).toBe(id);
-    const stored = await service.findById(CHANGE, id);
+    const stored = await t.findDocument.handle({ change: CHANGE, id });
     expect(stored.title).toBe('Booking rules v3');
     expect(stored.content).toBe('A slot may be booked twice.');
-    expect(await service.list(CHANGE)).toHaveLength(1);
+    expect(
+      await t.listDocumentsInChange.handle({ change: CHANGE }),
+    ).toHaveLength(1);
   });
 
   it('refuses an id that names no document in the change, and creates nothing', async () => {
     const missing = DocumentId.parse('2026-09-24-missing');
 
     await expect(
-      service.update(CHANGE, missing, content),
+      t.updateDocumentInChange.handle({
+        change: CHANGE,
+        id: missing,
+        document: content,
+      }),
     ).rejects.toMatchObject({ entity: 'document' });
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(await t.listDocumentsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 
   it('refuses a change that has no directory', async () => {
-    await expect(service.update(NOPE, ID, content)).rejects.toMatchObject({
+    await expect(
+      t.updateDocumentInChange.handle({
+        change: NOPE,
+        id: ID,
+        document: content,
+      }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
   });
 });
 
-describe('DocumentsService.delete', () => {
+describe('DeleteDocumentFromChangeHandler', () => {
   it('removes the document, leaving the others of the change', async () => {
     const other = DocumentId.parse('2026-09-18-cancellation');
     await t.writeDocument(CHANGE, document);
     await t.writeDocument(CHANGE, { ...document, id: other });
 
-    await service.delete(CHANGE, ID);
+    await t.deleteDocumentFromChange.handle({ change: CHANGE, id: ID });
 
-    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([other]);
-    await expect(service.findById(CHANGE, ID)).rejects.toMatchObject({
+    expect(
+      (await t.listDocumentsInChange.handle({ change: CHANGE })).map(
+        (d) => d.id,
+      ),
+    ).toEqual([other]);
+    await expect(
+      t.findDocument.handle({ change: CHANGE, id: ID }),
+    ).rejects.toMatchObject({
       entity: 'document',
     });
   });
 
   it('refuses an id that names no document in the change', async () => {
-    await expect(service.delete(CHANGE, ID)).rejects.toMatchObject({
+    await expect(
+      t.deleteDocumentFromChange.handle({ change: CHANGE, id: ID }),
+    ).rejects.toMatchObject({
       entity: 'document',
     });
   });
 
   it('refuses a change that does not exist', async () => {
-    await expect(service.delete(NOPE, ID)).rejects.toMatchObject({
+    await expect(
+      t.deleteDocumentFromChange.handle({ change: NOPE, id: ID }),
+    ).rejects.toMatchObject({
       entity: 'change',
     });
   });
@@ -195,13 +266,19 @@ describe('DocumentsService.delete', () => {
     const { id: _id, ...content } = document;
 
     const [removed] = await Promise.allSettled([
-      service.delete(CHANGE, ID),
-      service.update(CHANGE, ID, content),
+      t.deleteDocumentFromChange.handle({ change: CHANGE, id: ID }),
+      t.updateDocumentInChange.handle({
+        change: CHANGE,
+        id: ID,
+        document: content,
+      }),
     ]);
 
     // The update lands before the removal or finds nothing: either way the
     // document stays removed.
     expect(removed.status).toBe('fulfilled');
-    expect(await service.list(CHANGE)).toEqual([]);
+    expect(await t.listDocumentsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
   });
 });

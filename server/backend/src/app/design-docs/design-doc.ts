@@ -78,12 +78,15 @@ const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
   ),
-  name: z.string(),
+  name: z.string().describe('The design document name.'),
   description: z.string(),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviours: changeSet(DesignedBehaviour, BehaviorId),
-  implemented: z.boolean().default(false),
+  implemented: z
+    .boolean()
+    .default(false)
+    .describe('Whether the design is marked as implemented.'),
 });
 
 export const DesignDocument = Object.assign(designDocumentSchema, {

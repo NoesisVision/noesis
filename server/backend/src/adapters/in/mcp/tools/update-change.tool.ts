@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { ChangeContentSchema, ChangeSchema } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
 import { success } from '../tool-result';
@@ -15,7 +15,7 @@ const outputSchema = z
   .describe('The change as stored.');
 
 export function updateChangeTool(
-  changes: ChangesService,
+  updateChange: UpdateChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -47,7 +47,7 @@ export function updateChangeTool(
         SUBJECT,
         input.path,
         async (file) => {
-          const change = await changes.update(input.id, file);
+          const change = await updateChange.handle({ id: input.id, ...file });
           return success(
             `Updated change ${change.id} (${change.type}, ${change.status}).`,
             { change },

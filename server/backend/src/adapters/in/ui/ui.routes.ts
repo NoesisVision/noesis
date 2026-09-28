@@ -1,36 +1,25 @@
 import { Hono } from 'hono';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
-import type { SearchService } from '#backend/app/search/search.service';
-import { createChangesApp } from './changes/changes.routes';
-import { createDesignDocsApp } from './design-docs/design-docs.routes';
-import { createDocumentsApp } from './documents/documents.routes';
+import { type ChangesDeps, createChangesApp } from './changes/changes.routes';
+import {
+  createDesignDocsApp,
+  type DesignDocsDeps,
+} from './design-docs/design-docs.routes';
+import {
+  createDocumentsApp,
+  type DocumentsDeps,
+} from './documents/documents.routes';
 import { answerError } from './error-body';
-import { createSearchApp } from './search/search.routes';
+import { createSearchApp, type SearchDeps } from './search/search.routes';
 
-export interface UiDeps {
-  searchService: SearchService;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
-}
+/** Every handler the surface's routes call. */
+export type UiDeps = SearchDeps & ChangesDeps & DesignDocsDeps & DocumentsDeps;
 
 export function createUiApp(deps: UiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
     .onError(answerError)
-    .route('/search', createSearchApp({ searchService: deps.searchService }))
-    .route(
-      '/changes',
-      createChangesApp({ changesService: deps.changesService }),
-    )
-    .route(
-      '/changes/:change/design-docs',
-      createDesignDocsApp({ designDocsService: deps.designDocsService }),
-    )
-    .route(
-      '/changes/:change/documents',
-      createDocumentsApp({ documentsService: deps.documentsService }),
-    );
+    .route('/search', createSearchApp(deps))
+    .route('/changes', createChangesApp(deps))
+    .route('/changes/:change/design-docs', createDesignDocsApp(deps))
+    .route('/changes/:change/documents', createDocumentsApp(deps));
 }
