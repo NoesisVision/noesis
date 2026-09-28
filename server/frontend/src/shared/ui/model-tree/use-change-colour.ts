@@ -1,3 +1,4 @@
+import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { useMantineTheme } from '#/shared/design-system/hooks.ts';
 import type { OutlineChange } from './model-outline.ts';
 import { CHANGE_COLOUR } from './outline-change.ts';
@@ -9,6 +10,7 @@ import { CHANGE_COLOUR } from './outline-change.ts';
  */
 export function useChangeColour() {
   const theme = useMantineTheme();
+  const computed = useComputedColorScheme('light');
 
   return (change: OutlineChange) => {
     const colour = CHANGE_COLOUR[change];
@@ -16,7 +18,7 @@ export function useChangeColour() {
     return theme.variantColorResolver({
       color: colour,
       theme,
-      variant: 'light',
+      variant: computed === 'light' ? 'light' : 'white',
     });
   };
 }

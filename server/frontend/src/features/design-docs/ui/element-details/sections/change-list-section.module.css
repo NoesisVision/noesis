@@ -25,6 +25,6 @@
   width: 16px;
   height: 16px;
   border-radius: var(--mantine-radius-sm);
-  background-color: var(--mantine-color-white);
+  background-color: light-dark(var(--mantine-color-white), transparent);
   color: var(--mantine-color-gray-light-color);
 }
