@@ -1,14 +1,13 @@
 import { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { NotFoundError } from '#backend/app/not-found-error';
-import { Serial } from '#backend/app/serial';
-import { freeSlugId } from '#backend/app/slug-id';
+import { createAtFreeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import { DesignDocument, type DesignDocumentContent } from './design-doc';
 import type { DesignDocFieldAuthor } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
-import type { DesignDocsRepository } from './design-docs.repository';
 import { InvalidDesignDocError } from './invalid-design-doc-error';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
@@ -27,13 +26,12 @@ export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
  * whoever writes it: an agent creates, and an agent or a human revises.
  */
 export class DesignDocsService {
-  private readonly docs: DesignDocsRepository;
+  private readonly docs: ChangeOwnedRepository<DesignDocument>;
   private readonly changesService: ChangesService;
   private readonly today: Today;
-  private readonly writes = new Serial();
 
   constructor(
-    docs: DesignDocsRepository,
+    docs: ChangeOwnedRepository<DesignDocument>,
     changesService: ChangesService,
     today: Today,
   ) {
@@ -47,23 +45,20 @@ export class DesignDocsService {
    * and its name. A name already used that day in the change gets the next
    * free suffix. Throws `InvalidDesignDocError` when it breaks the rules.
    */
-  create(
+  async create(
     change: ChangeId,
     document: DesignDocumentContent,
   ): Promise<DesignDocSummary> {
-    return this.writes.run(async () => {
-      await this.changesService.assertExists(change);
-      assertValid(document, 'agent');
-      const id = await freeSlugId(
-        DesignDocId,
-        document.name,
-        this.today(),
-        async (candidate) => (await this.docs.get(change, candidate)) !== null,
-      );
-      const created: DesignDocument = { id, ...document };
-      await this.docs.save(change, created);
-      return summarize(created);
-    });
+    await this.changesService.assertExists(change);
+    assertValid(document, 'agent');
+    const at = (id: DesignDocId): DesignDocument => ({ id, ...document });
+    const id = await createAtFreeSlugId(
+      DesignDocId,
+      document.name,
+      this.today(),
+      (candidate) => this.docs.create(change, at(candidate)),
+    );
+    return summarize(at(id));
   }
 
   /**
@@ -71,19 +66,19 @@ export class DesignDocsService {
    * `InvalidDesignDocError` when the new version breaks the rules `writer`
    * follows.
    */
-  update(
+  async update(
     change: ChangeId,
     id: DesignDocId,
     document: DesignDocumentContent,
     writer: DesignDocFieldAuthor,
   ): Promise<DesignDocSummary> {
-    return this.writes.run(async () => {
-      await this.getOrThrow(change, id);
-      assertValid(document, writer);
-      const updated: DesignDocument = { id, ...document };
-      await this.docs.save(change, updated);
-      return summarize(updated);
-    });
+    await this.getOrThrow(change, id);
+    assertValid(document, writer);
+    const updated: DesignDocument = { id, ...document };
+    if (!(await this.docs.replace(change, updated))) {
+      throw new NotFoundError('design document', id, change);
+    }
+    return summarize(updated);
   }
 
   /** Oldest first: the id starts with the creation date. */

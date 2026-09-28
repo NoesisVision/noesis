@@ -28,7 +28,11 @@ export class NoesisChangesRepository implements ChangesRepository {
     return this.changes.list();
   }
 
-  save(change: Change): Promise<void> {
-    return this.changes.save(change);
+  create(change: Change): Promise<boolean> {
+    return this.changes.create(change);
+  }
+
+  replace(change: Change): Promise<boolean> {
+    return this.changes.replace(change);
   }
 }

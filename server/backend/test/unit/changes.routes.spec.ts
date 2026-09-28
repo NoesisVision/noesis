@@ -51,7 +51,7 @@ const add = async (
     status: 'discovery',
     description: '',
   };
-  await t.changesRepository.save(change);
+  await t.changesRepository.create(change);
   return change;
 };
 

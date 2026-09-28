@@ -7,6 +7,9 @@ export interface ChangesRepository {
   /** By id ascending. */
   list(): Promise<Change[]>;
 
-  /** Creates or replaces the change; what it owns stays. */
-  save(change: Change): Promise<void>;
+  /** Writes `change` where none is yet; `false` when its id is taken. */
+  create(change: Change): Promise<boolean>;
+
+  /** Replaces the stored change whole, what it owns aside; `false` when there is none. */
+  replace(change: Change): Promise<boolean>;
 }

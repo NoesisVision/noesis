@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { changesDir } from './changes.repository';
@@ -8,9 +9,11 @@ import { changesDir } from './changes.repository';
 /**
  * What a change owns, in `graph/changes/<change>/<id>.<kind>.json`. The same
  * shape serves design documents and documents; the schema and kind tell them
- * apart, so one class satisfies both repository interfaces.
+ * apart.
  */
-export class ChangeOwnedRepository<T extends { id: string }> {
+export class NoesisChangeOwnedRepository<
+  T extends { id: string },
+> implements ChangeOwnedRepository<T> {
   private readonly changesDir: string;
   private readonly schema: ZodType<T>;
   private readonly kind: string;
@@ -29,11 +32,15 @@ export class ChangeOwnedRepository<T extends { id: string }> {
     return this.owned(change).list();
   }
 
-  save(change: ChangeId, entity: T): Promise<void> {
-    return this.owned(change).save(entity);
+  create(change: ChangeId, entity: T): Promise<boolean> {
+    return this.owned(change).create(entity);
   }
 
-  delete(change: ChangeId, id: T['id']): Promise<void> {
+  replace(change: ChangeId, entity: T): Promise<boolean> {
+    return this.owned(change).replace(entity);
+  }
+
+  delete(change: ChangeId, id: T['id']): Promise<boolean> {
     return this.owned(change).delete(id);
   }
 

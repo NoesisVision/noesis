@@ -72,7 +72,7 @@ describe('NoesisChangesRepository', () => {
       status: 'design',
       description: 'notes',
     };
-    await t.changesRepository.save(change);
+    expect(await t.changesRepository.create(change)).toBe(true);
 
     expect(await t.changesRepository.get(change.id)).toEqual(change);
     expect(await readdir(t.changesDir)).toEqual([
@@ -96,7 +96,9 @@ describe('NoesisChangesRepository', () => {
     const before = await t.changesRepository.get(kept);
     if (before === null) throw new Error('the change was not written');
 
-    await t.changesRepository.save({ ...before, status: 'design' });
+    expect(
+      await t.changesRepository.replace({ ...before, status: 'design' }),
+    ).toBe(true);
 
     expect((await t.changesRepository.get(kept))?.status).toBe('design');
     expect(
@@ -113,17 +115,31 @@ describe('NoesisChangesRepository', () => {
     if (before === null) throw new Error('the change was not written');
 
     await expect(
-      t.changesRepository.save({
+      t.changesRepository.replace({
         ...before,
         id: 'Not An Id',
       } as unknown as typeof before),
     ).rejects.toThrow();
     await expect(
-      t.changesRepository.save({
+      t.changesRepository.replace({
         ...before,
         status: 'shipped',
       } as unknown as typeof before),
     ).rejects.toBeInstanceOf(JsonFileError);
     expect((await t.changesRepository.get(typed))?.status).toBe('discovery');
+  });
+
+  it('creates only where no change is, and replaces only one that is', async () => {
+    const taken = await t.createChange('2026-01-01-taken', { name: 'First' });
+    const stored = await t.changesRepository.get(taken);
+    if (stored === null) throw new Error('the change was not written');
+    const missing = { ...stored, id: ChangeId.parse('2026-01-01-missing') };
+
+    expect(
+      await t.changesRepository.create({ ...stored, name: 'Second' }),
+    ).toBe(false);
+    expect(await t.changesRepository.replace(missing)).toBe(false);
+    expect((await t.changesRepository.get(taken))?.name).toBe('First');
+    expect(await t.changesRepository.get(missing.id)).toBeNull();
   });
 });

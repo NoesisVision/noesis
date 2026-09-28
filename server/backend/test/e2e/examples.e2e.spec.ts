@@ -3,7 +3,7 @@
 // served, so a schema change that strands one fails here, not in a demo.
 import { describe, expect, it } from 'bun:test';
 import { resolve } from 'node:path';
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
@@ -36,12 +36,12 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
 function appOver(repositoryRoot: string) {
   const noesis = new NoesisDir(repositoryRoot);
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
+  const designDocsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DesignDocument,
     'design-doc',
   );
-  const documentsRepository = new ChangeOwnedRepository(
+  const documentsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DocumentSchema,
     'document',

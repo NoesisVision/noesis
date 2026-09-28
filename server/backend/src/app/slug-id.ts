@@ -73,19 +73,20 @@ function slugify(text: string, maxLength: number): string {
 }
 
 /**
- * The first of `slugIdCandidates` that `isTaken` turns down, as `schema`
- * parses it. The caller runs this and the write that takes the id as one
- * step, so two writers never pick the same one.
+ * Creates an entity at the first of `slugIdCandidates` that `create` takes,
+ * and answers that id as `schema` parses it. `create` refuses an id already
+ * taken, the check and the write in one step, so two writers never land on
+ * one id.
  */
-export async function freeSlugId<Id extends z.ZodType<string>>(
+export async function createAtFreeSlugId<Id extends z.ZodType<string>>(
   schema: Id,
   title: string,
   date: string,
-  isTaken: (id: z.output<Id>) => Promise<boolean>,
+  create: (id: z.output<Id>) => Promise<boolean>,
 ): Promise<z.output<Id>> {
   const candidates = slugIdCandidates(title, date);
   for (;;) {
     const id = schema.parse(candidates.next().value);
-    if (!(await isTaken(id))) return id;
+    if (await create(id)) return id;
   }
 }
