@@ -134,18 +134,23 @@
  */
 .name {
   overflow: hidden;
-  font-family: var(--mantine-font-family-monospace);
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.badge {
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* The pattern gives way first: the name is what a row is for. */
-.pattern {
+.pattern.pattern {
   flex: 0 1 auto;
   overflow: hidden;
   color: var(--mantine-color-dimmed);
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 10px;
 }
 
 /* Whatever the row has to say about itself, kept together on the right. */
@@ -164,32 +169,26 @@
 }
 
 /*
- * What the design does to a row, in the same three colours the badge beside
- * it carries — `outline-change.ts` names them there and cannot be read from
- * here. Never the only thing said: the word is on the badge either way.
+ * What the design does to a row, in the colour the badge for it carries:
+ * `useChangeColour` resolves it and `TreeItem` hands it over as
+ * `--change-colour`, so the colours are named once, in `outline-change.ts`.
+ * A variable rather than an inline colour, so the ancestor and selected rules
+ * below still win. Never the only thing said: the word is on the badge
+ * either way.
  */
-.item[data-change='added'] > .row {
+.item:is(
+    [data-change='added'],
+    [data-change='modified'],
+    [data-change='removed']
+  )
+  > .row {
   & .name,
   & .icon {
-    color: light-dark(
-      var(--mantine-color-green-9),
-      var(--mantine-color-green-4)
-    );
-  }
-}
-
-.item[data-change='modified'] > .row {
-  & .name,
-  & .icon {
-    color: light-dark(var(--mantine-color-cyan-8), var(--mantine-color-cyan-4));
+    color: var(--change-colour);
   }
 }
 
 .item[data-change='removed'] > .row {
-  & .name,
-  & .icon {
-    color: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-4));
-  }
   & .name {
     text-decoration: line-through;
   }
@@ -217,7 +216,7 @@
   & .name,
   & .icon {
     color: light-dark(
-      var(--mantine-color-brand-6),
+      var(--mantine-color-brand-9),
       var(--mantine-color-brand-4)
     );
   }
@@ -242,7 +241,6 @@
 
   & .icon,
   & .chevron,
-  & .pattern,
   & .mark {
     color: var(--mantine-color-brand-2);
   }

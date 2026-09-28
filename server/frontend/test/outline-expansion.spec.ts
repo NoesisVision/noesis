@@ -5,6 +5,9 @@ import {
   expandablePaths,
   openablePaths,
   openEverything,
+  shapeWithWayDown,
+  UNTOUCHED,
+  withWayDown,
 } from '../src/shared/ui/model-tree/outline-expansion';
 import { searchOutline } from '../src/shared/ui/model-tree/outline-search';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
@@ -78,5 +81,50 @@ describe('closeToMatches', () => {
   it('shuts nothing when what was found holds nothing', () => {
     const shape = closeToMatches(tree, searchOutline(tree, 'repository'));
     expect(shape.closed.size).toBe(0);
+  });
+});
+
+describe('withWayDown', () => {
+  const place = 'behavior|shop.orders.Order.place';
+
+  it('opens every ancestor of a row, and not the row itself', () => {
+    expect(sorted(withWayDown(new Set(), tree, place))).toEqual([
+      'building_block|shop.orders.Order',
+      'module|shop',
+      'module|shop.orders',
+    ]);
+  });
+
+  it('keeps what else was open', () => {
+    const open = new Set(['module|shop.legacy']);
+    expect(withWayDown(open, tree, place).has('module|shop.legacy')).toBe(true);
+  });
+
+  it('gives back the same set when the way down is already open', () => {
+    const open = withWayDown(new Set(), tree, place);
+    expect(withWayDown(open, tree, place)).toBe(open);
+  });
+});
+
+describe('shapeWithWayDown', () => {
+  it('opens the way down past what the query opened, and reopens what was shut', () => {
+    const shut = {
+      opened: new Set<string>(),
+      closed: new Set(['module|shop']),
+    };
+    const shape = shapeWithWayDown(
+      shut,
+      tree,
+      'behavior|shop.orders.Order.place',
+    );
+    expect(shape.closed.has('module|shop')).toBe(false);
+    expect(sorted(shape.opened)).toEqual([
+      'building_block|shop.orders.Order',
+      'module|shop',
+      'module|shop.orders',
+    ]);
+    expect(shapeWithWayDown(UNTOUCHED, tree, 'module|shop').opened.size).toBe(
+      0,
+    );
   });
 });

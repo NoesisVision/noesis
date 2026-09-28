@@ -1,2 +1,4 @@
 tmp/
 logs/
+sessions/
+graph/

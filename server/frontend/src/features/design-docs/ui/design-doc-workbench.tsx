@@ -1,6 +1,6 @@
 import {
-  IconFoldDown,
-  IconFoldUp,
+  IconArrowsMaximize,
+  IconArrowsMinimize,
   IconMaximize,
   IconMinimize,
   IconSearch,
@@ -36,7 +36,7 @@ import {
 } from '#/shared/ui/model-tree/use-model-tree.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DesignDocsIcon } from '../design-docs.model.ts';
-import { ElementDetail } from './element-detail.tsx';
+import { ElementDetail } from './element-details/element-detail.tsx';
 import classes from './design-doc-workbench.module.css';
 
 /*
@@ -149,6 +149,7 @@ export function DesignDocWorkbench({
                 .filter((node) => node !== undefined)}
               document={doc}
               onSelect={(path) => controller.select(path, 'detail')}
+              tree={controller.tree}
             />
           )
         }
@@ -196,7 +197,7 @@ function OutlineSearchBox({ controller }: { controller: ModelTreeController }) {
           title="Expand everything"
           onClick={expandAll}
         >
-          <IconFoldDown size={18} stroke={1.6} aria-hidden />
+          <IconArrowsMaximize size={18} stroke={1.6} aria-hidden />
         </ActionIcon>
         <ActionIcon
           variant="default"
@@ -205,7 +206,7 @@ function OutlineSearchBox({ controller }: { controller: ModelTreeController }) {
           title="Collapse everything"
           onClick={collapseAll}
         >
-          <IconFoldUp size={18} stroke={1.6} aria-hidden />
+          <IconArrowsMinimize size={18} stroke={1.6} aria-hidden />
         </ActionIcon>
       </Group>
       {search.active && (
@@ -326,6 +327,7 @@ function Columns({
       attributes={{ handle: { 'aria-label': 'Resize the columns' } }}
       sizes={columns}
       onSizeChange={(sizes) => setColumns(sizes.map(Number))}
+      lineSize={4}
     >
       <Splitter.Pane
         defaultSize={columns[0] ?? DEFAULT_COLUMNS[0]!}

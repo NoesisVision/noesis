@@ -75,10 +75,6 @@
   scroll-behavior: smooth;
 }
 
-.paneBody {
-  padding: var(--mantine-spacing-md);
-}
-
 /*
  * Above the rows and outside their scroller, so what is being looked for is
  * still on screen among the results of looking. Edged along the bottom so
@@ -96,7 +92,13 @@
 }
 
 .outlineBody {
-  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs)
+    var(--mantine-spacing-md) var(--mantine-spacing-xs);
+}
+
+/* Room past the last section, so it can be scrolled clear of the pane's edge. */
+.paneBody {
+  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
 }
 
 /*

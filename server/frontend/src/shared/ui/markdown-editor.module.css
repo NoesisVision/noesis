@@ -7,6 +7,13 @@
   font-size: var(--mantine-font-size-sm);
   line-height: var(--mantine-line-height-md);
   padding-top: 0;
+
+  & > p:first-of-type {
+    margin-top: 0;
+  }
+  & > p:last-of-type {
+    margin-bottom: 0;
+  }
 }
 
 /*
@@ -19,6 +26,10 @@
  */
 .reading.reading {
   white-space: normal !important;
+}
+.noMargin.noMargin {
+  margin: 0;
+  padding: 0;
 }
 
 /*

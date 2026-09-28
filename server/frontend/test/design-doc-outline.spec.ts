@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'bun:test';
-import { outlineOf } from '../src/features/design-docs/design-doc-outline';
+import {
+  outlineOf,
+  ownerOfPart,
+} from '../src/features/design-docs/design-doc-outline';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline';
 import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
@@ -124,6 +127,50 @@ describe('outlineOf', () => {
         'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
     ).toBe('State change');
+  });
+
+  it("hangs a rule's own scenarios under the rule, not beside it", () => {
+    const rule =
+      'building_block|sales.refunds.Refund#rule:Refund never exceeds paid amount';
+    expect(childrenOf(rule)).toEqual([
+      'Refunding more than was paid',
+      'Refunding without a receipt',
+    ]);
+    expect(at(`${rule}#scenario:Refunding more than was paid`)).toMatchObject({
+      kind: 'scenario',
+      change: 'added',
+      parentPath: rule,
+      depth: at(rule).depth + 1,
+    });
+    expect(at(`${rule}#scenario:Refunding without a receipt`).change).toBe(
+      'removed',
+    );
+  });
+
+  it('reads the owner and the rule back off a part path', () => {
+    const block = 'building_block|sales.refunds.Refund';
+    expect(ownerOfPart(block)).toEqual({ elementId: block, rule: null });
+    expect(
+      ownerOfPart(`${block}#rule:Refund never exceeds paid amount`),
+    ).toEqual({ elementId: block, rule: 'Refund never exceeds paid amount' });
+  });
+
+  it('labels a part with its own type, spelled as the design spells it', () => {
+    const labelAt = (path: string) => at(path).patternLabel;
+    const refund = 'building_block|sales.refunds.Refund';
+    // A type is a name somebody wrote: writing it out would leave `Orderid`
+    // beside a `RefundLine[]` that kept its own spelling, and `date` — a
+    // primitive the model does spell in lower case — would read `Date`.
+    expect(labelAt(`${refund}#property:orderId`)).toBe('OrderId');
+    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine[]');
+    expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
+    expect(
+      labelAt(
+        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
+      ),
+    ).toBe('State change');
+    // An element's pattern is the model's own word, and is written out.
+    expect(labelAt(refund)).toBe('Aggregate');
   });
 
   it('names an element by its own name, never by its address', () => {

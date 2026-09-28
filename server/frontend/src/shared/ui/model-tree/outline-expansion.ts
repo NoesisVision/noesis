@@ -86,6 +86,35 @@ export function closeToMatches(
   };
 }
 
+/**
+ * The open set with the way down to a row added: every ancestor, never the
+ * row itself, which the reader only asked to see. The same set when it was
+ * already open all the way, so a state that has not changed does not render.
+ */
+export function withWayDown(
+  open: Set<string>,
+  tree: OutlineTree,
+  path: string,
+): Set<string> {
+  const ancestors = tree.ancestryOf(path).slice(0, -1);
+  if (ancestors.every((ancestor) => open.has(ancestor))) return open;
+  const next = new Set(open);
+  for (const ancestor of ancestors) next.add(ancestor);
+  return next;
+}
+
+/** The same, under a query: the way down opened past what the query opened. */
+export function shapeWithWayDown(
+  shape: SearchShape,
+  tree: OutlineTree,
+  path: string,
+): SearchShape {
+  return tree
+    .ancestryOf(path)
+    .slice(0, -1)
+    .reduce((current, ancestor) => openIn(current, ancestor), shape);
+}
+
 export function openIn(shape: SearchShape, path: string): SearchShape {
   return {
     opened: new Set(shape.opened).add(path),

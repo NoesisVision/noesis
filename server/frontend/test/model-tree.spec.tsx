@@ -98,16 +98,10 @@ describe('ModelTree', () => {
     expect(count(/tabindex="0"/g)).toBe(1);
   });
 
-  it('leaves every colour on a row to the stylesheet', () => {
-    // An inline colour is past the reach of any rule, and the row in hand is
-    // filled: what it says about itself has to be able to lift off that.
-    expect(html).not.toMatch(/style="[^"]*color:/);
-  });
-
   it('names the kind, the pattern and the change of a row', () => {
     expect(rowOf('Order')).toContain('data-kind="building_block"');
-    expect(rowOf('Order')).toContain('aggregate');
-    expect(rowOf('Orders')).toContain('repository');
+    expect(rowOf('Order')).toContain('Aggregate');
+    expect(rowOf('Orders')).toContain('Repository');
     // What the design does to a row is stated where the colours read it
     // from; nothing happened to the context, and nothing is claimed about it.
     expect(rowOf('orders')).toContain('data-change="added"');

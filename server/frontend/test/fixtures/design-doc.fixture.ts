@@ -64,7 +64,7 @@ const designDocOutlineFixture: OutlineNode[] = [
     depth: 2,
     change: 'added',
     pattern: 'aggregate',
-    patternLabel: 'aggregate',
+    patternLabel: 'Aggregate',
     hasDiagram: false,
   },
 ];

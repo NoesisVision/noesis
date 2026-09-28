@@ -1,10 +1,12 @@
-import type { KeyboardEvent, MouseEvent } from 'react';
+import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
+import { Badge } from '#/shared/design-system/badge.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
 import { MatchedText } from './matched-text.tsx';
 import type { OutlineNode } from './model-outline.ts';
 import { focusEdge, focusParent, focusSibling } from './row-focus.ts';
+import { useChangeColour } from './use-change-colour.ts';
 import type { ModelTreeController } from './use-model-tree.ts';
 import classes from './model-tree.module.css';
 
@@ -51,6 +53,15 @@ export function TreeItem({
   const hasChildren = children.length > 0;
   const expanded = hasChildren && isExpanded(node.path);
   const rowId = rowIds.get(node.path);
+  /*
+   * Handed to the stylesheet as a variable rather than set as the colour: an
+   * inline colour would outrank the rules that lift the name off the selected
+   * row's fill and mark the way down to it.
+   */
+  const changeColour = useChangeColour()(node.change);
+  const rowStyle = changeColour
+    ? ({ '--change-colour': changeColour.color } as CSSProperties)
+    : undefined;
 
   // A pointer event lands on every row it is inside; only the innermost
   // meant it.
@@ -133,7 +144,7 @@ export function TreeItem({
     >
       {/* The one line of the row: what the tree scrolls to, never the item
           around it, which holds everything below it as well. */}
-      <span id={rowId} data-row className={classes.row}>
+      <span id={rowId} data-row className={classes.row} style={rowStyle}>
         <Chevron
           opens={hasChildren}
           expanded={expanded}
@@ -144,13 +155,15 @@ export function TreeItem({
           {node.name}
         </MatchedText>
         {node.patternLabel !== null && (
-          <MatchedText
-            className={classes.pattern}
-            tokens={search.tokens}
-            dimmed
-          >
-            {node.patternLabel}
-          </MatchedText>
+          <Badge size="xs" variant="default" className={classes.badge}>
+            <MatchedText
+              className={classes.pattern}
+              tokens={search.tokens}
+              dimmed
+            >
+              {node.patternLabel}
+            </MatchedText>
+          </Badge>
         )}
         <span className={classes.trailing}>
           {node.hasDiagram && <DiagramMark />}
