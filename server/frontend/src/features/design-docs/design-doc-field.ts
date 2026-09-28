@@ -20,6 +20,11 @@ export function valueOf<T>(field: DesignDocFieldInput<T>): T | null {
   return field !== undefined && 'value' in field ? field.value : null;
 }
 
+/** Whether the design leaves the field as the model already has it. */
+export function isUnchanged(field: DesignDocFieldInput<unknown>): boolean {
+  return field === undefined || !('value' in field);
+}
+
 /** Whether a human wrote or accepted the value, rather than an agent. */
 export function isHumanAuthored(field: DesignDocFieldInput<unknown>): boolean {
   return field !== undefined && 'value' in field && field.author === 'human';

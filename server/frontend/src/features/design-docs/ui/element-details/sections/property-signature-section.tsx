@@ -27,10 +27,10 @@ export function PropertySignatureSection({
 }: PropertySignatureSectionProps) {
   return (
     <DetailSection>
-      <Code fw="bold">
+      <Code block>
         {name}
         {valueOf(optional) ? '?' : ''}:{' '}
-        <Field field={type} format={refAddressOf} fallback="?" />;
+        <Field field={type} format={refAddressOf} />;
       </Code>
     </DetailSection>
   );

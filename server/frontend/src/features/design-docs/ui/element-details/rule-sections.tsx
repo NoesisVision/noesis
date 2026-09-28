@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef, OwnerRef } from './element-ref.ts';
+import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
 
 export const ruleSections = (
@@ -9,10 +10,9 @@ export const ruleSections = (
 ): ReactElement[] => {
   const element: ElementRef = { owner, part: 'rules', name: rule.name };
   return [
-    <DescriptionSection
-      key="description"
-      element={element}
-      field={rule.description}
-    />,
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: rule.description,
+    }),
   ];
 };

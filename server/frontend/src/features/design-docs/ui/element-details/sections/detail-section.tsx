@@ -1,4 +1,4 @@
-import { IconUser, IconAi } from '@tabler/icons-react';
+import { IconAi, IconUser } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import type { ComponentProps, PropsWithChildren } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
@@ -43,7 +43,7 @@ export function DetailSection({
           <Text className={classes.title} fw="bold" size="xs" tt="uppercase">
             {title}
           </Text>
-          {author !== null && (
+          {isHumanAuthored !== null && (
             <>
               <ThemeIcon size="xs" variant="default" aria-hidden="true">
                 <Tooltip label={author}>

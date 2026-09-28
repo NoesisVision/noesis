@@ -6,6 +6,7 @@ import { buildingBlockSections } from './building-block-sections.tsx';
 import { findById } from './change-set.ts';
 import { moduleSections } from './module-sections.tsx';
 import { partSections } from './part-sections.tsx';
+import { section } from './section.ts';
 import { NoteSection } from './sections/note-section.tsx';
 
 /**
@@ -18,11 +19,9 @@ export const bodySections = (
   doc: DesignDocumentInput,
 ): ReactElement[] => {
   if (node.change === 'removed') {
-    return [
-      <NoteSection key="removed">
-        This design removes it. Nothing else is said.
-      </NoteSection>,
-    ];
+    return section(NoteSection, 'removed', {
+      children: 'This design removes it. Nothing else is said.',
+    });
   }
   if (node.elementId === null) return partSections(node, doc);
   const module = findById(doc.modules, node.elementId);
@@ -31,10 +30,8 @@ export const bodySections = (
   if (block) return buildingBlockSections(block);
   const behaviour = findById(doc.behaviours, node.elementId);
   if (behaviour) return behaviourSections(behaviour);
-  return [
-    <NoteSection key="unchanged">
-      This design does not change it; it is here because the elements under it
-      are.
-    </NoteSection>,
-  ];
+  return section(NoteSection, 'unchanged', {
+    children:
+      'This design does not change it; it is here because the elements under it are.',
+  });
 };

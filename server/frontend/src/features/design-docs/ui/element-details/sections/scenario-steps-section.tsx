@@ -1,32 +1,42 @@
-import { Text } from '#/shared/design-system/text.tsx';
-import type { DesignDocFieldInput } from '../../../design-doc-field.ts';
+import { DataList } from '#/shared/design-system/data-list.tsx';
+import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { Field } from '../field.tsx';
 import { DetailSection } from './detail-section.tsx';
 
 interface ScenarioStepsSectionProps {
   element: ElementRef;
-  given: DesignDocFieldInput<string>;
-  when: DesignDocFieldInput<string>;
-  then: DesignDocFieldInput<string>;
+  /*
+   * The scenario whole, not its three steps as props: a `then` key would make
+   * the props object look like a promise to anything that awaited it.
+   */
+  scenario: DesignedScenarioInput;
 }
 
-export function ScenarioStepsSection({
-  given,
-  when,
-  then,
-}: ScenarioStepsSectionProps) {
+export function ScenarioStepsSection({ scenario }: ScenarioStepsSectionProps) {
+  console.info(scenario);
   return (
-    <DetailSection>
-      <Text>
-        <strong>Given</strong> <Field field={given} />
-      </Text>
-      <Text>
-        <strong>When</strong> <Field field={when} />
-      </Text>
-      <Text>
-        <strong>Then</strong> <Field field={then} />
-      </Text>
+    <DetailSection title="Scenario">
+      <DataList orientation="vertical">
+        <DataList.Item>
+          <DataList.ItemLabel>Given</DataList.ItemLabel>
+          <DataList.ItemValue>
+            <Field field={scenario.given} />
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>When</DataList.ItemLabel>
+          <DataList.ItemValue>
+            <Field field={scenario.when} />
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>Then</DataList.ItemLabel>
+          <DataList.ItemValue>
+            <Field field={scenario.then} />
+          </DataList.ItemValue>
+        </DataList.Item>
+      </DataList>
     </DetailSection>
   );
 }

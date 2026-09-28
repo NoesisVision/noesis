@@ -1,10 +1,11 @@
-import { Stack } from '#/shared/design-system/stack.tsx';
+import { Code } from '#/shared/design-system/code.tsx';
+import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import type { ChangeSetInput } from '../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';
-import { refAddressOf } from '../ref-address.ts';
+import { changedRefAddressOf } from '../ref-address.ts';
 import { DetailSection } from './detail-section.tsx';
-import { Names } from './names.tsx';
+import { Ref } from './ref.tsx';
 
 interface RefsSectionProps {
   element: ElementRef;
@@ -12,21 +13,32 @@ interface RefsSectionProps {
   set: ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput> | undefined;
 }
 
-/**
- * A change set of type references. Only worth a section when `hasRefs` says
- * the design touches it; the aggregator leaves it out otherwise.
- */
+const addedMapper = changedRefAddressOf('added');
+const modifiedMapper = changedRefAddressOf('modified');
+const removedMapper = changedRefAddressOf('removed');
+
+/** A change set of type references. */
 export function RefsSection({ title, set }: RefsSectionProps) {
-  const added = (set?.added ?? []).map(refAddressOf);
-  const modified = (set?.modified ?? []).map(refAddressOf);
-  const removed = (set?.removed ?? []).map(refAddressOf);
+  const added = (set?.added ?? []).map(addedMapper);
+  const modified = (set?.modified ?? []).map(modifiedMapper);
+  const removed = (set?.removed ?? []).map(removedMapper);
+
+  const total: { change: OutlineNode['change']; name: string }[] = [
+    ...added,
+    ...modified,
+    ...removed,
+  ].sort((a, b) => a.name.localeCompare(b.name));
   return (
     <DetailSection title={title}>
-      <Stack gap={2}>
-        <Names change="added" colour="green" names={added} />
-        <Names change="modified" colour="blue" names={modified} />
-        <Names change="removed" colour="red" names={removed} />
-      </Stack>
+      <Code block>
+        {total.map((ref) => {
+          return <Ref key={ref.name} change={ref.change} name={ref.name} />;
+        })}
+      </Code>
     </DetailSection>
   );
 }
+
+/** Shown only when the design touches the change set at all. */
+RefsSection.shows = ({ set }: RefsSectionProps) =>
+  !!(set?.added?.length || set?.modified?.length || set?.removed?.length);

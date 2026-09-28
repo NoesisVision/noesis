@@ -6,7 +6,9 @@ import { DetailSection } from './detail-section.tsx';
 export function NoteSection({ children }: PropsWithChildren) {
   return (
     <DetailSection>
-      <Text c="dimmed">{children}</Text>
+      <Text c="dimmed" size="sm">
+        {children}
+      </Text>
     </DetailSection>
   );
 }

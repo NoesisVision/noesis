@@ -3,6 +3,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import {
   type DesignDocFieldInput,
+  isUnchanged,
   valueOf,
 } from '../../../design-doc-field.ts';
 import type { ElementRef } from '../element-ref.ts';
@@ -32,11 +33,23 @@ export function DescriptionSection({
 }: DescriptionSectionProps) {
   const value = valueOf(field);
 
+  console.info(field);
+
+  /*
+   * Left alone, the description is whatever the model already says; written
+   * but blank, there is nothing to read.
+   */
   return (
     <DetailSection title="Description" field={field}>
       {slots?.top}
-      {value === null || value.trim() === '' ? (
-        <Text c="dimmed">Not specified.</Text>
+      {isUnchanged(field) || value === null ? (
+        <Text c="dimmed" size="sm">
+          unchanged
+        </Text>
+      ) : value.trim() === '' ? (
+        <Text c="dimmed" size="sm">
+          Not specified.
+        </Text>
       ) : (
         <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
       )}

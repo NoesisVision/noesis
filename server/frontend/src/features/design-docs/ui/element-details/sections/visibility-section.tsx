@@ -11,23 +11,35 @@ interface VisibilitySectionProps {
   field: DesignedBehaviourInput['visibility'];
 }
 
-/**
- * Who may call a behaviour. Only worth a section when `isPublic` says the
- * design opens it; the aggregator leaves it out otherwise.
- */
+/** Who may call a behaviour: anyone it names, or only its own module. */
 export function VisibilitySection({ field }: VisibilitySectionProps) {
   const visibility = valueOf(field);
-  if (visibility?.kind !== 'public') return null;
+  if (!visibility) return null;
+
   return (
-    <DetailSection>
-      <Group gap="xs">
-        {visibility.actors.length > 0 && (
-          <Text size="sm" c="dimmed">
-            {visibility.actors.join(', ')}
-          </Text>
-        )}
-        <Badge variant="outline">public</Badge>
-      </Group>
+    <DetailSection title="visibility" field={field}>
+      {visibility?.kind === 'public' ? (
+        <Group gap="xs">
+          <Badge variant="outline" size="xs" color="brand">
+            public
+          </Badge>
+          {visibility.actors.length > 0 && (
+            <Text size="sm" c="dimmed">
+              {visibility.actors.join(', ')}
+            </Text>
+          )}
+        </Group>
+      ) : (
+        <Group gap="xs">
+          <Badge variant="outline" size="xs" color="gray">
+            private
+          </Badge>
+        </Group>
+      )}
     </DetailSection>
   );
 }
+
+/** Shown whenever the design says anything about the visibility. */
+VisibilitySection.shows = ({ field }: VisibilitySectionProps) =>
+  valueOf(field) !== null;

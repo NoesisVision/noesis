@@ -46,6 +46,7 @@ const document = {
           added: [
             {
               name: 'A hold expires',
+              description: plain(''),
               scenarios: { added: [], removed: [], modified: [] },
             },
           ],
@@ -204,6 +205,14 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold#rule:A hold expires')).toContain(
       'Not specified.',
     );
+  });
+
+  it('says a description the design leaves alone is unchanged', () => {
+    // The fixture's property carries no description at all: the design keeps
+    // whatever the model says, which is not the same as saying nothing.
+    const html = show('building_block|pay.Hold#property:amount');
+    expect(html).toContain('>unchanged<');
+    expect(html).not.toContain('Not specified.');
   });
 
   it('reads a property as the field it declares', () => {

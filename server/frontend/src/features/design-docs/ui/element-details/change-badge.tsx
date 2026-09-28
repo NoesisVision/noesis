@@ -1,9 +1,9 @@
 import { Badge, type BadgeProps } from '#/shared/design-system/badge.tsx';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import { CHANGE_COLOUR } from '#/shared/ui/model-tree/outline-change.ts';
 
 interface ChangeBadge {
-  change: OutlineNode['change'];
+  change: OutlineChange;
   size?: BadgeProps['size'];
 }
 

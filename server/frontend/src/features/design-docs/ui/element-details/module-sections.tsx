@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import type { DesignedDomainModuleInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef } from './element-ref.ts';
+import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
 
 export const moduleSections = (
@@ -8,10 +9,9 @@ export const moduleSections = (
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'modules', id: module.id };
   return [
-    <DescriptionSection
-      key="description"
-      element={element}
-      field={module.description}
-    />,
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: module.description,
+    }),
   ];
 };
