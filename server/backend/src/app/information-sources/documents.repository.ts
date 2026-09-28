@@ -9,4 +9,6 @@ export interface DocumentsRepository {
   list(change: ChangeId): Promise<Document[]>;
 
   save(change: ChangeId, document: Document): Promise<void>;
+
+  delete(change: ChangeId, id: DocumentId): Promise<void>;
 }

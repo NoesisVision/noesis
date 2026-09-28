@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { ChangeId } from '#backend/app/changes/change-id';
+import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { jsonBody, workingFileLimit } from '../json-body';
 import { routeParams } from '../route-params';
 
 export interface DesignDocsDeps {
@@ -9,9 +11,9 @@ export interface DesignDocsDeps {
 }
 
 /**
- * Mounted at `/ui/changes/:change/design-docs`, read only: design documents
- * are written and removed by the agent through the MCP tools, so the browser
- * surface never changes one.
+ * Mounted at `/ui/changes/:change/design-docs`. The agent creates design
+ * documents through the MCP tools; the page revises one, as a human, so it
+ * may write fields in its own name.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
   const { designDocsService } = deps;
@@ -31,6 +33,23 @@ export function createDesignDocsApp(deps: DesignDocsDeps) {
         return c.json({
           document: await designDocsService.findById(change, id),
         });
+      },
+    )
+
+    .put(
+      '/:id',
+      workingFileLimit,
+      routeParams({ change: ChangeId, id: DesignDocId }),
+      jsonBody(DesignDocumentContent),
+      async (c) => {
+        const { change, id } = c.req.valid('param');
+        const designDoc = await designDocsService.update(
+          change,
+          id,
+          c.req.valid('json'),
+          'human',
+        );
+        return c.json({ designDoc });
       },
     );
 }

@@ -151,3 +151,44 @@ describe('DocumentsService.update', () => {
     });
   });
 });
+
+describe('DocumentsService.delete', () => {
+  it('removes the document, leaving the others of the change', async () => {
+    const other = DocumentId.parse('2026-09-18-cancellation');
+    await t.writeDocument(CHANGE, document);
+    await t.writeDocument(CHANGE, { ...document, id: other });
+
+    await service.delete(CHANGE, ID);
+
+    expect((await service.list(CHANGE)).map((d) => d.id)).toEqual([other]);
+    await expect(service.findById(CHANGE, ID)).rejects.toMatchObject({
+      entity: 'document',
+    });
+  });
+
+  it('refuses an id that names no document in the change', async () => {
+    await expect(service.delete(CHANGE, ID)).rejects.toMatchObject({
+      entity: 'document',
+    });
+  });
+
+  it('refuses a change that does not exist', async () => {
+    await expect(service.delete(NOPE, ID)).rejects.toMatchObject({
+      entity: 'change',
+    });
+  });
+
+  it('never lets an update running beside it bring the document back', async () => {
+    await t.writeDocument(CHANGE, document);
+    const { id: _id, ...content } = document;
+
+    const [removed, updated] = await Promise.allSettled([
+      service.delete(CHANGE, ID),
+      service.update(CHANGE, ID, content),
+    ]);
+
+    expect(removed.status).toBe('fulfilled');
+    expect(updated.status).toBe('rejected');
+    expect(await service.list(CHANGE)).toEqual([]);
+  });
+});

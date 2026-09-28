@@ -33,6 +33,10 @@ export class ChangeOwnedRepository<T extends { id: string }> {
     return this.owned(change).save(entity);
   }
 
+  delete(change: ChangeId, id: T['id']): Promise<void> {
+    return this.owned(change).delete(id);
+  }
+
   private owned(change: ChangeId): JsonCollection<T> {
     return new JsonCollection(
       this.schema,

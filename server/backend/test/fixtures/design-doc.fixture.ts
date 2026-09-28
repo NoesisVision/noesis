@@ -253,6 +253,17 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   behaviours: { added: byAgentOnly.behaviours.added },
 };
 
+/*
+ * The same additions as a human revised them: some fields in their own name,
+ * which only a human may write.
+ */
+export const humanEditedDesignDocFixture: DesignDocumentInput = {
+  ...designDocFixture,
+  modules: { added: designDocFixture.modules.added },
+  buildingBlocks: { added: designDocFixture.buildingBlocks.added },
+  behaviours: { added: designDocFixture.behaviours.added },
+};
+
 function asAgent(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(asAgent);
   if (typeof node !== 'object' || node === null) return node;

@@ -1,27 +1,19 @@
-import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangeId } from '#backend/app/changes/change-id';
 import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import {
-  type DesignDocSummary,
   DesignDocSummarySchema,
   type DesignDocsService,
-  InvalidDesignDocError,
 } from '#backend/app/design-docs/design-docs.service';
-import { NotFoundError } from '#backend/app/not-found-error';
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
-import { failure, success } from '../tool-result';
-import { inChangeInput, withChange } from './change-scoped';
-import {
-  DESIGN_DOC_SHAPE,
-  violationsFailure,
-} from './create-design-doc-in-change.tool';
+import { success } from '../tool-result';
+import { DESIGN_DOC_SHAPE } from './design-doc-shape';
+import { fromWorkingFile, inChangeInput } from './working-file';
 
 const SUBJECT = 'design document';
 
@@ -51,44 +43,23 @@ export function updateDesignDocInChangeTool(
       annotations: UPDATE,
     },
     (input) =>
-      withChange(input.change, SUBJECT, (change) =>
-        update(designDocs, files, change, input.id, input.path),
+      fromWorkingFile(
+        files,
+        DesignDocumentContent,
+        SUBJECT,
+        input.path,
+        async (file) => {
+          const designDoc = await designDocs.update(
+            input.change,
+            input.id,
+            file,
+            'agent',
+          );
+          return success(
+            `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,
+            { designDoc },
+          );
+        },
       ),
-  );
-}
-
-async function update(
-  designDocs: DesignDocsService,
-  files: SessionFiles,
-  change: ChangeId,
-  id: DesignDocId,
-  path: string,
-): Promise<CallToolResult> {
-  const document = await files.read(DesignDocumentContent, path);
-  if (document.isErr()) {
-    return failure(`Invalid ${SUBJECT}:\n${document.error}`);
-  }
-  try {
-    return updated(change, await designDocs.update(change, id, document.value));
-  } catch (error) {
-    // A missing change is `withChange`'s to answer.
-    if (error instanceof NotFoundError && error.entity === 'design document') {
-      return failure(
-        error.message,
-        `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
-      );
-    }
-    if (error instanceof InvalidDesignDocError) return violationsFailure(error);
-    throw error;
-  }
-}
-
-function updated(
-  change: ChangeId,
-  designDoc: DesignDocSummary,
-): CallToolResult {
-  return success(
-    `Updated design document ${designDoc.id} ("${designDoc.name}") in ${change}.`,
-    { designDoc },
   );
 }

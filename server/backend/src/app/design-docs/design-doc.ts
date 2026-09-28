@@ -87,16 +87,14 @@ const designDocumentSchema = z.strictObject({
 });
 
 export const DesignDocument = Object.assign(designDocumentSchema, {
-  /**
-   * The rules a design document written by an agent follows. Without a
-   * system model it is a green field: there is nothing to modify or remove.
-   */
+  /** A human may write a field in their own name. */
+  validateHumanEdited: rulesOfEveryDesign,
+  /** An agent never writes a field in a human's name. */
   validateAgentGenerated: (
     document: DesignDocumentContent,
     systemModel?: SystemModel,
   ): DesignDocViolation[] => [
-    ...changesMissingFrom(systemModel, document),
-    ...unchangedFieldsInAddedItems(document),
+    ...rulesOfEveryDesign(document, systemModel),
     ...humanAuthoredFields(document),
   ],
 });
@@ -251,6 +249,20 @@ function isChangeSet(value: unknown): value is ChangeSetValue {
 
 function isObject(value: unknown): value is object {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * The rules a design document follows, whoever wrote it. Without a system
+ * model it is a green field: there is nothing to modify or remove.
+ */
+function rulesOfEveryDesign(
+  document: DesignDocumentContent,
+  systemModel?: SystemModel,
+): DesignDocViolation[] {
+  return [
+    ...changesMissingFrom(systemModel, document),
+    ...unchangedFieldsInAddedItems(document),
+  ];
 }
 
 function unchangedFieldsInAddedItems(

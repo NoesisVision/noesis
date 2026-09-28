@@ -5,12 +5,10 @@ import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
-import {
-  MAX_WORKING_FILE_BYTES,
-  type SessionFiles,
-} from '#backend/adapters/in/mcp/session-files';
+import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,
@@ -207,6 +205,7 @@ describe('update_change', () => {
     const path = await workingFile('change.json', {
       name: 'Payment retry',
       type: 'fix',
+      status: 'design',
     });
 
     const result = await call('update_change', { id: CHANGE, path });
@@ -215,6 +214,20 @@ describe('update_change', () => {
     expect(textOf(result)).toContain(`No change "${CHANGE}"`);
     expect(textOf(result)).toContain('list_changes');
     expect(await noesis.changesService.list()).toEqual([]);
+  });
+
+  it('refuses a file without a status, leaving the stored one as it was', async () => {
+    const id = await noesis.createChange(CHANGE, { status: 'design' });
+    const path = await workingFile('change.json', {
+      name: 'Payment retry',
+      type: 'fix',
+    });
+
+    const result = await call('update_change', { id, path });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('→ at status');
+    expect((await noesis.changesService.findById(id)).status).toBe('design');
   });
 
   it('refuses an id that is not a dated id', async () => {
@@ -313,7 +326,7 @@ describe('create_document_in_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {
@@ -449,7 +462,7 @@ describe('update_document_in_change', () => {
     expect(await noesis.documentsService.list(change)).toEqual([]);
   });
 
-  it('reports an unknown change in-band', async () => {
+  it('reports an unknown change in-band, with where to find its id', async () => {
     const result = await call('update_document_in_change', {
       change: '2026-01-01-no-such-change',
       id: DOCUMENT_ID,
@@ -458,6 +471,21 @@ describe('update_document_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+  });
+
+  it('answers a file it cannot read as unreadable, not as invalid', async () => {
+    const change = await noesis.createChange(CHANGE);
+
+    const result = await call('update_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+      path: join(files.dir, 'missing.json'),
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toStartWith('Could not read the document:');
+    expect(textOf(result)).toContain('No file at');
   });
 });
 
@@ -508,7 +536,7 @@ describe('create_design_doc_in_change', () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('not a change id');
+    expect(textOf(result)).toContain('Invalid change id');
   });
 
   it('refuses a path outside the scratch directory', async () => {

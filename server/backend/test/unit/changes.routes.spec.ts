@@ -148,11 +148,48 @@ describe('ui changes routes', () => {
     expect(await ids()).toEqual(['2026-09-01-payment-retry']);
   });
 
-  // Creating is the agent's, through the `create_change` tool.
-  it('writes nothing: POST is not a route of this surface', async () => {
+  it('creates a change in discovery, at an id minted from today and its name', async () => {
     const res = await post({ name: 'Payment retry', type: 'feature' });
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(201);
+    expect(await res.json()).toEqual({
+      change: {
+        id: '2026-09-24-payment-retry',
+        name: 'Payment retry',
+        key: '',
+        type: 'feature',
+        status: 'discovery',
+        description: '',
+      },
+    });
+    expect(await ids()).toEqual(['2026-09-24-payment-retry']);
+  });
+
+  it('mints the id and starts in discovery, whatever the body names', async () => {
+    const res = await post({
+      id: '2026-01-01-mine',
+      name: 'Payment retry',
+      type: 'feature',
+      status: 'done',
+    });
+
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({
+      change: { id: '2026-09-24-payment-retry', status: 'discovery' },
+    });
+  });
+
+  it('refuses a change that does not fit, with the issues to fix', async () => {
+    for (const body of [
+      { name: 'No type' },
+      { name: 'Payment retry', type: 'feature', key: 'not-a-key' },
+    ]) {
+      const res = await post(body);
+      expect(res.status).toBe(400);
+      expect(((await res.json()) as { error: string }).error).toBe(
+        'invalid_body',
+      );
+    }
     expect(await ids()).toEqual([]);
   });
 
