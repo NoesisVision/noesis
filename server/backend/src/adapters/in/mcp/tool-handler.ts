@@ -17,11 +17,11 @@ import { failure } from './tool-result';
 const log = serverLogger('mcp');
 
 /**
- * The last resort around a tool. What the services throw for a caller's
+ * The last resort around a tool. What the handlers throw for a caller's
  * mistake — a missing entity, a design that breaks its rules — is answered
  * here, once, with what to do next. Anything else the SDK would turn into an
  * in-band error silently, leaving nothing in `.noesis/logs/` for the person
- * whose session just failed; every handler is registered through here, so the
+ * whose session just failed; every tool is registered through here, so the
  * server keeps the record and the agent still gets an answer it can read.
  */
 export function logged<Input>(

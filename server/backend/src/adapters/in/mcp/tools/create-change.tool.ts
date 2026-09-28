@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { ChangeSchema, NewChangeSchema } from '#backend/app/changes/change';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES, UPDATE_CHANGE } from '../tool-names';
 import { success } from '../tool-result';
@@ -14,7 +14,7 @@ const outputSchema = z
   .describe('The change as stored, with the id the server minted.');
 
 export function createChangeTool(
-  changes: ChangesService,
+  createChange: CreateChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -41,7 +41,7 @@ export function createChangeTool(
         SUBJECT,
         input.path,
         async (file) => {
-          const change = await changes.create(file);
+          const change = await createChange.handle(file);
           return success(
             `Created change ${change.id} (${change.type}, ${change.status}). Refer to it by this id.`,
             { change },

@@ -1,5 +1,4 @@
 import { afterAll, describe, expect, it } from 'bun:test';
-import { SearchService } from '#backend/app/search/search.service';
 import { createApp } from '#backend/boot/app';
 import { testNoesis } from '../unit/test-noesis';
 
@@ -7,12 +6,7 @@ const t = await testNoesis();
 afterAll(() => t.cleanup());
 
 describe('Route surfaces (e2e)', () => {
-  const app = createApp({
-    searchService: new SearchService(),
-    changesService: t.changesService,
-    designDocsService: t.designDocsService,
-    documentsService: t.documentsService,
-  });
+  const app = createApp(t);
 
   it('/ui/changes (GET) — ui surface', async () => {
     const res = await app.request('/ui/changes');

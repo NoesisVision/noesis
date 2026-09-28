@@ -65,4 +65,3 @@ export type NewChange = z.infer<typeof NewChangeSchema>;
 
 /** The working file of a change update: the id travels beside it. */
 export const ChangeContentSchema = ChangeSchema.omit({ id: true });
-export type ChangeContent = z.infer<typeof ChangeContentSchema>;

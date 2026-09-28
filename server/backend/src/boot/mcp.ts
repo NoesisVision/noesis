@@ -37,15 +37,7 @@ export interface McpHandle {
 export function serveMcp(options: McpOptions): McpHandle {
   const { version, noesis, sessionFiles, services } = options;
   const handle = serveStdio(
-    () =>
-      createMcpServer({
-        version,
-        noesis,
-        sessionFiles,
-        changesService: services.changesService,
-        designDocsService: services.designDocsService,
-        documentsService: services.documentsService,
-      }),
+    () => createMcpServer({ ...services, version, noesis, sessionFiles }),
     {
       transport: new ServingTransport(options.onServing),
       onerror: (error) => {

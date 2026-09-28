@@ -1,8 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import type { ChangesService } from '#backend/app/changes/changes.service';
-import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
-import type { DocumentsService } from '#backend/app/information-sources/documents.service';
+import type { CreateChangeHandler } from '#backend/app/changes/create-change';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
+import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
+import type { CreateDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
+import type { UpdateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
+import type { CreateDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
+import type { UpdateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
@@ -17,14 +21,18 @@ export interface McpServerDeps {
   version: string;
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
+  createChange: CreateChangeHandler;
+  updateChange: UpdateChangeHandler;
+  listChanges: ListChangesHandler;
+  createDocumentInChange: CreateDocumentInChangeHandler;
+  updateDocumentInChange: UpdateDocumentInChangeHandler;
+  createDesignDocInChange: CreateDesignDocInChangeHandler;
+  updateDesignDocInChange: UpdateDesignDocInChangeHandler;
 }
 
 /**
- * The agent's surface onto the same services the ui calls. Tools stay thin —
- * each registers its schemas and hands one call to one service method.
+ * The agent's surface onto the same handlers the ui calls. Tools stay thin —
+ * each registers its schemas and hands one command to one handler.
  */
 export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer(
@@ -43,13 +51,19 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
 
 function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
-    createChangeTool(deps.changesService, deps.sessionFiles),
-    updateChangeTool(deps.changesService, deps.sessionFiles),
-    listChangesTool(deps.changesService),
-    createDocumentInChangeTool(deps.documentsService, deps.sessionFiles),
-    updateDocumentInChangeTool(deps.documentsService, deps.sessionFiles),
-    createDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
-    updateDesignDocInChangeTool(deps.designDocsService, deps.sessionFiles),
+    createChangeTool(deps.createChange, deps.sessionFiles),
+    updateChangeTool(deps.updateChange, deps.sessionFiles),
+    listChangesTool(deps.listChanges),
+    createDocumentInChangeTool(deps.createDocumentInChange, deps.sessionFiles),
+    updateDocumentInChangeTool(deps.updateDocumentInChange, deps.sessionFiles),
+    createDesignDocInChangeTool(
+      deps.createDesignDocInChange,
+      deps.sessionFiles,
+    ),
+    updateDesignDocInChangeTool(
+      deps.updateDesignDocInChange,
+      deps.sessionFiles,
+    ),
   ];
 }
 

@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import {
-  DesignDocSummarySchema,
-  type DesignDocsService,
-} from '#backend/app/design-docs/design-docs.service';
+  CreateDesignDocInChange,
+  type CreateDesignDocInChangeHandler,
+} from '#backend/app/design-docs/create-design-doc-in-change';
+import { DesignDocSummarySchema } from '#backend/app/design-docs/design-doc-summary';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
@@ -21,7 +21,7 @@ const outputSchema = z
   .describe('The design document as stored, with the id the server minted.');
 
 export function createDesignDocInChangeTool(
-  designDocs: DesignDocsService,
+  createDesignDoc: CreateDesignDocInChangeHandler,
   files: SessionFiles,
 ): ToolRegistration {
   return defineTool(
@@ -40,11 +40,14 @@ export function createDesignDocInChangeTool(
     (input) =>
       fromWorkingFile(
         files,
-        DesignDocumentContent,
+        CreateDesignDocInChange.shape.designDoc,
         SUBJECT,
         input.path,
         async (file) => {
-          const designDoc = await designDocs.create(input.change, file);
+          const designDoc = await createDesignDoc.handle({
+            change: input.change,
+            designDoc: file,
+          });
           return success(
             `Created design document ${designDoc.id} ("${designDoc.name}") in ${input.change}. Refer to it by this id.`,
             { designDoc },

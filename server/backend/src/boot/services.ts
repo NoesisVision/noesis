@@ -1,54 +1,74 @@
 import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { ChangesService } from '#backend/app/changes/changes.service';
+import { createChangeHandler } from '#backend/app/changes/create-change';
+import { findChangeHandler } from '#backend/app/changes/find-change';
+import { listChangesHandler } from '#backend/app/changes/list-changes';
+import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
+import { updateChangeHandler } from '#backend/app/changes/update-change';
+import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
+import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
+import { listDesignDocsInChangeHandler } from '#backend/app/design-docs/list-design-docs-in-change';
+import { updateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
+import { createDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
+import { deleteDocumentFromChangeHandler } from '#backend/app/information-sources/delete-document-from-change';
 import { DocumentSchema } from '#backend/app/information-sources/document';
-import { DocumentsService } from '#backend/app/information-sources/documents.service';
-import { SearchService } from '#backend/app/search/search.service';
-import { localToday } from '#backend/app/today';
+import { findDocumentHandler } from '#backend/app/information-sources/find-document';
+import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
+import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
+import { searchHandler } from '#backend/app/search/search';
+import { localToday, type Today } from '#backend/app/today';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** The application layer, shared by the MCP tools and the ui routes. */
-export interface Services {
-  changesService: ChangesService;
-  designDocsService: DesignDocsService;
-  documentsService: DocumentsService;
-  searchService: SearchService;
-}
-
-/** Wires the file repositories under `.noesis/` to the services that use them. */
-export function createServices(noesis: NoesisDir): Services {
-  const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new NoesisChangeOwnedRepository(
+/** Wires the file repositories under `.noesis/` to the handlers that use them. */
+export function createServices(noesis: NoesisDir, today: Today = localToday) {
+  const changes = new NoesisChangesRepository(noesis);
+  const designDocs = new NoesisChangeOwnedRepository(
     noesis,
     DesignDocument,
     'design-doc',
   );
-  const documentsRepository = new NoesisChangeOwnedRepository(
+  const documents = new NoesisChangeOwnedRepository(
     noesis,
     DocumentSchema,
     'document',
   );
-
-  const changesService = new ChangesService(
-    changesRepository,
-    designDocsRepository,
-    documentsRepository,
-    localToday,
-  );
   return {
-    changesService,
-    designDocsService: new DesignDocsService(
-      designDocsRepository,
-      changesService,
-      localToday,
+    createChange: createChangeHandler(changes, today),
+    updateChange: updateChangeHandler(changes),
+    listChanges: listChangesHandler(changes),
+    listChangesWithEntries: listChangesWithEntriesHandler(
+      changes,
+      designDocs,
+      documents,
     ),
-    documentsService: new DocumentsService(
-      documentsRepository,
-      changesService,
-      localToday,
+    findChange: findChangeHandler(changes),
+    createDesignDocInChange: createDesignDocInChangeHandler(
+      designDocs,
+      changes,
+      today,
     ),
-    searchService: new SearchService(),
+    updateDesignDocInChange: updateDesignDocInChangeHandler(
+      designDocs,
+      changes,
+    ),
+    listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
+    findDesignDoc: findDesignDocHandler(designDocs, changes),
+    createDocumentInChange: createDocumentInChangeHandler(
+      documents,
+      changes,
+      today,
+    ),
+    updateDocumentInChange: updateDocumentInChangeHandler(documents, changes),
+    deleteDocumentFromChange: deleteDocumentFromChangeHandler(
+      documents,
+      changes,
+    ),
+    listDocumentsInChange: listDocumentsInChangeHandler(documents, changes),
+    findDocument: findDocumentHandler(documents, changes),
+    search: searchHandler(),
   };
 }
+
+/** The application layer, shared by the MCP tools and the ui routes. */
+export type Services = ReturnType<typeof createServices>;

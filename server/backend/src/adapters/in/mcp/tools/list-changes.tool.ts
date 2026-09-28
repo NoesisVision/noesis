@@ -1,7 +1,7 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
-import type { ChangesService } from '#backend/app/changes/changes.service';
+import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import { defineTool, READ_ONLY, type ToolRegistration } from '../tool';
 import { CREATE_CHANGE, LIST_CHANGES } from '../tool-names';
 import { success } from '../tool-result';
@@ -18,7 +18,9 @@ const outputSchema = z
   })
   .describe('The changes of this repository.');
 
-export function listChangesTool(changes: ChangesService): ToolRegistration {
+export function listChangesTool(
+  listChanges: ListChangesHandler,
+): ToolRegistration {
   return defineTool(
     LIST_CHANGES,
     {
@@ -29,7 +31,7 @@ export function listChangesTool(changes: ChangesService): ToolRegistration {
       outputSchema,
       annotations: READ_ONLY,
     },
-    async () => listed(await changes.list()),
+    async () => listed(await listChanges.handle()),
   );
 }
 

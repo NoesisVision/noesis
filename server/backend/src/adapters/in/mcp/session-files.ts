@@ -39,7 +39,7 @@ export class SessionFiles {
     this.realSessionsRoot = location.realSessionsRoot;
   }
 
-  /** The payload is checked once — here, before any service sees it. */
+  /** The payload is checked once — here, before any handler sees it. */
   async read<T>(schema: ZodType<T>, path: string): Promise<Result<T, string>> {
     const resolved = await this.resolve(path);
     if (resolved.isErr()) {

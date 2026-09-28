@@ -4,7 +4,7 @@ import type { ChangeId } from './changes/change-id';
 export type Entity = 'change' | 'document' | 'design document';
 
 /**
- * An id that names nothing. Every service throws it for a missing entity, and
+ * An id that names nothing. Every handler throws it for a missing entity, and
  * each adapter answers it once, where it catches every error.
  */
 export class NotFoundError extends Error {
