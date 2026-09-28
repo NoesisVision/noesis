@@ -1,5 +1,9 @@
 /* An item that opens its row reads as a link: underlined under the pointer. */
 .item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+
   &:hover {
     text-decoration: underline;
   }
@@ -10,4 +14,17 @@
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
+}
+
+/* The link mark: a small filled square, as a gray `ThemeIcon` draws one. */
+.mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-white);
+  color: var(--mantine-color-gray-light-color);
 }

@@ -1,7 +1,5 @@
 import { IconLink } from '@tabler/icons-react';
-import { Group } from '#/shared/design-system/group.tsx';
 import { List } from '#/shared/design-system/list.tsx';
-import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
@@ -46,13 +44,13 @@ export function ChangeListSection({
                   className={classes.item}
                   onClick={() => select(path)}
                 >
-                  <Group gap="xs">
-                    {/* Decorative: that the line opens a row is the button's to say. */}
-                    <ThemeIcon color="gray" size={16} aria-hidden="true">
-                      <IconLink size={12} />
-                    </ThemeIcon>
-                    {ref}
-                  </Group>
+                  {/* Spans, not a Group or a ThemeIcon: both are divs, and a
+                      button holds only phrasing content. Decorative: that the
+                      line opens a row is the button's to say. */}
+                  <span className={classes.mark} aria-hidden="true">
+                    <IconLink size={12} />
+                  </span>
+                  {ref}
                 </UnstyledButton>
               ) : (
                 ref

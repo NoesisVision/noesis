@@ -96,6 +96,11 @@
     var(--mantine-spacing-md) var(--mantine-spacing-xs);
 }
 
+/* Room past the last section, so it can be scrolled clear of the pane's edge. */
+.paneBody {
+  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
+}
+
 /*
  * Stacked, the page scrolls rather than the panes: two short scrollers one
  * above the other on a phone is worse than one long page.
