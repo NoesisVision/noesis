@@ -145,7 +145,7 @@ export function TreeItem({
           {node.name}
         </MatchedText>
         {node.patternLabel !== null && (
-          <Badge size="xs" variant="default">
+          <Badge size="xs" variant="default" className={classes.badge}>
             <MatchedText
               className={classes.pattern}
               tokens={search.tokens}

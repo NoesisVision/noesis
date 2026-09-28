@@ -4,7 +4,6 @@
  * be the more specific of the two.
  */
 h2.name {
-  font-family: var(--mantine-font-family-monospace);
   overflow-wrap: anywhere;
 }
 

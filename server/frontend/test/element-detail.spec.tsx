@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { ElementDetail } from '../src/features/design-docs/ui/element-detail';
+import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
@@ -42,7 +42,16 @@ const document = {
           removed: [],
           modified: [],
         },
-        rules: { added: [], removed: [], modified: [] },
+        rules: {
+          added: [
+            {
+              name: 'A hold expires',
+              scenarios: { added: [], removed: [], modified: [] },
+            },
+          ],
+          removed: [],
+          modified: [],
+        },
         scenarios: {
           added: [
             {
@@ -106,6 +115,15 @@ const outline: OutlineNode[] = [
     patternLabel: 'Money',
   }),
   node({
+    path: 'building_block|pay.Hold#rule:A hold expires',
+    parentPath: 'building_block|pay.Hold',
+    elementId: null,
+    kind: 'rule',
+    name: 'A hold expires',
+    depth: 2,
+    change: 'added',
+  }),
+  node({
     path: 'building_block|pay.Hold#scenario:A hold settles',
     parentPath: 'building_block|pay.Hold',
     elementId: null,
@@ -150,24 +168,26 @@ describe('ElementDetail', () => {
 
   it('says where in the model the element sits, as a trail back up it', () => {
     const html = show('building_block|pay.Hold#property:amount');
-    expect(html).toContain('aria-label="Where this element sits"');
-    // The steps are a list, so their order and nesting are in the markup and
-    // not only in the chevron the stylesheet draws between them.
-    expect(html.match(/<li[^>]*>/g)).toHaveLength(2);
+    expect(html).toMatch(/<nav[^>]*aria-label="Where this element sits"/);
     expect(html).toContain('>pay<');
     expect(html).toContain('>Hold<');
-    // The element itself is the heading, not a step of the way to it.
+    // The element itself closes the trail as where the reader is, not as a
+    // step of the way to it.
+    expect(html).toMatch(/aria-current="location"[^>]*>amount</);
     expect(html.match(/<button[^>]*>/g)).toHaveLength(2);
   });
 
   it('steps back up the trail with a button, not with an ornament', () => {
     const html = show('building_block|pay.Hold#property:amount');
-    expect(html).toMatch(/<button[^>]*>pay<\/button>/);
+    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*pay<\/span>/);
+    // The separator is drawn, not read out between every pair of steps.
+    expect(html).not.toMatch(/Breadcrumbs-separator">&gt;/);
+    expect(html).toContain('<span aria-hidden="true">&gt;</span>');
   });
 
-  it('says nothing about the path of a node at the top', () => {
+  it('gives a node at the top no step to go back to', () => {
     const html = show('module|pay');
-    expect(html).not.toContain('Where this element sits');
+    expect(html).toMatch(/aria-current="location"[^>]*>pay</);
     expect(html).not.toContain('<button');
   });
 
@@ -181,7 +201,7 @@ describe('ElementDetail', () => {
   });
 
   it('says a description is missing rather than opening an editor on it', () => {
-    expect(show('building_block|pay.Hold#property:amount')).toContain(
+    expect(show('building_block|pay.Hold#rule:A hold expires')).toContain(
       'Not specified.',
     );
   });

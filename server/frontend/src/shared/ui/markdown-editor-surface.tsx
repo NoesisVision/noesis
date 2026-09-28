@@ -49,6 +49,7 @@ export interface MarkdownEditorProps {
    * opening a second outline beside it.
    */
   headingLevel?: HeadingDepth;
+  noMargin?: boolean;
 }
 
 /** The fences the plain code editor offers, past the diagram of its own. */
@@ -68,6 +69,7 @@ export default function MarkdownEditorSurface({
   onChange,
   readOnly = false,
   headingLevel = 2,
+  noMargin = false,
 }: MarkdownEditorProps) {
   const scheme = useComputedColorScheme('light');
 
@@ -83,6 +85,7 @@ export default function MarkdownEditorSurface({
       contentEditableClassName={clsx(
         classes.content,
         readOnly && classes.reading,
+        noMargin && classes.noMargin,
       )}
       plugins={documentPlugins(headingLevel, readOnly)}
     />
