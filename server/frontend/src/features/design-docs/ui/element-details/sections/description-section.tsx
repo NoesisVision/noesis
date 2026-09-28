@@ -33,8 +33,6 @@ export function DescriptionSection({
 }: DescriptionSectionProps) {
   const value = valueOf(field);
 
-  console.info(field);
-
   /*
    * Left alone, the description is whatever the model already says; written
    * but blank, there is nothing to read.

@@ -1,3 +1,7 @@
+import { IconLink } from '@tabler/icons-react';
+import { Group } from '#/shared/design-system/group.tsx';
+import { List } from '#/shared/design-system/list.tsx';
+import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
@@ -35,27 +39,32 @@ export function ChangeListSection({
 
   return (
     <DetailSection title={title} icon={<KindIcon kind={kind} />}>
-      <ul className={classes.list}>
+      <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
         {sorted.map(({ change, label, path }) => {
           const ref = (
             <Ref change={change} name={label} monospace={monospace} />
           );
           return (
-            <li key={`${change}:${label}`}>
+            <List.Item key={`${change}:${label}`}>
               {path !== null && has(path) ? (
                 <UnstyledButton
                   className={classes.item}
                   onClick={() => select(path)}
                 >
-                  {ref}
+                  <Group gap="xs">
+                    <ThemeIcon color="gray" size={16}>
+                      <IconLink size={12} />
+                    </ThemeIcon>
+                    {ref}
+                  </Group>
                 </UnstyledButton>
               ) : (
                 ref
               )}
-            </li>
+            </List.Item>
           );
         })}
-      </ul>
+      </List>
     </DetailSection>
   );
 }

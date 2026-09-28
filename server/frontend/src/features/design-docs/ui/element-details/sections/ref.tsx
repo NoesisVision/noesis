@@ -6,7 +6,6 @@ import { useChangeColour } from '#/shared/ui/model-tree/use-change-colour.ts';
 export function Ref({
   change,
   name,
-  monospace = false,
 }: {
   change: OutlineChange;
   name: string | undefined;
@@ -21,7 +20,7 @@ export function Ref({
       // A span, so a line can sit inside the button that opens its row.
       component="span"
       display="block"
-      ff={monospace ? 'monospace' : undefined}
+      lts={0.5}
       c={colour?.color}
       size="sm"
       td={change === 'removed' ? 'line-through' : undefined}
