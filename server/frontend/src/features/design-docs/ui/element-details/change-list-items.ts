@@ -1,4 +1,8 @@
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
+import type {
+  OutlineChange,
+  OutlineKind,
+} from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type {
   DesignedPropertyInput,
   DesignedRuleInput,
@@ -66,6 +70,26 @@ export const propertyItems = (
       path: partPathOf(owner, 'property', property.name),
     };
   });
+
+/**
+ * The children of one kind a node has in the tree — a module's submodules and
+ * building blocks, a block's behaviours — each as the tree has it. The tree
+ * already holds an ancestor the document never names, so one that is only
+ * there for what changed under it is listed too, and opens like any other.
+ */
+export const childItems = (
+  tree: OutlineTree,
+  path: string,
+  kind: OutlineKind,
+): ChangeListItem[] =>
+  tree
+    .childrenOf(path)
+    .filter((child) => child.kind === kind)
+    .map((child) => ({
+      change: child.change,
+      label: child.name,
+      path: child.path,
+    }));
 
 /** Rules or scenarios, by name. */
 export const partItems = (

@@ -8,7 +8,9 @@ import {
   openEverything,
   openIn,
   type SearchShape,
+  shapeWithWayDown,
   UNTOUCHED,
+  withWayDown,
 } from './outline-expansion.ts';
 import { type ExpansionMemory, FORGETFUL } from './outline-memory.ts';
 import { type OutlineSearch, searchOutline } from './outline-search.ts';
@@ -108,11 +110,7 @@ export function useModelTree(
    */
   const [expanded, setExpanded] = useState(() => {
     const shape = memory.recall() ?? defaultExpansion(tree);
-    if (selected === null) return shape;
-    for (const ancestor of tree.ancestryOf(selected)) {
-      if (ancestor !== selected) shape.add(ancestor);
-    }
-    return shape;
+    return selected === null ? shape : withWayDown(shape, tree, selected);
   });
   const [shape, setShape] = useState<SearchShape>(UNTOUCHED);
 
@@ -180,16 +178,35 @@ export function useModelTree(
       onQuery(next);
       if (!searchIsOver(query, next)) return;
       setShape(UNTOUCHED);
-      setExpanded((current) => {
-        if (selected === null) return current;
-        const kept = new Set(current);
-        for (const ancestor of tree.ancestryOf(selected)) {
-          if (ancestor !== selected) kept.add(ancestor);
-        }
-        return keep(kept);
-      });
+      setExpanded((current) =>
+        selected === null
+          ? current
+          : keep(withWayDown(current, tree, selected)),
+      );
     },
     [query, selected, tree, onQuery, keep],
+  );
+
+  /*
+   * A row chosen from anywhere but the tree — a step of the breadcrumb, an
+   * item listed in the panel — may sit under a branch the reader shut. The
+   * way down to it is opened first, so it is a row the moment it is chosen.
+   * A row clicked in the tree is already on screen.
+   */
+  const select = useCallback(
+    (path: string, source: SelectSource) => {
+      if (source !== 'tree') {
+        if (search.active)
+          setShape((current) => shapeWithWayDown(current, tree, path));
+        else
+          setExpanded((current) => {
+            const next = withWayDown(current, tree, path);
+            return next === current ? current : keep(next);
+          });
+      }
+      onSelect(path, source);
+    },
+    [search.active, tree, keep, onSelect],
   );
 
   const toggle = useCallback(
@@ -209,7 +226,7 @@ export function useModelTree(
     ask,
     isExpanded,
     isVisible: (path) => search.visible === null || search.visible.has(path),
-    select: onSelect,
+    select,
     toggle,
     expand,
     collapse,

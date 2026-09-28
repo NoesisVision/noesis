@@ -149,7 +149,7 @@ export function DesignDocWorkbench({
                 .filter((node) => node !== undefined)}
               document={doc}
               onSelect={(path) => controller.select(path, 'detail')}
-              has={(path) => controller.tree.byPath.has(path)}
+              tree={controller.tree}
             />
           )
         }

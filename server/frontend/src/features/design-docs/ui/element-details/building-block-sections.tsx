@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
+import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignedBuildingBlockInput } from '#backend/app/design-docs/design-doc.ts';
 import { partItems, propertyItems, refItems } from './change-list-items.ts';
+import { childSections } from './child-sections.tsx';
 import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
@@ -8,6 +10,7 @@ import { DescriptionSection } from './sections/description-section.tsx';
 
 export const buildingBlockSections = (
   block: DesignedBuildingBlockInput,
+  tree: OutlineTree,
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'buildingBlocks', id: block.id };
   return [
@@ -29,6 +32,7 @@ export const buildingBlockSections = (
       items: propertyItems(block.id, block.properties),
       monospace: true,
     }),
+    ...childSections(element, 'building_block', block.id, tree),
     ...section(ChangeListSection, 'rules', {
       element,
       title: 'Rules',

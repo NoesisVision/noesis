@@ -7,6 +7,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { bodySections } from './body-sections.tsx';
 import { ChangeBadge } from './change-badge.tsx';
@@ -25,7 +26,7 @@ export function ElementDetail({
   path,
   document: doc,
   onSelect,
-  has,
+  tree,
 }: {
   node: OutlineNode;
   /** The line from the top of the tree down to the node, the node last. */
@@ -33,12 +34,12 @@ export function ElementDetail({
   document: DesignDocumentInput;
   /** Takes the reader to another element, as the tree itself would. */
   onSelect: (path: string) => void;
-  /** Whether the tree has a row at the path, so a section may open it. */
-  has: (path: string) => boolean;
+  /** The tree beside the panel: what a section may open, and what changed under an element. */
+  tree: OutlineTree;
 }) {
   const navigation = useMemo(
-    () => ({ has, select: onSelect }),
-    [has, onSelect],
+    () => ({ has: (path: string) => tree.byPath.has(path), select: onSelect }),
+    [tree, onSelect],
   );
   return (
     <Stack gap="sm">
@@ -62,7 +63,7 @@ export function ElementDetail({
       <Divider />
       <ElementNavigationContext.Provider value={navigation}>
         <Fragment key={node.path}>
-          {bodySections(node, doc).map((section, index) => (
+          {bodySections(node, doc, tree).map((section, index) => (
             <Fragment key={section.key}>
               {index > 0 && <Divider />}
               {section}

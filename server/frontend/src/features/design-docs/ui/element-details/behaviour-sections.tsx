@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
-import { refItems } from './change-list-items.ts';
+import { partItems, refItems } from './change-list-items.ts';
 import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
@@ -33,6 +33,18 @@ export const behaviourSections = (
       kind: 'building_block',
       items: refItems(behaviour.output),
       monospace: true,
+    }),
+    ...section(ChangeListSection, 'rules', {
+      element,
+      title: 'Rules',
+      kind: 'rule',
+      items: partItems(behaviour.id, 'rule', behaviour.rules),
+    }),
+    ...section(ChangeListSection, 'scenarios', {
+      element,
+      title: 'Scenarios',
+      kind: 'scenario',
+      items: partItems(behaviour.id, 'scenario', behaviour.scenarios),
     }),
   ];
 };

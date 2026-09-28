@@ -91,7 +91,11 @@ const document = {
     removed: ['building_block|pay.Voucher'],
     modified: [],
   },
-  behaviours: { added: [], removed: [], modified: [] },
+  behaviours: {
+    added: [],
+    removed: ['behavior|pay.Voucher.redeem'],
+    modified: [],
+  },
   implemented: false,
 } satisfies DesignDocumentInput;
 
@@ -168,6 +172,14 @@ const outline: OutlineNode[] = [
     depth: 1,
     change: 'removed',
   }),
+  node({
+    path: 'behavior|pay.Voucher.redeem',
+    parentPath: 'building_block|pay.Voucher',
+    kind: 'behaviour',
+    name: 'redeem',
+    depth: 2,
+    change: 'removed',
+  }),
 ];
 
 const tree = outlineTree(outline);
@@ -184,7 +196,7 @@ const show = (path: string) => {
           .filter((step) => step !== undefined)}
         document={document}
         onSelect={() => {}}
-        has={(path) => tree.byPath.has(path)}
+        tree={tree}
       />
     </MantineProvider>,
   );
@@ -217,7 +229,8 @@ describe('ElementDetail', () => {
   it('gives a node at the top no step to go back to', () => {
     const html = show('module|pay');
     expect(html).toMatch(/aria-current="location"[^>]*>pay</);
-    expect(html).not.toContain('<button');
+    const trail = html.slice(html.indexOf('<nav'), html.indexOf('</nav>'));
+    expect(trail).not.toContain('<button');
   });
 
   it('gives a description to the markdown reader, fences and all', () => {
@@ -292,6 +305,27 @@ describe('ElementDetail', () => {
     for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
   });
 
+  it("lists a rule's own scenarios, each opening its row under the rule", () => {
+    const html = show('building_block|pay.Hold#rule:A hold expires');
+    expect(html).toContain('>Scenarios<');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*An unpaid hold lapses</);
+    const [item] = partItems(
+      'building_block|pay.Hold#rule:A hold expires',
+      'scenario',
+      document.buildingBlocks.added[0]!.rules.added[0]!.scenarios,
+    );
+    expect(tree.byPath.has(item!.path!)).toBe(true);
+  });
+
+  it('lists what changed under a module the design never names', () => {
+    const html = show('module|pay');
+    expect(html).toContain('does not change it');
+    expect(html).toContain('>Building blocks<');
+    // Added and removed alike, each opening its row.
+    for (const name of ['Hold', 'Voucher'])
+      expect(html).toMatch(new RegExp(`<button[^>]*>(<[^>]+>)*${name}<`));
+  });
+
   it('lists an item with no row as text, not as a button', () => {
     const hold = tree.byPath.get('building_block|pay.Hold')!;
     const html = renderToStaticMarkup(
@@ -301,7 +335,7 @@ describe('ElementDetail', () => {
           path={[hold]}
           document={document}
           onSelect={() => {}}
-          has={() => false}
+          tree={outlineTree([])}
         />
       </MantineProvider>,
     );
@@ -309,10 +343,11 @@ describe('ElementDetail', () => {
     expect(html).not.toContain('<button');
   });
 
-  it('has nothing to read about an element the design only removes', () => {
+  it('says an element is removed, and lists what went with it', () => {
     const html = show('building_block|pay.Voucher');
     expect(html).toContain('removes it');
-    expect(html).toContain('removed');
+    expect(html).toContain('>Behaviours<');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*redeem</);
   });
 
   it('says why an element the design never mentions is in the tree', () => {
