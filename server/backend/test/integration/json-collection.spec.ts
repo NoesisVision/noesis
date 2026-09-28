@@ -39,8 +39,8 @@ describe('JsonCollection', () => {
     expect(await notes.get('a')).toBeNull();
   });
 
-  it('saves each entity as <dir>/<id>.<kind>.json and reads it back', async () => {
-    await notes.save(note('2026-09-24-first', 'hello'));
+  it('creates each entity as <dir>/<id>.<kind>.json and reads it back', async () => {
+    await notes.create(note('2026-09-24-first', 'hello'));
 
     expect(await readdir(join(dir, 'notes'))).toEqual([
       '2026-09-24-first.note.json',
@@ -52,7 +52,7 @@ describe('JsonCollection', () => {
 
   it('lists by id ascending', async () => {
     for (const id of ['2026-09-25-b', '2026-09-24-c', '2026-09-26-a']) {
-      await notes.save(note(id));
+      await notes.create(note(id));
     }
 
     expect((await notes.list()).map(({ id }) => id)).toEqual([
@@ -63,7 +63,7 @@ describe('JsonCollection', () => {
   });
 
   it('lists only files of its own kind, never temp files', async () => {
-    await notes.save(note('a'));
+    await notes.create(note('a'));
     await writeRaw('b.other.json', note('b'));
     await writeRaw('c.note.json.abc123.tmp', note('c'));
     await mkdir(join(dir, 'notes', 'a'));
@@ -72,7 +72,7 @@ describe('JsonCollection', () => {
   });
 
   it('skips a listed file that is gone by the time it is read', async () => {
-    await notes.save(note('a'));
+    await notes.create(note('a'));
     await symlink(
       join(dir, 'nowhere.json'),
       join(dir, 'notes', 'gone.note.json'),
@@ -83,7 +83,7 @@ describe('JsonCollection', () => {
   });
 
   it('throws from list() and get() on broken JSON', async () => {
-    await notes.save(note('a'));
+    await notes.create(note('a'));
     await mkdir(join(dir, 'notes'), { recursive: true });
     await writeFile(join(dir, 'notes', 'b.note.json'), '{ "id": ');
 
@@ -119,31 +119,73 @@ describe('JsonCollection', () => {
   it('refuses an id that could name a path, before touching the disk', async () => {
     for (const id of ['../escape', 'a/b', '', 'Upper', '-leading', '.']) {
       await expect(notes.get(id)).rejects.toThrow('Invalid id');
-      await expect(notes.save(note(id))).rejects.toThrow('Invalid id');
+      await expect(notes.create(note(id))).rejects.toThrow('Invalid id');
+      await expect(notes.replace(note(id))).rejects.toThrow('Invalid id');
       await expect(notes.delete(id)).rejects.toThrow('Invalid id');
     }
     expect(await readdir(dir)).toEqual([]);
   });
 
-  it('deletes an entity by removing its file, the others staying', async () => {
-    await notes.save(note('2026-09-24-first'));
-    await notes.save(note('2026-09-24-second'));
+  it('creates only where no file is, leaving a taken one as it was', async () => {
+    expect(await notes.create(note('a', 'first'))).toBe(true);
 
-    await notes.delete('2026-09-24-first');
+    expect(await notes.create(note('a', 'second'))).toBe(false);
+    expect(await notes.get('a')).toEqual(note('a', 'first'));
+    expect(await readdir(join(dir, 'notes'))).toEqual(['a.note.json']);
+  });
+
+  it('lets one of many creates of one id win, across collections too', async () => {
+    const other = new JsonCollection(NoteSchema, join(dir, 'notes'), 'note');
+
+    const created = await Promise.all(
+      [notes, other, notes, other].map((collection, n) =>
+        collection.create(note('a', `writer ${n}`)),
+      ),
+    );
+
+    expect(created.filter(Boolean)).toHaveLength(1);
+    expect(await readdir(join(dir, 'notes'))).toEqual(['a.note.json']);
+  });
+
+  it('replaces only an entity that is there', async () => {
+    await notes.create(note('a', 'first'));
+
+    expect(await notes.replace(note('a', 'revised'))).toBe(true);
+    expect(await notes.replace(note('b'))).toBe(false);
+    expect(await notes.list()).toEqual([note('a', 'revised')]);
+  });
+
+  it('deletes an entity by removing its file, the others staying', async () => {
+    await notes.create(note('2026-09-24-first'));
+    await notes.create(note('2026-09-24-second'));
+
+    expect(await notes.delete('2026-09-24-first')).toBe(true);
 
     expect(await notes.get('2026-09-24-first')).toBeNull();
     expect(await notes.list()).toEqual([note('2026-09-24-second')]);
   });
 
-  it('deletes an entity that is already gone without an error', async () => {
-    await notes.delete('2026-09-24-never-saved');
+  it('answers false for deleting an entity that is not there', async () => {
+    expect(await notes.delete('2026-09-24-never-saved')).toBe(false);
 
+    expect(await notes.list()).toEqual([]);
+  });
+
+  it('never lets a replace beside a delete bring the entity back', async () => {
+    await notes.create(note('a'));
+
+    const [deleted, replaced] = await Promise.all([
+      notes.delete('a'),
+      notes.replace(note('a', 'revised')),
+    ]);
+
+    expect([deleted, replaced]).toEqual([true, false]);
     expect(await notes.list()).toEqual([]);
   });
 
   it('accepts a content-hash id', async () => {
     const id = 'a3f1c2d4-0b9e-47aa-8c11-5e6f7a8b9c0d';
-    await notes.save(note(id));
+    await notes.create(note(id));
 
     expect(await notes.get(id)).toEqual(note(id));
   });

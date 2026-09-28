@@ -133,9 +133,12 @@ This is the invariant the rest of the design follows from:
   file there and passes a path; results too large to inline are written there and the agent reads
   them back. MCP messages carry coordinates, not content. The MCP server's `instructions` name
   the repository root and the session's scratch directory, so no tool call is needed to find them.
-- Writes are whole-file and atomic (write beside, then rename). When two agent sessions write the
-  same entity, the last write wins and each process's watcher picks up the other's file; there
-  are no locks and no hash preconditions.
+- Writes are whole-file and atomic (write beside, then rename). A create is exclusive: the file
+  written beside is hard-linked to its name, which the filesystem refuses when the name is
+  taken, so two sessions never create one entity. An update replaces only an entity that is
+  there and a removal removes only one. Beyond that, when two agent sessions write the same
+  entity, the last write wins and each process's watcher picks up the other's file; there are
+  no locks and no hash preconditions.
 
 ## Knowledge graph files
 

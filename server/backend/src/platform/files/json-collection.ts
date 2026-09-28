@@ -1,7 +1,13 @@
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { existsSync, rmSync } from 'node:fs';
+import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
-import { JsonFileError, parseJson, writeJsonFile } from './json-file';
+import {
+  createJsonFile,
+  JsonFileError,
+  parseJson,
+  writeJsonFile,
+} from './json-file';
 
 /** What may name a file: dated ids and content hashes fit, a path never does. */
 const FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -12,9 +18,11 @@ function byCodeUnit(a: string, b: string): number {
 }
 
 /**
- * One entity per file, `<dir>/<id>.<kind>.json`. No locks: the atomic rename
- * in `writeJsonFile` is the whole guarantee, so the last complete write wins,
- * across processes too.
+ * One entity per file, `<dir>/<id>.<kind>.json`. No locks. A create is
+ * exclusive, across processes too, so no two writers take one id. A replace
+ * or a delete checks the file is there and acts without yielding, so nothing
+ * else in this process comes between the two; another process can, and then
+ * the last complete write wins.
  */
 export class JsonCollection<T extends { id: string }> {
   private readonly schema: ZodType<T>;
@@ -39,14 +47,29 @@ export class JsonCollection<T extends { id: string }> {
     return entities.filter((entity) => entity !== null);
   }
 
-  // `async`, so a refused id rejects instead of throwing before the promise exists.
-  async save(entity: T): Promise<void> {
-    return writeJsonFile(this.pathOf(entity.id), this.schema, entity);
+  // Each write is `async` without awaiting anything: its body runs in one
+  // step, and a refused id rejects instead of throwing before the promise
+  // exists.
+
+  /** Writes `entity` where none is yet; `false` when its id is taken. */
+  async create(entity: T): Promise<boolean> {
+    return createJsonFile(this.pathOf(entity.id), this.schema, entity);
   }
 
-  /** Removes the entity's file; one already gone is no error. */
-  async delete(id: string): Promise<void> {
-    await rm(this.pathOf(id), { force: true });
+  /** Replaces the stored entity whole; `false` when there is none. */
+  async replace(entity: T): Promise<boolean> {
+    const path = this.pathOf(entity.id);
+    if (!existsSync(path)) return false;
+    writeJsonFile(path, this.schema, entity);
+    return true;
+  }
+
+  /** Removes the entity's file; `false` when there is none. */
+  async delete(id: string): Promise<boolean> {
+    const path = this.pathOf(id);
+    if (!existsSync(path)) return false;
+    rmSync(path, { force: true });
+    return true;
   }
 
   private pathOf(id: string): string {

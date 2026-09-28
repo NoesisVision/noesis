@@ -1,5 +1,12 @@
 import { randomBytes } from 'node:crypto';
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import {
+  linkSync,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
 import { z, type ZodType } from 'zod';
@@ -39,20 +46,45 @@ export async function readJsonFile<T>(
 /**
  * Validates, encodes, writes `path.<random>.tmp` and renames it over `path`,
  * so a reader never sees a half-written file. Creates the parent directory.
+ * Synchronous, so a check made just before it cannot be interleaved.
  */
-export async function writeJsonFile<T>(
+export function writeJsonFile<T>(
   path: string,
   schema: ZodType<T>,
   value: T,
-): Promise<void> {
-  // A schema may decode into a value object (a codec); what is stored is the
-  // JSON side of it, which a read decodes again.
-  const encoded = schema.safeEncode(value);
-  if (!encoded.success) {
-    throw new JsonFileError(path, describeIssues(encoded.error));
+): void {
+  const content = encodeJson(path, schema, value);
+  mkdirSync(dirname(path), { recursive: true });
+  const temp = tempBeside(path);
+  try {
+    writeFileSync(temp, content);
+    renameSync(temp, path);
+  } catch (error) {
+    rmSync(temp, { force: true });
+    throw error;
   }
-  await mkdir(dirname(path), { recursive: true });
-  await replaceAtomically(path, `${JSON.stringify(encoded.data, null, 2)}\n`);
+}
+
+/**
+ * As `writeJsonFile`, but only where no file is: answers `false`, writing
+ * nothing, when one exists. The temp file is hard-linked to `path`, which the
+ * filesystem refuses atomically when the name is taken, so two processes
+ * creating the same file cannot both succeed.
+ */
+export function createJsonFile<T>(
+  path: string,
+  schema: ZodType<T>,
+  value: T,
+): boolean {
+  const content = encodeJson(path, schema, value);
+  mkdirSync(dirname(path), { recursive: true });
+  const temp = tempBeside(path);
+  try {
+    writeFileSync(temp, content);
+    return linkIfFree(temp, path);
+  } finally {
+    rmSync(temp, { force: true });
+  }
 }
 
 export class JsonFileError extends Error {
@@ -71,13 +103,26 @@ function describeIssues(error: z.ZodError): string {
   return z.prettifyError(shown) + (more > 0 ? `\n… and ${more} more` : '');
 }
 
-async function replaceAtomically(path: string, content: string): Promise<void> {
-  const temp = `${path}.${randomBytes(6).toString('hex')}.tmp`;
+// A schema may decode into a value object (a codec); what is stored is the
+// JSON side of it, which a read decodes again.
+function encodeJson<T>(path: string, schema: ZodType<T>, value: T): string {
+  const encoded = schema.safeEncode(value);
+  if (!encoded.success) {
+    throw new JsonFileError(path, describeIssues(encoded.error));
+  }
+  return `${JSON.stringify(encoded.data, null, 2)}\n`;
+}
+
+function tempBeside(path: string): string {
+  return `${path}.${randomBytes(6).toString('hex')}.tmp`;
+}
+
+function linkIfFree(from: string, to: string): boolean {
   try {
-    await writeFile(temp, content);
-    await rename(temp, path);
+    linkSync(from, to);
+    return true;
   } catch (error) {
-    await rm(temp, { force: true });
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
     throw error;
   }
 }

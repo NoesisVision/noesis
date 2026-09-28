@@ -1,13 +1,12 @@
 import { z } from 'zod';
 import type { ChangeId } from '#backend/app/changes/change-id';
+import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import { NotFoundError } from '#backend/app/not-found-error';
-import { Serial } from '#backend/app/serial';
-import { freeSlugId } from '#backend/app/slug-id';
+import { createAtFreeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import type { Document, DocumentContent } from './document';
 import { DocumentId } from './document-id';
-import type { DocumentsRepository } from './documents.repository';
 
 /** What callers get back: plain data, so every adapter can send it as is. */
 export const DocumentSummarySchema = z.object({
@@ -22,13 +21,12 @@ export type DocumentSummary = z.infer<typeof DocumentSummarySchema>;
  * document; an update names it.
  */
 export class DocumentsService {
-  private readonly docs: DocumentsRepository;
+  private readonly docs: ChangeOwnedRepository<Document>;
   private readonly changesService: ChangesService;
   private readonly today: Today;
-  private readonly writes = new Serial();
 
   constructor(
-    docs: DocumentsRepository,
+    docs: ChangeOwnedRepository<Document>,
     changesService: ChangesService,
     today: Today,
   ) {
@@ -42,44 +40,41 @@ export class DocumentsService {
    * and its title. A title already used that day in the change gets the next
    * free suffix.
    */
-  create(
+  async create(
     change: ChangeId,
     document: DocumentContent,
   ): Promise<DocumentSummary> {
-    return this.writes.run(async () => {
-      await this.changesService.assertExists(change);
-      const id = await freeSlugId(
-        DocumentId,
-        document.title,
-        this.today(),
-        async (candidate) => (await this.docs.get(change, candidate)) !== null,
-      );
-      const created: Document = { id, ...document };
-      await this.docs.save(change, created);
-      return summarize(created);
-    });
+    await this.changesService.assertExists(change);
+    const at = (id: DocumentId): Document => ({ id, ...document });
+    const id = await createAtFreeSlugId(
+      DocumentId,
+      document.title,
+      this.today(),
+      (candidate) => this.docs.create(change, at(candidate)),
+    );
+    return summarize(at(id));
   }
 
   /** Replaces the document at `id` whole; never creates one. */
-  update(
+  async update(
     change: ChangeId,
     id: DocumentId,
     document: DocumentContent,
   ): Promise<DocumentSummary> {
-    return this.writes.run(async () => {
-      await this.getOrThrow(change, id);
-      const updated: Document = { id, ...document };
-      await this.docs.save(change, updated);
-      return summarize(updated);
-    });
+    await this.changesService.assertExists(change);
+    const updated: Document = { id, ...document };
+    if (!(await this.docs.replace(change, updated))) {
+      throw new NotFoundError('document', id, change);
+    }
+    return summarize(updated);
   }
 
   /** Removes the document at `id`; refuses an id that names none. */
-  delete(change: ChangeId, id: DocumentId): Promise<void> {
-    return this.writes.run(async () => {
-      await this.getOrThrow(change, id);
-      await this.docs.delete(change, id);
-    });
+  async delete(change: ChangeId, id: DocumentId): Promise<void> {
+    await this.changesService.assertExists(change);
+    if (!(await this.docs.delete(change, id))) {
+      throw new NotFoundError('document', id, change);
+    }
   }
 
   /** Oldest first: the id starts with the creation date. */

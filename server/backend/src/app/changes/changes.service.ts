@@ -1,25 +1,24 @@
-import type { DesignDocsRepository } from '#backend/app/design-docs/design-docs.repository';
-import type { DocumentsRepository } from '#backend/app/information-sources/documents.repository';
+import type { DesignDocument } from '#backend/app/design-docs/design-doc';
+import type { Document } from '#backend/app/information-sources/document';
 import { NotFoundError } from '#backend/app/not-found-error';
-import { Serial } from '#backend/app/serial';
-import { freeSlugId } from '#backend/app/slug-id';
+import { createAtFreeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import type { Change, ChangeContent, NewChange } from './change';
 import type { ChangeEntry, ChangeWithEntries } from './change-entry';
 import { ChangeId } from './change-id';
+import type { ChangeOwnedRepository } from './change-owned.repository';
 import type { ChangesRepository } from './changes.repository';
 
 export class ChangesService {
   private readonly changes: ChangesRepository;
-  private readonly designDocs: DesignDocsRepository;
-  private readonly documents: DocumentsRepository;
+  private readonly designDocs: ChangeOwnedRepository<DesignDocument>;
+  private readonly documents: ChangeOwnedRepository<Document>;
   private readonly today: Today;
-  private readonly writes = new Serial();
 
   constructor(
     changes: ChangesRepository,
-    designDocs: DesignDocsRepository,
-    documents: DocumentsRepository,
+    designDocs: ChangeOwnedRepository<DesignDocument>,
+    documents: ChangeOwnedRepository<Document>,
     today: Today,
   ) {
     this.changes = changes;
@@ -78,28 +77,28 @@ export class ChangesService {
    * Creates the change in discovery, at an id minted from today's date and
    * its name. A name already used that day gets the next free suffix.
    */
-  create(change: NewChange): Promise<Change> {
-    return this.writes.run(async () => {
-      const id = await freeSlugId(
-        ChangeId,
-        change.name,
-        this.today(),
-        async (candidate) => (await this.changes.get(candidate)) !== null,
-      );
-      const created: Change = { id, ...change, status: 'discovery' };
-      await this.changes.save(created);
-      return created;
+  async create(change: NewChange): Promise<Change> {
+    const at = (id: ChangeId): Change => ({
+      id,
+      ...change,
+      status: 'discovery',
     });
+    const id = await createAtFreeSlugId(
+      ChangeId,
+      change.name,
+      this.today(),
+      (candidate) => this.changes.create(at(candidate)),
+    );
+    return at(id);
   }
 
   /** Replaces the change at `id` whole; never creates one. */
-  update(id: ChangeId, change: ChangeContent): Promise<Change> {
-    return this.writes.run(async () => {
-      await this.assertExists(id);
-      const updated: Change = { id, ...change };
-      await this.changes.save(updated);
-      return updated;
-    });
+  async update(id: ChangeId, change: ChangeContent): Promise<Change> {
+    const updated: Change = { id, ...change };
+    if (!(await this.changes.replace(updated))) {
+      throw new NotFoundError('change', id);
+    }
+    return updated;
   }
 
   async assertExists(id: ChangeId): Promise<void> {

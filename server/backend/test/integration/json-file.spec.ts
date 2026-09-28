@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   JsonFileError,
   readJsonFile,
+  createJsonFile,
   writeJsonFile,
 } from '#backend/platform/files/json-file';
 
@@ -77,7 +78,7 @@ describe('writeJsonFile', () => {
   it('writes the encoded value as pretty JSON with a trailing newline, creating the directory', async () => {
     const path = join(dir, 'nested', 'deeper', 'a.json');
 
-    await writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
 
     expect(await readFile(path, 'utf8')).toBe(
       `${JSON.stringify({ id: 'a', tags: [], size: '3' }, null, 2)}\n`,
@@ -87,8 +88,8 @@ describe('writeJsonFile', () => {
   it('leaves no temp file behind', async () => {
     const path = join(dir, 'a.json');
 
-    await writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
-    await writeJsonFile(path, schema, { id: 'a', tags: ['b'], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
+    writeJsonFile(path, schema, { id: 'a', tags: ['b'], size: 3 });
 
     expect(await readdir(dir)).toEqual(['a.json']);
   });
@@ -97,10 +98,46 @@ describe('writeJsonFile', () => {
     const path = join(dir, 'a.json');
     const invalid = { id: 7 } as unknown as z.output<typeof schema>;
 
-    const write = writeJsonFile(path, schema, invalid);
+    expect(() => writeJsonFile(path, schema, invalid)).toThrow(JsonFileError);
+    expect(() => writeJsonFile(path, schema, invalid)).toThrow(path);
+    expect(await Bun.file(path).exists()).toBe(false);
+  });
+});
 
-    await expect(write).rejects.toBeInstanceOf(JsonFileError);
-    await expect(write).rejects.toThrow(path);
+describe('createJsonFile', () => {
+  it('writes where no file is, and leaves no temp file behind', async () => {
+    const path = join(dir, 'nested', 'a.json');
+
+    expect(createJsonFile(path, schema, { id: 'a', tags: [], size: 3 })).toBe(
+      true,
+    );
+
+    expect(await readFile(path, 'utf8')).toBe(
+      `${JSON.stringify({ id: 'a', tags: [], size: '3' }, null, 2)}\n`,
+    );
+    expect(await readdir(join(dir, 'nested'))).toEqual(['a.json']);
+  });
+
+  it('answers false where a file is, leaving it as it was', async () => {
+    const path = join(dir, 'a.json');
+    createJsonFile(path, schema, { id: 'a', tags: [], size: 3 });
+
+    expect(
+      createJsonFile(path, schema, { id: 'a', tags: ['b'], size: 4 }),
+    ).toBe(false);
+
+    expect(JSON.parse(await readFile(path, 'utf8'))).toMatchObject({
+      tags: [],
+      size: '3',
+    });
+    expect(await readdir(dir)).toEqual(['a.json']);
+  });
+
+  it('refuses a value the schema rejects, writing nothing', async () => {
+    const path = join(dir, 'a.json');
+    const invalid = { id: 7 } as unknown as z.output<typeof schema>;
+
+    expect(() => createJsonFile(path, schema, invalid)).toThrow(JsonFileError);
     expect(await Bun.file(path).exists()).toBe(false);
   });
 });

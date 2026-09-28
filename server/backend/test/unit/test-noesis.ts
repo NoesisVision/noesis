@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
@@ -28,8 +28,8 @@ export interface TestNoesis {
   root: string;
   noesis: NoesisDir;
   changesRepository: NoesisChangesRepository;
-  designDocsRepository: ChangeOwnedRepository<DesignDocument>;
-  documentsRepository: ChangeOwnedRepository<Document>;
+  designDocsRepository: NoesisChangeOwnedRepository<DesignDocument>;
+  documentsRepository: NoesisChangeOwnedRepository<Document>;
   changesService: ChangesService;
   designDocsService: DesignDocsService;
   documentsService: DocumentsService;
@@ -58,12 +58,12 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
+  const designDocsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DesignDocument,
     'design-doc',
   );
-  const documentsRepository = new ChangeOwnedRepository(
+  const documentsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DocumentSchema,
     'document',
@@ -103,13 +103,15 @@ export async function testNoesis(): Promise<TestNoesis> {
         description: '',
         ...overrides,
       };
-      await changesRepository.save(change);
+      await changesRepository.create(change);
       return parsed;
     },
-    writeDesignDoc: (change, document) =>
-      designDocsRepository.save(change, DesignDocument.parse(document)),
-    writeDocument: (change, document) =>
-      documentsRepository.save(change, DocumentSchema.parse(document)),
+    writeDesignDoc: async (change, document) => {
+      await designDocsRepository.create(change, DesignDocument.parse(document));
+    },
+    writeDocument: async (change, document) => {
+      await documentsRepository.create(change, DocumentSchema.parse(document));
+    },
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
 }

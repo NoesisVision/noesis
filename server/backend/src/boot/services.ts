@@ -1,4 +1,4 @@
-import { ChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { ChangesService } from '#backend/app/changes/changes.service';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
@@ -20,12 +20,12 @@ export interface Services {
 /** Wires the file repositories under `.noesis/` to the services that use them. */
 export function createServices(noesis: NoesisDir): Services {
   const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new ChangeOwnedRepository(
+  const designDocsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DesignDocument,
     'design-doc',
   );
-  const documentsRepository = new ChangeOwnedRepository(
+  const documentsRepository = new NoesisChangeOwnedRepository(
     noesis,
     DocumentSchema,
     'document',

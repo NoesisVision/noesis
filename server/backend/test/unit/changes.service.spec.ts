@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import {
   type Change,
   ChangeContentSchema,
   NewChangeSchema,
 } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
+import { ChangesService } from '#backend/app/changes/changes.service';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -41,7 +43,7 @@ describe('ChangesService', () => {
 
   it('lists newest first, by id', async () => {
     for (const id of ['2026-01-02-b', '2026-03-01-a', '2026-01-02-c']) {
-      await t.changesRepository.save(change(id));
+      await t.changesRepository.create(change(id));
     }
 
     expect((await t.changesService.list()).map((c) => c.id)).toEqual([
@@ -144,6 +146,26 @@ describe('ChangesService.create', () => {
       ChangeId.parse('2026-09-24-payment-retry-2'),
       ChangeId.parse('2026-09-24-payment-retry-3'),
     ]);
+  });
+
+  it('gives creates of one name from two sessions different ids', async () => {
+    // Another session's service over the same files, as its own process has.
+    const otherSession = new ChangesService(
+      new NoesisChangesRepository(t.noesis),
+      t.designDocsRepository,
+      t.documentsRepository,
+      () => '2026-09-24',
+    );
+
+    const created = await Promise.all([
+      t.changesService.create(draft),
+      otherSession.create(draft),
+      t.changesService.create(draft),
+      otherSession.create(draft),
+    ]);
+
+    expect(new Set(created.map((c) => c.id)).size).toBe(4);
+    expect(await t.changesService.list()).toHaveLength(4);
   });
 });
 

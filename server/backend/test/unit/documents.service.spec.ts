@@ -106,6 +106,18 @@ describe('DocumentsService.create', () => {
     expect(await service.list(CHANGE)).toHaveLength(2);
   });
 
+  it('stores every one of many documents added to one change at once', async () => {
+    const titles = ['Interview', 'Spec', 'Meeting notes', 'Research'];
+
+    await Promise.all(
+      titles.map((title) => service.create(CHANGE, { ...content, title })),
+    );
+
+    expect((await service.list(CHANGE)).map((d) => d.title).sort()).toEqual(
+      titles.toSorted(),
+    );
+  });
+
   it('refuses a change that has no directory', async () => {
     await expect(service.create(NOPE, content)).rejects.toMatchObject({
       entity: 'change',
@@ -182,13 +194,14 @@ describe('DocumentsService.delete', () => {
     await t.writeDocument(CHANGE, document);
     const { id: _id, ...content } = document;
 
-    const [removed, updated] = await Promise.allSettled([
+    const [removed] = await Promise.allSettled([
       service.delete(CHANGE, ID),
       service.update(CHANGE, ID, content),
     ]);
 
+    // The update lands before the removal or finds nothing: either way the
+    // document stays removed.
     expect(removed.status).toBe('fulfilled');
-    expect(updated.status).toBe('rejected');
     expect(await service.list(CHANGE)).toEqual([]);
   });
 });
