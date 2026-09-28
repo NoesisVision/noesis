@@ -37,7 +37,7 @@ export function updateChangeTool(
           path: workingFilePath(
             files,
             SUBJECT,
-            `{ "name", "type", "key", "status", "description" }, without "id". Carry the "status" ${LIST_CHANGES} returned unless the change moves on; left out, it goes back to discovery.`,
+            `{ "name", "type", "key", "status", "description" }, without "id". "status" is required: carry the one ${LIST_CHANGES} returned unless the change moves on.`,
           ),
         })
         .describe(

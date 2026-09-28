@@ -207,6 +207,7 @@ describe('update_change', () => {
     const path = await workingFile('change.json', {
       name: 'Payment retry',
       type: 'fix',
+      status: 'design',
     });
 
     const result = await call('update_change', { id: CHANGE, path });
@@ -215,6 +216,20 @@ describe('update_change', () => {
     expect(textOf(result)).toContain(`No change "${CHANGE}"`);
     expect(textOf(result)).toContain('list_changes');
     expect(await noesis.changesService.list()).toEqual([]);
+  });
+
+  it('refuses a file without a status, leaving the stored one as it was', async () => {
+    const id = await noesis.createChange(CHANGE, { status: 'design' });
+    const path = await workingFile('change.json', {
+      name: 'Payment retry',
+      type: 'fix',
+    });
+
+    const result = await call('update_change', { id, path });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('→ at status');
+    expect((await noesis.changesService.findById(id)).status).toBe('design');
   });
 
   it('refuses an id that is not a dated id', async () => {

@@ -176,7 +176,11 @@ describe('ChangesService.update', () => {
     await expect(
       t.changesService.update(
         missing,
-        ChangeContentSchema.parse({ name: 'Missing', type: 'fix' }),
+        ChangeContentSchema.parse({
+          name: 'Missing',
+          type: 'fix',
+          status: 'design',
+        }),
       ),
     ).rejects.toMatchObject({ entity: 'change' });
     expect(await t.changesService.list()).toEqual([]);
