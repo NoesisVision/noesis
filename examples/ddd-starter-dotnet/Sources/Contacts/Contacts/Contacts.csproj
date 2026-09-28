@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AssemblyName>MyCompany.ECommerce.Contacts</AssemblyName>
+        <RootNamespace>MyCompany.ECommerce.Contacts</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud.Api\TechnicalStuff.Crud.Api.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud.Ef\TechnicalStuff.Crud.Ef.csproj" />
+      <ProjectReference Include="..\..\TechnicalStuff\TechnicalStuff.Crud\TechnicalStuff.Crud.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
+      <PackageReference Include="NoesisVision.Annotations" Version="0.1.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    </ItemGroup>
+
+</Project>

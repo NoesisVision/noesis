@@ -1,0 +1,34 @@
+using JetBrains.Annotations;
+using MyCompany.ECommerce.Sales.Clients;
+using MyCompany.ECommerce.Sales.Commons;
+using MyCompany.ECommerce.Sales.Pricing;
+using MyCompany.ECommerce.Sales.Products;
+using MyCompany.ECommerce.Sales.SalesChannels;
+using MyCompany.ECommerce.TechnicalStuff;
+using MyCompany.ECommerce.TechnicalStuff.ProcessModel;
+using NoesisVision.Annotations.People;
+
+namespace MyCompany.ECommerce.Sales.WholesaleOrdering;
+
+[UsedImplicitly]
+public class GetQuickQuoteHandler(CalculatePrices calculatePrices) : CommandHandler<GetQuickQuote, QuickQuoteCalculated>
+{
+    [Actor(Actors.WholesaleClient)]
+    public async Task<QuickQuoteCalculated> Handle(GetQuickQuote command)
+    {
+            var (clientId, productAmount, currency) = CreateDomainModelFrom(command);
+            var quote = await calculatePrices.For(clientId, SalesChannel.Wholesale, productAmount, currency);
+            return CreateEventFrom(clientId, quote);
+        }
+
+    private static (ClientId, ProductAmount, Currency) CreateDomainModelFrom(GetQuickQuote command) => (
+        ClientId.From(command.ClientId),
+        ProductAmount.Of(
+            ProductId.From(command.ProductId),
+            command.Amount,
+            command.UnitCode.ToDomainModel<AmountUnit>()),
+        command.CurrencyCode.ToDomainModel<Currency>());
+
+    private static QuickQuoteCalculated CreateEventFrom(ClientId clientId, Quote quote) =>
+        new(clientId.Value, quote.ToDto());
+}

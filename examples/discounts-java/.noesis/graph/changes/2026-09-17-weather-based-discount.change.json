@@ -1,0 +1,8 @@
+{
+  "id": "2026-09-17-weather-based-discount",
+  "name": "Weather-based discount",
+  "key": "",
+  "type": "feature",
+  "status": "done",
+  "description": "A 10 percent offer-level discount when it rains or snows in Warsaw, read from Open-Meteo through a new weather module. The loop test of 2026-09-17: scan, design doc, implementation by Sonnet and Opus, compare, seal."
+}
