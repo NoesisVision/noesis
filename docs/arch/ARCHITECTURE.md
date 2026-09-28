@@ -97,7 +97,8 @@ between sessions; two sessions on one checkout are two processes over the same f
 Two, and only two.
 
 - **Browser UI** reaches the service over an HTTP API. One endpoint per view; the service
-  assembles each screen's payload server-side.
+  assembles each screen's payload server-side. The page also writes what a person may: it
+  creates a change, revises a design document, and adds or removes a document.
 - **Agent** reaches the service over MCP. Tools are thin — parse arguments, call one service
   method, shape the response.
 

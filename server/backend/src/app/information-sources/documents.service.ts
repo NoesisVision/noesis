@@ -74,6 +74,14 @@ export class DocumentsService {
     });
   }
 
+  /** Removes the document at `id`; refuses an id that names none. */
+  delete(change: ChangeId, id: DocumentId): Promise<void> {
+    return this.writes.run(async () => {
+      await this.getOrThrow(change, id);
+      await this.docs.delete(change, id);
+    });
+  }
+
   /** Oldest first: the id starts with the creation date. */
   async list(change: ChangeId): Promise<DocumentSummary[]> {
     await this.changesService.assertExists(change);

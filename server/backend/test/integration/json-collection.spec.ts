@@ -120,8 +120,25 @@ describe('JsonCollection', () => {
     for (const id of ['../escape', 'a/b', '', 'Upper', '-leading', '.']) {
       await expect(notes.get(id)).rejects.toThrow('Invalid id');
       await expect(notes.save(note(id))).rejects.toThrow('Invalid id');
+      await expect(notes.delete(id)).rejects.toThrow('Invalid id');
     }
     expect(await readdir(dir)).toEqual([]);
+  });
+
+  it('deletes an entity by removing its file, the others staying', async () => {
+    await notes.save(note('2026-09-24-first'));
+    await notes.save(note('2026-09-24-second'));
+
+    await notes.delete('2026-09-24-first');
+
+    expect(await notes.get('2026-09-24-first')).toBeNull();
+    expect(await notes.list()).toEqual([note('2026-09-24-second')]);
+  });
+
+  it('deletes an entity that is already gone without an error', async () => {
+    await notes.delete('2026-09-24-never-saved');
+
+    expect(await notes.list()).toEqual([]);
   });
 
   it('accepts a content-hash id', async () => {

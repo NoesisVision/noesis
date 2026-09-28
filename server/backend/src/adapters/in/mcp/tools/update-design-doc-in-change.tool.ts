@@ -53,6 +53,7 @@ export function updateDesignDocInChangeTool(
             input.change,
             input.id,
             file,
+            'agent',
           );
           return success(
             `Updated design document ${designDoc.id} ("${designDoc.name}") in ${input.change}.`,

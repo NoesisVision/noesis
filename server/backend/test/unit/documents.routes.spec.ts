@@ -4,12 +4,11 @@ import type { ChangeId } from '#backend/app/changes/change-id';
 import type { Document } from '#backend/app/information-sources/document';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { SearchService } from '#backend/app/search/search.service';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // Through the ui app rather than the sub-app alone: the change comes from the
 // mount path (`/changes/:change/documents`), which is what is under test.
-// The surface only reads; documents get in through the MCP tools, so the
-// tests seed them through the service.
 
 const CHANGE = '2026-01-01-booking';
 const ID = '2026-09-18-booking-rules';
@@ -65,28 +64,107 @@ describe('ui documents routes', () => {
     expect((await app.request(`${BASE}/booking-rules`)).status).toBe(404);
   });
 
-  // Adding, revising and removing are the agent's, through the MCP tools.
-  it('writes nothing: POST, PUT and DELETE are not routes of this surface', async () => {
-    await t.writeDocument(change, document);
-    const send = (method: string, path: string) =>
-      app.request(path, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ document }),
-      });
+  const send = (method: string, path: string, body?: unknown) =>
+    app.request(path, {
+      method,
+      headers: { 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
 
-    expect((await send('POST', BASE)).status).toBe(404);
-    expect((await send('PUT', `${BASE}/${ID}`)).status).toBe(404);
-    expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
-    expect((await t.documentsService.list(change)).map((d) => d.id)).toEqual([
-      DocumentId.parse(ID),
-    ]);
+  it('adds a document at an id minted from today and its title', async () => {
+    const { id: _id, ...content } = document;
+
+    const res = await send('POST', BASE, content);
+
+    expect(res.status).toBe(201);
+    const minted = '2026-09-24-booking-rules';
+    expect(await res.json()).toEqual({
+      document: { id: minted, title: content.title, date: content.date },
+    });
+    const stored = await t.documentsService.findById(
+      change,
+      DocumentId.parse(minted),
+    );
+    expect(stored.content).toBe(content.content);
+  });
+
+  it('refuses a document that does not fit, with the issues to fix', async () => {
+    const res = await send('POST', BASE, { title: 'No date', content: 42 });
+
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string; issues: unknown };
+    expect(body.error).toBe('invalid_body');
+    expect(JSON.stringify(body.issues)).toContain('date');
+    expect(await t.documentsService.list(change)).toEqual([]);
+  });
+
+  it('refuses a body that is not JSON, or not sent as JSON', async () => {
+    const malformed = await app.request(BASE, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{ not json',
+    });
+    const asText = await app.request(BASE, {
+      method: 'POST',
+      headers: { 'content-type': 'text/plain' },
+      body: JSON.stringify({ title: 'T', date: '2026-09-18', content: 'x' }),
+    });
+
+    expect(malformed.status).toBe(400);
+    expect(await malformed.json()).toEqual({ error: 'invalid_body' });
+    expect(asText.status).toBe(400);
+    expect(await t.documentsService.list(change)).toEqual([]);
+  });
+
+  it('refuses a body larger than a working file may be', async () => {
+    const res = await send('POST', BASE, {
+      title: 'Huge',
+      date: '2026-09-18',
+      content: 'x'.repeat(MAX_WORKING_FILE_BYTES),
+    });
+
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({
+      error: 'payload_too_large',
+      limit: MAX_WORKING_FILE_BYTES,
+    });
+  });
+
+  it('removes a document, and 404s one it does not have', async () => {
+    await t.writeDocument(change, document);
+
+    const removed = await send('DELETE', `${BASE}/${ID}`);
+    const again = await send('DELETE', `${BASE}/${ID}`);
+
+    expect(removed.status).toBe(204);
+    expect(again.status).toBe(404);
+    expect(await again.json()).toEqual({ error: 'not_found' });
+    expect(await t.documentsService.list(change)).toEqual([]);
+  });
+
+  it('never revises a document: PUT is not a route of this surface', async () => {
+    await t.writeDocument(change, document);
+
+    const res = await send('PUT', `${BASE}/${ID}`, document);
+
+    expect(res.status).toBe(404);
+    expect(await t.documentsService.findById(change, document.id)).toEqual(
+      document,
+    );
   });
 
   it('404s every route of a change that does not exist', async () => {
     const other = '/changes/2026-01-01-nope/documents';
+    const { id: _id, ...content } = document;
 
-    expect((await app.request(other)).status).toBe(404);
-    expect((await app.request(`${other}/${ID}`)).status).toBe(404);
+    for (const res of [
+      await app.request(other),
+      await app.request(`${other}/${ID}`),
+      await send('POST', other, content),
+      await send('DELETE', `${other}/${ID}`),
+    ]) {
+      expect(res.status).toBe(404);
+      expect(await res.json()).toEqual({ error: 'change_not_found' });
+    }
   });
 });

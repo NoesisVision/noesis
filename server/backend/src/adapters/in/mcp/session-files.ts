@@ -3,19 +3,13 @@ import { isAbsolute, normalize, relative, resolve, sep } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
 import type { ZodType } from 'zod';
 import { readJsonFile } from '#backend/platform/files/json-file';
+import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 
 declare const workingFilePathBrand: unique symbol;
 /** Checked by `resolve`: real, and under `.noesis/sessions/`. */
 export type WorkingFilePath = string & {
   readonly [workingFilePathBrand]: true;
 };
-
-/**
- * A working file is one document the agent just wrote, so anything this large
- * is the wrong path — an index, a log, a dump. Reading it would pull the whole
- * file into memory before the shape is known.
- */
-export const MAX_WORKING_FILE_BYTES = 4 * 1024 * 1024;
 
 export interface SessionFilesLocation {
   repositoryRoot: string;

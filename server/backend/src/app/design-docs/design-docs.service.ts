@@ -6,6 +6,7 @@ import { Serial } from '#backend/app/serial';
 import { freeSlugId } from '#backend/app/slug-id';
 import type { Today } from '#backend/app/today';
 import { DesignDocument, type DesignDocumentContent } from './design-doc';
+import type { DesignDocFieldAuthor } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import type { DesignDocsRepository } from './design-docs.repository';
 import { InvalidDesignDocError } from './invalid-design-doc-error';
@@ -22,8 +23,8 @@ export type DesignDocSummary = z.infer<typeof DesignDocSummarySchema>;
 
 /**
  * Callers validate before calling in. The service mints the id of a new
- * document; an update names it. Every write comes from an agent, so each is
- * checked against the rules for a design an agent wrote first.
+ * document; an update names it. Every write is checked against the rules for
+ * whoever writes it: an agent creates, and an agent or a human revises.
  */
 export class DesignDocsService {
   private readonly docs: DesignDocsRepository;
@@ -52,7 +53,7 @@ export class DesignDocsService {
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.changesService.assertExists(change);
-      assertValid(document);
+      assertValid(document, 'agent');
       const id = await freeSlugId(
         DesignDocId,
         document.name,
@@ -67,16 +68,18 @@ export class DesignDocsService {
 
   /**
    * Replaces the design document at `id` whole; never creates one. Throws
-   * `InvalidDesignDocError` when the new version breaks the rules.
+   * `InvalidDesignDocError` when the new version breaks the rules `writer`
+   * follows.
    */
   update(
     change: ChangeId,
     id: DesignDocId,
     document: DesignDocumentContent,
+    writer: DesignDocFieldAuthor,
   ): Promise<DesignDocSummary> {
     return this.writes.run(async () => {
       await this.getOrThrow(change, id);
-      assertValid(document);
+      assertValid(document, writer);
       const updated: DesignDocument = { id, ...document };
       await this.docs.save(change, updated);
       return summarize(updated);
@@ -115,7 +118,13 @@ function summarize({
 }
 
 /** No system model is scanned yet, so every design is a green field. */
-function assertValid(document: DesignDocumentContent): void {
-  const violations = DesignDocument.validateAgentGenerated(document);
+function assertValid(
+  document: DesignDocumentContent,
+  writer: DesignDocFieldAuthor,
+): void {
+  const violations =
+    writer === 'agent'
+      ? DesignDocument.validateAgentGenerated(document)
+      : DesignDocument.validateHumanEdited(document);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

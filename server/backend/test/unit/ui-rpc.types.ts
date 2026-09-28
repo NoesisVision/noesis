@@ -19,21 +19,38 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
     // @ts-expect-error Successful responses retain their inferred fields.
     void body.nonexistent;
   }
-  // The ui surface only reads; the agent writes through the MCP tools.
-  // @ts-expect-error No change is created here.
-  await client.changes.$post({ json: { name: 'Retry', type: 'feature' } });
-  // @ts-expect-error No design document is created here.
+  // The page writes what a person may: a change, a revised design document,
+  // an added or removed document. Each is typed by its route's schema.
+  const created = await client.changes.$post({
+    json: { name: 'Retry', type: 'feature' },
+  });
+  if (created.status === 201) {
+    const id: string = (await created.json()).change.id;
+    void id;
+  }
+  await client.changes.$post({
+    // @ts-expect-error A new change has no id: the server mints it.
+    json: { id: 'x', name: 'Retry', type: 'feature', key: '', description: '' },
+  });
+  await client.changes[':change'].documents.$post({
+    param: { change: 'payment-retry' },
+    json: { title: 'Notes', date: '2026-09-24', content: 'x' },
+  });
+  await client.changes[':change'].documents[':id'].$delete({
+    param: { change: 'payment-retry', id: 'doc-1' },
+  });
+  // @ts-expect-error A design document is created by the agent, not here.
   await client.changes[':change']['design-docs'].$post({
     param: { change: 'payment-retry' },
-    json: { document: {} },
+    json: {},
   });
   // @ts-expect-error No design document is deleted here.
   await client.changes[':change']['design-docs'][':id'].$delete({
     param: { change: 'payment-retry', id: 'doc-1' },
   });
-  // @ts-expect-error No document is added here.
-  await client.changes[':change'].documents.$post({
-    param: { change: 'payment-retry' },
-    json: { document: {} },
+  // @ts-expect-error A document is added or removed, never revised here.
+  await client.changes[':change'].documents[':id'].$put({
+    param: { change: 'payment-retry', id: 'doc-1' },
+    json: {},
   });
 }

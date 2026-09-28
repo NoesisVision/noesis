@@ -1,13 +1,17 @@
 import { honoLogger } from '@logtape/hono';
 import { Hono } from 'hono';
+import { csrf } from 'hono/csrf';
 import { createInternalApp } from '#backend/adapters/in/ui/internal.routes';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import type { ChangesService } from '#backend/app/changes/changes.service';
 import type { DesignDocsService } from '#backend/app/design-docs/design-docs.service';
 import type { DocumentsService } from '#backend/app/information-sources/documents.service';
 import type { SearchService } from '#backend/app/search/search.service';
+import { localHostOnly } from '#backend/platform/http/local-host-only';
 
-// No surface is guarded: the server runs on the developer's own machine.
+// No surface asks who is calling: the server runs on the developer's own
+// machine. It does ask which machine is named and which page sent a write, so
+// neither a rebound DNS name nor another site's form can reach it.
 export interface AppDeps {
   searchService: SearchService;
   changesService: ChangesService;
@@ -29,6 +33,8 @@ export function createApp(deps: AppDeps) {
           skip: (c) => c.req.path === '/internal/health',
         }),
       )
+      .use(localHostOnly())
+      .use(csrf())
       .route(
         '/ui',
         createUiApp({

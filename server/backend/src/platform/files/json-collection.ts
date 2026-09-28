@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { ZodType } from 'zod';
 import { JsonFileError, parseJson, writeJsonFile } from './json-file';
@@ -42,6 +42,11 @@ export class JsonCollection<T extends { id: string }> {
   // `async`, so a refused id rejects instead of throwing before the promise exists.
   async save(entity: T): Promise<void> {
     return writeJsonFile(this.pathOf(entity.id), this.schema, entity);
+  }
+
+  /** Removes the entity's file; one already gone is no error. */
+  async delete(id: string): Promise<void> {
+    await rm(this.pathOf(id), { force: true });
   }
 
   private pathOf(id: string): string {
