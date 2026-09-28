@@ -11,12 +11,12 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import {
   type DesignDocFieldInput,
   isHumanAuthored as humanAuthored,
-} from '../../design-doc-field.ts';
+} from '../../../design-doc-field.ts';
 import classes from './detail-section.module.css';
 
 interface DetailSectionProps
   extends PropsWithChildren, ComponentProps<typeof Stack> {
-  title: 'Description';
+  title?: string;
   field?: DesignDocFieldInput<unknown>;
 }
 
@@ -27,7 +27,7 @@ export function DetailSection({
   field,
   ...props
 }: DetailSectionProps) {
-  const isHumanAuthored = field !== undefined && humanAuthored(field);
+  const isHumanAuthored = field === undefined ? null : humanAuthored(field);
   // The tooltip only shows on hover; the hidden text is what a screen reader
   // hears in place of the icon.
   const author = isHumanAuthored ? 'by a human' : 'by an agent';
@@ -38,21 +38,27 @@ export function DetailSection({
       className={clsx(classes.root, className)}
       {...props}
     >
-      <Group gap="sm" align="center">
-        <Text className={classes.title} fw="bold" size="xs" tt="uppercase">
-          {title}
-        </Text>
-        <ThemeIcon size="xs" variant="default" aria-hidden="true">
-          <Tooltip label={author}>
-            {isHumanAuthored ? (
-              <IconUser size={14} stroke={2} />
-            ) : (
-              <IconAi size={18} stroke={2} />
-            )}
-          </Tooltip>
-        </ThemeIcon>
-        <VisuallyHidden>{author}</VisuallyHidden>
-      </Group>
+      {!!title && (
+        <Group gap="sm" align="center">
+          <Text className={classes.title} fw="bold" size="xs" tt="uppercase">
+            {title}
+          </Text>
+          {author !== null && (
+            <>
+              <ThemeIcon size="xs" variant="default" aria-hidden="true">
+                <Tooltip label={author}>
+                  {isHumanAuthored ? (
+                    <IconUser size={14} stroke={2} />
+                  ) : (
+                    <IconAi size={18} stroke={2} />
+                  )}
+                </Tooltip>
+              </ThemeIcon>
+              <VisuallyHidden>{author}</VisuallyHidden>
+            </>
+          )}
+        </Group>
+      )}
       <Box>{children}</Box>
     </Stack>
   );

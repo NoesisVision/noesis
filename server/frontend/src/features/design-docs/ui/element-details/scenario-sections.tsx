@@ -1,0 +1,26 @@
+import type { ReactElement } from 'react';
+import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
+import type { ElementRef, OwnerRef } from './element-ref.ts';
+import { DescriptionSection } from './sections/description-section.tsx';
+import { ScenarioStepsSection } from './sections/scenario-steps-section.tsx';
+
+export const scenarioSections = (
+  owner: OwnerRef,
+  scenario: DesignedScenarioInput,
+): ReactElement[] => {
+  const element: ElementRef = { owner, part: 'scenarios', name: scenario.name };
+  return [
+    <DescriptionSection
+      key="description"
+      element={element}
+      field={scenario.description}
+    />,
+    <ScenarioStepsSection
+      key="steps"
+      element={element}
+      given={scenario.given}
+      when={scenario.when}
+      then={scenario.then}
+    />,
+  ];
+};

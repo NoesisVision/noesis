@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Divider } from '#/shared/design-system/divider.tsx';
@@ -7,7 +8,7 @@ import { Title } from '#/shared/design-system/title.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { Body } from './body.tsx';
+import { bodySections } from './body-sections.tsx';
 import { ChangeBadge } from './change-badge.tsx';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import classes from './element-detail.module.css';
@@ -51,9 +52,14 @@ export function ElementDetail({
         </Group>
       </Box>
       <Divider />
-      <Box>
-        <Body key={node.path} node={node} document={doc} />
-      </Box>
+      <Fragment key={node.path}>
+        {bodySections(node, doc).map((section, index) => (
+          <Fragment key={section.key}>
+            {index > 0 && <Divider />}
+            {section}
+          </Fragment>
+        ))}
+      </Fragment>
     </Stack>
   );
 }
