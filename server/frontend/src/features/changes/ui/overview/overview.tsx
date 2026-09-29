@@ -1,22 +1,24 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { designDocsList } from '#/features/design-docs/design-docs.api.ts';
+import { useQuery } from '@tanstack/react-query';
+import { getRouteApi } from '@tanstack/react-router';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
-import { documentsList } from '#/features/documents/documents.api.ts';
 import { DocumentsIcon } from '#/features/documents/documents.model.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { CardLink } from '#/shared/ui/card-link.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
-import { useChangeId } from '../../current-change.ts';
+import { changeById } from '../../changes.api.ts';
 import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
 import { OverviewStat } from './overview-stat.tsx';
 
+const route = getRouteApi('/_shell/changes/$changeId/');
+
 export function OverviewView() {
-  const { changeId } = useChangeId();
-  const documents = useQuery(documentsList(changeId));
-  const designDocs = useQuery(designDocsList(changeId));
+  const { changeId } = route.useParams();
+  const { data: change, isPending } = useQuery(changeById(changeId));
+  const documents = change?.documents;
+  const designDocs = change?.designDocs;
 
   return (
     <Box>
@@ -47,58 +49,50 @@ export function OverviewView() {
       <OverviewSection
         mt={16}
         title="Documents"
-        empty={emptyText(documents, 'documents')}
-        items={
-          changeId
-            ? (documents.data ?? []).map((document) => ({
-                id: document.id,
-                card: (
-                  <CardLink
-                    to="/changes/$changeId/documents/$documentId"
-                    params={{ changeId, documentId: document.id }}
-                    title={document.title}
-                    icon={DocumentsIcon}
-                    description={<FormattedDate value={document.date} />}
-                    headingLevel={3}
-                  />
-                ),
-              }))
-            : []
-        }
+        empty={emptyText(isPending, 'documents')}
+        items={(documents ?? []).map((document) => ({
+          id: document.id,
+          card: (
+            <CardLink
+              to="/changes/$changeId/documents/$documentId"
+              params={{ changeId, documentId: document.id }}
+              title={document.title}
+              icon={DocumentsIcon}
+              description={<FormattedDate value={document.date} />}
+              headingLevel={3}
+            />
+          ),
+        }))}
       />
       <OverviewSection
         mt={16}
         title="Design Docs"
-        empty={emptyText(designDocs, 'design documents')}
-        items={
-          changeId
-            ? (designDocs.data ?? []).map((doc) => ({
-                id: doc.id,
-                card: (
-                  <CardLink
-                    to="/changes/$changeId/design-docs/$docId"
-                    params={{ changeId, docId: doc.id }}
-                    title={doc.name}
-                    icon={DesignDocsIcon}
-                    description={doc.implemented ? 'Implemented' : 'Draft'}
-                    headingLevel={3}
-                  />
-                ),
-              }))
-            : []
-        }
+        empty={emptyText(isPending, 'design documents')}
+        items={(designDocs ?? []).map((doc) => ({
+          id: doc.id,
+          card: (
+            <CardLink
+              to="/changes/$changeId/design-docs/$docId"
+              params={{ changeId, docId: doc.id }}
+              title={doc.name}
+              icon={DesignDocsIcon}
+              description={doc.implemented ? 'Implemented' : 'Draft'}
+              headingLevel={3}
+            />
+          ),
+        }))}
       />
     </Box>
   );
 }
 
 /** An em dash until the list is in: a stat of 0 that turns into 12 misleads. */
-function count(query: UseQueryResult<{ length: number } | null>) {
-  return query.data?.length ?? '—';
+function count(list: readonly unknown[] | undefined) {
+  return list?.length ?? '—';
 }
 
 // A failure never reaches here: it is thrown to the route's boundary.
-function emptyText(query: UseQueryResult<unknown>, what: string): string {
-  if (query.isPending) return `Loading ${what}…`;
+function emptyText(isPending: boolean, what: string): string {
+  if (isPending) return `Loading ${what}…`;
   return `No ${what} yet for this change.`;
 }

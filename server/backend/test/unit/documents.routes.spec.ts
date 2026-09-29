@@ -33,17 +33,6 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 describe('ui documents routes', () => {
-  it('lists the stored documents of the change', async () => {
-    await t.writeDocument(change, document);
-
-    const listed = await app.request(BASE);
-    expect(listed.status).toBe(200);
-    const { documents } = (await listed.json()) as {
-      documents: { id: string }[];
-    };
-    expect(documents.map((d) => d.id)).toEqual([ID]);
-  });
-
   it('serves a stored document whole, and 404s a missing one', async () => {
     await t.writeDocument(change, document);
 
@@ -89,7 +78,7 @@ describe('ui documents routes', () => {
     const body = (await res.json()) as { error: string; issues: unknown };
     expect(body.error).toBe('invalid_body');
     expect(JSON.stringify(body.issues)).toContain('date');
-    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
+    expect(await t.documentsIn(change)).toEqual([]);
   });
 
   it('refuses a body that is not JSON, or not sent as JSON', async () => {
@@ -107,7 +96,7 @@ describe('ui documents routes', () => {
     expect(malformed.status).toBe(400);
     expect(await malformed.json()).toEqual({ error: 'invalid_body' });
     expect(asText.status).toBe(400);
-    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
+    expect(await t.documentsIn(change)).toEqual([]);
   });
 
   it('refuses a body larger than a working file may be', async () => {
@@ -133,7 +122,11 @@ describe('ui documents routes', () => {
     expect(removed.status).toBe(204);
     expect(again.status).toBe(404);
     expect(await again.json()).toEqual({ error: 'not_found' });
-    expect(await t.listDocumentsInChange.handle({ change })).toEqual([]);
+    expect(await t.documentsIn(change)).toEqual([]);
+  });
+
+  it('never lists one kind alone: the change answers what it holds', async () => {
+    expect((await app.request(BASE)).status).toBe(404);
   });
 
   it('never revises a document: PUT is not a route of this surface', async () => {
@@ -152,7 +145,6 @@ describe('ui documents routes', () => {
     const { id: _id, ...content } = document;
 
     for (const res of [
-      await app.request(other),
       await app.request(`${other}/${ID}`),
       await send('POST', other, content),
       await send('DELETE', `${other}/${ID}`),

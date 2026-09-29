@@ -9,6 +9,7 @@ import {
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DOCUMENT_IN_CHANGE,
+  LIST_CHANGES,
   UPDATE_DOCUMENT_IN_CHANGE,
 } from '../tool-names';
 import { success } from '../tool-result';
@@ -35,7 +36,7 @@ export function updateDocumentInChangeTool(
         '{ "title", "date", "content" }, without "id".',
       ).extend({
         id: DocumentId.describe(
-          `The id of the document to update, as ${CREATE_DOCUMENT_IN_CHANGE} answered it.`,
+          `The id of the document to update, as ${CREATE_DOCUMENT_IN_CHANGE} answered it or ${LIST_CHANGES} lists it.`,
         ),
       }),
       outputSchema,

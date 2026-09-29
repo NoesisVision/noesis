@@ -37,11 +37,7 @@ describe('Reading the documents of a change', () => {
       await t.writeDocument(CHANGE, { ...document, id });
     }
 
-    expect(
-      (await t.listDocumentsInChange.handle({ change: CHANGE })).map(
-        (d) => d.id,
-      ),
-    ).toEqual([
+    expect((await t.documentsIn(CHANGE)).map((d) => d.id)).toEqual([
       DocumentId.parse('2026-09-01-older'),
       DocumentId.parse('2026-09-10-also-newer'),
       DocumentId.parse('2026-09-10-newer'),
@@ -58,9 +54,7 @@ describe('Reading the documents of a change', () => {
   });
 
   it('refuses every operation on a change that has no directory', async () => {
-    await expect(
-      t.listDocumentsInChange.handle({ change: NOPE }),
-    ).rejects.toMatchObject({
+    await expect(t.documentsIn(NOPE)).rejects.toMatchObject({
       entity: 'change',
     });
     await expect(
@@ -132,9 +126,7 @@ describe('CreateDocumentInChangeHandler', () => {
     ]);
 
     expect(new Set(created.map((d) => d.id)).size).toBe(2);
-    expect(
-      await t.listDocumentsInChange.handle({ change: CHANGE }),
-    ).toHaveLength(2);
+    expect(await t.documentsIn(CHANGE)).toHaveLength(2);
   });
 
   it('stores every one of many documents added to one change at once', async () => {
@@ -149,11 +141,9 @@ describe('CreateDocumentInChangeHandler', () => {
       ),
     );
 
-    expect(
-      (await t.listDocumentsInChange.handle({ change: CHANGE }))
-        .map((d) => d.title)
-        .sort(),
-    ).toEqual(titles.toSorted());
+    expect((await t.documentsIn(CHANGE)).map((d) => d.title).sort()).toEqual(
+      titles.toSorted(),
+    );
   });
 
   it('refuses a change that has no directory', async () => {
@@ -192,9 +182,7 @@ describe('UpdateDocumentInChangeHandler', () => {
     const stored = await t.findDocument.handle({ change: CHANGE, id });
     expect(stored.title).toBe('Booking rules v3');
     expect(stored.content).toBe('A slot may be booked twice.');
-    expect(
-      await t.listDocumentsInChange.handle({ change: CHANGE }),
-    ).toHaveLength(1);
+    expect(await t.documentsIn(CHANGE)).toHaveLength(1);
   });
 
   it('refuses an id that names no document in the change, and creates nothing', async () => {
@@ -207,9 +195,7 @@ describe('UpdateDocumentInChangeHandler', () => {
         document: content,
       }),
     ).rejects.toMatchObject({ entity: 'document' });
-    expect(await t.listDocumentsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.documentsIn(CHANGE)).toEqual([]);
   });
 
   it('refuses a change that has no directory', async () => {
@@ -233,11 +219,7 @@ describe('DeleteDocumentFromChangeHandler', () => {
 
     await t.deleteDocumentFromChange.handle({ change: CHANGE, id: ID });
 
-    expect(
-      (await t.listDocumentsInChange.handle({ change: CHANGE })).map(
-        (d) => d.id,
-      ),
-    ).toEqual([other]);
+    expect((await t.documentsIn(CHANGE)).map((d) => d.id)).toEqual([other]);
     await expect(
       t.findDocument.handle({ change: CHANGE, id: ID }),
     ).rejects.toMatchObject({
@@ -277,8 +259,6 @@ describe('DeleteDocumentFromChangeHandler', () => {
     // The update lands before the removal or finds nothing: either way the
     // document stays removed.
     expect(removed.status).toBe('fulfilled');
-    expect(await t.listDocumentsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.documentsIn(CHANGE)).toEqual([]);
   });
 });

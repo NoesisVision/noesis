@@ -9,6 +9,7 @@ import {
 import { UPDATE, defineTool, type ToolRegistration } from '../tool';
 import {
   CREATE_DESIGN_DOC_IN_CHANGE,
+  LIST_CHANGES,
   UPDATE_DESIGN_DOC_IN_CHANGE,
 } from '../tool-names';
 import { success } from '../tool-result';
@@ -36,7 +37,7 @@ export function updateDesignDocInChangeTool(
         `${DESIGN_DOC_SHAPE} Without "id".`,
       ).extend({
         id: DesignDocId.describe(
-          `The id of the design document to update, as ${CREATE_DESIGN_DOC_IN_CHANGE} answered it.`,
+          `The id of the design document to update, as ${CREATE_DESIGN_DOC_IN_CHANGE} answered it or ${LIST_CHANGES} lists it.`,
         ),
       }),
       outputSchema,

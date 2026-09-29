@@ -64,8 +64,8 @@ function foreseen(error: unknown): CallToolResult | null {
 
 const FIND_OR_CREATE: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-  document: `Pass the id ${CREATE_DOCUMENT_IN_CHANGE} answered with, or create the document with it.`,
-  'design document': `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
+  document: `Find its id with ${LIST_CHANGES}, or create the document with ${CREATE_DOCUMENT_IN_CHANGE}.`,
+  'design document': `Find its id with ${LIST_CHANGES}, or create the design document with ${CREATE_DESIGN_DOC_IN_CHANGE}.`,
 };
 
 const FIXES: Record<DesignDocViolation['reason'], string> = {

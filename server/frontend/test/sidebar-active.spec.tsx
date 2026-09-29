@@ -57,7 +57,7 @@ beforeAll(() => {
         : input instanceof URL
           ? input.href
           : input.url;
-    if (url.endsWith('/navigation')) {
+    if (url.endsWith('/ui/changes')) {
       return Promise.resolve(Response.json({ changes: [NAVIGATION] }));
     }
     if (url.includes('/design-docs/')) {
@@ -80,13 +80,11 @@ beforeAll(() => {
         }),
       );
     }
-    if (url.endsWith('/design-docs')) {
-      return Promise.resolve(Response.json({ designDocs: [] }));
-    }
-    if (url.endsWith('/documents')) {
-      return Promise.resolve(Response.json({ documents: [] }));
-    }
-    return Promise.resolve(Response.json({ change: NAVIGATION }));
+    return Promise.resolve(
+      Response.json({
+        change: { ...NAVIGATION, designDocs: [], documents: [] },
+      }),
+    );
   }) as typeof fetch);
 });
 

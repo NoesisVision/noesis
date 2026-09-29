@@ -276,6 +276,29 @@ describe('list_changes', () => {
     );
   });
 
+  it("names each change's design documents and documents, ids in the text too", async () => {
+    const change = await noesis.writeChange(CHANGE, { name: 'Payment retry' });
+    await noesis.writeDocument(change, { id: DOCUMENT_ID, ...document });
+    await noesis.writeDesignDoc(change, greenFieldDesignDocFixture);
+
+    const result = await client.callTool({ name: 'list_changes' });
+
+    expect(result.structuredContent).toMatchObject({
+      changes: [
+        {
+          id: CHANGE,
+          entries: [
+            { kind: 'design-doc', id: greenFieldDesignDocFixture.id },
+            { kind: 'document', id: DOCUMENT_ID, name: document.title },
+          ],
+        },
+      ],
+    });
+    expect(textOf(result)).toContain(
+      `  - document ${DOCUMENT_ID}: ${document.title}`,
+    );
+  });
+
   it('is advertised as read-only', async () => {
     const { tools } = await client.listTools();
     const list = tools.find((tool) => tool.name === 'list_changes');
@@ -442,9 +465,7 @@ describe('update_document_in_change', () => {
       document: { id: DOCUMENT_ID, title: 'Retry interview, revised' },
     });
     expect(textOf(result)).toContain(`Updated document ${DOCUMENT_ID}`);
-    expect(await noesis.listDocumentsInChange.handle({ change })).toHaveLength(
-      1,
-    );
+    expect(await noesis.documentsIn(change)).toHaveLength(1);
   });
 
   it('answers an id that names no document in-band, having created nothing', async () => {
@@ -459,7 +480,7 @@ describe('update_document_in_change', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
     expect(textOf(result)).toContain('create_document_in_change');
-    expect(await noesis.listDocumentsInChange.handle({ change })).toEqual([]);
+    expect(await noesis.documentsIn(change)).toEqual([]);
   });
 
   it('reports an unknown change in-band, with where to find its id', async () => {
@@ -570,7 +591,7 @@ describe('create_design_doc_in_change', () => {
     const text = textOf(result);
     expect(text).toContain('→ at name');
     expect(text).toContain('→ at buildingBlocks');
-    expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
+    expect(await noesis.designDocsIn(change)).toEqual([]);
   });
 
   it('refuses a working file that names an id: the server mints it', async () => {
@@ -584,7 +605,7 @@ describe('create_design_doc_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain('Unrecognized key: "id"');
-    expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
+    expect(await noesis.designDocsIn(change)).toEqual([]);
   });
 
   it('refuses a key the design document does not know, rather than dropping it', async () => {
@@ -617,7 +638,7 @@ describe('create_design_doc_in_change', () => {
     expect(text).toContain(
       '- modules.modified[module|sales.orders].description: write every field as the agent',
     );
-    expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
+    expect(await noesis.designDocsIn(change)).toEqual([]);
   });
 });
 
@@ -643,9 +664,7 @@ describe('update_design_doc_in_change', () => {
     expect(textOf(result)).toContain(
       `Updated design document ${DESIGN_DOC_ID}`,
     );
-    expect(await noesis.listDesignDocsInChange.handle({ change })).toHaveLength(
-      1,
-    );
+    expect(await noesis.designDocsIn(change)).toHaveLength(1);
   });
 
   it('answers a version that breaks the rules with each field to fix, keeping the stored one', async () => {
@@ -688,6 +707,6 @@ describe('update_design_doc_in_change', () => {
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(`No design document "${DESIGN_DOC_ID}"`);
-    expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
+    expect(await noesis.designDocsIn(change)).toEqual([]);
   });
 });

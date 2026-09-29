@@ -10,10 +10,12 @@ import {
   DesignDocument,
   type DesignDocumentInput,
 } from '#backend/app/design-docs/design-doc';
+import type { DesignDocSummary } from '#backend/app/design-docs/design-doc-summary';
 import {
   type Document,
   DocumentSchema,
 } from '#backend/app/information-sources/document';
+import type { DocumentSummary } from '#backend/app/information-sources/document-summary';
 import { createServices, type Services } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -40,6 +42,10 @@ export interface TestNoesis extends Services {
     change: ChangeId,
     document: DesignDocumentInput,
   ): Promise<void>;
+  /** The change's design documents, summarised, as a read of the change answers them. */
+  designDocsIn(change: ChangeId): Promise<DesignDocSummary[]>;
+  /** The change's documents, summarised, as a read of the change answers them. */
+  documentsIn(change: ChangeId): Promise<DocumentSummary[]>;
   /** Writes a document into the change, bypassing the handlers. */
   writeDocument(
     change: ChangeId,
@@ -63,8 +69,9 @@ export async function testNoesis(): Promise<TestNoesis> {
     DocumentSchema,
     'document',
   );
+  const services = createServices(noesis, TODAY);
   return {
-    ...createServices(noesis, TODAY),
+    ...services,
     root,
     noesis,
     changesRepository,
@@ -88,6 +95,10 @@ export async function testNoesis(): Promise<TestNoesis> {
     writeDesignDoc: async (change, document) => {
       await designDocsRepository.create(change, DesignDocument.parse(document));
     },
+    designDocsIn: async (change) =>
+      (await services.findChange.handle({ id: change })).designDocs,
+    documentsIn: async (change) =>
+      (await services.findChange.handle({ id: change })).documents,
     writeDocument: async (change, document) => {
       await documentsRepository.create(change, DocumentSchema.parse(document));
     },
