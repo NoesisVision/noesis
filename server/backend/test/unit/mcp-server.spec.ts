@@ -89,6 +89,8 @@ describe('the MCP surface', () => {
       (tool) =>
         ![
           'list_changes',
+          'list_documents_in_change',
+          'get_document_in_change',
           'scan_system_model',
           'get_newest_system_model',
         ].includes(tool.name),
@@ -118,14 +120,16 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the nine tools, each with an input and an output schema', async () => {
+  it('offers exactly the eleven tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'get_document_in_change',
       'get_newest_system_model',
       'list_changes',
+      'list_documents_in_change',
       'scan_system_model',
       'update_change',
       'update_design_doc_in_change',
@@ -611,6 +615,115 @@ describe('update_document_in_change', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toStartWith('Could not read the document:');
     expect(textOf(result)).toContain('No file at');
+  });
+});
+
+describe('list_documents_in_change', () => {
+  it('answers an empty list, pointing to the create, when the change has none', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('list_documents_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ documents: [] });
+    expect(textOf(result)).toContain('create_document_in_change');
+  });
+
+  it('lists every document with its id, oldest first, without its content', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDocument(change, {
+      ...document,
+      id: '2026-01-02-refund-notes',
+      title: 'Refund notes',
+    });
+    await noesis.writeDocument(change, {
+      ...document,
+      id: '2026-01-01-retry-interview',
+    });
+
+    const result = await call('list_documents_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      documents: [
+        {
+          id: '2026-01-01-retry-interview',
+          title: document.title,
+          date: document.date,
+        },
+        {
+          id: '2026-01-02-refund-notes',
+          title: 'Refund notes',
+          date: document.date,
+        },
+      ],
+    });
+    expect(textOf(result)).toContain(
+      `- 2026-01-01-retry-interview: Retry interview (${document.date})`,
+    );
+  });
+
+  it('reports an unknown change in-band, with where to find its id', async () => {
+    const result = await call('list_documents_in_change', {
+      change: '2026-01-01-no-such-change',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const list = tools.find((tool) => tool.name === 'list_documents_in_change');
+    expect(list?.annotations?.readOnlyHint).toBe(true);
+  });
+});
+
+describe('get_document_in_change', () => {
+  it('answers the document whole, its content verbatim', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDocument(change, { ...document, id: DOCUMENT_ID });
+
+    const result = await call('get_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      document: { ...document, id: DOCUMENT_ID },
+    });
+    expect(textOf(result)).toContain(`Document ${DOCUMENT_ID}`);
+  });
+
+  it('answers an id that names no document in-band, with where to find it', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('get_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
+    expect(textOf(result)).toContain('list_documents_in_change');
+  });
+
+  it('reports an unknown change in-band', async () => {
+    const result = await call('get_document_in_change', {
+      change: '2026-01-01-no-such-change',
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const get = tools.find((tool) => tool.name === 'get_document_in_change');
+    expect(get?.annotations?.readOnlyHint).toBe(true);
   });
 });
 

@@ -11,6 +11,7 @@ import {
   CREATE_DESIGN_DOC_IN_CHANGE,
   CREATE_DOCUMENT_IN_CHANGE,
   LIST_CHANGES,
+  LIST_DOCUMENTS_IN_CHANGE,
 } from './tool-names';
 import { failure } from './tool-result';
 
@@ -64,7 +65,7 @@ function foreseen(error: unknown): CallToolResult | null {
 
 const FIND_OR_CREATE: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
-  document: `Pass the id ${CREATE_DOCUMENT_IN_CHANGE} answered with, or create the document with it.`,
+  document: `Find the document's id with ${LIST_DOCUMENTS_IN_CHANGE}, or create the document with ${CREATE_DOCUMENT_IN_CHANGE}.`,
   'design document': `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
 };
 

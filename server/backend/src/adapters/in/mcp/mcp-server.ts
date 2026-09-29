@@ -6,6 +6,8 @@ import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import type { CreateDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import type { UpdateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
 import type { CreateDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
+import type { FindDocumentHandler } from '#backend/app/information-sources/find-document';
+import type { ListDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import type { UpdateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import type { FindNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import type { ScanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
@@ -14,8 +16,10 @@ import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
 import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';
 import { createDocumentInChangeTool } from './tools/create-document-in-change.tool';
+import { getDocumentInChangeTool } from './tools/get-document-in-change.tool';
 import { getNewestSystemModelTool } from './tools/get-newest-system-model.tool';
 import { listChangesTool } from './tools/list-changes.tool';
+import { listDocumentsInChangeTool } from './tools/list-documents-in-change.tool';
 import { scanSystemModelTool } from './tools/scan-system-model.tool';
 import { updateChangeTool } from './tools/update-change.tool';
 import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
@@ -30,6 +34,8 @@ export interface McpServerDeps {
   listChanges: ListChangesHandler;
   createDocumentInChange: CreateDocumentInChangeHandler;
   updateDocumentInChange: UpdateDocumentInChangeHandler;
+  listDocumentsInChange: ListDocumentsInChangeHandler;
+  findDocument: FindDocumentHandler;
   createDesignDocInChange: CreateDesignDocInChangeHandler;
   updateDesignDocInChange: UpdateDesignDocInChangeHandler;
   scanSystemModel: ScanSystemModelHandler;
@@ -62,6 +68,8 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
     listChangesTool(deps.listChanges),
     createDocumentInChangeTool(deps.createDocumentInChange, deps.sessionFiles),
     updateDocumentInChangeTool(deps.updateDocumentInChange, deps.sessionFiles),
+    listDocumentsInChangeTool(deps.listDocumentsInChange),
+    getDocumentInChangeTool(deps.findDocument),
     createDesignDocInChangeTool(
       deps.createDesignDocInChange,
       deps.sessionFiles,
