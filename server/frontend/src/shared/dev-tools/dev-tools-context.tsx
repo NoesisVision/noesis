@@ -13,9 +13,11 @@ type Features = z.infer<typeof featuresSchema>;
 
 interface DevToolsContextProps {
   enabled: boolean;
-  setEnabled(val: boolean | ((prevState: boolean) => boolean)): void;
+  setEnabled: (val: boolean | ((prevState: boolean) => boolean)) => void;
   features: Features;
-  setFeatures(features: Features | ((prevState: Features) => Features)): void;
+  setFeatures: (
+    features: Features | ((prevState: Features) => Features),
+  ) => void;
 }
 
 const INIT_VALUE: DevToolsContextProps = {
@@ -27,7 +29,7 @@ const INIT_VALUE: DevToolsContextProps = {
   setFeatures: noop,
 };
 
-export const DevToolsContext = createContext<DevToolsContextProps>(INIT_VALUE);
+const DevToolsContext = createContext<DevToolsContextProps>(INIT_VALUE);
 
 export const DevToolsContextProvider = ({
   children,
