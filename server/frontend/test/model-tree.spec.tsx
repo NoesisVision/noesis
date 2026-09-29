@@ -164,14 +164,14 @@ function searching(query: string): ModelTreeController {
 
 const searched = renderToStaticMarkup(
   <MantineProvider>
-    <ModelTree controller={searching('total')} label="Design outline" />
+    <ModelTree controller={searching('place')} label="Design outline" />
   </MantineProvider>,
 );
 
 describe('ModelTree, searching', () => {
   it('draws the match and the line down to it, and nothing else', () => {
     expect(searched.match(/role="treeitem"/g)?.length).toBe(4);
-    expect(searched).toContain('>total<');
+    expect(searched).toContain('>place<');
     expect(searched).not.toContain('>legacy<');
     expect(searched).not.toContain('>Orders<');
   });
@@ -182,7 +182,7 @@ describe('ModelTree, searching', () => {
   });
 
   it('marks what was found, in the markup and not only in a colour', () => {
-    expect(searched).toMatch(/<mark[^>]*>total<\/mark>/);
+    expect(searched).toMatch(/<mark[^>]*>place<\/mark>/);
   });
 
   it('says which rows are only there to hold the match', () => {

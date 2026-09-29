@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react';
+import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { TreeItem } from './tree-item.tsx';
 import type { ModelTreeController } from './use-model-tree.ts';
 import classes from './model-tree.module.css';
@@ -18,6 +19,9 @@ export interface ModelTreeProps {
 
 export function ModelTree({ controller, label }: ModelTreeProps) {
   const baseId = useId();
+  const {
+    features: { lessColorsInDesignDocTree },
+  } = useDevToolsContext();
   const { tree, selected } = controller;
 
   const rowIds = useMemo(
@@ -47,6 +51,7 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
           rowIds={rowIds}
           ancestry={ancestry}
           focusPath={focusPath}
+          lessColorsInDesignDocTree={lessColorsInDesignDocTree}
         />
       ))}
     </ul>

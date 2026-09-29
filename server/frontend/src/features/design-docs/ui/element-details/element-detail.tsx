@@ -54,7 +54,7 @@ export function ElementDetail({
           <ChangeBadge change={node.change} />
         </Group>
         <Group gap="xs" align="center">
-          <KindIcon kind={node.kind} />
+          <KindIcon kind={node.kind} pattern={node.pattern} />
           <Title order={2} size="h3" className={classes.name}>
             {node.name}
           </Title>

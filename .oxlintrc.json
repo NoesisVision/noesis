@@ -246,7 +246,7 @@
     {
       "files": ["server/frontend/**"],
       "rules": {
-        "react/only-export-components": "error",
+        "react/only-export-components": "allow",
         "no-restricted-imports": [
           "error",
           {

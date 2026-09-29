@@ -1,5 +1,6 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
+import { Indicator } from '#/shared/design-system/indicator.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
@@ -27,6 +28,7 @@ export interface TreeItemProps {
   ancestry: ReadonlySet<string>;
   /** The one row of the tree that is in the page's tab order. */
   focusPath: string | null;
+  lessColorsInDesignDocTree?: boolean;
 }
 
 export function TreeItem({
@@ -35,6 +37,7 @@ export function TreeItem({
   rowIds,
   ancestry,
   focusPath,
+  lessColorsInDesignDocTree,
 }: TreeItemProps) {
   const {
     tree,
@@ -59,9 +62,10 @@ export function TreeItem({
    * row's fill and mark the way down to it.
    */
   const changeColour = useChangeColour()(node.change);
-  const rowStyle = changeColour
-    ? ({ '--change-colour': changeColour.color } as CSSProperties)
-    : undefined;
+  const rowStyle =
+    !lessColorsInDesignDocTree && changeColour
+      ? ({ '--change-colour': changeColour.color } as CSSProperties)
+      : undefined;
 
   // A pointer event lands on every row it is inside; only the innermost
   // meant it.
@@ -150,7 +154,20 @@ export function TreeItem({
           expanded={expanded}
           onToggle={onChevronClick}
         />
-        <KindIcon kind={node.kind} />
+
+        {lessColorsInDesignDocTree ? (
+          <Indicator
+            size={5}
+            color={changeColour?.color}
+            style={{}}
+            top={4}
+            left={-4}
+          >
+            <KindIcon kind={node.kind} pattern={node.pattern} />
+          </Indicator>
+        ) : (
+          <KindIcon kind={node.kind} pattern={node.pattern} />
+        )}
         <MatchedText className={classes.name} tokens={search.tokens}>
           {node.name}
         </MatchedText>
@@ -187,6 +204,7 @@ export function TreeItem({
               rowIds={rowIds}
               ancestry={ancestry}
               focusPath={focusPath}
+              lessColorsInDesignDocTree={lessColorsInDesignDocTree}
             />
           ))}
         </ul>

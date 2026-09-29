@@ -18,3 +18,5 @@ export const DESIGN_DOCS_ROUTE_ID =
   `${SHELL_ROUTE_ID}/changes/$changeId/design-docs` satisfies AppRouteIds;
 export const SYSTEM_MODEL_ROUTE_ID =
   `${SHELL_ROUTE_ID}/system-model` satisfies AppRouteIds;
+export const DEV_TOOLS_ROUTE_ID =
+  `${SHELL_ROUTE_ID}/dev-tools` satisfies AppRouteIds;

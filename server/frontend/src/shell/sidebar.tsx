@@ -7,6 +7,7 @@ import { Box } from '#/shared/design-system/box';
 import { NavLink } from '#/shared/design-system/nav-link';
 import { ScrollArea } from '#/shared/design-system/scroll-area';
 import { Text } from '#/shared/design-system/text';
+import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import {
   APP_PUBLIC_NAV,
   DESIGN_DOCS_NAV,
@@ -122,7 +123,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const { changes, activeChange } = useChangesWithEntries();
   const params = { changeId: activeChange?.id ?? '' };
   const children = changeNavChildren(activeChange, params.changeId);
-
+  const { enabled } = useDevToolsContext();
   return (
     <>
       <AppShell.Section px="xs" pt="md" pb="md">
@@ -214,6 +215,24 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             )}
           />
         ))}
+        {enabled
+          ? APP_PUBLIC_NAV.devTools.map((entry) => (
+              <NavLink
+                key={entry.to}
+                label={entry.label}
+                leftSection={<entry.icon size={18} stroke={1.6} />}
+                onClick={onNavigate}
+                renderRoot={(props) => (
+                  <Link
+                    {...props}
+                    className={classes.link}
+                    to={entry.to}
+                    activeOptions={ACTIVE_OPTIONS}
+                  />
+                )}
+              />
+            ))
+          : null}
       </AppShell.Section>
     </>
   );
