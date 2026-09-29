@@ -8,10 +8,13 @@ export function Ref({
   change,
   name,
   bold,
+  interactive,
 }: {
   change: OutlineChange;
   name: string | undefined;
   bold?: boolean;
+  /** Inside a button that opens the row, and coloured as a button is. */
+  interactive?: boolean;
 }): ReactNode {
   // Before the early return: a hook runs on every render or on none.
   const getColor = useChangeColour();
@@ -26,7 +29,15 @@ export function Ref({
       component="span"
       display="block"
       lts={0.5}
-      c={!lessColorsInDesignDocTree ? colour?.color : undefined}
+      // With fewer colours, a line that opens its row takes the colour a
+      // subtle button carries — the breadcrumb's — and the rest none at all.
+      c={
+        !lessColorsInDesignDocTree
+          ? colour?.color
+          : interactive
+            ? 'var(--mantine-color-brand-light-color)'
+            : undefined
+      }
       size="sm"
       td={change === 'removed' ? 'line-through' : undefined}
       fw={bold ? 'bold' : undefined}

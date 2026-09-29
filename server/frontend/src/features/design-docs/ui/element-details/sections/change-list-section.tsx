@@ -50,7 +50,7 @@ export function ChangeListSection({
                   <span className={classes.mark} aria-hidden="true">
                     <IconLink size={12} />
                   </span>
-                  <Ref change={change} name={label} bold />
+                  <Ref change={change} name={label} bold interactive />
                 </UnstyledButton>
               ) : (
                 <Ref change={change} name={label} />
