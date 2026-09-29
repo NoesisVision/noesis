@@ -5,9 +5,14 @@ import {
   getOwnedOrThrow,
 } from '#backend/app/changes/change-owned.repository';
 import type { ChangesReader } from '#backend/app/changes/changes.repository';
+import type { Now } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
-import { type DesignDocument, DesignDocumentContent } from './design-doc';
+import {
+  type DesignDocument,
+  DesignDocumentContent,
+  implementedAtOf,
+} from './design-doc';
 import { DesignDocFieldAuthor } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
@@ -33,17 +38,28 @@ export type UpdateDesignDocInChangeHandler = Handler<
 export function updateDesignDocInChangeHandler(
   designDocs: ChangeOwnedRepository<DesignDocument>,
   changes: ChangesReader,
+  now: Now,
 ): UpdateDesignDocInChangeHandler {
   return {
     /**
      * Replaces the design document at `id` whole; never creates one. Throws
      * `InvalidDesignDocError` when the new version breaks the rules `writer`
-     * follows.
+     * follows. The time it is marked implemented is the server's to keep.
      */
     async handle({ change, id, designDoc, writer }) {
-      await getOwnedOrThrow(designDocs, changes, 'design document', change, id);
+      const before = await getOwnedOrThrow(
+        designDocs,
+        changes,
+        'design document',
+        change,
+        id,
+      );
       assertDesignDocFollowsRules(designDoc, writer);
-      const updated: DesignDocument = { id, ...designDoc };
+      const updated: DesignDocument = {
+        id,
+        ...designDoc,
+        implementedAt: implementedAtOf(designDoc, before, now),
+      };
       if (!(await designDocs.replace(change, updated))) {
         throw new NotFoundError('design document', id, change);
       }

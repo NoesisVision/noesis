@@ -19,6 +19,8 @@ import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The day every handler in a spec mints its ids on. */
 const TODAY = () => '2026-09-24';
+/** The instant every handler in a spec stamps its writes with, on that day. */
+export const NOW = '2026-09-24T10:00:00.000Z';
 
 // Each spec makes its own, so the file system is the isolation: there is no
 // shared state to reset between tests.
@@ -64,7 +66,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     'document',
   );
   return {
-    ...createServices(noesis, 'dummy', TODAY),
+    ...createServices(noesis, 'dummy', TODAY, () => NOW),
     root,
     noesis,
     changesRepository,

@@ -7,6 +7,7 @@ import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
+import { localToday, type Now, type Today, utcNow } from '#backend/app/clock';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
@@ -21,7 +22,6 @@ import { updateDocumentInChangeHandler } from '#backend/app/information-sources/
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import { localToday, type Today } from '#backend/app/today';
 import type { ScannerName } from '#backend/platform/config/config';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -33,6 +33,7 @@ export function createServices(
   noesis: NoesisDir,
   scanner: ScannerName,
   today: Today = localToday,
+  now: Now = utcNow,
 ) {
   const changes = new NoesisChangesRepository(noesis);
   const designDocs = new NoesisChangeOwnedRepository(
@@ -60,10 +61,12 @@ export function createServices(
       designDocs,
       changes,
       today,
+      now,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
+      now,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
     findDesignDoc: findDesignDocHandler(designDocs, changes),
@@ -81,7 +84,7 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      createScanner(scanner),
+      createScanner(scanner, { noesis, changes, designDocs, now }),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

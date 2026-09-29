@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Now } from '#backend/app/clock';
 import {
   BehaviorId,
   BuildingBlockId,
@@ -87,6 +88,13 @@ const designDocumentSchema = z.strictObject({
     .boolean()
     .default(false)
     .describe('Whether the design is marked as implemented.'),
+  implementedAt: z.iso
+    .datetime()
+    .nullable()
+    .default(null)
+    .describe(
+      'When the design was marked as implemented, as an ISO 8601 UTC instant the server stamps. Null while it is not, and on a design marked before the server kept the time.',
+    ),
 });
 
 export const DesignDocument = Object.assign(designDocumentSchema, {
@@ -118,8 +126,22 @@ export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
 // TODO: Czy to jest optymalne rozwiązanie? Może przenieść jako kontrakt serwisu aplikacyjnego - command CreateDesignDocument.
 export const DesignDocumentContent = designDocumentSchema.omit({
   id: true,
+  implementedAt: true,
 });
 export type DesignDocumentContent = z.infer<typeof DesignDocumentContent>;
+
+/**
+ * When the design became implemented: stamped as it is marked, kept while it
+ * stays marked, cleared when it is not.
+ */
+export function implementedAtOf(
+  design: DesignDocumentContent,
+  before: DesignDocument | null,
+  now: Now,
+): string | null {
+  if (!design.implemented) return null;
+  return before?.implemented ? before.implementedAt : now();
+}
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;

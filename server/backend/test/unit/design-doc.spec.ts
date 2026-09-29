@@ -91,10 +91,13 @@ describe('A design document', () => {
     ).toBe(false);
   });
 
-  it('reads back exactly as it was written', () => {
+  it('reads back exactly as it was written, with the time it was marked implemented only the server writes', () => {
     const parsed = DesignDocument.parse(designDocFixture);
 
-    expect(z.encode(DesignDocument, parsed)).toEqual(designDocFixture);
+    expect(z.encode(DesignDocument, parsed)).toEqual({
+      ...designDocFixture,
+      implementedAt: null,
+    });
   });
 });
 

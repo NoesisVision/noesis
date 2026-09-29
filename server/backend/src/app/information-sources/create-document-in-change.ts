@@ -5,9 +5,9 @@ import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
+import type { Today } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
-import type { Today } from '#backend/app/today';
 import { type Document, DocumentContentSchema } from './document';
 import { DocumentId } from './document-id';
 import { type DocumentSummary, summarize } from './document-summary';

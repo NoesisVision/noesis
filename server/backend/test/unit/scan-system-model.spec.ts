@@ -11,7 +11,7 @@ import type {
 } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
-import { type TestNoesis, testNoesis } from './test-noesis';
+import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 let systemModels: NoesisSystemModelsRepository;
@@ -64,8 +64,17 @@ describe('Scanning the system model', () => {
 
 describe('createScanner', () => {
   it('makes the scanner the configuration names', () => {
-    expect(createScanner('java')).toBeInstanceOf(JavaSourceCodeScanner);
-    expect(createScanner('csharp')).toBeInstanceOf(CSharpSourceCodeScanner);
-    expect(createScanner('dummy')).toBeInstanceOf(DummySourceCodeScanner);
+    const deps = {
+      noesis: t.noesis,
+      changes: t.changesRepository,
+      designDocs: t.designDocsRepository,
+      now: () => NOW,
+    };
+
+    expect(createScanner('java', deps)).toBeInstanceOf(JavaSourceCodeScanner);
+    expect(createScanner('csharp', deps)).toBeInstanceOf(
+      CSharpSourceCodeScanner,
+    );
+    expect(createScanner('dummy', deps)).toBeInstanceOf(DummySourceCodeScanner);
   });
 });

@@ -1,6 +1,6 @@
+import type { Today } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
-import type { Today } from '#backend/app/today';
 import type { Change, NewChange } from './change';
 import { ChangeId } from './change-id';
 import type { ChangesRepository } from './changes.repository';
