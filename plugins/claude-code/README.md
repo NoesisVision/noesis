@@ -61,7 +61,13 @@ nothing.
   `update_change`; `add-document-to-change` takes a Markdown file, asks which
   change from `list_changes` it belongs to and adds it through
   `create_document_in_change`, building the working file with its
-  `scripts/write-working-file.ts` so the text is copied, not retyped. A skill
+  `scripts/write-working-file.ts` so the text is copied, not retyped;
+  `create-design-doc` reads a change's documents and the newest system
+  model, designs the change as a diff against that model, with the
+  modelling guidance in its `references/`, and stores it through
+  `create_design_doc_in_change` — or, asked for several alternatives, hands
+  each option to a subagent of its own with the brief in its `references/`
+  and compares what they saved. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the
   skill writes its working file to the session's scratch directory and hands
