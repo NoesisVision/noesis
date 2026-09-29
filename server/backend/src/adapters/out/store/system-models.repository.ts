@@ -23,7 +23,23 @@ export class NoesisSystemModelsRepository implements SystemModelsRepository {
     return this.systemModels.list();
   }
 
+  async findNewest(): Promise<SystemModel | null> {
+    const models = await this.systemModels.list();
+    return models.reduce<SystemModel | null>(
+      (newest, model) =>
+        newest === null || scannedAt(model) > scannedAt(newest)
+          ? model
+          : newest,
+      null,
+    );
+  }
+
   save(model: SystemModel): Promise<void> {
     return this.systemModels.put(model);
   }
+}
+
+/** Compared as instants, so an offset other than `Z` still orders right. */
+function scannedAt(model: SystemModel): number {
+  return Date.parse(model.scanned_at);
 }

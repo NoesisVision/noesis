@@ -19,6 +19,7 @@ import { findDocumentHandler } from '#backend/app/information-sources/find-docum
 import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import { searchHandler } from '#backend/app/search/search';
+import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { localToday, type Today } from '#backend/app/today';
 import type { ScannerName } from '#backend/platform/config/config';
@@ -83,6 +84,7 @@ export function createServices(
       createScanner(scanner),
       systemModels,
     ),
+    findNewestSystemModel: findNewestSystemModelHandler(systemModels),
   };
 }
 

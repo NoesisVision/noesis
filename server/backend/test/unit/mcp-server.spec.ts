@@ -85,7 +85,12 @@ describe('the MCP surface', () => {
   it('advertises the live scratch directory on every tool that reads from it', async () => {
     const { tools } = await client.listTools();
     const writers = tools.filter(
-      (tool) => !['list_changes', 'scan_system_model'].includes(tool.name),
+      (tool) =>
+        ![
+          'list_changes',
+          'scan_system_model',
+          'get_newest_system_model',
+        ].includes(tool.name),
     );
     expect(writers).toHaveLength(6);
     for (const tool of writers) {
@@ -112,12 +117,13 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the eight tools, each with an input and an output schema', async () => {
+  it('offers exactly the nine tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'get_newest_system_model',
       'list_changes',
       'scan_system_model',
       'update_change',
@@ -363,6 +369,38 @@ describe('scan_system_model', () => {
       destructiveHint: true,
       idempotentHint: true,
     });
+  });
+});
+
+describe('get_newest_system_model', () => {
+  const scannedAt = (id: string, at: string) =>
+    SystemModel.parse({ id, name: id, scanned_at: at });
+
+  it('answers null, pointing to the scan, when nothing is scanned yet', async () => {
+    const result = await client.callTool({ name: 'get_newest_system_model' });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ systemModel: null });
+    expect(textOf(result)).toContain('scan_system_model');
+  });
+
+  it('answers the model scanned last, whole', async () => {
+    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const newest = scannedAt('shop', '2026-09-29T10:00:00.000Z');
+    await systemModels.save(newest);
+    await systemModels.save(scannedAt('billing', '2026-09-29T08:00:00.000Z'));
+
+    const result = await client.callTool({ name: 'get_newest_system_model' });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ systemModel: newest });
+    expect(textOf(result)).toContain('System model shop (shop)');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const get = tools.find((tool) => tool.name === 'get_newest_system_model');
+    expect(get?.annotations?.readOnlyHint).toBe(true);
   });
 });
 
