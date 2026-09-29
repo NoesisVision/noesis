@@ -4,6 +4,18 @@ import { useLocalStorage } from '#/shared/design-system/hooks.ts';
 
 export const LOCAL_STORAGE_KEY = 'noesis.dev-tools';
 const LOCAL_STORAGE_FEATURES_KEY = 'noesis.dev-tools.features';
+type WindowWithDevTool = Window & typeof globalThis & { devtool(): void };
+
+if (typeof window !== 'undefined') {
+  (window as WindowWithDevTool).devtool = () => {
+    if (localStorage.getItem(LOCAL_STORAGE_KEY) === 'true') {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } else {
+      localStorage.setItem(LOCAL_STORAGE_KEY, 'true');
+    }
+    window.location.reload();
+  };
+}
 
 const featuresSchema = z.object({
   lessColorsInDesignDocTree: z.boolean(),
