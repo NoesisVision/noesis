@@ -215,25 +215,39 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             )}
           />
         ))}
-        {enabled
-          ? APP_PUBLIC_NAV.devTools.map((entry) => (
-              <NavLink
-                key={entry.to}
-                label={entry.label}
-                leftSection={<entry.icon size={18} stroke={1.6} />}
-                onClick={onNavigate}
-                renderRoot={(props) => (
-                  <Link
-                    {...props}
-                    className={classes.link}
-                    to={entry.to}
-                    activeOptions={ACTIVE_OPTIONS}
-                  />
-                )}
-              />
-            ))
-          : null}
       </AppShell.Section>
+      {enabled && (
+        <AppShell.Section
+          px="xs"
+          py="sm"
+          style={{
+            borderTop: '1px solid var(--mantine-color-default-border)',
+          }}
+        >
+          <Box px="sm" pb={4}>
+            <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+              Internal
+            </Text>
+          </Box>
+
+          {APP_PUBLIC_NAV.devTools.map((entry) => (
+            <NavLink
+              key={entry.to}
+              label={entry.label}
+              leftSection={<entry.icon size={18} stroke={1.6} />}
+              onClick={onNavigate}
+              renderRoot={(props) => (
+                <Link
+                  {...props}
+                  className={classes.link}
+                  to={entry.to}
+                  activeOptions={ACTIVE_OPTIONS}
+                />
+              )}
+            />
+          ))}
+        </AppShell.Section>
+      )}
     </>
   );
 }

@@ -7,12 +7,10 @@ import { useChangeColour } from '#/shared/ui/model-tree/use-change-colour.ts';
 export function Ref({
   change,
   name,
-  bold,
   interactive,
 }: {
   change: OutlineChange;
   name: string | undefined;
-  bold?: boolean;
   /** Inside a button that opens the row, and coloured as a button is. */
   interactive?: boolean;
 }): ReactNode {
@@ -40,7 +38,6 @@ export function Ref({
       }
       size="sm"
       td={change === 'removed' ? 'line-through' : undefined}
-      fw={bold ? 'bold' : undefined}
       key={name}
     >
       {name}
