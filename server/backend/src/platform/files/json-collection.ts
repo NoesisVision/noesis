@@ -64,6 +64,11 @@ export class JsonCollection<T extends { id: string }> {
     return true;
   }
 
+  /** Writes `entity` whether or not one is stored at its id. */
+  async put(entity: T): Promise<void> {
+    writeJsonFile(this.pathOf(entity.id), this.schema, entity);
+  }
+
   /** Removes the entity's file; `false` when there is none. */
   async delete(id: string): Promise<boolean> {
     const path = this.pathOf(id);

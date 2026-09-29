@@ -64,7 +64,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     'document',
   );
   return {
-    ...createServices(noesis, TODAY),
+    ...createServices(noesis, 'dummy', TODAY),
     root,
     noesis,
     changesRepository,

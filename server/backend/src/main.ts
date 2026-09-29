@@ -13,7 +13,7 @@ import { openWorkspace } from './boot/workspace';
 // session is known to be served, or when a person starts the process by hand.
 
 const { config, noesis, session, sessionFiles } = await openWorkspace();
-const services = createServices(noesis);
+const services = createServices(noesis, config.scanner);
 const ui = new UiHost({ config, services });
 const lifecycle = installLifecycle({ dispose: release });
 

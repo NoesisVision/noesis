@@ -6,3 +6,4 @@ export const CREATE_DOCUMENT_IN_CHANGE = 'create_document_in_change';
 export const UPDATE_DOCUMENT_IN_CHANGE = 'update_document_in_change';
 export const CREATE_DESIGN_DOC_IN_CHANGE = 'create_design_doc_in_change';
 export const UPDATE_DESIGN_DOC_IN_CHANGE = 'update_design_doc_in_change';
+export const SCAN_SYSTEM_MODEL = 'scan_system_model';

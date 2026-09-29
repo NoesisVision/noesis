@@ -7,12 +7,14 @@ import type { CreateDesignDocInChangeHandler } from '#backend/app/design-docs/cr
 import type { UpdateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
 import type { CreateDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
 import type { UpdateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
+import type { ScanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
 import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';
 import { createDocumentInChangeTool } from './tools/create-document-in-change.tool';
 import { listChangesTool } from './tools/list-changes.tool';
+import { scanSystemModelTool } from './tools/scan-system-model.tool';
 import { updateChangeTool } from './tools/update-change.tool';
 import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
 import { updateDocumentInChangeTool } from './tools/update-document-in-change.tool';
@@ -28,6 +30,7 @@ export interface McpServerDeps {
   updateDocumentInChange: UpdateDocumentInChangeHandler;
   createDesignDocInChange: CreateDesignDocInChangeHandler;
   updateDesignDocInChange: UpdateDesignDocInChangeHandler;
+  scanSystemModel: ScanSystemModelHandler;
 }
 
 /**
@@ -64,6 +67,7 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
       deps.updateDesignDocInChange,
       deps.sessionFiles,
     ),
+    scanSystemModelTool(deps.scanSystemModel),
   ];
 }
 

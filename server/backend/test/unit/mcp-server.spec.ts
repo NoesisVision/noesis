@@ -6,8 +6,11 @@ import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
+import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   designDocFixture,
@@ -81,7 +84,9 @@ describe('the MCP surface', () => {
 
   it('advertises the live scratch directory on every tool that reads from it', async () => {
     const { tools } = await client.listTools();
-    const writers = tools.filter((tool) => tool.name !== 'list_changes');
+    const writers = tools.filter(
+      (tool) => !['list_changes', 'scan_system_model'].includes(tool.name),
+    );
     expect(writers).toHaveLength(6);
     for (const tool of writers) {
       const path = tool.inputSchema.properties?.path as { description: string };
@@ -107,13 +112,14 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the seven tools, each with an input and an output schema', async () => {
+  it('offers exactly the eight tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
       'list_changes',
+      'scan_system_model',
       'update_change',
       'update_design_doc_in_change',
       'update_document_in_change',
@@ -280,6 +286,83 @@ describe('list_changes', () => {
     const { tools } = await client.listTools();
     const list = tools.find((tool) => tool.name === 'list_changes');
     expect(list?.annotations?.readOnlyHint).toBe(true);
+  });
+});
+
+describe('scan_system_model', () => {
+  const scanned = SystemModel.parse({
+    id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
+    name: 'shop',
+    scanned_at: '2026-09-29T08:00:00.000Z',
+    modules: [
+      {
+        id: 'module|sales.orders',
+        name: 'orders',
+        source: { path: 'src/sales/orders' },
+      },
+    ],
+  });
+
+  /** A client whose server scans with a scanner that finds `scanned`. */
+  async function scanningClient(): Promise<Client> {
+    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const server = createMcpServer({
+      ...noesis,
+      version: '0.0.0-test',
+      noesis: noesis.noesis,
+      sessionFiles: files,
+      scanSystemModel: scanSystemModelHandler(
+        { scan: () => Promise.resolve(scanned) },
+        systemModels,
+      ),
+    });
+    const scanning = new Client({ name: 'mcp-spec', version: '0.0.0' });
+    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverSide),
+      scanning.connect(clientSide),
+    ]);
+    return scanning;
+  }
+
+  it('stores the model the scanner finds and answers with it counted', async () => {
+    const scanning = await scanningClient();
+
+    const result = await scanning.callTool({ name: 'scan_system_model' });
+    await scanning.close();
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      systemModel: {
+        id: scanned.id,
+        name: 'shop',
+        scanned_at: scanned.scanned_at,
+        modules: 1,
+        buildingBlocks: 0,
+        behaviours: 0,
+      },
+    });
+    expect(textOf(result)).toContain(`Scanned shop (${scanned.id}): 1 modules`);
+    expect(
+      await new NoesisSystemModelsRepository(noesis.noesis).list(),
+    ).toEqual([scanned]);
+  });
+
+  it('answers a failed scan in-band', async () => {
+    const result = await client.callTool({ name: 'scan_system_model' });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('Not implemented');
+  });
+
+  it('is advertised as replacing what it stored before', async () => {
+    const { tools } = await client.listTools();
+    const scan = tools.find((tool) => tool.name === 'scan_system_model');
+    expect(scan?.annotations).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+    });
   });
 });
 

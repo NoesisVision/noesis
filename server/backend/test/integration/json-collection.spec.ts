@@ -155,6 +155,13 @@ describe('JsonCollection', () => {
     expect(await notes.list()).toEqual([note('a', 'revised')]);
   });
 
+  it('puts an entity whether or not one is there', async () => {
+    await notes.put(note('a', 'first'));
+    await notes.put(note('a', 'revised'));
+
+    expect(await notes.list()).toEqual([note('a', 'revised')]);
+  });
+
   it('deletes an entity by removing its file, the others staying', async () => {
     await notes.create(note('2026-09-24-first'));
     await notes.create(note('2026-09-24-second'));

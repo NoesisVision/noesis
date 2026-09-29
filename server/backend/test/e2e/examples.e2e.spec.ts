@@ -26,7 +26,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
 // Read only: the repositories open nothing that is not there, so the checkout
 // stays as committed.
 function appOver(repositoryRoot: string) {
-  return createApp(createServices(new NoesisDir(repositoryRoot)));
+  return createApp(createServices(new NoesisDir(repositoryRoot), 'dummy'));
 }
 
 interface NavigationChange {
