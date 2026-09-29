@@ -15,7 +15,6 @@ import {
 import { Group } from '#/shared/design-system/group';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
-import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 
 interface ShellHeaderProps {
   navbarOpened: boolean;
@@ -26,7 +25,6 @@ export function ShellHeader({
   navbarOpened,
   onToggleNavbar,
 }: ShellHeaderProps) {
-  const { setEnabled } = useDevToolsContext();
   return (
     <Group h="100%" px="md" justify="space-between">
       <Group gap="sm">
@@ -38,12 +36,7 @@ export function ShellHeader({
           aria-label="Toggle navigation"
         />
         <img src={noesisLogo} alt="" width={28} height={28} />
-        <Text
-          onDoubleClick={() => setEnabled((isEnabled) => !isEnabled)}
-          fw={600}
-        >
-          Noesis
-        </Text>
+        <Text fw={600}>Noesis</Text>
       </Group>
       <ColorSchemeToggle />
     </Group>
