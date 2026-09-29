@@ -159,9 +159,9 @@ export function TreeItem({
           <Indicator
             size={5}
             color={changeColour?.color}
-            style={{}}
             top={4}
             left={-4}
+            withBorder
           >
             <KindIcon kind={node.kind} pattern={node.pattern} />
           </Indicator>

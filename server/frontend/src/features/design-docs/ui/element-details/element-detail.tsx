@@ -45,14 +45,16 @@ export function ElementDetail({
     <Stack gap="sm">
       <DetailBreadcrumb path={path} onSelect={onSelect} />
       <Box px="md">
-        <Group gap="xs" align="center" mb="xs">
-          {node.patternLabel !== null && (
-            <Badge size="xs" variant="default">
-              {node.patternLabel}
-            </Badge>
-          )}
-          <ChangeBadge change={node.change} />
-        </Group>
+        {(node.change !== 'unchanged' || node.patternLabel !== null) && (
+          <Group gap="xs" align="center" mb="xs">
+            {node.patternLabel !== null && (
+              <Badge size="xs" variant="default">
+                {node.patternLabel}
+              </Badge>
+            )}
+            <ChangeBadge change={node.change} />
+          </Group>
+        )}
         <Group gap="xs" align="center">
           <KindIcon kind={node.kind} pattern={node.pattern} />
           <Title order={2} size="h3" className={classes.name}>
