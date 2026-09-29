@@ -32,8 +32,10 @@ instead. The backend (port 3001, watch mode, browser kept closed) and Vite both
 inherit `NOESIS_ROOT`; open the URL Vite prints:
 
 ```sh
-NOESIS_ROOT=$PWD/examples/discounts-java bun run dev
+bun run dev:discounts-java      # or dev:ddd-starter-dotnet
 ```
+
+Each is `bun run dev` with `NOESIS_ROOT` set to that example.
 
 Both commands need a terminal on stdin. Without one (a background job, a CI
 step, an agent's shell) the service takes stdin for MCP and quits when it
