@@ -2,8 +2,8 @@ import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { ScanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
-import { defineTool, SCAN, type ToolRegistration } from '../tool';
-import { SCAN_SYSTEM_MODEL } from '../tool-names';
+import { CREATE, defineTool, type ToolRegistration } from '../tool';
+import { GET_NEWEST_SYSTEM_MODEL, SCAN_SYSTEM_MODEL } from '../tool-names';
 import { success } from '../tool-result';
 
 const inputSchema = z
@@ -31,11 +31,10 @@ export function scanSystemModelTool(
     SCAN_SYSTEM_MODEL,
     {
       title: 'Scan system model',
-      description:
-        "Scans the repository's code and stores the system model found — its modules, building blocks and behaviours — replacing the one scanned before. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the model's id, name, scan time and how many elements of each kind it holds.",
+      description: `Scans the repository's code and stores the system model found — its modules, building blocks and behaviours — as a new scan, keeping every one before; ${GET_NEWEST_SYSTEM_MODEL} answers with the latest. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the id the server minted, the model's name, scan time and how many elements of each kind it holds.`,
       inputSchema,
       outputSchema,
-      annotations: SCAN,
+      annotations: CREATE,
     },
     async () => scanned(await scanSystemModel.handle()),
   );

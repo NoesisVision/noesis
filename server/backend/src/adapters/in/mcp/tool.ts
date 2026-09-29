@@ -61,14 +61,3 @@ export const UPDATE: ToolAnnotations = {
   idempotentHint: true,
   openWorldHint: false,
 };
-
-/**
- * Rebuilds what the server derives from the code, replacing what it stored
- * before: scanning unchanged code twice stores the same model again.
- */
-export const SCAN: ToolAnnotations = {
-  readOnlyHint: false,
-  destructiveHint: true,
-  idempotentHint: true,
-  openWorldHint: false,
-};

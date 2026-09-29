@@ -11,6 +11,7 @@ import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   designDocFixture,
@@ -296,8 +297,7 @@ describe('list_changes', () => {
 });
 
 describe('scan_system_model', () => {
-  const scanned = SystemModel.parse({
-    id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
+  const found = SystemModel.omit({ id: true }).parse({
     name: 'shop',
     scanned_at: '2026-09-29T08:00:00.000Z',
     modules: [
@@ -309,7 +309,7 @@ describe('scan_system_model', () => {
     ],
   });
 
-  /** A client whose server scans with a scanner that finds `scanned`. */
+  /** A client whose server scans with a scanner that finds `found`. */
   async function scanningClient(): Promise<Client> {
     const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
     const server = createMcpServer({
@@ -318,7 +318,7 @@ describe('scan_system_model', () => {
       noesis: noesis.noesis,
       sessionFiles: files,
       scanSystemModel: scanSystemModelHandler(
-        { scan: () => Promise.resolve(scanned) },
+        { scan: () => Promise.resolve(found) },
         systemModels,
       ),
     });
@@ -331,27 +331,29 @@ describe('scan_system_model', () => {
     return scanning;
   }
 
-  it('stores the model the scanner finds and answers with it counted', async () => {
+  it('stores the model the scanner finds at a minted id and answers with it counted', async () => {
     const scanning = await scanningClient();
 
     const result = await scanning.callTool({ name: 'scan_system_model' });
     await scanning.close();
 
     expect(result.isError).toBeFalsy();
-    expect(result.structuredContent).toEqual({
-      systemModel: {
-        id: scanned.id,
-        name: 'shop',
-        scanned_at: scanned.scanned_at,
-        modules: 1,
-        buildingBlocks: 0,
-        behaviours: 0,
-      },
+    const { systemModel } = result.structuredContent as {
+      systemModel: Record<string, unknown>;
+    };
+    const id = SystemModelId.parse(systemModel.id);
+    expect(systemModel).toEqual({
+      id,
+      name: 'shop',
+      scanned_at: found.scanned_at,
+      modules: 1,
+      buildingBlocks: 0,
+      behaviours: 0,
     });
-    expect(textOf(result)).toContain(`Scanned shop (${scanned.id}): 1 modules`);
+    expect(textOf(result)).toContain(`Scanned shop (${id}): 1 modules`);
     expect(
       await new NoesisSystemModelsRepository(noesis.noesis).list(),
-    ).toEqual([scanned]);
+    ).toEqual([{ ...found, id }]);
   });
 
   it('answers a failed scan in-band', async () => {
@@ -361,20 +363,22 @@ describe('scan_system_model', () => {
     expect(textOf(result)).toContain('Not implemented');
   });
 
-  it('is advertised as replacing what it stored before', async () => {
+  it('is advertised as adding a scan on every call', async () => {
     const { tools } = await client.listTools();
     const scan = tools.find((tool) => tool.name === 'scan_system_model');
     expect(scan?.annotations).toMatchObject({
       readOnlyHint: false,
-      destructiveHint: true,
-      idempotentHint: true,
+      destructiveHint: false,
+      idempotentHint: false,
     });
   });
 });
 
 describe('get_newest_system_model', () => {
-  const scannedAt = (id: string, at: string) =>
-    SystemModel.parse({ id, name: id, scanned_at: at });
+  const OLDER = '01a0d22d-7f47-76b9-abd4-bd21d66a1d17';
+  const NEWER = '01a0d22e-0000-7000-8000-000000000000';
+  const scan = (id: string, name: string) =>
+    SystemModel.parse({ id, name, scanned_at: '2026-09-29T08:00:00.000Z' });
 
   it('answers null, pointing to the scan, when nothing is scanned yet', async () => {
     const result = await client.callTool({ name: 'get_newest_system_model' });
@@ -386,15 +390,15 @@ describe('get_newest_system_model', () => {
 
   it('answers the model scanned last, whole', async () => {
     const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
-    const newest = scannedAt('shop', '2026-09-29T10:00:00.000Z');
-    await systemModels.save(newest);
-    await systemModels.save(scannedAt('billing', '2026-09-29T08:00:00.000Z'));
+    const newest = scan(NEWER, 'shop');
+    await systemModels.create(newest);
+    await systemModels.create(scan(OLDER, 'billing'));
 
     const result = await client.callTool({ name: 'get_newest_system_model' });
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent).toEqual({ systemModel: newest });
-    expect(textOf(result)).toContain('System model shop (shop)');
+    expect(textOf(result)).toContain(`System model shop (${NEWER})`);
   });
 
   it('is advertised as read-only', async () => {

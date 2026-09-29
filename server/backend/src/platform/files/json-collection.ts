@@ -47,6 +47,11 @@ export class JsonCollection<T extends { id: string }> {
     return entities.filter((entity) => entity !== null);
   }
 
+  /** The highest id, by code unit; `null` when there is none. Reads no file. */
+  async lastId(): Promise<string | null> {
+    return (await this.listIds()).sort(byCodeUnit).at(-1) ?? null;
+  }
+
   // Each write is `async` without awaiting anything: its body runs in one
   // step, and a refused id rejects instead of throwing before the promise
   // exists.
@@ -62,11 +67,6 @@ export class JsonCollection<T extends { id: string }> {
     if (!existsSync(path)) return false;
     writeJsonFile(path, this.schema, entity);
     return true;
-  }
-
-  /** Writes `entity` whether or not one is stored at its id. */
-  async put(entity: T): Promise<void> {
-    writeJsonFile(this.pathOf(entity.id), this.schema, entity);
   }
 
   /** Removes the entity's file; `false` when there is none. */

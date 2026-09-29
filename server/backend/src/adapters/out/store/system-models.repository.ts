@@ -1,9 +1,10 @@
 import { SystemModel } from '#backend/app/system-model/system-model';
+import type { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { SystemModelsRepository } from '#backend/app/system-model/system-models.repository';
 import { JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** One `graph/system-models/<id>.system-model.json` per scanned unit. */
+/** One `graph/system-models/<id>.system-model.json` per scan. */
 export class NoesisSystemModelsRepository implements SystemModelsRepository {
   private readonly systemModels: JsonCollection<SystemModel>;
 
@@ -15,7 +16,7 @@ export class NoesisSystemModelsRepository implements SystemModelsRepository {
     );
   }
 
-  get(id: string): Promise<SystemModel | null> {
+  get(id: SystemModelId): Promise<SystemModel | null> {
     return this.systemModels.get(id);
   }
 
@@ -23,23 +24,13 @@ export class NoesisSystemModelsRepository implements SystemModelsRepository {
     return this.systemModels.list();
   }
 
+  /** A file gone between the listing and the read answers `null`; nothing here removes one. */
   async findNewest(): Promise<SystemModel | null> {
-    const models = await this.systemModels.list();
-    return models.reduce<SystemModel | null>(
-      (newest, model) =>
-        newest === null || scannedAt(model) > scannedAt(newest)
-          ? model
-          : newest,
-      null,
-    );
+    const id = await this.systemModels.lastId();
+    return id === null ? null : this.systemModels.get(id);
   }
 
-  save(model: SystemModel): Promise<void> {
-    return this.systemModels.put(model);
+  create(model: SystemModel): Promise<boolean> {
+    return this.systemModels.create(model);
   }
-}
-
-/** Compared as instants, so an offset other than `Z` still orders right. */
-function scannedAt(model: SystemModel): number {
-  return Date.parse(model.scanned_at);
 }

@@ -155,11 +155,16 @@ describe('JsonCollection', () => {
     expect(await notes.list()).toEqual([note('a', 'revised')]);
   });
 
-  it('puts an entity whether or not one is there', async () => {
-    await notes.put(note('a', 'first'));
-    await notes.put(note('a', 'revised'));
+  it('answers no last id while there is no entity', async () => {
+    expect(await notes.lastId()).toBeNull();
+  });
 
-    expect(await notes.list()).toEqual([note('a', 'revised')]);
+  it('answers the highest id without reading a file', async () => {
+    await notes.create(note('2026-09-24-b'));
+    await notes.create(note('2026-09-24-a'));
+    await writeRaw('2026-09-25-broken.note.json', { broken: true });
+
+    expect(await notes.lastId()).toBe('2026-09-25-broken');
   });
 
   it('deletes an entity by removing its file, the others staying', async () => {

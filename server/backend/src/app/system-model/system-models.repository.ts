@@ -1,19 +1,21 @@
 import type { SystemModel } from './system-model';
+import type { SystemModelId } from './system-model-id';
 
+/** Every scan's model, kept; ids sort by scan time. */
 export interface SystemModelsRepository {
-  get(id: string): Promise<SystemModel | null>;
+  get(id: SystemModelId): Promise<SystemModel | null>;
 
-  /** By id ascending. */
+  /** By id ascending: oldest scan first. */
   list(): Promise<SystemModel[]>;
 
   /**
-   * The model scanned last, comparing scan times as instants; `null` before
-   * the first scan. Of two scanned at the same moment, the lower id wins.
+   * The model with the highest id, which is the one scanned last; `null`
+   * before the first scan. Reads that model only.
    */
   findNewest(): Promise<SystemModel | null>;
 
-  /** Writes `model`, replacing the one stored at its id, if any. */
-  save(model: SystemModel): Promise<void>;
+  /** Writes `model` where none is yet; `false` when its id is taken. */
+  create(model: SystemModel): Promise<boolean>;
 }
 
 /** What a query may touch: the methods that read. */
