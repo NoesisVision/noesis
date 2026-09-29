@@ -71,17 +71,16 @@ describe('Reading the design documents of a change', () => {
       name: 'Another design',
     });
 
-    expect(
-      (await t.listDesignDocsInChange.handle({ change: CHANGE })).map(
-        (d) => d.id,
-      ),
-    ).toEqual([earlier, STORED]);
+    expect((await t.designDocsIn(CHANGE)).map((d) => d.id)).toEqual([
+      earlier,
+      STORED,
+    ]);
   });
 
   it('summarises each by its name and whether it is implemented', async () => {
     await t.writeDesignDoc(CHANGE, { ...designDocFixture, implemented: true });
 
-    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual([
+    expect(await t.designDocsIn(CHANGE)).toEqual([
       { id: STORED, name: 'Partial refunds for orders', implemented: true },
     ]);
   });
@@ -103,9 +102,7 @@ describe('Reading the design documents of a change', () => {
 
 describe('Every operation on design documents', () => {
   it('refuses a change that does not exist', async () => {
-    await expect(
-      t.listDesignDocsInChange.handle({ change: NOPE }),
-    ).rejects.toMatchObject({
+    await expect(t.designDocsIn(NOPE)).rejects.toMatchObject({
       entity: 'change',
     });
     await expect(
@@ -160,9 +157,7 @@ describe('Creating a design document', () => {
         })
       ).id,
     ).toBe(DesignDocId.parse('2026-09-24-partial-refunds-for-orders-2'));
-    expect(
-      await t.listDesignDocsInChange.handle({ change: CHANGE }),
-    ).toHaveLength(2);
+    expect(await t.designDocsIn(CHANGE)).toHaveLength(2);
   });
 
   it('refuses a design that modifies or removes an element, as nothing is scanned yet', async () => {
@@ -174,9 +169,7 @@ describe('Creating a design document', () => {
         }),
       ),
     ).toEqual(['changedInGreenField']);
-    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.designDocsIn(CHANGE)).toEqual([]);
   });
 
   it('refuses a field a human wrote, storing nothing', async () => {
@@ -201,9 +194,7 @@ describe('Creating a design document', () => {
         }),
       ),
     ).toEqual(['humanAuthor']);
-    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.designDocsIn(CHANGE)).toEqual([]);
   });
 
   it('refuses an added element with a field left unchanged, storing nothing', async () => {
@@ -222,9 +213,7 @@ describe('Creating a design document', () => {
         }),
       ),
     ).toEqual(['unchangedFieldInAddedItem']);
-    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.designDocsIn(CHANGE)).toEqual([]);
   });
 });
 
@@ -247,9 +236,7 @@ describe('Updating a design document', () => {
       name: 'Partial refunds for orders',
       implemented: true,
     });
-    expect(
-      await t.listDesignDocsInChange.handle({ change: CHANGE }),
-    ).toHaveLength(1);
+    expect(await t.designDocsIn(CHANGE)).toHaveLength(1);
   });
 
   it('keeps its id when the name changes', async () => {
@@ -353,8 +340,6 @@ describe('Updating a design document', () => {
         writer: 'agent',
       }),
     ).rejects.toMatchObject({ entity: 'design document' });
-    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
-      [],
-    );
+    expect(await t.designDocsIn(CHANGE)).toEqual([]);
   });
 });

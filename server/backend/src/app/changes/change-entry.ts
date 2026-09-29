@@ -14,7 +14,8 @@ const ChangeEntrySchema = z.discriminatedUnion('kind', [
 ]);
 export type ChangeEntry = z.infer<typeof ChangeEntrySchema>;
 
-const ChangeWithEntriesSchema = ChangeSchema.extend({
+/** A change as the change list names it: with its entries. */
+export const ChangeWithEntriesSchema = ChangeSchema.extend({
   entries: z.array(ChangeEntrySchema),
 });
 export type ChangeWithEntries = z.infer<typeof ChangeWithEntriesSchema>;

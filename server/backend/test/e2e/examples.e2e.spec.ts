@@ -29,7 +29,7 @@ function appOver(repositoryRoot: string) {
   return createApp(createServices(new NoesisDir(repositoryRoot)));
 }
 
-interface NavigationChange {
+interface ListedChange {
   id: string;
   entries: { kind: 'design-doc' | 'document'; id: string }[];
 }
@@ -40,9 +40,9 @@ describe.each(Object.entries(EXAMPLE_REPOSITORIES))(
     const app = appOver(resolve(EXAMPLES, repository));
 
     it('lists exactly the expected changes', async () => {
-      const res = await app.request('/ui/changes/navigation');
+      const res = await app.request('/ui/changes');
       expect(res.status).toBe(200);
-      const { changes } = (await res.json()) as { changes: NavigationChange[] };
+      const { changes } = (await res.json()) as { changes: ListedChange[] };
       expect(changes.map((c) => c.id).sort()).toEqual(
         Object.keys(expectedChanges).sort(),
       );
@@ -61,30 +61,20 @@ describe.each(Object.entries(EXAMPLE_REPOSITORIES))(
     it.each(Object.entries(expectedChanges))(
       'serves every design document and document of %s',
       async (changeId, expected) => {
-        const designDocs = await app.request(
-          `/ui/changes/${changeId}/design-docs`,
-        );
-        expect(designDocs.status).toBe(200);
-        const designDocsBody = (await designDocs.json()) as {
-          designDocs: { id: string }[];
+        const read = await app.request(`/ui/changes/${changeId}`);
+        expect(read.status).toBe(200);
+        const { change } = (await read.json()) as {
+          change: { designDocs: { id: string }[]; documents: { id: string }[] };
         };
-        expect(designDocsBody.designDocs).toHaveLength(expected.designDocs);
-        for (const { id } of designDocsBody.designDocs) {
+        expect(change.designDocs).toHaveLength(expected.designDocs);
+        expect(change.documents).toHaveLength(expected.documents);
+        for (const { id } of change.designDocs) {
           const res = await app.request(
             `/ui/changes/${changeId}/design-docs/${id}`,
           );
           expect(res.status).toBe(200);
         }
-
-        const documents = await app.request(
-          `/ui/changes/${changeId}/documents`,
-        );
-        expect(documents.status).toBe(200);
-        const documentsBody = (await documents.json()) as {
-          documents: { id: string }[];
-        };
-        expect(documentsBody.documents).toHaveLength(expected.documents);
-        for (const { id } of documentsBody.documents) {
+        for (const { id } of change.documents) {
           const res = await app.request(
             `/ui/changes/${changeId}/documents/${id}`,
           );

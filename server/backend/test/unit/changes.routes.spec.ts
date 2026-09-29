@@ -51,7 +51,7 @@ const add = async (
 
 describe('ui changes routes', () => {
   it('returns an empty list when there are no changes', async () => {
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ changes: [] });
   });
@@ -70,7 +70,7 @@ describe('ui changes routes', () => {
     };
     await t.writeDocument(older, document);
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       changes: [
@@ -118,7 +118,7 @@ describe('ui changes routes', () => {
       });
     }
 
-    const response = await app.request('/changes/navigation');
+    const response = await app.request('/changes');
     const { changes } = (await response.json()) as {
       changes: { entries: { name: string }[] }[];
     };
@@ -138,7 +138,9 @@ describe('ui changes routes', () => {
 
     const listed = await app.request('/changes');
     expect(listed.status).toBe(200);
-    expect(await listed.json()).toEqual({ changes: [change] });
+    expect(await listed.json()).toEqual({
+      changes: [{ ...change, entries: [] }],
+    });
     expect(await ids()).toEqual(['2026-09-01-payment-retry']);
   });
 
@@ -197,6 +199,45 @@ describe('ui changes routes', () => {
       ChangeId.parse('2026-09-02-newer'),
       ChangeId.parse('2026-09-01-older'),
     ]);
+  });
+
+  it('reads one change with what it holds summarised, each kind oldest first', async () => {
+    const change = await t.writeChange('2026-09-13-booking');
+    await t.writeDesignDoc(change, designDocFixture);
+    for (const [id, title] of [
+      ['2026-09-12-zoning-rules', 'Zoning rules'],
+      ['2026-09-10-appointment-booking', 'Appointment booking'],
+    ] as const) {
+      await t.writeDocument(change, {
+        id,
+        title,
+        date: '2026-09-12',
+        content: '',
+      });
+    }
+
+    const res = await app.request(`/changes/${change}`);
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      change: {
+        id: change,
+        designDocs: [
+          {
+            id: decodedDesignDocFixture.id,
+            name: decodedDesignDocFixture.name,
+            implemented: false,
+          },
+        ],
+        documents: [
+          {
+            id: '2026-09-10-appointment-booking',
+            title: 'Appointment booking',
+          },
+          { id: '2026-09-12-zoning-rules', title: 'Zoning rules' },
+        ],
+      },
+    });
   });
 
   it('reads one change by id and 404s an unknown or unsafe one', async () => {

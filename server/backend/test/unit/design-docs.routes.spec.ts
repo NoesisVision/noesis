@@ -31,19 +31,6 @@ beforeEach(async () => {
 afterEach(() => t.cleanup());
 
 describe('ui design-docs routes', () => {
-  it('lists the stored documents of the change', async () => {
-    await t.writeDesignDoc(change, designDocFixture);
-
-    const listed = await app.request(BASE);
-    expect(listed.status).toBe(200);
-    const { designDocs } = (await listed.json()) as {
-      designDocs: { name: string }[];
-    };
-    expect(designDocs.map((d) => d.name)).toEqual([
-      'Partial refunds for orders',
-    ]);
-  });
-
   it('serves a stored document whole, and 404s a missing one', async () => {
     await t.writeDesignDoc(change, designDocFixture);
     const created = decodedDesignDocFixture;
@@ -155,20 +142,20 @@ describe('ui design-docs routes', () => {
     expect(await missing.json()).toEqual({ error: 'not_found' });
   });
 
-  it('never creates or removes one: POST and DELETE are not routes of this surface', async () => {
+  it('never lists, creates or removes one: GET, POST and DELETE on the collection are not routes of this surface', async () => {
     await t.writeDesignDoc(change, greenFieldDesignDocFixture);
 
+    expect((await app.request(BASE)).status).toBe(404);
     expect((await send('POST', BASE, byAgent)).status).toBe(404);
     expect((await send('DELETE', `${BASE}/${ID}`)).status).toBe(404);
-    expect(
-      (await t.listDesignDocsInChange.handle({ change })).map((d) => d.id),
-    ).toEqual([DesignDocId.parse(ID)]);
+    expect((await t.designDocsIn(change)).map((d) => d.id)).toEqual([
+      DesignDocId.parse(ID),
+    ]);
   });
 
   it('404s every route of a change that does not exist', async () => {
     const missing = '/changes/2026-01-01-nope/design-docs';
     for (const res of [
-      await app.request(missing),
       await app.request(`${missing}/2026-01-01-x`),
       await send('PUT', `${missing}/${ID}`, byAgent),
     ]) {

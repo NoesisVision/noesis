@@ -4,10 +4,6 @@ import {
   type FindDesignDocHandler,
 } from '#backend/app/design-docs/find-design-doc';
 import {
-  ListDesignDocsInChange,
-  type ListDesignDocsInChangeHandler,
-} from '#backend/app/design-docs/list-design-docs-in-change';
-import {
   UpdateDesignDocInChange,
   type UpdateDesignDocInChangeHandler,
 } from '#backend/app/design-docs/update-design-doc-in-change';
@@ -15,7 +11,6 @@ import { jsonBody, workingFileLimit } from '../json-body';
 import { routeParams } from '../route-params';
 
 export interface DesignDocsDeps {
-  listDesignDocsInChange: ListDesignDocsInChangeHandler;
   findDesignDoc: FindDesignDocHandler;
   updateDesignDocInChange: UpdateDesignDocInChangeHandler;
 }
@@ -26,17 +21,10 @@ export interface DesignDocsDeps {
  * may write fields in its own name.
  */
 export function createDesignDocsApp(deps: DesignDocsDeps) {
-  const { listDesignDocsInChange, findDesignDoc, updateDesignDocInChange } =
-    deps;
+  const { findDesignDoc, updateDesignDocInChange } = deps;
 
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
   return new Hono()
-    .get('/', routeParams(ListDesignDocsInChange.shape), async (c) => {
-      return c.json({
-        designDocs: await listDesignDocsInChange.handle(c.req.valid('param')),
-      });
-    })
-
     .get('/:id', routeParams(FindDesignDoc.shape), async (c) => {
       return c.json({
         document: await findDesignDoc.handle(c.req.valid('param')),

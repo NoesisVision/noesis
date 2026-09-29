@@ -73,7 +73,7 @@ describe('Reading changes', () => {
       name: 'Retry flow',
     });
 
-    const [listed] = await t.listChangesWithEntries.handle();
+    const [listed] = await t.listChanges.handle();
 
     expect(
       listed?.entries.map(({ kind, id, name }) => `${kind} ${id} ${name}`),
@@ -94,7 +94,7 @@ describe('Reading changes', () => {
       content: '',
     });
 
-    const listed = await t.listChangesWithEntries.handle();
+    const listed = await t.listChanges.handle();
 
     expect(listed.map(({ id, entries }) => `${id} ${entries.length}`)).toEqual([
       '2026-01-02-newer 0',
@@ -117,7 +117,11 @@ describe('CreateChangeHandler', () => {
       status: 'discovery',
       description: '',
     });
-    expect(await t.findChange.handle({ id: created.id })).toEqual(created);
+    expect(await t.findChange.handle({ id: created.id })).toEqual({
+      ...created,
+      designDocs: [],
+      documents: [],
+    });
   });
 
   it('gives a name already used today the next free suffix', async () => {
@@ -168,7 +172,7 @@ describe('UpdateChangeHandler', () => {
     );
 
     const updated = await t.updateChange.handle({
-      id: id,
+      id,
       ...ChangeContentSchema.parse({
         name: 'Payment retries',
         type: 'feature',
@@ -177,7 +181,7 @@ describe('UpdateChangeHandler', () => {
     });
 
     expect(updated.id).toBe(id);
-    expect(await t.listChanges.handle()).toEqual([updated]);
+    expect(await t.listChanges.handle()).toEqual([{ ...updated, entries: [] }]);
     expect(updated).toMatchObject({
       name: 'Payment retries',
       status: 'design',

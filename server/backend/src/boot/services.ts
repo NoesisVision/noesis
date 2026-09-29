@@ -3,18 +3,15 @@ import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.rep
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
-import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
-import { listDesignDocsInChangeHandler } from '#backend/app/design-docs/list-design-docs-in-change';
 import { updateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
 import { createDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
 import { deleteDocumentFromChangeHandler } from '#backend/app/information-sources/delete-document-from-change';
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { findDocumentHandler } from '#backend/app/information-sources/find-document';
-import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import { searchHandler } from '#backend/app/search/search';
 import { localToday, type Today } from '#backend/app/today';
@@ -36,13 +33,8 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
   return {
     createChange: createChangeHandler(changes, today),
     updateChange: updateChangeHandler(changes),
-    listChanges: listChangesHandler(changes),
-    listChangesWithEntries: listChangesWithEntriesHandler(
-      changes,
-      designDocs,
-      documents,
-    ),
-    findChange: findChangeHandler(changes),
+    listChanges: listChangesHandler(changes, designDocs, documents),
+    findChange: findChangeHandler(changes, designDocs, documents),
     createDesignDocInChange: createDesignDocInChangeHandler(
       designDocs,
       changes,
@@ -52,7 +44,6 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
       designDocs,
       changes,
     ),
-    listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
     findDesignDoc: findDesignDocHandler(designDocs, changes),
     createDocumentInChange: createDocumentInChangeHandler(
       documents,
@@ -64,7 +55,6 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
       documents,
       changes,
     ),
-    listDocumentsInChange: listDocumentsInChangeHandler(documents, changes),
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
   };

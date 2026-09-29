@@ -10,15 +10,19 @@ export async function checkUiRpcTypes(client: ReturnType<typeof hc<AppType>>) {
     const name: string = (await found.json()).change.name;
     void name;
   }
-  const designDocs = await client.changes[':change']['design-docs'].$get({
-    param: { change: 'payment-retry' },
-  });
-  if (designDocs.status === 200) {
-    const body = await designDocs.json();
-    void body.designDocs;
+  if (found.status === 200) {
+    const body = await found.json();
+    const docs: { id: string; implemented: boolean }[] = body.change.designDocs;
+    const titles: string[] = body.change.documents.map((doc) => doc.title);
+    void [docs, titles];
     // @ts-expect-error Successful responses retain their inferred fields.
     void body.nonexistent;
   }
+  // A change's children come with the change: no route lists one kind alone.
+  // @ts-expect-error
+  await client.changes[':change']['design-docs'].$get({
+    param: { change: 'payment-retry' },
+  });
   // The page writes what a person may: a change, a revised design document,
   // an added or removed document. Each is typed by its route's schema.
   const created = await client.changes.$post({

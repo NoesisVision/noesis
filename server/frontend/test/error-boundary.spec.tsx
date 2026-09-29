@@ -33,7 +33,7 @@ const pathOf = (input: RequestInfo | URL): string =>
 function onlyNavigationAnswers(changeResponse: () => Response) {
   const answer = (input: RequestInfo | URL) =>
     Promise.resolve(
-      pathOf(input).endsWith('/navigation')
+      pathOf(input).endsWith('/ui/changes')
         ? navigation.clone()
         : changeResponse(),
     );
@@ -94,7 +94,9 @@ it('draws an address that matches no route at all', async () => {
 });
 
 it('does not blame the change for an address under it that is not a route', async () => {
-  onlyNavigationAnswers(() => Response.json({ change: nav }));
+  onlyNavigationAnswers(() =>
+    Response.json({ change: { ...nav, designDocs: [], documents: [] } }),
+  );
 
   const html = await pageAt('/changes/2026-01-01-scheduling/nope');
   expect(html).toMatch(/<h1[^>]*>Not found<\/h1>/);
