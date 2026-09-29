@@ -18,7 +18,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
   'discounts-java': {
     '2026-09-17-weather-based-discount': { designDocs: 1, documents: 2 },
   },
-  'ddd-starter-dotnet': {
+  'discounts-dotnet': {
     '2026-05-08-threshold-activated-discount': { designDocs: 1, documents: 2 },
   },
 };

@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sales", "Sales", "{B442AF5F-B127-45EF-B835-714A187D3F0A}"
+	ProjectSection(SolutionItems) = preProject
+		Sources\Sales\SalesDomainModelInfo.json = Sources\Sales\SalesDomainModelInfo.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sales.DeepModel", "Sources\Sales\Sales.DeepModel\Sales.DeepModel.csproj", "{88560531-4322-49A6-BE34-91D70CF8CE5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TechnicalStuff", "TechnicalStuff", "{E9167F5F-E45B-4ABD-ACCD-89E3514BB0AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechnicalStuff", "Sources\TechnicalStuff\TechnicalStuff\TechnicalStuff.csproj", "{CD120717-6AF0-4A13-A62F-9B86F23DD408}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sales.DeepModel.Tests", "Sources\Sales\Sales.DeepModel.Tests\Sales.DeepModel.Tests.csproj", "{AD0D919C-8499-46A7-869E-EEB6456C6BA9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sources", "Sources", "{109EBFC9-4414-4331-AD7B-5C19A87CBF8B}"
+	ProjectSection(SolutionItems) = preProject
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5FBC2CAC-E39A-4899-9CC1-94EF0712BDAE}"
+EndProject
+	ProjectSection(SolutionItems) = preProject
+		Sources\Payments\PaymentModelInfo.json = Sources\Payments\PaymentModelInfo.json
+	EndProjectSection
+EndProject
+	ProjectSection(SolutionItems) = preProject
+		Sources\RiskManagement\RiskManagementModelInfo.json = Sources\RiskManagement\RiskManagementModelInfo.json
+	EndProjectSection
+EndProject
+	ProjectSection(SolutionItems) = preProject
+		Sources\ProductsDelivery\ProductsDeliveryModelInfo.json = Sources\ProductsDelivery\ProductsDeliveryModelInfo.json
+	EndProjectSection
+EndProject
+	ProjectSection(SolutionItems) = preProject
+		Sources\Search\SearchModelInfo.json = Sources\Search\SearchModelInfo.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88560531-4322-49A6-BE34-91D70CF8CE5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88560531-4322-49A6-BE34-91D70CF8CE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88560531-4322-49A6-BE34-91D70CF8CE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88560531-4322-49A6-BE34-91D70CF8CE5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD120717-6AF0-4A13-A62F-9B86F23DD408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD120717-6AF0-4A13-A62F-9B86F23DD408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD120717-6AF0-4A13-A62F-9B86F23DD408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD120717-6AF0-4A13-A62F-9B86F23DD408}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD0D919C-8499-46A7-869E-EEB6456C6BA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD0D919C-8499-46A7-869E-EEB6456C6BA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD0D919C-8499-46A7-869E-EEB6456C6BA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD0D919C-8499-46A7-869E-EEB6456C6BA9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{88560531-4322-49A6-BE34-91D70CF8CE5C} = {B442AF5F-B127-45EF-B835-714A187D3F0A}
+		{CD120717-6AF0-4A13-A62F-9B86F23DD408} = {E9167F5F-E45B-4ABD-ACCD-89E3514BB0AA}
+		{B442AF5F-B127-45EF-B835-714A187D3F0A} = {109EBFC9-4414-4331-AD7B-5C19A87CBF8B}
+		{E9167F5F-E45B-4ABD-ACCD-89E3514BB0AA} = {109EBFC9-4414-4331-AD7B-5C19A87CBF8B}
+		{5FBC2CAC-E39A-4899-9CC1-94EF0712BDAE} = {B442AF5F-B127-45EF-B835-714A187D3F0A}
+		{AD0D919C-8499-46A7-869E-EEB6456C6BA9} = {5FBC2CAC-E39A-4899-9CC1-94EF0712BDAE}
+	EndGlobalSection
+EndGlobal

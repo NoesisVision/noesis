@@ -1,0 +1,4 @@
+{
+  "namespacePartsToSkip": ["MyCompany.ECommerce"],
+  "namespacesToExclude": ["*.TechnicalStuff.*"]
+}
