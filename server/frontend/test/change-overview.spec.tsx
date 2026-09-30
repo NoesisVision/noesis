@@ -64,18 +64,19 @@ async function overview(description: string): Promise<string> {
 describe('change overview', () => {
   /*
    * The description is read in the Markdown editor, which arrives on its own
-   * rather than with the bundle. `lazy` resolves once for the whole process,
-   * so a render shows either the editor's fallback or the text itself,
-   * depending on whether anything earlier in the run already opened it.
+   * rather than with the bundle and draws its text only in a browser: here it
+   * renders either its fallback, if nothing earlier in the run has loaded it,
+   * or nothing at all. So the text itself is never in this markup, and what
+   * is asserted is that the description changes the page. With it ignored,
+   * the two renders would be the same string.
    */
   const OPENING = 'Opening the editor…';
 
   it('opens with what the change is about', async () => {
-    const html = await overview('Book rooms without double-booking them.');
-    expect(
-      html.includes(OPENING) ||
-        html.includes('Book rooms without double-booking them.'),
-    ).toBe(true);
+    const without = await overview('');
+    const withIt = await overview('Book rooms without double-booking them.');
+    expect(withIt).not.toBe(without);
+    expect(withIt).toContain('Documents');
   });
 
   it('leaves the space out when the change says nothing about itself', async () => {
