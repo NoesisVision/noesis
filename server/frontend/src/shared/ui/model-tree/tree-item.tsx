@@ -1,6 +1,7 @@
+import { clsx } from 'clsx';
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
-import { Indicator } from '#/shared/design-system/indicator.tsx';
+import { ChangeMark } from './change-mark.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
@@ -156,19 +157,19 @@ export function TreeItem({
         />
 
         {lessColorsInDesignDocTree ? (
-          <Indicator
-            size={5}
-            color={changeColour?.color}
-            top={4}
-            left={-4}
-            withBorder
-          >
+          <ChangeMark change={node.change} color={changeColour?.color}>
             <KindIcon kind={node.kind} pattern={node.pattern} />
-          </Indicator>
+          </ChangeMark>
         ) : (
           <KindIcon kind={node.kind} pattern={node.pattern} />
         )}
-        <MatchedText className={classes.name} tokens={search.tokens}>
+        <MatchedText
+          className={clsx(
+            classes.name,
+            !lessColorsInDesignDocTree && classes.ignoreColors,
+          )}
+          tokens={search.tokens}
+        >
           {node.name}
         </MatchedText>
         {node.patternLabel !== null && (
