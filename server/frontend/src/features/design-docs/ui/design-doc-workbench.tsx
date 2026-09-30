@@ -4,7 +4,6 @@ import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { useFullscreenElement } from '#/shared/design-system/hooks.ts';
-import { Spoiler } from '#/shared/design-system/spoiler.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
@@ -112,16 +111,7 @@ export function DesignDocWorkbench({
           )}
         </ActionIcon>
       </Group>
-      {!!doc.description && (
-        <Spoiler
-          maxHeight={50}
-          showLabel="Show more"
-          hideLabel="Hide"
-          c="dimmed"
-        >
-          {doc.description}
-        </Spoiler>
-      )}
+
       <Columns
         search={<OutlineSearchBox controller={controller} />}
         outline={
