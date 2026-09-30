@@ -1,6 +1,4 @@
-import { clsx } from 'clsx';
-import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
-import { Badge } from '#/shared/design-system/badge.tsx';
+import { type KeyboardEvent, memo, type MouseEvent } from 'react';
 import { ChangeMark } from './change-mark.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
@@ -8,8 +6,7 @@ import { KindIcon } from './kind-icon.tsx';
 import { MatchedText } from './matched-text.tsx';
 import type { OutlineNode } from './model-outline.ts';
 import { focusEdge, focusParent, focusSibling } from './row-focus.ts';
-import { useChangeColour } from './use-change-colour.ts';
-import type { ModelTreeController } from './use-model-tree.ts';
+import { useTreeActions, useTreeState } from './tree-store.ts';
 import classes from './model-tree.module.css';
 
 /*
@@ -22,51 +19,28 @@ import classes from './model-tree.module.css';
 
 export interface TreeItemProps {
   node: OutlineNode;
-  controller: ModelTreeController;
-  /** What names each row, so a `treeitem` is labelled by its own line alone. */
-  rowIds: ReadonlyMap<string, string>;
-  /** The line down to the row in hand, which lights the rails along it. */
-  ancestry: ReadonlySet<string>;
-  /** The one row of the tree that is in the page's tab order. */
-  focusPath: string | null;
-  lessColorsInDesignDocTree?: boolean;
 }
 
-export function TreeItem({
-  node,
-  controller,
-  rowIds,
-  ancestry,
-  focusPath,
-  lessColorsInDesignDocTree,
-}: TreeItemProps) {
-  const {
-    tree,
-    selected,
-    search,
-    isVisible,
-    isExpanded,
-    select,
-    toggle,
-    expand,
-    collapse,
-  } = controller;
-  const children = tree
-    .childrenOf(node.path)
-    .filter((child) => isVisible(child.path));
+/*
+ * Given nothing but its node, so that a row renders again only when what it
+ * reads of the tree's state has changed, never because the tree around it
+ * did.
+ */
+export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
+  const path = node.path;
+  const { select, toggle, expand, collapse } = useTreeActions();
+  const children = useTreeState((s) => s.childrenOf(path));
   const hasChildren = children.length > 0;
-  const expanded = hasChildren && isExpanded(node.path);
-  const rowId = rowIds.get(node.path);
-  /*
-   * Handed to the stylesheet as a variable rather than set as the colour: an
-   * inline colour would outrank the rules that lift the name off the selected
-   * row's fill and mark the way down to it.
-   */
-  const changeColour = useChangeColour()(node.change);
-  const rowStyle =
-    !lessColorsInDesignDocTree && changeColour
-      ? ({ '--change-colour': changeColour.color } as CSSProperties)
-      : undefined;
+  const expanded = useTreeState((s) => hasChildren && s.isExpanded(path));
+  const selected = useTreeState((s) => s.selected === path);
+  const inPath = useTreeState((s) => s.ancestry.has(path));
+  const focusable = useTreeState((s) => s.focusPath === path);
+  const context = useTreeState(
+    (s) => s.matched !== null && !s.matched.has(path),
+  );
+  const tokens = useTreeState((s) => s.tokens);
+  const rowId = useTreeState((s) => s.rowIds.get(path));
+  const colour = useTreeState((s) => s.colours[node.change]);
 
   // A pointer event lands on every row it is inside; only the innermost
   // meant it.
@@ -127,21 +101,17 @@ export function TreeItem({
     <li
       role="treeitem"
       aria-level={node.depth + 1}
-      aria-selected={selected === node.path}
+      aria-selected={selected}
       aria-expanded={hasChildren ? expanded : undefined}
       aria-labelledby={rowId}
-      tabIndex={focusPath === node.path ? 0 : -1}
+      tabIndex={focusable ? 0 : -1}
       data-path={node.path}
       data-depth={node.depth}
       data-kind={node.kind}
       data-change={node.change}
-      data-selected={selected === node.path || undefined}
-      data-ancestor={
-        (selected !== node.path && ancestry.has(node.path)) || undefined
-      }
-      data-context={
-        (search.active && !search.matched.has(node.path)) || undefined
-      }
+      data-selected={selected || undefined}
+      data-ancestor={(!selected && inPath) || undefined}
+      data-context={context || undefined}
       className={classes.item}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
@@ -149,40 +119,18 @@ export function TreeItem({
     >
       {/* The one line of the row: what the tree scrolls to, never the item
           around it, which holds everything below it as well. */}
-      <span id={rowId} data-row className={classes.row} style={rowStyle}>
+      <span id={rowId} data-row className={classes.row}>
         <Chevron
           opens={hasChildren}
           expanded={expanded}
           onToggle={onChevronClick}
         />
-
-        {lessColorsInDesignDocTree ? (
-          <ChangeMark change={node.change} color={changeColour?.color}>
-            <KindIcon kind={node.kind} pattern={node.pattern} />
-          </ChangeMark>
-        ) : (
+        <ChangeMark change={node.change} color={colour}>
           <KindIcon kind={node.kind} pattern={node.pattern} />
-        )}
-        <MatchedText
-          className={clsx(
-            classes.name,
-            !lessColorsInDesignDocTree && classes.ignoreColors,
-          )}
-          tokens={search.tokens}
-        >
+        </ChangeMark>
+        <MatchedText className={classes.name} tokens={tokens}>
           {node.name}
         </MatchedText>
-        {node.patternLabel !== null && (
-          <Badge size="xs" variant="default" className={classes.badge}>
-            <MatchedText
-              className={classes.pattern}
-              tokens={search.tokens}
-              dimmed
-            >
-              {node.patternLabel}
-            </MatchedText>
-          </Badge>
-        )}
         <span className={classes.trailing}>
           {node.hasDiagram && <DiagramMark />}
         </span>
@@ -195,21 +143,13 @@ export function TreeItem({
           // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
           role="group"
           className={classes.group}
-          data-in-path={ancestry.has(node.path) || undefined}
+          data-in-path={inPath || undefined}
         >
           {children.map((child) => (
-            <TreeItem
-              key={child.path}
-              node={child}
-              controller={controller}
-              rowIds={rowIds}
-              ancestry={ancestry}
-              focusPath={focusPath}
-              lessColorsInDesignDocTree={lessColorsInDesignDocTree}
-            />
+            <TreeItem key={child.path} node={child} />
           ))}
         </ul>
       )}
     </li>
   );
-}
+});

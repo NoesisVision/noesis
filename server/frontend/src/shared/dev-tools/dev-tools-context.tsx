@@ -17,11 +17,10 @@ if (typeof window !== 'undefined') {
   };
 }
 
-const featuresSchema = z.object({
-  lessColorsInDesignDocTree: z.boolean(),
-});
+// No flags right now; a stored flag that is no longer here is dropped.
+const featuresSchema = z.object({});
 
-type Features = z.infer<typeof featuresSchema>;
+type Features = Record<string, boolean>;
 
 interface DevToolsContextProps {
   enabled: boolean;
@@ -35,9 +34,7 @@ interface DevToolsContextProps {
 const INIT_VALUE: DevToolsContextProps = {
   enabled: false,
   setEnabled: noop,
-  features: {
-    lessColorsInDesignDocTree: true,
-  },
+  features: {},
   setFeatures: noop,
 };
 

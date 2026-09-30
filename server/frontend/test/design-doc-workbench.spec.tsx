@@ -51,7 +51,6 @@ describe('DesignDocWorkbench', () => {
   it('opens on the model the document describes', () => {
     expect(page.match(/role="treeitem"/g)).toHaveLength(3);
     expect(page).toContain('>Refund<');
-    expect(page).toContain('Aggregate');
   });
 
   it('lets the two columns be resized, by keyboard as well as by hand', () => {
@@ -94,10 +93,10 @@ describe('DesignDocWorkbench', () => {
   });
 
   it('carries a search from the address into the outline', () => {
-    const html = reading(null, 'aggregate');
+    const html = reading(null, 'refund');
     expect(html).toContain('<output');
     expect(html).toContain('aria-label="Clear the search"');
-    expect(html).toMatch(/<mark[^>]*>Aggregate<\/mark>/);
+    expect(html).toMatch(/<mark[^>]*>Refund<\/mark>/);
     expect(html.match(/role="treeitem"/g)).toHaveLength(3);
   });
 });

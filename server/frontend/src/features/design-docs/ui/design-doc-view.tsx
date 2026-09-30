@@ -1,4 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router';
+import { useCallback } from 'react';
+import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
@@ -12,6 +14,29 @@ export function DesignDocView() {
   const { changeId, docId } = route.useParams();
   const { node, q } = route.useSearch();
   const navigate = route.useNavigate();
+  const onSelect = useCallback(
+    (next: string, source: SelectSource) => {
+      void navigate({
+        search: (prev) => ({ ...prev, node: next }),
+        // The row the outline opens at is not a place the reader went: it
+        // names where they already are, so it takes the entry they arrived
+        // on rather than leaving one for Back to walk through.
+        replace: source === 'init',
+      });
+    },
+    [navigate],
+  );
+  // Typing is not a place to come back to, so a query replaces the entry it
+  // is in rather than adding one per keystroke.
+  const onQuery = useCallback(
+    (next: string) => {
+      void navigate({
+        search: (prev) => ({ ...prev, q: next === '' ? undefined : next }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
 
   return (
     <DesignDocDetail
@@ -19,23 +44,8 @@ export function DesignDocView() {
       id={docId}
       node={node ?? null}
       query={q ?? ''}
-      onSelect={(next, source) => {
-        void navigate({
-          search: (prev) => ({ ...prev, node: next }),
-          // The row the outline opens at is not a place the reader went: it
-          // names where they already are, so it takes the entry they arrived
-          // on rather than leaving one for Back to walk through.
-          replace: source === 'init',
-        });
-      }}
-      // Typing is not a place to come back to, so a query replaces the entry
-      // it is in rather than adding one per keystroke.
-      onQuery={(next) => {
-        void navigate({
-          search: (prev) => ({ ...prev, q: next === '' ? undefined : next }),
-          replace: true,
-        });
-      }}
+      onSelect={onSelect}
+      onQuery={onQuery}
     />
   );
 }

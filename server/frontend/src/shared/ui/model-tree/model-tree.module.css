@@ -139,20 +139,6 @@
   letter-spacing: 0.5px;
 }
 
-.badge {
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* The pattern gives way first: the name is what a row is for. */
-.pattern.pattern {
-  flex: 0 1 auto;
-  overflow: hidden;
-  color: var(--mantine-color-dimmed);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 10px;
-}
-
 /* Whatever the row has to say about itself, kept together on the right. */
 .trailing {
   display: inline-flex;
@@ -166,26 +152,6 @@
 .mark {
   display: inline-flex;
   color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
-}
-
-/*
- * What the design does to a row, in the colour the badge for it carries:
- * `useChangeColour` resolves it and `TreeItem` hands it over as
- * `--change-colour`, so the colours are named once, in `outline-change.ts`.
- * A variable rather than an inline colour, so the ancestor and selected rules
- * below still win. Never the only thing said: the word is on the badge
- * either way.
- */
-.item:is(
-    [data-change='added'],
-    [data-change='modified'],
-    [data-change='removed']
-  )
-  > .row {
-  & .name,
-  & .icon {
-    color: var(--change-colour);
-  }
 }
 
 .item[data-change='removed'] > .row {
@@ -212,17 +178,6 @@
   & .name {
     font-weight: var(--mantine-font-weight-bold);
   }
-
-  & .name:not(.ignoreColors),
-  & .icon:not(.ignoreColors) {
-    color: light-dark(
-      var(--mantine-color-brand-9),
-      var(--mantine-color-brand-4)
-    );
-  }
-}
-
-.ignoreColors {
 }
 
 /*
