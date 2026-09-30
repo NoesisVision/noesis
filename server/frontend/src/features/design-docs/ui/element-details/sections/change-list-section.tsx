@@ -41,7 +41,13 @@ export function ChangeListSection({
         {sorted.map(({ change, label, path, description }) => {
           if (kind === 'property') {
             return (
-              <Card key={`${change}:${label}`} shadow={undefined} mb={4} p={0}>
+              <Card
+                component="li"
+                key={`${change}:${label}`}
+                shadow={undefined}
+                mb={4}
+                p={0}
+              >
                 <Code px={16} py={8}>
                   <Ref change={change} name={label} />
                   {description !== undefined && (
