@@ -3,6 +3,7 @@ import { createTheme, localStorageColorSchemeManager } from '@mantine/core';
 /** The noesis.vision palette. */
 export const theme = createTheme({
   primaryColor: 'brand',
+  cursorType: 'pointer',
   primaryShade: { light: 7, dark: 6 },
   colors: {
     brand: [
