@@ -8,7 +8,9 @@ import type {
   DesignedBehaviour,
   DesignedBuildingBlock,
   DesignedDomainModule,
+  DesignedParameter,
   DesignedProperty,
+  DesignedResult,
   DesignedRule,
   DesignedScenario,
 } from '#backend/app/design-docs/design-doc';
@@ -28,7 +30,9 @@ import type {
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
+  ScannedParameter,
   ScannedProperty,
+  ScannedResult,
   ScannedRule,
   ScannedScenario,
   SourceLocation,
@@ -308,8 +312,13 @@ function flattenedBehaviour(
       current?.visibility,
       at.in('visibility'),
     ),
-    input: changedRefs(current?.input ?? [], designed.input, at.in('input')),
-    output: changedRefs(
+    input: changedParts(
+      current?.input ?? [],
+      designed.input,
+      flattenedParameter,
+      at.in('input'),
+    ),
+    output: changedResults(
       current?.output ?? [],
       designed.output,
       at.in('output'),
@@ -338,6 +347,39 @@ function flattenedProperty(
   return {
     name: designed.name,
     type: field(designed.type, current?.type, at.in('type')),
+    description: field(
+      designed.description,
+      current?.description,
+      at.in('description'),
+    ),
+    optional: field(designed.optional, current?.optional, at.in('optional')),
+  };
+}
+
+function flattenedParameter(
+  current: ScannedParameter | undefined,
+  designed: DesignedParameter,
+  at: At,
+): ScannedParameter {
+  return {
+    name: designed.name,
+    type: field(designed.type, current?.type, at.in('type')),
+    description: field(
+      designed.description,
+      current?.description,
+      at.in('description'),
+    ),
+    optional: field(designed.optional, current?.optional, at.in('optional')),
+  };
+}
+
+function flattenedResult(
+  current: ScannedResult | undefined,
+  designed: DesignedResult,
+  at: At,
+): ScannedResult {
+  return {
+    type: designed.type,
     description: field(
       designed.description,
       current?.description,
@@ -444,6 +486,30 @@ function changedParts<
   removeAll(parts, changes.removed, at);
   addAndModify(parts, changes, (designed) => designed.name, flatten, at);
   return [...parts.values()];
+}
+
+/** A behaviour's results, each known by its type. */
+function changedResults(
+  current: ScannedResult[],
+  changes: {
+    added: DesignedResult[];
+    removed: BuildingBlockRef[];
+    modified: DesignedResult[];
+  },
+  at: At,
+): ScannedResult[] {
+  const results = new Map(
+    current.map((result) => [refKey(result.type), result]),
+  );
+  removeAll(results, changes.removed.map(refKey), at);
+  addAndModify(
+    results,
+    changes,
+    (designed) => refKey(designed.type),
+    flattenedResult,
+    at,
+  );
+  return [...results.values()];
 }
 
 /** A list of references may name one twice, so a removal takes one of them. */

@@ -195,15 +195,40 @@ export const designDocFixture = {
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
         input: {
           added: [
-            'building_block|sales.orders.OrderId',
-            { collectionOf: 'building_block|sales.refunds.RefundLine' },
-            'primitive|string',
+            {
+              name: 'orderId',
+              type: byAgent('building_block|sales.orders.OrderId'),
+              description: byAgent('The order to refund.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'lines',
+              type: byAgent({
+                collectionOf: 'building_block|sales.refunds.RefundLine',
+              }),
+              description: byAgent('The lines to refund.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'reason',
+              type: byHuman('primitive|string'),
+              description: byAgent('Why support refunds the lines.'),
+              optional: byAgent(true),
+            },
           ],
           removed: [],
+          modified: [],
         },
         output: {
-          added: ['building_block|sales.refunds.RefundIssued'],
+          added: [
+            {
+              type: 'building_block|sales.refunds.RefundIssued',
+              description: byAgent('Tells the ledger the refund went out.'),
+              optional: byAgent(false),
+            },
+          ],
           removed: [],
+          modified: [],
         },
         rules: {
           added: [
@@ -228,8 +253,29 @@ export const designDocFixture = {
         type: unchanged,
         description: unchanged,
         visibility: byAgent({ kind: 'private' }),
-        input: noAdditions,
-        output: noAdditions,
+        input: {
+          added: [],
+          removed: ['force'],
+          modified: [
+            {
+              name: 'reason',
+              type: unchanged,
+              description: byAgent('Shown to the customer.'),
+              optional: unchanged,
+            },
+          ],
+        },
+        output: {
+          added: [],
+          removed: [],
+          modified: [
+            {
+              type: 'building_block|sales.orders.OrderCancelled',
+              description: byAgent('Now also names the reason.'),
+              optional: unchanged,
+            },
+          ],
+        },
         rules: noChanges,
         scenarios: noChanges,
       },

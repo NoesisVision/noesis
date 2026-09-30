@@ -9,10 +9,11 @@ import type {
   DesignedDomainModuleInput,
 } from '#backend/app/design-docs/design-doc';
 import {
-  PrimitiveId,
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
+  ScannedParameter,
+  ScannedResult,
 } from '#backend/app/system-model/system-model';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -48,7 +49,25 @@ const placeBehaviour: DesignedBehaviourInput = {
   type: { value: 'Command' },
   description: { value: 'Places the order.' },
   visibility: { value: { kind: 'public', actors: ['customer'] } },
-  input: { added: ['primitive|uuid'] },
+  input: {
+    added: [
+      {
+        name: 'customerId',
+        type: { value: 'primitive|uuid' },
+        description: { value: 'Who places it.' },
+        optional: { value: false },
+      },
+    ],
+  },
+  output: {
+    added: [
+      {
+        type: 'building_block|sales.OrderPlaced',
+        description: { value: 'Tells billing to charge.' },
+        optional: { value: false },
+      },
+    ],
+  },
 };
 
 let t: TestNoesis;
@@ -159,8 +178,21 @@ describe('The dummy scanner', () => {
         type: 'Command',
         description: 'Places the order.',
         visibility: { kind: 'public', actors: ['customer'] },
-        input: ['primitive|uuid'],
-        output: [],
+        input: [
+          {
+            name: 'customerId',
+            type: 'primitive|uuid',
+            description: 'Who places it.',
+            optional: false,
+          },
+        ],
+        output: [
+          {
+            type: 'building_block|sales.OrderPlaced',
+            description: 'Tells billing to charge.',
+            optional: false,
+          },
+        ],
         rules: [],
         scenarios: [],
         source,
@@ -251,15 +283,18 @@ describe('The dummy scanner', () => {
     expect(await descriptionOf('building_block|sales.Order')).toBe('last');
   });
 
-  it('takes one of two equal references out when a design removes it', async () => {
+  it('tells two inputs of one type apart by their names', async () => {
+    const text = (name: string) => ({
+      name,
+      type: { value: 'primitive|string' },
+      description: { value: `The ${name}.` },
+      optional: { value: false },
+    });
     await implemented(SALES, '2026-01-01-orders', null, {
       buildingBlocks: { added: [orderBlock] },
       behaviours: {
         added: [
-          {
-            ...placeBehaviour,
-            input: { added: ['primitive|string', 'primitive|string'] },
-          },
+          { ...placeBehaviour, input: { added: [text('note'), text('code')] } },
         ],
       },
     });
@@ -268,7 +303,10 @@ describe('The dummy scanner', () => {
         modified: [
           {
             id: 'behavior|sales.Order.place',
-            input: { removed: ['primitive|string'] },
+            input: {
+              removed: ['note'],
+              modified: [{ name: 'code', type: { value: 'primitive|uuid' } }],
+            },
           },
         ],
       },
@@ -276,7 +314,72 @@ describe('The dummy scanner', () => {
 
     const [place] = (await scanner.scan()).behaviours;
 
-    expect(place?.input).toEqual([PrimitiveId.parse('primitive|string')]);
+    expect(place?.input).toEqual([
+      ScannedParameter.parse({
+        name: 'code',
+        type: 'primitive|uuid',
+        description: 'The code.',
+        optional: false,
+      }),
+    ]);
+  });
+
+  it('knows a result by its type, which a design removes it by', async () => {
+    await implemented(SALES, '2026-01-01-orders', null, {
+      buildingBlocks: { added: [orderBlock] },
+      behaviours: { added: [placeBehaviour] },
+    });
+    await implemented(SALES, '2026-01-02-quiet', NOW, {
+      behaviours: {
+        modified: [
+          {
+            id: 'behavior|sales.Order.place',
+            output: {
+              removed: ['building_block|sales.OrderPlaced'],
+              added: [
+                {
+                  type: { collectionOf: 'building_block|sales.OrderLine' },
+                  description: { value: 'What was placed.' },
+                  optional: { value: false },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+    await implemented(
+      SALES,
+      '2026-01-03-optional',
+      '2026-12-01T00:00:00.000Z',
+      {
+        behaviours: {
+          modified: [
+            {
+              id: 'behavior|sales.Order.place',
+              output: {
+                modified: [
+                  {
+                    type: { collectionOf: 'building_block|sales.OrderLine' },
+                    optional: { value: true },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    );
+
+    const [place] = (await scanner.scan()).behaviours;
+
+    expect(place?.output).toEqual([
+      ScannedResult.parse({
+        type: { collectionOf: 'building_block|sales.OrderLine' },
+        description: 'What was placed.',
+        optional: true,
+      }),
+    ]);
   });
 });
 

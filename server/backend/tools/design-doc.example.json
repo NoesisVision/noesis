@@ -218,15 +218,58 @@
         },
         "input": {
           "added": [
-            "building_block|sales.orders.OrderId",
             {
-              "collectionOf": "building_block|sales.refunds.RefundLine"
+              "name": "orderId",
+              "type": {
+                "value": "building_block|sales.orders.OrderId"
+              },
+              "description": {
+                "value": "The order to refund."
+              },
+              "optional": {
+                "value": false
+              }
             },
-            "primitive|string"
+            {
+              "name": "lines",
+              "type": {
+                "value": {
+                  "collectionOf": "building_block|sales.refunds.RefundLine"
+                }
+              },
+              "description": {
+                "value": "The lines to refund."
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "reason",
+              "type": {
+                "value": "primitive|string"
+              },
+              "description": {
+                "value": "Why support refunds the lines."
+              },
+              "optional": {
+                "value": true
+              }
+            }
           ]
         },
         "output": {
-          "added": ["building_block|sales.refunds.RefundIssued"]
+          "added": [
+            {
+              "type": "building_block|sales.refunds.RefundIssued",
+              "description": {
+                "value": "Tells the ledger the refund went out."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
         },
         "rules": {
           "added": [
