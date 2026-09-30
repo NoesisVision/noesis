@@ -224,14 +224,28 @@ describe('A scanned behaviour', () => {
   it('takes and returns building blocks, primitives or collections of them', () => {
     const parsed = SystemModel.parse(
       withBehaviour({
-        input: [ORDER, { collectionOf: 'primitive|uuid' }],
-        output: ['primitive|boolean'],
+        input: [
+          { name: 'order', type: ORDER },
+          { name: 'ids', type: { collectionOf: 'primitive|uuid' } },
+        ],
+        output: [{ type: 'primitive|boolean' }],
       }),
     );
 
     expect(parsed.behaviours[0]?.input).toHaveLength(2);
     expect(parsed.behaviours[0]?.output).toHaveLength(1);
-    expect(isValid(withBehaviour({ input: ['primitive|money'] }))).toBe(false);
+    expect(
+      isValid(
+        withBehaviour({ input: [{ name: 'total', type: 'primitive|money' }] }),
+      ),
+    ).toBe(false);
+  });
+
+  it('names what it takes, never what it returns', () => {
+    expect(isValid(withBehaviour({ input: [{ type: ORDER }] }))).toBe(false);
+    expect(
+      isValid(withBehaviour({ output: [{ name: 'order', type: ORDER }] })),
+    ).toBe(false);
   });
 });
 
