@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { getRouter } from '#/router';
 import { MantineProvider } from '#/shared/design-system/provider';
 import { colorSchemeManager, theme } from '#/shared/design-system/theme';
+import { DevToolsContextProvider } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { configureLogging } from '#/shared/logging.ts';
 import { getContext } from '#/shared/query/query-client.tsx';
 import { DateFormatProvider } from '#/shared/ui/date-format-provider.tsx';
@@ -31,9 +32,11 @@ createRoot(rootElement).render(
       colorSchemeManager={colorSchemeManager}
     >
       <QueryClientProvider client={context.queryClient}>
-        <DateFormatProvider>
-          <RouterProvider router={router} />
-        </DateFormatProvider>
+        <DevToolsContextProvider>
+          <DateFormatProvider>
+            <RouterProvider router={router} />
+          </DateFormatProvider>
+        </DevToolsContextProvider>
       </QueryClientProvider>
     </MantineProvider>
   </StrictMode>,

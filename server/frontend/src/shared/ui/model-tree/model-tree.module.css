@@ -213,13 +213,16 @@
     font-weight: var(--mantine-font-weight-bold);
   }
 
-  & .name,
-  & .icon {
+  & .name:not(.ignoreColors),
+  & .icon:not(.ignoreColors) {
     color: light-dark(
       var(--mantine-color-brand-9),
       var(--mantine-color-brand-4)
     );
   }
+}
+
+.ignoreColors {
 }
 
 /*
@@ -249,6 +252,47 @@
     background-color: var(--mantine-color-brand-7);
     color: var(--mantine-color-brand-0);
   }
+}
+
+/*
+ * The change mark on a row's icon, where Mantine's indicator sat: on the
+ * icon's top-right corner, the pair nudged down and left as before. The ring
+ * is a stroke of the page's colour painted under the shape's fill, which
+ * does for every shape what Mantine's border did for the dot.
+ */
+.changeMark {
+  position: relative;
+  top: 1px;
+  left: -3px;
+  display: inline-flex;
+  flex: none;
+}
+
+.changeMarkShape {
+  position: absolute;
+  top: 0;
+  right: 0;
+  overflow: visible;
+  transform: translate(50%, -50%);
+  pointer-events: none;
+
+  & > * {
+    fill: currentColor;
+    stroke: var(--mantine-color-body);
+    stroke-width: 1.5px;
+    stroke-opacity: 0.8;
+    paint-order: stroke;
+  }
+}
+
+/*
+ * On the row in hand the ring is white, against the row's fill rather than
+ * the page's. The ring is painted under the shape, so half its stroke is
+ * covered: 2px of stroke leaves the 1px that shows.
+ */
+.item[data-selected] > .row .changeMarkShape > * {
+  stroke: var(--mantine-color-white);
+  stroke-width: 2px;
 }
 
 /* Asked for no motion, the chevron is simply pointing the way it points. */

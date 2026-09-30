@@ -2,11 +2,15 @@ import { Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
 import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
 import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
+import { DevToolsView } from '#/features/dev-tools/ui/dev-tools-view.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import { Box } from '#/shared/design-system/box';
+import { useDisclosure } from '#/shared/design-system/hooks.ts';
+import { Modal } from '#/shared/design-system/modal.tsx';
 import { NavLink } from '#/shared/design-system/nav-link';
 import { ScrollArea } from '#/shared/design-system/scroll-area';
 import { Text } from '#/shared/design-system/text';
+import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import {
   APP_PUBLIC_NAV,
   DESIGN_DOCS_NAV,
@@ -122,7 +126,8 @@ export function Sidebar({ onNavigate }: SidebarProps) {
   const { changes, activeChange } = useChangesWithEntries();
   const params = { changeId: activeChange?.id ?? '' };
   const children = changeNavChildren(activeChange, params.changeId);
-
+  const { enabled } = useDevToolsContext();
+  const [devToolsOpen, devTools] = useDisclosure(false);
   return (
     <>
       <AppShell.Section px="xs" pt="md" pb="md">
@@ -215,6 +220,49 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           />
         ))}
       </AppShell.Section>
+      {enabled && (
+        <AppShell.Section
+          px="xs"
+          py="sm"
+          style={{
+            borderTop: '1px solid var(--mantine-color-default-border)',
+          }}
+        >
+          <Box px="sm" pb={4}>
+            <Text size="xs" fw={600} c="dimmed" tt="uppercase">
+              Internal
+            </Text>
+          </Box>
+
+          {/* Opened over the page rather than in place of it, so the effect
+              of a switch is seen on what was being read. The page stays at
+              its address for a link straight to it. */}
+          {APP_PUBLIC_NAV.devTools.map((entry) => (
+            <NavLink
+              key={entry.to}
+              component="button"
+              className={classes.link}
+              label={entry.label}
+              leftSection={<entry.icon size={18} stroke={1.6} />}
+              onClick={() => {
+                devTools.open();
+                onNavigate();
+              }}
+            />
+          ))}
+          <Modal
+            opened={devToolsOpen}
+            onClose={devTools.close}
+            title="Dev tools"
+            centered
+            size="lg"
+          >
+            <Box py={24}>
+              <DevToolsView />
+            </Box>
+          </Modal>
+        </AppShell.Section>
+      )}
     </>
   );
 }

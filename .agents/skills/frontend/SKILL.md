@@ -9,6 +9,13 @@ The structural rules — domain partitioning, the `boundaries` policy, `@mantine
 being private to `shared/design-system`, literal route ids — are in `AGENT.md`
 and enforced by Oxlint. This skill covers what the linter cannot check.
 
+## How to work
+
+Follow the `karpathy-guidelines` skill: surface assumptions before coding,
+write the least code that does the job, keep every change traceable to the
+request, and loop until a check passes — here, a render-to-markup test (see
+[Checking it](#checking-it)) and `bun run ci`.
+
 ## Accessibility
 
 **Follow WCAG 2.2 level AA wherever it applies.** The UI is a reading tool: it

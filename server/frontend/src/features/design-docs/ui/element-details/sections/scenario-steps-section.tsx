@@ -1,4 +1,9 @@
+import { IconArrowDown } from '@tabler/icons-react';
+import type { DesignDocFieldInput } from '#/features/design-docs/design-doc-field.ts';
+import { Card } from '#/shared/design-system/card.tsx';
+import { Center } from '#/shared/design-system/center.tsx';
 import { DataList } from '#/shared/design-system/data-list.tsx';
+import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { Field } from '../field.tsx';
@@ -16,26 +21,41 @@ interface ScenarioStepsSectionProps {
 export function ScenarioStepsSection({ scenario }: ScenarioStepsSectionProps) {
   return (
     <DetailSection title="Scenario">
-      <DataList orientation="vertical">
+      <Case label="Given" field={scenario.given} />
+      <Separator />
+      <Case label="When" field={scenario.when} />
+      <Separator />
+      <Case label="Then" field={scenario.then} />
+    </DetailSection>
+  );
+}
+
+function Case({
+  label,
+  field,
+}: {
+  label: string;
+  field: DesignDocFieldInput<string>;
+}) {
+  return (
+    <Card>
+      <DataList orientation="horizontal" labelWidth={80}>
         <DataList.Item>
-          <DataList.ItemLabel>Given</DataList.ItemLabel>
+          <DataList.ItemLabel>{label}</DataList.ItemLabel>
           <DataList.ItemValue>
-            <Field field={scenario.given} />
-          </DataList.ItemValue>
-        </DataList.Item>
-        <DataList.Item>
-          <DataList.ItemLabel>When</DataList.ItemLabel>
-          <DataList.ItemValue>
-            <Field field={scenario.when} />
-          </DataList.ItemValue>
-        </DataList.Item>
-        <DataList.Item>
-          <DataList.ItemLabel>Then</DataList.ItemLabel>
-          <DataList.ItemValue>
-            <Field field={scenario.then} />
+            <Field field={field} />
           </DataList.ItemValue>
         </DataList.Item>
       </DataList>
-    </DetailSection>
+    </Card>
+  );
+}
+function Separator() {
+  return (
+    <Center my={8}>
+      <ThemeIcon variant="light">
+        <IconArrowDown aria-hidden />
+      </ThemeIcon>
+    </Center>
   );
 }

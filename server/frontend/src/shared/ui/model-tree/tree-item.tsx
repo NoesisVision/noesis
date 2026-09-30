@@ -1,5 +1,7 @@
+import { clsx } from 'clsx';
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
+import { ChangeMark } from './change-mark.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
@@ -27,6 +29,7 @@ export interface TreeItemProps {
   ancestry: ReadonlySet<string>;
   /** The one row of the tree that is in the page's tab order. */
   focusPath: string | null;
+  lessColorsInDesignDocTree?: boolean;
 }
 
 export function TreeItem({
@@ -35,6 +38,7 @@ export function TreeItem({
   rowIds,
   ancestry,
   focusPath,
+  lessColorsInDesignDocTree,
 }: TreeItemProps) {
   const {
     tree,
@@ -59,9 +63,10 @@ export function TreeItem({
    * row's fill and mark the way down to it.
    */
   const changeColour = useChangeColour()(node.change);
-  const rowStyle = changeColour
-    ? ({ '--change-colour': changeColour.color } as CSSProperties)
-    : undefined;
+  const rowStyle =
+    !lessColorsInDesignDocTree && changeColour
+      ? ({ '--change-colour': changeColour.color } as CSSProperties)
+      : undefined;
 
   // A pointer event lands on every row it is inside; only the innermost
   // meant it.
@@ -150,8 +155,21 @@ export function TreeItem({
           expanded={expanded}
           onToggle={onChevronClick}
         />
-        <KindIcon kind={node.kind} />
-        <MatchedText className={classes.name} tokens={search.tokens}>
+
+        {lessColorsInDesignDocTree ? (
+          <ChangeMark change={node.change} color={changeColour?.color}>
+            <KindIcon kind={node.kind} pattern={node.pattern} />
+          </ChangeMark>
+        ) : (
+          <KindIcon kind={node.kind} pattern={node.pattern} />
+        )}
+        <MatchedText
+          className={clsx(
+            classes.name,
+            !lessColorsInDesignDocTree && classes.ignoreColors,
+          )}
+          tokens={search.tokens}
+        >
           {node.name}
         </MatchedText>
         {node.patternLabel !== null && (
@@ -187,6 +205,7 @@ export function TreeItem({
               rowIds={rowIds}
               ancestry={ancestry}
               focusPath={focusPath}
+              lessColorsInDesignDocTree={lessColorsInDesignDocTree}
             />
           ))}
         </ul>

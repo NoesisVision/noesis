@@ -29,6 +29,27 @@ A terminal on stdin starts the page at once and opens the browser on it
 (`NOESIS_OPEN_BROWSER=0` keeps it closed; the URL is in the "listening on"
 log line). Swap in `discounts-dotnet` for the other example. Ctrl-C ends it.
 
+To work on the app with reloading, run the dev servers against an example
+instead. The backend (port 3001, watch mode, browser kept closed) and Vite both
+inherit `NOESIS_ROOT`; open the URL Vite prints:
+
+```sh
+bun run dev:discounts-java      # or dev:discounts-dotnet, dev:qdoc-java
+```
+
+Each is `bun run dev` with `NOESIS_ROOT` set to that example.
+
+Both commands need a terminal on stdin. Without one (a background job, a CI
+step, an agent's shell) the service takes stdin for MCP and quits when it
+closes; give it a pseudo-terminal that stays open:
+
+```sh
+tail -f /dev/null | NOESIS_ROOT=$PWD/examples/discounts-java script -q /dev/null bun run dev
+```
+
+That is the macOS `script`; on Linux it is
+`script -qc 'bun run dev' /dev/null`.
+
 To drive the same example through the plugin, build it once, then start
 Claude Code inside the example with the plugin from this checkout:
 

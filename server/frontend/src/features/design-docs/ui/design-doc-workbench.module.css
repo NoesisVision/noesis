@@ -29,87 +29,6 @@
   flex: none;
 }
 
-.columns {
-  flex: 1;
-  /* A flex item is as tall as its content by default, which a scrolling child
-     would grow past; nothing scrolls until the track may be smaller. */
-  min-height: 0;
-}
-
-/*
- * The pane is a frame and never the scroller: the body inside it scrolls, so
- * anything above that body — the search and the two fold buttons — keeps both
- * its place and its width. Held in one scroller with the outline, the bar was
- * narrowed the moment a scrollbar appeared beside the rows, and the box the
- * reader was typing in moved out from under their cursor. The frame pads
- * nothing itself: what it holds does.
- */
-.pane {
-  --pane-surface: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-7)
-  );
-
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  /* The body scrolls inside the rounded frame rather than through its corners. */
-  overflow: hidden;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
-  background-color: var(--pane-surface);
-}
-
-/*
- * What each pane actually scrolls, and all it scrolls. Whoever moves the
- * reading position — the tree, a step of the breadcrumb, an address opened
- * cold — asks only to be brought into view; the manner of it is decided here,
- * once, for both.
- */
-.outlineBody,
-.paneBody {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  scroll-behavior: smooth;
-}
-
-/*
- * Above the rows and outside their scroller, so what is being looked for is
- * still on screen among the results of looking. Edged along the bottom so
- * that a row scrolling up to it reads as going under something rather than
- * simply stopping.
- */
-.searchBar {
-  flex: none;
-  /* Even all round: the gap above the box came from the pane's gutter and
-     the one below it from the gap the outline used to sit at, which is not a
-     reason for the two to differ. */
-  padding: var(--mantine-spacing-md);
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-}
-
-.outlineBody {
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs)
-    var(--mantine-spacing-md) var(--mantine-spacing-xs);
-}
-
-/* Room past the last section, so it can be scrolled clear of the pane's edge. */
-.paneBody {
-  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
-}
-
-/*
- * Stacked, the page scrolls rather than the panes: two short scrollers one
- * above the other on a phone is worse than one long page.
- */
-.stacked .outlineBody,
-.stacked .paneBody {
-  overflow: visible;
-}
-
 /*
  * The same breakpoint the shell folds its sidebar at, spelled out because a
  * media query cannot read `--mantine-breakpoint-md`.
@@ -117,19 +36,5 @@
 @media (max-width: 61.99em) {
   .surface {
     height: auto;
-  }
-}
-
-/* The box takes what the two buttons beside it leave. */
-.search {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Asked for no motion, a pane simply arrives where it was sent. */
-@media (prefers-reduced-motion: reduce) {
-  .outlineBody,
-  .paneBody {
-    scroll-behavior: auto;
   }
 }

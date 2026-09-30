@@ -72,7 +72,6 @@ export default function MarkdownEditorSurface({
   noMargin = false,
 }: MarkdownEditorProps) {
   const scheme = useComputedColorScheme('light');
-
   return (
     <MDXEditor
       markdown={markdown}

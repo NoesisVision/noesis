@@ -6,6 +6,7 @@ import {
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
+import { ChangeListSection } from '../src/features/design-docs/ui/element-details/sections/change-list-section';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
@@ -183,20 +184,22 @@ const outline: OutlineNode[] = [
 ];
 
 const tree = outlineTree(outline);
+// The app's tree leaves properties out; the panel still reads one given it.
+const withProperties = outlineTree(outline, []);
 
-const show = (path: string) => {
-  const selected = tree.byPath.get(path)!;
+const show = (path: string, from = tree) => {
+  const selected = from.byPath.get(path)!;
   return renderToStaticMarkup(
     <MantineProvider>
       <ElementDetail
         node={selected}
-        path={tree
+        path={from
           .ancestryOf(path)
-          .map((step) => tree.byPath.get(step))
+          .map((step) => from.byPath.get(step))
           .filter((step) => step !== undefined)}
         document={document}
         onSelect={() => {}}
-        tree={tree}
+        tree={from}
       />
     </MantineProvider>,
   );
@@ -208,18 +211,18 @@ describe('ElementDetail', () => {
   });
 
   it('says where in the model the element sits, as a trail back up it', () => {
-    const html = show('building_block|pay.Hold#property:amount');
+    const html = show('building_block|pay.Hold#scenario:A hold settles');
     expect(html).toMatch(/<nav[^>]*aria-label="Where this element sits"/);
     expect(html).toContain('>pay<');
     expect(html).toContain('>Hold<');
     // The element itself closes the trail as where the reader is, not as a
     // step of the way to it.
-    expect(html).toMatch(/aria-current="location"[^>]*>amount</);
+    expect(html).toMatch(/aria-current="location"[^>]*>A hold settles</);
     expect(html.match(/<button[^>]*>/g)).toHaveLength(2);
   });
 
   it('steps back up the trail with a button, not with an ornament', () => {
-    const html = show('building_block|pay.Hold#property:amount');
+    const html = show('building_block|pay.Hold#scenario:A hold settles');
     expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*pay<\/span>/);
     // The separator is drawn, not read out between every pair of steps.
     expect(html).not.toMatch(/Breadcrumbs-separator">&gt;/);
@@ -251,16 +254,21 @@ describe('ElementDetail', () => {
   it('says a description the design leaves alone is unchanged', () => {
     // The fixture's property carries no description at all: the design keeps
     // whatever the model says, which is not the same as saying nothing.
-    const html = show('building_block|pay.Hold#property:amount');
+    const html = show(
+      'building_block|pay.Hold#property:amount',
+      withProperties,
+    );
     expect(html).toContain('>unchanged<');
     expect(html).not.toContain('Not specified.');
   });
 
   it('reads a property as the field it declares', () => {
-    expect(show('building_block|pay.Hold#property:amount')).toContain('Money');
-    expect(show('building_block|pay.Hold#property:amount')).toContain(
-      'amount?',
+    const html = show(
+      'building_block|pay.Hold#property:amount',
+      withProperties,
     );
+    expect(html).toContain('Money');
+    expect(html).toContain('amount?');
   });
 
   it('reads a scenario as the three things it says', () => {
@@ -280,29 +288,55 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
   });
 
-  it("lists a block's properties, rules and scenarios, each opening its row", () => {
+  it("lists a block's properties, rules and scenarios, the parts opening their row", () => {
     const html = show('building_block|pay.Hold');
     for (const title of ['Properties', 'Rules', 'Scenarios'])
       expect(html).toContain(`>${title}<`);
-    for (const label of [
-      'amount?: pay.Money',
-      'A hold expires',
-      'A hold settles',
-    ])
-      expect(html).toMatch(
-        new RegExp(`<button[^>]*>(<[^>]+>)*${label.replace('?', '\\?')}<`),
-      );
+    for (const label of ['A hold expires', 'A hold settles'])
+      expect(html).toMatch(new RegExp(`<button[^>]*>(<[^>]+>)*${label}<`));
+    // A property has no row in the tree to open, so its line is only text.
+    expect(html).toContain('>amount?: pay.Money<');
+    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
   });
 
-  it('points every listed item at the row the tree has for it', () => {
+  it("reads a property's description under its line, and nothing else's", () => {
+    const properties = {
+      added: [
+        { name: 'amount', description: plain('What the hold keeps.') },
+        { name: 'note', description: plain('  ') },
+      ],
+    };
+    const [amount, note] = propertyItems('building_block|pay.Hold', properties);
+    expect(amount!.description).toBe('What the hold keeps.');
+    expect(note!.description).toBeUndefined();
+    const hold = document.buildingBlocks.added[0]!;
+    for (const item of partItems(hold.id, 'rule', hold.rules))
+      expect(item.description).toBeUndefined();
+
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <ChangeListSection
+          element={{ collection: 'buildingBlocks', id: hold.id }}
+          title="Properties"
+          kind="property"
+          items={[amount!, note!]}
+        />
+      </MantineProvider>,
+    );
+    expect(html).toMatch(/<span[^>]*>What the hold keeps\.<\/span>/);
+  });
+
+  it('points every listed part at the row the tree has for it', () => {
     const hold = document.buildingBlocks.added[0]!;
     const items = [
-      ...propertyItems(hold.id, hold.properties),
       ...partItems(hold.id, 'rule', hold.rules),
       ...partItems(hold.id, 'scenario', hold.scenarios),
     ];
-    expect(items.length).toBe(3);
+    expect(items.length).toBe(2);
     for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
+    // A property's path is kept, but the tree has no row for it.
+    for (const item of propertyItems(hold.id, hold.properties))
+      expect(tree.byPath.has(item.path!)).toBe(false);
   });
 
   it("lists a rule's own scenarios, each opening its row under the rule", () => {

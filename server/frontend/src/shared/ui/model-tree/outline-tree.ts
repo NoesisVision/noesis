@@ -1,4 +1,4 @@
-import type { OutlineNode } from './model-outline.ts';
+import type { OutlineKind, OutlineNode } from './model-outline.ts';
 
 /*
  * The outline comes flat and in reading order, because a node's subtree is
@@ -18,13 +18,19 @@ export interface OutlineTree {
 }
 
 const NONE: readonly OutlineNode[] = [];
+const EXCLUDED_KINDS: OutlineKind[] = ['property'];
 
-export function outlineTree(nodes: readonly OutlineNode[]): OutlineTree {
-  const byPath = new Map(nodes.map((node) => [node.path, node]));
+export function outlineTree(
+  nodes: readonly OutlineNode[],
+  excludeKinds: OutlineKind[] = EXCLUDED_KINDS,
+): OutlineTree {
+  const targetNodes = nodes.filter((node) => !excludeKinds.includes(node.kind));
+  const byPath = new Map(targetNodes.map((node) => [node.path, node]));
+
   const children = new Map<string, OutlineNode[]>();
   const roots: OutlineNode[] = [];
 
-  for (const node of nodes) {
+  for (const node of targetNodes) {
     if (node.parentPath === null) {
       roots.push(node);
       continue;
@@ -38,7 +44,7 @@ export function outlineTree(nodes: readonly OutlineNode[]): OutlineTree {
   }
 
   return {
-    nodes,
+    nodes: targetNodes,
     byPath,
     roots,
     childrenOf: (path) => children.get(path) ?? NONE,

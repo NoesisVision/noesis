@@ -1,10 +1,15 @@
-import { IconLayoutDashboard, IconTopologyStar3 } from '@tabler/icons-react';
+import {
+  IconLayoutDashboard,
+  IconTopologyStar3,
+  IconTools,
+} from '@tabler/icons-react';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
 import { DocumentsIcon } from '#/features/documents/documents.model.ts';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
   DESIGN_DOCS_ROUTE_ID,
+  DEV_TOOLS_ROUTE_ID,
   DOCUMENTS_ROUTE_ID,
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
@@ -58,8 +63,21 @@ const SYSTEM_MODEL_NAV = {
   icon: IconTopologyStar3,
 } satisfies NavItem;
 
+const DEV_TOOLS_NAV = {
+  to: '/dev-tools',
+  routeId: DEV_TOOLS_ROUTE_ID,
+  label: 'Dev tools',
+  description: 'For internal use',
+  icon: IconTools,
+} satisfies NavItem;
+
 /** The two groups the sidebar renders, in the order it renders them. */
 export const APP_PUBLIC_NAV = {
   changes: [OVERVIEW_NAV, DOCUMENTS_NAV, DESIGN_DOCS_NAV],
   documentation: [SYSTEM_MODEL_NAV],
-} satisfies { changes: NavItem[]; documentation: NavItem[] };
+  devTools: [DEV_TOOLS_NAV],
+} satisfies {
+  changes: NavItem[];
+  documentation: NavItem[];
+  devTools: NavItem[];
+};

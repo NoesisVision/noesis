@@ -16,12 +16,14 @@ import { refAddressOf } from './ref-address.ts';
 
 /*
  * What a list section shows, one line per thing the design touches: what it
- * does to it, how it reads, and the row of the tree it opens, if any.
+ * does to it, how it reads, the row of the tree it opens, if any, and — for a
+ * property only — the description the design gives it.
  */
 export interface ChangeListItem {
   change: OutlineChange;
   label: string;
   path: string | null;
+  description?: string;
 }
 
 /** Every item of a change set, each with what the design does to it. */
@@ -61,6 +63,7 @@ export const propertyItems = (
       };
     const type = valueOf(property.type);
     const optional = valueOf(property.optional) ? '?' : '';
+    const description = valueOf(property.description)?.trim();
     return {
       change,
       label:
@@ -68,6 +71,7 @@ export const propertyItems = (
           ? property.name
           : `${property.name}${optional}: ${refAddressOf(type)}`,
       path: partPathOf(owner, 'property', property.name),
+      ...(description ? { description } : {}),
     };
   });
 

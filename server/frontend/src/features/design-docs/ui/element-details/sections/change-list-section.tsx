@@ -1,5 +1,8 @@
 import { IconLink } from '@tabler/icons-react';
+import { Card } from '#/shared/design-system/card.tsx';
+import { Code } from '#/shared/design-system/code.tsx';
 import { List } from '#/shared/design-system/list.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
@@ -22,7 +25,7 @@ interface ChangeListSectionProps {
  * What the design does to one list an element keeps — what it implements, its
  * properties, rules and scenarios, a behaviour's input and output — one line
  * each, coloured by the change. A line whose row is in the tree opens it, as
- * a click on the row itself would.
+ * a click on the row itself would; a property's description reads under it.
  */
 export function ChangeListSection({
   title,
@@ -33,10 +36,29 @@ export function ChangeListSection({
   const sorted = [...items].sort((a, b) => a.label.localeCompare(b.label));
 
   return (
-    <DetailSection title={title} icon={<KindIcon kind={kind} />}>
+    <DetailSection title={title} icon={<KindIcon kind={kind} pattern={null} />}>
       <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
-        {sorted.map(({ change, label, path }) => {
-          const ref = <Ref change={change} name={label} />;
+        {sorted.map(({ change, label, path, description }) => {
+          if (kind === 'property') {
+            return (
+              <Card
+                component="li"
+                key={`${change}:${label}`}
+                shadow={undefined}
+                mb={4}
+                p={0}
+              >
+                <Code px={16} py={8}>
+                  <Ref change={change} name={label} />
+                  {description !== undefined && (
+                    <Text component="span" display="block" size="xs" c="dimmed">
+                      {description}
+                    </Text>
+                  )}
+                </Code>
+              </Card>
+            );
+          }
           return (
             <List.Item key={`${change}:${label}`}>
               {path !== null && has(path) ? (
@@ -50,10 +72,16 @@ export function ChangeListSection({
                   <span className={classes.mark} aria-hidden="true">
                     <IconLink size={12} />
                   </span>
-                  {ref}
+                  <Ref change={change} name={label} interactive />
                 </UnstyledButton>
               ) : (
-                ref
+                <Ref change={change} name={label} />
+              )}
+              {/* A span: the item's label is one, and holds phrasing only. */}
+              {description !== undefined && (
+                <Text component="span" display="block" size="xs" c="dimmed">
+                  {description}
+                </Text>
               )}
             </List.Item>
           );

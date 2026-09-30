@@ -1,0 +1,5 @@
+/* The box takes what the two buttons beside it leave. */
+.search {
+  flex: 1;
+  min-width: 0;
+}

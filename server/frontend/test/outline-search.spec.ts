@@ -40,10 +40,8 @@ describe('searchOutline', () => {
     expect(found('aggregate')).toEqual(['building_block|shop.orders.Order']);
   });
 
-  it('finds a property by its name, though it is not an element', () => {
-    expect(found('total')).toEqual([
-      'building_block|shop.orders.Order#property:total',
-    ]);
+  it('never finds a property: the tree has no row for one', () => {
+    expect(found('total')).toEqual([]);
   });
 
   it('wants every word, anywhere in the row, and asks of that row alone', () => {
@@ -57,38 +55,35 @@ describe('searchOutline', () => {
   });
 
   it('keeps the whole line down to a match', () => {
-    expect(shown('total')).toEqual([
+    expect(shown('place')).toEqual([
+      'behavior|shop.orders.Order.place',
       'building_block|shop.orders.Order',
-      'building_block|shop.orders.Order#property:total',
       'module|shop',
       'module|shop.orders',
     ]);
   });
 
   it('opens the line down to a match, but not the match itself', () => {
-    const { opened } = searchOutline(tree, 'total');
+    const { opened } = searchOutline(tree, 'place');
     expect([...opened].sort()).toEqual([
       'building_block|shop.orders.Order',
       'module|shop',
       'module|shop.orders',
     ]);
-    expect(opened.has('building_block|shop.orders.Order#property:total')).toBe(
-      false,
-    );
+    expect(opened.has('behavior|shop.orders.Order.place')).toBe(false);
   });
 
   it('keeps what a match holds, so opening one shows its contents', () => {
     expect(shown('aggregate')).toEqual([
       'behavior|shop.orders.Order.place',
       'building_block|shop.orders.Order',
-      'building_block|shop.orders.Order#property:total',
       'module|shop',
       'module|shop.orders',
     ]);
   });
 
   it('leaves out a branch that holds no match', () => {
-    expect(shown('total')).not.toContain('module|shop.legacy');
-    expect(shown('total')).not.toContain('building_block|shop.orders.Orders');
+    expect(shown('place')).not.toContain('module|shop.legacy');
+    expect(shown('place')).not.toContain('building_block|shop.orders.Orders');
   });
 });
