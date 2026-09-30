@@ -54,7 +54,7 @@ function Separator() {
   return (
     <Center my={8}>
       <ThemeIcon variant="light">
-        <IconArrowDown />
+        <IconArrowDown aria-hidden />
       </ThemeIcon>
     </Center>
   );
