@@ -57,6 +57,7 @@ describe('A system model', () => {
   it('records which unit was scanned and when', () => {
     expect(isValid(model())).toBe(true);
     expect(isValid(model({ id: undefined }))).toBe(false);
+    expect(isValid(model({ id: 'shop' }))).toBe(false);
     expect(isValid(model({ name: undefined }))).toBe(false);
     expect(isValid(model({ scanned_at: undefined }))).toBe(false);
   });

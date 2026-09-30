@@ -5,6 +5,10 @@ import {
   parseLogLevel,
 } from '#backend/platform/logging/logging';
 
+/** The source code scanners a system model can be built with. */
+export const ScannerName = z.enum(['java', 'csharp', 'dummy']);
+export type ScannerName = z.infer<typeof ScannerName>;
+
 // `PORT` pins the otherwise ephemeral port only for a stable URL under
 // `bun run dev`; the plugin's launch never sets it, so two agent sessions
 // cannot collide.
@@ -14,6 +18,7 @@ const envSchema = z.object({
   NOESIS_OPEN_BROWSER: z.string().optional(),
   PORT: z.coerce.number().int().min(0).max(65535).default(0),
   NOESIS_LOG_LEVEL: z.string().optional(),
+  NOESIS_SCANNER: ScannerName.default('dummy'),
 });
 
 export interface ServerConfig {
@@ -22,6 +27,8 @@ export interface ServerConfig {
   openBrowser: boolean;
   port: number;
   logLevel: LogLevel;
+  /** Which scanner builds the system model. */
+  scanner: ScannerName;
 }
 
 export type ConfigResult =
@@ -47,6 +54,7 @@ export function parseServerConfig(env: NodeJS.ProcessEnv): ConfigResult {
         parsed.data.NOESIS_LOG_LEVEL === undefined
           ? DEFAULT_LOG_LEVEL
           : parseLogLevel(parsed.data.NOESIS_LOG_LEVEL),
+      scanner: parsed.data.NOESIS_SCANNER,
     },
   };
 }

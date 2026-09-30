@@ -5,6 +5,7 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
+import { SystemModelId } from './system-model-id';
 
 export const BuildingBlockType = z.enum([
   'aggregate',
@@ -154,7 +155,7 @@ export type ScannedBehaviour = z.infer<typeof ScannedBehaviour>;
 
 export const SystemModel = z
   .strictObject({
-    id: z.string(),
+    id: SystemModelId,
     name: z.string(),
     scanned_at: z.string(),
     modules: z.array(ScannedDomainModule).default([]),
@@ -162,6 +163,6 @@ export const SystemModel = z
     behaviours: z.array(ScannedBehaviour).default([]),
   })
   .describe(
-    'The implemented model of one scanned unit: graph/system-models/<id>.system-model.json, written by the scanner.',
+    'The implemented model as one scan found it: graph/system-models/<id>.system-model.json. Every scan is kept; the highest id is the newest.',
   );
 export type SystemModel = z.infer<typeof SystemModel>;

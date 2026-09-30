@@ -26,6 +26,26 @@ describe('server configuration', () => {
     expect(parseServerConfig({ PORT: 'many' }).ok).toBe(false);
   });
 
+  it('scans with the dummy scanner unless NOESIS_SCANNER names another', () => {
+    expect(parseServerConfig({})).toMatchObject({
+      config: { scanner: 'dummy' },
+    });
+    expect(parseServerConfig({ NOESIS_SCANNER: 'java' })).toMatchObject({
+      config: { scanner: 'java' },
+    });
+    expect(parseServerConfig({ NOESIS_SCANNER: 'csharp' })).toMatchObject({
+      config: { scanner: 'csharp' },
+    });
+  });
+
+  it('rejects a scanner it does not know', () => {
+    const result = parseServerConfig({ NOESIS_SCANNER: 'cobol' });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.message).toContain('NOESIS_SCANNER');
+  });
+
   it('rejects an empty root rather than silently ignoring it', () => {
     const result = parseServerConfig({ NOESIS_ROOT: '' });
 

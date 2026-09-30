@@ -1,10 +1,13 @@
+import { createScanner } from '#backend/adapters/out/scanners/scanners';
 import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
+import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
+import { localToday, type Now, type Today, utcNow } from '#backend/app/clock';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
@@ -17,11 +20,21 @@ import { findDocumentHandler } from '#backend/app/information-sources/find-docum
 import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import { searchHandler } from '#backend/app/search/search';
-import { localToday, type Today } from '#backend/app/today';
+import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
+import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import type { ScannerName } from '#backend/platform/config/config';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
-/** Wires the file repositories under `.noesis/` to the handlers that use them. */
-export function createServices(noesis: NoesisDir, today: Today = localToday) {
+/**
+ * Wires the file repositories under `.noesis/`, and the scanner `scanner`
+ * names, to the handlers that use them.
+ */
+export function createServices(
+  noesis: NoesisDir,
+  scanner: ScannerName,
+  today: Today = localToday,
+  now: Now = utcNow,
+) {
   const changes = new NoesisChangesRepository(noesis);
   const designDocs = new NoesisChangeOwnedRepository(
     noesis,
@@ -33,6 +46,7 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
     DocumentSchema,
     'document',
   );
+  const systemModels = new NoesisSystemModelsRepository(noesis);
   return {
     createChange: createChangeHandler(changes, today),
     updateChange: updateChangeHandler(changes),
@@ -47,10 +61,12 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
       designDocs,
       changes,
       today,
+      now,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
+      now,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
     findDesignDoc: findDesignDocHandler(designDocs, changes),
@@ -67,6 +83,11 @@ export function createServices(noesis: NoesisDir, today: Today = localToday) {
     listDocumentsInChange: listDocumentsInChangeHandler(documents, changes),
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
+    scanSystemModel: scanSystemModelHandler(
+      createScanner(scanner, { noesis, changes, designDocs, now }),
+      systemModels,
+    ),
+    findNewestSystemModel: findNewestSystemModelHandler(systemModels),
   };
 }
 

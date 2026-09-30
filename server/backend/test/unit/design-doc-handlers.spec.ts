@@ -14,7 +14,7 @@ import {
   greenFieldDesignDocFixture,
   humanEditedDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
-import { type TestNoesis, testNoesis } from './test-noesis';
+import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 // The test clock reads 2026-09-24.
 const CHANGE = ChangeId.parse('2026-01-01-booking');
@@ -356,5 +356,72 @@ describe('Updating a design document', () => {
     expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
       [],
     );
+  });
+});
+
+describe('The time a design is marked implemented', () => {
+  const EARLIER = '2026-02-01T08:00:00.000Z';
+  const stamp = async (id: DesignDocId) =>
+    (await t.findDesignDoc.handle({ change: CHANGE, id })).implementedAt;
+  const update = (id: DesignDocId, implemented: boolean) =>
+    t.updateDesignDocInChange.handle({
+      change: CHANGE,
+      id,
+      designDoc: { ...byAgent, implemented },
+      writer: 'agent',
+    });
+  const stored = async (implemented: boolean, implementedAt: string | null) => {
+    await t.writeDesignDoc(CHANGE, {
+      ...greenFieldDesignDocFixture,
+      implemented,
+      implementedAt,
+    });
+    return STORED;
+  };
+
+  it('is stamped on a design created as implemented, and on no other', async () => {
+    const draft = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
+    const done = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: { ...byAgent, name: 'Done at once', implemented: true },
+    });
+
+    expect(await stamp(draft.id)).toBeNull();
+    expect(await stamp(done.id)).toBe(NOW);
+  });
+
+  it('is stamped as an update marks the design implemented', async () => {
+    const id = await stored(false, null);
+
+    await update(id, true);
+
+    expect(await stamp(id)).toBe(NOW);
+  });
+
+  it('is kept while the design stays implemented', async () => {
+    const id = await stored(true, EARLIER);
+
+    await update(id, true);
+
+    expect(await stamp(id)).toBe(EARLIER);
+  });
+
+  it('is left out of a design marked before the server kept the time', async () => {
+    const id = await stored(true, null);
+
+    await update(id, true);
+
+    expect(await stamp(id)).toBeNull();
+  });
+
+  it('is cleared when the design is no longer implemented', async () => {
+    const id = await stored(true, EARLIER);
+
+    await update(id, false);
+
+    expect(await stamp(id)).toBeNull();
   });
 });

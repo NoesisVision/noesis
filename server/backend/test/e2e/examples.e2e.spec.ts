@@ -18,7 +18,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
   'discounts-java': {
     '2026-09-17-weather-based-discount': { designDocs: 1, documents: 2 },
   },
-  'ddd-starter-dotnet': {
+  'discounts-dotnet': {
     '2026-05-08-threshold-activated-discount': { designDocs: 1, documents: 2 },
   },
 };
@@ -26,7 +26,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
 // Read only: the repositories open nothing that is not there, so the checkout
 // stays as committed.
 function appOver(repositoryRoot: string) {
-  return createApp(createServices(new NoesisDir(repositoryRoot)));
+  return createApp(createServices(new NoesisDir(repositoryRoot), 'dummy'));
 }
 
 interface NavigationChange {

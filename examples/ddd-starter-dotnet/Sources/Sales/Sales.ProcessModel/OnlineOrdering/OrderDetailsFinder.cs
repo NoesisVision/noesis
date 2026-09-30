@@ -1,9 +1,0 @@
-using NoesisVision.Annotations.Domain.DDD;
-
-namespace MyCompany.ECommerce.Sales.OnlineOrdering;
-
-[DddRepository]
-public interface OrderDetailsFinder
-{
-    Task<OrderDetails> GetBy(Guid id);
-}

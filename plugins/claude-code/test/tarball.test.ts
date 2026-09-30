@@ -56,6 +56,10 @@ test('ships exactly the expected plugin files', async () => {
     'skills/add-document-to-change/SKILL.md',
     'skills/add-document-to-change/scripts/write-working-file.ts',
     'skills/add-change/SKILL.md',
+    'skills/create-design-doc/SKILL.md',
+    'skills/create-design-doc/references/modelling.md',
+    'skills/create-design-doc/references/alternative-brief.md',
+    'contracts/system-model.schema.json',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -153,7 +157,11 @@ test('the service the pin resolves to boots and lists tools', async () => {
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'get_document_in_change',
+      'get_newest_system_model',
       'list_changes',
+      'list_documents_in_change',
+      'scan_system_model',
       'update_change',
       'update_design_doc_in_change',
       'update_document_in_change',

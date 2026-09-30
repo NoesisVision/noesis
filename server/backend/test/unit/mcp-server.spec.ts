@@ -6,8 +6,12 @@ import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
+import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 import {
   designDocFixture,
@@ -81,7 +85,16 @@ describe('the MCP surface', () => {
 
   it('advertises the live scratch directory on every tool that reads from it', async () => {
     const { tools } = await client.listTools();
-    const writers = tools.filter((tool) => tool.name !== 'list_changes');
+    const writers = tools.filter(
+      (tool) =>
+        ![
+          'list_changes',
+          'list_documents_in_change',
+          'get_document_in_change',
+          'scan_system_model',
+          'get_newest_system_model',
+        ].includes(tool.name),
+    );
     expect(writers).toHaveLength(6);
     for (const tool of writers) {
       const path = tool.inputSchema.properties?.path as { description: string };
@@ -107,13 +120,17 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the seven tools, each with an input and an output schema', async () => {
+  it('offers exactly the eleven tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'get_document_in_change',
+      'get_newest_system_model',
       'list_changes',
+      'list_documents_in_change',
+      'scan_system_model',
       'update_change',
       'update_design_doc_in_change',
       'update_document_in_change',
@@ -280,6 +297,131 @@ describe('list_changes', () => {
     const { tools } = await client.listTools();
     const list = tools.find((tool) => tool.name === 'list_changes');
     expect(list?.annotations?.readOnlyHint).toBe(true);
+  });
+});
+
+describe('scan_system_model', () => {
+  const found = SystemModel.omit({ id: true }).parse({
+    name: 'shop',
+    scanned_at: '2026-09-29T08:00:00.000Z',
+    modules: [
+      {
+        id: 'module|sales.orders',
+        name: 'orders',
+        source: { path: 'src/sales/orders' },
+      },
+    ],
+  });
+
+  /** A client whose server scans with a scanner that finds `found`. */
+  async function scanningClient(): Promise<Client> {
+    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const server = createMcpServer({
+      ...noesis,
+      version: '0.0.0-test',
+      noesis: noesis.noesis,
+      sessionFiles: files,
+      scanSystemModel: scanSystemModelHandler(
+        { scan: () => Promise.resolve(found) },
+        systemModels,
+      ),
+    });
+    const scanning = new Client({ name: 'mcp-spec', version: '0.0.0' });
+    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
+    await Promise.all([
+      server.connect(serverSide),
+      scanning.connect(clientSide),
+    ]);
+    return scanning;
+  }
+
+  it('stores the model the scanner finds at a minted id and answers with it counted', async () => {
+    const scanning = await scanningClient();
+
+    const result = await scanning.callTool({ name: 'scan_system_model' });
+    await scanning.close();
+
+    expect(result.isError).toBeFalsy();
+    const { systemModel } = result.structuredContent as {
+      systemModel: Record<string, unknown>;
+    };
+    const id = SystemModelId.parse(systemModel.id);
+    expect(systemModel).toEqual({
+      id,
+      name: 'shop',
+      scanned_at: found.scanned_at,
+      modules: 1,
+      buildingBlocks: 0,
+      behaviours: 0,
+    });
+    expect(textOf(result)).toContain(`Scanned shop (${id}): 1 modules`);
+    expect(
+      await new NoesisSystemModelsRepository(noesis.noesis).list(),
+    ).toEqual([{ ...found, id }]);
+  });
+
+  it('answers a failed scan in-band', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDesignDoc(change, {
+      id: `${TODAY}-rename-sales`,
+      name: 'Rename sales',
+      description: 'Renames a module no design added.',
+      modules: {
+        modified: [{ id: 'module|sales', name: { value: 'selling' } }],
+      },
+      implemented: true,
+    });
+
+    const result = await client.callTool({ name: 'scan_system_model' });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(
+      'modules.modified[module|sales] is not there',
+    );
+  });
+
+  it('is advertised as adding a scan on every call', async () => {
+    const { tools } = await client.listTools();
+    const scan = tools.find((tool) => tool.name === 'scan_system_model');
+    expect(scan?.annotations).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    });
+  });
+});
+
+describe('get_newest_system_model', () => {
+  const OLDER = '01a0d22d-7f47-76b9-abd4-bd21d66a1d17';
+  const NEWER = '01a0d22e-0000-7000-8000-000000000000';
+  const scan = (id: string, name: string) =>
+    SystemModel.parse({ id, name, scanned_at: '2026-09-29T08:00:00.000Z' });
+
+  it('answers null, pointing to the scan, when nothing is scanned yet', async () => {
+    const result = await client.callTool({ name: 'get_newest_system_model' });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ systemModel: null });
+    expect(textOf(result)).toContain('scan_system_model');
+  });
+
+  it('answers the model scanned last, whole', async () => {
+    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const newest = scan(NEWER, 'shop');
+    await systemModels.create(newest);
+    await systemModels.create(scan(OLDER, 'billing'));
+
+    const result = await client.callTool({ name: 'get_newest_system_model' });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ systemModel: newest });
+    expect(textOf(result)).toContain(`System model shop (${NEWER})`);
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const get = tools.find((tool) => tool.name === 'get_newest_system_model');
+    expect(get?.annotations?.readOnlyHint).toBe(true);
   });
 });
 
@@ -486,6 +628,115 @@ describe('update_document_in_change', () => {
     expect(result.isError).toBe(true);
     expect(textOf(result)).toStartWith('Could not read the document:');
     expect(textOf(result)).toContain('No file at');
+  });
+});
+
+describe('list_documents_in_change', () => {
+  it('answers an empty list, pointing to the create, when the change has none', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('list_documents_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ documents: [] });
+    expect(textOf(result)).toContain('create_document_in_change');
+  });
+
+  it('lists every document with its id, oldest first, without its content', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDocument(change, {
+      ...document,
+      id: '2026-01-02-refund-notes',
+      title: 'Refund notes',
+    });
+    await noesis.writeDocument(change, {
+      ...document,
+      id: '2026-01-01-retry-interview',
+    });
+
+    const result = await call('list_documents_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      documents: [
+        {
+          id: '2026-01-01-retry-interview',
+          title: document.title,
+          date: document.date,
+        },
+        {
+          id: '2026-01-02-refund-notes',
+          title: 'Refund notes',
+          date: document.date,
+        },
+      ],
+    });
+    expect(textOf(result)).toContain(
+      `- 2026-01-01-retry-interview: Retry interview (${document.date})`,
+    );
+  });
+
+  it('reports an unknown change in-band, with where to find its id', async () => {
+    const result = await call('list_documents_in_change', {
+      change: '2026-01-01-no-such-change',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const list = tools.find((tool) => tool.name === 'list_documents_in_change');
+    expect(list?.annotations?.readOnlyHint).toBe(true);
+  });
+});
+
+describe('get_document_in_change', () => {
+  it('answers the document whole, its content verbatim', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDocument(change, { ...document, id: DOCUMENT_ID });
+
+    const result = await call('get_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      document: { ...document, id: DOCUMENT_ID },
+    });
+    expect(textOf(result)).toContain(`Document ${DOCUMENT_ID}`);
+  });
+
+  it('answers an id that names no document in-band, with where to find it', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('get_document_in_change', {
+      change,
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`No document "${DOCUMENT_ID}"`);
+    expect(textOf(result)).toContain('list_documents_in_change');
+  });
+
+  it('reports an unknown change in-band', async () => {
+    const result = await call('get_document_in_change', {
+      change: '2026-01-01-no-such-change',
+      id: DOCUMENT_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const get = tools.find((tool) => tool.name === 'get_document_in_change');
+    expect(get?.annotations?.readOnlyHint).toBe(true);
   });
 });
 
