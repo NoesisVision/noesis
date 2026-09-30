@@ -477,12 +477,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -509,12 +528,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -541,12 +579,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -573,12 +630,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Percentage"
+            {
+              "name": "percentage",
+              "type": {
+                "value": "building_block|Sales.Commons.Percentage"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -605,12 +681,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -637,13 +732,43 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Percentage",
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "percentage",
+              "type": {
+                "value": "building_block|Sales.Commons.Percentage"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -670,12 +795,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       }

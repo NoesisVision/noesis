@@ -6448,13 +6448,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.UserAccount"
+            {
+              "type": "building_block|qdocmanagement.UserAccount",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -6496,14 +6525,43 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.OrganisationId"
+            {
+              "name": "organisationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.OrganisationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.UserAccount"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.UserAccount"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -6545,13 +6603,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDoc"
+            {
+              "type": "building_block|qdocmanagement.drafting.QDoc",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -6592,14 +6679,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.OrganisationId",
-            "primitive|string"
+            {
+              "name": "organisationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.OrganisationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "number",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDoc"
+            {
+              "type": "building_block|qdocmanagement.drafting.QDoc",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -6640,14 +6773,43 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.drafting.QDoc"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.drafting.QDoc"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -6689,7 +6851,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDoc"
+            {
+              "name": "qDoc",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDoc",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -6777,19 +6956,140 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.CreateQDoc",
-            "building_block|qdocmanagement.numbering.DocumentNumber",
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "createQDoc",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.CreateQDoc",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "documentNumber",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.numbering.DocumentNumber",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "createdAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDoc",
-            "building_block|qdocmanagement.drafting.QDocCreated",
-            "building_block|qdocmanagement.drafting.InvitationSent"
+            {
+              "type": "building_block|qdocmanagement.drafting.QDoc",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "type": "building_block|qdocmanagement.drafting.QDocCreated",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationSent",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -6939,16 +7239,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.AssignmentRole",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "assignmentRole",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.AssignmentRole",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationSent"
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationSent",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7073,17 +7453,109 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationId",
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "invitationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.InvitationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "inviter",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "invitee",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationAccepted",
-            "building_block|qdocmanagement.drafting.InvitationRefused"
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationAccepted",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationRefused",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7254,14 +7726,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.NewVersionCreated"
+            {
+              "type": "building_block|qdocmanagement.drafting.NewVersionCreated",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7386,15 +7904,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|string",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "title",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.ContentFileAdded"
+            {
+              "type": "building_block|qdocmanagement.drafting.ContentFileAdded",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7478,17 +8059,114 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|integer",
-            "building_block|qdocmanagement.drafting.RichTextContent",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "baseRevision",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "richTextContent",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.RichTextContent",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.ContentFileEdited"
+            {
+              "type": "building_block|qdocmanagement.drafting.ContentFileEdited",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7596,16 +8274,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|string",
-            "primitive|string",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileName",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "storageKey",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.AttachmentUploaded"
+            {
+              "type": "building_block|qdocmanagement.drafting.AttachmentUploaded",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7646,14 +8404,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|datetime"
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.AttachmentActivated"
+            {
+              "type": "building_block|qdocmanagement.drafting.AttachmentActivated",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7694,15 +8498,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|string",
-            "primitive|datetime"
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "findings",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.AttachmentRemovedAfterFailedScan"
+            {
+              "type": "building_block|qdocmanagement.drafting.AttachmentRemovedAfterFailedScan",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7786,15 +8653,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileRemoved"
+            {
+              "type": "building_block|qdocmanagement.drafting.FileRemoved",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7835,14 +8765,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.VersionShared"
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionShared",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -7949,17 +8925,114 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.drafting.FileId",
-            "building_block|qdocmanagement.drafting.TextFragment",
-            "primitive|string",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "textFragment",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.TextFragment",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "text",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.CommentAdded"
+            {
+              "type": "building_block|qdocmanagement.drafting.CommentAdded",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8043,16 +9116,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.drafting.FileId",
-            "building_block|qdocmanagement.drafting.CommentId",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "commentId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.CommentId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.CommentClosed"
+            {
+              "type": "building_block|qdocmanagement.drafting.CommentClosed",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8112,14 +9265,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.VersionMarkedReviewed"
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionMarkedReviewed",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8179,17 +9378,109 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|integer",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "seenRevision",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileApproved",
-            "building_block|qdocmanagement.drafting.VersionApproved"
+            {
+              "type": "building_block|qdocmanagement.drafting.FileApproved",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionApproved",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8464,14 +9755,60 @@
         },
         "input": {
           "added": [
-            "primitive|integer",
-            "primitive|datetime"
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.VersionPublished"
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionPublished",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8531,14 +9868,60 @@
         },
         "input": {
           "added": [
-            "primitive|integer",
-            "primitive|datetime"
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.VersionWithdrawn"
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionWithdrawn",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8579,14 +9962,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserAccount",
-            "primitive|datetime"
+            {
+              "name": "userAccount",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserAccount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "occurredAt",
+              "type": {
+                "changed": true,
+                "value": "primitive|datetime",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocArchived"
+            {
+              "type": "building_block|qdocmanagement.drafting.QDocArchived",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8697,14 +10126,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.CreateQDoc"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "createQDoc",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.CreateQDoc",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "type": "building_block|qdocmanagement.drafting.QDocId",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8773,16 +10248,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.AssignmentRole"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "inviteeId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "assignmentRole",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.AssignmentRole",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationId"
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationId",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8852,15 +10407,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.InvitationId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "invitationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.InvitationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationStatus"
+            {
+              "type": "building_block|qdocmanagement.drafting.InvitationStatus",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -8906,14 +10524,43 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.drafting.Invitation"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.drafting.Invitation"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -8959,14 +10606,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "primitive|integer"
+            {
+              "type": "primitive|integer",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9010,15 +10703,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|string"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "title",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileId"
+            {
+              "type": "building_block|qdocmanagement.drafting.FileId",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9062,17 +10818,114 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|integer",
-            "building_block|qdocmanagement.drafting.RichTextContent"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "baseRevision",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "richTextContent",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.RichTextContent",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "primitive|integer"
+            {
+              "type": "primitive|integer",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9116,16 +10969,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|string",
-            "primitive|string"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileName",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "storageKey",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.FileId"
+            {
+              "type": "building_block|qdocmanagement.drafting.FileId",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9169,9 +11102,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.FileId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9219,8 +11203,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9272,17 +11290,114 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.FileId",
-            "building_block|qdocmanagement.drafting.TextFragment",
-            "primitive|string"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "textFragment",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.TextFragment",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "text",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.CommentId"
+            {
+              "type": "building_block|qdocmanagement.drafting.CommentId",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9326,10 +11441,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.FileId",
-            "building_block|qdocmanagement.drafting.CommentId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "commentId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.CommentId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9377,8 +11560,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9426,16 +11643,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|integer"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "seenRevision",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.VersionStatus"
+            {
+              "type": "building_block|qdocmanagement.drafting.VersionStatus",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9480,8 +11777,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9527,7 +11858,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.scanning.AttachmentScanCompleted"
+            {
+              "name": "attachmentScanCompleted",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.scanning.AttachmentScanCompleted",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9573,8 +11921,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9620,8 +12002,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9673,15 +12089,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.drafting.DocumentVersion"
+            {
+              "type": "building_block|qdocmanagement.drafting.DocumentVersion",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9795,17 +12274,97 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer",
-            "building_block|qdocmanagement.drafting.FileId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.drafting.ContentRevision"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.drafting.ContentRevision"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -9854,16 +12413,96 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer",
-            "building_block|qdocmanagement.drafting.FileId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "primitive|string"
+            {
+              "type": "primitive|string",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9951,7 +12590,19 @@
         },
         "output": {
           "added": [
-            "primitive|integer"
+            {
+              "type": "primitive|integer",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -9992,15 +12643,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.OrganisationId",
-            "primitive|integer",
-            "primitive|integer"
+            {
+              "name": "organisationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.OrganisationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "year",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "month",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.numbering.MonthlySequence"
+            {
+              "type": "building_block|qdocmanagement.numbering.MonthlySequence",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10041,7 +12755,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.numbering.MonthlySequence"
+            {
+              "name": "monthlySequence",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.numbering.MonthlySequence",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10086,13 +12817,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.OrganisationId"
+            {
+              "name": "organisationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.OrganisationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.numbering.NumberTemplate"
+            {
+              "type": "building_block|qdocmanagement.numbering.NumberTemplate",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10133,7 +12893,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.numbering.NumberTemplate"
+            {
+              "name": "numberTemplate",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.numbering.NumberTemplate",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10179,17 +12956,80 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.OrganisationId",
             {
-              "collectionOf": "building_block|qdocmanagement.UserRole"
+              "name": "organisationId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.OrganisationId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             },
-            "primitive|date"
+            {
+              "name": "userRoles",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|qdocmanagement.UserRole"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "creationDate",
+              "type": {
+                "changed": true,
+                "value": "primitive|date",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.numbering.DocumentNumber"
+            {
+              "type": "building_block|qdocmanagement.numbering.DocumentNumber",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10233,9 +13073,60 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "primitive|string",
-            "primitive|string"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "suffix",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10299,10 +13190,78 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId",
-            "primitive|integer",
-            "building_block|qdocmanagement.drafting.FileId",
-            "primitive|string"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "versionNumber",
+              "type": {
+                "changed": true,
+                "value": "primitive|integer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "fileId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.FileId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "storageKey",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10348,7 +13307,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.AttachmentUploaded"
+            {
+              "name": "attachmentUploaded",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.AttachmentUploaded",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10413,13 +13389,42 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.scanning.AttachmentScanResult"
+            {
+              "name": "attachmentScanResult",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.scanning.AttachmentScanResult",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
-            "building_block|qdocmanagement.scanning.AttachmentScanCompleted"
+            {
+              "type": "building_block|qdocmanagement.scanning.AttachmentScanCompleted",
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10461,7 +13466,24 @@
         "input": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+              "name": "activityEntries",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -10507,14 +13529,43 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -10557,7 +13608,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocEvent"
+            {
+              "name": "qDocEvent",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocEvent",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10652,15 +13720,61 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.UserId",
-            "building_block|qdocmanagement.drafting.QDocId"
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "qDocId",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
         "output": {
           "added": [
             {
-              "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+              "type": {
+                "collectionOf": "building_block|qdocmanagement.activity.ActivityEntry"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
             }
           ],
           "removed": []
@@ -10721,7 +13835,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.notifications.EmailMessage"
+            {
+              "name": "emailMessage",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.notifications.EmailMessage",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10767,7 +13898,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.QDocCreated"
+            {
+              "name": "qDocCreated",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.QDocCreated",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10856,7 +14004,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.NewVersionCreated"
+            {
+              "name": "newVersionCreated",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.NewVersionCreated",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10921,7 +14086,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.InvitationSent"
+            {
+              "name": "invitationSent",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.InvitationSent",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
@@ -10986,7 +14168,24 @@
         },
         "input": {
           "added": [
-            "building_block|qdocmanagement.drafting.AttachmentRemovedAfterFailedScan"
+            {
+              "name": "attachmentRemovedAfterFailedScan",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.drafting.AttachmentRemovedAfterFailedScan",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
           ],
           "removed": []
         },
