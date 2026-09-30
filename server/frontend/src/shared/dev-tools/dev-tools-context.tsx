@@ -36,7 +36,7 @@ const INIT_VALUE: DevToolsContextProps = {
   enabled: false,
   setEnabled: noop,
   features: {
-    lessColorsInDesignDocTree: false,
+    lessColorsInDesignDocTree: true,
   },
   setFeatures: noop,
 };
