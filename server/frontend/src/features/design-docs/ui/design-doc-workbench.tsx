@@ -1,5 +1,5 @@
 import { IconMaximize, IconMinimize } from '@tabler/icons-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -52,14 +52,18 @@ export function DesignDocWorkbench({
   /* The row the reader picked in the outline itself, which is the one move the
      outline must not answer by scrolling. */
   const picked = useRef<string | null>(null);
-  const controller = useModelTree(outline, {
-    selected: node,
-    // Noted before the page is told, so that whatever the page does with the
-    // move — navigating, rendering — the note is already there to be read.
-    onSelect: (path, source) => {
+  // Noted before the page is told, so that whatever the page does with the
+  // move — navigating, rendering — the note is already there to be read.
+  const onTreeSelect = useCallback(
+    (path: string, source: SelectSource) => {
       if (source === 'tree') picked.current = path;
       onSelect(path, source);
     },
+    [onSelect],
+  );
+  const controller = useModelTree(outline, {
+    selected: node,
+    onSelect: onTreeSelect,
     query,
     onQuery,
     memory,
@@ -88,6 +92,17 @@ export function DesignDocWorkbench({
   // already shows, so there is nothing to report.
   const toggleFullscreen = () => void toggle().catch(() => {});
   const selected = controller.selectedNode;
+  const { tree } = controller;
+  const selectedPath = useMemo(
+    () =>
+      selected === null
+        ? []
+        : tree
+            .ancestryOf(selected.path)
+            .map((path) => tree.byPath.get(path))
+            .filter((node) => node !== undefined),
+    [tree, selected],
+  );
 
   return (
     <Box component="article" ref={ref} className={classes.surface}>
@@ -124,10 +139,7 @@ export function DesignDocWorkbench({
           ) : (
             <ElementDetail
               node={selected}
-              path={controller.tree
-                .ancestryOf(selected.path)
-                .map((path) => controller.tree.byPath.get(path))
-                .filter((node) => node !== undefined)}
+              path={selectedPath}
               document={doc}
               onSelect={(path) => controller.select(path, 'detail')}
               tree={controller.tree}

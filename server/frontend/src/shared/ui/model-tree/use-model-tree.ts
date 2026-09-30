@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { OutlineNode } from './model-outline.ts';
 import {
   closeIn,
@@ -122,7 +129,13 @@ export function useModelTree(
     [memory],
   );
 
-  const search = useMemo(() => searchOutline(tree, query), [tree, query]);
+  /*
+   * The box shows what was typed at once; the tree follows when it can. On a
+   * large design, searching and redrawing every row it leaves standing would
+   * otherwise hold up each keystroke.
+   */
+  const searched = useDeferredValue(query);
+  const search = useMemo(() => searchOutline(tree, searched), [tree, searched]);
 
   const isExpanded = useCallback(
     (path: string) => {
@@ -131,6 +144,11 @@ export function useModelTree(
       return search.opened.has(path) || shape.opened.has(path);
     },
     [search, shape, expanded],
+  );
+
+  const isVisible = useCallback(
+    (path: string) => search.visible === null || search.visible.has(path),
+    [search],
   );
 
   const setOpen = useCallback(
@@ -225,7 +243,7 @@ export function useModelTree(
     search,
     ask,
     isExpanded,
-    isVisible: (path) => search.visible === null || search.visible.has(path),
+    isVisible,
     select,
     toggle,
     expand,

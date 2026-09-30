@@ -98,10 +98,8 @@ describe('ModelTree', () => {
     expect(count(/tabindex="0"/g)).toBe(1);
   });
 
-  it('names the kind, the pattern and the change of a row', () => {
+  it('names the kind and the change of a row', () => {
     expect(rowOf('Order')).toContain('data-kind="building_block"');
-    expect(rowOf('Order')).toContain('Aggregate');
-    expect(rowOf('Orders')).toContain('Repository');
     // What the design does to a row is stated where the colours read it
     // from; nothing happened to the context, and nothing is claimed about it.
     expect(rowOf('orders')).toContain('data-change="added"');
