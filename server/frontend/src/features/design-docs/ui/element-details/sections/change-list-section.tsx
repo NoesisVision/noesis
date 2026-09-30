@@ -1,4 +1,6 @@
 import { IconLink } from '@tabler/icons-react';
+import { Card } from '#/shared/design-system/card.tsx';
+import { Code } from '#/shared/design-system/code.tsx';
 import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -37,6 +39,20 @@ export function ChangeListSection({
     <DetailSection title={title} icon={<KindIcon kind={kind} pattern={null} />}>
       <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
         {sorted.map(({ change, label, path, description }) => {
+          if (kind === 'property') {
+            return (
+              <Card key={`${change}:${label}`} shadow={undefined} mb={4} p={0}>
+                <Code px={16} py={8}>
+                  <Ref change={change} name={label} />
+                  {description !== undefined && (
+                    <Text component="span" display="block" size="xs" c="dimmed">
+                      {description}
+                    </Text>
+                  )}
+                </Code>
+              </Card>
+            );
+          }
           return (
             <List.Item key={`${change}:${label}`}>
               {path !== null && has(path) ? (
