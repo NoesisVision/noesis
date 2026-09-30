@@ -1,33 +1,34 @@
 import {
-  IconApps,
-  IconArrowsExchange,
-  IconBell,
+  IconActivity,
+  IconAssembly,
+  IconBlocks,
   IconBolt,
-  IconBoxMultiple,
-  IconBuildingFactory2,
-  IconCube,
+  IconCircleLetterC,
+  IconCircleLetterE,
+  IconCircleLetterQ,
   IconDatabase,
   IconDiamond,
-  IconEqual,
   IconFolder,
   IconId,
   IconListCheck,
   IconMathFunction,
-  IconPlug,
+  IconPackageExport,
   IconPoint,
+  IconRoute,
   IconScale,
-  IconSend,
   IconSettings,
+  IconShield,
   IconSitemap,
-  IconZoomQuestion,
+  IconStatusChange,
+  IconWorld,
 } from '@tabler/icons-react';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import classes from './model-tree.module.css';
 
 const KIND_ICONS = {
   module: IconFolder,
-  building_block: IconCube,
-  behaviour: IconBolt,
+  building_block: IconBlocks,
+  behaviour: IconActivity,
   property: IconPoint,
   rule: IconScale,
   scenario: IconListCheck,
@@ -60,25 +61,39 @@ const PATTERNS = [
 type Pattern = (typeof PATTERNS)[number];
 
 const PATTERN_ICONS = {
-  aggregate: IconBoxMultiple,
+  aggregate: IconPackageExport,
   entity: IconId,
   value_object: IconDiamond,
-  domain_event: IconBell,
-  domain_command: IconSend,
-  domain_query: IconZoomQuestion,
+  domain_event: IconCircleLetterE,
+  domain_command: IconCircleLetterC,
+  domain_query: IconCircleLetterQ,
   domain_service: IconSettings,
-  application_service: IconApps,
+  application_service: IconRoute,
   repository: IconDatabase,
-  factory: IconBuildingFactory2,
-  external_integration: IconPlug,
-  Command: IconSend,
-  Event: IconBell,
-  Query: IconZoomQuestion,
-  Consistency: IconEqual,
+  factory: IconAssembly,
+  external_integration: IconWorld,
+  Command: IconCircleLetterC,
+  Event: IconBolt, // event handler
+  Query: IconCircleLetterQ,
+  Consistency: IconShield,
   Structure: IconSitemap,
   Computation: IconMathFunction,
-  'State change': IconArrowsExchange,
+  'State change': IconStatusChange,
 } as const satisfies Record<Pattern, unknown>;
+
+/*
+ * The three kinds of message, told apart at a glance: what happened, what is
+ * asked, what is ordered. The colour is the stylesheet's, keyed by this, so
+ * the rules for the selected row and the way down to it still win over it.
+ */
+const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
+  domain_event: 'event',
+  Event: 'event',
+  domain_query: 'query',
+  Query: 'query',
+  domain_command: 'command',
+  Command: 'command',
+};
 
 const isPattern = (value: string): value is Pattern =>
   (PATTERNS as readonly string[]).includes(value);
@@ -95,9 +110,18 @@ export function KindIcon({
      there is none, or none the model knows. A property's pattern is its type,
      which only happens to share the vocabulary, so a property always reads as
      a property. */
-  const Icon =
+  const known =
     kind !== 'property' && pattern != null && isPattern(pattern)
-      ? PATTERN_ICONS[pattern]
-      : KIND_ICONS[kind];
-  return <Icon size={16} stroke={1.6} className={classes.icon} aria-hidden />;
+      ? pattern
+      : null;
+  const Icon = known === null ? KIND_ICONS[kind] : PATTERN_ICONS[known];
+  return (
+    <Icon
+      size={20}
+      stroke={2}
+      className={classes.icon}
+      data-tone={known === null ? undefined : PATTERN_TONES[known]}
+      aria-hidden
+    />
+  );
 }

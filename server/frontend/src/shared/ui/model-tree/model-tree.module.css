@@ -124,6 +124,25 @@
 .icon {
   flex: none;
   color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+
+  /* Events, queries and commands, each in a colour of its own. */
+  &[data-tone='event'] {
+    color: light-dark(
+      var(--mantine-color-orange-7),
+      var(--mantine-color-orange-4)
+    );
+  }
+
+  &[data-tone='query'] {
+    color: light-dark(
+      var(--mantine-color-green-7),
+      var(--mantine-color-green-4)
+    );
+  }
+
+  &[data-tone='command'] {
+    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+  }
 }
 
 /*
