@@ -1,0 +1,1044 @@
+{
+  "id": "01a0f10b-471d-72a5-b84a-ca262a932b6d",
+  "name": "discounts-java",
+  "scanned_at": "2026-09-30T06:40:43.292Z",
+  "modules": [
+    {
+      "id": "module|discounts",
+      "name": "discounts",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts",
+        "line": null
+      }
+    },
+    {
+      "id": "module|discounts.calculation",
+      "name": "calculation",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation",
+        "line": null
+      }
+    },
+    {
+      "id": "module|discounts.offers",
+      "name": "offers",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/offers",
+        "line": null
+      }
+    },
+    {
+      "id": "module|discounts.users",
+      "name": "users",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/users",
+        "line": null
+      }
+    },
+    {
+      "id": "module|discounts.weather",
+      "name": "weather",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather",
+        "line": null
+      }
+    },
+    {
+      "id": "module|discounts.weather.openmeteo",
+      "name": "openmeteo",
+      "description": null,
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo",
+        "line": null
+      }
+    }
+  ],
+  "buildingBlocks": [
+    {
+      "id": "building_block|discounts.calculation.Conditions",
+      "name": "Conditions",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "userStatus",
+          "type": "building_block|discounts.users.UserStatus",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "weather",
+          "type": "building_block|discounts.weather.Weather",
+          "description": "Current weather snapshot; absent when the weather provider could not deliver one.",
+          "optional": true
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
+        "line": 14
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.Discount",
+      "name": "Discount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountAmount",
+      "name": "DiscountAmount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "appliedDiscount",
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java",
+        "line": 12
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountCalculation",
+      "name": "DiscountCalculation",
+      "type": "application_service",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "discountsFactory",
+          "type": "building_block|discounts.calculation.DiscountPolicyFactory",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
+        "line": 12
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountConfig",
+      "name": "DiscountConfig",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "potentialDiscounts",
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.PotentialDiscount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "name": "DiscountPolicyFactory",
+      "type": "factory",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "discountsConfigProvider",
+          "type": "building_block|discounts.calculation.DiscountsConfigProvider",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "userStatusProvider",
+          "type": "building_block|discounts.users.UserStatusProvider",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "weatherProvider",
+          "type": "building_block|discounts.weather.WeatherProvider",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountedOffer",
+      "name": "DiscountedOffer",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "products",
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.DiscountedProduct"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "offerLevelDiscounts",
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.DiscountAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
+        "line": 11
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountedProduct",
+      "name": "DiscountedProduct",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "discountAmounts",
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.DiscountAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
+        "line": 11
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.DiscountsConfigProvider",
+      "name": "DiscountsConfigProvider",
+      "type": "repository",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+      "name": "ExclusiveOfferLevelDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "properties": [
+        {
+          "name": "discountToApply",
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 49
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.FixedDiscount",
+      "name": "FixedDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "properties": [
+        {
+          "name": "fixedDiscountAmount",
+          "type": "building_block|discounts.calculation.DiscountAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 25
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.PercentageDiscount",
+      "name": "PercentageDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "properties": [
+        {
+          "name": "percentage",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 37
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.PotentialDiscount",
+      "name": "PotentialDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+      "name": "PotentialPrecipitationDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.PotentialDiscount"
+      ],
+      "properties": [
+        {
+          "name": "discount",
+          "type": "building_block|discounts.calculation.PercentageDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 29
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.PotentialVipUserDiscount",
+      "name": "PotentialVipUserDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.PotentialDiscount"
+      ],
+      "properties": [
+        {
+          "name": "fixedDiscount",
+          "type": "building_block|discounts.calculation.FixedDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 15
+      }
+    },
+    {
+      "id": "building_block|discounts.calculation.ProductDiscount",
+      "name": "ProductDiscount",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|discounts.offers.Offer",
+      "name": "Offer",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "products",
+          "type": {
+            "collectionOf": "building_block|discounts.offers.Product"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|discounts.offers.Product",
+      "name": "Product",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/offers/Product.java",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|discounts.users.UserId",
+      "name": "UserId",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "id",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/users/UserId.java",
+        "line": 11
+      }
+    },
+    {
+      "id": "building_block|discounts.users.UserStatus",
+      "name": "UserStatus",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "vip",
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatus.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|discounts.users.UserStatusProvider",
+      "name": "UserStatusProvider",
+      "type": "external_integration",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|discounts.weather.Weather",
+      "name": "Weather",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "precipitation",
+          "type": "primitive|decimal",
+          "description": "Current precipitation in millimetres as reported by the weather provider (rain or snow).",
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/Weather.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|discounts.weather.WeatherProvider",
+      "name": "WeatherProvider",
+      "type": "external_integration",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/WeatherProvider.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+      "name": "OpenMeteoWeatherProvider",
+      "type": "external_integration",
+      "description": null,
+      "implements": [
+        "building_block|discounts.weather.WeatherProvider"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo/OpenMeteoWeatherProvider.java",
+        "line": 19
+      }
+    }
+  ],
+  "behaviours": [
+    {
+      "id": "behavior|discounts.calculation.Discount.apply",
+      "buildingBlockId": "building_block|discounts.calculation.Discount",
+      "name": "apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountCalculation",
+      "name": "calculate",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        "building_block|discounts.offers.Offer",
+        "building_block|discounts.users.UserId"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountConfig",
+      "name": "getDiscountsForConditions",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.Conditions"
+      ],
+      "output": [
+        {
+          "collectionOf": "building_block|discounts.calculation.Discount"
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "name": "get",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.users.UserId"
+      ],
+      "output": [
+        {
+          "collectionOf": "building_block|discounts.calculation.Discount"
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
+        "line": 24
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
+      "name": "applyDiscount",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountedOffer.createFrom",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
+      "name": "createFrom",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.offers.Offer"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountedProduct",
+      "name": "applyDiscount",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.ProductDiscount"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedProduct"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountedProduct.from",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountedProduct",
+      "name": "from",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.offers.Product"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedProduct"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
+      "buildingBlockId": "building_block|discounts.calculation.DiscountsConfigProvider",
+      "name": "getDiscountsConfig",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.calculation.DiscountConfig"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
+      "buildingBlockId": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+      "name": "apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 56
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.FixedDiscount.apply",
+      "buildingBlockId": "building_block|discounts.calculation.FixedDiscount",
+      "name": "apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 30
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PercentageDiscount.apply",
+      "buildingBlockId": "building_block|discounts.calculation.PercentageDiscount",
+      "name": "apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 42
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialDiscount",
+      "name": "getDiscount",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialDiscount",
+      "name": "isApplicableFor",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.Conditions"
+      ],
+      "output": [
+        "primitive|boolean"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+      "name": "getDiscount",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.calculation.PercentageDiscount"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 36
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+      "name": "isApplicableFor",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.Conditions"
+      ],
+      "output": [
+        "primitive|boolean"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 32
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialVipUserDiscount",
+      "name": "getDiscount",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.calculation.Discount"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 22
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
+      "buildingBlockId": "building_block|discounts.calculation.PotentialVipUserDiscount",
+      "name": "isApplicableFor",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.Conditions"
+      ],
+      "output": [
+        "primitive|boolean"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
+        "line": 18
+      }
+    },
+    {
+      "id": "behavior|discounts.calculation.ProductDiscount.apply",
+      "buildingBlockId": "building_block|discounts.calculation.ProductDiscount",
+      "name": "apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "private"
+      },
+      "input": [
+        "building_block|discounts.calculation.DiscountedOffer",
+        "building_block|discounts.calculation.DiscountedProduct"
+      ],
+      "output": [
+        "building_block|discounts.calculation.DiscountedOffer"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|discounts.users.UserStatusProvider.getFor",
+      "buildingBlockId": "building_block|discounts.users.UserStatusProvider",
+      "name": "getFor",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        "building_block|discounts.users.UserId"
+      ],
+      "output": [
+        "building_block|discounts.users.UserStatus"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|discounts.weather.WeatherProvider.getCurrent",
+      "buildingBlockId": "building_block|discounts.weather.WeatherProvider",
+      "name": "getCurrent",
+      "type": "Query",
+      "description": "Current weather at the shop's fixed location, or none when it cannot be determined.",
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.weather.Weather"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/WeatherProvider.java",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
+      "buildingBlockId": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+      "name": "getCurrent",
+      "type": "Query",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        "building_block|discounts.weather.Weather"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo/OpenMeteoWeatherProvider.java",
+        "line": 44
+      }
+    }
+  ]
+}
