@@ -60,12 +60,14 @@ export function createServices(
     createDesignDocInChange: createDesignDocInChangeHandler(
       designDocs,
       changes,
+      systemModels,
       today,
       now,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
+      systemModels,
       now,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
