@@ -8,7 +8,7 @@
     "dev": "bun run server/scripts/dev.ts",
     "dev:discounts-java": "NOESIS_ROOT=$PWD/examples/discounts-java bun run dev",
     "dev:discounts-dotnet": "NOESIS_ROOT=$PWD/examples/discounts-dotnet bun run dev",
-    "dev:qdoc-java": "NOESIS_ROOT=$PWD/examples/qdoc-java bun run dev",
+    "dev:qdoc-java": "NOESIS_ROOT=$PWD/examples/qdoc-java NOESIS_SCANNER=dummy bun run dev",
     "preview": "bun run build && PORT=3000 bun run --cwd server/backend start",
     "start:debug": "bun run --cwd server/backend start:debug",
     "lint": "oxlint",

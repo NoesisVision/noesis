@@ -61,6 +61,8 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
+`qdoc-java` also sets `NOESIS_SCANNER=dummy`, as does `dev:qdoc-java`: it has
+no code to scan, so a scan replays its implemented design documents.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.
