@@ -5,17 +5,12 @@ import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
 import { DescriptionSection } from './sections/description-section.tsx';
-import { VisibilitySection } from './sections/visibility-section.tsx';
 
 export const behaviourSections = (
   behaviour: DesignedBehaviourInput,
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'behaviours', id: behaviour.id };
   return [
-    ...section(VisibilitySection, 'visibility', {
-      element,
-      field: behaviour.visibility,
-    }),
     ...section(DescriptionSection, 'description', {
       element,
       field: behaviour.description,

@@ -14,10 +14,6 @@ export const buildingBlockSections = (
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'buildingBlocks', id: block.id };
   return [
-    ...section(DescriptionSection, 'description', {
-      element,
-      field: block.description,
-    }),
     ...section(ChangeListSection, 'implements', {
       element,
       title: 'Implements',
@@ -42,6 +38,10 @@ export const buildingBlockSections = (
       title: 'Scenarios',
       kind: 'scenario',
       items: partItems(block.id, 'scenario', block.scenarios),
+    }),
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: block.description,
     }),
   ];
 };

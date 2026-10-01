@@ -18,13 +18,13 @@ export const scenarioSections = (
     ...(rule === undefined ? {} : { rule }),
   };
   return [
-    ...section(DescriptionSection, 'description', {
-      element,
-      field: scenario.description,
-    }),
     ...section(ScenarioStepsSection, 'steps', {
       element,
       scenario,
+    }),
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: scenario.description,
     }),
   ];
 };

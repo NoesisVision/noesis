@@ -12,10 +12,10 @@ export const moduleSections = (
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'modules', id: module.id };
   return [
+    ...childSections(element, 'module', module.id, tree),
     ...section(DescriptionSection, 'description', {
       element,
       field: module.description,
     }),
-    ...childSections(element, 'module', module.id, tree),
   ];
 };

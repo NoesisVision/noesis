@@ -15,15 +15,15 @@ export const ruleSections = (
   // A rule's own scenarios hang under the rule in the tree, not its owner.
   const rulePath = partPathOf(owner.id, 'rule', rule.name);
   return [
-    ...section(DescriptionSection, 'description', {
-      element,
-      field: rule.description,
-    }),
     ...section(ChangeListSection, 'scenarios', {
       element,
       title: 'Scenarios',
       kind: 'scenario',
       items: partItems(rulePath, 'scenario', rule.scenarios),
+    }),
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: rule.description,
     }),
   ];
 };
