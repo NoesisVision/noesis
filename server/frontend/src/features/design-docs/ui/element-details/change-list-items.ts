@@ -8,7 +8,6 @@ import type {
   DesignedPropertyInput,
   DesignedResultInput,
   DesignedRuleInput,
-  DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { valueOf } from '../../design-doc-field.ts';
@@ -19,7 +18,7 @@ import { refAddressOf } from './ref-address.ts';
 /*
  * What a list section shows, one line per thing the design touches: what it
  * does to it, how it reads, the row of the tree it opens, if any, and — for a
- * property, an input or an output — the description the design gives it.
+ * property, a rule, an input or an output — the description the design gives it.
  */
 export interface ChangeListItem {
   change: OutlineChange;
@@ -139,15 +138,19 @@ export const childItems = (
       path: child.path,
     }));
 
-/** Rules or scenarios, by name. */
-export const partItems = (
+/** Rules, each by its name with the description the design gives it. */
+export const ruleItems = (
   owner: string,
-  kind: 'rule' | 'scenario',
-  set:
-    | ChangeSetInput<DesignedRuleInput | DesignedScenarioInput, string>
-    | undefined,
+  set: ChangeSetInput<DesignedRuleInput, string> | undefined,
 ): ChangeListItem[] =>
-  [...changed(set)].map(([part, change]) => {
-    const name = typeof part === 'string' ? part : part.name;
-    return { change, label: name, path: partPathOf(owner, kind, name) };
+  [...changed(set)].map(([rule, change]) => {
+    if (typeof rule === 'string')
+      return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
+    const description = valueOf(rule.description)?.trim();
+    return {
+      change,
+      label: rule.name,
+      path: partPathOf(owner, 'rule', rule.name),
+      ...(description ? { description } : {}),
+    };
   });

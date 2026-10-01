@@ -6,9 +6,9 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
-import type { ChangeListItem } from '../change-list-items.ts';
-import { useElementNavigation } from '../element-navigation.ts';
-import type { ElementRef } from '../element-ref.ts';
+import type { ChangeListItem } from '../../change-list-items.ts';
+import { useElementNavigation } from '../../element-navigation.ts';
+import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 import { Ref, shortName } from './ref.tsx';
 import classes from './change-list-section.module.css';
@@ -35,7 +35,8 @@ export function ChangeListSection({
   const { has, select } = useElementNavigation();
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
-  const sortKey = (label: string) => (qualified ? shortName(label) : label);
+  const sortKey = (label: string) =>
+    qualified ? shortName(label).type : label;
   const sorted = [...items].sort((a, b) =>
     sortKey(a.label).localeCompare(sortKey(b.label)),
   );

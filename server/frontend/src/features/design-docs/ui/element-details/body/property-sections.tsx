@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { DesignedPropertyInput } from '#backend/app/design-docs/design-doc.ts';
-import type { ElementRef, OwnerRef } from './element-ref.ts';
+import type { ElementRef, OwnerRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
 import { PropertySignatureSection } from './sections/property-signature-section.tsx';

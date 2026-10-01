@@ -67,7 +67,7 @@
   gap: var(--mantine-spacing-xs);
   align-items: center;
   min-height: 1.75rem;
-  padding: 2px var(--mantine-spacing-xs) 2px 2px;
+  padding: 6px var(--mantine-spacing-xs) 6px 2px;
   border-radius: var(--mantine-radius-sm);
   /* A click reads the row, so it says it can be clicked; and a second click
      opens it, which should not leave the name half-selected behind it. */

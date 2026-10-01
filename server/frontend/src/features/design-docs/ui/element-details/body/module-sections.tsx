@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignedDomainModuleInput } from '#backend/app/design-docs/design-doc.ts';
+import type { ElementRef } from '../element-ref.ts';
 import { childSections } from './child-sections.tsx';
-import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
 

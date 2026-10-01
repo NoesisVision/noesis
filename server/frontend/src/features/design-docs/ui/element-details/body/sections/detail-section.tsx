@@ -11,7 +11,7 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import {
   type DesignDocFieldInput,
   isHumanAuthored as humanAuthored,
-} from '../../../design-doc-field.ts';
+} from '../../../../design-doc-field.ts';
 import classes from './detail-section.module.css';
 
 interface DetailSectionProps

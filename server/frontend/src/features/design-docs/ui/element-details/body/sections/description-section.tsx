@@ -5,8 +5,8 @@ import {
   type DesignDocFieldInput,
   isUnchanged,
   valueOf,
-} from '../../../design-doc-field.ts';
-import type { ElementRef } from '../element-ref.ts';
+} from '../../../../design-doc-field.ts';
+import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 
 interface DescriptionSectionProps {

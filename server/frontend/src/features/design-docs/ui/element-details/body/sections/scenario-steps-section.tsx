@@ -5,8 +5,8 @@ import { Center } from '#/shared/design-system/center.tsx';
 import { DataList } from '#/shared/design-system/data-list.tsx';
 import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
-import type { ElementRef } from '../element-ref.ts';
-import { Field } from '../field.tsx';
+import type { ElementRef } from '../../element-ref.ts';
+import { Field } from '../../field.tsx';
 import { DetailSection } from './detail-section.tsx';
 
 interface ScenarioStepsSectionProps {
@@ -21,12 +21,25 @@ interface ScenarioStepsSectionProps {
 export function ScenarioStepsSection({ scenario }: ScenarioStepsSectionProps) {
   return (
     <DetailSection title="Scenario">
+      <ScenarioSteps scenario={scenario} />
+    </DetailSection>
+  );
+}
+
+/** Given, when, then, one under the other. */
+export function ScenarioSteps({
+  scenario,
+}: {
+  scenario: DesignedScenarioInput;
+}) {
+  return (
+    <>
       <Case label="Given" field={scenario.given} />
       <Separator />
       <Case label="When" field={scenario.when} />
       <Separator />
       <Case label="Then" field={scenario.then} />
-    </DetailSection>
+    </>
   );
 }
 

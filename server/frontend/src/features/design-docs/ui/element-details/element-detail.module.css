@@ -49,3 +49,23 @@ h2.name {
     border-radius: var(--mantine-radius-xs);
   }
 }
+
+/*
+ * Sections on the left, scenarios on the right — once the panel is wide
+ * enough for two columns to be read; under that, the scenarios follow.
+ */
+.body {
+  container-type: inline-size;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-md);
+}
+
+@container (min-width: 44rem) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}

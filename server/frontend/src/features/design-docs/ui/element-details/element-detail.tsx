@@ -11,7 +11,9 @@ import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../design-doc-field.ts';
-import { bodySections } from './body-sections.tsx';
+import { bodySections } from './body/body-sections.tsx';
+import { ScenarioColumn } from './body/scenario-column.tsx';
+import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
@@ -49,6 +51,9 @@ export function ElementDetail({
     node.kind === 'behaviour' && node.elementId
       ? valueOf(findById(doc.behaviours, node.elementId)?.visibility)
       : null;
+  // Scenarios read beside the sections, not as one more of them.
+  const scenarios = scenariosOf(node, doc);
+  const withScenarios = scenarios.length > 0;
   return (
     <Stack gap="sm">
       <DetailBreadcrumb path={path} onSelect={onSelect} />
@@ -75,14 +80,20 @@ export function ElementDetail({
       </Box>
       <Divider />
       <ElementNavigationContext.Provider value={navigation}>
-        <Fragment key={node.path}>
-          {bodySections(node, doc, tree).map((section, index) => (
-            <Fragment key={section.key}>
-              {index > 0 && <Divider />}
-              {section}
-            </Fragment>
-          ))}
-        </Fragment>
+        {/* A container of its own: a grid cannot ask how wide it is itself. */}
+        <Box key={node.path} className={classes.body}>
+          <Box className={withScenarios ? classes.columns : undefined}>
+            <Stack gap="sm">
+              {bodySections(node, doc, tree).map((section, index) => (
+                <Fragment key={section.key}>
+                  {index > 0 && <Divider />}
+                  {section}
+                </Fragment>
+              ))}
+            </Stack>
+            {withScenarios && <ScenarioColumn scenarios={scenarios} />}
+          </Box>
+        </Box>
       </ElementNavigationContext.Provider>
     </Stack>
   );

@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
-import { childItems } from './change-list-items.ts';
-import type { ElementRef } from './element-ref.ts';
+import { childItems } from '../change-list-items.ts';
+import type { ElementRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
 

@@ -3,10 +3,10 @@ import type { BuildingBlockRefInput } from '#backend/app/system-model/system-mod
 import {
   type DesignDocFieldInput,
   valueOf,
-} from '../../../design-doc-field.ts';
-import type { ElementRef } from '../element-ref.ts';
-import { Field } from '../field.tsx';
-import { refAddressOf } from '../ref-address.ts';
+} from '../../../../design-doc-field.ts';
+import type { ElementRef } from '../../element-ref.ts';
+import { Field } from '../../field.tsx';
+import { refAddressOf } from '../../ref-address.ts';
 import { DetailSection } from './detail-section.tsx';
 
 interface PropertySignatureSectionProps {
