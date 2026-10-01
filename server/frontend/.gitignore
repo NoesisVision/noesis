@@ -4,3 +4,11 @@ node_modules
 .env
 .tanstack
 dist
+
+# design-sync (claude.ai/design) build output and machine state
+.ds-sync/
+.ds-pkg/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules

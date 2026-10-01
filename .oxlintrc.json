@@ -12,7 +12,8 @@
     "server/frontend/src/routeTree.gen.ts",
     "docs/**/prior-art/**",
     "docs/**/prototypes/**",
-    "examples/**"
+    "examples/**",
+    "server/frontend/.design-sync/**"
   ],
   "settings": {
     "boundaries/include": [
