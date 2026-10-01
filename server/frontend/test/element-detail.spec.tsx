@@ -98,6 +98,7 @@ const document = {
     added: [
       {
         id: 'behavior|pay.Hold.place',
+        description: plain('Holds a card for a booking.'),
         input: {
           added: [
             {
@@ -186,6 +187,14 @@ const outline: OutlineNode[] = [
     elementId: null,
     kind: 'scenario',
     name: 'A hold settles',
+    depth: 2,
+    change: 'added',
+  }),
+  node({
+    path: 'behavior|pay.Hold.place',
+    parentPath: 'building_block|pay.Hold',
+    kind: 'behaviour',
+    name: 'place',
     depth: 2,
     change: 'added',
   }),
@@ -412,6 +421,24 @@ describe('ElementDetail', () => {
     expect(valueOf(entries[1]!.scenario?.then)).toBe('the hold is released');
     // A rule's own scenario says whose it is.
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
+  });
+
+  it("reads each of a block's behaviours with what it takes, gives and is", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Behaviours<');
+    // Its kind's icon and its name, which opens its row.
+    expect(html).toMatch(
+      /<button[^>]*><svg[^>]*tabler-icon[^>]*>.*?<\/svg>(<[^>]+>)*place</,
+    );
+    expect(html).toContain('>amount: Money<');
+    expect(html).toContain('What to hold.');
+    expect(html).toContain('Holds a card for a booking.');
+  });
+
+  it('lists a behaviour the design only removes by its name alone', () => {
+    const html = show('building_block|pay.Voucher');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>|<svg.*?<\/svg>)*redeem</);
+    expect(html).not.toContain('>Input<');
   });
 
   it('gives an element without scenarios no column for them', () => {

@@ -30,14 +30,14 @@ export const bodySections = (
       }),
       // The document names only the element; whatever went with it is still
       // a row in the tree, and worth listing.
-      ...sectionsUnder(node, tree),
+      ...sectionsUnder(node, tree, doc),
     ];
   }
   if (node.elementId === null) return partSections(node, doc);
   const module = findById(doc.modules, node.elementId);
-  if (module) return moduleSections(module, tree);
+  if (module) return moduleSections(module, tree, doc);
   const block = findById(doc.buildingBlocks, node.elementId);
-  if (block) return buildingBlockSections(block, tree);
+  if (block) return buildingBlockSections(block, tree, doc);
   const behaviour = findById(doc.behaviours, node.elementId);
   if (behaviour) return behaviourSections(behaviour);
   // Named by no change set, the element is only here for what is under it,
@@ -47,7 +47,7 @@ export const bodySections = (
       children:
         'This design does not change it; it is here because the elements under it are.',
     }),
-    ...sectionsUnder(node, tree),
+    ...sectionsUnder(node, tree, doc),
   ];
 };
 
@@ -59,6 +59,7 @@ export const bodySections = (
 const sectionsUnder = (
   node: OutlineNode,
   tree: OutlineTree,
+  doc: DesignDocumentInput,
 ): ReactElement[] => {
   if (node.elementId === null) return [];
   const element: ElementRef = {
@@ -70,5 +71,5 @@ const sectionsUnder = (
           : 'buildingBlocks',
     id: node.elementId,
   };
-  return childSections(element, node.kind, node.path, tree);
+  return childSections(element, node.kind, node.path, tree, doc);
 };

@@ -27,9 +27,24 @@ export function InputOutputSection({ input, output }: InputOutputSectionProps) {
       title="Input / Output"
       icon={<KindIcon kind="building_block" pattern={null} />}
     >
+      <InputOutputLists input={input} output={output} />
+    </DetailSection>
+  );
+}
+
+/** The two lists alone, for a section that reads a behaviour among others. */
+export function InputOutputLists({
+  input,
+  output,
+}: {
+  input: ChangeListItem[];
+  output: ChangeListItem[];
+}) {
+  return (
+    <>
       <Items label="Input" items={input} />
       <Items label="Output" items={output} />
-    </DetailSection>
+    </>
   );
 }
 

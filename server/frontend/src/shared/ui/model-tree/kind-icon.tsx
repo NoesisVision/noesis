@@ -2,7 +2,6 @@ import {
   IconActivity,
   IconAssembly,
   IconBlocks,
-  IconBolt,
   IconCircleLetterC,
   IconCircleLetterE,
   IconCircleLetterQ,

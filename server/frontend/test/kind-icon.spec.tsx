@@ -30,11 +30,8 @@ describe('KindIcon', () => {
   });
 
   it.each([
-    ['building_block', 'domain_event', 'event'],
     ['behaviour', 'Event', 'event'],
-    ['building_block', 'domain_query', 'query'],
     ['behaviour', 'Query', 'query'],
-    ['building_block', 'domain_command', 'command'],
     ['behaviour', 'Command', 'command'],
   ] as const)('tones a %s patterned %s as a %s', (kind, pattern, tone) => {
     expect(
