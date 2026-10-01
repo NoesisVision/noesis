@@ -10,7 +10,7 @@ import type { ChangeListItem } from '../change-list-items.ts';
 import { useElementNavigation } from '../element-navigation.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { Ref } from './ref.tsx';
+import { Ref, shortName } from './ref.tsx';
 import classes from './change-list-section.module.css';
 
 interface ChangeListSectionProps {
@@ -33,7 +33,12 @@ export function ChangeListSection({
   items,
 }: ChangeListSectionProps) {
   const { has, select } = useElementNavigation();
-  const sorted = [...items].sort((a, b) => a.label.localeCompare(b.label));
+  // Building blocks go by qualified names, read by their last segment.
+  const qualified = kind === 'building_block';
+  const sortKey = (label: string) => (qualified ? shortName(label) : label);
+  const sorted = [...items].sort((a, b) =>
+    sortKey(a.label).localeCompare(sortKey(b.label)),
+  );
 
   return (
     <DetailSection title={title} icon={<KindIcon kind={kind} pattern={null} />}>
@@ -72,10 +77,15 @@ export function ChangeListSection({
                   <span className={classes.mark} aria-hidden="true">
                     <IconLink size={12} />
                   </span>
-                  <Ref change={change} name={label} interactive />
+                  <Ref
+                    change={change}
+                    name={label}
+                    interactive
+                    qualified={qualified}
+                  />
                 </UnstyledButton>
               ) : (
-                <Ref change={change} name={label} />
+                <Ref change={change} name={label} qualified={qualified} />
               )}
               {/* A span: the item's label is one, and holds phrasing only. */}
               {description !== undefined && (
