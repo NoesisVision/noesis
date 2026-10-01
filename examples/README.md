@@ -8,12 +8,14 @@ submodules; nothing in them builds as part of this monorepo.
 
 | Directory           | What it is                                                                                                                                                                                                                                                                                                                                                   | Knowledge graph                                                                                                                                      |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `discounts-java/`   | Gradle, Java 25. Domain types carry `vision.noesis.annotations` stereotypes (`@ValueObject`, `@DomainService`, `@Port`, `@Adapter`).                                                                                                                                                                                                                         | One change, `weather-based-discount`, with its sealed design document, the spec and the handover notes of the loop test.                             |
+| `discounts-java/`   | Gradle, Java 25. Domain types carry `vision.noesis.annotations` stereotypes (`@ValueObject`, `@DomainService`, `@Port`, `@Adapter`).                                                                                                                                                                                                                         | One change, `weather-based-discount`, with its sealed design document, the spec and the handover notes of the loop test; one scanned system model.   |
 | `discounts-dotnet/` | .NET 8, one solution. The `Sales` domain of the [itlibrium DDD starter](https://github.com/itlibrium/DDD-starter-dotnet), annotated with `NoesisVision.Annotations` attributes: orders, pricing, discounts, offers, products, clients, plus its unit tests and the one `TechnicalStuff` project it compiles against. No adapters, persistence or migrations. | One change, `threshold-activated-discount`: its design document, the sales spec and the review meeting notes.                                        |
 | `qdoc-java/`        | No code yet: the business requirements for drafting quality documents (QDocs), from a domain discovery session.                                                                                                                                                                                                                                              | One change, `qdoc-preparation`: the requirements document and two alternative design documents, small aggregates linked by id or one QDoc aggregate. |
 
-Only the knowledge graph is read today. Scanning the code comes back once the
-code model is finished; the annotations are already in place for it.
+The Java example also carries the system model the `java` scanner found in
+its code (`.noesis/graph/system-models/`); `test/integration/java-scanner-discounts.spec.ts`
+keeps the scanner finding exactly that model. The .NET example is read for
+its knowledge graph only until a C# scanner exists.
 
 ## Trying the app on an example
 
@@ -60,7 +62,9 @@ claude --plugin-dir ../../plugins/claude-code
 ```
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
-`NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
+`NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout;
+`discounts-java` also sets `NOESIS_SCANNER=java`, so `scan_system_model` there
+reads the code rather than replaying design documents.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.

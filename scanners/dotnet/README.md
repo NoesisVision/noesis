@@ -16,11 +16,12 @@ Constraints already settled that apply here when work starts:
 - **Layout**: a self-contained subtree with its own toolchain, outside the
   bun workspace, like `scanners/java` with its `pom.xml`.
   CI would get its own gated job the way `java-scanner` has one.
-- **Integration**: not with this migration. The service runs only the
-  TypeScript scanner in `server/backend`; how an external scanner's output
-  feeds `.noesis/graph/system-models/` is a later decision, once that file format
-  settles. Until then a .NET scanner would
-  be standalone, writing a graph file as the Java one does.
+- **Integration**: not with this migration. The service runs the primitive
+  scanners in `server/backend/src/adapters/out/scanners/` (Java today, C# a
+  stub), which write the `SystemModel` schema directly; how an external
+  scanner's output feeds `.noesis/graph/system-models/` is a later decision.
+  Until then a .NET scanner would be standalone, writing a graph file as
+  the Java one does.
 - **Engine and enrichment**: open. The Java scanner's split (a bytecode-level
   importer for structure, a source-level pass for positions and comments)
   is the pattern to weigh, not a given.

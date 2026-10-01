@@ -8,7 +8,7 @@ const SCANNERS: Record<
   ScannerName,
   (deps: DummyScannerDeps) => SourceCodeScanner
 > = {
-  java: () => new JavaSourceCodeScanner(),
+  java: (deps) => new JavaSourceCodeScanner(deps),
   csharp: () => new CSharpSourceCodeScanner(),
   dummy: (deps) => new DummySourceCodeScanner(deps),
 };

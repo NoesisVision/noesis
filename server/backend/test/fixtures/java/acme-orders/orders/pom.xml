@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<project>
+  <!-- <artifactId>commented-out</artifactId> -->
+  <parent>
+    <groupId>com.acme</groupId>
+    <artifactId>acme-parent</artifactId>
+  </parent>
+  <groupId>com.acme</groupId>
+  <artifactId>acme-orders</artifactId>
+  <dependencies>
+    <dependency><artifactId>junit</artifactId></dependency>
+  </dependencies>
+</project>

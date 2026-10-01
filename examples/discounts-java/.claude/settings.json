@@ -6,6 +6,7 @@
   },
   "env": {
     "NOESIS_SERVICE_COMMAND": "bun",
-    "NOESIS_SERVICE_ENTRY": "../../server/backend/src/main.ts"
+    "NOESIS_SERVICE_ENTRY": "../../server/backend/src/main.ts",
+    "NOESIS_SCANNER": "java"
   }
 }
