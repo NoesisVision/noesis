@@ -198,14 +198,7 @@ describe('The elements a design changes', () => {
     });
   });
 
-  it('never modifies an implemented interface, an input or an output: it removes one and adds another', () => {
-    const modifying = (part: string) =>
-      design({
-        behaviours: {
-          modified: [{ id: ISSUE, [part]: { modified: [REFUND] } }],
-        },
-      });
-
+  it('never modifies an implemented interface: it removes one and adds another', () => {
     expect(
       isValid(
         design({
@@ -215,8 +208,46 @@ describe('The elements a design changes', () => {
         }),
       ),
     ).toBe(false);
-    expect(isValid(modifying('input'))).toBe(false);
-    expect(isValid(modifying('output'))).toBe(false);
+  });
+
+  it('knows an input by its name and an output by its type', () => {
+    const parsed = DesignDocument.parse(
+      design({
+        behaviours: {
+          modified: [
+            {
+              id: ISSUE,
+              input: {
+                removed: ['note'],
+                modified: [{ name: 'reason', optional: { value: true } }],
+              },
+              output: {
+                removed: ['primitive|boolean'],
+                modified: [{ type: REFUND, description: { value: 'Issued.' } }],
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const issue = parsed.behaviours.modified[0]!;
+
+    expect(issue.input.removed).toEqual(['note']);
+    expect(issue.input.modified[0]?.name).toBe('reason');
+    expect<unknown[]>(issue.output.removed).toEqual(['primitive|boolean']);
+    expect<unknown>(issue.output.modified[0]?.type).toBe(REFUND);
+  });
+
+  it('names every input and no output', () => {
+    expect(
+      isValid(addingIssue({ input: { added: [{ type: { value: REFUND } }] } })),
+    ).toBe(false);
+    expect(
+      isValid(
+        addingIssue({ output: { added: [{ name: 'refund', type: REFUND }] } }),
+      ),
+    ).toBe(false);
+    expect(isValid(addingIssue({ input: { removed: [REFUND] } }))).toBe(false);
   });
 
   it('classifies a building block, a behaviour and a rule only by the known types', () => {
@@ -313,13 +344,31 @@ describe('The type of a property, an input or an output', () => {
     expect(
       isValid(
         addingIssue({
-          input: { added: [{ collectionOf: 'building_block|sales.Line' }] },
-          output: { added: ['primitive|uuid'] },
+          input: {
+            added: [
+              {
+                name: 'lines',
+                type: { value: { collectionOf: 'building_block|sales.Line' } },
+              },
+            ],
+          },
+          output: { added: [{ type: 'primitive|uuid' }] },
         }),
       ),
     ).toBe(true);
     expect(
-      isValid(addingIssue({ input: { added: ['primitive|money'] } })),
+      isValid(
+        addingIssue({
+          input: {
+            added: [{ name: 'total', type: { value: 'primitive|money' } }],
+          },
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        addingIssue({ output: { added: [{ type: 'primitive|money' }] } }),
+      ),
     ).toBe(false);
   });
 });
@@ -360,7 +409,7 @@ describe('A design document an agent wrote', () => {
   /**
    * What the scanner found: the orders module; its Order, which implements
    * Auditable, has a total and a rule with one scenario; and Order.cancel,
-   * which takes an Order.
+   * which takes an order and returns a boolean.
    */
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
@@ -400,7 +449,8 @@ describe('A design document an agent wrote', () => {
         name: 'cancel',
         type: 'Command',
         visibility: { kind: 'private' },
-        input: [ORDER],
+        input: [{ name: 'order', type: ORDER }],
+        output: [{ type: 'primitive|boolean' }],
         source,
       },
     ],
@@ -530,7 +580,15 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: CANCEL,
-                  input: { removed: [ORDER] },
+                  input: { removed: ['order'] },
+                  output: {
+                    modified: [
+                      {
+                        type: 'primitive|boolean',
+                        description: { value: 'Whether it was cancelled.' },
+                      },
+                    ],
+                  },
                 },
               ],
             },
@@ -568,8 +626,8 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: CANCEL,
-                  output: { removed: ['primitive|boolean'] },
-                  input: { removed: [{ collectionOf: ORDER }] },
+                  output: { removed: [{ collectionOf: ORDER }] },
+                  input: { removed: ['orders'] },
                 },
               ],
             },
@@ -594,11 +652,11 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].input.removed[{"collectionOf":"${ORDER}"}]`,
+          path: `behaviours.modified[${CANCEL}].input.removed[orders]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].output.removed[primitive|boolean]`,
+          path: `behaviours.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
           reason: 'unknownElement',
         },
       ]);

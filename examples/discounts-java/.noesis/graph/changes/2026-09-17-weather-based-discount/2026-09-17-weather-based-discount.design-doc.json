@@ -301,7 +301,15 @@
         },
         "output": {
           "added": [
-            "building_block|discounts.weather.Weather"
+            {
+              "type": "building_block|discounts.weather.Weather",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -327,7 +335,15 @@
         },
         "output": {
           "added": [
-            "building_block|discounts.weather.Weather"
+            {
+              "type": "building_block|discounts.weather.Weather",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "rules": {
@@ -410,12 +426,31 @@
         },
         "input": {
           "added": [
-            "building_block|discounts.calculation.DiscountedOffer"
+            {
+              "name": "discountedOffer",
+              "type": {
+                "value": "building_block|discounts.calculation.DiscountedOffer"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|discounts.calculation.DiscountedOffer"
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -441,7 +476,18 @@
         },
         "input": {
           "added": [
-            "building_block|discounts.calculation.Conditions"
+            {
+              "name": "conditions",
+              "type": {
+                "value": "building_block|discounts.calculation.Conditions"
+              },
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "rules": {
@@ -554,7 +600,15 @@
         },
         "output": {
           "added": [
-            "building_block|discounts.calculation.PercentageDiscount"
+            {
+              "type": "building_block|discounts.calculation.PercentageDiscount",
+              "description": {
+                "value": ""
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       }

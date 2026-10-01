@@ -35,6 +35,24 @@ export const DesignedProperty = z.strictObject({
 });
 export type DesignedProperty = z.infer<typeof DesignedProperty>;
 
+export const DesignedParameter = z.strictObject({
+  name: ElementName,
+  type: DesignDocField(BuildingBlockRef),
+  description: DesignDocField(z.string()),
+  optional: DesignDocField(z.boolean()),
+});
+export type DesignedParameter = z.infer<typeof DesignedParameter>;
+
+/** What a behaviour gives back: it has no name, so its type is its key. */
+export const DesignedResult = z.strictObject({
+  type: BuildingBlockRef.describe(
+    'What the behaviour gives back, which is also how the design names it: a changed type is one result removed and another added.',
+  ),
+  description: DesignDocField(z.string()),
+  optional: DesignDocField(z.boolean()),
+});
+export type DesignedResult = z.infer<typeof DesignedResult>;
+
 export const DesignedRule = z.strictObject({
   name: ElementName,
   ruleType: DesignDocField(RuleType),
@@ -68,8 +86,8 @@ export const DesignedBehaviour = z.strictObject({
   type: DesignDocField(BehaviourType),
   description: DesignDocField(z.string()),
   visibility: DesignDocField(Visibility),
-  input: changeSet(BuildingBlockRef),
-  output: changeSet(BuildingBlockRef),
+  input: changeSet(DesignedParameter, ElementName),
+  output: changeSet(DesignedResult, BuildingBlockRef),
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),
 });
@@ -147,6 +165,8 @@ export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
 export type DesignedBehaviourInput = z.input<typeof DesignedBehaviour>;
 export type DesignedPropertyInput = z.input<typeof DesignedProperty>;
+export type DesignedParameterInput = z.input<typeof DesignedParameter>;
+export type DesignedResultInput = z.input<typeof DesignedResult>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
 export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
 
@@ -329,5 +349,7 @@ function keyOf(item: unknown): string {
   if (typeof item !== 'object' || item === null) return String(item);
   if ('id' in item && typeof item.id === 'string') return item.id;
   if ('name' in item && typeof item.name === 'string') return item.name;
+  // A behaviour's result, designed or scanned, is known by its type.
+  if ('type' in item) return keyOf(item.type);
   return JSON.stringify(item);
 }

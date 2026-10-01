@@ -99,6 +99,18 @@ export const ScannedProperty = z.strictObject({
 });
 export type ScannedProperty = z.infer<typeof ScannedProperty>;
 
+export const ScannedParameter = z.strictObject({
+  name: ElementName,
+  type: BuildingBlockRef,
+  description: z.string().nullable().default(null),
+  optional: z.boolean().default(false),
+});
+export type ScannedParameter = z.infer<typeof ScannedParameter>;
+
+/** What a behaviour gives back: known by its type, as it has no name. */
+export const ScannedResult = ScannedParameter.omit({ name: true });
+export type ScannedResult = z.infer<typeof ScannedResult>;
+
 export const ScannedScenario = z.strictObject({
   name: ElementName,
   description: z.string(),
@@ -145,8 +157,8 @@ export const ScannedBehaviour = z.strictObject({
   type: BehaviourType,
   description: z.string().nullable().default(null),
   visibility: Visibility,
-  input: z.array(BuildingBlockRef).default([]),
-  output: z.array(BuildingBlockRef).default([]),
+  input: z.array(ScannedParameter).default([]),
+  output: z.array(ScannedResult).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,

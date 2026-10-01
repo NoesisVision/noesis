@@ -83,6 +83,9 @@ Decide what a table stands for before modelling its rows:
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
+- An input has the name the behaviour takes it under (`reason`, not
+  `string`), a description and whether it may be left out. An output has
+  no name: it is its type, a description and whether it may be absent.
 - The description tells an implementer what to build: the input, the
   preconditions, the steps, the output and the edge cases.
 - When a behaviour coordinates three or more building blocks, or is the

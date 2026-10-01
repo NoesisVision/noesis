@@ -92,21 +92,23 @@ it at step 5.
    element and every part of one (property, rule, scenario, input, output,
    `implements` entry), ask whether the system model has it:
    - **Not in the model:** `added`, with every field given a value.
-   - **In the model and changed:** `modified`, with its id (a part's name)
-     and only the fields that change. Its `description` is always a change
-     note: `"Change note: "`, then what changes and why, so a reader sees
-     why the element is in the diff.
-   - **In the model and retired:** `removed`, by id (a part by name). Remove
-     a building block's behaviours with it.
+   - **In the model and changed:** `modified`, with its id (a part's name,
+     an output's type) and only the fields that change. Its `description`
+     is always a change note: `"Change note: "`, then what changes and why,
+     so a reader sees why the element is in the diff.
+   - **In the model and retired:** `removed`, by id (a part by name, an
+     output by type). Remove a building block's behaviours with it.
    - **In the model and unchanged:** leave it out, even when the design
      refers to it. A reference resolves against the model.
 
    Nesting follows the same questions: inside an `added` element everything
    is added; a `modified` building block lists only the properties, rules
-   and scenarios that change. `input`, `output` and `implements` have no
-   `modified`: a changed entry is removed and added. A rename of an element
-   in the model is a removal of the old id and an addition of the new one,
-   and every reference to the old id moves to the new one.
+   and scenarios that change. A behaviour's input is a part known by its
+   name, like a property; an output has no name and is known by its `type`,
+   so an output of another type is one removed and one added. `implements`
+   has no `modified`: a changed entry is removed and added. A rename of an
+   element in the model is a removal of the old id and an addition of the
+   new one, and every reference to the old id moves to the new one.
 
 7. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `create_design_doc_in_change`, of
@@ -118,8 +120,8 @@ it at step 5.
    paragraph), `modules`, `buildingBlocks` and `behaviours`. No `id`, no
    `implemented`. Write every field as `{ "value": … }` and never with
    `author`: you are the agent. Leave out a change set with nothing in it.
-   Before saving, check that every reference — property `type`, behaviour
-   `input` and `output`, `implements` — names a building block this design
+   Before saving, check that every reference — the `type` of a property, an
+   input or an output, `implements` — names a building block this design
    adds or modifies, one the system model has, or a primitive, and that
    nothing refers to an id the design removes.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and

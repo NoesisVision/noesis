@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
-import { partItems, refItems } from './change-list-items.ts';
+import { parameterItems, partItems, resultItems } from './change-list-items.ts';
 import type { ElementRef } from './element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
@@ -19,13 +19,13 @@ export const behaviourSections = (
       element,
       title: 'Input',
       kind: 'building_block',
-      items: refItems(behaviour.input),
+      items: parameterItems(behaviour.input),
     }),
     ...section(ChangeListSection, 'output', {
       element,
       title: 'Output',
       kind: 'building_block',
-      items: refItems(behaviour.output),
+      items: resultItems(behaviour.output),
     }),
     ...section(ChangeListSection, 'rules', {
       element,
