@@ -50,7 +50,7 @@ export interface OutlineNode {
 /**
  * The order a reader meets a module's building blocks in: what the outside
  * calls, then how instances come and go, then the boundary, then the model
- * itself, then the messages. Deliberately not alphabetical — the sequence is
+ * itself. Deliberately not alphabetical — the sequence is
  * how the design is taught, so it belongs with the model rather than with the
  * view that draws it.
  *
@@ -66,9 +66,6 @@ const BUILDING_BLOCK_READING_ORDER = [
   'aggregate',
   'entity',
   'value_object',
-  'domain_command',
-  'domain_query',
-  'domain_event',
 ] as const;
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */

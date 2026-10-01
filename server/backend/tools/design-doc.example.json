@@ -138,7 +138,7 @@
           "value": "RefundIssued"
         },
         "type": {
-          "value": "domain_event"
+          "value": "value_object"
         },
         "description": {
           "value": "Tells the ledger a refund went out."
