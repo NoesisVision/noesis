@@ -1,13 +1,13 @@
-import { z } from 'zod';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { Change } from './change';
-import { ChangeId } from './change-id';
+import type { ChangeId } from './change-id';
 import { type ChangesRepository, getChangeOrThrow } from './changes.repository';
 
 /** A change to remove, with everything it owns. */
-export const DeleteChange = z.object({ id: ChangeId });
-export type DeleteChange = z.infer<typeof DeleteChange>;
+interface DeleteChange {
+  id: ChangeId;
+}
 
 /** Answers with the change as it was before it went. */
 export type DeleteChangeHandler = Handler<DeleteChange, Change>;
