@@ -130,7 +130,7 @@ export const designDocFixture = {
       {
         id: 'building_block|sales.refunds.RefundIssued',
         name: byAgent('RefundIssued'),
-        type: byAgent('domain_event'),
+        type: byAgent('value_object'),
         description: byAgent('Tells the ledger a refund went out.'),
         implements: noAdditions,
         properties: noChanges,

@@ -136,7 +136,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -1214,7 +1214,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_command",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -1342,7 +1342,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_command",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -1434,7 +1434,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -1582,7 +1582,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -1694,7 +1694,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3275,7 +3275,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_command",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3422,7 +3422,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3500,7 +3500,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3576,7 +3576,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3615,7 +3615,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3673,7 +3673,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3749,7 +3749,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3825,7 +3825,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3937,7 +3937,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -3976,7 +3976,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -4603,7 +4603,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_command",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -4713,7 +4713,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_command",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -5066,7 +5066,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -5142,7 +5142,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -5218,7 +5218,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -6004,7 +6004,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -6080,7 +6080,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {
@@ -6138,7 +6138,7 @@
         },
         "type": {
           "changed": true,
-          "value": "domain_event",
+          "value": "value_object",
           "author": "agent"
         },
         "description": {

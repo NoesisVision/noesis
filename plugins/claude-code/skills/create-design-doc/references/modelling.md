@@ -33,13 +33,10 @@ For a new one:
   Equal by identity; its behaviours change state and guard invariants.
 - `value_object`: a concept without identity. Immutable, validated on
   creation, rich in meaning (calculations, formatting) rather than a bag of
-  primitives.
-- `domain_event`: an immutable record of something meaningful that
-  happened. Named in the past tense; carries the minimum its subscribers
-  need.
-- `domain_command`: a request to change the domain, named in the
-  imperative.
-- `domain_query`: a request to read the domain.
+  primitives. Messages are value objects too: an event records something
+  meaningful that happened, is named in the past tense and carries the
+  minimum its subscribers need; a command is a request to change the
+  domain, named in the imperative; a query is a request to read it.
 - `domain_service`: a stateless operation that fits no entity or value
   object. Takes and returns domain concepts; owns no state.
 - `application_service`: orchestrates use cases — calls aggregates, domain
