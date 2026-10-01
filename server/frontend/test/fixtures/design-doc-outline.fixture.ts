@@ -95,7 +95,7 @@ export const changedEverywhereFixture = {
       },
       {
         id: 'building_block|sales.refunds.RefundIssued',
-        type: agent('domain_event'),
+        type: agent('value_object'),
       },
       {
         id: 'building_block|sales.refunds.RefundRepository',

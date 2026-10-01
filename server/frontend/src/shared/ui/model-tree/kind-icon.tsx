@@ -40,9 +40,6 @@ const PATTERNS = [
   'aggregate',
   'entity',
   'value_object',
-  'domain_event',
-  'domain_command',
-  'domain_query',
   'domain_service',
   'application_service',
   'repository',
@@ -64,16 +61,13 @@ const PATTERN_ICONS = {
   aggregate: IconPackageExport,
   entity: IconId,
   value_object: IconDiamond,
-  domain_event: IconCircleLetterE,
-  domain_command: IconCircleLetterC,
-  domain_query: IconCircleLetterQ,
   domain_service: IconSettings,
   application_service: IconRoute,
   repository: IconDatabase,
   factory: IconAssembly,
   external_integration: IconWorld,
   Command: IconCircleLetterC,
-  Event: IconBolt, // event handler
+  Event: IconCircleLetterE, // event handler
   Query: IconCircleLetterQ,
   Consistency: IconShield,
   Structure: IconSitemap,
@@ -87,11 +81,8 @@ const PATTERN_ICONS = {
  * the rules for the selected row and the way down to it still win over it.
  */
 const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
-  domain_event: 'event',
   Event: 'event',
-  domain_query: 'query',
   Query: 'query',
-  domain_command: 'command',
   Command: 'command',
 };
 
