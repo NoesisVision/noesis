@@ -1,3 +1,5 @@
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
@@ -10,14 +12,12 @@ export function changesDir(noesis: NoesisDir): string {
 }
 
 export class NoesisChangesRepository implements ChangesRepository {
+  private readonly dir: string;
   private readonly changes: JsonCollection<Change>;
 
   constructor(noesis: NoesisDir) {
-    this.changes = new JsonCollection(
-      ChangeSchema,
-      changesDir(noesis),
-      'change',
-    );
+    this.dir = changesDir(noesis);
+    this.changes = new JsonCollection(ChangeSchema, this.dir, 'change');
   }
 
   get(id: ChangeId): Promise<Change | null> {
@@ -34,5 +34,11 @@ export class NoesisChangesRepository implements ChangesRepository {
 
   replace(change: Change): Promise<boolean> {
     return this.changes.replace(change);
+  }
+
+  async delete(id: ChangeId): Promise<boolean> {
+    if (!(await this.changes.delete(id))) return false;
+    rmSync(join(this.dir, id), { recursive: true, force: true });
+    return true;
   }
 }

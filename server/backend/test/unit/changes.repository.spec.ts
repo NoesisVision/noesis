@@ -142,4 +142,14 @@ describe('NoesisChangesRepository', () => {
     expect((await t.changesRepository.get(taken))?.name).toBe('First');
     expect(await t.changesRepository.get(missing.id)).toBeNull();
   });
+
+  it('deletes the change with its folder, and only one that is', async () => {
+    const gone = await t.writeChange('2026-01-01-gone');
+    await t.writeDesignDoc(gone, designDocFixture);
+
+    expect(await t.changesRepository.delete(gone)).toBe(true);
+    expect(await t.changesRepository.delete(gone)).toBe(false);
+
+    expect(await readdir(t.changesDir)).toEqual([]);
+  });
 });

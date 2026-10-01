@@ -89,6 +89,7 @@ describe('the MCP surface', () => {
       (tool) =>
         ![
           'list_changes',
+          'delete_change',
           'list_documents_in_change',
           'get_document_in_change',
           'scan_system_model',
@@ -102,7 +103,7 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('advertises every create as adding anew and every update as an idempotent overwrite', async () => {
+  it('advertises every create as adding anew, and every update and delete as idempotent and destructive', async () => {
     const { tools } = await client.listTools();
     for (const tool of tools.filter((t) => t.name.startsWith('create_'))) {
       expect(tool.annotations).toMatchObject({
@@ -111,7 +112,7 @@ describe('the MCP surface', () => {
         idempotentHint: false,
       });
     }
-    for (const tool of tools.filter((t) => t.name.startsWith('update_'))) {
+    for (const tool of tools.filter((t) => /^(update|delete)_/.test(t.name))) {
       expect(tool.annotations).toMatchObject({
         readOnlyHint: false,
         destructiveHint: true,
@@ -120,12 +121,13 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the eleven tools, each with an input and an output schema', async () => {
+  it('offers exactly the twelve tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'delete_change',
       'get_document_in_change',
       'get_newest_system_model',
       'list_changes',
@@ -255,6 +257,36 @@ describe('update_change', () => {
 
     expect(result.isError).toBe(true);
     expect(await noesis.listChanges.handle()).toEqual([]);
+  });
+});
+
+describe('delete_change', () => {
+  it('deletes the change with everything it holds', async () => {
+    const id = await noesis.writeChange(CHANGE, { name: 'Payment retry' });
+    await noesis.writeDesignDoc(id, designDocFixture);
+
+    const result = await client.callTool({
+      name: 'delete_change',
+      arguments: { id },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toMatchObject({
+      change: { id: CHANGE, name: 'Payment retry' },
+    });
+    expect(textOf(result)).toContain(`Deleted change ${CHANGE}`);
+    expect(await noesis.listChanges.handle()).toEqual([]);
+  });
+
+  it('answers an id that names no change in-band', async () => {
+    const result = await client.callTool({
+      name: 'delete_change',
+      arguments: { id: CHANGE },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`No change "${CHANGE}"`);
+    expect(textOf(result)).toContain('list_changes');
   });
 });
 

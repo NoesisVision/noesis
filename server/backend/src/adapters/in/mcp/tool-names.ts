@@ -2,6 +2,7 @@
 export const CREATE_CHANGE = 'create_change';
 export const UPDATE_CHANGE = 'update_change';
 export const LIST_CHANGES = 'list_changes';
+export const DELETE_CHANGE = 'delete_change';
 export const CREATE_DOCUMENT_IN_CHANGE = 'create_document_in_change';
 export const UPDATE_DOCUMENT_IN_CHANGE = 'update_document_in_change';
 export const LIST_DOCUMENTS_IN_CHANGE = 'list_documents_in_change';

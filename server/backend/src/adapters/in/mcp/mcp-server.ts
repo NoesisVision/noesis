@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import type { CreateChangeHandler } from '#backend/app/changes/create-change';
+import type { DeleteChangeHandler } from '#backend/app/changes/delete-change';
 import type { ListChangesHandler } from '#backend/app/changes/list-changes';
 import type { UpdateChangeHandler } from '#backend/app/changes/update-change';
 import type { CreateDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
@@ -16,6 +17,7 @@ import type { ToolRegistration } from './tool';
 import { createChangeTool } from './tools/create-change.tool';
 import { createDesignDocInChangeTool } from './tools/create-design-doc-in-change.tool';
 import { createDocumentInChangeTool } from './tools/create-document-in-change.tool';
+import { deleteChangeTool } from './tools/delete-change.tool';
 import { getDocumentInChangeTool } from './tools/get-document-in-change.tool';
 import { getNewestSystemModelTool } from './tools/get-newest-system-model.tool';
 import { listChangesTool } from './tools/list-changes.tool';
@@ -31,6 +33,7 @@ export interface McpServerDeps {
   sessionFiles: SessionFiles;
   createChange: CreateChangeHandler;
   updateChange: UpdateChangeHandler;
+  deleteChange: DeleteChangeHandler;
   listChanges: ListChangesHandler;
   createDocumentInChange: CreateDocumentInChangeHandler;
   updateDocumentInChange: UpdateDocumentInChangeHandler;
@@ -65,6 +68,7 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
   return [
     createChangeTool(deps.createChange, deps.sessionFiles),
     updateChangeTool(deps.updateChange, deps.sessionFiles),
+    deleteChangeTool(deps.deleteChange),
     listChangesTool(deps.listChanges),
     createDocumentInChangeTool(deps.createDocumentInChange, deps.sessionFiles),
     updateDocumentInChangeTool(deps.updateDocumentInChange, deps.sessionFiles),

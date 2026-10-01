@@ -61,3 +61,14 @@ export const UPDATE: ToolAnnotations = {
   idempotentHint: true,
   openWorldHint: false,
 };
+
+/**
+ * Removes an existing entity: calling twice removes it once, and the second
+ * call finds nothing.
+ */
+export const DELETE: ToolAnnotations = {
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: true,
+  openWorldHint: false,
+};

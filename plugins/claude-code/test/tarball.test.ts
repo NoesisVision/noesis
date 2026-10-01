@@ -157,6 +157,7 @@ test('the service the pin resolves to boots and lists tools', async () => {
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'delete_change',
       'get_document_in_change',
       'get_newest_system_model',
       'list_changes',
