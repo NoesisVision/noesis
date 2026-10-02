@@ -128,8 +128,18 @@ Decide what a table stands for before modelling its rows:
   }
   ```
 
-- Draw a building block or a module only when a picture says more than its
-  definition: the states of an aggregate (`stateDiagram-v2`), the
+- Give every aggregate an entity diagram (`erDiagram`): its root and each
+  entity and value object it holds, with their properties and the
+  cardinalities the rules set. Name it with `accTitle:` too:
+
+  ```json
+  "diagram": {
+    "value": "erDiagram\n  accTitle: Entities of the Order aggregate\n  Order {\n    OrderId id PK\n    OrderStatus status\n  }\n  OrderLine {\n    ProductId product\n    integer quantity\n  }\n  Order ||--|{ OrderLine : \"has lines\""
+  }
+  ```
+
+- Draw any other building block or a module only when a picture says more
+  than its definition: the states of an entity (`stateDiagram-v2`), the
   collaborators of a module (`flowchart`).
 
 ## Actors

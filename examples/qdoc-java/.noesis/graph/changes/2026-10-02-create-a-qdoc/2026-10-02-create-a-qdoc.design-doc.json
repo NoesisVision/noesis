@@ -80,6 +80,11 @@
           "changed": true,
           "value": "flowchart LR\n  accTitle: Subsystems taking part in creating a QDoc\n  QM([Quality manager]) -->|createQDoc| PRE[preparation]\n  PRE -->|QDocCreated| NOT[notifications]\n  NOT -->|notification| QMs([Each quality manager])",
           "author": "agent"
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
@@ -96,6 +101,11 @@
         },
         "diagram": {
           "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
@@ -112,6 +122,11 @@
         },
         "diagram": {
           "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ],
@@ -309,6 +324,9 @@
                 "changed": true,
                 "value": [],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
@@ -623,6 +641,9 @@
                 "value": [],
                 "author": "agent"
               },
+              "rationale": {
+                "changed": false
+              },
               "scenarios": {
                 "added": [],
                 "removed": [],
@@ -711,6 +732,9 @@
                 "value": [],
                 "author": "agent"
               },
+              "rationale": {
+                "changed": false
+              },
               "scenarios": {
                 "added": [],
                 "removed": [],
@@ -798,6 +822,9 @@
                 "changed": true,
                 "value": [],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [],
@@ -1579,7 +1606,7 @@
         },
         "diagram": {
           "changed": true,
-          "value": "stateDiagram-v2\n  accTitle: Statuses of a QDoc\n  [*] --> active: create\n  active --> archived: archive (UC-9)",
+          "value": "erDiagram\n  accTitle: Entities of the QDoc aggregate\n  QDoc {\n    QDocId id PK\n    QDocTitle title\n    DocumentType documentType\n    DocumentNumber documentNumber\n    QDocStatus status\n    UserId createdBy\n    datetime createdAt\n  }\n  Version {\n    integer number\n    VersionStatus status\n  }\n  ContentFile {\n    ContentFileId id PK\n    string text\n  }\n  Assignment {\n    UserId user\n    AssignmentRole role\n  }\n  QDoc ||--|{ Version : \"has versions\"\n  Version ||--|{ ContentFile : \"holds content files\"\n  Version ||--|{ Assignment : \"assigns people\"",
           "author": "agent"
         },
         "implements": {
@@ -2549,6 +2576,9 @@
                 ],
                 "author": "agent"
               },
+              "rationale": {
+                "changed": false
+              },
               "scenarios": {
                 "added": [
                   {
@@ -3027,6 +3057,9 @@
                   "start-a-qdoc"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
@@ -3672,6 +3705,9 @@
                 ],
                 "author": "agent"
               },
+              "rationale": {
+                "changed": false
+              },
               "scenarios": {
                 "added": [],
                 "removed": [],
@@ -3701,6 +3737,9 @@
                   "know-about-new-qdocs"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
