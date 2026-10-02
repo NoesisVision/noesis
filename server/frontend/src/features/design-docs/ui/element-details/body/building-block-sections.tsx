@@ -43,9 +43,10 @@ export const buildingBlockSections = (
       element,
       field: block.diagram,
     }),
-    ...section(DescriptionSection, 'description', {
+    ...section(DescriptionSection, 'definition', {
       element,
-      field: block.description,
+      title: 'Definition',
+      field: block.definition,
     }),
   ];
 };

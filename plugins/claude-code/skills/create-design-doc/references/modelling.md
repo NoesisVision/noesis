@@ -4,6 +4,14 @@ How to turn source material into modules, building blocks, behaviours,
 rules and scenarios. The design document contract says how to write them
 down; this says how to choose them.
 
+## Definitions
+
+A module, a building block and a behaviour each have a `definition`: what
+the concept is, in the language of the domain, as an entry in the system's
+glossary. A sentence or two a reader who knows no code understands. It
+defines the concept, never the change to it and never how it is built, so
+it stays true once the change ships.
+
 ## Modules
 
 - Modules form a hierarchy. A root module is a bounded context; the modules
@@ -83,11 +91,14 @@ Decide what a table stands for before modelling its rows:
 - An input has the name the behaviour takes it under (`reason`, not
   `string`), a description and whether it may be left out. An output has
   no name: it is its type, a description and whether it may be absent.
-- The description tells an implementer what to build: the input, the
-  preconditions, the steps, the output and the edge cases.
+- A behaviour's `definition` says what it does for the domain, as any
+  [definition](#definitions) does. What an implementer needs beyond that has
+  a field of its own: what goes in and out in the descriptions of the input
+  and output, preconditions in rules, edge cases in scenarios, and the steps,
+  when they matter, in the diagram.
 - A module, a building block and a behaviour each have a `diagram` field:
   the source of one Mermaid diagram, without the ` ```mermaid ` fence.
-  Never put a diagram in a `description`; the service refuses a fence there.
+  Never put a diagram in a `definition`; the service refuses a fence there.
   Leave `diagram` out when there is nothing to draw: it is the one field an
   added element may leave out.
 - When a behaviour coordinates three or more building blocks, or is the
@@ -102,7 +113,7 @@ Decide what a table stands for before modelling its rows:
   ```
 
 - Draw a building block or a module only when a picture says more than its
-  description: the states of an aggregate (`stateDiagram-v2`), the
+  definition: the states of an aggregate (`stateDiagram-v2`), the
   collaborators of a module (`flowchart`).
 
 ## Actors
@@ -136,7 +147,9 @@ true.
   behaviour when it gates that one behaviour. Never both.
 - A technical constraint — a latency target, availability, authentication,
   a timeout, a retry policy — is not a rule. State it in the description of
-  the narrowest element it constrains.
+  the narrowest part it constrains — a property, an input or an output — or,
+  when it constrains a whole element, in the design document's
+  `description`.
 
 ## Scenarios
 

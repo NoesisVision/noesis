@@ -184,7 +184,7 @@ describe('outlineOf', () => {
     ).toEqual(['behavior|sales.refunds.Refund.issue']);
   });
 
-  it('marks an element whose description still draws one in a fence', () => {
+  it('marks an element whose definition still draws one in a fence', () => {
     const fenced = outlineOf({
       id: '2026-01-01-fenced',
       name: 'Fenced',
@@ -193,7 +193,7 @@ describe('outlineOf', () => {
         added: [
           {
             id: 'module|sales',
-            description: {
+            definition: {
               value: 'Sales.\n\n```mermaid\nflowchart TD\n  A --> B\n```',
             },
           },

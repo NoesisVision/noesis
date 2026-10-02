@@ -17,7 +17,7 @@ const document = {
       {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
-        description: plain('Holds a card. Never shown in a tooltip.'),
+        definition: plain('Holds a card. Never shown in a tooltip.'),
         properties: {
           added: [
             {
@@ -36,7 +36,7 @@ const document = {
     added: [
       {
         id: 'behavior|pay.Hold.place',
-        description: plain('Places a hold.'),
+        definition: plain('Places a hold.'),
         input: {
           added: [{ name: 'amount', type: plain('building_block|pay.Money') }],
         },
@@ -89,7 +89,7 @@ describe('ElementTooltip', () => {
     expect(render('pay.Hold[]')).toContain('>amount?: Money<');
   });
 
-  it('never shows a description', () => {
+  it('never shows a definition or a description', () => {
     const html = render('pay.Hold') + render('pay.Hold.place');
     expect(html).not.toContain('Never shown');
     expect(html).not.toContain('What is held.');

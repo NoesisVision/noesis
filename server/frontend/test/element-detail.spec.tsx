@@ -37,7 +37,7 @@ const document = {
       {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
-        description: human(DIAGRAM),
+        definition: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
         properties: {
           added: [
@@ -99,7 +99,7 @@ const document = {
     added: [
       {
         id: 'behavior|pay.Hold.place',
-        description: plain('Holds a card for a booking.'),
+        definition: plain('Holds a card for a booking.'),
         input: {
           added: [
             {
@@ -293,8 +293,9 @@ describe('ElementDetail', () => {
     expect(trail).not.toContain('<button');
   });
 
-  it('gives a description to the markdown reader, fences and all', () => {
+  it('gives a definition to the markdown reader, fences and all', () => {
     const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Definition<');
     // Printed as it is written, the fence would be in the markup as three
     // backticks and a word; given to the reader, it becomes a picture.
     expect(html).not.toContain('```');

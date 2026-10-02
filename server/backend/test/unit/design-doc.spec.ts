@@ -274,18 +274,18 @@ describe('A field of a design', () => {
     const block = DesignDocument.parse(addingRefund({})).buildingBlocks
       .added[0]!;
 
-    expect(block.description).toEqual({ changed: false });
+    expect(block.definition).toEqual({ changed: false });
   });
 
   it('is a change when it has a value, written by the agent unless a human wrote it', () => {
     const block = DesignDocument.parse(
       addingRefund({
-        description: { value: 'Money back.' },
+        definition: { value: 'Money back.' },
         type: { value: 'aggregate', author: 'human' },
       }),
     ).buildingBlocks.added[0]!;
 
-    expect(block.description).toEqual({
+    expect(block.definition).toEqual({
       changed: true,
       value: 'Money back.',
       author: 'agent',
@@ -299,18 +299,18 @@ describe('A field of a design', () => {
 
   it('carries neither a value nor an author when unchanged', () => {
     expect(
-      isValid(addingRefund({ description: { changed: false, value: 'x' } })),
+      isValid(addingRefund({ definition: { changed: false, value: 'x' } })),
     ).toBe(false);
     expect(
       isValid(
-        addingRefund({ description: { changed: false, author: 'human' } }),
+        addingRefund({ definition: { changed: false, author: 'human' } }),
       ),
     ).toBe(false);
   });
 
   it('is written either by an agent or by a human', () => {
     expect(
-      isValid(addingRefund({ description: { value: 'x', author: 'bot' } })),
+      isValid(addingRefund({ definition: { value: 'x', author: 'bot' } })),
     ).toBe(false);
   });
 });
@@ -495,7 +495,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingRefund({
-            description: { value: 'Money back.' },
+            definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             implements: { removed: [AUDITABLE] },
             properties: { removed: ['legacyFlag'] },
@@ -686,7 +686,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingRefund({
-            description: { value: 'Money back.' },
+            definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             properties: { removed: ['total'] },
           }),
@@ -714,7 +714,7 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: ORDER,
-                  description: { value: 'Money back.', author: 'human' },
+                  definition: { value: 'Money back.', author: 'human' },
                 },
               ],
             },
@@ -723,7 +723,7 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.modified[${ORDER}].description`,
+          path: `buildingBlocks.modified[${ORDER}].definition`,
           reason: 'humanAuthor',
         },
       ]);
@@ -738,7 +738,7 @@ describe('A design document an agent wrote', () => {
                 {
                   id: REFUND,
                   type: { value: 'aggregate' },
-                  description: { value: 'Money back.' },
+                  definition: { value: 'Money back.' },
                 },
               ],
               modified: [
@@ -776,37 +776,37 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             type: { value: 'Command' },
-            description: { value: 'Issues a refund.' },
+            definition: { value: 'Issues a refund.' },
             visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
     });
 
-    it('draws a diagram in its own field, never in a fence of the description', () => {
+    it('draws a diagram in its own field, never in a fence of the definition', () => {
       const fenced = 'Issues a refund.\n\n```mermaid\nsequenceDiagram\n```';
 
       expect(
         validate(
           addingIssue({
             type: { value: 'Command' },
-            description: { value: fenced },
+            definition: { value: fenced },
             visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([
         {
-          path: `behaviours.added[${ISSUE}].description`,
-          reason: 'diagramInDescription',
+          path: `behaviours.added[${ISSUE}].definition`,
+          reason: 'diagramInDefinition',
         },
       ]);
-      // A human may still write one, as descriptions did before.
+      // A human may still write one, as definitions did before.
       expect(
         DesignDocument.validateHumanEdited(
           DesignDocument.parse(
             addingIssue({
               type: { value: 'Command' },
-              description: { value: fenced },
+              definition: { value: fenced },
               visibility: { value: { kind: 'private' } },
             }),
           ),
@@ -816,7 +816,7 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             type: { value: 'Command' },
-            description: { value: 'Issues a refund.' },
+            definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
             visibility: { value: { kind: 'private' } },
           }),
@@ -852,7 +852,7 @@ describe('A design document an agent wrote', () => {
       ).toEqual([
         { path: `modules.removed[${ORDERS}]`, reason: 'changedInGreenField' },
         {
-          path: `buildingBlocks.added[${REFUND}].description`,
+          path: `buildingBlocks.added[${REFUND}].definition`,
           reason: 'unchangedFieldInAddedItem',
         },
         {

@@ -11,7 +11,7 @@
           "value": "qdocmanagement",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The QDoc System: supports organisations in preparing, approving, distributing and acknowledging quality documents (QDocs) and keeps the record of who did what and when. Each child module is one subsystem and one bounded context.",
           "author": "agent"
@@ -29,7 +29,7 @@
           "value": "preparation",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Bounded context of the Preparation subsystem (area code PRE): creates and numbers QDocs and versions, assigns people, holds the files of a version, shares versions for review, records review marks, creates new versions and archives QDocs. This change covers creating a QDoc (UC-1).",
           "author": "agent"
@@ -45,7 +45,7 @@
           "value": "notifications",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Bounded context of the Notifications subsystem (area code NOT), a platform subsystem: tells users about events such as new QDocs, new versions and assignments. Holds no process of its own. This change covers telling the quality managers about a new QDoc.",
           "author": "agent"
@@ -72,7 +72,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Identity of a QDoc inside the QDoc System. Technical identifier, not the document number people use.",
           "author": "agent"
@@ -131,7 +131,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Identity of a user, a person with an account in the identity provider. The Preparation subsystem refers to users only by this identity.",
           "author": "agent"
@@ -190,7 +190,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The title of a QDoc.",
           "author": "agent"
@@ -292,7 +292,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The type of a QDoc, one of the list of document types: procedure, guideline, instruction, policy. The list may grow.",
           "author": "agent"
@@ -417,7 +417,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device. Its format, sequence and uniqueness are defined by UC-2 and designed in that change; this change only requires that every new QDoc carries one.",
           "author": "agent"
@@ -476,7 +476,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The status of a QDoc itself: active or archived. Workflow statuses belong to versions, not to the QDoc.",
           "author": "agent"
@@ -554,7 +554,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The workflow status of a version: new, approved, published, no longer in force or archived.",
           "author": "agent"
@@ -632,7 +632,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The role a user holds on a version: author, reviewer or approver.",
           "author": "agent"
@@ -710,7 +710,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The link between a user, a version and one role on the version. Role and active-account checks on the assignee belong to UC-3 and are not part of this change.",
           "author": "agent"
@@ -787,7 +787,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Identity of a content file.",
           "author": "agent"
@@ -846,7 +846,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Command: a quality manager's QDoc creation request, naming the title, the document type, at least one author and, optionally, reviewers and approvers.",
           "author": "agent"
@@ -1113,7 +1113,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Event: a QDoc was created. Published by the Preparation subsystem for the other subsystems, carrying what the notification of the quality managers needs.",
           "author": "agent"
@@ -1244,7 +1244,7 @@
           "value": "entity",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "A rich-text file the authors write; the body of the QDoc. Each version has at least one. Editing, change history and comments are the Content management subsystem's (UC-4); here the file only exists.",
           "author": "agent"
@@ -1321,7 +1321,7 @@
           "value": "entity",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "A complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.",
           "author": "agent"
@@ -1438,7 +1438,7 @@
           "value": "aggregate",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. The aggregate root guards that a QDoc never lacks a version.",
           "author": "agent"
@@ -1670,7 +1670,7 @@
           "value": "repository",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Stores and loads QDoc aggregates, whole.",
           "author": "agent"
@@ -1710,7 +1710,7 @@
           "value": "domain_service",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Gives a new QDoc its document number. The format, sequence and uniqueness rules are those of UC-2 and are designed in that change; until then the generator is the single place they will live.",
           "author": "agent"
@@ -1750,7 +1750,7 @@
           "value": "external_integration",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds.",
           "author": "agent"
@@ -1790,7 +1790,7 @@
           "value": "external_integration",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Port that publishes the events of the Preparation subsystem to the other subsystems.",
           "author": "agent"
@@ -1830,7 +1830,7 @@
           "value": "application_service",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Use cases that create QDocs in the Preparation subsystem.",
           "author": "agent"
@@ -1870,7 +1870,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "A user a notification goes to, by the user's identifier in the identity provider.",
           "author": "agent"
@@ -1929,7 +1929,7 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "The message telling a quality manager about a new QDoc: names the QDoc, its document number and its creator.",
           "author": "agent"
@@ -2042,7 +2042,7 @@
           "value": "external_integration",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Port to the Identity subsystem that lists the quality managers of the organisation.",
           "author": "agent"
@@ -2082,7 +2082,7 @@
           "value": "external_integration",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Port that delivers a notification to a user. The channel and the maximum delay are open (TBD-01).",
           "author": "agent"
@@ -2122,7 +2122,7 @@
           "value": "application_service",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Reacts to events of the Preparation subsystem about new QDocs and tells the users concerned.",
           "author": "agent"
@@ -2168,7 +2168,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Creates a QDoc from a QDoc creation request. Steps: (1) ask the IdentityProvider whether requestedBy holds the quality manager role, reject otherwise; (2) validate the request: title, document type and at least one author present, document type from the list; (3) get the next document number from the DocumentNumberGenerator; (4) create the QDoc aggregate, which creates version 1 with its empty content file and assignments; (5) save it through the QDocRepository; (6) publish QDocCreated through the PreparationEventPublisher in the same unit of work as the save. Returns the identity of the new QDoc. A rejected request creates nothing and publishes nothing. Authorisation uses the requester's roles at the moment of the request; the authors, reviewers and approvers are assigned without role or account checks, which UC-3 adds.",
           "author": "agent"
@@ -2386,7 +2386,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Creates a QDoc: active, with the given title, document type, document number, creator and creation time, and with version 1 made by Version.createFirst from the named authors, reviewers and approvers. Returns the new aggregate and the QDocCreated event to publish.",
           "author": "agent"
@@ -2528,7 +2528,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Creates version 1 of a new QDoc: number 1, status new, one empty content file, and one assignment per named author, reviewer and approver. Reviewers and approvers may be empty; authors never are.",
           "author": "agent"
@@ -2870,7 +2870,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Stores a QDoc aggregate, whole.",
           "author": "agent"
@@ -2937,7 +2937,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Returns the document number for the QDoc being created. Composition, sequence and uniqueness follow UC-2 and are designed in that change.",
           "author": "agent"
@@ -3018,7 +3018,7 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Answers whether the user holds the quality manager role at the moment of the call.",
           "author": "agent"
@@ -3099,7 +3099,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Publishes a QDocCreated event to the subscribing subsystems.",
           "author": "agent"
@@ -3166,7 +3166,7 @@
           "value": "Event",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Handles QDocCreated from the Preparation subsystem: lists the quality managers of the organisation through the QualityManagerDirectory and sends each one a NewQDocNotification naming the QDoc's title, its document number and its creator. The notification must arrive within the maximum delay of TBD-01, over the channel TBD-01 settles. A failed delivery to one quality manager does not stop the others.",
           "author": "agent"
@@ -3279,7 +3279,7 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Lists every user who holds the quality manager role in the organisation.",
           "author": "agent"
@@ -3343,7 +3343,7 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
+        "definition": {
           "changed": true,
           "value": "Delivers one notification to its recipient over the channel TBD-01 settles.",
           "author": "agent"

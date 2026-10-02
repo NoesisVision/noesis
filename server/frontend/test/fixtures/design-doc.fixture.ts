@@ -16,7 +16,7 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.Refund',
         name: { changed: true, value: 'Refund', author: 'agent' },
         type: { changed: true, value: 'aggregate', author: 'agent' },
-        description: { changed: false },
+        definition: { changed: false },
       },
     ],
     removed: [],

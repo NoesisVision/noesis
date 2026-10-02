@@ -48,7 +48,7 @@ export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
                 )}
               </code>
             </div>
-            {behaviour !== null && <Description behaviour={behaviour} />}
+            {behaviour !== null && <Definition behaviour={behaviour} />}
           </li>
         ))}
       </ul>
@@ -133,12 +133,10 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   );
 }
 
-function Description({ behaviour }: { behaviour: DesignedBehaviourInput }) {
-  const description = valueOf(behaviour.description)?.trim();
+function Definition({ behaviour }: { behaviour: DesignedBehaviourInput }) {
+  const definition = valueOf(behaviour.definition)?.trim();
   // As written: a markdown reader per behaviour is too heavy a list.
-  return description ? (
-    <p className={classes.description}>{description}</p>
-  ) : null;
+  return definition ? <p className={classes.definition}>{definition}</p> : null;
 }
 
 /** Shown only when the block has behaviours at all. */

@@ -22,9 +22,10 @@ export const moduleSections = (
       element,
       field: module.diagram,
     }),
-    ...section(DescriptionSection, 'description', {
+    ...section(DescriptionSection, 'definition', {
       element,
-      field: module.description,
+      title: 'Definition',
+      field: module.definition,
     }),
   ];
 };

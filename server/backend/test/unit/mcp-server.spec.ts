@@ -898,7 +898,7 @@ describe('create_design_doc_in_change', () => {
       '- modules.removed[module|sales.credit-notes]: nothing is scanned yet',
     );
     expect(text).toContain(
-      '- modules.modified[module|sales.orders].description: write every field as the agent',
+      '- modules.modified[module|sales.orders].definition: write every field as the agent',
     );
     expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
   });

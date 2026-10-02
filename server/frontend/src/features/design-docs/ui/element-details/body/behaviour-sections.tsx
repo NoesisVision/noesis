@@ -32,9 +32,10 @@ export const behaviourSections = (
       element,
       field: behaviour.diagram,
     }),
-    ...section(DescriptionSection, 'description', {
+    ...section(DescriptionSection, 'definition', {
       element,
-      field: behaviour.description,
+      title: 'Definition',
+      field: behaviour.definition,
     }),
   ];
 };

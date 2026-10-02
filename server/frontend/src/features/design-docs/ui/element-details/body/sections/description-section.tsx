@@ -12,6 +12,8 @@ import { DetailSection } from './detail-section.tsx';
 interface DescriptionSectionProps {
   element: ElementRef;
   field: DesignDocFieldInput<string>;
+  /** A module, building block or behaviour is defined; anything else described. */
+  title?: 'Description' | 'Definition';
   slots?: {
     top?: ReactNode;
     bottom?: ReactNode;
@@ -19,7 +21,7 @@ interface DescriptionSectionProps {
 }
 
 /**
- * A description is markdown, and the diagrams in it are drawn: it is the one
+ * A description or definition is markdown, and the diagrams in it are drawn: it is the one
  * field long enough to be written rather than named. The editor reads its
  * markdown once, on mount, so another element is another editor — which is
  * why `ElementDetail` keys the sections by the element's own path.
@@ -29,6 +31,7 @@ interface DescriptionSectionProps {
  */
 export function DescriptionSection({
   field,
+  title = 'Description',
   slots = {},
 }: DescriptionSectionProps) {
   const value = valueOf(field);
@@ -38,7 +41,7 @@ export function DescriptionSection({
    * but blank, there is nothing to read.
    */
   return (
-    <DetailSection title="Description" field={field} muted>
+    <DetailSection title={title} field={field} muted>
       {slots?.top}
       {isUnchanged(field) || value === null ? (
         <Text c="dimmed" size="sm">

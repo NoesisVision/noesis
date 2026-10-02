@@ -25,12 +25,12 @@ export const changedEverywhereFixture = {
     added: [
       {
         id: 'module|sales.refunds',
-        description: agent('Giving money back.'),
+        definition: agent('Giving money back.'),
       },
     ],
     removed: ['module|sales.credit-notes'],
     modified: [
-      { id: 'module|sales.orders', description: human('Order lifecycle.') },
+      { id: 'module|sales.orders', definition: human('Order lifecycle.') },
     ],
   },
   buildingBlocks: {
@@ -38,7 +38,7 @@ export const changedEverywhereFixture = {
       {
         id: 'building_block|sales.refunds.Refund',
         type: human('aggregate'),
-        description: agent('A refund of one or more lines of an order.'),
+        definition: agent('A refund of one or more lines of an order.'),
         properties: {
           added: [
             {
@@ -125,7 +125,7 @@ export const changedEverywhereFixture = {
       {
         id: 'behavior|sales.refunds.Refund.issue',
         type: human('Command'),
-        description: agent('How a refund is issued.'),
+        definition: agent('How a refund is issued.'),
         diagram: agent(ISSUE_DIAGRAM),
         rules: {
           added: [

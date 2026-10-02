@@ -8,7 +8,7 @@
         "name": {
           "value": "refunds"
         },
-        "description": {
+        "definition": {
           "value": "Everything about giving money back to a customer."
         }
       }
@@ -17,7 +17,7 @@
     "modified": [
       {
         "id": "module|sales.orders",
-        "description": {
+        "definition": {
           "value": "Order lifecycle, now including the refundable state of each line.",
           "author": "human"
         }
@@ -36,7 +36,7 @@
           "value": "aggregate",
           "author": "human"
         },
-        "description": {
+        "definition": {
           "value": "A refund of one or more lines of a single order."
         },
         "properties": {
@@ -140,7 +140,7 @@
         "type": {
           "value": "value_object"
         },
-        "description": {
+        "definition": {
           "value": "Tells the ledger a refund went out."
         }
       },
@@ -152,7 +152,7 @@
         "type": {
           "value": "repository"
         },
-        "description": {
+        "definition": {
           "value": "Stores refunds."
         },
         "implements": {
@@ -206,7 +206,7 @@
           "value": "Command",
           "author": "human"
         },
-        "description": {
+        "definition": {
           "value": "Issues a refund for the chosen lines of an order."
         },
         "diagram": {

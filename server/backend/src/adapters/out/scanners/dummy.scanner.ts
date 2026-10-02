@@ -241,9 +241,9 @@ function flattenedModule(
     id: designed.id,
     name: field(designed.name, current?.name, at.in('name')),
     description: field(
-      designed.description,
+      designed.definition,
       current?.description,
-      at.in('description'),
+      at.in('definition'),
     ),
     source,
   };
@@ -260,9 +260,9 @@ function flattenedBuildingBlock(
     name: field(designed.name, current?.name, at.in('name')),
     type: field(designed.type, current?.type, at.in('type')),
     description: field(
-      designed.description,
+      designed.definition,
       current?.description,
-      at.in('description'),
+      at.in('definition'),
     ),
     implements: changedRefs(
       current?.implements ?? [],
@@ -303,9 +303,9 @@ function flattenedBehaviour(
     name: field(designed.name, current?.name, at.in('name')),
     type: field(designed.type, current?.type, at.in('type')),
     description: field(
-      designed.description,
+      designed.definition,
       current?.description,
-      at.in('description'),
+      at.in('definition'),
     ),
     visibility: field(
       designed.visibility,

@@ -38,7 +38,7 @@ export const designDocFixture = {
       {
         id: 'module|sales.refunds',
         name: byAgent('refunds'),
-        description: byAgent(
+        definition: byAgent(
           'Everything about giving money back to a customer.',
         ),
         diagram: unchanged,
@@ -49,7 +49,7 @@ export const designDocFixture = {
       {
         id: 'module|sales.orders',
         name: unchanged,
-        description: byHuman(
+        definition: byHuman(
           'Order lifecycle, now including the refundable state of each line.',
         ),
         diagram: unchanged,
@@ -62,9 +62,7 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.Refund',
         name: byHuman('Refund'),
         type: byHuman('aggregate'),
-        description: byAgent(
-          'A refund of one or more lines of a single order.',
-        ),
+        definition: byAgent('A refund of one or more lines of a single order.'),
         diagram: unchanged,
         implements: noAdditions,
         properties: {
@@ -134,7 +132,7 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.RefundIssued',
         name: byAgent('RefundIssued'),
         type: byAgent('value_object'),
-        description: byAgent('Tells the ledger a refund went out.'),
+        definition: byAgent('Tells the ledger a refund went out.'),
         diagram: unchanged,
         implements: noAdditions,
         properties: noChanges,
@@ -145,7 +143,7 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.RefundRepository',
         name: byAgent('RefundRepository'),
         type: byAgent('repository'),
-        description: byAgent('Stores refunds.'),
+        definition: byAgent('Stores refunds.'),
         diagram: unchanged,
         implements: {
           added: ['building_block|sales.shared.Repository'],
@@ -162,7 +160,7 @@ export const designDocFixture = {
         id: 'building_block|sales.orders.Order',
         name: unchanged,
         type: unchanged,
-        description: unchanged,
+        definition: unchanged,
         diagram: unchanged,
         implements: noAdditions,
         properties: {
@@ -195,7 +193,7 @@ export const designDocFixture = {
         id: 'behavior|sales.refunds.Refund.issue',
         name: byAgent('issue'),
         type: byHuman('Command'),
-        description: byAgent(
+        definition: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
         diagram: byAgent(
@@ -260,7 +258,7 @@ export const designDocFixture = {
         id: 'behavior|sales.orders.Order.cancel',
         name: unchanged,
         type: unchanged,
-        description: unchanged,
+        definition: unchanged,
         diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
         input: {

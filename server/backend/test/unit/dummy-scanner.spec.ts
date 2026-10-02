@@ -23,14 +23,14 @@ const BILLING = ChangeId.parse('2026-02-01-billing');
 const salesModule: DesignedDomainModuleInput = {
   id: 'module|sales',
   name: { value: 'sales' },
-  description: { value: 'Selling to customers.' },
+  definition: { value: 'Selling to customers.' },
 };
 
 const orderBlock: DesignedBuildingBlockInput = {
   id: 'building_block|sales.Order',
   name: { value: 'Order' },
   type: { value: 'aggregate' },
-  description: { value: 'What a customer buys.' },
+  definition: { value: 'What a customer buys.' },
   properties: {
     added: [
       {
@@ -47,7 +47,7 @@ const placeBehaviour: DesignedBehaviourInput = {
   id: 'behavior|sales.Order.place',
   name: { value: 'place' },
   type: { value: 'Command' },
-  description: { value: 'Places the order.' },
+  definition: { value: 'Places the order.' },
   visibility: { value: { kind: 'public', actors: ['customer'] } },
   input: {
     added: [
@@ -209,7 +209,7 @@ describe('The dummy scanner', () => {
         modified: [
           {
             id: 'building_block|sales.Order',
-            description: { value: 'What a customer pays for.' },
+            definition: { value: 'What a customer pays for.' },
             properties: {
               removed: ['total'],
               added: [
@@ -255,25 +255,25 @@ describe('The dummy scanner', () => {
   });
 
   it('replays designs in the order they were marked implemented, across changes, those marked before the time was kept first', async () => {
-    const describing = (description: string) => ({
+    const defining = (definition: string) => ({
       buildingBlocks: {
         modified: [
           {
             id: 'building_block|sales.Order',
-            description: { value: description },
+            definition: { value: definition },
           },
         ],
       },
     });
     await implemented(SALES, '2026-01-10-last', '2026-05-01T00:00:00.000Z', {
-      ...describing('last'),
+      ...defining('last'),
     });
     await implemented(
       BILLING,
       '2026-01-20-middle',
       '2026-04-01T00:00:00.000Z',
       {
-        ...describing('middle'),
+        ...defining('middle'),
       },
     );
     await implemented(BILLING, '2026-03-01-first', null, {
@@ -387,12 +387,12 @@ describe('Removing an element in the dummy scanner', () => {
   const billingModule: DesignedDomainModuleInput = {
     id: 'module|billing',
     name: { value: 'billing' },
-    description: { value: 'Charging customers.' },
+    definition: { value: 'Charging customers.' },
   };
   const ordersModule: DesignedDomainModuleInput = {
     id: 'module|sales.orders',
     name: { value: 'orders' },
-    description: { value: 'Orders.' },
+    definition: { value: 'Orders.' },
   };
   const nestedOrder: DesignedBuildingBlockInput = {
     ...orderBlock,
@@ -512,7 +512,7 @@ describe('A design the dummy scanner cannot flatten', () => {
     });
 
     await expect(scanner.scan()).rejects.toThrow(
-      failure('modules.added[module|billing].description', 'has no value'),
+      failure('modules.added[module|billing].definition', 'has no value'),
     );
   });
 });

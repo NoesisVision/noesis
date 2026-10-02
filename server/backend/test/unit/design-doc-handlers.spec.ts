@@ -247,7 +247,7 @@ describe('Creating a design document', () => {
           {
             id: 'module|sales.refunds',
             name: { value: 'refunds' },
-            description: { value: 'Money back.', author: 'human' },
+            definition: { value: 'Money back.', author: 'human' },
           },
         ],
       },

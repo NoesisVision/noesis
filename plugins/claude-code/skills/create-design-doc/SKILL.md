@@ -94,9 +94,12 @@ it at step 5.
    - **Not in the model:** `added`, with every field given a value except
      `diagram`, which only an element worth drawing has.
    - **In the model and changed:** `modified`, with its id (a part's name,
-     an output's type) and only the fields that change. Its `description`
-     is always a change note: `"Change note: "`, then what changes and why,
-     so a reader sees why the element is in the diff.
+     an output's type) and only the fields that change. A part's
+     `description` is always a change note: `"Change note: "`, then what
+     changes and why, so a reader sees why the part is in the diff. An
+     element's `definition` never is: give it only when what the element is
+     changes, and then write the whole new definition. Say why a modified
+     element is in the diff in the design document's `description`.
    - **In the model and retired:** `removed`, by id (a part by name, an
      output by type). Remove a building block's behaviours with it.
    - **In the model and unchanged:** leave it out, even when the design
@@ -118,9 +121,10 @@ it at step 5.
 8. **Write the working file** into the scratch directory, e.g.
    `<scratch directory>/design-doc.json`: `name` (a human title, usually the
    change's), `description` (what the design covers and why, in a
-   paragraph), `modules`, `buildingBlocks` and `behaviours`. No `id`, no
-   `implemented`. Write every field as `{ "value": … }` and never with
-   `author`: you are the agent. Leave out a change set with nothing in it.
+   paragraph, including why each element it modifies changes), `modules`,
+   `buildingBlocks` and `behaviours`. No `id`, no `implemented`. Write
+   every field as `{ "value": … }` and never with `author`: you are the
+   agent. Leave out a change set with nothing in it.
    Before saving, check that every reference — the `type` of a property, an
    input or an output, `implements` — names a building block this design
    adds or modifies, one the system model has, or a primitive, and that
@@ -174,9 +178,9 @@ results.
   language the code is written in. One behaviour per method name:
   overloads are one behaviour.
 - A name never holds `.` or `|`, rule and scenario names included.
-- Names are English, or the code's identifiers. Every description and every
-  given, when and then is in the dominant language of the sources; do not
-  translate them.
+- Names are English, or the code's identifiers. Every definition, every
+  description and every given, when and then is in the dominant language of
+  the sources; do not translate them.
 
 ## When the tool refuses
 

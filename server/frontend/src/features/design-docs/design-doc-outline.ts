@@ -202,16 +202,16 @@ function put(nodes: Map<string, OutlineNode>, node: OutlineNode): void {
 }
 
 /**
- * An element draws its diagram in a field of its own; a description written
+ * An element draws its diagram in a field of its own; a definition written
  * before it had one may still carry the fence.
  */
 function isDrawn(designed: {
-  description?: DesignDocFieldInput<string>;
+  definition?: DesignDocFieldInput<string>;
   diagram?: DesignDocFieldInput<string>;
 }): boolean {
   return (
     valueOf(designed.diagram) !== null ||
-    drawsDiagram(valueOf(designed.description))
+    drawsDiagram(valueOf(designed.definition))
   );
 }
 

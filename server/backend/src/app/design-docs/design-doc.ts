@@ -65,7 +65,7 @@ export type DesignedRule = z.infer<typeof DesignedRule>;
 export const DesignedDomainModule = z.strictObject({
   id: ModuleId,
   name: DesignDocField(ElementName),
-  description: DesignDocField(z.string()),
+  definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
@@ -74,7 +74,7 @@ export const DesignedBuildingBlock = z.strictObject({
   id: BuildingBlockId,
   name: DesignDocField(ElementName),
   type: DesignDocField(BuildingBlockType),
-  description: DesignDocField(z.string()),
+  definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   implements: changeSet(BuildingBlockId),
   properties: changeSet(DesignedProperty, ElementName),
@@ -87,7 +87,7 @@ export const DesignedBehaviour = z.strictObject({
   id: BehaviorId,
   name: DesignDocField(ElementName),
   type: DesignDocField(BehaviourType),
-  description: DesignDocField(z.string()),
+  definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
   input: changeSet(DesignedParameter, ElementName),
@@ -129,7 +129,7 @@ export const DesignDocument = Object.assign(designDocumentSchema, {
   ): DesignDocViolation[] => [
     ...rulesOfEveryDesign(document, systemModel),
     ...humanAuthoredFields(document),
-    ...diagramsInDescriptions(document),
+    ...diagramsInDefinitions(document),
   ],
 });
 export type DesignDocument = z.infer<typeof designDocumentSchema>;
@@ -141,7 +141,7 @@ export interface DesignDocViolation {
     | 'unknownElement'
     | 'unchangedFieldInAddedItem'
     | 'humanAuthor'
-    | 'diagramInDescription';
+    | 'diagramInDefinition';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -342,9 +342,9 @@ const MERMAID_FENCE = /^ {0,3}(?:`{3,}|~{3,})[^\n]*\bmermaid\b/mu;
 
 /**
  * An element with a diagram of its own draws it there, not in a fence of its
- * description.
+ * definition.
  */
-function diagramsInDescriptions(
+function diagramsInDefinitions(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   const collections = {
@@ -356,12 +356,12 @@ function diagramsInDescriptions(
     (['added', 'modified'] as const).flatMap((kind) =>
       changes[kind]
         .filter(
-          ({ description }) =>
-            description.changed && MERMAID_FENCE.test(description.value),
+          ({ definition }) =>
+            definition.changed && MERMAID_FENCE.test(definition.value),
         )
         .map(({ id }) => ({
-          path: `${name}.${kind}[${id}].description`,
-          reason: 'diagramInDescription' as const,
+          path: `${name}.${kind}[${id}].definition`,
+          reason: 'diagramInDefinition' as const,
         })),
     ),
   );
