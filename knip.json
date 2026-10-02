@@ -1,8 +1,14 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   // Prototypes and prior art under docs/ are reference material, not code
-  // (Oxlint skips them too).
-  "ignore": ["docs/**/prior-art/**", "docs/**/prototypes/**"],
+  // (Oxlint skips them too). .design-sync/ holds the Claude Design sync
+  // inputs: previews import a stand-in package only the converter resolves,
+  // and overrides/ is a vendored copy of the converter's own code.
+  "ignore": [
+    "docs/**/prior-art/**",
+    "docs/**/prototypes/**",
+    "server/frontend/.design-sync/**"
+  ],
   "workspaces": {
     "server/backend": {
       // Type-only tests are checked by tsc and never imported. The design

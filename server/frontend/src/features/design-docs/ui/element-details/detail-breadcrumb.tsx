@@ -32,7 +32,7 @@ export function DetailBreadcrumb({
           separator={<span aria-hidden="true">&gt;</span>}
           separatorMargin="xs"
           px="xs"
-          pt="xs"
+          py="xs"
         >
           {above.map((step) => (
             <Button

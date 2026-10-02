@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { valueOf } from '../src/features/design-docs/design-doc-field';
+import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
+import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
-  partItems,
+  ruleItems,
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
-import { ChangeListSection } from '../src/features/design-docs/ui/element-details/sections/change-list-section';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
@@ -93,7 +95,30 @@ const document = {
     modified: [],
   },
   behaviours: {
-    added: [],
+    added: [
+      {
+        id: 'behavior|pay.Hold.place',
+        description: plain('Holds a card for a booking.'),
+        input: {
+          added: [
+            {
+              name: 'amount',
+              type: plain('building_block|pay.Money'),
+              description: plain('What to hold.'),
+            },
+          ],
+        },
+        output: { added: [{ type: 'building_block|pay.Hold' }] },
+        rules: {
+          added: [
+            {
+              name: 'Only once',
+              description: plain('A booking holds one card at a time.'),
+            },
+          ],
+        },
+      },
+    ],
     removed: ['behavior|pay.Voucher.redeem'],
     modified: [],
   },
@@ -166,6 +191,14 @@ const outline: OutlineNode[] = [
     change: 'added',
   }),
   node({
+    path: 'behavior|pay.Hold.place',
+    parentPath: 'building_block|pay.Hold',
+    kind: 'behaviour',
+    name: 'place',
+    depth: 2,
+    change: 'added',
+  }),
+  node({
     path: 'building_block|pay.Voucher',
     parentPath: 'module|pay',
     kind: 'building_block',
@@ -183,8 +216,10 @@ const outline: OutlineNode[] = [
   }),
 ];
 
-const tree = outlineTree(outline);
-// The app's tree leaves properties out; the panel still reads one given it.
+// The app's tree leaves rules and scenarios out as well; the panel still
+// reads one given its row, and opens a row the tree has.
+const tree = outlineTree(outline, ['property']);
+// It leaves properties out; the panel still reads one given it.
 const withProperties = outlineTree(outline, []);
 
 const show = (path: string, from = tree) => {
@@ -200,6 +235,27 @@ const show = (path: string, from = tree) => {
         document={document}
         onSelect={() => {}}
         tree={from}
+      />
+    </MantineProvider>,
+  );
+};
+
+/** A behaviour the tree has no row for, read on its own. */
+const behaviour = () => {
+  const place = node({
+    path: 'behavior|pay.Hold.place',
+    kind: 'behaviour',
+    name: 'place',
+    change: 'added',
+  });
+  return renderToStaticMarkup(
+    <MantineProvider>
+      <ElementDetail
+        node={place}
+        path={[place]}
+        document={document}
+        onSelect={() => {}}
+        tree={tree}
       />
     </MantineProvider>,
   );
@@ -288,15 +344,32 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
   });
 
-  it("lists a block's properties, rules and scenarios, the parts opening their row", () => {
+  it("lists a block's properties and rules, a rule opening its row", () => {
     const html = show('building_block|pay.Hold');
-    for (const title of ['Properties', 'Rules', 'Scenarios'])
+    for (const title of ['Properties', 'Rules'])
       expect(html).toContain(`>${title}<`);
-    for (const label of ['A hold expires', 'A hold settles'])
-      expect(html).toMatch(new RegExp(`<button[^>]*>(<[^>]+>)*${label}<`));
-    // A property has no row in the tree to open, so its line is only text.
-    expect(html).toContain('>amount?: pay.Money<');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
+    // A property reads as its declaration, name and type apart, and has no
+    // row in the tree to open, so it is only text.
+    expect(html).toContain('>amount?<');
+    // Its type by its last segment, as inputs and outputs read one.
+    expect(html).toMatch(/<span[^>]*>Money<\/span>/);
+    expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
+  });
+
+  it("opens a property's type when the tree has a row for it", () => {
+    const money = node({
+      path: 'building_block|pay.Money',
+      parentPath: 'module|pay',
+      kind: 'building_block',
+      name: 'Money',
+      depth: 1,
+    });
+    const withMoney = outlineTree([...outline, money], ['property']);
+    expect(show('building_block|pay.Hold', withMoney)).toMatch(
+      /<button[^>]*data-link="true"[^>]*>Money<\/button>/,
+    );
   });
 
   it("reads a property's description under its line, and nothing else's", () => {
@@ -310,7 +383,7 @@ describe('ElementDetail', () => {
     expect(amount!.description).toBe('What the hold keeps.');
     expect(note!.description).toBeUndefined();
     const hold = document.buildingBlocks.added[0]!;
-    for (const item of partItems(hold.id, 'rule', hold.rules))
+    for (const item of ruleItems(hold.id, hold.rules))
       expect(item.description).toBeUndefined();
 
     const html = renderToStaticMarkup(
@@ -328,27 +401,173 @@ describe('ElementDetail', () => {
 
   it('points every listed part at the row the tree has for it', () => {
     const hold = document.buildingBlocks.added[0]!;
-    const items = [
-      ...partItems(hold.id, 'rule', hold.rules),
-      ...partItems(hold.id, 'scenario', hold.scenarios),
-    ];
-    expect(items.length).toBe(2);
+    const items = ruleItems(hold.id, hold.rules);
+    expect(items.length).toBe(1);
     for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
     // A property's path is kept, but the tree has no row for it.
     for (const item of propertyItems(hold.id, hold.properties))
       expect(tree.byPath.has(item.path!)).toBe(false);
   });
 
-  it("lists a rule's own scenarios, each opening its row under the rule", () => {
+  it("folds a rule's own scenarios into the column beside it", () => {
     const html = show('building_block|pay.Hold#rule:A hold expires');
     expect(html).toContain('>Scenarios<');
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*An unpaid hold lapses</);
-    const [item] = partItems(
+    const rule = tree.byPath.get(
       'building_block|pay.Hold#rule:A hold expires',
-      'scenario',
-      document.buildingBlocks.added[0]!.rules.added[0]!.scenarios,
+    )!;
+    expect(
+      scenariosOf(rule, document).map(({ name, rule }) => [name, rule]),
+    ).toEqual([['An unpaid hold lapses', undefined]]);
+  });
+
+  it("folds a block's scenarios, and its rules', into one column", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Scenarios<');
+    // Each scenario is an accordion control, opened to what it says.
+    for (const name of ['A hold settles', 'An unpaid hold lapses'])
+      expect(html).toMatch(
+        new RegExp(`<button[^>]*aria-expanded[^>]*>(<[^>]+>)*${name}<`),
+      );
+    // Its own first, then its rules', each with what it says.
+    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    const entries = scenariosOf(hold, document);
+    expect(entries.map(({ name, rule }) => [name, rule])).toEqual([
+      ['A hold settles', undefined],
+      ['An unpaid hold lapses', 'A hold expires'],
+    ]);
+    expect(valueOf(entries[1]!.scenario?.then)).toBe('the hold is released');
+    // A rule's own scenario says whose it is.
+    expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
+  });
+
+  it("reads a block's behaviours before its properties", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html.indexOf('>Behaviours<')).toBeGreaterThan(-1);
+    expect(html.indexOf('>Behaviours<')).toBeLessThan(
+      html.indexOf('>Properties<'),
     );
-    expect(tree.byPath.has(item!.path!)).toBe(true);
+  });
+
+  it("reads each of a block's behaviours as a signature", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Behaviours<');
+    // Its name, which opens its row, then what it takes and gives back.
+    expect(html).toMatch(/<button[^>]*>place<\/button>/);
+    // Each input its own element, so each can say what its type is.
+    expect(html).toMatch(/>\(<\/span><span[^>]*>amount<\/span><span[^>]*>\)</);
+    expect(html).toContain('>Hold<');
+    expect(html).toContain('Holds a card for a booking.');
+    // What each input is for is on the behaviour's own page.
+    expect(html).not.toContain('What to hold.');
+  });
+
+  it('lists a behaviour the design only removes by its name alone', () => {
+    const html = show('building_block|pay.Voucher');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>|<svg.*?<\/svg>)*redeem</);
+    expect(html).not.toContain('>Input<');
+  });
+
+  it("leaves out a scenario's description when it only repeats its name", () => {
+    const echo = {
+      ...document,
+      buildingBlocks: {
+        ...document.buildingBlocks,
+        added: [
+          {
+            ...document.buildingBlocks.added[0]!,
+            scenarios: {
+              added: [
+                {
+                  name: 'A hold settles',
+                  description: plain('A hold settles'),
+                  given: plain('a hold'),
+                  when: plain('the booking is confirmed'),
+                  // Gherkin's word; the fixture is never awaited.
+                  // oxlint-disable-next-line unicorn/no-thenable
+                  then: plain('the hold settles'), // NOSONAR
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } satisfies DesignDocumentInput;
+    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    // Folded panels are hidden with React's Activity, which leaves them out
+    // of the markup; hidden with CSS instead, they can be read.
+    const theme = {
+      components: {
+        Accordion: { defaultProps: { keepMountedMode: 'display-none' } },
+      },
+    };
+    const render = (doc: DesignDocumentInput) =>
+      renderToStaticMarkup(
+        <MantineProvider theme={theme}>
+          <ElementDetail
+            node={hold}
+            path={[hold]}
+            document={doc}
+            onSelect={() => {}}
+            tree={tree}
+          />
+        </MantineProvider>,
+      );
+    const html = render(echo);
+    // The panel is there to read...
+    expect(html).toContain('the booking is confirmed');
+    // ...and the name is in it once, as the control's; not again in the panel.
+    expect(html.match(/>A hold settles</g)).toHaveLength(1);
+    // A description that says more is still read.
+    expect(render(document)).toContain('The ordinary path.');
+  });
+
+  it('gives an element without scenarios no column for them', () => {
+    expect(behaviour()).not.toContain('>Scenarios<');
+  });
+
+  it('gives an element the design removes no scenarios', () => {
+    const voucher = tree.byPath.get('building_block|pay.Voucher')!;
+    expect(scenariosOf(voucher, document)).toEqual([]);
+  });
+
+  it("reads a behaviour's input and output as one section", () => {
+    const html = behaviour();
+    expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
+    // Each side a list, named by its caption.
+    expect(html).toMatch(/<ul aria-labelledby="[^"]+"/);
+    expect(html).toContain('>Inputs · 1<');
+    expect(html).toContain('>Outputs · 1<');
+    expect(html).toContain('>amount<');
+    expect(html).toContain('>Money<');
+    expect(html).toContain('What to hold.');
+    expect(html).toContain('>Hold<');
+  });
+
+  it('points a rule at the scenarios that cover it', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/<a href="#element-scenarios"[^>]*>.*?1 scenario</);
+    expect(html).toContain('id="element-scenarios"');
+  });
+
+  it('folds every scenario until asked, and opens them all at once', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*Expand all</);
+    expect(html).not.toContain('aria-expanded="true"');
+    // Folded, not gone: the panel each control names is in the page.
+    const controls = [...html.matchAll(/aria-controls="([^"]+)"/g)];
+    expect(controls).toHaveLength(2);
+    for (const [, id] of controls)
+      expect(html).toMatch(new RegExp(`id="${id}"[^>]*hidden`));
+  });
+
+  it('reads each rule by its name and its description', () => {
+    const html = behaviour();
+    expect(html).toContain('>Rules<');
+    expect(html).toContain('>Only once<');
+    expect(html).toMatch(
+      /<span[^>]*>A booking holds one card at a time\.<\/span>/,
+    );
   });
 
   it('lists what changed under a module the design never names', () => {
@@ -374,7 +593,8 @@ describe('ElementDetail', () => {
       </MantineProvider>,
     );
     expect(html).toContain('A hold expires');
-    expect(html).not.toContain('<button');
+    // Scenario controls are buttons; the listed rule is not.
+    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
   });
 
   it('says an element is removed, and lists what went with it', () => {

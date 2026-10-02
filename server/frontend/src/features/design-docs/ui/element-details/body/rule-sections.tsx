@@ -1,0 +1,19 @@
+import type { ReactElement } from 'react';
+import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
+import type { ElementRef, OwnerRef } from '../element-ref.ts';
+import { section } from './section.ts';
+import { DescriptionSection } from './sections/description-section.tsx';
+
+/** A rule's own scenarios read in the column beside these sections. */
+export const ruleSections = (
+  owner: OwnerRef,
+  rule: DesignedRuleInput,
+): ReactElement[] => {
+  const element: ElementRef = { owner, part: 'rules', name: rule.name };
+  return [
+    ...section(DescriptionSection, 'description', {
+      element,
+      field: rule.description,
+    }),
+  ];
+};

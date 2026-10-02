@@ -18,7 +18,7 @@ export interface OutlineTree {
 }
 
 const NONE: readonly OutlineNode[] = [];
-const EXCLUDED_KINDS: OutlineKind[] = ['property'];
+const EXCLUDED_KINDS: OutlineKind[] = ['property', 'scenario', 'rule'];
 
 export function outlineTree(
   nodes: readonly OutlineNode[],

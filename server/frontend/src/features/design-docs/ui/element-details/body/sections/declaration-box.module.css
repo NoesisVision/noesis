@@ -1,0 +1,80 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 44px;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-left: 3px solid var(--mantine-color-brand-4);
+  border-radius: 6px;
+  background: var(--mantine-color-body);
+  font-family: var(--mantine-font-family-monospace);
+  list-style: none;
+
+  /* A type alone, with no name above it, sits in the middle of its box. */
+  &[data-bare] {
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* What it gives back, in the brand's tint. */
+  &[data-output] {
+    padding: 6px 14px;
+    border: 1.5px solid var(--mantine-color-brand-3);
+    background: var(--mantine-color-brand-light);
+  }
+}
+
+/* Named with the box, to win over the button reset a linked type gets. */
+.box .name {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.box .type {
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--mantine-color-anchor);
+  overflow-wrap: anywhere;
+}
+
+.box .name,
+.box .type {
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+
+  /* A type that opens its row reads as a link. */
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &[data-link]:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
+.description {
+  display: block;
+  font-family: var(--mantine-font-family);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--mantine-color-dimmed);
+}
+
+/* Named with the box, to win over the anchor's own size. */
+.box .more {
+  font-family: var(--mantine-font-family);
+  font-size: 11px;
+  font-weight: 600;
+}

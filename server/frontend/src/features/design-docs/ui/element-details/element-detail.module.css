@@ -1,51 +1,96 @@
-/*
- * The element is named the way its address is written, above the description
- * that is not. `Title` sets a family of its own, so the tag is named here to
- * be the more specific of the two.
- */
-h2.name {
-  overflow-wrap: anywhere;
+/* The kind's mark in a tile; the pattern and what changed over the name. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg) 0;
 }
 
-.breadcrumb {
+.tile {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--mantine-color-brand-light);
+
+  /* The tree's tones are for rows; here the tile carries the colour. */
+  & svg {
+    color: var(--mantine-color-brand-light-color);
+  }
+}
+
+.heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kind {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--mantine-spacing-xs);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.pattern {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
 }
 
 /*
- * Decorative: the list already says these are steps of one path, and a
- * reader hearing "chevron" between every pair of them would learn nothing.
+ * The element is named the way its address is written. `Title` sets a family
+ * and a size of its own, so the tag is named here to be the more specific.
  */
-.breadcrumb li + li::before {
-  content: '›';
-  margin-right: var(--mantine-spacing-xs);
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+h2.name {
+  font-size: 24px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
-/* A long address wraps rather than pushing the panel wider than its column. */
-.step {
-  font-family: var(--mantine-font-family-monospace);
-  font-size: var(--mantine-font-size-xs);
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
-  overflow-wrap: anywhere;
+/*
+ * Sections on the left, scenarios on the right — once the panel is wide
+ * enough for two columns to be read; under that, the scenarios follow.
+ */
+.body {
+  container-type: inline-size;
+}
 
-  &:hover {
-    color: light-dark(
-      var(--mantine-color-brand-7),
-      var(--mantine-color-brand-4)
-    );
-    text-decoration: underline;
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xl);
+  min-width: 0;
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg)
+    var(--mantine-spacing-xl);
+}
+
+.aside {
+  min-width: 0;
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+@container (min-width: 44rem) {
+  .columns {
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+    align-items: start;
   }
 
-  /* Whatever the mouse gets, the keyboard gets. */
-  &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
-    outline-offset: 2px;
-    border-radius: var(--mantine-radius-xs);
+  .aside {
+    align-self: stretch;
+    border-top: none;
+    border-left: 1px solid var(--mantine-color-default-border);
   }
 }

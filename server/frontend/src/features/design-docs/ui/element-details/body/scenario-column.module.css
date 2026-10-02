@@ -1,0 +1,107 @@
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: var(--mantine-spacing-md) 0 var(--mantine-spacing-lg);
+  scroll-margin-top: var(--mantine-spacing-md);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-sm);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  font-size: 13px;
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+/*
+ * Mantine draws a line under each item; that is the one line between two
+ * scenarios. Named with the column, to win over it for the last.
+ */
+.column .item:last-of-type {
+  border-bottom: none;
+}
+
+/* Room above and below each scenario; named with the column, to win over Mantine's own. */
+.column .control {
+  gap: var(--mantine-spacing-xs);
+  padding-block: var(--mantine-spacing-sm);
+
+  & > span {
+    padding: 0;
+  }
+}
+
+/* A quarter turn, as the tree's own chevrons turn, not Mantine's half. */
+.chevron {
+  margin: 0;
+  color: var(--mantine-color-dimmed);
+
+  &[data-rotate] {
+    transform: rotate(90deg);
+  }
+}
+
+.dim {
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  padding: 0;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 500;
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+}
+
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--mantine-color-dimmed);
+
+  & svg {
+    flex-shrink: 0;
+  }
+}
+
+.ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel {
+  padding: 0 var(--mantine-spacing-sm) 6px 34px;
+}

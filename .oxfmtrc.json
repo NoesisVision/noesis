@@ -12,6 +12,7 @@
     "docs/**/prior-art",
     "docs/**/prototypes",
     ".agents/",
-    "examples/*/"
+    "examples/*/",
+    "server/frontend/.design-sync/"
   ]
 }
