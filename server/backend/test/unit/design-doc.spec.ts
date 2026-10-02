@@ -771,6 +771,59 @@ describe('A design document an agent wrote', () => {
       ]);
     });
 
+    it('may leave the diagram of an added element out', () => {
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            description: { value: 'Issues a refund.' },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
+    it('draws a diagram in its own field, never in a fence of the description', () => {
+      const fenced = 'Issues a refund.\n\n```mermaid\nsequenceDiagram\n```';
+
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            description: { value: fenced },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([
+        {
+          path: `behaviours.added[${ISSUE}].description`,
+          reason: 'diagramInDescription',
+        },
+      ]);
+      // A human may still write one, as descriptions did before.
+      expect(
+        DesignDocument.validateHumanEdited(
+          DesignDocument.parse(
+            addingIssue({
+              type: { value: 'Command' },
+              description: { value: fenced },
+              visibility: { value: { kind: 'private' } },
+            }),
+          ),
+        ),
+      ).toEqual([]);
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            description: { value: 'Issues a refund.' },
+            diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
     it('leaves a field of a modified element unchanged', () => {
       expect(
         validate(

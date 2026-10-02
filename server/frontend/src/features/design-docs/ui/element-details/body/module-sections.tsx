@@ -8,6 +8,7 @@ import type { ElementRef } from '../element-ref.ts';
 import { childSections } from './child-sections.tsx';
 import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
+import { DiagramSection } from './sections/diagram-section.tsx';
 
 export const moduleSections = (
   module: DesignedDomainModuleInput,
@@ -17,6 +18,10 @@ export const moduleSections = (
   const element: ElementRef = { collection: 'modules', id: module.id };
   return [
     ...childSections(element, 'module', module.id, tree, doc),
+    ...section(DiagramSection, 'diagram', {
+      element,
+      field: module.diagram,
+    }),
     ...section(DescriptionSection, 'description', {
       element,
       field: module.description,

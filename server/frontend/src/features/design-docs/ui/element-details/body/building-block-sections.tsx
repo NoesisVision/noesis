@@ -10,6 +10,7 @@ import { childSections } from './child-sections.tsx';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
 import { DescriptionSection } from './sections/description-section.tsx';
+import { DiagramSection } from './sections/diagram-section.tsx';
 
 export const buildingBlockSections = (
   block: DesignedBuildingBlockInput,
@@ -37,6 +38,10 @@ export const buildingBlockSections = (
       title: 'Rules',
       kind: 'rule',
       items: ruleItems(block.id, block.rules),
+    }),
+    ...section(DiagramSection, 'diagram', {
+      element,
+      field: block.diagram,
     }),
     ...section(DescriptionSection, 'description', {
       element,

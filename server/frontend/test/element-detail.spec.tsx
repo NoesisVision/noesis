@@ -38,6 +38,7 @@ const document = {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
         description: human(DIAGRAM),
+        diagram: plain('stateDiagram-v2\n  Held --> Settled'),
         properties: {
           added: [
             {
@@ -299,6 +300,18 @@ describe('ElementDetail', () => {
     expect(html).not.toContain('```');
     expect(html).not.toContain('Not specified.');
     expect(html).toContain('by a human');
+  });
+
+  it('draws the diagram of an element in a section of its own', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/>Diagram<[\s\S]*Drawing diagram…/);
+    expect(html).not.toContain('Held --&gt; Settled');
+  });
+
+  it('shows no diagram section when the design draws none', () => {
+    expect(show('building_block|pay.Hold#rule:A hold expires')).not.toContain(
+      '>Diagram<',
+    );
   });
 
   it('says a description is missing rather than opening an editor on it', () => {

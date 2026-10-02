@@ -178,10 +178,32 @@ describe('outlineOf', () => {
     expect(at('module|sales.refunds').name).toBe('refunds');
   });
 
-  it('marks the one element whose description draws a diagram', () => {
+  it('marks the one element that draws a diagram', () => {
     expect(
       outline.filter((node) => node.hasDiagram).map((node) => node.path),
     ).toEqual(['behavior|sales.refunds.Refund.issue']);
+  });
+
+  it('marks an element whose description still draws one in a fence', () => {
+    const fenced = outlineOf({
+      id: '2026-01-01-fenced',
+      name: 'Fenced',
+      description: '',
+      modules: {
+        added: [
+          {
+            id: 'module|sales',
+            description: {
+              value: 'Sales.\n\n```mermaid\nflowchart TD\n  A --> B\n```',
+            },
+          },
+        ],
+      },
+    });
+
+    expect(
+      fenced.find((node) => node.path === 'module|sales')?.hasDiagram,
+    ).toBe(true);
   });
 
   it('says nothing about a document that designs nothing', () => {

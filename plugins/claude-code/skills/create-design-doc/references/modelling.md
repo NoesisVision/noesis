@@ -85,19 +85,25 @@ Decide what a table stands for before modelling its rows:
   no name: it is its type, a description and whether it may be absent.
 - The description tells an implementer what to build: the input, the
   preconditions, the steps, the output and the edge cases.
+- A module, a building block and a behaviour each have a `diagram` field:
+  the source of one Mermaid diagram, without the ` ```mermaid ` fence.
+  Never put a diagram in a `description`; the service refuses a fence there.
+  Leave `diagram` out when there is nothing to draw: it is the one field an
+  added element may leave out.
 - When a behaviour coordinates three or more building blocks, or is the
-  entry point of a use case, end its description with a Mermaid sequence
-  diagram, adapted from the sources when they have one:
+  entry point of a use case, give it a sequence diagram, adapted from the
+  sources when they have one. Name it with `accTitle:`, the only text a
+  screen reader reads in place of the picture:
 
-  ````
-  ```mermaid
-  sequenceDiagram
-    Support agent->>RefundService: issue(orderId, lines)
-    RefundService->>OrderRepository: find(orderId)
-    RefundService->>Refund: issue(order, lines)
-    Refund-->>RefundService: RefundIssued
+  ```json
+  "diagram": {
+    "value": "sequenceDiagram\n  accTitle: Issuing a refund\n  Support agent->>RefundService: issue(orderId, lines)\n  RefundService->>OrderRepository: find(orderId)\n  RefundService->>Refund: issue(order, lines)\n  Refund-->>RefundService: RefundIssued"
+  }
   ```
-  ````
+
+- Draw a building block or a module only when a picture says more than its
+  description: the states of an aggregate (`stateDiagram-v2`), the
+  collaborators of a module (`flowchart`).
 
 ## Actors
 

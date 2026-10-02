@@ -16,6 +16,7 @@ import {
 } from '#backend/app/system-model/system-model';
 import { DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
+import { MermaidSource } from './mermaid-source';
 
 export const DesignedScenario = z.strictObject({
   name: ElementName,
@@ -65,6 +66,7 @@ export const DesignedDomainModule = z.strictObject({
   id: ModuleId,
   name: DesignDocField(ElementName),
   description: DesignDocField(z.string()),
+  diagram: DesignDocField(MermaidSource),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 
@@ -73,6 +75,7 @@ export const DesignedBuildingBlock = z.strictObject({
   name: DesignDocField(ElementName),
   type: DesignDocField(BuildingBlockType),
   description: DesignDocField(z.string()),
+  diagram: DesignDocField(MermaidSource),
   implements: changeSet(BuildingBlockId),
   properties: changeSet(DesignedProperty, ElementName),
   rules: changeSet(DesignedRule, ElementName),
@@ -85,6 +88,7 @@ export const DesignedBehaviour = z.strictObject({
   name: DesignDocField(ElementName),
   type: DesignDocField(BehaviourType),
   description: DesignDocField(z.string()),
+  diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
   input: changeSet(DesignedParameter, ElementName),
   output: changeSet(DesignedResult, BuildingBlockRef),
@@ -125,6 +129,7 @@ export const DesignDocument = Object.assign(designDocumentSchema, {
   ): DesignDocViolation[] => [
     ...rulesOfEveryDesign(document, systemModel),
     ...humanAuthoredFields(document),
+    ...diagramsInDescriptions(document),
   ],
 });
 export type DesignDocument = z.infer<typeof designDocumentSchema>;
@@ -135,7 +140,8 @@ export interface DesignDocViolation {
     | 'changedInGreenField'
     | 'unknownElement'
     | 'unchangedFieldInAddedItem'
-    | 'humanAuthor';
+    | 'humanAuthor'
+    | 'diagramInDescription';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -310,12 +316,55 @@ function rulesOfEveryDesign(
   ];
 }
 
+/**
+ * Fields an added element may leave out: the model never has them, so there
+ * is nothing for the design to keep.
+ */
+const OPTIONAL_FIELDS = new Set(['diagram']);
+
 function unchangedFieldsInAddedItems(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   return [...fieldsOf(document, '')]
-    .filter(([path, field]) => !field.changed && isInAddedItem(path))
+    .filter(
+      ([path, field]) =>
+        !field.changed && isInAddedItem(path) && !isOptionalField(path),
+    )
     .map(([path]) => ({ path, reason: 'unchangedFieldInAddedItem' }));
+}
+
+function isOptionalField(path: string): boolean {
+  return OPTIONAL_FIELDS.has(path.slice(path.lastIndexOf('.') + 1));
+}
+
+/** The fence a diagram is written in inside markdown. */
+const MERMAID_FENCE = /^ {0,3}(?:`{3,}|~{3,})[^\n]*\bmermaid\b/mu;
+
+/**
+ * An element with a diagram of its own draws it there, not in a fence of its
+ * description.
+ */
+function diagramsInDescriptions(
+  document: DesignDocumentContent,
+): DesignDocViolation[] {
+  const collections = {
+    modules: document.modules,
+    buildingBlocks: document.buildingBlocks,
+    behaviours: document.behaviours,
+  };
+  return Object.entries(collections).flatMap(([name, changes]) =>
+    (['added', 'modified'] as const).flatMap((kind) =>
+      changes[kind]
+        .filter(
+          ({ description }) =>
+            description.changed && MERMAID_FENCE.test(description.value),
+        )
+        .map(({ id }) => ({
+          path: `${name}.${kind}[${id}].description`,
+          reason: 'diagramInDescription' as const,
+        })),
+    ),
+  );
 }
 
 function humanAuthoredFields(

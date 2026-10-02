@@ -91,7 +91,8 @@ it at step 5.
 6. **Diff against the baseline.** Read both contracts now. For every
    element and every part of one (property, rule, scenario, input, output,
    `implements` entry), ask whether the system model has it:
-   - **Not in the model:** `added`, with every field given a value.
+   - **Not in the model:** `added`, with every field given a value except
+     `diagram`, which only an element worth drawing has.
    - **In the model and changed:** `modified`, with its id (a part's name,
      an output's type) and only the fields that change. Its `description`
      is always a change note: `"Change note: "`, then what changes and why,

@@ -617,7 +617,11 @@
       {
         "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
         "description": {
-          "value": "Resolves the list of discounts applicable to a user. In addition to the user status it now reads the current weather once through WeatherProvider and places the optional snapshot into Conditions before asking DiscountConfig for the applicable discounts.\n\n```mermaid\nsequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>\n```",
+          "value": "Resolves the list of discounts applicable to a user. In addition to the user status it now reads the current weather once through WeatherProvider and places the optional snapshot into Conditions before asking DiscountConfig for the applicable discounts.",
+          "author": "agent"
+        },
+        "diagram": {
+          "value": "sequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>",
           "author": "agent"
         },
         "visibility": {

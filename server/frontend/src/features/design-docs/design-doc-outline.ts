@@ -16,7 +16,11 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
-import { refLabelOf, valueOf } from './design-doc-field.ts';
+import {
+  type DesignDocFieldInput,
+  refLabelOf,
+  valueOf,
+} from './design-doc-field.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -56,7 +60,7 @@ function addModules(
   modules: ChangeSetInput<DesignedDomainModuleInput, string> | undefined,
 ): void {
   for (const [module, change] of named(modules))
-    put(nodes, element(module.id, change, null, valueOf(module.description)));
+    put(nodes, element(module.id, change, null, isDrawn(module)));
   for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
@@ -65,15 +69,7 @@ function addBuildingBlocks(
   blocks: ChangeSetInput<DesignedBuildingBlockInput, string> | undefined,
 ): void {
   for (const [block, change] of named(blocks)) {
-    put(
-      nodes,
-      element(
-        block.id,
-        change,
-        valueOf(block.type),
-        valueOf(block.description),
-      ),
-    );
+    put(nodes, element(block.id, change, valueOf(block.type), isDrawn(block)));
     addProperties(nodes, block.id, block.properties);
     addRules(nodes, block.id, block.rules);
     addScenarios(nodes, block.id, block.scenarios);
@@ -92,7 +88,7 @@ function addBehaviours(
         behaviour.id,
         change,
         valueOf(behaviour.type),
-        valueOf(behaviour.description),
+        isDrawn(behaviour),
       ),
     );
     addRules(nodes, behaviour.id, behaviour.rules);
@@ -205,11 +201,25 @@ function put(nodes: Map<string, OutlineNode>, node: OutlineNode): void {
   if (!nodes.has(node.path)) nodes.set(node.path, node);
 }
 
+/**
+ * An element draws its diagram in a field of its own; a description written
+ * before it had one may still carry the fence.
+ */
+function isDrawn(designed: {
+  description?: DesignDocFieldInput<string>;
+  diagram?: DesignDocFieldInput<string>;
+}): boolean {
+  return (
+    valueOf(designed.diagram) !== null ||
+    drawsDiagram(valueOf(designed.description))
+  );
+}
+
 function element(
   id: string,
   change: OutlineChange,
   pattern: string | null = null,
-  description: string | null | undefined = null,
+  hasDiagram = false,
 ): OutlineNode {
   const { kind, parentPath } = placeOf(id);
   return {
@@ -222,7 +232,7 @@ function element(
     change,
     pattern,
     patternLabel: patternLabelOf(pattern),
-    hasDiagram: drawsDiagram(description),
+    hasDiagram,
   };
 }
 

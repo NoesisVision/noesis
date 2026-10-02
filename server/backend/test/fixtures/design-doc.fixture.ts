@@ -41,6 +41,7 @@ export const designDocFixture = {
         description: byAgent(
           'Everything about giving money back to a customer.',
         ),
+        diagram: unchanged,
       },
     ],
     removed: ['module|sales.credit-notes'],
@@ -51,6 +52,7 @@ export const designDocFixture = {
         description: byHuman(
           'Order lifecycle, now including the refundable state of each line.',
         ),
+        diagram: unchanged,
       },
     ],
   },
@@ -63,6 +65,7 @@ export const designDocFixture = {
         description: byAgent(
           'A refund of one or more lines of a single order.',
         ),
+        diagram: unchanged,
         implements: noAdditions,
         properties: {
           added: [
@@ -132,6 +135,7 @@ export const designDocFixture = {
         name: byAgent('RefundIssued'),
         type: byAgent('value_object'),
         description: byAgent('Tells the ledger a refund went out.'),
+        diagram: unchanged,
         implements: noAdditions,
         properties: noChanges,
         rules: noChanges,
@@ -142,6 +146,7 @@ export const designDocFixture = {
         name: byAgent('RefundRepository'),
         type: byAgent('repository'),
         description: byAgent('Stores refunds.'),
+        diagram: unchanged,
         implements: {
           added: ['building_block|sales.shared.Repository'],
           removed: [],
@@ -158,6 +163,7 @@ export const designDocFixture = {
         name: unchanged,
         type: unchanged,
         description: unchanged,
+        diagram: unchanged,
         implements: noAdditions,
         properties: {
           added: [
@@ -191,6 +197,9 @@ export const designDocFixture = {
         type: byHuman('Command'),
         description: byAgent(
           'Issues a refund for the chosen lines of an order.',
+        ),
+        diagram: byAgent(
+          'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
         input: {
@@ -252,6 +261,7 @@ export const designDocFixture = {
         name: unchanged,
         type: unchanged,
         description: unchanged,
+        diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
         input: {
           added: [],

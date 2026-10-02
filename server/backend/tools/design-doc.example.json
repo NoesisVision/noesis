@@ -209,6 +209,9 @@
         "description": {
           "value": "Issues a refund for the chosen lines of an order."
         },
+        "diagram": {
+          "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued"
+        },
         "visibility": {
           "value": {
             "kind": "public",

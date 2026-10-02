@@ -3,7 +3,7 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 /*
  * A design that changes something at every level, in the JSON form the wire
  * carries: an element added, modified and removed at each of the three kinds,
- * a part of each kind, and one description that draws a diagram. Only what the
+ * a part of each kind, and one element that draws a diagram. Only what the
  * outline reads is spelled out — the bodies of the fields are the detail
  * panel's business, not the tree's.
  */
@@ -12,13 +12,9 @@ const human = <const T>(value: T) => ({ value, author: 'human' as const });
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
 const ISSUE_DIAGRAM = [
-  'How a refund is issued.',
-  '',
-  '```mermaid',
   'flowchart TD',
   '  accTitle: Issuing a refund',
   '  A[Order] --> B[Refund]',
-  '```',
 ].join('\n');
 
 export const changedEverywhereFixture = {
@@ -129,7 +125,8 @@ export const changedEverywhereFixture = {
       {
         id: 'behavior|sales.refunds.Refund.issue',
         type: human('Command'),
-        description: agent(ISSUE_DIAGRAM),
+        description: agent('How a refund is issued.'),
+        diagram: agent(ISSUE_DIAGRAM),
         rules: {
           added: [
             {

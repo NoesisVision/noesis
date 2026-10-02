@@ -77,6 +77,8 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   unchangedFieldInAddedItem:
     'the item is new, so this field needs a { "value" }',
   humanAuthor: 'write every field as the agent: leave "author" out',
+  diagramInDescription:
+    'move the ```mermaid fence out of the description: write its source, without the fence, to the element\'s "diagram"',
 };
 
 function message(error: unknown): string {
