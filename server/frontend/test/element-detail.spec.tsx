@@ -330,7 +330,8 @@ describe('ElementDetail', () => {
 
   it("draws a module's building blocks as cards, each opening its row", () => {
     const html = show('module|pay');
-    expect(html).toContain('>Building blocks<');
+    // No title over them: the pattern captions say what they are.
+    expect(html).not.toContain('>Building blocks<');
     expect(html).toMatch(/<button[^>]*data-link="true"[^>]*>Hold<\/button>/);
     // Under its pattern, with how many share it, and the icon the tree gives
     // that pattern; the card itself does not say the pattern again.
@@ -673,7 +674,6 @@ describe('ElementDetail', () => {
   it('lists what changed under a module the design never names', () => {
     const html = show('module|pay');
     expect(html).toContain('does not change it');
-    expect(html).toContain('>Building blocks<');
     // Added and removed alike, each opening its row.
     for (const name of ['Hold', 'Voucher'])
       expect(html).toMatch(new RegExp(`<button[^>]*>(<[^>]+>)*${name}<`));

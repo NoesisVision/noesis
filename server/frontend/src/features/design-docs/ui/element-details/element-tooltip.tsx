@@ -104,7 +104,6 @@ export function ElementTooltip({
     <CardTooltip
       openDelay={300}
       multiline
-      maw={360}
       label={<Details address={address} shape={shape} />}
     >
       {hint

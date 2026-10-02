@@ -21,7 +21,8 @@ const DESCRIPTION_LENGTH = 80;
 
 interface ElementCardsSectionProps {
   element: ElementRef;
-  title: string;
+  /** None for building blocks: their pattern captions already say what they are. */
+  title?: string;
   /** The kind listed: a module's submodules, or its building blocks. */
   kind: Extract<OutlineKind, 'module' | 'building_block'>;
   /** Each as the tree has it, in the tree's order. */

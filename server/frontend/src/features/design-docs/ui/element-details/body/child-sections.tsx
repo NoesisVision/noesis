@@ -34,7 +34,6 @@ export const childSections = (
       }),
       ...section(ElementCardsSection, 'building-blocks', {
         element,
-        title: 'Building blocks',
         kind: 'building_block',
         nodes: tree
           .childrenOf(path)
