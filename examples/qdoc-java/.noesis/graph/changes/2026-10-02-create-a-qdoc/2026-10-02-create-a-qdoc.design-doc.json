@@ -1,7 +1,7 @@
 {
   "id": "2026-10-02-create-a-qdoc",
   "name": "Create a QDoc",
-  "description": "Designs UC-1 in a green field: a root module qdocmanagement with the bounded contexts preparation and notifications. A quality manager submits a CreateQDoc request to QDocCreationService; the QDoc aggregate is created active with a document number, and version 1 with the status new, one empty content file and the named authors, reviewers and approvers. QDocCreated is published and the notifications context tells every quality manager. Document number format (UC-2) and assignee role checks (UC-3) are left to their own changes; the notification channel and delay stay open (TBD-01).",
+  "description": "Designs UC-1 in a green field: a root module qdocmanagement with the bounded contexts preparation and notifications. A quality manager submits a CreateQDoc request to QDocCreationService; the QDoc aggregate is created active with a document number, and version 1 with the status new, one empty content file and the named authors, reviewers and approvers. QDocCreated is published and the notifications context tells every quality manager. Left to their own changes: the document number format, sequence and uniqueness (UC-2); role and active-account checks on assignees (UC-3), so until then the people named are assigned as given; and editing, history and comments of content files (UC-4), so here a content file only exists. The notification channel and its maximum delivery delay stay open (TBD-01); a new QDoc notification must arrive within that delay.",
   "modules": {
     "added": [
       {
@@ -31,7 +31,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Bounded context of the Preparation subsystem (area code PRE): creates and numbers QDocs and versions, assigns people, holds the files of a version, shares versions for review, records review marks, creates new versions and archives QDocs. This change covers creating a QDoc (UC-1).",
+          "value": "Bounded context of the Preparation subsystem (area code PRE): creates and numbers QDocs and versions, assigns people, holds the files of a version, shares versions for review, records review marks, creates new versions and archives QDocs.",
           "author": "agent"
         },
         "diagram": {
@@ -47,7 +47,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Bounded context of the Notifications subsystem (area code NOT), a platform subsystem: tells users about events such as new QDocs, new versions and assignments. Holds no process of its own. This change covers telling the quality managers about a new QDoc.",
+          "value": "Bounded context of the Notifications subsystem (area code NOT), a platform subsystem: tells users about events such as new QDocs, new versions and assignments. Holds no process of its own.",
           "author": "agent"
         },
         "diagram": {
@@ -419,7 +419,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device. Its format, sequence and uniqueness are defined by UC-2 and designed in that change; this change only requires that every new QDoc carries one.",
+          "value": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device.",
           "author": "agent"
         },
         "diagram": {
@@ -712,7 +712,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "The link between a user, a version and one role on the version. Role and active-account checks on the assignee belong to UC-3 and are not part of this change.",
+          "value": "The link between a user, a version and one role the user holds on the version.",
           "author": "agent"
         },
         "diagram": {
@@ -1246,7 +1246,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "A rich-text file the authors write; the body of the QDoc. Each version has at least one. Editing, change history and comments are the Content management subsystem's (UC-4); here the file only exists.",
+          "value": "A rich-text file the authors write; the body of a QDoc version. Each version has at least one. Its editing, change history and comments belong to the Content management subsystem.",
           "author": "agent"
         },
         "diagram": {
@@ -1440,7 +1440,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. The aggregate root guards that a QDoc never lacks a version.",
+          "value": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived.",
           "author": "agent"
         },
         "diagram": {
@@ -1712,7 +1712,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Gives a new QDoc its document number. The format, sequence and uniqueness rules are those of UC-2 and are designed in that change; until then the generator is the single place they will live.",
+          "value": "Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique.",
           "author": "agent"
         },
         "diagram": {
@@ -2084,7 +2084,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Port that delivers a notification to a user. The channel and the maximum delay are open (TBD-01).",
+          "value": "Port that delivers a notification to a user.",
           "author": "agent"
         },
         "diagram": {
@@ -2170,7 +2170,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Creates a QDoc from a QDoc creation request. Steps: (1) ask the IdentityProvider whether requestedBy holds the quality manager role, reject otherwise; (2) validate the request: title, document type and at least one author present, document type from the list; (3) get the next document number from the DocumentNumberGenerator; (4) create the QDoc aggregate, which creates version 1 with its empty content file and assignments; (5) save it through the QDocRepository; (6) publish QDocCreated through the PreparationEventPublisher in the same unit of work as the save. Returns the identity of the new QDoc. A rejected request creates nothing and publishes nothing. Authorisation uses the requester's roles at the moment of the request; the authors, reviewers and approvers are assigned without role or account checks, which UC-3 adds.",
+          "value": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, and announces the new QDoc to the other subsystems.",
           "author": "agent"
         },
         "diagram": {
@@ -2242,7 +2242,7 @@
               },
               "description": {
                 "changed": true,
-                "value": "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing.",
+                "value": "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing. The requester's roles are those held at the moment of the request.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2339,6 +2339,48 @@
                 "removed": [],
                 "modified": []
               }
+            },
+            {
+              "name": "A QDoc is saved and announced together",
+              "ruleType": {
+                "changed": true,
+                "value": "Consistency",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The new QDoc is saved and QDocCreated is published in the same unit of work: either both happen or neither does. A rejected request creates nothing and publishes nothing.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "An invalid request leaves no trace",
+                    "description": {
+                      "changed": true,
+                      "value": "A rejected request neither saves nor announces anything.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "changed": true,
+                      "value": "a quality manager",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "changed": true,
+                      "value": "the quality manager submits a QDoc creation request that names no author",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "changed": true,
+                      "value": "the request is rejected, no QDoc is saved and no QDocCreated is published",
+                      "author": "agent"
+                    }
+                  }
+                ],
+                "removed": [],
+                "modified": []
+              }
             }
           ],
           "removed": [],
@@ -2388,7 +2430,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Creates a QDoc: active, with the given title, document type, document number, creator and creation time, and with version 1 made by Version.createFirst from the named authors, reviewers and approvers. Returns the new aggregate and the QDocCreated event to publish.",
+          "value": "Creates an active QDoc from a validated creation request and its document number, together with its first version.",
           "author": "agent"
         },
         "diagram": {
@@ -2412,7 +2454,7 @@
               },
               "description": {
                 "changed": true,
-                "value": "The validated creation request.",
+                "value": "The validated creation request: the title, the document type, the creator and the authors, reviewers and approvers to assign to version 1. The creation time is when the QDoc is created.",
                 "author": "agent"
               },
               "optional": {
@@ -2449,7 +2491,7 @@
               "type": "building_block|qdocmanagement.preparation.QDocCreated",
               "description": {
                 "changed": true,
-                "value": "The event telling the other subsystems the QDoc exists.",
+                "value": "The QDocCreated event to publish, telling the other subsystems the QDoc exists; returned together with the new QDoc aggregate.",
                 "author": "agent"
               },
               "optional": {
@@ -2530,7 +2572,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Creates version 1 of a new QDoc: number 1, status new, one empty content file, and one assignment per named author, reviewer and approver. Reviewers and approvers may be empty; authors never are.",
+          "value": "Creates the first version of a new QDoc, with the people named at creation assigned to it.",
           "author": "agent"
         },
         "diagram": {
@@ -2576,7 +2618,7 @@
               },
               "description": {
                 "changed": true,
-                "value": "The reviewers to assign.",
+                "value": "The reviewers to assign; may be empty.",
                 "author": "agent"
               },
               "optional": {
@@ -2596,7 +2638,7 @@
               },
               "description": {
                 "changed": true,
-                "value": "The approvers to assign.",
+                "value": "The approvers to assign; may be empty.",
                 "author": "agent"
               },
               "optional": {
@@ -2615,7 +2657,7 @@
               "type": "building_block|qdocmanagement.preparation.Version",
               "description": {
                 "changed": true,
-                "value": "Version 1.",
+                "value": "Version 1: number 1, status new, one empty content file and one assignment per named author, reviewer and approver.",
                 "author": "agent"
               },
               "optional": {
@@ -2939,7 +2981,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Returns the document number for the QDoc being created. Composition, sequence and uniqueness follow UC-2 and are designed in that change.",
+          "value": "Gives the QDoc being created its document number.",
           "author": "agent"
         },
         "diagram": {
@@ -3168,7 +3210,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Handles QDocCreated from the Preparation subsystem: lists the quality managers of the organisation through the QualityManagerDirectory and sends each one a NewQDocNotification naming the QDoc's title, its document number and its creator. The notification must arrive within the maximum delay of TBD-01, over the channel TBD-01 settles. A failed delivery to one quality manager does not stop the others.",
+          "value": "Tells every quality manager of the organisation that a QDoc was created, naming the QDoc's title, its document number and its creator.",
           "author": "agent"
         },
         "diagram": {
@@ -3249,6 +3291,48 @@
                     "then": {
                       "changed": true,
                       "value": "each of the 3 receives a notification naming the QDoc, its document number and its creator",
+                      "author": "agent"
+                    }
+                  }
+                ],
+                "removed": [],
+                "modified": []
+              }
+            },
+            {
+              "name": "A failed delivery stops no other",
+              "ruleType": {
+                "changed": true,
+                "value": "State change",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "When delivering the notification to one quality manager fails, the notifications to the other quality managers are still sent.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "One delivery fails",
+                    "description": {
+                      "changed": true,
+                      "value": "The others are still told.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "changed": true,
+                      "value": "an organisation with 3 quality managers, and delivery to one of them fails",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "changed": true,
+                      "value": "a QDoc is created",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "changed": true,
+                      "value": "the other 2 quality managers each receive a notification naming the QDoc, its document number and its creator",
                       "author": "agent"
                     }
                   }
@@ -3345,7 +3429,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Delivers one notification to its recipient over the channel TBD-01 settles.",
+          "value": "Delivers one notification to its recipient.",
           "author": "agent"
         },
         "diagram": {
