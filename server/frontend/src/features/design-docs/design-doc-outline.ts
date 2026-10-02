@@ -59,8 +59,10 @@ function addModules(
   nodes: Map<string, OutlineNode>,
   modules: ChangeSetInput<DesignedDomainModuleInput, string> | undefined,
 ): void {
-  for (const [module, change] of named(modules))
+  for (const [module, change] of named(modules)) {
     put(nodes, element(module.id, change, null, isDrawn(module)));
+    addRules(nodes, module.id, module.rules);
+  }
   for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 

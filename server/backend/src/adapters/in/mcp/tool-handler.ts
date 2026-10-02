@@ -79,6 +79,12 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   humanAuthor: 'write every field as the agent: leave "author" out',
   diagramInDefinition:
     'move the ```mermaid fence out of the definition: write its source, without the fence, to the element\'s "diagram"',
+  unknownNeed:
+    'the design document states no such need; add it to "needs", or leave it out of the rule\'s "needs"',
+  ruleTypeOutsideCategory:
+    'the rule\'s "ruleType" belongs to another "category"; pick a type of its category, or the category of its type',
+  businessRuleOnModule:
+    'a module holds only quality and constraint rules; move the business rule to the building block or behaviour it governs',
 };
 
 function message(error: unknown): string {

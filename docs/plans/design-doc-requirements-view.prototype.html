@@ -1,0 +1,2079 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <style>
+      body {
+        margin: 0;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+    <title>Design Doc Requirements View</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      /* Layout: app shell header with a view switch, a sticky contents rail on the left, the requirements document on the right. */
+      :root {
+        --bg: #f6f8fb;
+        --surface: #ffffff;
+        --fg: #1a1f2b;
+        --dim: #5b6577;
+        --faint: #8a93a3;
+        --line: #e1e6ee;
+        --line-strong: #cdd4df;
+        --brand: #1d4ed8;
+        --brand-soft: #eff6ff;
+        --brand-ink: #1e40af;
+        --quote: #f1f4f9;
+        --green: #2b8a3e;
+        --green-soft: #ebfbee;
+        --yellow: #a15c00;
+        --yellow-soft: #fff4d6;
+        --red: #c92a2a;
+        --red-soft: #fff0f0;
+        --violet: #6741d9;
+        --violet-soft: #f3f0ff;
+        --verif: #f2f6fd;
+        --verif-line: #d6e2f5;
+        --verif-ink: #1e40af;
+        --proto: #f4efe3;
+        --proto-ink: #6b5a2e;
+        --proto-line: #d9c99c;
+        --font:
+          'Raleway', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+          Roboto, sans-serif;
+        --mono:
+          'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #14171e;
+          --surface: #1b1f28;
+          --fg: #e4e8ef;
+          --dim: #a3acbb;
+          --faint: #7a8496;
+          --line: #2b313d;
+          --line-strong: #3a4250;
+          --brand: #60a5fa;
+          --brand-soft: #1b2a45;
+          --brand-ink: #93c5fd;
+          --quote: #222835;
+          --green: #69db7c;
+          --green-soft: #1d3324;
+          --yellow: #ffd43b;
+          --yellow-soft: #3a3118;
+          --red: #ff8787;
+          --red-soft: #3d2020;
+          --violet: #b197fc;
+          --violet-soft: #2a2442;
+          --verif: #182234;
+          --verif-line: #2a3a55;
+          --verif-ink: #93c5fd;
+          --verif: #182234;
+          --verif-line: #2a3a55;
+          --verif-ink: #93c5fd;
+          --proto: #2a2619;
+          --proto-ink: #d8c58f;
+          --proto-line: #5a4e2c;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #14171e;
+        --surface: #1b1f28;
+        --fg: #e4e8ef;
+        --dim: #a3acbb;
+        --faint: #7a8496;
+        --line: #2b313d;
+        --line-strong: #3a4250;
+        --brand: #60a5fa;
+        --brand-soft: #1b2a45;
+        --brand-ink: #93c5fd;
+        --quote: #222835;
+        --green: #69db7c;
+        --green-soft: #1d3324;
+        --yellow: #ffd43b;
+        --yellow-soft: #3a3118;
+        --red: #ff8787;
+        --red-soft: #3d2020;
+        --violet: #b197fc;
+        --violet-soft: #2a2442;
+        --proto: #2a2619;
+        --proto-ink: #d8c58f;
+        --proto-line: #5a4e2c;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font);
+        font-size: 15px;
+        line-height: 1.55;
+      }
+      a {
+        color: var(--brand);
+      }
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 2px;
+        border-radius: 3px;
+      }
+      h1,
+      h2,
+      h3 {
+        text-wrap: balance;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      /* Prototype chrome */
+      .proto {
+        background: var(--proto);
+        color: var(--proto-ink);
+        border-bottom: 1px dashed var(--proto-line);
+        padding: 8px 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        align-items: center;
+        font-size: 13px;
+      }
+      .proto-tag {
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .addr {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex: 1 1 360px;
+      }
+      .addr button {
+        border: 1px solid var(--proto-line);
+        background: transparent;
+        border-radius: 4px;
+        padding: 1px 8px;
+        cursor: pointer;
+        color: var(--proto-ink);
+      }
+      .addr button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .addr code {
+        font-family: var(--mono);
+        font-size: 12px;
+        background: var(--surface);
+        color: var(--fg);
+        border: 1px solid var(--proto-line);
+        border-radius: 4px;
+        padding: 2px 8px;
+        overflow-x: auto;
+        white-space: nowrap;
+        min-width: 0;
+        flex: 1;
+      }
+      .addr code b {
+        color: var(--brand);
+        font-weight: 500;
+      }
+      .proto label {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .proto select {
+        font: inherit;
+        font-size: 13px;
+        background: var(--surface);
+        color: var(--fg);
+        border: 1px solid var(--proto-line);
+        border-radius: 4px;
+        padding: 1px 4px;
+      }
+
+      /* App header */
+      .wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding-inline: 16px;
+      }
+      .app-head {
+        background: var(--surface);
+        border-bottom: 1px solid var(--line);
+      }
+      .app-head .wrap {
+        padding-block: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .crumbs {
+        font-size: 13px;
+        color: var(--dim);
+        margin-bottom: 4px;
+      }
+      .crumbs span + span::before {
+        content: '/';
+        margin: 0 6px;
+        color: var(--faint);
+      }
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .title-row svg {
+        color: var(--brand);
+        flex: none;
+      }
+      .title-row h1 {
+        font-size: 22px;
+      }
+      .title-row .state {
+        color: var(--dim);
+        font-size: 13px;
+      }
+
+      .seg {
+        display: inline-flex;
+        background: var(--quote);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 3px;
+        gap: 2px;
+      }
+      .seg button {
+        border: 0;
+        background: transparent;
+        padding: 5px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--dim);
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .seg button[aria-pressed='true'] {
+        background: var(--surface);
+        color: var(--fg);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Requirements layout */
+      .req {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        gap: 40px;
+        padding-block: 28px 80px;
+      }
+      @media (max-width: 860px) {
+        .req {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 20px;
+        }
+      }
+      .toc {
+        position: sticky;
+        top: calc(env(safe-area-inset-top, 0px) + 16px);
+        align-self: start;
+        font-size: 14px;
+      }
+      @media (max-width: 860px) {
+        .toc {
+          position: static;
+        }
+      }
+      .toc h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        color: var(--faint);
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .toc ul {
+        list-style: none;
+        margin: 0 0 18px;
+        padding: 0;
+        display: grid;
+        gap: 1px;
+      }
+      .toc a {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: baseline;
+        text-decoration: none;
+        color: var(--fg);
+        padding: 5px 8px;
+        border-radius: 4px;
+      }
+      .toc a:hover {
+        background: var(--quote);
+      }
+      .toc a.on {
+        background: var(--brand-soft);
+        color: var(--brand-ink);
+      }
+      .toc a small {
+        display: block;
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .count {
+        font-variant-numeric: tabular-nums;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .count.warn {
+        color: var(--red);
+        font-weight: 600;
+      }
+
+      .doc {
+        min-width: 0;
+        max-width: 820px;
+      }
+      .doc-intro p {
+        margin: 0;
+        color: var(--dim);
+        max-width: 68ch;
+      }
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+        font-size: 13px;
+        color: var(--dim);
+      }
+      .summary b {
+        color: var(--fg);
+        font-variant-numeric: tabular-nums;
+      }
+      .summary .gap b {
+        color: var(--red);
+      }
+
+      .need {
+        margin-top: 40px;
+        scroll-margin-top: 16px;
+      }
+      .need-head {
+        border-bottom: 2px solid var(--fg);
+        padding-bottom: 12px;
+      }
+      .need-head .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 600;
+      }
+      .need-head h2 {
+        font-size: 21px;
+        margin-top: 2px;
+      }
+      blockquote {
+        margin: 10px 0 0;
+        padding: 8px 14px;
+        background: var(--quote);
+        border-radius: 4px;
+        max-width: 70ch;
+      }
+      .need-head blockquote {
+        font-size: 15.5px;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--dim);
+      }
+      .meta b {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .empty {
+        color: var(--dim);
+        font-style: italic;
+        margin: 14px 0 0;
+      }
+
+      .rule {
+        padding: 22px 0 4px;
+        border-bottom: 1px solid var(--line);
+        scroll-margin-top: 16px;
+      }
+      .rule-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        align-items: baseline;
+      }
+      .rule-head h3 {
+        font-size: 16.5px;
+      }
+      .rule > blockquote {
+        font-size: 15px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 8px 16px;
+        margin: 14px 0 16px;
+        font-size: 14px;
+      }
+      .fields dt {
+        color: var(--dim);
+        font-weight: 500;
+      }
+      .fields dd {
+        margin: 0;
+        min-width: 0;
+      }
+      @media (max-width: 520px) {
+        .fields {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 2px;
+        }
+        .fields dd {
+          margin-bottom: 8px;
+        }
+      }
+
+      .badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 1px 7px;
+        border-radius: 3px;
+        line-height: 1.6;
+        white-space: nowrap;
+      }
+      .b-added {
+        color: var(--green);
+        background: var(--green-soft);
+      }
+      .b-modified {
+        color: var(--yellow);
+        background: var(--yellow-soft);
+      }
+      .b-removed {
+        color: var(--red);
+        background: var(--red-soft);
+      }
+      .cat {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .cat-chip {
+        font-weight: 600;
+        padding: 0 7px;
+        border-radius: 3px;
+        font-size: 13px;
+      }
+      .cat-Business {
+        color: var(--brand-ink);
+        background: var(--brand-soft);
+      }
+      .cat-Quality {
+        color: var(--violet);
+        background: var(--violet-soft);
+      }
+      .rt {
+        color: var(--dim);
+      }
+
+      .el-link {
+        font-family: var(--mono);
+        font-size: 13px;
+        text-decoration: none;
+        border-bottom: 1px solid currentColor;
+      }
+      .el-link:hover {
+        border-bottom-width: 2px;
+      }
+      .kind {
+        color: var(--faint);
+        font-size: 12.5px;
+        margin-left: 6px;
+      }
+      .subsys {
+        font-family: var(--mono);
+        font-size: 13px;
+      }
+      .trace {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 6px;
+      }
+      .trace a {
+        font-size: 13px;
+        text-decoration: none;
+        padding: 0 7px;
+        border: 1px solid var(--line-strong);
+        border-radius: 3px;
+        color: var(--fg);
+      }
+      .trace a:hover {
+        border-color: var(--brand);
+        color: var(--brand);
+      }
+      .trace a.here {
+        background: var(--quote);
+      }
+      .changed {
+        font-size: 11px;
+        color: var(--yellow);
+        font-weight: 600;
+        margin-left: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .was {
+        display: block;
+        color: var(--faint);
+        text-decoration: line-through;
+        margin-top: 2px;
+      }
+      .note {
+        font-style: italic;
+      }
+
+      .verif {
+        margin: 4px 0 18px;
+        padding: 12px 14px 14px;
+        background: var(--verif);
+        border: 1px solid var(--verif-line);
+        border-radius: 6px;
+      }
+      .verif-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--verif-ink);
+      }
+      .verif-head svg {
+        flex: none;
+      }
+      .verif-head .count {
+        margin-left: auto;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 500;
+        color: var(--dim);
+      }
+      .scns {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 10px;
+      }
+      .scn {
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--surface);
+        min-width: 0;
+        overflow: hidden;
+      }
+      .scn-name {
+        font-weight: 600;
+        font-size: 14px;
+        padding: 7px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .gwt {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr);
+        gap: 6px 10px;
+        margin: 0;
+        padding: 9px 12px 10px;
+        font-size: 14px;
+      }
+      .gwt dt {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--verif-ink);
+        padding-top: 2px;
+      }
+      .gwt dt.then {
+        color: var(--green);
+      }
+      .gwt dd {
+        margin: 0;
+        white-space: pre-line;
+      }
+      .gwt dd.then {
+        font-weight: 600;
+      }
+      .verif.none {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 14px;
+        background: var(--red-soft);
+        border-color: transparent;
+        color: var(--red);
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+
+      .more {
+        margin: 10px 0 12px;
+      }
+      .more summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 10px;
+        cursor: pointer;
+        list-style: none;
+        padding: 4px 8px 4px 4px;
+        margin-left: -4px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: var(--dim);
+        width: fit-content;
+        max-width: 100%;
+      }
+      .more summary::-webkit-details-marker {
+        display: none;
+      }
+      .more summary:hover {
+        background: var(--quote);
+        color: var(--fg);
+      }
+      .more .chev {
+        flex: none;
+        transition: transform 0.15s ease;
+      }
+      .more[open] .chev {
+        transform: rotate(90deg);
+      }
+      .more-label {
+        font-weight: 600;
+      }
+      .more-peek {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        align-items: center;
+        min-width: 0;
+      }
+      .more-peek .cat-chip {
+        font-size: 12px;
+      }
+      .peek-el {
+        font-family: var(--mono);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+      .more[open] .more-peek {
+        display: none;
+      }
+      .more .fields {
+        margin: 8px 0 4px;
+        padding-left: 22px;
+      }
+      @media (max-width: 520px) {
+        .more .fields {
+          padding-left: 0;
+        }
+      }
+      .change-note {
+        margin: 10px 0 0;
+        font-size: 14px;
+        padding: 6px 12px;
+        background: var(--yellow-soft);
+        border-radius: 4px;
+        max-width: 70ch;
+      }
+      .change-note b {
+        color: var(--yellow);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-right: 6px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .more .chev {
+          transition: none;
+        }
+      }
+      .rule.removed h3 {
+        text-decoration: line-through;
+        color: var(--dim);
+      }
+      .rule.removed {
+        padding-bottom: 18px;
+      }
+      .unaddressed .need-head {
+        border-bottom-color: var(--red);
+      }
+      .gap-need {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .gap-need h3 {
+        font-size: 16.5px;
+      }
+      .section-note {
+        color: var(--dim);
+        font-size: 14px;
+        margin: 8px 0 0;
+        max-width: 68ch;
+      }
+
+      /* Model view stub */
+      .model {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 0;
+        margin-block: 20px 60px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        min-height: 540px;
+      }
+      @media (max-width: 760px) {
+        .model {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .model-tree {
+        border-right: 1px solid var(--line);
+        padding: 10px 6px;
+        overflow: auto;
+        max-height: 720px;
+        font-size: 13.5px;
+      }
+      @media (max-width: 760px) {
+        .model-tree {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+          max-height: 300px;
+        }
+      }
+      .model-tree button {
+        display: flex;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: none;
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        gap: 6px;
+        align-items: baseline;
+      }
+      .model-tree button:hover {
+        background: var(--quote);
+      }
+      .model-tree button.sel {
+        background: var(--brand-soft);
+        color: var(--brand-ink);
+      }
+      .model-tree .l1 {
+        padding-left: 22px;
+      }
+      .model-tree .l2 {
+        padding-left: 38px;
+      }
+      .model-tree .mod {
+        font-weight: 600;
+      }
+      .model-tree .t {
+        color: var(--faint);
+        font-size: 11.5px;
+      }
+      .model-detail {
+        padding: 18px 22px;
+        min-width: 0;
+      }
+      .model-detail h2 {
+        font-size: 19px;
+      }
+      .model-detail .stub-note {
+        color: var(--proto-ink);
+        background: var(--proto);
+        border: 1px dashed var(--proto-line);
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+      .model-detail ul {
+        padding-left: 18px;
+      }
+      .model-detail li {
+        margin-bottom: 8px;
+      }
+      .model-detail li span {
+        color: var(--dim);
+        display: block;
+        font-size: 13.5px;
+      }
+      .back-hint {
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+        margin-top: 8px;
+        border: 1px solid var(--line-strong);
+        background: var(--surface);
+        border-radius: 4px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="proto" role="region" aria-label="Prototype controls">
+      <span class="proto-tag">Prototype</span>
+      <div class="addr">
+        <button type="button" id="back" aria-label="Back" title="Back">
+          &larr;
+        </button>
+        <button type="button" id="fwd" aria-label="Forward" title="Forward">
+          &rarr;
+        </button>
+        <code id="url"></code>
+      </div>
+      <label for="dataset"
+        >Data
+        <select id="dataset">
+          <option value="real">qdoc-java as designed</option>
+          <option value="gaps">With gaps and changes (example)</option>
+        </select>
+      </label>
+    </div>
+
+    <header class="app-head">
+      <div class="wrap">
+        <div>
+          <div class="crumbs">
+            <span>Changes</span><span>Create a QDoc</span
+            ><span>Design docs</span>
+          </div>
+          <div class="title-row">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+              <path
+                d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"
+              />
+              <path d="M9 13h6M9 17h4" />
+            </svg>
+            <h1 id="doc-name"></h1>
+            <span class="state">Draft</span>
+          </div>
+        </div>
+        <div class="seg" role="group" aria-label="View">
+          <button type="button" data-view="model">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+              <path d="M10 6.5h4a3 3 0 0 1 3 3V14" />
+            </svg>
+            Model
+          </button>
+          <button type="button" data-view="requirements">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+            >
+              <path d="M9 6h11M9 12h11M9 18h11" />
+              <path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+            </svg>
+            Requirements
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap" id="main"></main>
+
+    <script>
+      const RAW = {
+        name: 'Create a QDoc',
+        description:
+          'Designs UC-1 in a green field: a root module qdocmanagement with the bounded contexts preparation and notifications. A quality manager submits a CreateQDoc request to QDocCreationService; the QDoc aggregate is created active with a document number, and version 1 with the status new, one empty content file and the named authors, reviewers and approvers. QDocCreated is published and the notifications context tells every quality manager. Left to their own changes: the document number format, sequence and uniqueness (UC-2); role and active-account checks on assignees (UC-3), so until then the people named are assigned as given; and editing, history and comments of content files (UC-4), so here a content file only exists. The notification channel stays open (TBD-01).',
+        needs: [
+          {
+            id: 'start-a-qdoc',
+            name: 'Start a QDoc',
+            stakeholder: 'Quality managers',
+            statement:
+              'The quality managers need to start a QDoc in the QDoc System when the organisation decides the QDoc is needed, naming the authors who will write the QDoc.',
+          },
+          {
+            id: 'know-about-new-qdocs',
+            name: 'Know about new QDocs',
+            stakeholder: 'Quality managers',
+            statement:
+              'The quality managers need to learn of each QDoc another quality manager creates.',
+          },
+          {
+            id: 'ready-to-write',
+            name: 'Ready to write',
+            stakeholder: 'Authors',
+            statement:
+              'The authors need a version with a content file to write in from the moment the QDoc exists.',
+          },
+        ],
+        elements: [
+          {
+            id: 'module|qdocmanagement',
+            kind: 'module',
+            name: 'qdocmanagement',
+            type: null,
+            rules: [],
+          },
+          {
+            id: 'module|qdocmanagement.preparation',
+            kind: 'module',
+            name: 'preparation',
+            type: null,
+            rules: [],
+          },
+          {
+            id: 'module|qdocmanagement.notifications',
+            kind: 'module',
+            name: 'notifications',
+            type: null,
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocId',
+            kind: 'buildingBlock',
+            name: 'QDocId',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.UserId',
+            kind: 'buildingBlock',
+            name: 'UserId',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocTitle',
+            kind: 'buildingBlock',
+            name: 'QDocTitle',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'A title is never blank',
+                description:
+                  'A QDoc title holds at least one character other than whitespace; a blank title cannot be created.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: [],
+                rationale: null,
+                scenarios: [
+                  {
+                    name: 'Blank title',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a QDoc creation request whose title is only spaces',
+                    then: 'the request is rejected and no QDoc is created',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.DocumentType',
+            kind: 'buildingBlock',
+            name: 'DocumentType',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'A document type comes from the list of document types',
+                description:
+                  'A document type is one of procedure, guideline, instruction and policy (FR-PRE-002). Adding a type to the list is a change to this list, not to any QDoc.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'The organisation named procedure, guideline, instruction and policy as its document types, and the list may grow.',
+                scenarios: [
+                  {
+                    name: 'Each listed type is accepted',
+                    given: 'a quality manager and a valid creation request',
+                    when: 'the quality manager submits it once with each of procedure, guideline, instruction and policy',
+                    then: 'each request is accepted and the QDoc carries the requested document type',
+                  },
+                  {
+                    name: 'A type outside the list is rejected',
+                    given: 'a quality manager',
+                    when: "the quality manager submits a creation request with the document type 'memo'",
+                    then: 'the request is rejected and no QDoc is created',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.DocumentNumber',
+            kind: 'buildingBlock',
+            name: 'DocumentNumber',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocStatus',
+            kind: 'buildingBlock',
+            name: 'QDocStatus',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'A QDoc is either active or archived',
+                description:
+                  'A QDoc status takes exactly one of two values: active, archived.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: [],
+                rationale: null,
+                scenarios: [],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.VersionStatus',
+            kind: 'buildingBlock',
+            name: 'VersionStatus',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'A version status comes from the workflow statuses',
+                description:
+                  'A version status takes exactly one of the values new, approved, published, no longer in force and archived.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: [],
+                rationale: null,
+                scenarios: [],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.AssignmentRole',
+            kind: 'buildingBlock',
+            name: 'AssignmentRole',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'An assignment role is author, reviewer or approver',
+                description:
+                  'An assignment role takes exactly one of the values author, reviewer and approver.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: [],
+                rationale: null,
+                scenarios: [],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.Assignment',
+            kind: 'buildingBlock',
+            name: 'Assignment',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.ContentFileId',
+            kind: 'buildingBlock',
+            name: 'ContentFileId',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.CreateQDoc',
+            kind: 'buildingBlock',
+            name: 'CreateQDoc',
+            type: 'value_object',
+            rules: [
+              {
+                name: 'A creation request names a title, a document type and at least one author',
+                description:
+                  'A QDoc creation request that lacks the title, the document type or at least one author is rejected (FR-PRE-001). Reviewers and approvers are optional.',
+                category: 'Business',
+                ruleType: 'Structure',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'These three are the checks made before a QDoc is created; reviewers and approvers may be added later (UC-3).',
+                scenarios: [
+                  {
+                    name: 'No title',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a creation request without a title',
+                    then: 'the request is rejected and no QDoc is created',
+                  },
+                  {
+                    name: 'No document type',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a creation request without a document type',
+                    then: 'the request is rejected and no QDoc is created',
+                  },
+                  {
+                    name: 'No author',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a creation request naming no author',
+                    then: 'the request is rejected and no QDoc is created',
+                  },
+                  {
+                    name: 'All mandatory data',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver',
+                    then: 'the request is accepted and the QDoc is created',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocCreated',
+            kind: 'buildingBlock',
+            name: 'QDocCreated',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.ContentFile',
+            kind: 'buildingBlock',
+            name: 'ContentFile',
+            type: 'entity',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.Version',
+            kind: 'buildingBlock',
+            name: 'Version',
+            type: 'entity',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDoc',
+            kind: 'buildingBlock',
+            name: 'QDoc',
+            type: 'aggregate',
+            rules: [
+              {
+                name: 'A QDoc keeps at least one version',
+                description:
+                  'Every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['ready-to-write'],
+                rationale:
+                  'A QDoc without a version has nothing to review, approve or publish.',
+                scenarios: [
+                  {
+                    name: 'Creation yields a version',
+                    given: 'a quality manager',
+                    when: 'the quality manager creates a QDoc',
+                    then: 'the QDoc holds one version',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocRepository',
+            kind: 'buildingBlock',
+            name: 'QDocRepository',
+            type: 'repository',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.DocumentNumberGenerator',
+            kind: 'buildingBlock',
+            name: 'DocumentNumberGenerator',
+            type: 'domain_service',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.IdentityProvider',
+            kind: 'buildingBlock',
+            name: 'IdentityProvider',
+            type: 'external_integration',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.PreparationEventPublisher',
+            kind: 'buildingBlock',
+            name: 'PreparationEventPublisher',
+            type: 'external_integration',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.preparation.QDocCreationService',
+            kind: 'buildingBlock',
+            name: 'QDocCreationService',
+            type: 'application_service',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.notifications.Recipient',
+            kind: 'buildingBlock',
+            name: 'Recipient',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.notifications.NewQDocNotification',
+            kind: 'buildingBlock',
+            name: 'NewQDocNotification',
+            type: 'value_object',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.notifications.QualityManagerDirectory',
+            kind: 'buildingBlock',
+            name: 'QualityManagerDirectory',
+            type: 'external_integration',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.notifications.NotificationSender',
+            kind: 'buildingBlock',
+            name: 'NotificationSender',
+            type: 'external_integration',
+            rules: [],
+          },
+          {
+            id: 'building_block|qdocmanagement.notifications.NewQDocNotifier',
+            kind: 'buildingBlock',
+            name: 'NewQDocNotifier',
+            type: 'application_service',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc',
+            kind: 'behaviour',
+            name: 'createQDoc',
+            type: 'Command',
+            rules: [
+              {
+                name: 'Only quality managers create QDocs',
+                description:
+                  "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing. The requester's roles are those held at the moment of the request.",
+                category: 'Business',
+                ruleType: 'State change',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  "Creating a QDoc is a quality manager's decision. An auditor has read-only access (SR-ACT-002) and creates nothing.",
+                scenarios: [
+                  {
+                    name: 'Non-quality-managers are rejected',
+                    given:
+                      'a user holding only the author role, one holding only the reviewer role, one holding only the approver role and an auditor',
+                    when: 'each submits a valid QDoc creation request',
+                    then: 'each request is rejected and no QDoc is created',
+                  },
+                  {
+                    name: 'A quality manager is accepted',
+                    given: 'a user holding the quality manager role',
+                    when: 'the user submits a valid QDoc creation request',
+                    then: 'the QDoc is created',
+                  },
+                ],
+              },
+              {
+                name: 'A new QDoc carries a document number',
+                description:
+                  'Every QDoc gets its document number when it is created (FR-PRE-009), from the DocumentNumberGenerator; the format is defined by UC-2.',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'Each QDoc needs a number from the moment it exists, for searching and for referring to it.',
+                scenarios: [
+                  {
+                    name: 'Number at creation',
+                    given: 'a quality manager',
+                    when: 'the quality manager creates a QDoc',
+                    then: 'the new QDoc carries a document number',
+                  },
+                ],
+              },
+              {
+                name: 'A QDoc is saved and announced together',
+                description:
+                  'The new QDoc is saved and QDocCreated is published in the same unit of work: either both happen or neither does. A rejected request creates nothing and publishes nothing.',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['know-about-new-qdocs'],
+                rationale: null,
+                scenarios: [
+                  {
+                    name: 'An invalid request leaves no trace',
+                    given: 'a quality manager',
+                    when: 'the quality manager submits a QDoc creation request that names no author',
+                    then: 'the request is rejected, no QDoc is saved and no QDocCreated is published',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.QDoc.create',
+            kind: 'behaviour',
+            name: 'create',
+            type: 'Command',
+            rules: [
+              {
+                name: 'A new QDoc is active',
+                description:
+                  'A QDoc starts with the status active (FR-PRE-003).',
+                category: 'Business',
+                ruleType: 'State change',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'A QDoc itself has only two statuses, active and archived; workflow statuses belong to versions.',
+                scenarios: [
+                  {
+                    name: 'New QDoc listed as active',
+                    given: 'a quality manager',
+                    when: 'the quality manager creates a QDoc',
+                    then: 'the QDoc is listed with the status active',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.Version.createFirst',
+            kind: 'behaviour',
+            name: 'createFirst',
+            type: 'Command',
+            rules: [
+              {
+                name: 'Version 1 starts with the status new',
+                description:
+                  'Creating a QDoc creates its version 1, with the status new (FR-PRE-004).',
+                category: 'Business',
+                ruleType: 'State change',
+                needs: ['ready-to-write'],
+                rationale: 'Creating a QDoc is creating its first version.',
+                scenarios: [
+                  {
+                    name: 'One version, numbered 1, new',
+                    given: 'a quality manager',
+                    when: 'the quality manager creates a QDoc',
+                    then: 'the QDoc has exactly one version, numbered 1, with the status new',
+                  },
+                ],
+              },
+              {
+                name: 'Version 1 holds one empty content file',
+                description:
+                  'Version 1 is created with exactly one content file holding no text, and no attachment (FR-PRE-005).',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['ready-to-write'],
+                rationale:
+                  'Each version has at least one content file (UC-4); the authors fill the first one.',
+                scenarios: [
+                  {
+                    name: 'Empty content file',
+                    given: 'a quality manager',
+                    when: 'the quality manager creates a QDoc',
+                    then: 'version 1 holds one content file with no text and no attachment',
+                  },
+                ],
+              },
+              {
+                name: 'The named authors are assigned to version 1',
+                description:
+                  'Each author named in the creation request is assigned to version 1 as author (FR-PRE-006).',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['start-a-qdoc'],
+                rationale: null,
+                scenarios: [
+                  {
+                    name: 'Authors assigned',
+                    given: 'a creation request naming two authors',
+                    when: 'the quality manager creates the QDoc',
+                    then: 'both appear as authors of version 1 and can edit the content file',
+                  },
+                ],
+              },
+              {
+                name: 'The named reviewers are assigned to version 1',
+                description:
+                  'Each reviewer named in the creation request is assigned to version 1 as reviewer (FR-PRE-007).',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'Reviewers are optional and may be added now or later (UC-3).',
+                scenarios: [
+                  {
+                    name: 'Two reviewers',
+                    given: 'a creation request naming two reviewers',
+                    when: 'the quality manager creates the QDoc',
+                    then: 'version 1 has the two reviewers',
+                  },
+                  {
+                    name: 'No reviewer',
+                    given: 'a creation request naming no reviewer',
+                    when: 'the quality manager creates the QDoc',
+                    then: 'the request is accepted and version 1 has no reviewer',
+                  },
+                ],
+              },
+              {
+                name: 'The named approvers are assigned to version 1',
+                description:
+                  'Each approver named in the creation request is assigned to version 1 as approver (FR-PRE-008).',
+                category: 'Business',
+                ruleType: 'Consistency',
+                needs: ['start-a-qdoc'],
+                rationale:
+                  'At least one approver is needed only when the version is shared (UC-6), so naming none at creation is allowed.',
+                scenarios: [
+                  {
+                    name: 'Two approvers',
+                    given: 'a creation request naming two approvers',
+                    when: 'the quality manager creates the QDoc',
+                    then: 'version 1 has the two approvers',
+                  },
+                  {
+                    name: 'No approver',
+                    given: 'a creation request naming no approver',
+                    when: 'the quality manager creates the QDoc',
+                    then: 'the request is accepted and version 1 has no approver',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.QDocRepository.save',
+            kind: 'behaviour',
+            name: 'save',
+            type: 'Command',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.DocumentNumberGenerator.next',
+            kind: 'behaviour',
+            name: 'next',
+            type: 'Command',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager',
+            kind: 'behaviour',
+            name: 'isQualityManager',
+            type: 'Query',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.preparation.PreparationEventPublisher.publish',
+            kind: 'behaviour',
+            name: 'publish',
+            type: 'Command',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.notifications.NewQDocNotifier.onQDocCreated',
+            kind: 'behaviour',
+            name: 'onQDocCreated',
+            type: 'Event',
+            rules: [
+              {
+                name: 'Each quality manager learns of a new QDoc',
+                description:
+                  'When a QDoc is created, each quality manager of the organisation is notified, naming the QDoc, its number and its creator (FR-NOT-001).',
+                category: 'Business',
+                ruleType: 'State change',
+                needs: ['know-about-new-qdocs'],
+                rationale:
+                  'The creation of a procedure matters to each quality manager, not only to the one who created it.',
+                scenarios: [
+                  {
+                    name: 'Three quality managers notified',
+                    given: 'an organisation with 3 quality managers',
+                    when: 'one of them creates a QDoc',
+                    then: 'each of the 3 receives a notification naming the QDoc, its document number and its creator',
+                  },
+                ],
+              },
+              {
+                name: 'A new QDoc notification arrives within the maximum delay',
+                description:
+                  'Each quality manager receives the notification of a new QDoc within the maximum delay of TBD-01 (FR-NOT-001). The delay and the channel are not settled yet (TBD-01).',
+                category: 'Quality',
+                ruleType: 'Performance',
+                needs: ['know-about-new-qdocs'],
+                rationale: null,
+                scenarios: [],
+              },
+              {
+                name: 'A failed delivery stops no other',
+                description:
+                  'When delivering the notification to one quality manager fails, the notifications to the other quality managers are still sent.',
+                category: 'Quality',
+                ruleType: 'Reliability',
+                needs: ['know-about-new-qdocs'],
+                rationale: null,
+                scenarios: [
+                  {
+                    name: 'One delivery fails',
+                    given:
+                      'an organisation with 3 quality managers, and delivery to one of them fails',
+                    when: 'a QDoc is created',
+                    then: 'the other 2 quality managers each receive a notification naming the QDoc, its document number and its creator',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'behavior|qdocmanagement.notifications.QualityManagerDirectory.findQualityManagers',
+            kind: 'behaviour',
+            name: 'findQualityManagers',
+            type: 'Query',
+            rules: [],
+          },
+          {
+            id: 'behavior|qdocmanagement.notifications.NotificationSender.send',
+            kind: 'behaviour',
+            name: 'send',
+            type: 'Command',
+            rules: [],
+          },
+        ],
+      };
+
+      const BASE =
+        '/changes/2026-10-02-create-a-qdoc/design-docs/2026-10-02-create-a-qdoc';
+      const esc = (s) =>
+        String(s ?? '').replace(
+          /[&<>"]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+        );
+      const pathOf = (id) => id.slice(id.indexOf('|') + 1);
+      const humanType = (t) =>
+        t ? String(t).replace(/_/g, ' ').toLowerCase() : '';
+
+      /* ---------- the data each dataset gives ---------- */
+
+      function dataset(kind) {
+        const doc = structuredClone(RAW);
+        for (const el of doc.elements)
+          for (const r of el.rules) r.change = 'added';
+        if (kind !== 'gaps') return doc;
+
+        // Example only: a need no rule answers, a modified rule that now traces to two needs, a removed rule.
+        doc.needs.push({
+          id: 'trace-creation',
+          name: 'Trace who started a QDoc',
+          stakeholder: 'Auditors',
+          statement:
+            'The auditors need to see who started each QDoc and when, without changing anything.',
+        });
+        const title = doc.elements.find((e) => e.name === 'QDocTitle').rules[0];
+        Object.assign(title, {
+          change: 'modified',
+          changedFields: ['description', 'needs'],
+          was: { description: title.description, needs: [] },
+          description:
+            'A title is never blank and holds at most 200 characters, so it fits the document register.',
+          needs: ['start-a-qdoc', 'ready-to-write'],
+          changeNote:
+            'UC-1 review: the register truncates long titles, and authors see the title on the empty content file.',
+        });
+        doc.elements
+          .find((e) => e.name === 'createFirst')
+          .rules.push({
+            name: 'Version 1 copies the template of its document type',
+            change: 'removed',
+            needs: ['ready-to-write'],
+            scenarios: [],
+          });
+        return doc;
+      }
+
+      /* ---------- the pure model: design document to requirements outline ---------- */
+
+      function requirementsOutline(doc) {
+        const modules = doc.elements.filter((e) => e.kind === 'module');
+        const blocks = doc.elements.filter((e) => e.kind === 'buildingBlock');
+        const behaviours = doc.elements.filter((e) => e.kind === 'behaviour');
+        const moduleOf = (el) => {
+          const p = pathOf(el.id);
+          return modules
+            .filter(
+              (m) => p === pathOf(m.id) || p.startsWith(pathOf(m.id) + '.'),
+            )
+            .sort((a, b) => pathOf(b.id).length - pathOf(a.id).length)[0];
+        };
+        const ownerOf = (bh) =>
+          blocks.find((b) => pathOf(bh.id).startsWith(pathOf(b.id) + '.'));
+
+        // The order the model outline walks: module, its building blocks, each followed by its behaviours.
+        const walk = [];
+        for (const m of modules) {
+          walk.push(m);
+          for (const b of blocks.filter((b) => moduleOf(b) === m)) {
+            walk.push(b);
+            walk.push(...behaviours.filter((bh) => ownerOf(bh) === b));
+          }
+        }
+        walk.push(...behaviours.filter((bh) => !walk.includes(bh)));
+
+        const traced = [];
+        for (const el of walk) {
+          const mod = moduleOf(el);
+          const owner = el.kind === 'behaviour' ? ownerOf(el) : null;
+          for (const rule of el.rules) {
+            traced.push({
+              rule,
+              change: rule.change,
+              element: {
+                id: el.id,
+                name: el.name,
+                label: owner ? `${owner.name}.${el.name}` : el.name,
+                kind: el.kind,
+                type: el.type,
+              },
+              module: { id: mod.id, name: mod.name },
+            });
+          }
+        }
+        const known = new Set(doc.needs.map((n) => n.id));
+        return {
+          needs: doc.needs.map((need) => ({
+            need,
+            rules: traced.filter((t) => t.rule.needs.includes(need.id)),
+          })),
+          designDecisions: traced.filter(
+            (t) => !t.rule.needs.some((n) => known.has(n)),
+          ),
+          unaddressedNeeds: doc.needs.filter(
+            (n) =>
+              !traced.some(
+                (t) => t.change !== 'removed' && t.rule.needs.includes(n.id),
+              ),
+          ),
+          walk,
+          moduleOf,
+        };
+      }
+
+      /* ---------- address and history (stands in for the route's search params) ---------- */
+
+      const history_ = {
+        stack: [{ view: 'requirements', node: null, scroll: 0 }],
+        at: 0,
+      };
+      const cur = () => history_.stack[history_.at];
+      function navigate(next) {
+        cur().scroll = window.scrollY;
+        history_.stack = history_.stack.slice(0, history_.at + 1);
+        history_.stack.push({ ...next, scroll: 0 });
+        history_.at++;
+        render(true);
+      }
+      function go(delta) {
+        cur().scroll = window.scrollY;
+        history_.at = Math.max(
+          0,
+          Math.min(history_.stack.length - 1, history_.at + delta),
+        );
+        render(true);
+      }
+      function addressOf(s) {
+        const q = [];
+        if (s.view === 'requirements') q.push(`<b>view=requirements</b>`);
+        if (s.node) q.push(`node=${esc(s.node)}`);
+        return esc(BASE) + (q.length ? '?' + q.join('&amp;') : '');
+      }
+
+      /* ---------- rendering ---------- */
+
+      let DATA = dataset('real');
+      let OUTLINE = requirementsOutline(DATA);
+      const needName = (id) => DATA.needs.find((n) => n.id === id)?.name ?? id;
+
+      function categoryField(r) {
+        return `<span class="cat"><span class="cat-chip cat-${esc(r.category)}">${esc(r.category)}</span><span class="rt">· ${esc(r.ruleType)}</span></span>`;
+      }
+      function changedMark(r, field) {
+        return r.change === 'modified' && r.changedFields?.includes(field)
+          ? '<span class="changed">changed</span>'
+          : '';
+      }
+      const CHECK_ICON =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
+      const ALERT_ICON =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
+      function verification(r, changed) {
+        const list = r.scenarios ?? [];
+        if (!list.length)
+          return `<div class="verif none">${ALERT_ICON}No scenario verifies this rule</div>`;
+        return `<section class="verif" aria-label="Verification">
+    <div class="verif-head">${CHECK_ICON}Verification${changed}<span class="count">${list.length} ${list.length === 1 ? 'scenario' : 'scenarios'}</span></div>
+    <div class="scns">${list
+      .map(
+        (s) => `
+      <div class="scn">
+        ${s.name ? `<div class="scn-name">${esc(s.name)}</div>` : ''}
+        <dl class="gwt">
+          <dt>GIVEN</dt><dd>${esc(s.given)}</dd>
+          <dt>WHEN</dt><dd>${esc(s.when)}</dd>
+          <dt class="then">THEN</dt><dd class="then">${esc(s.then)}</dd>
+        </dl>
+      </div>`,
+      )
+      .join('')}</div>
+  </section>`;
+      }
+      function elementLink(t) {
+        return `<a class="el-link" href="#" data-node="${esc(t.element.id)}">${esc(t.element.label)}</a><span class="kind">${esc(humanType(t.element.type) || 'module')}</span>`;
+      }
+
+      function ruleEntry(t, hereNeed) {
+        const r = t.rule;
+        const anchor =
+          `rule-${hereNeed ?? 'dd'}-${esc(t.element.id)}-${esc(r.name)}`.replace(
+            /[^\w-]/g,
+            '_',
+          );
+        if (t.change === 'removed') {
+          return `<article class="rule removed" id="${anchor}" aria-labelledby="${anchor}-h">
+      <div class="rule-head"><h3 id="${anchor}-h">${esc(r.name)}</h3><span class="badge b-removed">removed</span></div>
+      <dl class="fields">
+        <dt>Subsystem</dt><dd><span class="subsys">${esc(t.module.name)}</span></dd>
+        <dt>Element</dt><dd>${elementLink(t)}</dd>
+      </dl>
+    </article>`;
+        }
+        const modified = t.change === 'modified';
+        // A modified rule shows only the fields it changes; an added one shows them all.
+        const show = (f) => !modified || r.changedFields.includes(f);
+        const rows = [];
+        if (show('category') || show('ruleType'))
+          rows.push(['Category', categoryField(r)]);
+        rows.push([
+          'Subsystem',
+          `<span class="subsys">${esc(t.module.name)}</span>`,
+        ]);
+        rows.push(['Element', elementLink(t)]);
+        if (r.rationale && show('rationale'))
+          rows.push(['Rationale', esc(r.rationale)]);
+        if (r.needs.length && show('needs')) {
+          rows.push([
+            `Trace${changedMark(r, 'needs')}`,
+            `<span class="trace">${r.needs
+              .map(
+                (n) =>
+                  `<a href="#" data-goto="need-${esc(n)}" class="${n === hereNeed ? 'here' : ''}">${esc(needName(n))}</a>`,
+              )
+              .join('')}</span>${
+              modified && r.was?.needs
+                ? `<span class="was">${r.was.needs.length ? r.was.needs.map(needName).join(', ') : 'no need (design decision)'}</span>`
+                : ''
+            }`,
+          ]);
+        }
+
+        const statement = show('description')
+          ? `<blockquote>${esc(r.description)}${changedMark(r, 'description')}${modified && r.was?.description ? `<span class="was">${esc(r.was.description)}</span>` : ''}</blockquote>`
+          : '';
+        return `<article class="rule" id="${anchor}" aria-labelledby="${anchor}-h">
+    <div class="rule-head"><h3 id="${anchor}-h">${esc(r.name)}</h3><span class="badge b-${t.change}">${t.change}</span></div>
+    ${statement}
+    ${modified && r.changeNote ? `<p class="change-note"><b>Change note</b> ${esc(r.changeNote)}</p>` : ''}
+    <details class="more">
+      <summary>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        <span class="more-label">Details</span>
+        <span class="more-peek">${show('category') ? `<span class="cat-chip cat-${esc(r.category)}">${esc(r.category)}</span>` : ''}<span class="peek-el">${esc(t.module.name)} › ${esc(t.element.label)}</span></span>
+        ${modified && r.changedFields.some((f) => ['category', 'ruleType', 'rationale', 'needs'].includes(f)) ? '<span class="changed">changed</span>' : ''}
+      </summary>
+      <dl class="fields">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+    </details>
+    ${show('scenarios') ? verification(r, changedMark(r, 'scenarios')) : ''}
+  </article>`;
+      }
+
+      function renderRequirements() {
+        const o = OUTLINE;
+        const live = (list) =>
+          list.filter((t) => t.change !== 'removed').length;
+        const liveRules = new Set(
+          o.needs
+            .flatMap((n) => n.rules)
+            .concat(o.designDecisions)
+            .filter((t) => t.change !== 'removed')
+            .map((t) => t.rule),
+        );
+        const ruleCount = liveRules.size;
+        const unverified = [...liveRules].filter(
+          (r) => !r.scenarios?.length,
+        ).length;
+        const toc = `
+    <nav class="toc" aria-label="Contents">
+      <h2>Needs</h2>
+      <ul>${o.needs
+        .map(
+          ({ need, rules }) => `
+        <li><a href="#" data-goto="need-${esc(need.id)}"><span>${esc(need.name)}<small>${esc(need.stakeholder)}</small></span>
+          <span class="count ${live(rules) ? '' : 'warn'}">${live(rules)}</span></a></li>`,
+        )
+        .join('')}
+      </ul>
+      <ul>
+        <li><a href="#" data-goto="decisions"><span>Design decisions</span><span class="count">${live(o.designDecisions)}</span></a></li>
+        <li><a href="#" data-goto="unaddressed"><span>Unaddressed needs</span><span class="count ${o.unaddressedNeeds.length ? 'warn' : ''}">${o.unaddressedNeeds.length}</span></a></li>
+      </ul>
+    </nav>`;
+
+        const needSections = o.needs
+          .map(
+            ({ need, rules }) => `
+    <section class="need" id="need-${esc(need.id)}" aria-labelledby="need-${esc(need.id)}-h">
+      <div class="need-head">
+        <div class="eyebrow">Need</div>
+        <h2 id="need-${esc(need.id)}-h">${esc(need.name)}</h2>
+        <blockquote>${esc(need.statement)}</blockquote>
+        <div class="meta"><span>Stakeholder: <b>${esc(need.stakeholder)}</b></span><span>${live(rules)} ${live(rules) === 1 ? 'rule answers' : 'rules answer'} it</span></div>
+      </div>
+      ${rules.length ? rules.map((t) => ruleEntry(t, need.id)).join('') : '<p class="empty">No rule of this design answers this need.</p>'}
+    </section>`,
+          )
+          .join('');
+
+        const decisions = `
+    <section class="need" id="decisions" aria-labelledby="decisions-h">
+      <div class="need-head">
+        <div class="eyebrow">Beyond the documents</div>
+        <h2 id="decisions-h">Design decisions</h2>
+        <p class="section-note">Rules the design adds that no need asks for.</p>
+      </div>
+      ${o.designDecisions.length ? o.designDecisions.map((t) => ruleEntry(t, null)).join('') : '<p class="empty">Every rule of this design answers a need.</p>'}
+    </section>`;
+
+        const gaps = `
+    <section class="need unaddressed" id="unaddressed" aria-labelledby="unaddressed-h">
+      <div class="need-head">
+        <div class="eyebrow">Gaps</div>
+        <h2 id="unaddressed-h">Unaddressed needs</h2>
+        <p class="section-note">Needs that no rule of this design traces to.</p>
+      </div>
+      ${
+        o.unaddressedNeeds.length
+          ? o.unaddressedNeeds
+              .map(
+                (n) => `
+        <div class="gap-need">
+          <h3>${esc(n.name)}</h3>
+          <blockquote>${esc(n.statement)}</blockquote>
+          <div class="meta"><span>Stakeholder: <b>${esc(n.stakeholder)}</b></span></div>
+        </div>`,
+              )
+              .join('')
+          : '<p class="empty">Every need has at least one rule that answers it.</p>'
+      }
+    </section>`;
+
+        return `<div class="req">${toc}
+    <div class="doc">
+      <div class="doc-intro">
+        <p>${esc(DATA.description)}</p>
+        <ul class="summary">
+          <li><b>${DATA.needs.length}</b> needs</li>
+          <li><b>${ruleCount}</b> rules</li>
+          <li><b>${live(o.designDecisions)}</b> design decisions</li>
+          <li class="${o.unaddressedNeeds.length ? 'gap' : ''}"><b>${o.unaddressedNeeds.length}</b> unaddressed needs</li>
+          <li class="${unverified ? 'gap' : ''}"><b>${unverified}</b> rules without verification</li>
+        </ul>
+      </div>
+      ${needSections}${decisions}${gaps}
+    </div></div>`;
+      }
+
+      function renderModel(node) {
+        const o = OUTLINE;
+        const level = (el) =>
+          el.kind === 'module'
+            ? pathOf(el.id).includes('.')
+              ? 0
+              : 0
+            : el.kind === 'buildingBlock'
+              ? 1
+              : 2;
+        const sel = DATA.elements.find((e) => e.id === node);
+        const tree = o.walk
+          .map(
+            (el) => `
+    <button type="button" class="l${level(el)} ${el.kind === 'module' ? 'mod' : ''} ${el.id === node ? 'sel' : ''}" data-select="${esc(el.id)}" ${el.id === node ? 'aria-current="true"' : ''}>
+      <span>${esc(el.name)}</span><span class="t">${esc(humanType(el.type))}</span>
+    </button>`,
+          )
+          .join('');
+        const detail = sel
+          ? `
+    <h2>${esc(sel.name)}</h2>
+    <p class="kind" style="margin:2px 0 14px">${esc(humanType(sel.type) || 'module')} · ${esc(o.moduleOf(sel).name)}</p>
+    ${sel.rules.length ? `<h3 style="font-size:15px">Rules</h3><ul>${sel.rules.map((r) => `<li>${esc(r.name)}<span>${esc(r.description ?? '')}</span></li>`).join('')}</ul>` : '<p class="empty">No rules on this element.</p>'}
+    ${history_.at > 0 && history_.stack[history_.at - 1].view === 'requirements' ? '<button type="button" class="back-hint" data-back>&larr; Back to the requirement</button>' : ''}
+  `
+          : '<p class="empty">Choose an element to read it.</p>';
+        return `<div class="model">
+    <div class="model-tree" aria-label="Outline">${tree}</div>
+    <div class="model-detail">
+      <div class="stub-note">Stand-in for the existing model view, so the element links and Back can be tried.</div>
+      ${detail}
+    </div></div>`;
+      }
+
+      const main = document.getElementById('main');
+      let spy;
+      function render(restoreScroll) {
+        const s = cur();
+        document.getElementById('url').innerHTML = addressOf(s);
+        document.getElementById('back').disabled = history_.at === 0;
+        document.getElementById('fwd').disabled =
+          history_.at === history_.stack.length - 1;
+        document
+          .querySelectorAll('.seg button')
+          .forEach((b) =>
+            b.setAttribute('aria-pressed', String(b.dataset.view === s.view)),
+          );
+        document.getElementById('doc-name').textContent = DATA.name;
+        main.innerHTML =
+          s.view === 'requirements'
+            ? renderRequirements()
+            : renderModel(s.node);
+        if (restoreScroll) {
+          document.documentElement.style.scrollBehavior = 'auto';
+          window.scrollTo(0, s.scroll || 0);
+          document.documentElement.style.scrollBehavior = '';
+        }
+        setupSpy();
+      }
+
+      function setupSpy() {
+        spy?.disconnect();
+        const links = [...document.querySelectorAll('.toc a[data-goto]')];
+        if (!links.length || !('IntersectionObserver' in window)) return;
+        spy = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries)
+              if (e.isIntersecting) {
+                links.forEach((a) =>
+                  a.classList.toggle('on', a.dataset.goto === e.target.id),
+                );
+              }
+          },
+          { rootMargin: '0px 0px -70% 0px' },
+        );
+        document.querySelectorAll('.need').forEach((s) => spy.observe(s));
+      }
+
+      document.addEventListener('click', (e) => {
+        const t = e.target.closest(
+          '[data-goto],[data-node],[data-select],[data-view],[data-back]',
+        );
+        if (!t) return;
+        e.preventDefault();
+        if (t.dataset.goto)
+          document
+            .getElementById(t.dataset.goto)
+            ?.scrollIntoView({ block: 'start' });
+        else if (t.dataset.node)
+          navigate({ view: 'model', node: t.dataset.node });
+        else if (t.dataset.select)
+          navigate({ view: 'model', node: t.dataset.select });
+        else if (t.dataset.view && t.dataset.view !== cur().view)
+          navigate({
+            view: t.dataset.view,
+            node: t.dataset.view === 'model' ? cur().node : null,
+          });
+        else if (t.hasAttribute('data-back')) go(-1);
+      });
+      document.getElementById('back').addEventListener('click', () => go(-1));
+      document.getElementById('fwd').addEventListener('click', () => go(1));
+      document.getElementById('dataset').addEventListener('change', (e) => {
+        DATA = dataset(e.target.value);
+        OUTLINE = requirementsOutline(DATA);
+        render(false);
+      });
+      render(false);
+    </script>
+  </body>
+</html>

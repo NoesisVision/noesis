@@ -39,7 +39,7 @@ export const bodySections = (
   const block = findById(doc.buildingBlocks, node.elementId);
   if (block) return buildingBlockSections(block, tree, doc);
   const behaviour = findById(doc.behaviours, node.elementId);
-  if (behaviour) return behaviourSections(behaviour);
+  if (behaviour) return behaviourSections(behaviour, doc);
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [

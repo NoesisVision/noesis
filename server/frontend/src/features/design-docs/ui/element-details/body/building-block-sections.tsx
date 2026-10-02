@@ -25,7 +25,7 @@ export const buildingBlockSections = (
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(block.id, block.rules),
+      items: ruleItems(block.id, block.rules, doc.needs),
     }),
     ...section(ChangeListSection, 'properties', {
       element,

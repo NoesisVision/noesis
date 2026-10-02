@@ -1,0 +1,36 @@
+/* The dialog is the screen: its body takes what the header leaves. */
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+  min-height: 0;
+}
+
+/*
+ * The canvas shows a window onto the picture, which is moved and scaled
+ * inside it rather than scrolled, so dragging is never a text selection or a
+ * touch scroll.
+ */
+.canvas {
+  composes: grid from './mermaid-diagram.module.css';
+
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border-radius: var(--mantine-spacing-sm);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.picture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}

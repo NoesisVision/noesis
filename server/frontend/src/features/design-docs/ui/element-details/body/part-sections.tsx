@@ -10,7 +10,7 @@ import { scenarioSections } from './scenario-sections.tsx';
 
 /**
  * A property, rule or scenario, found through the element that owns it — and
- * a rule's own scenario through that rule as well.
+ * a rule's own scenario through that rule as well. A module owns only rules.
  */
 export const partSections = (
   node: OutlineNode,
@@ -20,12 +20,14 @@ export const partSections = (
   const { elementId: ownerId, rule: ruleName } = ownerOfPart(node.parentPath);
   const block = findById(doc.buildingBlocks, ownerId);
   const behaviour = block ? null : findById(doc.behaviours, ownerId);
-  const parts = block ?? behaviour;
+  const module = block || behaviour ? null : findById(doc.modules, ownerId);
+  const parts = block ?? behaviour ?? module;
   if (parts === null) return [];
   const owner: OwnerRef = {
-    collection: block ? 'buildingBlocks' : 'behaviours',
+    collection: block ? 'buildingBlocks' : behaviour ? 'behaviours' : 'modules',
     id: ownerId,
   };
+  const scenarios = (block ?? behaviour)?.scenarios;
 
   if (node.kind === 'property') {
     const property = block && findByName(block.properties, node.name);
@@ -38,8 +40,8 @@ export const partSections = (
   }
   if (node.kind === 'rule') {
     const rule = findByName(parts.rules, node.name);
-    return rule ? ruleSections(owner, rule) : [];
+    return rule ? ruleSections(owner, rule, doc.needs) : [];
   }
-  const scenario = findByName(parts.scenarios, node.name);
+  const scenario = findByName(scenarios, node.name);
   return scenario ? scenarioSections(owner, scenario) : [];
 };

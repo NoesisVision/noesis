@@ -85,7 +85,20 @@ describe('outlineOf', () => {
       'RefundRepository',
       'Refund',
       'RefundIssued',
+      'A refund is issued within a second',
     ]);
+  });
+
+  it("hangs a module's rules under the module, after its building blocks", () => {
+    expect(
+      at('module|sales.refunds#rule:A refund is issued within a second'),
+    ).toMatchObject({
+      kind: 'rule',
+      change: 'added',
+      elementId: null,
+      pattern: 'Performance',
+      parentPath: 'module|sales.refunds',
+    });
   });
 
   it('puts rules and scenarios last inside a building block', () => {

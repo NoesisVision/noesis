@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { OutlineNode } from './model-outline.ts';
+import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import {
   closeIn,
   closeToMatches,
@@ -21,7 +21,11 @@ import {
 } from './outline-expansion.ts';
 import { type ExpansionMemory, FORGETFUL } from './outline-memory.ts';
 import { type OutlineSearch, searchOutline } from './outline-search.ts';
-import { type OutlineTree, outlineTree } from './outline-tree.ts';
+import {
+  EXCLUDED_KINDS,
+  type OutlineTree,
+  outlineTree,
+} from './outline-tree.ts';
 
 /**
  * Where a selection was made. The tree cannot tell what a page should do
@@ -70,6 +74,8 @@ export interface ModelTreeState {
   readonly query: string;
   readonly onQuery: (query: string) => void;
   readonly memory?: ExpansionMemory;
+  /** The kinds left out of the tree; a model's parts unless said otherwise. Keep it stable. */
+  readonly excludeKinds?: readonly OutlineKind[];
 }
 
 export function useModelTree(
@@ -82,8 +88,12 @@ export function useModelTree(
     query,
     onQuery,
     memory = FORGETFUL,
+    excludeKinds = EXCLUDED_KINDS,
   } = state;
-  const tree = useMemo(() => outlineTree(nodes), [nodes]);
+  const tree = useMemo(
+    () => outlineTree(nodes, excludeKinds),
+    [nodes, excludeKinds],
+  );
   /*
    * The tree opens at a row whether or not the address names one: an empty
    * panel beside a full outline says nothing, and the top of the tree is where

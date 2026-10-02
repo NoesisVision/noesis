@@ -18,11 +18,16 @@ export interface OutlineTree {
 }
 
 const NONE: readonly OutlineNode[] = [];
-const EXCLUDED_KINDS: OutlineKind[] = ['property', 'scenario', 'rule'];
+/** A model's parts are read in the panel beside its tree, not in the tree. */
+export const EXCLUDED_KINDS: readonly OutlineKind[] = [
+  'property',
+  'scenario',
+  'rule',
+];
 
 export function outlineTree(
   nodes: readonly OutlineNode[],
-  excludeKinds: OutlineKind[] = EXCLUDED_KINDS,
+  excludeKinds: readonly OutlineKind[] = EXCLUDED_KINDS,
 ): OutlineTree {
   const targetNodes = nodes.filter((node) => !excludeKinds.includes(node.kind));
   const byPath = new Map(targetNodes.map((node) => [node.path, node]));

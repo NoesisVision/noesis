@@ -169,7 +169,7 @@ const descriptionOf = (
     node.kind === 'module'
       ? findById(doc.modules, node.elementId)
       : findById(doc.buildingBlocks, node.elementId);
-  const text = valueOf(element?.description) ?? '';
+  const text = valueOf(element?.definition) ?? '';
   const paragraph = text
     .split(/\n\s*\n/)
     .map((part) => part.trim())

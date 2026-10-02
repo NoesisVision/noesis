@@ -33,6 +33,20 @@ export const designDocFixture = {
   name: 'Partial refunds for orders',
   description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',
+  needs: {
+    added: [
+      {
+        id: 'refund-single-lines',
+        name: byAgent('Refund single lines'),
+        stakeholder: byAgent('Support agents'),
+        statement: byHuman(
+          'Support agents need to refund one line of an order when the customer returns only part of it.',
+        ),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
   modules: {
     added: [
       {
@@ -42,6 +56,23 @@ export const designDocFixture = {
           'Everything about giving money back to a customer.',
         ),
         diagram: unchanged,
+        rules: {
+          added: [
+            {
+              name: 'A refund is issued within a second',
+              category: byAgent('Quality'),
+              ruleType: byAgent('Performance'),
+              description: byAgent(
+                'Issuing a refund answers within one second for an order of up to 100 lines.',
+              ),
+              needs: byAgent(['refund-single-lines']),
+              rationale: unchanged,
+              scenarios: noChanges,
+            },
+          ],
+          removed: [],
+          modified: [],
+        },
       },
     ],
     removed: ['module|sales.credit-notes'],
@@ -53,6 +84,7 @@ export const designDocFixture = {
           'Order lifecycle, now including the refundable state of each line.',
         ),
         diagram: unchanged,
+        rules: noChanges,
       },
     ],
   },
@@ -103,9 +135,14 @@ export const designDocFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
+              category: byAgent('Business'),
               ruleType: byAgent('Consistency'),
               description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
+              ),
+              needs: byAgent(['refund-single-lines']),
+              rationale: byAgent(
+                'Support may not pay out more than the order brought in.',
               ),
               scenarios: noChanges,
             },
@@ -241,8 +278,11 @@ export const designDocFixture = {
           added: [
             {
               name: 'Only paid orders are refundable',
+              category: byAgent('Business'),
               ruleType: byAgent('State change'),
               description: byAgent('An unpaid order has nothing to refund.'),
+              needs: byAgent([]),
+              rationale: unchanged,
               scenarios: noChanges,
             },
           ],
@@ -302,6 +342,7 @@ export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
 const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
 export const greenFieldDesignDocFixture: DesignDocumentInput = {
   ...byAgentOnly,
+  needs: { added: byAgentOnly.needs.added },
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
   behaviours: { added: byAgentOnly.behaviours.added },
@@ -313,6 +354,7 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
  */
 export const humanEditedDesignDocFixture: DesignDocumentInput = {
   ...designDocFixture,
+  needs: { added: designDocFixture.needs.added },
   modules: { added: designDocFixture.modules.added },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
   behaviours: { added: designDocFixture.behaviours.added },

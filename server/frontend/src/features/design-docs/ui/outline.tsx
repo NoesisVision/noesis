@@ -6,9 +6,12 @@ import type { ModelTreeController } from '#/shared/ui/model-tree/use-model-tree.
 export function Outline({
   controller,
   empty,
+  label = 'Design outline',
 }: {
   controller: ModelTreeController;
   empty: boolean;
+  /** What the tree is of, for a reader who arrives at it by keyboard. */
+  label?: string;
 }) {
   if (empty)
     return (
@@ -23,5 +26,5 @@ export function Outline({
       </Box>
     );
   }
-  return <ModelTree controller={controller} label="Design outline" />;
+  return <ModelTree controller={controller} label={label} />;
 }

@@ -3,6 +3,7 @@ import {
   IconListCheck,
   IconScale,
 } from '@tabler/icons-react';
+import { useState } from 'react';
 import { Accordion } from '#/shared/design-system/accordion.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -22,22 +23,41 @@ export const SCENARIO_COLUMN_ID = 'element-scenarios';
  * one folded to its name — under it, quietly, the rule it verifies — and
  * opened to what it says. Which are open is the panel's, so that a rule
  * can open its own.
+ *
+ * The requirements view draws a rule's scenarios with it too, where many sit
+ * on one page and no panel holds them: there it keeps which are open itself,
+ * takes no id, opens on what each scenario says, and heads the list at the
+ * level the page has reached.
  */
-export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
+export function ScenarioColumn({
+  scenarios,
+  id,
+  defaultOpen = false,
+  headingOrder,
+}: {
+  scenarios: ScenarioEntry[];
+  /** What a link to the column points at; only one on a page may have it. */
+  id?: string;
+  /** Every scenario open to begin with, rather than folded to its name. */
+  defaultOpen?: boolean;
+  /** The title as a heading of this level; a plain label when not given. */
+  headingOrder?: 3 | 4 | 5 | 6;
+}) {
   // The value goes into the ids Mantine writes, which take no spaces.
   const values = scenarios.map((_, index) => String(index));
   const focus = useScenarioFocus();
-  if (focus === null)
-    throw new Error('ScenarioColumn needs a ScenarioFocusProvider');
-  const { open, setOpen } = focus;
+  const [own, setOwn] = useState<string[]>(defaultOpen ? values : []);
+  const { open, setOpen } = focus ?? { open: own, setOpen: setOwn };
   const allOpen = open.length === scenarios.length;
+  const Heading =
+    headingOrder === undefined ? 'span' : (`h${headingOrder}` as const);
   return (
-    <section id={SCENARIO_COLUMN_ID} className={classes.column}>
+    <section id={id} className={classes.column}>
       <div className={classes.head}>
-        <span className={classes.title}>
+        <Heading className={classes.title}>
           <IconListCheck size={16} aria-hidden />
           Scenarios
-        </span>
+        </Heading>
         <Button
           variant="subtle"
           size="xs"
