@@ -39,6 +39,10 @@ const document = {
         type: plain('aggregate'),
         description: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
+        implements: {
+          added: ['building_block|pay.Settleable'],
+          removed: ['building_block|pay.Lockable'],
+        },
         properties: {
           added: [
             {
@@ -265,6 +269,16 @@ const behaviour = () => {
 describe('ElementDetail', () => {
   it('heads the element a level under the page', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
+  });
+
+  it('says what a block implements after its name, not in a section', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(
+      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*>Lockable<\/span>, <span[^>]*>Settleable<\/span><\/span>/,
+    );
+    // What the design removes stays, struck through.
+    expect(html).toMatch(/<span[^>]*data-removed="true"[^>]*>Lockable<\/span>/);
+    expect(html).not.toContain('>Implements<');
   });
 
   it('says where in the model the element sits, as a trail back up it', () => {

@@ -11,9 +11,11 @@ import { bodySections } from './body/body-sections.tsx';
 import { ScenarioColumn } from './body/scenario-column.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
+import { refItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
+import { ImplementsLine } from './implements-line.tsx';
 import { VisibilityBadge } from './visibility-badge.tsx';
 import classes from './element-detail.module.css';
 
@@ -48,49 +50,55 @@ export function ElementDetail({
     node.kind === 'behaviour' && node.elementId
       ? valueOf(findById(doc.behaviours, node.elementId)?.visibility)
       : null;
+  // Only a building block implements anything; it reads after its name.
+  const implemented =
+    node.kind === 'building_block' && node.elementId
+      ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
+      : [];
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
   const withScenarios = scenarios.length > 0;
   return (
-    <div>
-      <DetailBreadcrumb path={path} onSelect={onSelect} />
-      <header className={classes.header}>
-        <span className={classes.tile}>
-          <KindIcon kind={node.kind} pattern={node.pattern} />
-        </span>
-        <div className={classes.heading}>
-          {/* What it is on the left, what the design does to it on the right. */}
-          <div className={classes.kind}>
-            {node.patternLabel !== null && (
-              <span className={classes.pattern}>{node.patternLabel}</span>
-            )}
-            <Group gap="xs" ml="auto">
-              <VisibilityBadge visibility={visibility} />
-              <ChangeBadge change={node.change} />
-            </Group>
-          </div>
-          <Title order={2} className={classes.name}>
-            {node.name}
-          </Title>
-        </div>
-      </header>
-      <DesignDocumentContext.Provider value={doc}>
-        <ElementNavigationContext.Provider value={navigation}>
-          {/* A container of its own: a grid cannot ask how wide it is itself. */}
-          <div key={node.path} className={classes.body}>
-            <div className={withScenarios ? classes.columns : undefined}>
-              <div className={classes.sections}>
-                {bodySections(node, doc, tree)}
-              </div>
-              {withScenarios && (
-                <aside className={classes.aside}>
-                  <ScenarioColumn scenarios={scenarios} />
-                </aside>
+    <DesignDocumentContext.Provider value={doc}>
+      <ElementNavigationContext.Provider value={navigation}>
+        <DetailBreadcrumb path={path} onSelect={onSelect} />
+        <header className={classes.header}>
+          <span className={classes.tile}>
+            <KindIcon kind={node.kind} pattern={node.pattern} />
+          </span>
+          <div className={classes.heading}>
+            {/* What it is on the left, what the design does to it on the right. */}
+            <div className={classes.kind}>
+              {node.patternLabel !== null && (
+                <span className={classes.pattern}>{node.patternLabel}</span>
               )}
+              <Group gap="xs" ml="auto">
+                <VisibilityBadge visibility={visibility} />
+                <ChangeBadge change={node.change} />
+              </Group>
+            </div>
+            <div className={classes.title}>
+              <Title order={2} className={classes.name}>
+                {node.name}
+              </Title>
+              <ImplementsLine items={implemented} />
             </div>
           </div>
-        </ElementNavigationContext.Provider>
-      </DesignDocumentContext.Provider>
-    </div>
+        </header>
+        {/* A container of its own: a grid cannot ask how wide it is itself. */}
+        <div key={node.path} className={classes.body}>
+          <div className={withScenarios ? classes.columns : undefined}>
+            <div className={classes.sections}>
+              {bodySections(node, doc, tree)}
+            </div>
+            {withScenarios && (
+              <aside className={classes.aside}>
+                <ScenarioColumn scenarios={scenarios} />
+              </aside>
+            )}
+          </div>
+        </div>
+      </ElementNavigationContext.Provider>
+    </DesignDocumentContext.Provider>
   );
 }

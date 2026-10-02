@@ -28,6 +28,23 @@
 .line {
   font-family: var(--mantine-font-family-monospace);
   font-size: 12px;
+
+  /* A dot per line, in the blue a declaration box is edged with. */
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--mantine-color-brand-4);
+    vertical-align: middle;
+  }
+}
+
+/* The type, coloured as a declaration box colours it. */
+.type {
+  color: var(--mantine-color-anchor);
 }
 
 /* A word with a tooltip, which nothing else marks as one. */

@@ -1,0 +1,14 @@
+.text {
+  display: block;
+}
+
+/* In the line of the text, at its size. Named with the text, to win over the
+   anchor's own size, which loads later. */
+.text .toggle {
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  line-height: inherit;
+  vertical-align: baseline;
+}

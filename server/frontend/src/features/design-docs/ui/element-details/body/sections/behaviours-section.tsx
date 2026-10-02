@@ -108,7 +108,7 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
         <Fragment key={label}>
           {index > 0 && <span className={classes.punctuation}>, </span>}
           {/* By name, and on hover what its type is: `name: a.b.C`. */}
-          <ElementTooltip name={label} hint>
+          <ElementTooltip name={label} shown={name ?? label} hint>
             <span className={classes.punctuation}>{name ?? label}</span>
           </ElementTooltip>
         </Fragment>

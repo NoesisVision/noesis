@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { cloneElement, type ReactElement } from 'react';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
-import { shortLabel } from '#/shared/ui/qualified-name.tsx';
+import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ChangeListItem,
@@ -13,11 +13,18 @@ import { findById } from './change-set.ts';
 import { useDesignDocument } from './design-document-context.ts';
 import classes from './element-tooltip.module.css';
 
+/** One declaration as the tooltip lists it: its name, if any, and its type read short. */
+interface Line {
+  key: string;
+  name?: string;
+  type?: string;
+}
+
 /** What the design says an element is made of, as the tooltip lists it. */
 interface Shape {
-  properties?: string[];
-  input?: string[];
-  output?: string[];
+  properties?: Line[];
+  input?: Line[];
+  output?: Line[];
 }
 
 /** The address a name points at: `name: a.b.C[]` points at `a.b.C`. */
@@ -28,10 +35,18 @@ const addressOf = (name: string) =>
     .replace(/(\[\])+$/, '');
 
 /** Each line as declared, its type read short; what the design removes left out. */
-const lines = (items: ChangeListItem[]) =>
+const lines = (items: ChangeListItem[]): Line[] =>
   items
     .filter(({ change }) => change !== 'removed')
-    .map(({ label }) => shortLabel(label));
+    .map(({ label, name, type }) =>
+      name === undefined && type === undefined
+        ? { key: label, name: label }
+        : {
+            key: label,
+            name,
+            type: type === undefined ? undefined : shortName(type).type,
+          },
+    );
 
 /** The shape the document gives the element at an address, if it gives one. */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
@@ -62,10 +77,16 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
  */
 export function ElementTooltip({
   name,
+  shown = shortLabel(name),
   hint,
   children,
 }: {
   name: string;
+  /**
+   * What the child shows of the name, its short label by default. An input
+   * shown by its name alone still has its type to say, even a primitive's.
+   */
+  shown?: string;
   /**
    * Marks the child with a help cursor while it has something to say — for
    * a bare word, which nothing else shows can be hovered.
@@ -76,15 +97,15 @@ export function ElementTooltip({
   const doc = useDesignDocument();
   const address = addressOf(name);
   const shape = doc === null ? null : shapeOf(doc, address);
-  if (shape === null && shortLabel(name) === name.trim()) return children;
+  if (shape === null && shown === name.trim()) {
+    return children;
+  }
   return (
     <Tooltip
       openDelay={300}
       multiline
       maw={360}
-      label={
-        shape === null ? address : <Details address={address} shape={shape} />
-      }
+      label={<Details address={address} shape={shape} />}
     >
       {hint
         ? cloneElement(children, {
@@ -95,32 +116,29 @@ export function ElementTooltip({
   );
 }
 
-function Details({ address, shape }: { address: string; shape: Shape }) {
+function Details({ address, shape }: { address: string; shape: Shape | null }) {
   return (
     <span className={classes.details}>
       <span className={classes.address}>{address}</span>
-      <Lines label="Properties" lines={shape.properties} />
-      <Lines label="Input" lines={shape.input} />
-      <Lines label="Output" lines={shape.output} />
+      <Lines label="Properties" lines={shape?.properties} />
+      <Lines label="Input" lines={shape?.input} />
+      <Lines label="Output" lines={shape?.output} />
     </span>
   );
 }
 
 /** One group, left out when there is nothing in it. Spans: a tooltip's label is phrasing. */
-function Lines({
-  label,
-  lines,
-}: {
-  label: string;
-  lines: string[] | undefined;
-}) {
+function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
   if (lines === undefined || lines.length === 0) return null;
   return (
     <span className={classes.group}>
       <span className={classes.label}>{label}</span>
-      {lines.map((line) => (
-        <span key={line} className={classes.line}>
-          {line}
+      {lines.map(({ key, name, type }) => (
+        // `name: Type`, the type in the colour a declaration box gives it.
+        <span key={key} className={classes.line}>
+          {name}
+          {name !== undefined && type !== undefined && ': '}
+          {type !== undefined && <span className={classes.type}>{type}</span>}
         </span>
       ))}
     </span>
