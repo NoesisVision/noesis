@@ -353,7 +353,7 @@ describe('ElementDetail', () => {
     // row in the tree to open, so it is only text.
     expect(html).toContain('>amount?<');
     // Its type by its last segment, as inputs and outputs read one.
-    expect(html).toMatch(/Badge-label">Money<\/span>/);
+    expect(html).toMatch(/<span[^>]*>Money<\/span>/);
     expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
   });
@@ -368,7 +368,7 @@ describe('ElementDetail', () => {
     });
     const withMoney = outlineTree([...outline, money], ['property']);
     expect(show('building_block|pay.Hold', withMoney)).toMatch(
-      /<button[^>]*data-link="true"[^>]*><span[^>]*>Money<\/span><\/button>/,
+      /<button[^>]*data-link="true"[^>]*>Money<\/button>/,
     );
   });
 
@@ -485,12 +485,6 @@ describe('ElementDetail', () => {
     const html = show('building_block|pay.Hold');
     expect(html).toMatch(/<a href="#element-scenarios"[^>]*>.*?1 scenario</);
     expect(html).toContain('id="element-scenarios"');
-  });
-
-  it("marks a property's type as a primitive or another block", () => {
-    const html = show('building_block|pay.Hold');
-    // `pay.Money` is a building block, so its glyph is the reference arrow.
-    expect(html).toMatch(/data-reference="true"[^>]*>→</);
   });
 
   it('folds every scenario until asked, and opens them all at once', () => {

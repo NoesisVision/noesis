@@ -29,8 +29,6 @@ export interface ChangeListItem {
   name?: string;
   /** The type it is declared with, by address; `?` already folded into the name. */
   type?: string;
-  /** Whether that type is another building block rather than a primitive. */
-  reference?: boolean;
   /** The row that type has in the tree, when it is a building block. */
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
@@ -58,7 +56,6 @@ const isReference = (ref: BuildingBlockRefInput): boolean =>
 const declared = (name: string, type: BuildingBlockRefInput) => ({
   name,
   type: refAddressOf(type),
-  reference: isReference(type),
   ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
 });
 
@@ -111,7 +108,6 @@ export const resultItems = (
       label: refAddressOf(type),
       path: refIdOf(type),
       type: refAddressOf(type),
-      reference: isReference(type),
       ...(description ? { description } : {}),
     };
   });

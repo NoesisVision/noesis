@@ -2,12 +2,9 @@ import { IconArrowsExchange } from '@tabler/icons-react';
 import { useId } from 'react';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
-import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
-import { ElementTooltip } from '../../element-tooltip.tsx';
+import { DeclarationBox } from './declaration-box.tsx';
 import { DetailSection } from './detail-section.tsx';
 import canvas from './canvas.module.css';
 import classes from './input-output-section.module.css';
@@ -20,8 +17,8 @@ interface InputOutputSectionProps {
 
 /**
  * What a behaviour takes and what it gives back, in three columns: its inputs
- * in the order it declares them, a dashed seam, and what it returns. A box
- * whose type has a row in the tree opens it.
+ * in the order it declares them, a dashed seam, and what it returns, each a
+ * `DeclarationBox` as a block's properties are.
  */
 export function InputOutputSection({ input, output }: InputOutputSectionProps) {
   return (
@@ -57,58 +54,17 @@ function Side({
       </span>
       <ul aria-labelledby={caption} className={classes.list}>
         {items.map((item) => (
-          <Box
+          <DeclarationBox
             key={`${item.change}:${item.label}`}
+            component="li"
             item={item}
+            // A parameter's or a result's path is its type's own row.
+            typePath={item.path}
             output={output}
           />
         ))}
       </ul>
     </div>
-  );
-}
-
-/** One parameter or result: its name, if it has one, over its type. */
-function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
-  const { has, select } = useElementNavigation();
-  const { change, path, name, type, description } = item;
-  const removed = change === 'removed' || undefined;
-  const lines = (
-    <>
-      {name !== undefined && (
-        <span className={classes.name} data-removed={removed}>
-          {name}
-        </span>
-      )}
-      {type !== undefined && (
-        <span
-          className={name === undefined ? classes.name : classes.type}
-          data-removed={removed}
-        >
-          <QualifiedName name={type} />
-        </span>
-      )}
-      {description !== undefined && (
-        <span className={classes.description}>{description}</span>
-      )}
-    </>
-  );
-  const box = (
-    <li className={classes.box} data-output={output || undefined}>
-      {path !== null && has(path) ? (
-        <UnstyledButton className={classes.open} onClick={() => select(path)}>
-          {lines}
-        </UnstyledButton>
-      ) : (
-        lines
-      )}
-    </li>
-  );
-  // The whole box says what its type is, not only the word that names it.
-  return type === undefined ? (
-    box
-  ) : (
-    <ElementTooltip name={type}>{box}</ElementTooltip>
   );
 }
 
