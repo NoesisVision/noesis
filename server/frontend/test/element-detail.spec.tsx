@@ -5,10 +5,14 @@ import { valueOf } from '../src/features/design-docs/design-doc-field';
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
 import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
+  implementerItems,
   ruleItems,
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
+import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
+import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
+import { ImplementedByList } from '../src/features/design-docs/ui/element-details/implemented-by-modal';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
@@ -39,6 +43,10 @@ const document = {
         type: plain('aggregate'),
         definition: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
+        implements: {
+          added: ['building_block|pay.Settleable'],
+          removed: ['building_block|pay.Lockable'],
+        },
         properties: {
           added: [
             {
@@ -267,6 +275,78 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
   });
 
+  it('says what a block implements after its name, not in a section', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(
+      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*>Lockable<\/span>, <span[^>]*>Settleable<\/span><\/span>/,
+    );
+    // What the design removes stays, struck through.
+    expect(html).toMatch(/<span[^>]*data-removed="true"[^>]*>Lockable<\/span>/);
+    expect(html).not.toContain('>Implements<');
+  });
+
+  it('offers what implements a type beside its badges', () => {
+    const type = (name: string) =>
+      node({
+        path: `building_block|pay.${name}`,
+        parentPath: 'module|pay',
+        kind: 'building_block',
+        name,
+        depth: 1,
+      });
+    const withTypes = outlineTree(
+      [...outline, type('Settleable'), type('Lockable')],
+      ['property'],
+    );
+    // Found in the document even for a type the design leaves alone.
+    expect(show('building_block|pay.Settleable', withTypes)).toMatch(
+      /<button[^>]*aria-label="Implemented by 1 element"/,
+    );
+    // Nothing implements Hold itself, so it has no menu.
+    expect(show('building_block|pay.Hold')).not.toContain('Implemented by');
+  });
+
+  it('lists each implementer under a filter box, opening its row', () => {
+    const items = implementerItems(document, 'building_block|pay.Lockable');
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <DesignDocumentContext.Provider value={document}>
+          <ElementNavigationContext.Provider
+            value={{ has: () => true, select: () => {} }}
+          >
+            <ImplementedByList items={items} onOpen={() => {}} />
+          </ElementNavigationContext.Provider>
+        </DesignDocumentContext.Provider>
+      </MantineProvider>,
+    );
+    expect(html).toMatch(/<input[^>]*aria-label="Filter the implementers"/);
+    // The design stops Hold implementing Lockable: it stays, struck through.
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*Hold</);
+    expect(html).toMatch(/data-removed="true"[^>]*>Hold</);
+    expect(html).toContain('>removed<');
+    // Where it sits, after its name.
+    expect(html).toMatch(/>Hold<\/span><span[^>]*>pay<\/span>/);
+  });
+
+  it("draws a module's building blocks as cards, each opening its row", () => {
+    const html = show('module|pay');
+    // No title over them: the pattern captions say what they are.
+    expect(html).not.toContain('>Building blocks<');
+    expect(html).toMatch(/<button[^>]*data-link="true"[^>]*>Hold<\/button>/);
+    // Under its pattern, with how many share it, and the icon the tree gives
+    // that pattern; the card itself does not say the pattern again.
+    expect(html).toMatch(
+      /tabler-icon-package-export[^<]*>(<path[^>]*><\/path>)*<\/svg><\/span>Aggregate · 1</,
+    );
+    expect(html).not.toContain('>Aggregate<');
+    expect(html).toContain('tabler-icon-package-export');
+    // The first paragraph of its description, and never the diagram's fence.
+    expect(html).toContain('Holds a card while a booking settles.');
+    expect(html).not.toContain('```mermaid');
+    // One the design removes is still a card, struck through.
+    expect(html).toMatch(/data-removed="true"[^>]*>Voucher</);
+  });
+
   it('says where in the model the element sits, as a trail back up it', () => {
     const html = show('building_block|pay.Hold#scenario:A hold settles');
     expect(html).toMatch(/<nav[^>]*aria-label="Where this element sits"/);
@@ -435,6 +515,12 @@ describe('ElementDetail', () => {
     ).toEqual([['An unpaid hold lapses', undefined]]);
   });
 
+  it("marks each scenario for a rule's count to bring into view", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('data-scenario="0"');
+    expect(html).toContain('data-scenario="1"');
+  });
+
   it("folds a block's scenarios, and its rules', into one column", () => {
     const html = show('building_block|pay.Hold');
     expect(html).toContain('>Scenarios<');
@@ -494,7 +580,8 @@ describe('ElementDetail', () => {
               added: [
                 {
                   name: 'A hold settles',
-                  description: plain('A hold settles'),
+                  // The name again, as a sentence: a full stop says no more.
+                  description: plain('A hold settles.'),
                   given: plain('a hold'),
                   when: plain('the booking is confirmed'),
                   // Gherkin's word; the fixture is never awaited.
@@ -532,6 +619,7 @@ describe('ElementDetail', () => {
     expect(html).toContain('the booking is confirmed');
     // ...and the name is in it once, as the control's; not again in the panel.
     expect(html.match(/>A hold settles</g)).toHaveLength(1);
+    expect(html).not.toContain('A hold settles.');
     // A description that says more is still read.
     expect(render(document)).toContain('The ordinary path.');
   });
@@ -587,7 +675,6 @@ describe('ElementDetail', () => {
   it('lists what changed under a module the design never names', () => {
     const html = show('module|pay');
     expect(html).toContain('does not change it');
-    expect(html).toContain('>Building blocks<');
     // Added and removed alike, each opening its row.
     for (const name of ['Hold', 'Voucher'])
       expect(html).toMatch(new RegExp(`<button[^>]*>(<[^>]+>)*${name}<`));

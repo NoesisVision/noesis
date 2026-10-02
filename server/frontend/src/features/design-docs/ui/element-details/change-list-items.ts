@@ -1,9 +1,6 @@
+import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import type {
-  OutlineChange,
-  OutlineKind,
-} from '#/shared/ui/model-tree/model-outline.ts';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
-import type {
+  DesignDocumentInput,
   DesignedNeedInput,
   DesignedParameterInput,
   DesignedPropertyInput,
@@ -92,6 +89,28 @@ export const refItems = (
     path: refIdOf(ref),
   }));
 
+/**
+ * The building blocks the document says implement a type, each by its
+ * address and opening its row; one the design stops implementing it is
+ * listed as removed.
+ */
+export const implementerItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] =>
+  [
+    ...(doc.buildingBlocks?.added ?? []),
+    ...(doc.buildingBlocks?.modified ?? []),
+  ].flatMap((block) =>
+    [...changed(block.implements)]
+      .filter(([ref]) => ref === id)
+      .map(([, change]) => ({
+        change,
+        label: refAddressOf(block.id),
+        path: block.id,
+      })),
+  );
+
 /** A behaviour's inputs as they would be declared, or by name when the type is kept; each opens its type. */
 export const parameterItems = (
   set: ChangeSetInput<DesignedParameterInput, string> | undefined,
@@ -168,26 +187,6 @@ export const propertyItems = (
       ...(description ? { description } : {}),
     };
   });
-
-/**
- * The children of one kind a node has in the tree — a module's submodules and
- * building blocks, a block's behaviours — each as the tree has it. The tree
- * already holds an ancestor the document never names, so one that is only
- * there for what changed under it is listed too, and opens like any other.
- */
-export const childItems = (
-  tree: OutlineTree,
-  path: string,
-  kind: OutlineKind,
-): ChangeListItem[] =>
-  tree
-    .childrenOf(path)
-    .filter((child) => child.kind === kind)
-    .map((child) => ({
-      change: child.change,
-      label: child.name,
-      path: child.path,
-    }));
 
 /** Rules, each by its name with what the design says of it and the needs it answers. */
 export const ruleItems = (

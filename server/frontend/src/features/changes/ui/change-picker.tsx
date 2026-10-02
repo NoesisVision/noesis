@@ -109,6 +109,7 @@ export function ChangePicker({
             <Menu.Item
               key={change.id}
               className={classes.item}
+              classNames={{ itemLabel: classes.itemLabel }}
               data-current={change.id === current?.id || undefined}
               leftSection={
                 <Box
@@ -119,7 +120,7 @@ export function ChangePicker({
               }
               onClick={() => choose(change)}
             >
-              <Text size="sm" fw={500} truncate lh={1.3}>
+              <Text size="sm" fw={500} lh={1.3} className={classes.name}>
                 {change.name}
               </Text>
               <Text size="xs" className={classes.subLabel} truncate lh={1.3}>

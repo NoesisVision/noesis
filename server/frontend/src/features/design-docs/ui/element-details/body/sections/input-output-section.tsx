@@ -18,13 +18,17 @@ interface InputOutputSectionProps {
 /**
  * What a behaviour takes and what it gives back, in three columns: its inputs
  * in the order it declares them, a dashed seam, and what it returns, each a
- * `DeclarationBox` as a block's properties are.
+ * `DeclarationBox` as a block's properties are. Inputs that outgrow the
+ * panel run on to the next row; the seam and the outputs stay beside them.
  */
 export function InputOutputSection({ input, output }: InputOutputSectionProps) {
   return (
     <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
-      <Grid className={`${canvas.canvas} ${classes.flow}`}>
-        <Grid.Col span={{ base: 'content' }}>
+      <Grid
+        className={`${canvas.canvas} ${classes.flow}`}
+        classNames={{ inner: classes.inner }}
+      >
+        <Grid.Col span={{ base: 'content' }} className={classes.inputs}>
           <Side label="Inputs" items={input} />
         </Grid.Col>
         <Divider orientation="vertical" variant="dashed" />
@@ -36,7 +40,7 @@ export function InputOutputSection({ input, output }: InputOutputSectionProps) {
   );
 }
 
-/** One column: its caption, with how many there are, over its boxes. */
+/** One column: its caption, with how many there are, over its boxes — inputs side by side, outputs one under another. */
 function Side({
   label,
   items,
@@ -52,7 +56,11 @@ function Side({
       <span id={caption} className={classes.caption}>
         {`${label} · ${items.length}`}
       </span>
-      <ul aria-labelledby={caption} className={classes.list}>
+      <ul
+        aria-labelledby={caption}
+        className={classes.list}
+        data-output={output || undefined}
+      >
         {items.map((item) => (
           <DeclarationBox
             key={`${item.change}:${item.label}`}
