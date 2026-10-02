@@ -5,7 +5,7 @@
  * write from it can name exactly what it changes.
  */
 export type OwnerRef = {
-  collection: 'buildingBlocks' | 'behaviours';
+  collection: 'modules' | 'buildingBlocks' | 'behaviours';
   id: string;
 };
 

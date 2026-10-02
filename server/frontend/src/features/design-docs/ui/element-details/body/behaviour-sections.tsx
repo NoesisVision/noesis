@@ -1,5 +1,8 @@
 import type { ReactElement } from 'react';
-import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
+import type {
+  DesignDocumentInput,
+  DesignedBehaviourInput,
+} from '#backend/app/design-docs/design-doc.ts';
 import {
   parameterItems,
   ruleItems,
@@ -14,6 +17,7 @@ import { InputOutputSection } from './sections/input-output-section.tsx';
 
 export const behaviourSections = (
   behaviour: DesignedBehaviourInput,
+  doc: DesignDocumentInput,
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'behaviours', id: behaviour.id };
   return [
@@ -26,7 +30,7 @@ export const behaviourSections = (
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(behaviour.id, behaviour.rules),
+      items: ruleItems(behaviour.id, behaviour.rules, doc.needs),
     }),
     ...section(DiagramSection, 'diagram', {
       element,

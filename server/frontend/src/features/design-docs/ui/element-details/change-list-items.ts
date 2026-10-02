@@ -4,6 +4,7 @@ import type {
 } from '#/shared/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type {
+  DesignedNeedInput,
   DesignedParameterInput,
   DesignedPropertyInput,
   DesignedResultInput,
@@ -12,7 +13,7 @@ import type {
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
-import type { ChangeSetInput } from './change-set.ts';
+import { type ChangeSetInput, findById } from './change-set.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -33,7 +34,29 @@ export interface ChangeListItem {
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
   scenarios?: number;
+  /** A rule's category and type, as far as the design writes them. */
+  classification?: string;
+  /** The needs a rule answers, by name; none for a design decision. */
+  needs?: string[];
 }
+
+export type NeedsInput = ChangeSetInput<DesignedNeedInput, string> | undefined;
+
+/** Needs by their names, a need the document does not state by its id. */
+export const needNamesOf = (ids: string[], needs: NeedsInput): string[] =>
+  ids.map((id) => valueOf(findById(needs, id)?.name) ?? id);
+
+/** The needs a rule answers in words; a rule that answers none is the design's own decision. */
+export const tracedTo = (needs: string[]): string =>
+  needs.length === 0 ? 'Design decision' : `Answers ${needs.join(', ')}`;
+
+/** A rule's category and type in one phrase, `Quality · Performance`. */
+const classificationOf = (rule: DesignedRuleInput): string | null => {
+  const words = [valueOf(rule.category), valueOf(rule.ruleType)].filter(
+    (word) => word !== null,
+  );
+  return words.length > 0 ? words.join(' · ') : null;
+};
 
 /** Every item of a change set, each with what the design does to it. */
 function* changed<Item, Key>(
@@ -166,21 +189,26 @@ export const childItems = (
       path: child.path,
     }));
 
-/** Rules, each by its name with the description the design gives it. */
+/** Rules, each by its name with what the design says of it and the needs it answers. */
 export const ruleItems = (
   owner: string,
   set: ChangeSetInput<DesignedRuleInput, string> | undefined,
+  needs?: NeedsInput,
 ): ChangeListItem[] =>
   [...changed(set)].map(([rule, change]) => {
     if (typeof rule === 'string')
       return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
     const description = valueOf(rule.description)?.trim();
     const scenarios = [...changed(rule.scenarios)].length;
+    const classification = classificationOf(rule);
+    const traced = valueOf(rule.needs);
     return {
       change,
       label: rule.name,
       path: partPathOf(owner, 'rule', rule.name),
       ...(description ? { description } : {}),
       ...(scenarios > 0 ? { scenarios } : {}),
+      ...(classification ? { classification } : {}),
+      ...(traced ? { needs: needNamesOf(traced, needs) } : {}),
     };
   });

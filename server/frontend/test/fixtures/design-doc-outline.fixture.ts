@@ -3,7 +3,8 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 /*
  * A design that changes something at every level, in the JSON form the wire
  * carries: an element added, modified and removed at each of the three kinds,
- * a part of each kind, and one element that draws a diagram. Only what the
+ * a part of each kind, a rule on a module, rules traced to a need and to
+ * none, and one element that draws a diagram. Only what the
  * outline reads is spelled out — the bodies of the fields are the detail
  * panel's business, not the tree's.
  */
@@ -21,11 +22,32 @@ export const changedEverywhereFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
   name: 'Partial refunds for orders',
   description: 'Refund single order lines.',
+  needs: {
+    added: [
+      {
+        id: 'refund-single-lines',
+        name: agent('Refund single lines'),
+        stakeholder: agent('Support agents'),
+        statement: agent('Support agents need to refund one line of an order.'),
+      },
+    ],
+  },
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
         definition: agent('Giving money back.'),
+        rules: {
+          added: [
+            {
+              name: 'A refund is issued within a second',
+              category: agent('Quality'),
+              ruleType: agent('Performance'),
+              description: agent('Issuing a refund answers within a second.'),
+              needs: agent(['refund-single-lines']),
+            },
+          ],
+        },
       },
     ],
     removed: ['module|sales.credit-notes'],
@@ -58,7 +80,10 @@ export const changedEverywhereFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
+              category: agent('Business'),
               ruleType: agent('Consistency'),
+              needs: agent(['refund-single-lines']),
+              rationale: human('Support never pays out more than came in.'),
               scenarios: {
                 added: [
                   {
@@ -131,7 +156,9 @@ export const changedEverywhereFixture = {
           added: [
             {
               name: 'Only paid orders are refundable',
+              category: agent('Business'),
               ruleType: agent('State change'),
+              needs: agent([]),
             },
           ],
         },

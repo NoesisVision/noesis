@@ -1,0 +1,21 @@
+.list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px var(--mantine-spacing-md);
+  margin: 0;
+  font-size: var(--mantine-font-size-sm);
+
+  & dt {
+    font-weight: 600;
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  }
+
+  & dd {
+    margin: 0;
+  }
+}
+
+.needs {
+  margin: 0;
+  padding-left: 1.1em;
+}

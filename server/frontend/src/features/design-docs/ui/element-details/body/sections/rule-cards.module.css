@@ -65,6 +65,17 @@
   }
 }
 
+.classification {
+  font-size: 12px;
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+.needs {
+  font-size: 12px;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
 .description {
   font-size: 14px;
   line-height: 1.55;

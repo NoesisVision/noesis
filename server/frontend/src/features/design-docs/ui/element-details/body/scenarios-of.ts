@@ -53,7 +53,7 @@ const ruleEntriesOf = (
 
 /**
  * The scenarios the design gives an element — a block's or a behaviour's own,
- * then its rules' — or a rule's own; none for anything else, and none for an
+ * then its rules', a module's rules' alone — or a rule's own; none for anything else, and none for an
  * element the design removes.
  */
 export const scenariosOf = (
@@ -62,20 +62,24 @@ export const scenariosOf = (
 ): ScenarioEntry[] => {
   if (node.change === 'removed') return [];
   if (node.elementId !== null) {
-    const owner =
-      findById(doc.buildingBlocks, node.elementId) ??
-      findById(doc.behaviours, node.elementId);
+    const owner = ownerOf(doc, node.elementId);
     if (owner === null) return [];
-    const own = entriesOf(owner.scenarios).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    const own = entriesOf(
+      (
+        findById(doc.buildingBlocks, node.elementId) ??
+        findById(doc.behaviours, node.elementId)
+      )?.scenarios,
+    ).sort((a, b) => a.name.localeCompare(b.name));
     return [...own, ...ruleEntriesOf(owner.rules)];
   }
   if (node.kind !== 'rule' || node.parentPath === null) return [];
   const { elementId } = ownerOfPart(node.parentPath);
-  const owner =
-    findById(doc.buildingBlocks, elementId) ??
-    findById(doc.behaviours, elementId);
-  const rule = findByName(owner?.rules, node.name);
+  const rule = findByName(ownerOf(doc, elementId)?.rules, node.name);
   return rule === null ? [] : entriesOf(rule.scenarios);
 };
+
+/** The element that keeps rules: a building block, a behaviour or a module. */
+const ownerOf = (doc: DesignDocumentInput, id: string) =>
+  findById(doc.buildingBlocks, id) ??
+  findById(doc.behaviours, id) ??
+  findById(doc.modules, id);
