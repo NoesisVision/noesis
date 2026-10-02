@@ -8,8 +8,8 @@ export const Tooltip = wrapComponent<typeof MantineComponent, TooltipProps>(
     arrowSize: 6,
     withArrow: true,
     radius: 8,
-    // The brand's light-variant colour: a deep blue in the light scheme and a
-    // pale one in the dark, so the text flips with it to stay readable.
+    // `color` sets the background: a white card in the light scheme and the
+    // brand's darkest blue in the dark, the text set against each below.
     color:
       'light-dark(var(--mantine-color-white), var(--mantine-color-brand-9))',
     styles: {
