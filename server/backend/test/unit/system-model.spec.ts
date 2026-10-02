@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   BuildingBlockRef,
   PrimitiveId,
+  RULE_TYPES_OF,
   ScannedScenario,
   SystemModel,
 } from '#backend/app/system-model/system-model';
@@ -105,6 +106,7 @@ describe('A system model', () => {
     expect(written.modules?.[0]).toEqual({
       ...module,
       description: null,
+      rules: [],
       source: { path: 'src/sales/orders', line: null },
     });
   });
@@ -319,14 +321,18 @@ const scenario = {
 const rule = { name: 'Paid orders only', ruleType: 'State change' };
 
 describe('A scanned rule', () => {
-  it('belongs to a building block or a behaviour', () => {
+  it('belongs to a module, a building block or a behaviour', () => {
     const parsed = SystemModel.parse(
       model({
+        modules: [{ ...module, rules: [rule] }],
         buildingBlocks: [{ ...block, rules: [rule] }],
         behaviours: [{ ...behaviour, rules: [rule] }],
       }),
     );
 
+    expect(parsed.modules[0]?.rules.map((r) => r.name)).toEqual([
+      'Paid orders only',
+    ]);
     expect(parsed.buildingBlocks[0]?.rules.map((r) => r.name)).toEqual([
       'Paid orders only',
     ]);
@@ -338,8 +344,35 @@ describe('A scanned rule', () => {
   it('is none until the scanner finds one', () => {
     const parsed = SystemModel.parse(model());
 
+    expect(parsed.modules[0]?.rules).toEqual([]);
     expect(parsed.buildingBlocks[0]?.rules).toEqual([]);
     expect(parsed.behaviours[0]?.rules).toEqual([]);
+  });
+
+  it('is a business rule unless the scanner says otherwise', () => {
+    const parsed = SystemModel.parse(withBlock({ rules: [rule] }));
+
+    expect(parsed.buildingBlocks[0]?.rules[0]?.category).toBe('Business');
+    expect(
+      isValid(
+        withBlock({
+          rules: [{ ...rule, category: 'Quality', ruleType: 'Performance' }],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(withBlock({ rules: [{ ...rule, category: 'Technical' }] })),
+    ).toBe(false);
+  });
+
+  it('allows the rule types of every category', () => {
+    for (const [category, types] of Object.entries(RULE_TYPES_OF)) {
+      for (const ruleType of types) {
+        expect(
+          isValid(withBlock({ rules: [{ ...rule, category, ruleType }] })),
+        ).toBe(true);
+      }
+    }
   });
 
   it('is always classified, by one of the known types', () => {
