@@ -9,12 +9,14 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 import { valueOf } from '../../design-doc-field.ts';
 import { bodySections } from './body/body-sections.tsx';
 import { ScenarioColumn } from './body/scenario-column.tsx';
+import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { refItems } from './change-list-items.ts';
+import { implementerItems, refItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
+import { ImplementedByModal } from './implemented-by-modal.tsx';
 import { ImplementsLine } from './implements-line.tsx';
 import { VisibilityBadge } from './visibility-badge.tsx';
 import classes from './element-detail.module.css';
@@ -55,6 +57,12 @@ export function ElementDetail({
     node.kind === 'building_block' && node.elementId
       ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
       : [];
+  // And what implements it — found in the document even when it leaves the
+  // block itself alone.
+  const implementers =
+    node.kind === 'building_block' && node.elementId
+      ? implementerItems(doc, node.elementId)
+      : [];
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
   const withScenarios = scenarios.length > 0;
@@ -75,6 +83,7 @@ export function ElementDetail({
               <Group gap="xs" ml="auto">
                 <VisibilityBadge visibility={visibility} />
                 <ChangeBadge change={node.change} />
+                <ImplementedByModal items={implementers} />
               </Group>
             </div>
             <div className={classes.title}>
@@ -87,16 +96,19 @@ export function ElementDetail({
         </header>
         {/* A container of its own: a grid cannot ask how wide it is itself. */}
         <div key={node.path} className={classes.body}>
-          <div className={withScenarios ? classes.columns : undefined}>
-            <div className={classes.sections}>
-              {bodySections(node, doc, tree)}
+          {/* Under the key, so every scenario is folded again on another element. */}
+          <ScenarioFocusProvider scenarios={scenarios}>
+            <div className={withScenarios ? classes.columns : undefined}>
+              <div className={classes.sections}>
+                {bodySections(node, doc, tree)}
+              </div>
+              {withScenarios && (
+                <aside className={classes.aside}>
+                  <ScenarioColumn scenarios={scenarios} />
+                </aside>
+              )}
             </div>
-            {withScenarios && (
-              <aside className={classes.aside}>
-                <ScenarioColumn scenarios={scenarios} />
-              </aside>
-            )}
-          </div>
+          </ScenarioFocusProvider>
         </div>
       </ElementNavigationContext.Provider>
     </DesignDocumentContext.Provider>

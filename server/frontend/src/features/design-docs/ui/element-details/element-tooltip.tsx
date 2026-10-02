@@ -1,6 +1,6 @@
 import { clsx } from 'clsx';
 import { cloneElement, type ReactElement } from 'react';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
@@ -101,7 +101,7 @@ export function ElementTooltip({
     return children;
   }
   return (
-    <Tooltip
+    <CardTooltip
       openDelay={300}
       multiline
       maw={360}
@@ -112,7 +112,7 @@ export function ElementTooltip({
             className: clsx(children.props.className, classes.hint),
           })
         : children}
-    </Tooltip>
+    </CardTooltip>
   );
 }
 

@@ -4,6 +4,7 @@ import type {
 } from '#/shared/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type {
+  DesignDocumentInput,
   DesignedParameterInput,
   DesignedPropertyInput,
   DesignedResultInput,
@@ -68,6 +69,28 @@ export const refItems = (
     label: refAddressOf(ref),
     path: refIdOf(ref),
   }));
+
+/**
+ * The building blocks the document says implement a type, each by its
+ * address and opening its row; one the design stops implementing it is
+ * listed as removed.
+ */
+export const implementerItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] =>
+  [
+    ...(doc.buildingBlocks?.added ?? []),
+    ...(doc.buildingBlocks?.modified ?? []),
+  ].flatMap((block) =>
+    [...changed(block.implements)]
+      .filter(([ref]) => ref === id)
+      .map(([, change]) => ({
+        change,
+        label: refAddressOf(block.id),
+        path: block.id,
+      })),
+  );
 
 /** A behaviour's inputs as they would be declared, or by name when the type is kept; each opens its type. */
 export const parameterItems = (

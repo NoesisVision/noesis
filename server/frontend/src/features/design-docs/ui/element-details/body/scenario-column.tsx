@@ -3,13 +3,13 @@ import {
   IconListCheck,
   IconScale,
 } from '@tabler/icons-react';
-import { useState } from 'react';
 import { Accordion } from '#/shared/design-system/accordion.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../design-doc-field.ts';
 import { ChangeBadge } from '../change-badge.tsx';
+import { SCENARIO_TRANSITION, useScenarioFocus } from './scenario-focus.tsx';
 import type { ScenarioEntry } from './scenarios-of.ts';
 import { ScenarioSteps } from './sections/scenario-steps-section.tsx';
 import classes from './scenario-column.module.css';
@@ -20,12 +20,16 @@ export const SCENARIO_COLUMN_ID = 'element-scenarios';
 /**
  * An element's scenarios, in a column of their own beside its sections: each
  * one folded to its name — under it, quietly, the rule it verifies — and
- * opened to what it says.
+ * opened to what it says. Which are open is the panel's, so that a rule
+ * can open its own.
  */
 export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
   // The value goes into the ids Mantine writes, which take no spaces.
   const values = scenarios.map((_, index) => String(index));
-  const [open, setOpen] = useState<string[]>([]);
+  const focus = useScenarioFocus();
+  if (focus === null)
+    throw new Error('ScenarioColumn needs a ScenarioFocusProvider');
+  const { open, setOpen } = focus;
   const allOpen = open.length === scenarios.length;
   return (
     <section id={SCENARIO_COLUMN_ID} className={classes.column}>
@@ -46,6 +50,7 @@ export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
         multiple
         value={open}
         onChange={setOpen}
+        transitionDuration={SCENARIO_TRANSITION}
         chevronPosition="left"
         chevron={<IconChevronRight size={16} />}
         classNames={{
@@ -60,6 +65,8 @@ export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
           <Accordion.Item
             key={`${entry.rule ?? ''}:${entry.change}:${entry.name}`}
             value={values[index]!}
+            // What a rule's count looks for to bring it into view.
+            data-scenario={values[index]}
           >
             <Accordion.Control>
               <IconListCheck size={16} className={classes.dim} aria-hidden />
@@ -95,11 +102,19 @@ export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
   );
 }
 
+/** A sentence as it reads, whatever its case, spacing and closing punctuation. */
+const plain = (text: string) =>
+  text
+    .trim()
+    .replace(/[.!?…:;]+$/, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+
 function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
   const description = valueOf(scenario.description)?.trim();
   // The control above already names it; a description that only repeats the
-  // name says nothing more.
-  const says = description && description !== scenario.name.trim();
+  // name — give or take its case, spacing or a full stop — says nothing more.
+  const says = description && plain(description) !== plain(scenario.name);
   return (
     <>
       {says && (
