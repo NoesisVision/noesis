@@ -1,6 +1,7 @@
 .box {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
   box-sizing: border-box;
   height: 100%;
@@ -15,6 +16,12 @@
   font-family: var(--mantine-font-family-monospace);
   list-style: none;
 
+  /* A type alone, with no name above it, sits in the middle of its box. */
+  &[data-bare] {
+    justify-content: center;
+    align-items: center;
+  }
+
   /* What it gives back, in the brand's tint. */
   &[data-output] {
     padding: 6px 14px;
@@ -25,7 +32,6 @@
 
 /* Named with the box, to win over the button reset a linked type gets. */
 .box .name {
-  align-self: flex-start;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -33,7 +39,6 @@
 }
 
 .box .type {
-  align-self: flex-start;
   font-family: inherit;
   font-size: 11px;
   color: var(--mantine-color-anchor);

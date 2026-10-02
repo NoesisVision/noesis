@@ -32,7 +32,12 @@ export function DeclarationBox({
   const { change, label, name, type, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
-    <Component className={classes.box} data-output={output || undefined}>
+    <Component
+      className={classes.box}
+      data-output={output || undefined}
+      // A type alone — what a behaviour gives back — sits in the middle.
+      data-bare={name === undefined || undefined}
+    >
       {name !== undefined && (
         <span className={classes.name} data-removed={removed}>
           {name}
