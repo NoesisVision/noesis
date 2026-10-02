@@ -5,12 +5,13 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
+import { shortName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 import { PropertyGrid } from './property-grid.tsx';
-import { Ref, shortName } from './ref.tsx';
+import { Ref } from './ref.tsx';
 import { RuleCards } from './rule-cards.tsx';
 import classes from './change-list-section.module.css';
 

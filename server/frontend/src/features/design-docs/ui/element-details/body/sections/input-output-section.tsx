@@ -3,11 +3,11 @@ import { useId } from 'react';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { shortName } from './ref.tsx';
 import canvas from './canvas.module.css';
 import classes from './input-output-section.module.css';
 
@@ -79,14 +79,18 @@ function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
           {name}
         </span>
       )}
-      {/* Read by its last segment, as the tree names it; in full on hover. */}
       {type !== undefined && (
-        <span
-          className={name === undefined ? classes.name : classes.type}
-          data-removed={removed}
-        >
-          {shortName(type).type}
-        </span>
+        <QualifiedName
+          name={type}
+          render={(short) => (
+            <span
+              className={name === undefined ? classes.name : classes.type}
+              data-removed={removed}
+            >
+              {short}
+            </span>
+          )}
+        />
       )}
       {description !== undefined && (
         <span className={classes.description}>{description}</span>
@@ -94,7 +98,7 @@ function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
     </>
   );
   return (
-    <li className={classes.box} data-output={output || undefined} title={type}>
+    <li className={classes.box} data-output={output || undefined}>
       {path !== null && has(path) ? (
         <UnstyledButton className={classes.open} onClick={() => select(path)}>
           {lines}

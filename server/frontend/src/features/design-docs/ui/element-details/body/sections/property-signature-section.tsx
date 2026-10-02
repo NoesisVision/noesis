@@ -1,4 +1,5 @@
 import { Code } from '#/shared/design-system/code.tsx';
+import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import {
   type DesignDocFieldInput,
@@ -18,7 +19,7 @@ interface PropertySignatureSectionProps {
 
 /**
  * A property read as it would be declared: its name, a `?` when it may be
- * absent, and its type by address.
+ * absent, and its type by its last segment, the address in full on hover.
  */
 export function PropertySignatureSection({
   name,
@@ -30,7 +31,12 @@ export function PropertySignatureSection({
       <Code block>
         {name}
         {valueOf(optional) ? '?' : ''}:{' '}
-        <Field field={type} format={refAddressOf} />;
+        <Field
+          field={type}
+          format={refAddressOf}
+          render={(address) => <QualifiedName name={address} />}
+        />
+        ;
       </Code>
     </DetailSection>
   );

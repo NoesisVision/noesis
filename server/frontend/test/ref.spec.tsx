@@ -1,39 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import {
-  Ref,
-  shortLabel,
-  shortName,
-} from '../src/features/design-docs/ui/element-details/body/sections/ref';
+import { Ref } from '../src/features/design-docs/ui/element-details/body/sections/ref';
 import { MantineProvider } from '../src/shared/design-system/provider';
-
-describe('shortName', () => {
-  it.each([
-    ['string', { type: 'string' }],
-    ['a.b.C', { type: 'C' }],
-    ['name: string', { name: 'name', type: 'string' }],
-    ['name: a.b.C', { name: 'name', type: 'C' }],
-    ['name:a.b.C', { name: 'name', type: 'C' }],
-    ['  name  :  a.b.C  ', { name: 'name', type: 'C' }],
-  ])('splits %j into %j', (ref, parts) => {
-    expect(shortName(ref)).toEqual(parts);
-  });
-
-  it('leaves the name out of a bare type rather than leaving it undefined', () => {
-    expect('name' in shortName('a.b.C')).toBe(false);
-  });
-});
-
-describe('shortLabel', () => {
-  it.each([
-    ['string', 'string'],
-    ['a.b.C', 'C'],
-    ['name: string', 'name: string'],
-    ['name: a.b.C', 'name: C'],
-  ])('reads %j as %j', (ref, label) => {
-    expect(shortLabel(ref)).toBe(label);
-  });
-});
 
 describe('Ref', () => {
   const render = (name: string, qualified?: boolean) =>

@@ -1,10 +1,9 @@
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Spoiler } from '#/shared/design-system/spoiler.tsx';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import { shortName } from './ref.tsx';
 import classes from './property-grid.module.css';
 
 /** Three lines of a description, at its 13px and 1.45 line height. */
@@ -74,24 +73,23 @@ export function PropertyGrid({ items }: { items: ChangeListItem[] }) {
  */
 function Type({ type, path }: { type: string; path: string | undefined }) {
   const { has, select } = useElementNavigation();
-  const short = shortName(type).type;
-  const pill =
-    path !== undefined && has(path) ? (
-      <UnstyledButton
-        className={classes.type}
-        data-link
-        onClick={() => select(path)}
-      >
-        {short}
-      </UnstyledButton>
-    ) : (
-      <code className={classes.type}>{short}</code>
-    );
-  return short === type ? (
-    pill
-  ) : (
-    <Tooltip openDelay={300} label={type} position="right">
-      {pill}
-    </Tooltip>
+  const linked = path !== undefined && has(path);
+  return (
+    <QualifiedName
+      name={type}
+      render={(short) =>
+        linked ? (
+          <UnstyledButton
+            className={classes.type}
+            data-link
+            onClick={() => select(path)}
+          >
+            {short}
+          </UnstyledButton>
+        ) : (
+          <code className={classes.type}>{short}</code>
+        )
+      }
+    />
   );
 }

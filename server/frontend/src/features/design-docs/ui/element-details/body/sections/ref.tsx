@@ -1,27 +1,7 @@
 import type { ReactNode } from 'react';
 import { Text } from '#/shared/design-system/text.tsx';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
-
-/**
- * A reference split into its optional name and its type, the type read by
- * its qualified name's last segment:
- * - `string` → `{ type: 'string' }`
- * - `name: string` → `{ name: 'name', type: 'string' }`
- * - `name: a.b.C` → `{ name: 'name', type: 'C' }`
- */
-export const shortName = (ref: string): { type: string; name?: string } => {
-  const colon = ref.indexOf(':');
-  const qualified = ref.slice(colon + 1).trim();
-  const type = qualified.slice(qualified.lastIndexOf('.') + 1);
-  return colon === -1 ? { type } : { type, name: ref.slice(0, colon).trim() };
-};
-
-/** A reference as read: `name: a.b.C` reads as `name: C`. */
-export const shortLabel = (ref: string): string => {
-  const { type, name } = shortName(ref);
-  return name ? `${name}: ${type}` : type;
-};
+import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 
 export function Ref({
   change,
@@ -38,8 +18,7 @@ export function Ref({
   qualified?: boolean;
 }): ReactNode {
   if (!name) return null;
-  const short = qualified ? shortLabel(name) : name;
-  const text = (
+  const text = (short: string) => (
     <Text
       // A span, so a line can sit inside the button that opens its row.
       component="span"
@@ -55,11 +34,5 @@ export function Ref({
       {short}
     </Text>
   );
-  return short === name ? (
-    text
-  ) : (
-    <Tooltip openDelay={300} label={name} position="right">
-      {text}
-    </Tooltip>
-  );
+  return qualified ? <QualifiedName name={name} render={text} /> : text(name);
 }

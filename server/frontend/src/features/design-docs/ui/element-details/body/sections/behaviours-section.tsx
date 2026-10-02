@@ -1,14 +1,15 @@
 import { IconBolt } from '@tabler/icons-react';
+import { Fragment } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { shortName } from './ref.tsx';
 import classes from './behaviours-section.module.css';
 import canvas from './canvas.module.css';
 
@@ -86,21 +87,31 @@ function BehaviourName({ node }: { node: OutlineNode }) {
   );
 }
 
-/** `(a, b) → C`: the inputs by name, the output by its type's last segment. */
+/** `(a, b) → C`: the inputs by name, the output by its type's last segment, in full on hover. */
 function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   const inputs = parameterItems(behaviour.input)
     .filter(({ change }) => change !== 'removed')
     .map(({ name, label }) => name ?? label);
   const outputs = resultItems(behaviour.output)
     .filter(({ change }) => change !== 'removed')
-    .map(({ label }) => shortName(label).type);
+    .map(({ label }) => label);
   return (
     <>
       <span className={classes.punctuation}>({inputs.join(', ')})</span>
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
-          <span className={classes.output}>{outputs.join(', ')}</span>
+          {outputs.map((output, index) => (
+            <Fragment key={output}>
+              {index > 0 && <span className={classes.punctuation}>, </span>}
+              <QualifiedName
+                name={output}
+                render={(short) => (
+                  <span className={classes.output}>{short}</span>
+                )}
+              />
+            </Fragment>
+          ))}
         </>
       )}
     </>
