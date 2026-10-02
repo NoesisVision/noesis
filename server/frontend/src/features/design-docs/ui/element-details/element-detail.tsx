@@ -8,7 +8,7 @@ import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { bodySections } from './body/body-sections.tsx';
-import { ScenarioColumn } from './body/scenario-column.tsx';
+import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
 import { DesignDocumentContext } from './design-document-context.ts';
@@ -84,7 +84,10 @@ export function ElementDetail({
               </div>
               {withScenarios && (
                 <aside className={classes.aside}>
-                  <ScenarioColumn scenarios={scenarios} />
+                  <ScenarioColumn
+                    scenarios={scenarios}
+                    id={SCENARIO_COLUMN_ID}
+                  />
                 </aside>
               )}
             </div>

@@ -19,7 +19,11 @@ export type ScenarioEntry =
 
 type ScenarioSet = ChangeSetInput<DesignedScenarioInput, string>;
 
-const entriesOf = (set: ScenarioSet | undefined, rule?: string) => {
+/** A set of scenarios as the column folds it: added, then modified, then removed. */
+export const scenarioEntriesOf = (
+  set: ScenarioSet | undefined,
+  rule?: string,
+): ScenarioEntry[] => {
   const of = rule === undefined ? {} : { rule };
   return [
     ...(set?.added ?? []).map((scenario): ScenarioEntry => ({
@@ -48,7 +52,7 @@ const ruleEntriesOf = (
   rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
 ) =>
   [...(rules?.added ?? []), ...(rules?.modified ?? [])].flatMap((rule) =>
-    entriesOf(rule.scenarios, rule.name),
+    scenarioEntriesOf(rule.scenarios, rule.name),
   );
 
 /**
@@ -64,7 +68,7 @@ export const scenariosOf = (
   if (node.elementId !== null) {
     const owner = ownerOf(doc, node.elementId);
     if (owner === null) return [];
-    const own = entriesOf(
+    const own = scenarioEntriesOf(
       (
         findById(doc.buildingBlocks, node.elementId) ??
         findById(doc.behaviours, node.elementId)
@@ -75,7 +79,7 @@ export const scenariosOf = (
   if (node.kind !== 'rule' || node.parentPath === null) return [];
   const { elementId } = ownerOfPart(node.parentPath);
   const rule = findByName(ownerOf(doc, elementId)?.rules, node.name);
-  return rule === null ? [] : entriesOf(rule.scenarios);
+  return rule === null ? [] : scenarioEntriesOf(rule.scenarios);
 };
 
 /** The element that keeps rules: a building block, a behaviour or a module. */

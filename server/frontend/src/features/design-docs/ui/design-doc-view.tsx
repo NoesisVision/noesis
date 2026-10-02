@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
+import type { DesignDocViewName } from '../design-docs.model.ts';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
@@ -12,7 +13,7 @@ const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
  */
 export function DesignDocView() {
   const { changeId, docId } = route.useParams();
-  const { node, q } = route.useSearch();
+  const { view, node, q, entry, entryQ } = route.useSearch();
   const navigate = route.useNavigate();
   const onSelect = useCallback(
     (next: string, source: SelectSource) => {
@@ -38,14 +39,59 @@ export function DesignDocView() {
     [navigate],
   );
 
+  // The requirements' place is kept as the model's is, under names of its own.
+  const onEntry = useCallback(
+    (next: string, source: SelectSource) => {
+      void navigate({
+        search: (prev) => ({ ...prev, entry: next }),
+        replace: source === 'init',
+      });
+    },
+    [navigate],
+  );
+  const onEntryQuery = useCallback(
+    (next: string) => {
+      void navigate({
+        search: (prev) => ({
+          ...prev,
+          entryQ: next === '' ? undefined : next,
+        }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
+  // Another view is a place to come back to, so switching leaves an entry
+  // for Back; the element in hand stays in the address for the model.
+  const onView = useCallback(
+    (next: DesignDocViewName) => {
+      void navigate({
+        search: (prev) => ({
+          ...prev,
+          view: next === 'model' ? undefined : next,
+        }),
+      });
+    },
+    [navigate],
+  );
+
   return (
     <DesignDocDetail
       changeId={changeId}
       id={docId}
+      view={view ?? 'model'}
+      onView={onView}
       node={node ?? null}
       query={q ?? ''}
       onSelect={onSelect}
       onQuery={onQuery}
+      requirements={{
+        selected: entry ?? null,
+        query: entryQ ?? '',
+        onSelect: onEntry,
+        onQuery: onEntryQuery,
+      }}
     />
   );
 }

@@ -2,6 +2,7 @@ import {
   IconActivity,
   IconAssembly,
   IconBlocks,
+  IconCategory,
   IconCircleLetterC,
   IconCircleLetterE,
   IconCircleLetterQ,
@@ -19,6 +20,7 @@ import {
   IconShield,
   IconSitemap,
   IconStatusChange,
+  IconTarget,
   IconWorld,
 } from '@tabler/icons-react';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
@@ -31,6 +33,8 @@ const KIND_ICONS = {
   property: IconPoint,
   rule: IconScale,
   scenario: IconListCheck,
+  group: IconCategory,
+  need: IconTarget,
 } as const satisfies Record<OutlineKind, unknown>;
 
 /** Every pattern the model knows, spelled as the model spells it. */

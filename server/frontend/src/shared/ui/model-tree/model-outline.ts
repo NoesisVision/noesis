@@ -19,6 +19,9 @@ const OUTLINE_KINDS = [
   'property',
   'rule',
   'scenario',
+  // A design's requirements: a group of them, and the need a rule answers.
+  'group',
+  'need',
 ] as const;
 export type OutlineKind = (typeof OUTLINE_KINDS)[number];
 
@@ -76,6 +79,8 @@ const KIND_ORDER: readonly OutlineKind[] = [
   'property',
   'rule',
   'scenario',
+  'group',
+  'need',
 ];
 
 /** Past the end of both orders, so anything unplaced sorts after everything placed. */

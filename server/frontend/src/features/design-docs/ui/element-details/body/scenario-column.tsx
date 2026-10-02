@@ -21,19 +21,38 @@ export const SCENARIO_COLUMN_ID = 'element-scenarios';
  * An element's scenarios, in a column of their own beside its sections: each
  * one folded to its name — under it, quietly, the rule it verifies — and
  * opened to what it says.
+ *
+ * The requirements view draws a rule's scenarios with it too, where many sit
+ * on one page: there it takes no id, opens on what each scenario says, and
+ * heads the list at the level the page has reached.
  */
-export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
+export function ScenarioColumn({
+  scenarios,
+  id,
+  defaultOpen = false,
+  headingOrder,
+}: {
+  scenarios: ScenarioEntry[];
+  /** What a link to the column points at; only one on a page may have it. */
+  id?: string;
+  /** Every scenario open to begin with, rather than folded to its name. */
+  defaultOpen?: boolean;
+  /** The title as a heading of this level; a plain label when not given. */
+  headingOrder?: 3 | 4 | 5 | 6;
+}) {
   // The value goes into the ids Mantine writes, which take no spaces.
   const values = scenarios.map((_, index) => String(index));
-  const [open, setOpen] = useState<string[]>([]);
+  const [open, setOpen] = useState<string[]>(defaultOpen ? values : []);
   const allOpen = open.length === scenarios.length;
+  const Heading =
+    headingOrder === undefined ? 'span' : (`h${headingOrder}` as const);
   return (
-    <section id={SCENARIO_COLUMN_ID} className={classes.column}>
+    <section id={id} className={classes.column}>
       <div className={classes.head}>
-        <span className={classes.title}>
+        <Heading className={classes.title}>
           <IconListCheck size={16} aria-hidden />
           Scenarios
-        </span>
+        </Heading>
         <Button
           variant="subtle"
           size="xs"
