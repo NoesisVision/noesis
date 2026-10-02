@@ -441,12 +441,21 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
   });
 
+  it("reads a block's behaviours before its properties", () => {
+    const html = show('building_block|pay.Hold');
+    expect(html.indexOf('>Behaviours<')).toBeGreaterThan(-1);
+    expect(html.indexOf('>Behaviours<')).toBeLessThan(
+      html.indexOf('>Properties<'),
+    );
+  });
+
   it("reads each of a block's behaviours as a signature", () => {
     const html = show('building_block|pay.Hold');
     expect(html).toContain('>Behaviours<');
     // Its name, which opens its row, then what it takes and gives back.
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
-    expect(html).toContain('>(amount)<');
+    // Each input its own element, so each can say what its type is.
+    expect(html).toMatch(/>\(<\/span><span[^>]*>amount<\/span><span[^>]*>\)</);
     expect(html).toContain('>Hold<');
     expect(html).toContain('Holds a card for a booking.');
     // What each input is for is on the behaviour's own page.
@@ -457,6 +466,60 @@ describe('ElementDetail', () => {
     const html = show('building_block|pay.Voucher');
     expect(html).toMatch(/<button[^>]*>(<[^>]+>|<svg.*?<\/svg>)*redeem</);
     expect(html).not.toContain('>Input<');
+  });
+
+  it("leaves out a scenario's description when it only repeats its name", () => {
+    const echo = {
+      ...document,
+      buildingBlocks: {
+        ...document.buildingBlocks,
+        added: [
+          {
+            ...document.buildingBlocks.added[0]!,
+            scenarios: {
+              added: [
+                {
+                  name: 'A hold settles',
+                  description: plain('A hold settles'),
+                  given: plain('a hold'),
+                  when: plain('the booking is confirmed'),
+                  // Gherkin's word; the fixture is never awaited.
+                  // oxlint-disable-next-line unicorn/no-thenable
+                  then: plain('the hold settles'), // NOSONAR
+                },
+              ],
+            },
+          },
+        ],
+      },
+    } satisfies DesignDocumentInput;
+    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    // Folded panels are hidden with React's Activity, which leaves them out
+    // of the markup; hidden with CSS instead, they can be read.
+    const theme = {
+      components: {
+        Accordion: { defaultProps: { keepMountedMode: 'display-none' } },
+      },
+    };
+    const render = (doc: DesignDocumentInput) =>
+      renderToStaticMarkup(
+        <MantineProvider theme={theme}>
+          <ElementDetail
+            node={hold}
+            path={[hold]}
+            document={doc}
+            onSelect={() => {}}
+            tree={tree}
+          />
+        </MantineProvider>,
+      );
+    const html = render(echo);
+    // The panel is there to read...
+    expect(html).toContain('the booking is confirmed');
+    // ...and the name is in it once, as the control's; not again in the panel.
+    expect(html.match(/>A hold settles</g)).toHaveLength(1);
+    // A description that says more is still read.
+    expect(render(document)).toContain('The ordinary path.');
   });
 
   it('gives an element without scenarios no column for them', () => {

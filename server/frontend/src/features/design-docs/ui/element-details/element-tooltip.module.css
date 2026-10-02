@@ -29,3 +29,8 @@
   font-family: var(--mantine-font-family-monospace);
   font-size: 12px;
 }
+
+/* A word with a tooltip, which nothing else marks as one. */
+.hint {
+  cursor: help;
+}

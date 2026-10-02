@@ -24,13 +24,14 @@ export const buildingBlockSections = (
       kind: 'building_block',
       items: refItems(block.implements),
     }),
+    // What it does reads before what it holds.
+    ...childSections(element, 'building_block', block.id, tree, doc),
     ...section(ChangeListSection, 'properties', {
       element,
       title: 'Properties',
       kind: 'property',
       items: propertyItems(block.id, block.properties),
     }),
-    ...childSections(element, 'building_block', block.id, tree, doc),
     ...section(ChangeListSection, 'rules', {
       element,
       title: 'Rules',

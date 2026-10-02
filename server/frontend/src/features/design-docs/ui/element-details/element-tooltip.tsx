@@ -1,4 +1,5 @@
-import type { ReactElement } from 'react';
+import { clsx } from 'clsx';
+import { cloneElement, type ReactElement } from 'react';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { shortLabel } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
@@ -61,10 +62,16 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
  */
 export function ElementTooltip({
   name,
+  hint,
   children,
 }: {
   name: string;
-  children: ReactElement;
+  /**
+   * Marks the child with a help cursor while it has something to say — for
+   * a bare word, which nothing else shows can be hovered.
+   */
+  hint?: boolean;
+  children: ReactElement<{ className?: string }>;
 }) {
   const doc = useDesignDocument();
   const address = addressOf(name);
@@ -79,7 +86,11 @@ export function ElementTooltip({
         shape === null ? address : <Details address={address} shape={shape} />
       }
     >
-      {children}
+      {hint
+        ? cloneElement(children, {
+            className: clsx(children.props.className, classes.hint),
+          })
+        : children}
     </Tooltip>
   );
 }

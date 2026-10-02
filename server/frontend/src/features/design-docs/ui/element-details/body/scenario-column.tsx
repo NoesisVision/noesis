@@ -97,9 +97,12 @@ export function ScenarioColumn({ scenarios }: { scenarios: ScenarioEntry[] }) {
 
 function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
   const description = valueOf(scenario.description)?.trim();
+  // The control above already names it; a description that only repeats the
+  // name says nothing more.
+  const says = description && description !== scenario.name.trim();
   return (
     <>
-      {description && (
+      {says && (
         <Text size="sm" c="dimmed" mb="xs">
           {description}
         </Text>

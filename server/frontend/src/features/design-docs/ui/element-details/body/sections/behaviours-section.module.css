@@ -4,36 +4,38 @@
   gap: 6px;
 }
 
+/* The icon and the signature side by side, never one over the other. */
 .signature {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
 }
 
 .mark {
   display: flex;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--mantine-color-brand-filled);
-  color: var(--mantine-color-white);
-  font-size: 12px;
-  font-weight: 700;
 
+  /* The tree's icon, a size up; its colour is the tree's, by kind. */
   & svg {
-    width: 16px;
-    height: 16px;
-    color: inherit;
+    width: 26px;
+    height: 26px;
   }
 }
 
 .code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  min-width: 0;
+  min-height: 26px;
+  padding-top: 2px;
   font-family: var(--mantine-font-family-monospace);
   font-size: 15px;
+}
+
+/* What it takes and gives, wrapping inside itself once it fills a line. */
+.shape {
+  min-width: 0;
   overflow-wrap: anywhere;
 }
 
@@ -41,6 +43,7 @@
   font-family: inherit;
   font-size: inherit;
   font-weight: 700;
+  white-space: nowrap;
 
   &[data-link] {
     color: var(--mantine-color-anchor);
@@ -67,18 +70,6 @@
 
 .output {
   color: var(--mantine-color-anchor);
-}
-
-.kind {
-  padding: 1px 8px;
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: 999px;
-  background: var(--mantine-color-body);
-  color: var(--mantine-color-dimmed);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .description {

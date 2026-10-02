@@ -24,17 +24,18 @@
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
 }
 
-.item {
+/*
+ * Mantine draws a line under each item; that is the one line between two
+ * scenarios. Named with the column, to win over it for the last.
+ */
+.column .item:last-of-type {
   border-bottom: none;
-
-  & + & {
-    border-top: 1px solid var(--mantine-color-default-border);
-  }
 }
 
-.control {
+/* Room above and below each scenario; named with the column, to win over Mantine's own. */
+.column .control {
   gap: var(--mantine-spacing-xs);
-  padding: 6px var(--mantine-spacing-sm);
+  padding-block: var(--mantine-spacing-sm);
 
   & > span {
     padding: 0;

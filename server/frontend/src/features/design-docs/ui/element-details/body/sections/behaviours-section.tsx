@@ -1,6 +1,7 @@
 import { IconBolt } from '@tabler/icons-react';
 import { Fragment } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
@@ -23,13 +24,6 @@ interface BehavioursSectionProps {
   behaviours: { node: OutlineNode; behaviour: DesignedBehaviourInput | null }[];
 }
 
-/** The three kinds of message, by the letter the tree marks them with. */
-const LETTERS: Record<string, string> = {
-  Command: 'C',
-  Query: 'Q',
-  Event: 'E',
-};
-
 /**
  * A building block's behaviours, each read as a signature: what it is called,
  * what it takes and what it gives back, its kind, and what it is for. Its name
@@ -43,13 +37,16 @@ export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
           <li key={node.path} className={classes.behaviour}>
             <div className={classes.signature}>
               <Mark node={node} />
+              {/* The name never breaks; what it takes and gives moves under
+                  it, as one piece, when the line runs out. */}
               <code className={classes.code}>
                 <BehaviourName node={node} />
-                {behaviour !== null && <Shape behaviour={behaviour} />}
+                {behaviour !== null && (
+                  <span className={classes.shape}>
+                    <Shape behaviour={behaviour} />
+                  </span>
+                )}
               </code>
-              {node.patternLabel !== null && (
-                <span className={classes.kind}>{node.patternLabel}</span>
-              )}
             </div>
             {behaviour !== null && <Description behaviour={behaviour} />}
           </li>
@@ -59,13 +56,21 @@ export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
   );
 }
 
-/** Decorative: the kind is said in words beside the signature. */
+/**
+ * The kind's icon as the tree draws it — a command, a query and an event each
+ * in its own colour. It is the only place the kind is shown, so a screen
+ * reader hears the kind in words in its place.
+ */
 function Mark({ node }: { node: OutlineNode }) {
-  const letter = node.pattern === null ? undefined : LETTERS[node.pattern];
   return (
-    <span className={classes.mark} aria-hidden="true">
-      {letter ?? <KindIcon kind="behaviour" pattern={node.pattern} />}
-    </span>
+    <>
+      <span className={classes.mark} aria-hidden="true">
+        <KindIcon kind="behaviour" pattern={node.pattern} />
+      </span>
+      {node.patternLabel !== null && (
+        <VisuallyHidden>{node.patternLabel}</VisuallyHidden>
+      )}
+    </>
   );
 }
 
@@ -88,24 +93,34 @@ function BehaviourName({ node }: { node: OutlineNode }) {
   );
 }
 
-/** `(a, b) → C`: the inputs by name, the output by its type's last segment, in full on hover. */
+/** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
 function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
-  const inputs = parameterItems(behaviour.input)
-    .filter(({ change }) => change !== 'removed')
-    .map(({ name, label }) => name ?? label);
+  const inputs = parameterItems(behaviour.input).filter(
+    ({ change }) => change !== 'removed',
+  );
   const outputs = resultItems(behaviour.output)
     .filter(({ change }) => change !== 'removed')
     .map(({ label }) => label);
   return (
     <>
-      <span className={classes.punctuation}>({inputs.join(', ')})</span>
+      <span className={classes.punctuation}>(</span>
+      {inputs.map(({ name, label }, index) => (
+        <Fragment key={label}>
+          {index > 0 && <span className={classes.punctuation}>, </span>}
+          {/* By name, and on hover what its type is: `name: a.b.C`. */}
+          <ElementTooltip name={label} hint>
+            <span className={classes.punctuation}>{name ?? label}</span>
+          </ElementTooltip>
+        </Fragment>
+      ))}
+      <span className={classes.punctuation}>)</span>
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
           {outputs.map((output, index) => (
             <Fragment key={output}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <ElementTooltip name={output}>
+              <ElementTooltip name={output} hint>
                 <span className={classes.output}>
                   <QualifiedName name={output} />
                 </span>
