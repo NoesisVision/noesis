@@ -1,0 +1,8 @@
+{
+  "id": "2026-10-02-create-a-qdoc",
+  "name": "Create a QDoc",
+  "key": "",
+  "type": "feature",
+  "status": "discovery",
+  "description": "A quality manager starts a new QDoc with a title, a document type and at least one author (reviewers and approvers optional). The QDoc System rejects requests from non-quality-managers or with missing data, creates the QDoc as active with a document number, creates version 1 with the status new and one empty content file, assigns the named people to version 1, and notifies every quality manager."
+}
