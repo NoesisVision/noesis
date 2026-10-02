@@ -1,7 +1,6 @@
-/* The kind's mark in a tile, the pattern over the name, what changed beside them. */
+/* The kind's mark in a tile; the pattern and what changed over the name. */
 .header {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg) 0;
@@ -25,9 +24,17 @@
 
 .heading {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+}
+
+.kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
 }
 
 .pattern {
@@ -45,42 +52,6 @@
 h2.name {
   font-size: 24px;
   line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
-.breadcrumb {
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
-  border-bottom: 1px solid var(--mantine-color-default-border);
-  font-size: 13px;
-}
-
-/* Decorative: the list already says these are steps of one path. */
-.separator {
-  display: inline-flex;
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
-}
-
-/* Named with its list, to win over the button reset Mantine gives it. */
-.breadcrumb .step {
-  color: var(--mantine-color-anchor);
-  font-size: inherit;
-  overflow-wrap: anywhere;
-
-  &:hover {
-    text-decoration: underline;
-  }
-
-  /* Whatever the mouse gets, the keyboard gets. */
-  &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
-    outline-offset: 2px;
-    border-radius: var(--mantine-radius-xs);
-  }
-}
-
-.current {
-  font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   overflow-wrap: anywhere;
 }
 

@@ -58,17 +58,20 @@ export function ElementDetail({
           <KindIcon kind={node.kind} pattern={node.pattern} />
         </span>
         <div className={classes.heading}>
-          {node.patternLabel !== null && (
-            <span className={classes.pattern}>{node.patternLabel}</span>
-          )}
+          {/* What it is on the left, what the design does to it on the right. */}
+          <div className={classes.kind}>
+            {node.patternLabel !== null && (
+              <span className={classes.pattern}>{node.patternLabel}</span>
+            )}
+            <Group gap="xs" ml="auto">
+              <VisibilityBadge visibility={visibility} />
+              <ChangeBadge change={node.change} />
+            </Group>
+          </div>
           <Title order={2} className={classes.name}>
             {node.name}
           </Title>
         </div>
-        <Group gap="xs">
-          <VisibilityBadge visibility={visibility} />
-          <ChangeBadge change={node.change} size="sm" />
-        </Group>
       </header>
       <ElementNavigationContext.Provider value={navigation}>
         {/* A container of its own: a grid cannot ask how wide it is itself. */}

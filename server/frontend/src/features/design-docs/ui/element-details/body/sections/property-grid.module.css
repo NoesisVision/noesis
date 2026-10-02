@@ -1,14 +1,6 @@
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .card {
   display: flex;
+  height: 100%;
   gap: 10px;
   min-width: 0;
   padding: var(--mantine-spacing-sm);
@@ -81,8 +73,14 @@
 }
 
 .description {
-  margin-top: 2px;
+  display: block;
   font-size: 13px;
   line-height: 1.45;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+/* Named with the card, to win over the anchor's own size. */
+.card .more {
+  font-size: 12px;
+  font-weight: 600;
 }

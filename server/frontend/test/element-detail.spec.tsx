@@ -279,11 +279,10 @@ describe('ElementDetail', () => {
 
   it('steps back up the trail with a button, not with an ornament', () => {
     const html = show('building_block|pay.Hold#scenario:A hold settles');
-    expect(html).toMatch(/<button[^>]*>pay<\/button>/);
+    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*pay<\/span>/);
     // The separator is drawn, not read out between every pair of steps.
-    expect(html).toMatch(
-      /<span[^>]*aria-hidden="true"[^>]*><svg[^>]*tabler-icon-chevron-right/,
-    );
+    expect(html).not.toMatch(/Breadcrumbs-separator">&gt;/);
+    expect(html).toContain('<span aria-hidden="true">&gt;</span>');
   });
 
   it('gives a node at the top no step to go back to', () => {
@@ -342,7 +341,7 @@ describe('ElementDetail', () => {
     );
     expect(html).toContain('the hold is released');
     // The trail runs through the rule the scenario belongs to.
-    expect(html).toMatch(/<button[^>]*>A hold expires<\/button>/);
+    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
   });
 
   it("lists a block's properties and rules, a rule opening its row", () => {
