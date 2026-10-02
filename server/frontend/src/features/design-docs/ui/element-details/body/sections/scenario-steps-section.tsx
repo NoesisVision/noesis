@@ -1,13 +1,10 @@
-import { IconArrowDown } from '@tabler/icons-react';
 import type { DesignDocFieldInput } from '#/features/design-docs/design-doc-field.ts';
-import { Card } from '#/shared/design-system/card.tsx';
-import { Center } from '#/shared/design-system/center.tsx';
 import { DataList } from '#/shared/design-system/data-list.tsx';
-import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { Field } from '../../field.tsx';
 import { DetailSection } from './detail-section.tsx';
+import classes from './scenario-steps-section.module.css';
 
 interface ScenarioStepsSectionProps {
   element: ElementRef;
@@ -26,24 +23,26 @@ export function ScenarioStepsSection({ scenario }: ScenarioStepsSectionProps) {
   );
 }
 
-/** Given, when, then, one under the other. */
+/** Given, when, then: one indented block, each step by its keyword. */
 export function ScenarioSteps({
   scenario,
 }: {
   scenario: DesignedScenarioInput;
 }) {
   return (
-    <>
-      <Case label="Given" field={scenario.given} />
-      <Separator />
-      <Case label="When" field={scenario.when} />
-      <Separator />
-      <Case label="Then" field={scenario.then} />
-    </>
+    <DataList
+      orientation="horizontal"
+      labelWidth={48}
+      className={classes.steps}
+    >
+      <Step label="Given" field={scenario.given} />
+      <Step label="When" field={scenario.when} />
+      <Step label="Then" field={scenario.then} />
+    </DataList>
   );
 }
 
-function Case({
+function Step({
   label,
   field,
 }: {
@@ -51,24 +50,13 @@ function Case({
   field: DesignDocFieldInput<string>;
 }) {
   return (
-    <Card>
-      <DataList orientation="horizontal" labelWidth={80}>
-        <DataList.Item>
-          <DataList.ItemLabel>{label}</DataList.ItemLabel>
-          <DataList.ItemValue>
-            <Field field={field} />
-          </DataList.ItemValue>
-        </DataList.Item>
-      </DataList>
-    </Card>
-  );
-}
-function Separator() {
-  return (
-    <Center my={8}>
-      <ThemeIcon variant="light">
-        <IconArrowDown aria-hidden />
-      </ThemeIcon>
-    </Center>
+    <DataList.Item className={classes.step}>
+      <DataList.ItemLabel className={classes.keyword}>
+        {label}
+      </DataList.ItemLabel>
+      <DataList.ItemValue className={classes.value}>
+        <Field field={field} />
+      </DataList.ItemValue>
+    </DataList.Item>
   );
 }

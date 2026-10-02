@@ -1,0 +1,90 @@
+.behaviour {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.mark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--mantine-color-brand-filled);
+  color: var(--mantine-color-white);
+  font-size: 12px;
+  font-weight: 700;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+    color: inherit;
+  }
+}
+
+.code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+
+  &[data-link] {
+    color: var(--mantine-color-anchor);
+  }
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  &[data-link]:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+}
+
+.punctuation {
+  color: var(--mantine-color-dimmed);
+}
+
+.output {
+  color: var(--mantine-color-anchor);
+}
+
+.kind {
+  padding: 1px 8px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 999px;
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-dimmed);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.description {
+  margin: 0;
+  padding-left: 38px;
+  font-size: 13px;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  white-space: pre-line;
+}

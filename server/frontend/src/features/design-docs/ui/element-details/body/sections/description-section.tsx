@@ -38,7 +38,7 @@ export function DescriptionSection({
    * but blank, there is nothing to read.
    */
   return (
-    <DetailSection title="Description" field={field}>
+    <DetailSection title="Description" field={field} muted>
       {slots?.top}
       {isUnchanged(field) || value === null ? (
         <Text c="dimmed" size="sm">

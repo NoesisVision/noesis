@@ -25,6 +25,16 @@ export interface ChangeListItem {
   label: string;
   path: string | null;
   description?: string;
+  /** A property's or an input's name, apart from its type. */
+  name?: string;
+  /** The type it is declared with, by address; `?` already folded into the name. */
+  type?: string;
+  /** Whether that type is another building block rather than a primitive. */
+  reference?: boolean;
+  /** The row that type has in the tree, when it is a building block. */
+  typePath?: string;
+  /** How many scenarios a rule has, to point at them. */
+  scenarios?: number;
 }
 
 /** Every item of a change set, each with what the design does to it. */
@@ -39,6 +49,18 @@ function* changed<Item, Key>(
 /** The id a type reference names, a collection by its item. */
 const refIdOf = (ref: BuildingBlockRefInput): string =>
   typeof ref === 'string' ? ref : refIdOf(ref.collectionOf);
+
+/** A type that names another building block, not a primitive. */
+const isReference = (ref: BuildingBlockRefInput): boolean =>
+  refIdOf(ref).startsWith('building_block|');
+
+/** A declaration's name and type, apart, for a reader that sets them apart. */
+const declared = (name: string, type: BuildingBlockRefInput) => ({
+  name,
+  type: refAddressOf(type),
+  reference: isReference(type),
+  ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
+});
 
 /** Type references — what a block implements, what a behaviour takes and gives. */
 export const refItems = (
@@ -56,7 +78,7 @@ export const parameterItems = (
 ): ChangeListItem[] =>
   [...changed(set)].map(([parameter, change]) => {
     if (typeof parameter === 'string')
-      return { change, label: parameter, path: null };
+      return { change, label: parameter, path: null, name: parameter };
     const type = valueOf(parameter.type);
     const optional = valueOf(parameter.optional) ? '?' : '';
     const description = valueOf(parameter.description)?.trim();
@@ -67,6 +89,9 @@ export const parameterItems = (
           ? parameter.name
           : `${parameter.name}${optional}: ${refAddressOf(type)}`,
       path: type === null ? null : refIdOf(type),
+      ...(type === null
+        ? { name: parameter.name }
+        : declared(`${parameter.name}${optional}`, type)),
       ...(description ? { description } : {}),
     };
   });
@@ -77,13 +102,16 @@ export const resultItems = (
 ): ChangeListItem[] =>
   [...changed(set)].map(([result, change]) => {
     // A removal names the result by its type alone.
-    if (!isResult(result))
-      return { change, label: refAddressOf(result), path: refIdOf(result) };
-    const description = valueOf(result.description)?.trim();
+    const type = isResult(result) ? result.type : result;
+    const description = isResult(result)
+      ? valueOf(result.description)?.trim()
+      : undefined;
     return {
       change,
-      label: refAddressOf(result.type),
-      path: refIdOf(result.type),
+      label: refAddressOf(type),
+      path: refIdOf(type),
+      type: refAddressOf(type),
+      reference: isReference(type),
       ...(description ? { description } : {}),
     };
   });
@@ -103,6 +131,7 @@ export const propertyItems = (
         change,
         label: property,
         path: partPathOf(owner, 'property', property),
+        name: property,
       };
     const type = valueOf(property.type);
     const optional = valueOf(property.optional) ? '?' : '';
@@ -114,6 +143,9 @@ export const propertyItems = (
           ? property.name
           : `${property.name}${optional}: ${refAddressOf(type)}`,
       path: partPathOf(owner, 'property', property.name),
+      ...(type === null
+        ? { name: property.name }
+        : declared(`${property.name}${optional}`, type)),
       ...(description ? { description } : {}),
     };
   });
@@ -147,10 +179,12 @@ export const ruleItems = (
     if (typeof rule === 'string')
       return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
     const description = valueOf(rule.description)?.trim();
+    const scenarios = [...changed(rule.scenarios)].length;
     return {
       change,
       label: rule.name,
       path: partPathOf(owner, 'rule', rule.name),
       ...(description ? { description } : {}),
+      ...(scenarios > 0 ? { scenarios } : {}),
     };
   });

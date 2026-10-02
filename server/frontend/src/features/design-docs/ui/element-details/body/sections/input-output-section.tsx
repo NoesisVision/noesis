@@ -1,13 +1,12 @@
-import { IconLink } from '@tabler/icons-react';
-import { List } from '#/shared/design-system/list.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
+import { IconArrowsExchange } from '@tabler/icons-react';
+import { useId } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { Ref, shortName } from './ref.tsx';
+import { shortName } from './ref.tsx';
+import canvas from './canvas.module.css';
 import classes from './input-output-section.module.css';
 
 interface InputOutputSectionProps {
@@ -17,81 +16,77 @@ interface InputOutputSectionProps {
 }
 
 /**
- * What a behaviour takes and what it gives back, read together: one line per
- * parameter or result the design touches, coloured by the change. A copy of
- * `ChangeListSection` for now, so the two can part ways as this one grows.
+ * What a behaviour takes and what it gives back, drawn as a flow: its inputs
+ * stacked on the left in the order it declares them, what it returns on the
+ * right. A box whose type has a row in the tree opens it.
  */
 export function InputOutputSection({ input, output }: InputOutputSectionProps) {
+  const inputs = useId();
+  const outputs = useId();
   return (
-    <DetailSection
-      title="Input / Output"
-      icon={<KindIcon kind="building_block" pattern={null} />}
-    >
-      <InputOutputLists input={input} output={output} />
+    <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
+      <div className={`${canvas.canvas} ${classes.flow}`}>
+        <span id={inputs} className={classes.caption}>
+          Inputs · {input.length}
+        </span>
+        <span id={outputs} className={`${classes.caption} ${classes.right}`}>
+          {output.length > 1 ? `Outputs · ${output.length}` : 'Output'}
+        </span>
+        <ul aria-labelledby={inputs} className={classes.side}>
+          {input.map((item) => (
+            <Box key={`${item.change}:${item.label}`} item={item} />
+          ))}
+        </ul>
+        <span className={classes.divider} aria-hidden="true" />
+        <ul
+          aria-labelledby={outputs}
+          className={`${classes.side} ${classes.right}`}
+        >
+          {output.map((item) => (
+            <Box key={`${item.change}:${item.label}`} item={item} output />
+          ))}
+        </ul>
+      </div>
     </DetailSection>
   );
 }
 
-/** The two lists alone, for a section that reads a behaviour among others. */
-export function InputOutputLists({
-  input,
-  output,
-}: {
-  input: ChangeListItem[];
-  output: ChangeListItem[];
-}) {
-  return (
-    <>
-      <Items label="Input" items={input} />
-      <Items label="Output" items={output} />
-    </>
-  );
-}
-
-/** One side of the section, left out when the design does not touch it. */
-function Items({ label, items }: { label: string; items: ChangeListItem[] }) {
+/** One parameter or result: its name, if it has one, over its type. */
+function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
   const { has, select } = useElementNavigation();
-  if (items.length === 0) return null;
-  // Read by the type, not by the name: `name: a.b.C` sorts as `C`.
-  const sortKey = (label: string) => shortName(label).type;
-  const sorted = [...items].sort((a, b) =>
-    sortKey(a.label).localeCompare(sortKey(b.label)),
-  );
-
-  return (
+  const { change, path, name, type, description } = item;
+  const removed = change === 'removed' || undefined;
+  const lines = (
     <>
-      <Text size="xs" c="dimmed" mt="xs">
-        {label}
-      </Text>
-      <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
-        {sorted.map(({ change, label, path, description }) => (
-          <List.Item key={`${change}:${label}`}>
-            {path !== null && has(path) ? (
-              <UnstyledButton
-                className={classes.item}
-                onClick={() => select(path)}
-              >
-                {/* Spans, not a Group or a ThemeIcon: both are divs, and a
-                    button holds only phrasing content. Decorative: that the
-                    line opens a row is the button's to say. */}
-                <span className={classes.mark} aria-hidden="true">
-                  <IconLink size={12} />
-                </span>
-                <Ref change={change} name={label} interactive qualified />
-              </UnstyledButton>
-            ) : (
-              <Ref change={change} name={label} qualified />
-            )}
-            {/* A span: the item's label is one, and holds phrasing only. */}
-            {description !== undefined && (
-              <Text component="span" display="block" size="xs" c="dimmed">
-                {description}
-              </Text>
-            )}
-          </List.Item>
-        ))}
-      </List>
+      {name !== undefined && (
+        <span className={classes.name} data-removed={removed}>
+          {name}
+        </span>
+      )}
+      {/* Read by its last segment, as the tree names it; in full on hover. */}
+      {type !== undefined && (
+        <span
+          className={name === undefined ? classes.name : classes.type}
+          data-removed={removed}
+        >
+          {shortName(type).type}
+        </span>
+      )}
+      {description !== undefined && (
+        <span className={classes.description}>{description}</span>
+      )}
     </>
+  );
+  return (
+    <li className={classes.box} data-output={output || undefined} title={type}>
+      {path !== null && has(path) ? (
+        <UnstyledButton className={classes.open} onClick={() => select(path)}>
+          {lines}
+        </UnstyledButton>
+      ) : (
+        lines
+      )}
+    </li>
   );
 }
 

@@ -1,30 +1,104 @@
-/* An item that opens its row reads as a link: underlined under the pointer. */
-.item {
-  display: inline-flex;
+/* Inputs, a dashed seam, outputs: three columns under two captions. */
+.flow {
+  display: grid;
+  grid-template-columns: max-content minmax(48px, 12rem) max-content;
+  justify-content: start;
+  row-gap: var(--mantine-spacing-xs);
   align-items: center;
-  gap: var(--mantine-spacing-xs);
+  overflow-x: auto;
+}
 
-  &:hover {
+.caption {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+.caption.right {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.divider {
+  justify-self: center;
+  align-self: stretch;
+  border-left: 1.5px dashed
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  max-width: 280px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-left: 3px solid var(--mantine-color-brand-4);
+  border-radius: 6px;
+  background: var(--mantine-color-body);
+  font-family: var(--mantine-font-family-monospace);
+
+  /* What it gives back, in the brand's tint. */
+  &[data-output] {
+    padding: 4px 14px;
+    border: 1.5px solid var(--mantine-color-brand-3);
+    background: var(--mantine-color-brand-light);
+  }
+}
+
+/* The whole box opens its type's row; a button holds only spans. */
+.open {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: inherit;
+
+  &:hover .type,
+  &:hover .name:only-of-type {
     text-decoration: underline;
   }
 
-  /* Whatever the mouse gets, the keyboard gets. */
   &:focus-visible {
     outline: 2px solid var(--mantine-color-brand-filled);
-    outline-offset: 2px;
+    outline-offset: 4px;
     border-radius: var(--mantine-radius-xs);
   }
 }
 
-/* The link mark: a small filled square, as a gray `ThemeIcon` draws one. */
-.mark {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--mantine-radius-sm);
-  background-color: light-dark(var(--mantine-color-white), transparent);
-  color: var(--mantine-color-gray-light-color);
+.name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.type {
+  font-size: 11px;
+  color: var(--mantine-color-anchor);
+  white-space: nowrap;
+}
+
+.name,
+.type {
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+}
+
+.description {
+  font-family: var(--mantine-font-family);
+  font-size: 11px;
+  color: var(--mantine-color-dimmed);
 }

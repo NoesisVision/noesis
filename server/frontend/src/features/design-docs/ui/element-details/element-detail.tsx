@@ -1,10 +1,6 @@
-import { Fragment, useMemo } from 'react';
+import { useMemo } from 'react';
 import { findById } from '#/features/design-docs/ui/element-details/change-set.ts';
-import { Badge } from '#/shared/design-system/badge.tsx';
-import { Box } from '#/shared/design-system/box.tsx';
-import { Divider } from '#/shared/design-system/divider.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
@@ -55,46 +51,40 @@ export function ElementDetail({
   const scenarios = scenariosOf(node, doc);
   const withScenarios = scenarios.length > 0;
   return (
-    <Stack gap="sm">
+    <div>
       <DetailBreadcrumb path={path} onSelect={onSelect} />
-      <Box px="md">
-        {(node.change !== 'unchanged' ||
-          node.patternLabel !== null ||
-          visibility !== null) && (
-          <Group gap="xs" align="center" mb="xs">
-            {node.patternLabel !== null && (
-              <Badge size="xs" variant="default">
-                {node.patternLabel}
-              </Badge>
-            )}
-            <VisibilityBadge visibility={visibility} />
-            <ChangeBadge change={node.change} />
-          </Group>
-        )}
-        <Group gap="xs" align="center">
+      <header className={classes.header}>
+        <span className={classes.tile}>
           <KindIcon kind={node.kind} pattern={node.pattern} />
-          <Title order={2} size="h3" className={classes.name}>
+        </span>
+        <div className={classes.heading}>
+          {node.patternLabel !== null && (
+            <span className={classes.pattern}>{node.patternLabel}</span>
+          )}
+          <Title order={2} className={classes.name}>
             {node.name}
           </Title>
+        </div>
+        <Group gap="xs">
+          <VisibilityBadge visibility={visibility} />
+          <ChangeBadge change={node.change} size="sm" />
         </Group>
-      </Box>
-      <Divider />
+      </header>
       <ElementNavigationContext.Provider value={navigation}>
         {/* A container of its own: a grid cannot ask how wide it is itself. */}
-        <Box key={node.path} className={classes.body}>
-          <Box className={withScenarios ? classes.columns : undefined}>
-            <Stack gap="sm">
-              {bodySections(node, doc, tree).map((section, index) => (
-                <Fragment key={section.key}>
-                  {index > 0 && <Divider />}
-                  {section}
-                </Fragment>
-              ))}
-            </Stack>
-            {withScenarios && <ScenarioColumn scenarios={scenarios} />}
-          </Box>
-        </Box>
+        <div key={node.path} className={classes.body}>
+          <div className={withScenarios ? classes.columns : undefined}>
+            <div className={classes.sections}>
+              {bodySections(node, doc, tree)}
+            </div>
+            {withScenarios && (
+              <aside className={classes.aside}>
+                <ScenarioColumn scenarios={scenarios} />
+              </aside>
+            )}
+          </div>
+        </div>
       </ElementNavigationContext.Provider>
-    </Stack>
+    </div>
   );
 }

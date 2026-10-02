@@ -1,6 +1,5 @@
-import { IconLink } from '@tabler/icons-react';
-import { Card } from '#/shared/design-system/card.tsx';
-import { Code } from '#/shared/design-system/code.tsx';
+import { IconBraces, IconLink, IconScale } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -10,7 +9,9 @@ import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
+import { PropertyGrid } from './property-grid.tsx';
 import { Ref, shortName } from './ref.tsx';
+import { RuleCards } from './rule-cards.tsx';
 import classes from './change-list-section.module.css';
 
 interface ChangeListSectionProps {
@@ -25,7 +26,8 @@ interface ChangeListSectionProps {
  * What the design does to one list an element keeps — what it implements, its
  * properties, rules and scenarios, a behaviour's input and output — one line
  * each, coloured by the change. A line whose row is in the tree opens it, as
- * a click on the row itself would; a property's description reads under it.
+ * a click on the row itself would. Properties read as tiles and rules as
+ * cards, each with what the design says about it.
  */
 export function ChangeListSection({
   title,
@@ -42,30 +44,17 @@ export function ChangeListSection({
   );
 
   return (
-    <DetailSection title={title} icon={<KindIcon kind={kind} pattern={null} />}>
-      <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
-        {sorted.map(({ change, label, path, description }) => {
-          if (kind === 'property') {
-            return (
-              <Card
-                component="li"
-                key={`${change}:${label}`}
-                shadow={undefined}
-                mb={4}
-                p={0}
-              >
-                <Code px={16} py={8}>
-                  <Ref change={change} name={label} />
-                  {description !== undefined && (
-                    <Text component="span" display="block" size="xs" c="dimmed">
-                      {description}
-                    </Text>
-                  )}
-                </Code>
-              </Card>
-            );
-          }
-          return (
+    <DetailSection
+      title={title}
+      icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
+    >
+      {kind === 'property' ? (
+        <PropertyGrid items={sorted} />
+      ) : kind === 'rule' ? (
+        <RuleCards items={sorted} />
+      ) : (
+        <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
+          {sorted.map(({ change, label, path, description }) => (
             <List.Item key={`${change}:${label}`}>
               {path !== null && has(path) ? (
                 <UnstyledButton
@@ -95,12 +84,18 @@ export function ChangeListSection({
                 </Text>
               )}
             </List.Item>
-          );
-        })}
-      </List>
+          ))}
+        </List>
+      )}
     </DetailSection>
   );
 }
+
+/** The design's own marks for the lists it draws its own way; the kind's icon for the rest. */
+const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
+  property: <IconBraces />,
+  rule: <IconScale />,
+};
 
 /** Shown only when the design touches the list at all. */
 ChangeListSection.shows = ({ items }: ChangeListSectionProps) =>

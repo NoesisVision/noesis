@@ -1,0 +1,88 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  padding: var(--mantine-spacing-sm);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+/* A primitive in the brand's tint, a reference to another block in violet. */
+.glyph {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--mantine-color-brand-light);
+  color: var(--mantine-color-brand-light-color);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 13px;
+  font-weight: 700;
+
+  &[data-reference] {
+    background: var(--mantine-color-violet-light);
+    color: var(--mantine-color-violet-light-color);
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+}
+
+/* Named with the card, to win over the button reset a linked type gets. */
+.card .type {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--mantine-color-brand-light);
+  color: var(--mantine-color-brand-light-color);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &[data-link]:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+  }
+}
+
+.description {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}

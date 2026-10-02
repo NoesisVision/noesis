@@ -279,10 +279,11 @@ describe('ElementDetail', () => {
 
   it('steps back up the trail with a button, not with an ornament', () => {
     const html = show('building_block|pay.Hold#scenario:A hold settles');
-    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*pay<\/span>/);
+    expect(html).toMatch(/<button[^>]*>pay<\/button>/);
     // The separator is drawn, not read out between every pair of steps.
-    expect(html).not.toMatch(/Breadcrumbs-separator">&gt;/);
-    expect(html).toContain('<span aria-hidden="true">&gt;</span>');
+    expect(html).toMatch(
+      /<span[^>]*aria-hidden="true"[^>]*><svg[^>]*tabler-icon-chevron-right/,
+    );
   });
 
   it('gives a node at the top no step to go back to', () => {
@@ -341,7 +342,7 @@ describe('ElementDetail', () => {
     );
     expect(html).toContain('the hold is released');
     // The trail runs through the rule the scenario belongs to.
-    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
+    expect(html).toMatch(/<button[^>]*>A hold expires<\/button>/);
   });
 
   it("lists a block's properties and rules, a rule opening its row", () => {
@@ -349,9 +350,27 @@ describe('ElementDetail', () => {
     for (const title of ['Properties', 'Rules'])
       expect(html).toContain(`>${title}<`);
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
-    // A property has no row in the tree to open, so its line is only text.
-    expect(html).toContain('>amount?: pay.Money<');
+    // A property reads as its declaration, name and type apart, and has no
+    // row in the tree to open, so it is only text.
+    expect(html).toContain('>amount?<');
+    // Its type by its last segment, as inputs and outputs read one.
+    expect(html).toMatch(/<code[^>]*>Money<\/code>/);
+    expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
+  });
+
+  it("opens a property's type when the tree has a row for it", () => {
+    const money = node({
+      path: 'building_block|pay.Money',
+      parentPath: 'module|pay',
+      kind: 'building_block',
+      name: 'Money',
+      depth: 1,
+    });
+    const withMoney = outlineTree([...outline, money], ['property']);
+    expect(show('building_block|pay.Hold', withMoney)).toMatch(
+      /<button[^>]*data-link="true"[^>]*>Money<\/button>/,
+    );
   });
 
   it("reads a property's description under its line, and nothing else's", () => {
@@ -423,16 +442,16 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
   });
 
-  it("reads each of a block's behaviours with what it takes, gives and is", () => {
+  it("reads each of a block's behaviours as a signature", () => {
     const html = show('building_block|pay.Hold');
     expect(html).toContain('>Behaviours<');
-    // Its kind's icon and its name, which opens its row.
-    expect(html).toMatch(
-      /<button[^>]*><svg[^>]*tabler-icon[^>]*>.*?<\/svg>(<[^>]+>)*place</,
-    );
-    expect(html).toContain('>amount: Money<');
-    expect(html).toContain('What to hold.');
+    // Its name, which opens its row, then what it takes and gives back.
+    expect(html).toMatch(/<button[^>]*>place<\/button>/);
+    expect(html).toContain('>(amount)<');
+    expect(html).toContain('>Hold<');
     expect(html).toContain('Holds a card for a booking.');
+    // What each input is for is on the behaviour's own page.
+    expect(html).not.toContain('What to hold.');
   });
 
   it('lists a behaviour the design only removes by its name alone', () => {
@@ -453,11 +472,37 @@ describe('ElementDetail', () => {
   it("reads a behaviour's input and output as one section", () => {
     const html = behaviour();
     expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
-    expect(html).toContain('>Input<');
+    // Each side a list, named by its caption.
+    expect(html).toMatch(/<ul aria-labelledby="[^"]+"/);
+    expect(html).toContain('>Inputs · 1<');
     expect(html).toContain('>Output<');
-    expect(html).toContain('>amount: Money<');
+    expect(html).toContain('>amount<');
+    expect(html).toContain('>Money<');
     expect(html).toContain('What to hold.');
     expect(html).toContain('>Hold<');
+  });
+
+  it('points a rule at the scenarios that cover it', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/<a href="#element-scenarios"[^>]*>.*?1 scenario</);
+    expect(html).toContain('id="element-scenarios"');
+  });
+
+  it("marks a property's type as a primitive or another block", () => {
+    const html = show('building_block|pay.Hold');
+    // `pay.Money` is a building block, so its glyph is the reference arrow.
+    expect(html).toMatch(/data-reference="true"[^>]*>→</);
+  });
+
+  it('folds every scenario until asked, and opens them all at once', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*Expand all</);
+    expect(html).not.toContain('aria-expanded="true"');
+    // Folded, not gone: the panel each control names is in the page.
+    const controls = [...html.matchAll(/aria-controls="([^"]+)"/g)];
+    expect(controls).toHaveLength(2);
+    for (const [, id] of controls)
+      expect(html).toMatch(new RegExp(`id="${id}"[^>]*hidden`));
   });
 
   it('reads each rule by its name and its description', () => {
