@@ -11,6 +11,7 @@ import { bodySections } from './body/body-sections.tsx';
 import { ScenarioColumn } from './body/scenario-column.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
+import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { VisibilityBadge } from './visibility-badge.tsx';
@@ -73,21 +74,23 @@ export function ElementDetail({
           </Title>
         </div>
       </header>
-      <ElementNavigationContext.Provider value={navigation}>
-        {/* A container of its own: a grid cannot ask how wide it is itself. */}
-        <div key={node.path} className={classes.body}>
-          <div className={withScenarios ? classes.columns : undefined}>
-            <div className={classes.sections}>
-              {bodySections(node, doc, tree)}
+      <DesignDocumentContext.Provider value={doc}>
+        <ElementNavigationContext.Provider value={navigation}>
+          {/* A container of its own: a grid cannot ask how wide it is itself. */}
+          <div key={node.path} className={classes.body}>
+            <div className={withScenarios ? classes.columns : undefined}>
+              <div className={classes.sections}>
+                {bodySections(node, doc, tree)}
+              </div>
+              {withScenarios && (
+                <aside className={classes.aside}>
+                  <ScenarioColumn scenarios={scenarios} />
+                </aside>
+              )}
             </div>
-            {withScenarios && (
-              <aside className={classes.aside}>
-                <ScenarioColumn scenarios={scenarios} />
-              </aside>
-            )}
           </div>
-        </div>
-      </ElementNavigationContext.Provider>
+        </ElementNavigationContext.Provider>
+      </DesignDocumentContext.Provider>
     </div>
   );
 }

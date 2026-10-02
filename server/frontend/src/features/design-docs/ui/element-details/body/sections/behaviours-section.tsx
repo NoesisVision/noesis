@@ -9,6 +9,7 @@ import { valueOf } from '../../../../design-doc-field.ts';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
+import { ElementTooltip } from '../../element-tooltip.tsx';
 import { DetailSection } from './detail-section.tsx';
 import classes from './behaviours-section.module.css';
 import canvas from './canvas.module.css';
@@ -104,12 +105,11 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
           {outputs.map((output, index) => (
             <Fragment key={output}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <QualifiedName
-                name={output}
-                render={(short) => (
-                  <span className={classes.output}>{short}</span>
-                )}
-              />
+              <ElementTooltip name={output}>
+                <span className={classes.output}>
+                  <QualifiedName name={output} />
+                </span>
+              </ElementTooltip>
             </Fragment>
           ))}
         </>

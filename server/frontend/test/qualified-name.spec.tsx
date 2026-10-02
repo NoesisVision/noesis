@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { MantineProvider } from '../src/shared/design-system/provider';
 import {
   QualifiedName,
   shortLabel,
@@ -36,8 +35,9 @@ describe('shortLabel', () => {
 });
 
 describe('QualifiedName', () => {
-  const render = (node: React.ReactNode) =>
-    renderToStaticMarkup(<MantineProvider>{node}</MantineProvider>);
+  // Text alone: no provider needed, and nothing drawn around it.
+  const render = (name: string) =>
+    renderToStaticMarkup(<QualifiedName name={name} />);
 
   it.each([
     ['a.b.C', 'C'],
@@ -45,17 +45,10 @@ describe('QualifiedName', () => {
     ['name: a.b.C[]', 'name: C[]'],
     ['string', 'string'],
   ])('reads %j as %j', (name, short) => {
-    expect(render(<QualifiedName name={name} />)).toContain(`>${short}<`);
+    expect(render(name)).toBe(short);
   });
 
   it('never prints the address it cuts', () => {
-    expect(render(<QualifiedName name="name: a.b.C" />)).not.toContain('a.b.C');
-  });
-
-  it('draws the short label in the element it is given', () => {
-    const html = render(
-      <QualifiedName name="a.b.C" render={(short) => <code>{short}</code>} />,
-    );
-    expect(html).toMatch(/<code[^>]*>C<\/code>/);
+    expect(render('name: a.b.C')).not.toContain('a.b.C');
   });
 });

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Text } from '#/shared/design-system/text.tsx';
 import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
+import { ElementTooltip } from '../../element-tooltip.tsx';
 
 export function Ref({
   change,
@@ -18,7 +19,7 @@ export function Ref({
   qualified?: boolean;
 }): ReactNode {
   if (!name) return null;
-  const text = (short: string) => (
+  const text = (content: ReactNode) => (
     <Text
       // A span, so a line can sit inside the button that opens its row.
       component="span"
@@ -31,8 +32,14 @@ export function Ref({
       td={change === 'removed' ? 'line-through' : undefined}
       key={name}
     >
-      {short}
+      {content}
     </Text>
   );
-  return qualified ? <QualifiedName name={name} render={text} /> : text(name);
+  return qualified ? (
+    <ElementTooltip name={name}>
+      {text(<QualifiedName name={name} />)}
+    </ElementTooltip>
+  ) : (
+    text(name)
+  );
 }

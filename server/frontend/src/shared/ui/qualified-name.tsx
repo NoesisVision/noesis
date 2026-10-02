@@ -1,6 +1,3 @@
-import type { ReactElement } from 'react';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
-
 /**
  * A reference split into its optional name and its type, the type read by
  * its qualified name's last segment:
@@ -23,27 +20,9 @@ export const shortLabel = (ref: string): string => {
 
 /**
  * A qualified name — `a.b.C` or `name: a.b.C` — read by its last segment, as
- * the tree names it, with the whole on hover. A name with nothing to cut
- * reads as it is, with no tooltip to repeat it.
- *
- * `render` draws the short label, for a caller that needs it in an element of
- * its own — a button, a styled code span; the tooltip wraps that element, so
- * it must take a ref.
+ * the tree names it. Text alone, so it sits inside whatever element shows it;
+ * what the whole name was is for a tooltip around that element to say.
  */
-export function QualifiedName({
-  name,
-  render = (short) => <span>{short}</span>,
-}: {
-  name: string;
-  render?: (short: string) => ReactElement;
-}) {
-  const short = shortLabel(name);
-  const label = render(short);
-  return short === name.trim() ? (
-    label
-  ) : (
-    <Tooltip openDelay={300} label={name} position="right">
-      {label}
-    </Tooltip>
-  );
+export function QualifiedName({ name }: { name: string }) {
+  return <>{shortLabel(name)}</>;
 }

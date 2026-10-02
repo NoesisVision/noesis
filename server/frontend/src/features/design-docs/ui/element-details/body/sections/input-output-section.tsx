@@ -7,6 +7,7 @@ import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
+import { ElementTooltip } from '../../element-tooltip.tsx';
 import { DetailSection } from './detail-section.tsx';
 import canvas from './canvas.module.css';
 import classes from './input-output-section.module.css';
@@ -80,24 +81,19 @@ function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
         </span>
       )}
       {type !== undefined && (
-        <QualifiedName
-          name={type}
-          render={(short) => (
-            <span
-              className={name === undefined ? classes.name : classes.type}
-              data-removed={removed}
-            >
-              {short}
-            </span>
-          )}
-        />
+        <span
+          className={name === undefined ? classes.name : classes.type}
+          data-removed={removed}
+        >
+          <QualifiedName name={type} />
+        </span>
       )}
       {description !== undefined && (
         <span className={classes.description}>{description}</span>
       )}
     </>
   );
-  return (
+  const box = (
     <li className={classes.box} data-output={output || undefined}>
       {path !== null && has(path) ? (
         <UnstyledButton className={classes.open} onClick={() => select(path)}>
@@ -107,6 +103,12 @@ function Box({ item, output }: { item: ChangeListItem; output?: boolean }) {
         lines
       )}
     </li>
+  );
+  // The whole box says what its type is, not only the word that names it.
+  return type === undefined ? (
+    box
+  ) : (
+    <ElementTooltip name={type}>{box}</ElementTooltip>
   );
 }
 

@@ -6,6 +6,7 @@ import {
   valueOf,
 } from '../../../../design-doc-field.ts';
 import type { ElementRef } from '../../element-ref.ts';
+import { ElementTooltip } from '../../element-tooltip.tsx';
 import { Field } from '../../field.tsx';
 import { refAddressOf } from '../../ref-address.ts';
 import { DetailSection } from './detail-section.tsx';
@@ -34,7 +35,13 @@ export function PropertySignatureSection({
         <Field
           field={type}
           format={refAddressOf}
-          render={(address) => <QualifiedName name={address} />}
+          render={(address) => (
+            <ElementTooltip name={address}>
+              <span>
+                <QualifiedName name={address} />
+              </span>
+            </ElementTooltip>
+          )}
         />
         ;
       </Code>

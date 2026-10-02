@@ -353,7 +353,7 @@ describe('ElementDetail', () => {
     // row in the tree to open, so it is only text.
     expect(html).toContain('>amount?<');
     // Its type by its last segment, as inputs and outputs read one.
-    expect(html).toMatch(/<code[^>]*>Money<\/code>/);
+    expect(html).toMatch(/Badge-label">Money<\/span>/);
     expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
   });
@@ -368,7 +368,7 @@ describe('ElementDetail', () => {
     });
     const withMoney = outlineTree([...outline, money], ['property']);
     expect(show('building_block|pay.Hold', withMoney)).toMatch(
-      /<button[^>]*data-link="true"[^>]*>Money<\/button>/,
+      /<button[^>]*data-link="true"[^>]*><span[^>]*>Money<\/span><\/button>/,
     );
   });
 
