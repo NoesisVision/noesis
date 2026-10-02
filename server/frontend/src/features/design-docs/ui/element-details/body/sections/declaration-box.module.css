@@ -16,12 +16,6 @@
   font-family: var(--mantine-font-family-monospace);
   list-style: none;
 
-  /* A type alone, with no name above it, sits in the middle of its box. */
-  &[data-bare] {
-    justify-content: center;
-    align-items: center;
-  }
-
   /* What it gives back, in the brand's tint. */
   &[data-output] {
     padding: 6px 14px;
@@ -70,11 +64,4 @@
   font-size: 11px;
   line-height: 1.45;
   color: var(--mantine-color-dimmed);
-}
-
-/* Named with the box, to win over the anchor's own size. */
-.box .more {
-  font-family: var(--mantine-font-family);
-  font-size: 11px;
-  font-weight: 600;
 }

@@ -1,0 +1,66 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One implementer: its name, then what the design does to it — a row drawn
+   as the model tree draws one. Named with the list, to win over the button
+   reset a row that opens gets, which zeroes its padding. */
+.list .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  width: 100%;
+  min-height: 1.75rem;
+  padding: 6px var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* Named with the list, to win over the button reset a row that opens gets. */
+.list button.row {
+  /* The tree's own hover. */
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: -2px;
+  }
+}
+
+/* The name and where it sits, on one line while they fit. */
+.label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+  min-width: 0;
+}
+
+.namespace {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  overflow-wrap: anywhere;
+}
+
+/* Set as the tree sets a name. */
+.name {
+  font-size: var(--mantine-font-size-sm);
+  line-height: var(--mantine-line-height-sm);
+  letter-spacing: 0.5px;
+  overflow-wrap: anywhere;
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+}

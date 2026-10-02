@@ -24,9 +24,8 @@ interface ChangeListSectionProps {
 }
 
 /**
- * What the design does to one list an element keeps — what it implements, its
- * properties, rules and scenarios, a behaviour's input and output — one line
- * each, coloured by the change. A line whose row is in the tree opens it, as
+ * What the design does to one list an element keeps — its properties, rules
+ * and scenarios, a behaviour's input and output — one line each, coloured by the change. A line whose row is in the tree opens it, as
  * a click on the row itself would. Properties read as tiles and rules as
  * cards, each with what the design says about it.
  */

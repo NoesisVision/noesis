@@ -4,14 +4,17 @@ import { ChangeBadge } from '../../change-badge.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
+import { useScenarioFocus } from '../scenario-focus.tsx';
 import classes from './rule-cards.module.css';
 
 /**
  * Rules as cards, each read in full: its name — which opens its row — what it
- * says, and how many scenarios cover it, which points to the column of them.
+ * says, and how many scenarios cover it, which points to the column of them
+ * and opens those, closing the rest.
  */
 export function RuleCards({ items }: { items: ChangeListItem[] }) {
   const { has, select } = useElementNavigation();
+  const focus = useScenarioFocus();
   return (
     <ul className={classes.list}>
       {items.map(({ change, label, path, description, scenarios }) => (
@@ -44,7 +47,17 @@ export function RuleCards({ items }: { items: ChangeListItem[] }) {
               <span className={classes.description}>{description}</span>
             )}
             {scenarios !== undefined && (
-              <a href={`#${SCENARIO_COLUMN_ID}`} className={classes.scenarios}>
+              <a
+                href={`#${SCENARIO_COLUMN_ID}`}
+                className={classes.scenarios}
+                // Straight to the rule's first scenario, not the top of the
+                // column; the link alone is for a rule drawn without one.
+                onClick={(event) => {
+                  if (focus === null) return;
+                  event.preventDefault();
+                  focus.showRule(label);
+                }}
+              >
                 <span className={classes.dots} aria-hidden="true">
                   <span />
                   <span />

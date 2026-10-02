@@ -1,18 +1,18 @@
-import { Spoiler } from '#/shared/design-system/spoiler.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
+import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import classes from './declaration-box.module.css';
 
-/** Two lines of a description, at its 11px and 1.45 line height. */
-const DESCRIPTION_HEIGHT = Math.ceil(11 * 1.45 * 2);
+/** How much of a description shows before "Show more". */
+const DESCRIPTION_LENGTH = 80;
 
 /**
  * One declaration — a property, an input, an output — as a box: its name, if
  * it has one, over its type read short, and what the design says it is,
- * folded past two lines. The type opens its row when the tree has one;
+ * folded past 80 characters. The type opens its row when the tree has one;
  * hovering anywhere on the box says what that type is.
  */
 export function DeclarationBox({
@@ -32,12 +32,7 @@ export function DeclarationBox({
   const { change, label, name, type, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
-    <Component
-      className={classes.box}
-      data-output={output || undefined}
-      // A type alone — what a behaviour gives back — sits in the middle.
-      data-bare={name === undefined || undefined}
-    >
+    <Component className={classes.box} data-output={output || undefined}>
       {name !== undefined && (
         <span className={classes.name} data-removed={removed}>
           {name}
@@ -52,14 +47,11 @@ export function DeclarationBox({
         </span>
       )}
       {description !== undefined && (
-        <Spoiler
-          maxHeight={DESCRIPTION_HEIGHT}
-          showLabel="Show more"
-          hideLabel="Show less"
-          classNames={{ control: classes.more }}
-        >
-          <span className={classes.description}>{description}</span>
-        </Spoiler>
+        <TextSpoiler
+          text={description}
+          maxLength={DESCRIPTION_LENGTH}
+          className={classes.description}
+        />
       )}
     </Component>
   );

@@ -55,6 +55,42 @@ h2.name {
   overflow-wrap: anywhere;
 }
 
+/* The name, then what it implements in smaller type on the same line. */
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--mantine-spacing-xs);
+  min-width: 0;
+}
+
+.implements {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
+  overflow-wrap: anywhere;
+}
+
+/* Named with the line, to win over the button reset a linked type gets. */
+.implements .type {
+  font: inherit;
+  font-weight: 600;
+  color: var(--mantine-color-anchor);
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  &[data-link]:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
 /*
  * Sections on the left, scenarios on the right — once the panel is wide
  * enough for two columns to be read; under that, the scenarios follow.

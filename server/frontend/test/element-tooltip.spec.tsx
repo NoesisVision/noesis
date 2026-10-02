@@ -72,7 +72,8 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/<div class="target[^"]*"[^>]*>a whole card<\/div>/);
     expect(html).toContain('>pay.Hold<');
     expect(html).toContain('>Properties<');
-    expect(html).toContain('>amount?: Money<');
+    // The type apart from the name, coloured as a declaration box colours it.
+    expect(html).toMatch(/>amount\?: <span[^>]*>Money<\/span>/);
     // What the design removes is not part of what the block is.
     expect(html).not.toContain('legacyId');
   });
@@ -80,13 +81,14 @@ describe('ElementTooltip', () => {
   it("lists a behaviour's input and output", () => {
     const html = render('pay.Hold.place');
     expect(html).toContain('>Input<');
-    expect(html).toContain('>amount: Money<');
+    expect(html).toMatch(/>amount: <span[^>]*>Money<\/span>/);
     expect(html).toContain('>Output<');
-    expect(html).toContain('>Hold<');
+    // An output is its type alone.
+    expect(html).toMatch(/<span[^>]*><span[^>]*>Hold<\/span><\/span>/);
   });
 
   it('reads a collection by its item', () => {
-    expect(render('pay.Hold[]')).toContain('>amount?: Money<');
+    expect(render('pay.Hold[]')).toMatch(/>amount\?: <span[^>]*>Money</);
   });
 
   it('never shows a definition or a description', () => {
@@ -100,6 +102,20 @@ describe('ElementTooltip', () => {
     const html = render('pay.Money');
     expect(html).toContain('>pay.Money<');
     expect(html).not.toContain('>Properties<');
+  });
+
+  it("gives an input shown by its name its type, a primitive's too", () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider theme={theme}>
+        <DesignDocumentContext.Provider value={document}>
+          <ElementTooltip name="count: integer" shown="count">
+            <span>count</span>
+          </ElementTooltip>
+        </DesignDocumentContext.Provider>
+      </MantineProvider>,
+    );
+    expect(html).toContain('role="tooltip"');
+    expect(html).toContain('>integer<');
   });
 
   it('gives a name with nothing to cut and nothing to say no tooltip', () => {
