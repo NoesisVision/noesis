@@ -1,0 +1,90 @@
+/* A card as a declaration box is drawn: edged in the brand, on the page's ground. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-left: 3px solid var(--mantine-color-brand-4);
+  border-radius: 6px;
+  background: var(--mantine-color-body);
+}
+
+/* The icon, the name, and what the design does to it on the right. */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Named with the card, to win over the button reset a linked name gets. */
+.card .name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+
+  /* A name that opens its row reads as a link. */
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &[data-link]:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
+/* The patterns apart, each group well clear of the next. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-lg);
+}
+
+/* One pattern's cards, under its caption. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+
+/* The pattern's icon, the pattern and how many, as the input and output
+   columns are captioned. */
+.caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+.description {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--mantine-color-dimmed);
+}

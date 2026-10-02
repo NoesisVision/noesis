@@ -328,6 +328,24 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/>Hold<\/span><span[^>]*>pay<\/span>/);
   });
 
+  it("draws a module's building blocks as cards, each opening its row", () => {
+    const html = show('module|pay');
+    expect(html).toContain('>Building blocks<');
+    expect(html).toMatch(/<button[^>]*data-link="true"[^>]*>Hold<\/button>/);
+    // Under its pattern, with how many share it, and the icon the tree gives
+    // that pattern; the card itself does not say the pattern again.
+    expect(html).toMatch(
+      /tabler-icon-package-export[^<]*>(<path[^>]*><\/path>)*<\/svg><\/span>Aggregate · 1</,
+    );
+    expect(html).not.toContain('>Aggregate<');
+    expect(html).toContain('tabler-icon-package-export');
+    // The first paragraph of its description, and never the diagram's fence.
+    expect(html).toContain('Holds a card while a booking settles.');
+    expect(html).not.toContain('```mermaid');
+    // One the design removes is still a card, struck through.
+    expect(html).toMatch(/data-removed="true"[^>]*>Voucher</);
+  });
+
   it('says where in the model the element sits, as a trail back up it', () => {
     const html = show('building_block|pay.Hold#scenario:A hold settles');
     expect(html).toMatch(/<nav[^>]*aria-label="Where this element sits"/);
