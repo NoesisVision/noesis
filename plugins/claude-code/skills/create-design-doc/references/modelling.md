@@ -12,6 +12,22 @@ glossary. A sentence or two a reader who knows no code understands. It
 defines the concept, never the change to it and never how it is built, so
 it stays true once the change ships.
 
+## Needs
+
+- A need is a stakeholder goal, not a solution: what someone must be able
+  to do or have, never how the system does it. "Start a QDoc", not "Create
+  QDoc endpoint".
+- Name it as a goal, a verb phrase in the stakeholder's terms. Its
+  `stakeholder` is who has it, as the sources name them ("Quality
+  managers"). Its `statement` says who needs what, and when or why it
+  matters: "The quality managers need to start a QDoc when a process needs
+  documenting, so that its preparation can begin."
+- One need per distinct goal. Two goals in one sentence of a source are two
+  needs; one goal said twice is one.
+- Its `id` is its name in lower-case kebab-case (`start-a-qdoc`), unique in
+  the design document.
+- A need comes from a source. Never invent one to justify a rule.
+
 ## Modules
 
 - Modules form a hierarchy. A root module is a bounded context; the modules
@@ -128,10 +144,24 @@ Decide what a table stands for before modelling its rows:
 
 ## Rules
 
-A rule is a domain truth: an invariant, a computation, a guard on a
-transition. Name it as a sentence that states the rule ("Refund never
-exceeds paid amount"). Its description says what holds, not why the name is
-true.
+A rule states one requirement. Name it as a sentence that states the rule
+("Refund never exceeds paid amount"). Its `description` is the requirement
+statement: what holds, not why the name is true. Its scenarios verify it.
+
+- One rule per requirement statement. Never merge two statements of a
+  source into one rule, even when they read alike.
+- `needs` names the ids of the needs the rule answers. A rule no need asks
+  for is a design decision: write `needs: []`, and name it in the report.
+- `rationale` says why the rule holds, when a source gives a reason. Leave
+  it out rather than invent one. It never says why the rule changed: that
+  goes in the design document's `description`.
+- A rule is one of three categories, and its `ruleType` is a type of that
+  category.
+
+### Business rules
+
+A truth of the domain: an invariant, a computation, a guard on a
+transition. On a building block or a behaviour, never on a module.
 
 | Pattern                                                                                                                   | Quick check                                                                  | `ruleType`     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------- |
@@ -142,14 +172,51 @@ true.
 | State change: a guard allowing or forbidding one operation (no seat change after check-in)                                | Does it gate a single transition that would otherwise produce a valid state? | `State change` |
 | Process flow: routing or ending a multi-step process (refunds over €1,000 go to a manager)                                | Does it pick the next step, or stop, across several steps or services?       | `State change` |
 
-- Attach a rule at exactly one level. The building block when it
-  constrains the block's shape or holds for all its behaviours; the
-  behaviour when it gates that one behaviour. Never both.
-- A technical constraint — a latency target, availability, authentication,
-  a timeout, a retry policy — is not a rule. State it in the description of
-  the narrowest part it constrains — a property, an input or an output — or,
-  when it constrains a whole element, in the design document's
-  `description`.
+A guard on who may do an operation ("Only quality managers create QDocs")
+is a business rule, `State change`, on the behaviour it guards.
+
+### Quality rules
+
+A measurable quality the system must have. State the measure and its
+bound ("answers within one second for an order of up to 100 lines"); when
+a source leaves the bound open, say so and name the open question. Types
+follow ISO/IEC 25010:
+
+| `ruleType`        | The system must…                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `Performance`     | answer, process or deliver within a time, a throughput or a resource budget           |
+| `Security`        | protect itself and its data: authentication, encryption, audit, confidentiality       |
+| `Reliability`     | keep working and recover: availability, fault tolerance, no partial failure spreading |
+| `Usability`       | be learnable and operable by its users, accessibility included                        |
+| `Compatibility`   | coexist and exchange data with other systems                                          |
+| `Maintainability` | be changed, tested and analysed at a bounded cost                                     |
+| `Portability`     | be installed on and moved between the environments it must run in                     |
+
+`Security` is how the system protects itself; who may do what is a
+business rule.
+
+### Constraint rules
+
+A limit imposed on the solution from outside the domain, which the design
+does not choose:
+
+| `ruleType`     | The solution must…                                                            |
+| -------------- | ----------------------------------------------------------------------------- |
+| `Technology`   | use, or avoid, a given platform, language, library or product                 |
+| `Regulation`   | comply with a law, a standard or a contract                                   |
+| `Interface`    | talk to another system through a protocol, format or endpoint it does not own |
+| `Organisation` | fit how the organisation works: its teams, processes, budget or schedule      |
+
+### Where a rule goes
+
+- Attach a rule at exactly one level, never two.
+- A business rule goes on the building block when it constrains the
+  block's shape or holds for all its behaviours; on the behaviour when it
+  gates that one behaviour.
+- A quality or constraint rule goes on the narrowest element it
+  constrains: a module, a building block or a behaviour. One on a part (a
+  timeout on an output, a format of a property) goes on the element that
+  owns the part.
 
 ## Scenarios
 
