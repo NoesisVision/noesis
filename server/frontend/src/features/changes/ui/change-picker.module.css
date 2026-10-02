@@ -35,7 +35,16 @@
   border-radius: 2px;
 }
 
+/* Held to the dropdown's width: Mantine's label grows to its text otherwise. */
+.item .itemLabel {
+  min-width: 0;
+}
+
 .item {
+  /* A long name runs on to the next line rather than out of the menu. */
+  .name {
+    overflow-wrap: anywhere;
+  }
   .subLabel {
     color: light-dark(var(--mantine-color-dark-3), var(--mantine-color-dark-2));
   }
