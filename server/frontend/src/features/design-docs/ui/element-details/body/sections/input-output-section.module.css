@@ -1,11 +1,16 @@
-/* Inputs, a dashed seam, outputs: three columns under two captions. */
+/* Inputs, a dashed seam, outputs: three columns side by side. */
 .flow {
-  display: grid;
-  grid-template-columns: max-content minmax(48px, 12rem) max-content;
-  justify-content: start;
-  row-gap: var(--mantine-spacing-xs);
-  align-items: center;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--mantine-spacing-xl);
   overflow-x: auto;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
 }
 
 .caption {
@@ -16,25 +21,13 @@
   color: var(--mantine-color-dimmed);
 }
 
-.caption.right {
-  grid-column: 3;
-  justify-self: end;
-}
-
-.side {
+.list {
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xs);
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.divider {
-  justify-self: center;
-  align-self: stretch;
-  border-left: 1.5px dashed
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
 }
 
 .box {

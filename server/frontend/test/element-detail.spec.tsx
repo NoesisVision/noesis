@@ -474,7 +474,7 @@ describe('ElementDetail', () => {
     // Each side a list, named by its caption.
     expect(html).toMatch(/<ul aria-labelledby="[^"]+"/);
     expect(html).toContain('>Inputs · 1<');
-    expect(html).toContain('>Output<');
+    expect(html).toContain('>Outputs · 1<');
     expect(html).toContain('>amount<');
     expect(html).toContain('>Money<');
     expect(html).toContain('What to hold.');

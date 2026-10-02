@@ -1,5 +1,7 @@
 import { IconArrowsExchange } from '@tabler/icons-react';
 import { useId } from 'react';
+import { Divider } from '#/shared/design-system/divider.tsx';
+import { Grid } from '#/shared/design-system/grid.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
@@ -16,38 +18,52 @@ interface InputOutputSectionProps {
 }
 
 /**
- * What a behaviour takes and what it gives back, drawn as a flow: its inputs
- * stacked on the left in the order it declares them, what it returns on the
- * right. A box whose type has a row in the tree opens it.
+ * What a behaviour takes and what it gives back, in three columns: its inputs
+ * in the order it declares them, a dashed seam, and what it returns. A box
+ * whose type has a row in the tree opens it.
  */
 export function InputOutputSection({ input, output }: InputOutputSectionProps) {
-  const inputs = useId();
-  const outputs = useId();
   return (
     <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
-      <div className={`${canvas.canvas} ${classes.flow}`}>
-        <span id={inputs} className={classes.caption}>
-          Inputs · {input.length}
-        </span>
-        <span id={outputs} className={`${classes.caption} ${classes.right}`}>
-          {output.length > 1 ? `Outputs · ${output.length}` : 'Output'}
-        </span>
-        <ul aria-labelledby={inputs} className={classes.side}>
-          {input.map((item) => (
-            <Box key={`${item.change}:${item.label}`} item={item} />
-          ))}
-        </ul>
-        <span className={classes.divider} aria-hidden="true" />
-        <ul
-          aria-labelledby={outputs}
-          className={`${classes.side} ${classes.right}`}
-        >
-          {output.map((item) => (
-            <Box key={`${item.change}:${item.label}`} item={item} output />
-          ))}
-        </ul>
-      </div>
+      <Grid className={`${canvas.canvas} ${classes.flow}`}>
+        <Grid.Col span={{ base: 'content' }}>
+          <Side label="Inputs" items={input} />
+        </Grid.Col>
+        <Divider orientation="vertical" variant="dashed" />
+        <Grid.Col span={{ base: 'content' }}>
+          <Side label="Outputs" items={output} output />
+        </Grid.Col>
+      </Grid>
     </DetailSection>
+  );
+}
+
+/** One column: its caption, with how many there are, over its boxes. */
+function Side({
+  label,
+  items,
+  output,
+}: {
+  label: string;
+  items: ChangeListItem[];
+  output?: boolean;
+}) {
+  const caption = useId();
+  return (
+    <div className={classes.side}>
+      <span id={caption} className={classes.caption}>
+        {`${label} · ${items.length}`}
+      </span>
+      <ul aria-labelledby={caption} className={classes.list}>
+        {items.map((item) => (
+          <Box
+            key={`${item.change}:${item.label}`}
+            item={item}
+            output={output}
+          />
+        ))}
+      </ul>
+    </div>
   );
 }
 
