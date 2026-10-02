@@ -10,6 +10,10 @@
     "server/frontend/.design-sync/**"
   ],
   "workspaces": {
+    ".": {
+      // Skill scripts are run by the agent, never imported.
+      "entry": [".agents/skills/*/scripts/*.ts"]
+    },
     "server/backend": {
       // Type-only tests are checked by tsc and never imported. The design
       // document, its element ids and design doc fields, and the system
