@@ -1,8 +1,8 @@
 import { realpath, stat } from 'node:fs/promises';
-import { isAbsolute, normalize, relative, resolve, sep } from 'node:path';
+import { isAbsolute, join, normalize, relative, resolve, sep } from 'node:path';
 import { err, ok, type Result } from 'neverthrow';
-import type { ZodType } from 'zod';
-import { readJsonFile } from '#backend/platform/files/json-file';
+import { z, type ZodType } from 'zod';
+import { readJsonFile, writeJsonFile } from '#backend/platform/files/json-file';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
 
 declare const workingFilePathBrand: unique symbol;
@@ -10,6 +10,16 @@ declare const workingFilePathBrand: unique symbol;
 export type WorkingFilePath = string & {
   readonly [workingFilePathBrand]: true;
 };
+
+/** A bare JSON file name: never a path, so a write cannot leave the session's directory. */
+export const WorkingFileName = z
+  .string()
+  .regex(/^[A-Za-z0-9][\w.-]*\.json$/)
+  .brand<'WorkingFileName'>()
+  .describe(
+    'A file name in this session\'s scratch directory, ending in .json, e.g. "design-doc.json"; never a path.',
+  );
+export type WorkingFileName = z.infer<typeof WorkingFileName>;
 
 export interface SessionFilesLocation {
   repositoryRoot: string;
@@ -54,6 +64,17 @@ export class SessionFiles {
       );
     }
     return readJsonFile(resolved.value, schema);
+  }
+
+  /**
+   * Writes `value` as the working file `name` in this session's directory,
+   * replacing one of that name, and answers its path for the agent to edit
+   * and pass back.
+   */
+  write<T>(name: WorkingFileName, schema: ZodType<T>, value: T): string {
+    const path = join(this.dir, name);
+    writeJsonFile(path, schema, value);
+    return path;
   }
 
   /**

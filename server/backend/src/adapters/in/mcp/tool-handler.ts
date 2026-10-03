@@ -11,6 +11,7 @@ import {
   CREATE_DESIGN_DOC_IN_CHANGE,
   CREATE_DOCUMENT_IN_CHANGE,
   LIST_CHANGES,
+  LIST_DESIGN_DOCS_IN_CHANGE,
   LIST_DOCUMENTS_IN_CHANGE,
 } from './tool-names';
 import { failure } from './tool-result';
@@ -66,7 +67,7 @@ function foreseen(error: unknown): CallToolResult | null {
 const FIND_OR_CREATE: Record<Entity, string> = {
   change: `Find the change's id with ${LIST_CHANGES}, or create it with ${CREATE_CHANGE}.`,
   document: `Find the document's id with ${LIST_DOCUMENTS_IN_CHANGE}, or create the document with ${CREATE_DOCUMENT_IN_CHANGE}.`,
-  'design document': `Pass the id ${CREATE_DESIGN_DOC_IN_CHANGE} answered with, or create the design document with it.`,
+  'design document': `Find the design document's id with ${LIST_DESIGN_DOCS_IN_CHANGE}, or create the design document with ${CREATE_DESIGN_DOC_IN_CHANGE}.`,
 };
 
 const FIXES: Record<DesignDocViolation['reason'], string> = {
@@ -76,7 +77,8 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
     'the scanned model has no such element or part; add it instead of modifying or removing it',
   unchangedFieldInAddedItem:
     'the item is new, so this field needs a { "value" }',
-  humanAuthor: 'write every field as the agent: leave "author" out',
+  humanAuthor:
+    'a human wrote or accepted this field with another value, or not at all; keep a human\'s field exactly as stored, or, to change it, write it as the agent: leave "author" out',
   diagramInDefinition:
     'move the ```mermaid fence out of the definition: write its source, without the fence, to the element\'s "diagram"',
   unknownNeed:

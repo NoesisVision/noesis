@@ -17,7 +17,7 @@ import {
   type SystemModel,
   Visibility,
 } from '#backend/app/system-model/system-model';
-import { DesignDocField } from './design-doc-field';
+import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { MermaidSource } from './mermaid-source';
 import { NeedId } from './need-id';
@@ -146,13 +146,18 @@ const designDocumentSchema = z.strictObject({
 export const DesignDocument = Object.assign(designDocumentSchema, {
   /** A human may write a field in their own name. */
   validateHumanEdited: rulesOfEveryDesign,
-  /** An agent never writes a field in a human's name. */
+  /**
+   * An agent never writes a field in a human's name. Revising `before`, it
+   * keeps a field a human wrote or accepted there, value and author, as long
+   * as it leaves the field alone.
+   */
   validateAgentGenerated: (
     document: DesignDocumentContent,
     systemModel?: SystemModel,
+    before?: DesignDocumentContent,
   ): DesignDocViolation[] => [
     ...rulesOfEveryDesign(document, systemModel),
-    ...humanAuthoredFields(document),
+    ...humanAuthoredFieldsNotKept(document, before),
     ...diagramsInDefinitions(document),
   ],
 });
@@ -517,12 +522,47 @@ function diagramsInDefinitions(
   );
 }
 
-function humanAuthoredFields(
+function humanAuthoredFieldsNotKept(
   document: DesignDocumentContent,
+  before: DesignDocumentContent | undefined,
 ): DesignDocViolation[] {
+  const kept = new Map(
+    before === undefined
+      ? []
+      : [...fieldsOf(before, '')].filter(([, field]) => isHumanAuthored(field)),
+  );
   return [...fieldsOf(document, '')]
-    .filter(([, field]) => field.changed && field.author === 'human')
+    .filter(
+      ([path, field]) =>
+        isHumanAuthored(field) && !sameValue(field, kept.get(path)),
+    )
     .map(([path]) => ({ path, reason: 'humanAuthor' }));
+}
+
+function isHumanAuthored(
+  field: DesignDocField<unknown>,
+): field is ChangedDesignDocField<unknown> {
+  return field.changed && field.author === 'human';
+}
+
+function sameValue(
+  field: ChangedDesignDocField<unknown>,
+  stored: DesignDocField<unknown> | undefined,
+): boolean {
+  return stored?.changed === true && deepEqual(field.value, stored.value);
+}
+
+function deepEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (!isObject(left) || !isObject(right)) return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  const keys = Object.keys(left);
+  return (
+    keys.length === Object.keys(right).length &&
+    keys.every((key) =>
+      deepEqual(Reflect.get(left, key), Reflect.get(right, key)),
+    )
+  );
 }
 
 function isInAddedItem(path: string): boolean {
