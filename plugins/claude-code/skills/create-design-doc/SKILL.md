@@ -231,7 +231,7 @@ results.
   scratch directory; the tool stores the design document.
 - Never write or derive an id for the design document: the service mints
   it. Every call creates a new design document. Do not call
-  `update_design_doc_in_change`; the user revises a design document in the
-  Noesis page.
+  `update_design_doc_in_change`: revising a design document is the
+  `update-design-doc` skill's job, or the user's in the Noesis page.
 - The diff baseline is the newest system model and nothing else: not an
   earlier design document, not your memory of the code.
