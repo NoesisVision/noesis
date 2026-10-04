@@ -267,7 +267,8 @@
 
   & > * {
     fill: currentColor;
-    stroke: var(--mantine-color-body);
+    /* The colour of what the mark sits on: the page's unless set otherwise. */
+    stroke: var(--change-ring, var(--mantine-color-body));
     stroke-width: 1.5px;
     stroke-opacity: 0.8;
     paint-order: stroke;

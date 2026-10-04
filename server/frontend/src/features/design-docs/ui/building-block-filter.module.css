@@ -1,0 +1,127 @@
+/* The filter's dropdown: a head, a fieldset per ring, a word on what stays. */
+.dropdown {
+  --filter-dim: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-1)
+  );
+
+  width: 300px;
+  padding-block: 6px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 8px;
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+}
+
+.link,
+.only {
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-anchor);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    color: var(--mantine-color-dimmed);
+    background: transparent;
+    cursor: default;
+  }
+}
+
+.fieldset {
+  margin: 0;
+  padding: 6px 0 0;
+  border: 0;
+  min-width: 0;
+}
+
+.ring {
+  padding: 6px 12px 4px;
+
+  & label {
+    color: var(--filter-dim);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 28px;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+}
+
+.type {
+  flex: 1;
+  min-width: 0;
+  padding-block: 7px;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.block {
+  display: block;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  & svg {
+    flex: none;
+  }
+}
+
+.count {
+  margin-left: auto;
+  color: var(--filter-dim);
+  font-size: var(--mantine-font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Out of the way until the row is pointed at or reached by keyboard; always there without a pointer. */
+@media (hover: hover) {
+  .only {
+    opacity: 0;
+  }
+
+  .row:hover .only,
+  .only:focus-visible {
+    opacity: 1;
+  }
+}
+
+.foot {
+  margin: 6px 0 0;
+  padding: 8px 12px 4px;
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  color: var(--filter-dim);
+  font-size: var(--mantine-font-size-xs);
+}

@@ -62,45 +62,98 @@
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  padding: 6px;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-sm);
+  font-size: var(--mantine-font-size-xs);
 
-  & li {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+  & ul {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & ul[hidden] {
+    display: none;
   }
 }
 
+.legendToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: transparent;
+  color: var(--arch-dim);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 1px;
+  }
+}
+
+.legendEntry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: transparent;
+  color: var(--mantine-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 1px;
+  }
+
+  /* Pressed reads as a weight and a fill, not a colour alone. */
+  &[aria-pressed='true'] {
+    background: var(--mantine-color-brand-light);
+    color: var(--mantine-color-brand-light-color);
+    font-weight: 600;
+  }
+}
+
+/* A card in little: the same look, from the same kind. */
 .swatch {
+  flex: none;
+  box-sizing: border-box;
   width: 14px;
   height: 14px;
+  border: var(--kind-border);
   border-radius: 3px;
+  background: var(--kind-fill);
+}
 
-  &[data-kind='adapterIn'] {
-    border: 1.5px dashed var(--arch-edge);
-  }
-
-  &[data-kind='drivingPort'] {
-    background: var(--mantine-color-brand-filled);
-  }
-
-  &[data-kind='service'] {
-    border: 1px solid var(--arch-hex-line);
-  }
-
-  &[data-kind='core'] {
-    border: 1px solid var(--arch-core-line);
-    background: var(--arch-core);
-  }
-
-  &[data-kind='drivenPort'] {
-    border: 2px solid var(--mantine-color-brand-filled);
-  }
+/* What the legend has not picked out steps back. */
+.faded {
+  opacity: 0.25;
 }
 
 .zoom {
@@ -227,7 +280,7 @@
   stroke-width: 2px;
 }
 
-/* One look for every card; what it is changes its border and its fill. */
+/* One look for every card; its kind sets the border, the fill and the ink. */
 .card {
   position: relative;
   display: flex;
@@ -236,10 +289,12 @@
   width: 100%;
   height: 100%;
   padding: 4px 10px;
-  border: 1px solid var(--arch-edge);
+  border: var(--kind-border);
   border-radius: var(--mantine-radius-md);
-  background: var(--arch-card);
-  color: var(--mantine-color-text);
+  background: var(--kind-fill);
+  color: var(--kind-ink, var(--mantine-color-text));
+  /* A change mark is ringed in the card's fill, as in the tree in the page's. */
+  --change-ring: var(--kind-fill);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -261,13 +316,6 @@
     font-weight: 600;
   }
 
-  &[data-kind='caller'],
-  &[data-kind='adapterIn'],
-  &[data-kind='adapterOut'] {
-    border: 1.5px dashed var(--arch-edge);
-    color: var(--arch-dim);
-  }
-
   &[data-kind='adapterIn'],
   &[data-kind='adapterOut'] {
     justify-content: center;
@@ -275,10 +323,6 @@
   }
 
   &[data-kind='drivingPort'] {
-    border-color: transparent;
-    background: var(--mantine-color-brand-filled);
-    color: var(--mantine-color-white);
-
     & small {
       color: var(--mantine-color-brand-1);
     }
@@ -286,14 +330,6 @@
     & svg {
       color: var(--mantine-color-brand-1);
     }
-  }
-
-  &[data-kind='service'] {
-    border-color: var(--arch-hex-line);
-  }
-
-  &[data-kind='drivenPort'] {
-    border: 2px solid var(--mantine-color-brand-filled);
   }
 
   &[data-change='removed'] b {

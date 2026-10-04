@@ -1,24 +1,38 @@
-import { IconFocusCentered, IconMinus, IconPlus } from '@tabler/icons-react';
+import {
+  IconChevronDown,
+  IconChevronUp,
+  IconFocusCentered,
+  IconMinus,
+  IconPlus,
+} from '@tabler/icons-react';
 import {
   type Edge,
   Handle,
   MarkerType,
   type Node,
   type NodeProps,
+  Panel,
   Position,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
-import { useMemo, useState } from 'react';
+import { type CSSProperties, useId, useMemo, useState } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Switch } from '#/shared/design-system/switch.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import { ChangeMark } from '#/shared/ui/model-tree/change-mark.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
-import { patternLabelOf } from '#/shared/ui/model-tree/model-outline.ts';
+import {
+  type OutlineChange,
+  patternLabelOf,
+} from '#/shared/ui/model-tree/model-outline.ts';
+import { useChangeColour } from '#/shared/ui/model-tree/use-change-colour.ts';
 import type { ArchitectureOutline } from '../architecture-outline.ts';
+import type { TypeRing } from '../building-block-types.ts';
 import type { DiagramFocus } from './architecture-selection.ts';
+import { BuildingBlockFilter } from './building-block-filter.tsx';
 import {
   type ArchitectureLayout,
   CORE_HEX_INSET,
@@ -37,14 +51,20 @@ import classes from './architecture-diagram.module.css';
 
 export interface ArchitectureDiagramProps {
   outline: ArchitectureOutline;
+  /** The hexagons as drawn: without the building block types the reader left out. */
   layout: ArchitectureLayout;
   focus: DiagramFocus;
   onSelectElement: (id: string) => void;
+  /** The building block types the hexagons hold, the ones to be left out, and the way to change them. */
+  types: TypeRing[];
+  hiddenTypes: ReadonlySet<string>;
+  onHideTypes: (hidden: ReadonlySet<string>) => void;
 }
 
 interface Overlays {
   checks: boolean;
   rules: boolean;
+  changes: boolean;
 }
 
 interface CardData extends Record<string, unknown> {
@@ -53,6 +73,9 @@ interface CardData extends Record<string, unknown> {
   warnings: number;
   notes: number;
   rules: number | null;
+  /** What the design does to the card's element, marked as the tree marks it; `unchanged` when the reader hides it. */
+  change: OutlineChange;
+  changeColour: string | undefined;
   onSelect: (id: string) => void;
 }
 
@@ -64,33 +87,176 @@ const NODE_TYPES = {
   card: CardNode,
 };
 
+/** A card's border and fill, and its ink when that is not the text's. */
+interface Look {
+  border: string;
+  fill: string;
+  ink?: string;
+}
+
+interface Kind {
+  /** The node type that draws it. */
+  type: keyof typeof NODE_TYPES;
+  /** What a screen reader hears it called. */
+  word: string;
+  subtitle?: string;
+  /** What the legend calls it; kinds that share a name share an entry. */
+  legend?: string;
+  look?: Look;
+}
+
+const CARD_LOOK: Look = {
+  border: '1px solid var(--arch-edge)',
+  fill: 'var(--arch-card)',
+};
+const NOT_DESIGNED: Look = {
+  border: '1.5px dashed var(--arch-edge)',
+  fill: 'var(--arch-card)',
+  ink: 'var(--arch-dim)',
+};
+
+/*
+ * Every kind of node, by what the layout calls it: the node type that draws
+ * it, its look, and its name in the legend. The cards and the legend both read
+ * this one map, so the legend cannot say what the cards do not show.
+ */
+const KINDS: Record<LaidOutNode['kind'], Kind> = {
+  hexagon: { type: 'hexagon', word: 'module' },
+  domainCore: { type: 'domainCore', word: 'domain core' },
+  actor: { type: 'card', word: 'actor' },
+  caller: {
+    type: 'card',
+    word: 'unknown caller',
+    subtitle: 'caller unknown',
+    look: NOT_DESIGNED,
+  },
+  adapterIn: {
+    type: 'card',
+    word: 'in adapter, not designed',
+    subtitle: 'not designed',
+    legend: 'In / out adapter',
+    look: NOT_DESIGNED,
+  },
+  adapterOut: {
+    type: 'card',
+    word: 'out adapter, not designed',
+    subtitle: 'not designed',
+    legend: 'In / out adapter',
+    look: NOT_DESIGNED,
+  },
+  drivingPort: {
+    type: 'card',
+    word: 'driving port',
+    legend: 'Driving port',
+    look: {
+      border: '1px solid transparent',
+      fill: 'var(--mantine-color-brand-filled)',
+      ink: 'var(--mantine-color-white)',
+    },
+  },
+  service: {
+    type: 'card',
+    word: 'application service',
+    legend: 'Application service',
+    look: {
+      border: '1px solid var(--arch-hex-line)',
+      fill: 'var(--arch-card)',
+    },
+  },
+  element: {
+    type: 'card',
+    word: 'domain core',
+    legend: 'Domain core',
+    look: {
+      border: '1px solid var(--arch-core-line)',
+      fill: 'var(--arch-card)',
+    },
+  },
+  drivenPort: {
+    type: 'card',
+    word: 'driven port',
+    legend: 'Driven port',
+    look: {
+      border: '2px solid var(--mantine-color-brand-filled)',
+      fill: 'var(--arch-card)',
+    },
+  },
+};
+
+const isFrame = (kind: LaidOutNode['kind']) => KINDS[kind].type !== 'card';
+
+/** Whether a node fades while the reader picks out these kinds; a frame is the backdrop and never does. */
+const fades = (
+  kind: LaidOutNode['kind'],
+  picked: LaidOutNode['kind'][] | undefined,
+) => picked !== undefined && !isFrame(kind) && !picked.includes(kind);
+
+/** A look as the custom properties the card and the legend's swatch read. */
+const styleOf = ({ border, fill, ink }: Look = CARD_LOOK) =>
+  ({
+    '--kind-border': border,
+    '--kind-fill': fill,
+    '--kind-ink': ink,
+  }) as CSSProperties;
+
+interface LegendEntry {
+  label: string;
+  kinds: LaidOutNode['kind'][];
+  look: Look | undefined;
+}
+
+const LEGEND: LegendEntry[] = [];
+for (const [kind, { legend, look }] of Object.entries(KINDS) as [
+  LaidOutNode['kind'],
+  Kind,
+][]) {
+  if (legend === undefined) continue;
+  const entry = LEGEND.find(({ label }) => label === legend);
+  if (entry === undefined) LEGEND.push({ label: legend, kinds: [kind], look });
+  else entry.kinds.push(kind);
+}
+
 export function ArchitectureDiagram({
   outline,
   layout,
   focus,
   onSelectElement,
+  types,
+  hiddenTypes,
+  onHideTypes,
 }: ArchitectureDiagramProps) {
   const [overlays, setOverlays] = useState<Overlays>({
     checks: true,
     rules: false,
+    changes: true,
   });
+  const changeColour = useChangeColour();
   const scheme = useComputedColorScheme('light');
   /* Held from `onInit` rather than read from a provider around the toolbar:
      React Flow's own provider is what seeds the nodes before the first paint. */
   const [flow, setFlow] = useState<ReactFlowInstance<CardNode> | null>(null);
   const [zoom, setZoom] = useState(1);
+  /* The legend entry the reader picked out, by its name: the rest fade. */
+  const [picked, setPicked] = useState<string | null>(null);
   const findings = useMemo(() => findingsOf(outline), [outline]);
+  // Only the kinds drawn: an entry that picks out nothing is no use.
+  const legend = useMemo(() => {
+    const drawn = new Set(layout.nodes.map(({ kind }) => kind));
+    return LEGEND.filter(({ kinds }) => kinds.some((kind) => drawn.has(kind)));
+  }, [layout]);
+  const pickedKinds = legend.find(({ label }) => label === picked)?.kinds;
   const nodes = useMemo<CardNode[]>(
     () =>
       layout.nodes.map((node) => {
         const found = findings.get(node.id);
         return {
           id: node.id,
-          type: FRAMES.has(node.kind) ? node.kind : 'card',
+          type: KINDS[node.kind].type,
           position: { x: node.x, y: node.y },
           width: node.width,
           height: node.height,
-          zIndex: FRAMES.has(node.kind) ? 0 : 1,
+          zIndex: isFrame(node.kind) ? 0 : 1,
+          className: fades(node.kind, pickedKinds) ? classes.faded : undefined,
           data: {
             node,
             state: focus.selected.has(node.id)
@@ -104,23 +270,59 @@ export function ArchitectureDiagram({
               overlays.rules && node.element !== null
                 ? node.element.rules.length
                 : null,
+            change:
+              overlays.changes && node.element !== null
+                ? node.element.change
+                : 'unchanged',
+            changeColour:
+              overlays.changes && node.element !== null
+                ? changeColour(node.element.change)?.color
+                : undefined,
             onSelect: onSelectElement,
           },
         };
       }),
-    [layout, findings, focus, overlays, onSelectElement],
+    [
+      layout,
+      findings,
+      focus,
+      overlays,
+      changeColour,
+      onSelectElement,
+      pickedKinds,
+    ],
   );
-  const edges = useMemo(() => layout.edges.map(edgeOf), [layout]);
-  const allAdded = layout.nodes.every(
-    ({ element }) => element === null || element.change === 'added',
-  );
+  const edges = useMemo(() => {
+    const kindOf = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
+    const fadesAt = (id: string) => {
+      const kind = kindOf.get(id);
+      return kind !== undefined && fades(kind, pickedKinds);
+    };
+    // A line fades only when both its ends do.
+    return layout.edges.map((edge) =>
+      edgeOf(edge, fadesAt(edge.source) && fadesAt(edge.target)),
+    );
+  }, [layout, pickedKinds]);
 
   return (
     <div className={classes.diagram}>
       <div className={classes.toolbar}>
         <div className={classes.toolbarRow}>
-          <Legend />
           <span className={classes.grow} />
+          <BuildingBlockFilter
+            rings={types}
+            hidden={hiddenTypes}
+            onHide={onHideTypes}
+          />
+          <Switch
+            size="xs"
+            label="Changes"
+            checked={overlays.changes}
+            onChange={(event) => {
+              const { checked } = event.currentTarget;
+              setOverlays((was) => ({ ...was, changes: checked }));
+            }}
+          />
           <Switch
             size="xs"
             label="Check markers"
@@ -141,13 +343,11 @@ export function ArchitectureDiagram({
           />
           <Zoom flow={flow} zoom={zoom} />
         </div>
-        <p className={classes.note}>
-          {allAdded && 'Green field: every element is added. '}
-          Lines show what the design document holds; calls between services and
-          driven ports are not in it.
-          {outline.unplaced.length > 0 &&
-            ` Not drawn, as the design leaves their type as it is: ${outline.unplaced.map(({ name }) => name).join(', ')}.`}
-        </p>
+        {outline.unplaced.length > 0 && (
+          <p className={classes.note}>
+            {`Not drawn, as the design leaves their type as it is: ${outline.unplaced.map(({ name }) => name).join(', ')}.`}
+          </p>
+        )}
       </div>
       <section className={classes.canvas} aria-label="Hexagons of the design">
         {layout.nodes.length === 0 ? (
@@ -162,6 +362,8 @@ export function ArchitectureDiagram({
             colorMode={scheme}
             fitView
             fitViewOptions={FIT}
+            // The bottom right corner is the legend's.
+            attributionPosition="bottom-left"
             minZoom={0.2}
             maxZoom={2}
             nodesDraggable={false}
@@ -174,7 +376,9 @@ export function ArchitectureDiagram({
               setZoom(instance.getZoom());
             }}
             onMove={(_, viewport) => setZoom(viewport.zoom)}
-          />
+          >
+            <Legend entries={legend} picked={picked} onPick={setPicked} />
+          </ReactFlow>
         )}
       </section>
     </div>
@@ -182,8 +386,6 @@ export function ArchitectureDiagram({
 }
 
 const FIT = { padding: 0.08 };
-
-const FRAMES = new Set<LaidOutNode['kind']>(['hexagon', 'domainCore']);
 
 /** How many warnings and notes name each card's element. */
 function findingsOf(outline: ArchitectureOutline) {
@@ -207,13 +409,13 @@ const ARROW = {
   height: 16,
 };
 
-function edgeOf(edge: LaidOutEdge): Edge {
+function edgeOf(edge: LaidOutEdge, faded: boolean): Edge {
   return {
     id: edge.id,
     source: edge.source,
     target: edge.target,
     type: 'straight',
-    className: classes.edge,
+    className: faded ? `${classes.edge} ${classes.faded}` : classes.edge,
     // The adapters are not designed, so the lines to them are not either.
     style: { strokeDasharray: DASHED.has(edge.kind) ? '6 6' : undefined },
     ...(edge.kind === 'owns'
@@ -262,37 +464,26 @@ function DomainCoreNode({ width = 0, height = 0 }: NodeProps<CardNode>) {
   );
 }
 
-const SUBTITLE: Partial<Record<LaidOutNode['kind'], string>> = {
-  adapterIn: 'not designed',
-  adapterOut: 'not designed',
-  caller: 'caller unknown',
-};
-
-const KIND_WORD: Record<LaidOutNode['kind'], string> = {
-  hexagon: 'module',
-  domainCore: 'domain core',
-  actor: 'actor',
-  caller: 'unknown caller',
-  adapterIn: 'in adapter, not designed',
-  adapterOut: 'out adapter, not designed',
-  drivingPort: 'driving port',
-  service: 'application service',
-  element: 'domain core',
-  drivenPort: 'driven port',
-};
-
 function CardNode({ data }: NodeProps<CardNode>) {
-  const { node, state, warnings, notes, rules, onSelect } = data;
+  const {
+    node,
+    state,
+    warnings,
+    notes,
+    rules,
+    change,
+    changeColour,
+    onSelect,
+  } = data;
   const { element } = node;
   const pattern = element?.pattern ?? null;
-  const subtitle = SUBTITLE[node.kind] ?? patternLabelOf(pattern);
+  const kind = KINDS[node.kind];
+  const subtitle = kind.subtitle ?? patternLabelOf(pattern);
   const label = [
     node.label,
-    KIND_WORD[node.kind],
+    kind.word,
     element !== null && pattern !== null ? patternLabelOf(pattern) : null,
-    element?.change !== undefined && element.change !== 'unchanged'
-      ? element.change
-      : null,
+    change !== 'unchanged' ? change : null,
     warnings > 0 ? plural(warnings, 'warning') : null,
     notes > 0 ? plural(notes, 'note') : null,
     rules !== null ? plural(rules, 'rule') : null,
@@ -310,8 +501,9 @@ function CardNode({ data }: NodeProps<CardNode>) {
         type="button"
         className={classes.card}
         data-kind={node.kind}
+        style={styleOf(kind.look)}
         data-state={state}
-        data-change={element?.change}
+        data-change={change}
         aria-pressed={state === 'selected'}
         aria-label={label}
         title={label}
@@ -319,14 +511,16 @@ function CardNode({ data }: NodeProps<CardNode>) {
       >
         {element !== null && (
           <span className={classes.icon}>
-            <KindIcon
-              kind={
-                element.id.startsWith('behavior|')
-                  ? 'behaviour'
-                  : 'building_block'
-              }
-              pattern={pattern}
-            />
+            <ChangeMark change={change} color={changeColour}>
+              <KindIcon
+                kind={
+                  element.id.startsWith('behavior|')
+                    ? 'behaviour'
+                    : 'building_block'
+                }
+                pattern={pattern}
+              />
+            </ChangeMark>
           </span>
         )}
         <span className={classes.text}>
@@ -360,24 +554,60 @@ function CardNode({ data }: NodeProps<CardNode>) {
 const plural = (count: number, word: string) =>
   `${count} ${count === 1 ? word : `${word}s`}`;
 
-const LEGEND: { kind: LaidOutNode['kind'] | 'core'; label: string }[] = [
-  { kind: 'adapterIn', label: 'In / out adapter' },
-  { kind: 'drivingPort', label: 'Driving port' },
-  { kind: 'service', label: 'Application service' },
-  { kind: 'core', label: 'Domain core' },
-  { kind: 'drivenPort', label: 'Driven port' },
-];
-
-function Legend() {
+/*
+ * The legend floats over the canvas, still while it pans and zooms. Each
+ * entry is a toggle: pressed, it picks out the cards of its kind and fades
+ * the rest; pressed again, every card is alike. Folded away, it is only its
+ * title, and nothing stays picked out that the reader cannot see the reason for.
+ */
+function Legend({
+  entries,
+  picked,
+  onPick,
+}: {
+  entries: LegendEntry[];
+  picked: string | null;
+  onPick: (label: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const list = useId();
+  if (entries.length === 0) return null;
+  const Chevron = open ? IconChevronDown : IconChevronUp;
   return (
-    <ul className={classes.legend} aria-label="Legend">
-      {LEGEND.map(({ kind, label }) => (
-        <li key={kind}>
-          <span className={classes.swatch} data-kind={kind} aria-hidden />
-          {label}
-        </li>
-      ))}
-    </ul>
+    <Panel position="bottom-right" className={classes.legend}>
+      <button
+        type="button"
+        className={classes.legendToggle}
+        aria-expanded={open}
+        aria-controls={list}
+        onClick={() => {
+          setOpen(!open);
+          onPick(null);
+        }}
+      >
+        Legend
+        <Chevron size={14} stroke={1.8} aria-hidden />
+      </button>
+      <ul id={list} hidden={!open} aria-label="Legend: pick out a kind of card">
+        {entries.map(({ label, look }) => (
+          <li key={label}>
+            <button
+              type="button"
+              className={classes.legendEntry}
+              aria-pressed={picked === label}
+              onClick={() => onPick(picked === label ? null : label)}
+            >
+              <span
+                className={classes.swatch}
+                style={styleOf(look)}
+                aria-hidden
+              />
+              {label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Panel>
   );
 }
 

@@ -1,4 +1,11 @@
-import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Text } from '#/shared/design-system/text.tsx';
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
 import {
@@ -15,6 +22,7 @@ import {
   architectureTreeOf,
   defaultArchitectureExpansion,
 } from '../architecture-tree.ts';
+import { buildingBlockTypesOf, withoutTypes } from '../building-block-types.ts';
 import { architectureOf } from '../design-doc-architecture.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { ArchitectureDetails } from './architecture-details.tsx';
@@ -63,9 +71,36 @@ export function ArchitectureView({
     [outline, doc],
   );
   const layout = useMemo(() => layoutArchitecture(outline.hexagons), [outline]);
+  /* Every card, drawn or not: the details read an element the reader has left
+     out of the diagram as they read any other. */
   const cards = useMemo(
     () => new Map(layout.nodes.map((node) => [node.id, node])),
     [layout],
+  );
+  const types = useMemo(
+    () => buildingBlockTypesOf(outline.hexagons),
+    [outline],
+  );
+  /* A set of names kept for the tab, as the tree's open rows are. */
+  const hiddenMemory = useMemo(
+    () =>
+      expansionMemory(`noesis.designDocs.${doc.id}.architecture.hiddenTypes`),
+    [doc.id],
+  );
+  const [hiddenTypes, setHiddenTypes] = useState<ReadonlySet<string>>(
+    () => hiddenMemory.recall() ?? new Set(),
+  );
+  const hideTypes = useCallback(
+    (hidden: ReadonlySet<string>) => {
+      setHiddenTypes(hidden);
+      hiddenMemory.remember(hidden);
+    },
+    [hiddenMemory],
+  );
+  /* Laid out afresh without them, so a type left out leaves no gap behind. */
+  const drawn = useMemo(
+    () => layoutArchitecture(withoutTypes(outline.hexagons, hiddenTypes)),
+    [outline, hiddenTypes],
   );
   const modelTree = useMemo(() => outlineTree(detail.outline), [detail]);
   const memory = useMemo(
@@ -118,10 +153,7 @@ export function ArchitectureView({
     () => subjectOf(addressed, tree, outline),
     [addressed, tree, outline],
   );
-  const focus = useMemo(
-    () => focusOf(subject, layout.nodes),
-    [subject, layout],
-  );
+  const focus = useMemo(() => focusOf(subject, drawn.nodes), [subject, drawn]);
 
   return (
     <DesignDocSurface document={doc} switcher={switcher}>
@@ -155,9 +187,12 @@ export function ArchitectureView({
         detail={
           <ArchitectureDiagram
             outline={outline}
-            layout={layout}
+            layout={drawn}
             focus={focus}
             onSelectElement={selectElement}
+            types={types}
+            hiddenTypes={hiddenTypes}
+            onHideTypes={hideTypes}
           />
         }
         detailFills

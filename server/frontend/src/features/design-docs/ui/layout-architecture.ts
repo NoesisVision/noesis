@@ -265,20 +265,20 @@ function placeColumn(
         element: null,
         selects: adapterInId(behaviour.id),
       });
-      edges.push(
-        {
-          id: `${adapterInId(behaviour.id)}->${behaviour.id}`,
-          source: adapterInId(behaviour.id),
-          target: behaviour.id,
-          kind: 'adapts',
-        },
-        {
+      edges.push({
+        id: `${adapterInId(behaviour.id)}->${behaviour.id}`,
+        source: adapterInId(behaviour.id),
+        target: behaviour.id,
+        kind: 'adapts',
+      });
+      // A service the reader has left out has no card to join the port to.
+      if (hexagon.applicationServices.some(({ id }) => id === service))
+        edges.push({
           id: `${behaviour.id}->${service}`,
           source: behaviour.id,
           target: service,
           kind: 'owns',
-        },
-      );
+        });
     }
     y += CARD.height + RING_GAP;
   }
