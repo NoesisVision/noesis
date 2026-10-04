@@ -53,7 +53,7 @@ public final class StereotypeDetector {
         return type == NodeType.PORT || type == NodeType.ADAPTER;
     }
 
-    /** Reads the `value` attribute of the noesis @Port/@Adapter annotations. */
+    /** Reads the `value` attribute of the noesis @ExternalIntegration/@Adapter annotations. */
     private static PortDirection directionFromAttribute(JavaClass clazz, String annotationFqn) {
         return clazz.tryGetAnnotationOfType(annotationFqn)
                 .flatMap(annotation -> annotation.get("value"))

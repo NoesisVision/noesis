@@ -1,9 +1,9 @@
 package vision.noesis.scanner.core.fixture.order;
 
 import vision.noesis.annotations.Direction;
-import vision.noesis.annotations.Port;
+import vision.noesis.annotations.ExternalIntegration;
 
-@Port(Direction.SECONDARY)
+@ExternalIntegration(Direction.SECONDARY)
 public interface OrderRepository {
 
     void save(Order order);

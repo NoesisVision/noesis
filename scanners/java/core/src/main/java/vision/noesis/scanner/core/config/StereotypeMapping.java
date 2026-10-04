@@ -51,7 +51,7 @@ public final class StereotypeMapping {
         Map<String, MappedStereotype> m = new LinkedHashMap<>();
         String p = "vision.noesis.annotations.";
         m.put(p + "AggregateRoot", MappedStereotype.of(NodeType.AGGREGATE_ROOT));
-        m.put(p + "Entity", MappedStereotype.of(NodeType.ENTITY));
+        m.put(p + "DomainEntity", MappedStereotype.of(NodeType.ENTITY));
         m.put(p + "ValueObject", MappedStereotype.of(NodeType.VALUE_OBJECT));
         m.put(p + "Identifier", MappedStereotype.of(NodeType.IDENTIFIER));
         m.put(p + "DomainService", MappedStereotype.of(NodeType.DOMAIN_SERVICE));
@@ -59,7 +59,7 @@ public final class StereotypeMapping {
         m.put(p + "Repository", MappedStereotype.of(NodeType.REPOSITORY));
         m.put(p + "Factory", MappedStereotype.of(NodeType.FACTORY));
         // direction read from the annotation's `value` attribute
-        m.put(p + "Port", MappedStereotype.of(NodeType.PORT));
+        m.put(p + "ExternalIntegration", MappedStereotype.of(NodeType.PORT));
         m.put(p + "Adapter", MappedStereotype.of(NodeType.ADAPTER));
         m.put(p + "Command", MappedStereotype.of(NodeType.COMMAND));
         m.put(p + "Query", MappedStereotype.of(NodeType.QUERY));

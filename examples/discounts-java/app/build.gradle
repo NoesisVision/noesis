@@ -26,7 +26,7 @@ java {
 
 dependencies {
 
-    // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @Entity, @ValueObject, ...
+    // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ...
     implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
 
     implementation 'io.vavr:vavr:0.10.3'
