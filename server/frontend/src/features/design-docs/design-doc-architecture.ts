@@ -1,0 +1,323 @@
+import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
+import type {
+  DesignDocumentInput,
+  DesignedBehaviourInput,
+  DesignedBuildingBlockInput,
+  DesignedRuleInput,
+} from '#backend/app/design-docs/design-doc.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { architectureChecks } from './architecture-checks.ts';
+import {
+  type ArchitectureOutline,
+  blockOfRef,
+  type Hexagon,
+  isDrivenPort,
+  moduleOf,
+  nameOf,
+  ownerOf,
+  type PlacedElement,
+  type PlacedRule,
+} from './architecture-outline.ts';
+import { valueOf } from './design-doc-field.ts';
+
+/*
+ * The design read on the assumption that the system it designs is built as
+ * hexagons: each module that holds building blocks is one, its application
+ * services' public behaviours are the ports that drive it, and its
+ * repositories and external integrations are the ports it drives. Nothing
+ * here is stored — it is the same document, placed in rings by the building
+ * block types it already names.
+ *
+ * The document carries only what a design changes, so an element whose type
+ * the design leaves alone cannot be placed from it, and is listed as such.
+ */
+
+const DOMAIN_CORE = [
+  'aggregate',
+  'entity',
+  'domain_service',
+  'factory',
+  'value_object',
+] as const;
+const APPLICATION_SERVICE = 'application_service';
+
+export function architectureOf(
+  document: DesignDocumentInput,
+): ArchitectureOutline {
+  const blocks = [
+    ...placed(document.buildingBlocks?.added, 'added'),
+    ...placed(document.buildingBlocks?.modified, 'modified'),
+  ];
+  const behaviours = [
+    ...placed(document.behaviours?.added, 'added'),
+    ...placed(document.behaviours?.modified, 'modified'),
+  ];
+  const typeOf = new Map(
+    blocks.map(({ item }) => [item.id, valueOf(item.type)]),
+  );
+  const hexagons = new Map<string, Hexagon>();
+  const unplaced: PlacedElement[] = [];
+  const hexagonOf = (elementId: string) => {
+    const moduleId = moduleOf(elementId);
+    let hexagon = hexagons.get(moduleId);
+    if (hexagon === undefined) {
+      hexagon = emptyHexagon(moduleId, moduleNameOf(document, moduleId));
+      hexagons.set(moduleId, hexagon);
+    }
+    return hexagon;
+  };
+
+  const ports = new Set<string>();
+  for (const { item, change } of behaviours) {
+    const owner = ownerOf(item.id);
+    const visibility = valueOf(item.visibility);
+    if (typeOf.get(owner) !== APPLICATION_SERVICE) {
+      if (visibility?.kind === 'public' && typeOf.has(owner))
+        hexagonOf(owner).exposed.push(behaviourElement(item, change));
+      continue;
+    }
+    if (visibility === null) {
+      unplaced.push(behaviourElement(item, change));
+      continue;
+    }
+    if (visibility.kind !== 'public') continue;
+    ports.add(item.id);
+    hexagonOf(owner).drivingPorts.push({
+      behaviour: behaviourElement(item, change),
+      service: owner,
+      actors: visibility.actors,
+    });
+  }
+
+  for (const { item, change } of blocks) {
+    const own = behaviours
+      .map(({ item: behaviour }) => behaviour)
+      .filter(
+        (behaviour) =>
+          ownerOf(behaviour.id) === item.id && !ports.has(behaviour.id),
+      );
+    const element = blockElement(item, change, own);
+    const ring = ringOf(element.pattern);
+    if (ring === null) unplaced.push(element);
+    else hexagonOf(item.id)[ring].push(element);
+  }
+  for (const hexagon of hexagons.values())
+    hexagon.domainCore.sort(
+      (a, b) => coreRank(a.pattern) - coreRank(b.pattern),
+    );
+
+  const drawn = [...hexagons.values()];
+  return {
+    hexagons: drawn,
+    unplaced,
+    checks: architectureChecks({ hexagons: drawn, unplaced }),
+    needsAtPorts: needsAtPorts(document, drawn),
+  };
+}
+
+/**
+ * A need and the driving ports whose own rules answer it: where a reviewer
+ * finds the need at the edge of the system. A need no port answers has none.
+ */
+function needsAtPorts(
+  document: DesignDocumentInput,
+  hexagons: Hexagon[],
+): ArchitectureOutline['needsAtPorts'] {
+  const ports = hexagons.flatMap(({ drivingPorts }) => drivingPorts);
+  return [
+    ...(document.needs?.added ?? []),
+    ...(document.needs?.modified ?? []),
+  ].map((need) => ({
+    need,
+    ports: ports
+      .filter(({ behaviour }) =>
+        behaviour.rules.some((rule) => rule.needs.includes(need.id)),
+      )
+      .map(({ behaviour }) => behaviour.id),
+  }));
+}
+
+/** A type one behaviour gives back and another takes, read from the types alone. */
+export interface InferredFlow {
+  direction: 'gives' | 'takes';
+  type: string;
+  /** The behaviour at the other end. */
+  other: { id: string; name: string; owner: string };
+  /**
+   * The types match, but the design keeps the two apart: a private behaviour
+   * in another hexagon cannot be what takes it.
+   */
+  typeMatchOnly: boolean;
+}
+
+/**
+ * For one element — a behaviour, or a building block through its behaviours —
+ * every behaviour that takes a type it gives back, or gives back a type it
+ * takes. The document has no calls, so this is a guess from the types, never
+ * drawn as an edge.
+ */
+export function inferredFlowOf(
+  document: DesignDocumentInput,
+  outline: ArchitectureOutline,
+  elementId: string,
+): InferredFlow[] {
+  const behaviours = [
+    ...(document.behaviours?.added ?? []),
+    ...(document.behaviours?.modified ?? []),
+  ].map((behaviour) => ({
+    id: behaviour.id,
+    inputs: blocksOf(inputTypesOf(behaviour)),
+    outputs: blocksOf(outputTypesOf(behaviour)),
+  }));
+  const isOwn = (id: string) => id === elementId || ownerOf(id) === elementId;
+  const ports = new Set(
+    outline.hexagons.flatMap(({ drivingPorts }) =>
+      drivingPorts.map(({ behaviour }) => behaviour.id),
+    ),
+  );
+  const flows: InferredFlow[] = [];
+  for (const mine of behaviours.filter(({ id }) => isOwn(id)))
+    for (const other of behaviours.filter(({ id }) => !isOwn(id))) {
+      const flow = (direction: InferredFlow['direction'], type: string) => {
+        const taker = direction === 'gives' ? other.id : mine.id;
+        flows.push({
+          direction,
+          type,
+          other: {
+            id: other.id,
+            name: nameOf(other.id),
+            owner: nameOf(ownerOf(other.id)),
+          },
+          typeMatchOnly:
+            moduleOf(mine.id) !== moduleOf(other.id) && !ports.has(taker),
+        });
+      };
+      for (const type of mine.outputs)
+        if (other.inputs.has(type)) flow('gives', type);
+      for (const type of mine.inputs)
+        if (other.outputs.has(type)) flow('takes', type);
+    }
+  return flows;
+}
+
+type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
+
+function ringOf(pattern: string | null): Ring | null {
+  if (pattern === APPLICATION_SERVICE) return 'applicationServices';
+  if (isDrivenPort(pattern)) return 'drivenPorts';
+  if ((DOMAIN_CORE as readonly (string | null)[]).includes(pattern))
+    return 'domainCore';
+  return null;
+}
+
+const coreRank = (pattern: string | null) =>
+  (DOMAIN_CORE as readonly (string | null)[]).indexOf(pattern);
+
+function* placed<Item>(
+  items: Item[] | undefined,
+  change: OutlineChange,
+): Generator<{ item: Item; change: OutlineChange }> {
+  for (const item of items ?? []) yield { item, change };
+}
+
+function blockElement(
+  block: DesignedBuildingBlockInput,
+  change: OutlineChange,
+  behaviours: DesignedBehaviourInput[],
+): PlacedElement {
+  const properties = [
+    ...(block.properties?.added ?? []),
+    ...(block.properties?.modified ?? []),
+  ];
+  return {
+    id: block.id,
+    name: nameOf(block.id),
+    pattern: valueOf(block.type),
+    change,
+    uses: usesOf(block.id, [
+      ...properties.map(({ type }) => valueOf(type)),
+      ...behaviours.flatMap(typesOfBehaviour),
+    ]),
+    rules: [block, ...behaviours].flatMap(rulesOf),
+  };
+}
+
+function behaviourElement(
+  behaviour: DesignedBehaviourInput,
+  change: OutlineChange,
+): PlacedElement {
+  return {
+    id: behaviour.id,
+    name: nameOf(behaviour.id),
+    pattern: valueOf(behaviour.type),
+    change,
+    uses: usesOf(behaviour.id, typesOfBehaviour(behaviour)),
+    rules: rulesOf(behaviour),
+  };
+}
+
+const inputTypesOf = (behaviour: DesignedBehaviourInput) =>
+  [...(behaviour.input?.added ?? []), ...(behaviour.input?.modified ?? [])].map(
+    ({ type }) => valueOf(type),
+  );
+
+const outputTypesOf = (behaviour: DesignedBehaviourInput) =>
+  [
+    ...(behaviour.output?.added ?? []),
+    ...(behaviour.output?.modified ?? []),
+  ].map(({ type }) => type);
+
+const typesOfBehaviour = (
+  behaviour: DesignedBehaviourInput,
+): (BuildingBlockRefInput | null)[] => [
+  ...inputTypesOf(behaviour),
+  ...outputTypesOf(behaviour),
+];
+
+const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>
+  new Set(usesOf('', types));
+
+function rulesOf(owner: {
+  rules?: { added?: DesignedRuleInput[]; modified?: DesignedRuleInput[] };
+}): PlacedRule[] {
+  return [...(owner.rules?.added ?? []), ...(owner.rules?.modified ?? [])].map(
+    (rule) => ({
+      name: rule.name,
+      category: valueOf(rule.category),
+      ruleType: valueOf(rule.ruleType),
+      needs: valueOf(rule.needs) ?? [],
+    }),
+  );
+}
+
+/** The building blocks a list of types names, each once; primitives and the element itself left out. */
+function usesOf(
+  self: string,
+  types: (BuildingBlockRefInput | null)[],
+): string[] {
+  const uses = new Set<string>();
+  for (const type of types) {
+    const block = type === null ? null : blockOfRef(type);
+    if (block !== null && block !== self) uses.add(block);
+  }
+  return [...uses];
+}
+
+function emptyHexagon(id: string, name: string): Hexagon {
+  return {
+    module: { id, name },
+    drivingPorts: [],
+    applicationServices: [],
+    domainCore: [],
+    drivenPorts: [],
+    exposed: [],
+  };
+}
+
+function moduleNameOf(document: DesignDocumentInput, moduleId: string) {
+  const module = [
+    ...(document.modules?.added ?? []),
+    ...(document.modules?.modified ?? []),
+  ].find(({ id }) => id === moduleId);
+  return valueOf(module?.name) ?? nameOf(moduleId);
+}

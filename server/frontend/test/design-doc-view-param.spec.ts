@@ -50,6 +50,22 @@ describe('the view of a design document', () => {
     expect(search?.q).toBeUndefined();
   });
 
+  it('is the architecture when the address says so, keeping a place of its own', () => {
+    const search = searchOf(
+      routerAt(
+        `${DOC}?view=architecture&node=building_block%7Csales.refunds.Refund&arch=checks%2Fcheck%3Acaller-unknown&archQ=port`,
+      ),
+    );
+    expect(search).toMatchObject({
+      view: 'architecture',
+      node: 'building_block|sales.refunds.Refund',
+      arch: 'checks/check:caller-unknown',
+      archQ: 'port',
+    });
+    expect(search?.entry).toBeUndefined();
+    expect(search?.q).toBeUndefined();
+  });
+
   it('is returned to by Back from the element a requirement links to', () => {
     const router = routerAt(`${DOC}?view=requirements`);
     // Where a requirement's element link goes: the model, the element in hand.

@@ -48,13 +48,19 @@ export function Columns({
   search,
   outline,
   outlineRef,
+  below,
   detail,
+  detailFills = false,
 }: {
   search: ReactNode;
   outline: ReactNode;
   /** The outline's scroller, for a page that has to bring a row into it. */
   outlineRef: RefObject<HTMLDivElement | null>;
+  /** Under the rows in the same pane, scrolling apart from them. */
+  below?: ReactNode;
   detail: ReactNode;
+  /** The detail is a canvas that fills its pane and moves itself, rather than a page to scroll. */
+  detailFills?: boolean;
 }) {
   const wide = useMediaQuery(WIDE, true);
   const [columns, setColumns] = useLocalStorage<number[]>({
@@ -73,9 +79,14 @@ export function Columns({
       <Box className={classes.outlineBody} ref={outlineRef}>
         {outline}
       </Box>
+      {below !== undefined && <Box className={classes.below}>{below}</Box>}
     </>
   );
-  const detailPane = <Box className={classes.paneBody}>{detail}</Box>;
+  const detailPane = (
+    <Box className={detailFills ? classes.paneFill : classes.paneBody}>
+      {detail}
+    </Box>
+  );
 
   if (!wide) {
     return (

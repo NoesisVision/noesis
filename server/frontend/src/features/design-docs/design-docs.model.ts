@@ -7,8 +7,8 @@ import { IconPencilBolt } from '@tabler/icons-react';
  */
 export const DesignDocsIcon = IconPencilBolt;
 
-/** The two ways a design document is read: as a model, or as requirements. */
-export type DesignDocViewName = 'model' | 'requirements';
+/** The ways a design document is read: as a model, as requirements, as hexagons. */
+export type DesignDocViewName = 'model' | 'requirements' | 'architecture';
 
 /**
  * What the address says about how a design document is being read: as which
@@ -18,8 +18,9 @@ export type DesignDocViewName = 'model' | 'requirements';
  * has falls back to the top of the tree.
  *
  * Each view keeps its own place: `node` and `q` are the model's, `entry` and
- * `entryQ` the requirements', so switching from one to the other and back
- * returns to where the reader was in each.
+ * `entryQ` the requirements', `arch` and `archQ` the architecture's, so
+ * switching from one to another and back returns to where the reader was in
+ * each.
  */
 export interface DesignDocSearch {
   view?: DesignDocViewName | undefined;
@@ -28,14 +29,17 @@ export interface DesignDocSearch {
   /** The row of the requirements tree in hand: a need, a rule under one, a group. */
   entry?: string | undefined;
   entryQ?: string | undefined;
+  /** What is in hand in the architecture: a row of its tree, or a card no row names. */
+  arch?: string | undefined;
+  archQ?: string | undefined;
 }
 
 const word = (value: unknown) =>
   typeof value === 'string' && value !== '' ? value : undefined;
 
-// The model is the default, so the address names only the other view.
+// The model is the default, so the address names only the others.
 const viewOf = (value: unknown) =>
-  value === 'requirements' ? ('requirements' as const) : undefined;
+  value === 'requirements' || value === 'architecture' ? value : undefined;
 
 export const designDocSearch = (
   search: Record<string, unknown>,
@@ -45,4 +49,6 @@ export const designDocSearch = (
   q: word(search.q),
   entry: word(search.entry),
   entryQ: word(search.entryQ),
+  arch: word(search.arch),
+  archQ: word(search.archQ),
 });

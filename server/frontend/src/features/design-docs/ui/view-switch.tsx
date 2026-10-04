@@ -4,13 +4,14 @@ import type { DesignDocViewName } from '../design-docs.model.ts';
 const VIEWS: { value: DesignDocViewName; label: string }[] = [
   { value: 'model', label: 'Model' },
   { value: 'requirements', label: 'Requirements' },
+  { value: 'architecture', label: 'Architecture' },
 ];
 
 const isView = (value: string): value is DesignDocViewName =>
   VIEWS.some((view) => view.value === value);
 
 /**
- * Which way the design document is read, in the header of either view: the
+ * Which way the design document is read, in the header of every view: the
  * same control in the same place, so switching never moves it.
  */
 export function ViewSwitch({

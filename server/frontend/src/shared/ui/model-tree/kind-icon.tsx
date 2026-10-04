@@ -1,8 +1,11 @@
 import {
   IconActivity,
+  IconAlertTriangle,
   IconAssembly,
   IconBlocks,
   IconCategory,
+  IconChecklist,
+  IconCircleCheck,
   IconCircleLetterC,
   IconCircleLetterE,
   IconCircleLetterQ,
@@ -10,6 +13,7 @@ import {
   IconDiamond,
   IconFolder,
   IconId,
+  IconInfoCircle,
   IconListCheck,
   IconMathFunction,
   IconPackageExport,
@@ -35,6 +39,7 @@ const KIND_ICONS = {
   scenario: IconListCheck,
   group: IconCategory,
   need: IconTarget,
+  check: IconChecklist,
 } as const satisfies Record<OutlineKind, unknown>;
 
 /** Every pattern the model knows, spelled as the model spells it. */
@@ -57,6 +62,10 @@ const PATTERNS = [
   'Structure',
   'Computation',
   'State change',
+  // checks
+  'warning',
+  'note',
+  'pass',
 ] as const;
 type Pattern = (typeof PATTERNS)[number];
 
@@ -76,6 +85,9 @@ const PATTERN_ICONS = {
   Structure: IconSitemap,
   Computation: IconMathFunction,
   'State change': IconStatusChange,
+  warning: IconAlertTriangle,
+  note: IconInfoCircle,
+  pass: IconCircleCheck,
 } as const satisfies Record<Pattern, unknown>;
 
 /*
@@ -83,10 +95,14 @@ const PATTERN_ICONS = {
  * asked, what is ordered. The colour is the stylesheet's, keyed by this, so
  * the rules for the selected row and the way down to it still win over it.
  */
-const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
+const PATTERN_TONES: Partial<
+  Record<Pattern, 'event' | 'query' | 'command' | 'warning' | 'pass'>
+> = {
   Event: 'event',
   Query: 'query',
   Command: 'command',
+  warning: 'warning',
+  pass: 'pass',
 };
 
 const isPattern = (value: string): value is Pattern =>

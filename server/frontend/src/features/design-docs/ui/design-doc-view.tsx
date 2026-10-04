@@ -13,7 +13,7 @@ const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
  */
 export function DesignDocView() {
   const { changeId, docId } = route.useParams();
-  const { view, node, q, entry, entryQ } = route.useSearch();
+  const { view, node, q, entry, entryQ, arch, archQ } = route.useSearch();
   const navigate = route.useNavigate();
   const onSelect = useCallback(
     (next: string, source: SelectSource) => {
@@ -62,6 +62,32 @@ export function DesignDocView() {
     [navigate],
   );
 
+  // So is the architecture's, where nothing in hand is a place as well.
+  const onArch = useCallback(
+    (next: string, source: SelectSource) => {
+      void navigate({
+        search: (prev) => ({
+          ...prev,
+          arch: next === '' ? undefined : next,
+        }),
+        replace: source === 'init',
+      });
+    },
+    [navigate],
+  );
+  const onArchQuery = useCallback(
+    (next: string) => {
+      void navigate({
+        search: (prev) => ({
+          ...prev,
+          archQ: next === '' ? undefined : next,
+        }),
+        replace: true,
+      });
+    },
+    [navigate],
+  );
+
   // Another view is a place to come back to, so switching leaves an entry
   // for Back; the element in hand stays in the address for the model.
   const onView = useCallback(
@@ -91,6 +117,12 @@ export function DesignDocView() {
         query: entryQ ?? '',
         onSelect: onEntry,
         onQuery: onEntryQuery,
+      }}
+      architecture={{
+        selected: arch ?? null,
+        query: archQ ?? '',
+        onSelect: onArch,
+        onQuery: onArchQuery,
       }}
     />
   );

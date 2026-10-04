@@ -3,17 +3,16 @@ import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
 import { designDocById } from '../design-docs.api.ts';
 import type { DesignDocViewName } from '../design-docs.model.ts';
+import { ArchitectureView } from './architecture-view.tsx';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
-import {
-  type RequirementsPlace,
-  RequirementsView,
-} from './requirements-view.tsx';
+import { RequirementsView } from './requirements-view.tsx';
+import type { ViewPlace } from './view-place.ts';
 import { ViewSwitch } from './view-switch.tsx';
 
 export interface DesignDocDetailProps {
   changeId: string;
   id: string;
-  /** Whether the document is read as a model or as requirements. */
+  /** Whether the document is read as a model, as requirements or as hexagons. */
   view: DesignDocViewName;
   onView: (view: DesignDocViewName) => void;
   /** The element in hand, as the address names it; null for the top. */
@@ -22,7 +21,9 @@ export interface DesignDocDetailProps {
   onSelect: (path: string, source: SelectSource) => void;
   onQuery: (query: string) => void;
   /** Where the reader is in the requirements, as the address names it. */
-  requirements: RequirementsPlace;
+  requirements: ViewPlace;
+  /** Where the reader is in the architecture, as the address names it. */
+  architecture: ViewPlace;
 }
 
 export function DesignDocDetail({
@@ -31,6 +32,7 @@ export function DesignDocDetail({
   view,
   onView,
   requirements,
+  architecture,
   ...reading
 }: DesignDocDetailProps) {
   const document = useQuery(designDocById(changeId, id));
@@ -49,6 +51,15 @@ export function DesignDocDetail({
         detail={document.data}
         switcher={switcher}
         {...requirements}
+      />
+    );
+  if (view === 'architecture')
+    return (
+      <ArchitectureView
+        key={id}
+        detail={document.data}
+        switcher={switcher}
+        {...architecture}
       />
     );
   return (

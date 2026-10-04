@@ -44,6 +44,7 @@ import { scenarioEntriesOf } from './element-details/body/scenarios-of.ts';
 import { ChangeBadge } from './element-details/change-badge.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
+import type { ViewPlace } from './view-place.ts';
 import classes from './requirements-view.module.css';
 
 /*
@@ -75,7 +76,7 @@ export function RequirementsView({
   detail: DesignDocDetail;
   /** The control that switches to the model, in the header as the model has it. */
   switcher?: ReactNode;
-} & RequirementsPlace) {
+} & ViewPlace) {
   const doc = detail.document;
   const requirements = useMemo(() => requirementsOf(doc), [doc]);
   const nodes = useMemo(
@@ -149,15 +150,6 @@ export function RequirementsView({
       />
     </DesignDocSurface>
   );
-}
-
-/** Where the reader is in the requirements and what they are looking for, as the address has it. */
-export interface RequirementsPlace {
-  /** The row in hand; null for the top. */
-  selected: string | null;
-  query: string;
-  onSelect: (path: string, source: SelectSource) => void;
-  onQuery: (query: string) => void;
 }
 
 /** Rules are the rows here, so the tree leaves nothing out. */

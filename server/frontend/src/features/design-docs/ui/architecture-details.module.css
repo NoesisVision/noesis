@@ -1,0 +1,151 @@
+/*
+ * The selection's details under the rows: a short head, then what is said
+ * about it, padded as the rows above are.
+ */
+.details {
+  --arch-dim: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-1)
+  );
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-xs);
+}
+
+.heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--arch-dim);
+}
+
+.title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.address {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  color: var(--arch-dim);
+  overflow-wrap: anywhere;
+}
+
+.text {
+  font-size: var(--mantine-font-size-sm);
+  max-width: 68ch;
+  white-space: pre-line;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Quiet, as the model's section titles are. */
+h3.sectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--arch-dim);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips .chip {
+  padding: 2px 10px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-xl);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-anchor);
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+  }
+}
+
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--mantine-font-size-sm);
+
+  & li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--mantine-spacing-xs);
+  }
+}
+
+/* A level is a word as well as a colour. */
+.pill {
+  flex: none;
+  padding: 0 8px;
+  border-radius: var(--mantine-radius-xl);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+
+  &[data-level='warning'] {
+    background: var(--mantine-color-orange-light);
+    color: var(--mantine-color-orange-light-color);
+  }
+
+  &[data-level='note'] {
+    background: var(--mantine-color-gray-light);
+    color: var(--mantine-color-gray-light-color);
+  }
+}
+
+.direction {
+  flex: none;
+  width: 3.5rem;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--arch-dim);
+}
+
+.note {
+  color: var(--arch-dim);
+  font-style: italic;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xl);
+}

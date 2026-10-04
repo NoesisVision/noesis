@@ -76,6 +76,12 @@ export interface ModelTreeState {
   readonly memory?: ExpansionMemory;
   /** The kinds left out of the tree; a model's parts unless said otherwise. Keep it stable. */
   readonly excludeKinds?: readonly OutlineKind[];
+  /**
+   * Whether the tree opens at its top row when the address names none of its
+   * rows; true unless said otherwise. A page whose selection may be something
+   * the tree has no row for says false, and the tree then has none in hand.
+   */
+  readonly opensAtTop?: boolean;
 }
 
 export function useModelTree(
@@ -89,6 +95,7 @@ export function useModelTree(
     onQuery,
     memory = FORGETFUL,
     excludeKinds = EXCLUDED_KINDS,
+    opensAtTop = true,
   } = state;
   const tree = useMemo(
     () => outlineTree(nodes, excludeKinds),
@@ -101,13 +108,10 @@ export function useModelTree(
    * has not got is the same case and not an error to put in front of them —
    * the model was rewritten under their link.
    */
-  const selected = useMemo(
-    () =>
-      addressed !== null && tree.byPath.has(addressed)
-        ? addressed
-        : (tree.nodes[0]?.path ?? null),
-    [tree, addressed],
-  );
+  const selected = useMemo(() => {
+    if (addressed !== null && tree.byPath.has(addressed)) return addressed;
+    return opensAtTop ? (tree.nodes[0]?.path ?? null) : null;
+  }, [tree, addressed, opensAtTop]);
   /*
    * Said once, and only the page can answer it: the row is the tree's own
    * choice, so nothing else knows to put it in the address or to scroll to it.
@@ -116,10 +120,10 @@ export function useModelTree(
    */
   const opened = useRef(false);
   useEffect(() => {
-    if (opened.current || selected === null) return;
+    if (!opensAtTop || opened.current || selected === null) return;
     opened.current = true;
     onSelect(selected, 'init');
-  }, [selected, onSelect]);
+  }, [opensAtTop, selected, onSelect]);
   /*
    * Whatever shape the tree was left in, the row the address names has to be
    * a row: a link into the middle of a design that opened on a closed branch

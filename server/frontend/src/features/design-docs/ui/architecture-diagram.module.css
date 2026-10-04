@@ -1,0 +1,374 @@
+/*
+ * The diagram pane: the toolbar, then the canvas filling the rest. Every
+ * colour is a Mantine token in light-dark(), so both schemes hold.
+ */
+.diagram {
+  --arch-edge: light-dark(
+    var(--mantine-color-gray-6),
+    var(--mantine-color-dark-2)
+  );
+  --arch-dim: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-1)
+  );
+  --arch-card: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+  --arch-hex: light-dark(
+    var(--mantine-color-brand-0),
+    var(--mantine-color-dark-8)
+  );
+  --arch-hex-line: light-dark(
+    var(--mantine-color-brand-3),
+    var(--mantine-color-brand-8)
+  );
+  --arch-core: light-dark(
+    var(--mantine-color-brand-1),
+    var(--mantine-color-dark-7)
+  );
+  --arch-core-line: light-dark(
+    var(--mantine-color-brand-4),
+    var(--mantine-color-brand-7)
+  );
+  --arch-select: var(--mantine-color-orange-filled);
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.toolbarRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.grow {
+  flex-grow: 1;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  & li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+
+  &[data-kind='adapterIn'] {
+    border: 1.5px dashed var(--arch-edge);
+  }
+
+  &[data-kind='drivingPort'] {
+    background: var(--mantine-color-brand-filled);
+  }
+
+  &[data-kind='service'] {
+    border: 1px solid var(--arch-hex-line);
+  }
+
+  &[data-kind='core'] {
+    border: 1px solid var(--arch-core-line);
+    background: var(--arch-core);
+  }
+
+  &[data-kind='drivenPort'] {
+    border: 2px solid var(--mantine-color-brand-filled);
+  }
+}
+
+.zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.zoomLevel {
+  min-width: 3rem;
+  font-size: var(--mantine-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--arch-dim);
+}
+
+.canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.empty {
+  padding: var(--mantine-spacing-lg);
+  color: var(--arch-dim);
+}
+
+/* React Flow lays the frames out; the polygon fills them. */
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* The frame is a backdrop; only its label takes the pointer. */
+  pointer-events: none;
+}
+
+.hexagon,
+.core {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.hexagon polygon {
+  fill: var(--arch-hex);
+  stroke: var(--arch-hex-line);
+  stroke-width: 2px;
+}
+
+.core polygon {
+  fill: var(--arch-core);
+  stroke: var(--arch-core-line);
+  stroke-width: 1.5px;
+}
+
+.frame[data-state='selected'] .hexagon polygon {
+  stroke: var(--arch-select);
+  stroke-width: 3px;
+}
+
+.frame[data-state='related'] .hexagon polygon {
+  stroke: var(--arch-select);
+  stroke-dasharray: 8 6;
+}
+
+.moduleLabel {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: transparent;
+  color: var(--mantine-color-text);
+  font: inherit;
+  font-size: var(--mantine-font-size-md);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: all;
+
+  & small {
+    color: var(--arch-dim);
+    font-size: var(--mantine-font-size-xs);
+  }
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+  }
+}
+
+.ringLabel {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: light-dark(var(--mantine-color-brand-8), var(--mantine-color-brand-3));
+}
+
+.handle {
+  visibility: hidden;
+}
+
+.edge :global(.react-flow__edge-path) {
+  stroke: var(--arch-edge);
+  stroke-width: 2px;
+}
+
+/* One look for every card; what it is changes its border and its fill. */
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--arch-edge);
+  border-radius: var(--mantine-radius-md);
+  background: var(--arch-card);
+  color: var(--mantine-color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: all;
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-filled);
+    outline-offset: 2px;
+  }
+
+  &[data-kind='actor'],
+  &[data-kind='caller'] {
+    justify-content: center;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  &[data-kind='caller'],
+  &[data-kind='adapterIn'],
+  &[data-kind='adapterOut'] {
+    border: 1.5px dashed var(--arch-edge);
+    color: var(--arch-dim);
+  }
+
+  &[data-kind='adapterIn'],
+  &[data-kind='adapterOut'] {
+    justify-content: center;
+    text-align: center;
+  }
+
+  &[data-kind='drivingPort'] {
+    border-color: transparent;
+    background: var(--mantine-color-brand-filled);
+    color: var(--mantine-color-white);
+
+    & small {
+      color: var(--mantine-color-brand-1);
+    }
+
+    & svg {
+      color: var(--mantine-color-brand-1);
+    }
+  }
+
+  &[data-kind='service'] {
+    border-color: var(--arch-hex-line);
+  }
+
+  &[data-kind='drivenPort'] {
+    border: 2px solid var(--mantine-color-brand-filled);
+  }
+
+  &[data-change='removed'] b {
+    text-decoration: line-through;
+  }
+
+  /* Outlined as well as coloured: in hand, solid; concerned, dashed. */
+  &[data-state='selected'] {
+    outline: 3px solid var(--arch-select);
+    outline-offset: 2px;
+  }
+
+  &[data-state='related'] {
+    outline: 2px dashed var(--arch-select);
+    outline-offset: 2px;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+
+  & b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--mantine-font-size-sm);
+  }
+
+  & small {
+    font-size: var(--mantine-font-size-xs);
+    color: var(--arch-dim);
+  }
+}
+
+.marker {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+
+  &[data-level='warning'] {
+    background: var(--mantine-color-orange-filled);
+    color: var(--mantine-color-white);
+  }
+
+  &[data-level='note'] {
+    background: var(--mantine-color-gray-filled);
+    color: var(--mantine-color-white);
+  }
+}
+
+.ruleCount {
+  position: absolute;
+  right: 6px;
+  bottom: -9px;
+  padding: 0 6px;
+  border: 1px solid var(--mantine-color-yellow-outline);
+  border-radius: 999px;
+  background: var(--mantine-color-yellow-light);
+  color: var(--mantine-color-yellow-light-color);
+  font-size: 11px;
+  line-height: 16px;
+}

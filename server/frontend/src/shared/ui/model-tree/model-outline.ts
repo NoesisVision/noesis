@@ -22,6 +22,8 @@ const OUTLINE_KINDS = [
   // A design's requirements: a group of them, and the need a rule answers.
   'group',
   'need',
+  // What the architecture view finds when it checks the design.
+  'check',
 ] as const;
 export type OutlineKind = (typeof OUTLINE_KINDS)[number];
 
@@ -81,6 +83,7 @@ const KIND_ORDER: readonly OutlineKind[] = [
   'scenario',
   'group',
   'need',
+  'check',
 ];
 
 /** Past the end of both orders, so anything unplaced sorts after everything placed. */

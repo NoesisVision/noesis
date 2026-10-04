@@ -143,6 +143,21 @@
   &[data-tone='command'] {
     color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
   }
+
+  /* A check that found something, and one that found nothing. */
+  &[data-tone='warning'] {
+    color: light-dark(
+      var(--mantine-color-orange-8),
+      var(--mantine-color-orange-4)
+    );
+  }
+
+  &[data-tone='pass'] {
+    color: light-dark(
+      var(--mantine-color-green-8),
+      var(--mantine-color-green-4)
+    );
+  }
 }
 
 /*
