@@ -67,7 +67,11 @@ nothing.
   modelling guidance in its `references/`, and stores it through
   `create_design_doc_in_change` — or, asked for several alternatives, hands
   each option to a subagent of its own with the brief in its `references/`
-  and compares what they saved. A skill
+  and compares what they saved; `implement-java-spring` turns a design
+  document into Java domain code for a Spring Boot project, each module,
+  building block and behaviour carrying the stereotype the Java scanner
+  reads, with one JUnit test asserted with AssertJ per scenario, following
+  the mapping, building block and testing rules in its `references/`. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the
   skill writes its working file to the session's scratch directory and hands
