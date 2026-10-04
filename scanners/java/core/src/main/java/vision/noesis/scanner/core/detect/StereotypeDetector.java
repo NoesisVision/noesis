@@ -46,6 +46,7 @@ public final class StereotypeDetector {
                 clazz.getPackageName(),
                 direction,
                 null,
+                null,
                 clazz.getSourceCodeLocation().toString());
     }
 

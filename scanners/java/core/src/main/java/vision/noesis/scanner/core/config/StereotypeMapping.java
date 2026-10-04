@@ -3,13 +3,16 @@ package vision.noesis.scanner.core.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import vision.noesis.scanner.core.model.BehaviourType;
 import vision.noesis.scanner.core.model.NodeType;
 import vision.noesis.scanner.core.model.PortDirection;
 
 /**
- * Maps annotation FQNs to stereotypes. The scanner has no compile dependency on
- * any annotation library — detection matches names found in bytecode, so teams
- * can plug in their own vocabulary. jMolecules and noesis mappings are built in.
+ * Maps annotation FQNs to stereotypes: type annotations to building blocks and
+ * messages, method annotations to behaviour types. The scanner has no compile
+ * dependency on any annotation library — detection matches names found in
+ * bytecode, so teams can plug in their own vocabulary. jMolecules and noesis
+ * mappings are built in.
  */
 public final class StereotypeMapping {
 
@@ -22,9 +25,13 @@ public final class StereotypeMapping {
     }
 
     private final Map<String, MappedStereotype> byAnnotationFqn;
+    private final Map<String, BehaviourType> behaviourTypesByAnnotationFqn;
 
-    private StereotypeMapping(Map<String, MappedStereotype> byAnnotationFqn) {
+    private StereotypeMapping(
+            Map<String, MappedStereotype> byAnnotationFqn,
+            Map<String, BehaviourType> behaviourTypesByAnnotationFqn) {
         this.byAnnotationFqn = Map.copyOf(byAnnotationFqn);
+        this.behaviourTypesByAnnotationFqn = Map.copyOf(behaviourTypesByAnnotationFqn);
     }
 
     public Optional<MappedStereotype> stereotypeOf(String annotationFqn) {
@@ -35,18 +42,36 @@ public final class StereotypeMapping {
         return byAnnotationFqn;
     }
 
-    /** This mapping plus additional entries; additions win on conflict. */
+    /** Method annotations that give a behaviour its type. */
+    public Map<String, BehaviourType> behaviourTypes() {
+        return behaviourTypesByAnnotationFqn;
+    }
+
+    /** This mapping plus additional type annotations; additions win on conflict. */
     public StereotypeMapping plus(Map<String, MappedStereotype> additions) {
         Map<String, MappedStereotype> merged = new LinkedHashMap<>(byAnnotationFqn);
         merged.putAll(additions);
-        return new StereotypeMapping(merged);
+        return new StereotypeMapping(merged, behaviourTypesByAnnotationFqn);
+    }
+
+    /** This mapping plus additional method annotations; additions win on conflict. */
+    public StereotypeMapping plusBehaviourTypes(Map<String, BehaviourType> additions) {
+        Map<String, BehaviourType> merged = new LinkedHashMap<>(behaviourTypesByAnnotationFqn);
+        merged.putAll(additions);
+        return new StereotypeMapping(byAnnotationFqn, merged);
     }
 
     /** jMolecules + noesis vocabularies. */
     public static StereotypeMapping defaults() {
-        return jMolecules().plus(noesis().asMap());
+        StereotypeMapping noesis = noesis();
+        return jMolecules().plus(noesis.asMap()).plusBehaviourTypes(noesis.behaviourTypes());
     }
 
+    /**
+     * The noesis vocabulary. {@code @Command}, {@code @Query} and {@code @Event} mark
+     * message classes; {@code @CommandHandler}, {@code @QueryHandler} and
+     * {@code @EventHandler} mark the behaviours that handle them.
+     */
     public static StereotypeMapping noesis() {
         Map<String, MappedStereotype> m = new LinkedHashMap<>();
         String p = "vision.noesis.annotations.";
@@ -64,7 +89,12 @@ public final class StereotypeMapping {
         m.put(p + "Command", MappedStereotype.of(NodeType.COMMAND));
         m.put(p + "Query", MappedStereotype.of(NodeType.QUERY));
         m.put(p + "Event", MappedStereotype.of(NodeType.EVENT));
-        return new StereotypeMapping(m);
+
+        Map<String, BehaviourType> b = new LinkedHashMap<>();
+        b.put(p + "CommandHandler", BehaviourType.COMMAND);
+        b.put(p + "QueryHandler", BehaviourType.QUERY);
+        b.put(p + "EventHandler", BehaviourType.EVENT);
+        return new StereotypeMapping(m, b);
     }
 
     public static StereotypeMapping jMolecules() {
@@ -90,6 +120,10 @@ public final class StereotypeMapping {
                 new MappedStereotype(NodeType.ADAPTER, PortDirection.SECONDARY));
         // jMolecules has no @Query and no @ApplicationService — teams supply those
         // via the noesis annotations or a custom mapping (design-doc §9.4).
-        return new StereotypeMapping(m);
+
+        Map<String, BehaviourType> b = new LinkedHashMap<>();
+        b.put("org.jmolecules.architecture.cqrs.CommandHandler", BehaviourType.COMMAND);
+        b.put("org.jmolecules.event.annotation.DomainEventHandler", BehaviourType.EVENT);
+        return new StereotypeMapping(m, b);
     }
 }

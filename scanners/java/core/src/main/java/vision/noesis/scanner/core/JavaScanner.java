@@ -33,7 +33,7 @@ public final class JavaScanner {
         Map<JavaClass, Node> classNodes = new StereotypeDetector(config.stereotypes()).detect(classes);
 
         Derived derived = new ModuleDeriver().derive(classNodes);
-        Map<JavaMethod, Node> behaviours = new BehaviourDeriver().derive(classNodes, derived);
+        Map<JavaMethod, Node> behaviours = new BehaviourDeriver(config.stereotypes()).derive(classNodes, derived);
         new InvocationDeriver().derive(behaviours, derived);
         new MessageEdgeDeriver().derive(behaviours, classNodes, derived);
         new PortBindingDeriver().derive(classNodes, derived);

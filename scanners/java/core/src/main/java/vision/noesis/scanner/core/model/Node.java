@@ -16,12 +16,14 @@ public record Node(
         String group,
         /** Only for PORT / ADAPTER nodes. */
         PortDirection direction,
+        /** Only for BEHAVIOUR nodes whose method carries a behaviour-type annotation. */
+        BehaviourType behaviourType,
         /** Only for BEHAVIOUR nodes — method signature without owner prefix. */
         String signature,
         /** Source location ("File.java:42") when debug info is present. */
         String source) {
 
     public static Node grouping(String packageName, NodeType type, String label) {
-        return new Node(packageName, type, label, null, null, null, null);
+        return new Node(packageName, type, label, null, null, null, null, null);
     }
 }
