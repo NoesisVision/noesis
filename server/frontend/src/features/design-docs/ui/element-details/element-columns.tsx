@@ -67,7 +67,7 @@ export function ElementColumns({
         min="280px"
         className={classes.splitPane}
       >
-        {scenarios}
+        <div className={classes.stickyScenarios}>{scenarios}</div>
       </Splitter.Pane>
     </Splitter>
   );
