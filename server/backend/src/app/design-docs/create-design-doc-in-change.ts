@@ -8,6 +8,7 @@ import {
 import type { Now, Today } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
+import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
 import {
   type DesignDocument,
   DesignDocumentContent,
@@ -32,6 +33,7 @@ export type CreateDesignDocInChangeHandler = Handler<
 export function createDesignDocInChangeHandler(
   designDocs: ChangeOwnedRepository<DesignDocument>,
   changes: ChangesReader,
+  systemModels: SystemModelsReader,
   today: Today,
   now: Now,
 ): CreateDesignDocInChangeHandler {
@@ -40,12 +42,13 @@ export function createDesignDocInChangeHandler(
      * Creates the design document in the change, at an id minted from today's
      * date and its name. A name already used that day in the change gets the
      * next free suffix. Only an agent creates one, so it is held to the rules
-     * an agent follows; throws `InvalidDesignDocError` when it breaks them.
+     * an agent follows against the newest scan; throws `InvalidDesignDocError`
+     * when it breaks them.
      * One created as implemented is stamped with the time it is created.
      */
     async handle({ change, designDoc }) {
       await getChangeOrThrow(changes, change);
-      assertDesignDocFollowsRules(designDoc, 'agent');
+      await assertDesignDocFollowsRules(designDoc, 'agent', systemModels);
       const implementedAt = implementedAtOf(designDoc, null, now);
       const at = (id: DesignDocId): DesignDocument => ({
         id,

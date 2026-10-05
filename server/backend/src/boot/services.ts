@@ -3,6 +3,7 @@ import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
+import { deleteChangeHandler } from '#backend/app/changes/delete-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
@@ -50,6 +51,7 @@ export function createServices(
   return {
     createChange: createChangeHandler(changes, today),
     updateChange: updateChangeHandler(changes),
+    deleteChange: deleteChangeHandler(changes),
     listChanges: listChangesHandler(changes),
     listChangesWithEntries: listChangesWithEntriesHandler(
       changes,
@@ -60,12 +62,14 @@ export function createServices(
     createDesignDocInChange: createDesignDocInChangeHandler(
       designDocs,
       changes,
+      systemModels,
       today,
       now,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
+      systemModels,
       now,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),

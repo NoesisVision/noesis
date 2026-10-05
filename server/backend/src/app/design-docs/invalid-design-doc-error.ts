@@ -1,3 +1,4 @@
+import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
 import {
   DesignDocument,
   type DesignDocumentContent,
@@ -22,15 +23,19 @@ export class InvalidDesignDocError extends Error {
 
 /**
  * Throws `InvalidDesignDocError` when the document breaks the rules `writer`
- * follows. No system model is scanned yet, so every design is a green field.
+ * follows against the newest scan; before the first one, every design is a
+ * green field. `before` is the version an update replaces.
  */
-export function assertDesignDocFollowsRules(
+export async function assertDesignDocFollowsRules(
   document: DesignDocumentContent,
   writer: DesignDocFieldAuthor,
-): void {
+  systemModels: SystemModelsReader,
+  before?: DesignDocumentContent,
+): Promise<void> {
+  const systemModel = (await systemModels.findNewest()) ?? undefined;
   const violations =
     writer === 'agent'
-      ? DesignDocument.validateAgentGenerated(document)
-      : DesignDocument.validateHumanEdited(document);
+      ? DesignDocument.validateAgentGenerated(document, systemModel, before)
+      : DesignDocument.validateHumanEdited(document, systemModel);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

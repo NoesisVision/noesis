@@ -33,14 +33,46 @@ export const designDocFixture = {
   name: 'Partial refunds for orders',
   description:
     'Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.',
+  needs: {
+    added: [
+      {
+        id: 'refund-single-lines',
+        name: byAgent('Refund single lines'),
+        stakeholder: byAgent('Support agents'),
+        statement: byHuman(
+          'Support agents need to refund one line of an order when the customer returns only part of it.',
+        ),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
         name: byAgent('refunds'),
-        description: byAgent(
+        definition: byAgent(
           'Everything about giving money back to a customer.',
         ),
+        diagram: unchanged,
+        rules: {
+          added: [
+            {
+              name: 'A refund is issued within a second',
+              category: byAgent('Quality'),
+              ruleType: byAgent('Performance'),
+              description: byAgent(
+                'Issuing a refund answers within one second for an order of up to 100 lines.',
+              ),
+              needs: byAgent(['refund-single-lines']),
+              rationale: unchanged,
+              scenarios: noChanges,
+            },
+          ],
+          removed: [],
+          modified: [],
+        },
       },
     ],
     removed: ['module|sales.credit-notes'],
@@ -48,9 +80,11 @@ export const designDocFixture = {
       {
         id: 'module|sales.orders',
         name: unchanged,
-        description: byHuman(
+        definition: byHuman(
           'Order lifecycle, now including the refundable state of each line.',
         ),
+        diagram: unchanged,
+        rules: noChanges,
       },
     ],
   },
@@ -60,9 +94,8 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.Refund',
         name: byHuman('Refund'),
         type: byHuman('aggregate'),
-        description: byAgent(
-          'A refund of one or more lines of a single order.',
-        ),
+        definition: byAgent('A refund of one or more lines of a single order.'),
+        diagram: unchanged,
         implements: noAdditions,
         properties: {
           added: [
@@ -102,9 +135,14 @@ export const designDocFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
+              category: byAgent('Business'),
               ruleType: byAgent('Consistency'),
               description: byHuman(
                 'The sum of all refunds of an order is at most what the customer paid for it.',
+              ),
+              needs: byAgent(['refund-single-lines']),
+              rationale: byAgent(
+                'Support may not pay out more than the order brought in.',
               ),
               scenarios: noChanges,
             },
@@ -130,8 +168,9 @@ export const designDocFixture = {
       {
         id: 'building_block|sales.refunds.RefundIssued',
         name: byAgent('RefundIssued'),
-        type: byAgent('domain_event'),
-        description: byAgent('Tells the ledger a refund went out.'),
+        type: byAgent('value_object'),
+        definition: byAgent('Tells the ledger a refund went out.'),
+        diagram: unchanged,
         implements: noAdditions,
         properties: noChanges,
         rules: noChanges,
@@ -141,7 +180,8 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.RefundRepository',
         name: byAgent('RefundRepository'),
         type: byAgent('repository'),
-        description: byAgent('Stores refunds.'),
+        definition: byAgent('Stores refunds.'),
+        diagram: unchanged,
         implements: {
           added: ['building_block|sales.shared.Repository'],
           removed: [],
@@ -157,7 +197,8 @@ export const designDocFixture = {
         id: 'building_block|sales.orders.Order',
         name: unchanged,
         type: unchanged,
-        description: unchanged,
+        definition: unchanged,
+        diagram: unchanged,
         implements: noAdditions,
         properties: {
           added: [
@@ -189,28 +230,59 @@ export const designDocFixture = {
         id: 'behavior|sales.refunds.Refund.issue',
         name: byAgent('issue'),
         type: byHuman('Command'),
-        description: byAgent(
+        definition: byAgent(
           'Issues a refund for the chosen lines of an order.',
+        ),
+        diagram: byAgent(
+          'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
         input: {
           added: [
-            'building_block|sales.orders.OrderId',
-            { collectionOf: 'building_block|sales.refunds.RefundLine' },
-            'primitive|string',
+            {
+              name: 'orderId',
+              type: byAgent('building_block|sales.orders.OrderId'),
+              description: byAgent('The order to refund.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'lines',
+              type: byAgent({
+                collectionOf: 'building_block|sales.refunds.RefundLine',
+              }),
+              description: byAgent('The lines to refund.'),
+              optional: byAgent(false),
+            },
+            {
+              name: 'reason',
+              type: byHuman('primitive|string'),
+              description: byAgent('Why support refunds the lines.'),
+              optional: byAgent(true),
+            },
           ],
           removed: [],
+          modified: [],
         },
         output: {
-          added: ['building_block|sales.refunds.RefundIssued'],
+          added: [
+            {
+              type: 'building_block|sales.refunds.RefundIssued',
+              description: byAgent('Tells the ledger the refund went out.'),
+              optional: byAgent(false),
+            },
+          ],
           removed: [],
+          modified: [],
         },
         rules: {
           added: [
             {
               name: 'Only paid orders are refundable',
+              category: byAgent('Business'),
               ruleType: byAgent('State change'),
               description: byAgent('An unpaid order has nothing to refund.'),
+              needs: byAgent([]),
+              rationale: unchanged,
               scenarios: noChanges,
             },
           ],
@@ -226,10 +298,32 @@ export const designDocFixture = {
         id: 'behavior|sales.orders.Order.cancel',
         name: unchanged,
         type: unchanged,
-        description: unchanged,
+        definition: unchanged,
+        diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
-        input: noAdditions,
-        output: noAdditions,
+        input: {
+          added: [],
+          removed: ['force'],
+          modified: [
+            {
+              name: 'reason',
+              type: unchanged,
+              description: byAgent('Shown to the customer.'),
+              optional: unchanged,
+            },
+          ],
+        },
+        output: {
+          added: [],
+          removed: [],
+          modified: [
+            {
+              type: 'building_block|sales.orders.OrderCancelled',
+              description: byAgent('Now also names the reason.'),
+              optional: unchanged,
+            },
+          ],
+        },
         rules: noChanges,
         scenarios: noChanges,
       },
@@ -248,6 +342,7 @@ export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
 const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
 export const greenFieldDesignDocFixture: DesignDocumentInput = {
   ...byAgentOnly,
+  needs: { added: byAgentOnly.needs.added },
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
   behaviours: { added: byAgentOnly.behaviours.added },
@@ -259,6 +354,7 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
  */
 export const humanEditedDesignDocFixture: DesignDocumentInput = {
   ...designDocFixture,
+  needs: { added: designDocFixture.needs.added },
   modules: { added: designDocFixture.modules.added },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
   behaviours: { added: designDocFixture.behaviours.added },

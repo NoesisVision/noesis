@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
   DesignDocument,
@@ -8,6 +9,7 @@ import {
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   decodedDesignDocFixture,
   designDocFixture,
@@ -32,13 +34,41 @@ const byAgent = contentOf(greenFieldDesignDocFixture);
 /** The same additions with fields a human wrote in their own name. */
 const byHuman = contentOf(humanEditedDesignDocFixture);
 /** The same design, removing an element: nothing is scanned that it could remove. */
+const CREDIT_NOTE = 'building_block|sales.credit-notes.CreditNote';
 const removing = contentOf({
   ...greenFieldDesignDocFixture,
   buildingBlocks: {
     ...greenFieldDesignDocFixture.buildingBlocks,
-    removed: ['building_block|sales.credit-notes.CreditNote'],
+    removed: [CREDIT_NOTE],
   },
 });
+
+const OLDER_SCAN = '01a0d22d-7f47-76b9-abd4-bd21d66a1d17';
+const NEWER_SCAN = '01a0d22e-0000-7000-8000-000000000000';
+
+/** Stores a scan at `id`, holding the credit note or nothing. */
+async function scan(
+  id: string,
+  { withCreditNote }: { withCreditNote: boolean },
+) {
+  await new NoesisSystemModelsRepository(t.noesis).create(
+    SystemModel.parse({
+      id,
+      name: 'shop',
+      scanned_at: '2026-09-25T08:00:00.000Z',
+      buildingBlocks: withCreditNote
+        ? [
+            {
+              id: CREDIT_NOTE,
+              name: 'CreditNote',
+              type: 'aggregate',
+              source: { path: 'src/sales/credit-notes/credit-note.ts' },
+            },
+          ]
+        : [],
+    }),
+  );
+}
 
 let t: TestNoesis;
 
@@ -179,6 +209,36 @@ describe('Creating a design document', () => {
     );
   });
 
+  it('takes a design that removes an element the newest scan has', async () => {
+    await scan(NEWER_SCAN, { withCreditNote: true });
+
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: removing,
+    });
+
+    expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toMatchObject({
+      buildingBlocks: { removed: [CREDIT_NOTE] },
+    });
+  });
+
+  it('refuses removing an element only an older scan has, storing nothing', async () => {
+    await scan(OLDER_SCAN, { withCreditNote: true });
+    await scan(NEWER_SCAN, { withCreditNote: false });
+
+    expect(
+      await brokenRules(
+        t.createDesignDocInChange.handle({
+          change: CHANGE,
+          designDoc: removing,
+        }),
+      ),
+    ).toEqual(['unknownElement']);
+    expect(await t.listDesignDocsInChange.handle({ change: CHANGE })).toEqual(
+      [],
+    );
+  });
+
   it('refuses a field a human wrote, storing nothing', async () => {
     const withHumanField = contentOf({
       ...greenFieldDesignDocFixture,
@@ -187,7 +247,7 @@ describe('Creating a design document', () => {
           {
             id: 'module|sales.refunds',
             name: { value: 'refunds' },
-            description: { value: 'Money back.', author: 'human' },
+            definition: { value: 'Money back.', author: 'human' },
           },
         ],
       },
@@ -290,6 +350,37 @@ describe('Updating a design document', () => {
     );
   });
 
+  it('checks the new version against the newest scan', async () => {
+    const { id } = await t.createDesignDocInChange.handle({
+      change: CHANGE,
+      designDoc: byAgent,
+    });
+    await scan(OLDER_SCAN, { withCreditNote: false });
+
+    expect(
+      await brokenRules(
+        t.updateDesignDocInChange.handle({
+          change: CHANGE,
+          id,
+          designDoc: removing,
+          writer: 'agent',
+        }),
+      ),
+    ).toEqual(['unknownElement']);
+
+    await scan(NEWER_SCAN, { withCreditNote: true });
+    await t.updateDesignDocInChange.handle({
+      change: CHANGE,
+      id,
+      designDoc: removing,
+      writer: 'human',
+    });
+
+    expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toMatchObject({
+      buildingBlocks: { removed: [CREDIT_NOTE] },
+    });
+  });
+
   it('takes the fields a human writes in their own name', async () => {
     const { id } = await t.createDesignDocInChange.handle({
       change: CHANGE,
@@ -324,6 +415,85 @@ describe('Updating a design document', () => {
         }),
       ),
     ).toContain('humanAuthor');
+  });
+
+  describe('revising a design a human edited, an agent', () => {
+    const NEED = 'refund-single-lines';
+    const STATEMENT = 'Support agents need to refund one line of an order.';
+
+    /** byHuman with the statement of its need, a human's field, replaced. */
+    const withStatement = (statement: Record<string, unknown>) =>
+      DesignDocumentContent.parse({
+        ...byHuman,
+        needs: {
+          ...byHuman.needs,
+          added: byHuman.needs.added.map((need) => ({ ...need, statement })),
+        },
+      });
+
+    async function editedByHuman() {
+      const { id } = await t.createDesignDocInChange.handle({
+        change: CHANGE,
+        designDoc: byAgent,
+      });
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: byHuman,
+        writer: 'human',
+      });
+      return id;
+    }
+
+    it("keeps every field a human wrote or accepted that it leaves alone, in the human's name", async () => {
+      const id = await editedByHuman();
+
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: { ...byHuman, description: 'Refunds by line.' },
+        writer: 'agent',
+      });
+
+      expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toEqual(
+        DesignDocument.parse({
+          ...humanEditedDesignDocFixture,
+          id,
+          description: 'Refunds by line.',
+        }),
+      );
+    });
+
+    it("refuses a human's field it changes but leaves in the human's name", async () => {
+      const id = await editedByHuman();
+
+      expect(
+        await brokenRules(
+          t.updateDesignDocInChange.handle({
+            change: CHANGE,
+            id,
+            designDoc: withStatement({ value: STATEMENT, author: 'human' }),
+            writer: 'agent',
+          }),
+        ),
+      ).toEqual(['humanAuthor']);
+    });
+
+    it("writes a human's field it changes in its own name", async () => {
+      const id = await editedByHuman();
+
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: withStatement({ value: STATEMENT }),
+        writer: 'agent',
+      });
+
+      const stored = await t.findDesignDoc.handle({ change: CHANGE, id });
+      expect(
+        stored.needs.added.find(({ id }) => id === NEED)?.statement,
+      ).toEqual({ changed: true, value: STATEMENT, author: 'agent' });
+    });
   });
 
   it('holds a human to the rules every design follows', async () => {

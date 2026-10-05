@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 const tree = outlineTree(outlineFixture);

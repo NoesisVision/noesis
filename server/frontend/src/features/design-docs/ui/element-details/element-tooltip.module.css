@@ -1,0 +1,54 @@
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+/* The full name on one line, however long: the tooltip widens to it. */
+.address {
+  font-family: var(--mantine-font-family-monospace);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.line {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+
+  /* A dot per line, in the blue a declaration box is edged with. */
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--mantine-color-brand-4);
+    vertical-align: middle;
+  }
+}
+
+/* The type, coloured as a declaration box colours it. */
+.type {
+  color: var(--mantine-color-anchor);
+}
+
+/* A word with a tooltip, which nothing else marks as one. */
+.hint {
+  cursor: help;
+}

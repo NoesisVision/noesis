@@ -1,0 +1,35 @@
+.root {
+  min-width: 0;
+}
+
+/*
+ * Sentence case, quiet: the section heads its content, it does not shout. Its
+ * layout is the group's props; its colour stays here, for `.muted` to quieten.
+ */
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--noesis-secondary-text);
+}
+
+.icon {
+  display: inline-flex;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.author {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* What is said about the element, under a rule and a shade quieter. */
+.muted {
+  & .title {
+    color: var(--mantine-color-dimmed);
+  }
+}

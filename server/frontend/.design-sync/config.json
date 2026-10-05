@@ -1,0 +1,71 @@
+{
+  "projectId": "ac86a6bb-b21b-472d-b2a1-3592c124a97c",
+  "shape": "package",
+  "pkg": "@noesis/design-system",
+  "globalName": "NoesisDS",
+  "buildCmd": "node .design-sync/build-pkg.mjs",
+  "entry": ".ds-pkg/index.ts",
+  "srcDir": "../src/shared/design-system",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "styles.css",
+  "extraFonts": [
+    "../node_modules/@fontsource-variable/raleway/index.css"
+  ],
+  "provider": {
+    "component": "MantineProvider",
+    "props": {
+      "theme": {
+        "$ref": "theme"
+      },
+      "defaultColorScheme": "light",
+      "cssVariablesResolver": {
+        "$ref": "cssVariablesResolver"
+      }
+    }
+  },
+  "libOverrides": {
+    "dts.mjs": "the DS wraps @mantine/core, so Mantine's component props are the DS's own API; only its style-props layer is filtered"
+  },
+  "extraEntries": [
+    "@tabler/icons-react",
+    "../src/shared/ui/icons/icons.ts"
+  ],
+  "overrides": {
+    "Menu": {
+      "cardMode": "single",
+      "viewport": "360x300"
+    },
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "640x420"
+    },
+    "Tooltip": {
+      "cardMode": "single",
+      "viewport": "360x200"
+    },
+    "AppShell": {
+      "cardMode": "single",
+      "viewport": "960x560"
+    },
+    "Splitter": {
+      "cardMode": "column"
+    },
+    "Grid": {
+      "cardMode": "column"
+    },
+    "Group": {
+      "cardMode": "column"
+    },
+    "MantineProvider": {
+      "cardMode": "column"
+    },
+    "TextInput": {
+      "cardMode": "column"
+    },
+    "Popover": {
+      "cardMode": "single",
+      "viewport": "360x300"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

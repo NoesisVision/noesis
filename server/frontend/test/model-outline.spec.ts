@@ -4,13 +4,13 @@ import {
   drawsDiagram,
   type OutlineNode,
   patternLabelOf,
-} from '../src/shared/ui/model-tree/model-outline';
+} from '../src/features/design-docs/ui/model-tree/model-outline';
 
 describe('patternLabelOf', () => {
   it('writes out the vocabulary the model spells in lower case', () => {
     expect(patternLabelOf('application_service')).toBe('Application Service');
     expect(patternLabelOf('aggregate')).toBe('Aggregate');
-    expect(patternLabelOf('domain_event')).toBe('Domain Event');
+    expect(patternLabelOf('value_object')).toBe('Value Object');
     expect(patternLabelOf(null)).toBeNull();
   });
 

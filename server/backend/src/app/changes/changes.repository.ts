@@ -13,6 +13,9 @@ export interface ChangesRepository {
 
   /** Replaces the stored change whole, what it owns aside; `false` when there is none. */
   replace(change: Change): Promise<boolean>;
+
+  /** Removes the change and everything it owns; `false` when there is none. */
+  delete(id: ChangeId): Promise<boolean>;
 }
 
 /** What a query may touch: the methods that read. */

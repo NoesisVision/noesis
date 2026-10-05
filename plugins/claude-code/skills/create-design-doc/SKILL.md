@@ -30,8 +30,8 @@ Both are JSON Schema. Read them at step 6, not from memory.
 ## Modelling guidance
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
-modules, building block types, use cases and actors, rules, scenarios. Read
-it at step 5.
+definitions, needs, modules, building block types, use cases and actors,
+rules, scenarios. Read it at step 5.
 
 ## Steps
 
@@ -52,7 +52,8 @@ it at step 5.
    material, offering the `add-document-to-change` skill. When sources
    disagree, trust them in this order: the user's message, files the user
    pointed at, the change's documents (newer before older), the system
-   model.
+   model. Note the needs as you read: who needs what, in the stakeholder's
+   words, one need per distinct goal.
 4. **Load the baseline.** Call `get_newest_system_model`. Scan first with
    `scan_system_model`, then call `get_newest_system_model` again, when
    there is no scan yet or the code has moved on since `scanned_at`: the
@@ -62,6 +63,9 @@ it at step 5.
    the only baseline; its ids are the only ones `modified` and `removed` may
    name.
 5. **Design.** Read the modelling guidance now, then work through:
+   - **Needs.** The stakeholder goals the change answers, each with the
+     stakeholder and a statement of who needs what and when. A need is a
+     goal, never a solution.
    - **Modules.** Place the work in existing modules first. A new module
      only for a cohesive group of building blocks, under the module closest
      to it in meaning. A new root module needs the user's approval, always.
@@ -72,7 +76,9 @@ it at step 5.
    - **Building blocks and behaviours**, with their types, properties,
      `implements` and behaviour inputs and outputs. Take ready solutions
      from the sources, diagrams especially.
-   - **Rules**, each with its type, attached at exactly one level.
+   - **Rules**, one per requirement statement, each with its category and
+     type, the needs it answers (none for a design decision) and, when a
+     source gives one, its rationale, attached at exactly one level.
    - **Scenarios** in given, when, then, attached to the rule they verify,
      else to the behaviour, else to the building block.
 
@@ -91,22 +97,32 @@ it at step 5.
 6. **Diff against the baseline.** Read both contracts now. For every
    element and every part of one (property, rule, scenario, input, output,
    `implements` entry), ask whether the system model has it:
-   - **Not in the model:** `added`, with every field given a value.
-   - **In the model and changed:** `modified`, with its id (a part's name)
-     and only the fields that change. Its `description` is always a change
+   - **Not in the model:** `added`, with every field given a value except
+     `diagram`, which only an element worth drawing has.
+   - **In the model and changed:** `modified`, with its id (a part's name,
+     an output's type) and only the fields that change. The `description`
+     of a property, an input, an output or a scenario is always a change
      note: `"Change note: "`, then what changes and why, so a reader sees
-     why the element is in the diff.
-   - **In the model and retired:** `removed`, by id (a part by name). Remove
-     a building block's behaviours with it.
+     why the part is in the diff. An element's `definition` never is: give
+     it only when what the element is changes, and then write the whole new
+     definition. Nor is a rule's `description`: it is the requirement's
+     whole new statement. Say why a modified element or rule is in the diff
+     in the design document's `description`.
+   - **In the model and retired:** `removed`, by id (a part by name, an
+     output by type). Remove a building block's behaviours with it.
    - **In the model and unchanged:** leave it out, even when the design
      refers to it. A reference resolves against the model.
 
    Nesting follows the same questions: inside an `added` element everything
    is added; a `modified` building block lists only the properties, rules
-   and scenarios that change. `input`, `output` and `implements` have no
-   `modified`: a changed entry is removed and added. A rename of an element
-   in the model is a removal of the old id and an addition of the new one,
-   and every reference to the old id moves to the new one.
+   and scenarios that change. A behaviour's input is a part known by its
+   name, like a property; an output has no name and is known by its `type`,
+   so an output of another type is one removed and one added. `implements`
+   has no `modified`: a changed entry is removed and added. Needs are only
+   ever `added`: no scan holds one, so there is nothing to modify or
+   remove. A rename of an element in the model is a removal of the old id
+   and an addition of the new one, and every reference to the old id moves
+   to the new one.
 
 7. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `create_design_doc_in_change`, of
@@ -115,18 +131,21 @@ it at step 5.
 8. **Write the working file** into the scratch directory, e.g.
    `<scratch directory>/design-doc.json`: `name` (a human title, usually the
    change's), `description` (what the design covers and why, in a
-   paragraph), `modules`, `buildingBlocks` and `behaviours`. No `id`, no
+   paragraph, including why each element it modifies changes), `needs`,
+   `modules`, `buildingBlocks` and `behaviours`. No `id`, no
    `implemented`. Write every field as `{ "value": … }` and never with
    `author`: you are the agent. Leave out a change set with nothing in it.
-   Before saving, check that every reference — property `type`, behaviour
-   `input` and `output`, `implements` — names a building block this design
-   adds or modifies, one the system model has, or a primitive, and that
-   nothing refers to an id the design removes.
+   Before saving, check that every reference — the `type` of a property, an
+   input or an output, `implements` — names a building block this design
+   adds or modifies, one the system model has, or a primitive, that
+   nothing refers to an id the design removes, and that every rule's
+   `needs` names only needs the design adds.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
-    and removes (counted per modules, building blocks and behaviours), and
-    every assumption you made that no source stated.
+    and removes (counted per modules, building blocks and behaviours), the
+    needs no rule answers, the rules no need asks for, and every assumption
+    you made that no source stated.
 
 ## Several designs
 
@@ -171,9 +190,9 @@ results.
   language the code is written in. One behaviour per method name:
   overloads are one behaviour.
 - A name never holds `.` or `|`, rule and scenario names included.
-- Names are English, or the code's identifiers. Every description and every
-  given, when and then is in the dominant language of the sources; do not
-  translate them.
+- Names are English, or the code's identifiers. Every definition, every
+  description and every given, when and then is in the dominant language of
+  the sources; do not translate them.
 
 ## When the tool refuses
 
@@ -190,6 +209,12 @@ results.
   - _the item is new, so this field needs a value_: give that field of the
     added item a `{ "value" }`.
   - _write every field as the agent_: remove `author` from the field.
+  - _the design document states no such need_: add the need to `needs`, or
+    take its id out of the rule's `needs`.
+  - _the rule's type belongs to another category_: pick a `ruleType` of the
+    rule's `category`, or the `category` of its type.
+  - _a module holds only quality and constraint rules_: move the business
+    rule to the building block or behaviour it governs.
 
   Fix every line, then call again; repeat until the tool accepts the file.
 
@@ -206,7 +231,7 @@ results.
   scratch directory; the tool stores the design document.
 - Never write or derive an id for the design document: the service mints
   it. Every call creates a new design document. Do not call
-  `update_design_doc_in_change`; the user revises a design document in the
-  Noesis page.
+  `update_design_doc_in_change`: revising a design document is the
+  `update-design-doc` skill's job, or the user's in the Noesis page.
 - The diff baseline is the newest system model and nothing else: not an
   earlier design document, not your memory of the code.

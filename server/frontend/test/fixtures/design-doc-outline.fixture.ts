@@ -3,7 +3,8 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 /*
  * A design that changes something at every level, in the JSON form the wire
  * carries: an element added, modified and removed at each of the three kinds,
- * a part of each kind, and one description that draws a diagram. Only what the
+ * a part of each kind, a rule on a module, rules traced to a need and to
+ * none, and one element that draws a diagram. Only what the
  * outline reads is spelled out — the bodies of the fields are the detail
  * panel's business, not the tree's.
  */
@@ -12,29 +13,46 @@ const human = <const T>(value: T) => ({ value, author: 'human' as const });
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
 const ISSUE_DIAGRAM = [
-  'How a refund is issued.',
-  '',
-  '```mermaid',
   'flowchart TD',
   '  accTitle: Issuing a refund',
   '  A[Order] --> B[Refund]',
-  '```',
 ].join('\n');
 
 export const changedEverywhereFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
   name: 'Partial refunds for orders',
   description: 'Refund single order lines.',
+  needs: {
+    added: [
+      {
+        id: 'refund-single-lines',
+        name: agent('Refund single lines'),
+        stakeholder: agent('Support agents'),
+        statement: agent('Support agents need to refund one line of an order.'),
+      },
+    ],
+  },
   modules: {
     added: [
       {
         id: 'module|sales.refunds',
-        description: agent('Giving money back.'),
+        definition: agent('Giving money back.'),
+        rules: {
+          added: [
+            {
+              name: 'A refund is issued within a second',
+              category: agent('Quality'),
+              ruleType: agent('Performance'),
+              description: agent('Issuing a refund answers within a second.'),
+              needs: agent(['refund-single-lines']),
+            },
+          ],
+        },
       },
     ],
     removed: ['module|sales.credit-notes'],
     modified: [
-      { id: 'module|sales.orders', description: human('Order lifecycle.') },
+      { id: 'module|sales.orders', definition: human('Order lifecycle.') },
     ],
   },
   buildingBlocks: {
@@ -42,7 +60,7 @@ export const changedEverywhereFixture = {
       {
         id: 'building_block|sales.refunds.Refund',
         type: human('aggregate'),
-        description: agent('A refund of one or more lines of an order.'),
+        definition: agent('A refund of one or more lines of an order.'),
         properties: {
           added: [
             {
@@ -62,7 +80,10 @@ export const changedEverywhereFixture = {
           added: [
             {
               name: 'Refund never exceeds paid amount',
+              category: agent('Business'),
               ruleType: agent('Consistency'),
+              needs: agent(['refund-single-lines']),
+              rationale: human('Support never pays out more than came in.'),
               scenarios: {
                 added: [
                   {
@@ -95,7 +116,7 @@ export const changedEverywhereFixture = {
       },
       {
         id: 'building_block|sales.refunds.RefundIssued',
-        type: agent('domain_event'),
+        type: agent('value_object'),
       },
       {
         id: 'building_block|sales.refunds.RefundRepository',
@@ -129,12 +150,15 @@ export const changedEverywhereFixture = {
       {
         id: 'behavior|sales.refunds.Refund.issue',
         type: human('Command'),
-        description: agent(ISSUE_DIAGRAM),
+        definition: agent('How a refund is issued.'),
+        diagram: agent(ISSUE_DIAGRAM),
         rules: {
           added: [
             {
               name: 'Only paid orders are refundable',
+              category: agent('Business'),
               ruleType: agent('State change'),
+              needs: agent([]),
             },
           ],
         },

@@ -17,11 +17,11 @@ same stereotype annotations from source without compiling and writes the
 
 ## Modules
 
-| Module          | Artifact                      | What it is                                                                                                                                                                                                                                                                  |
-| --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations/`  | `noesis-annotations`          | The stereotype annotations a team can put on its classes: `@AggregateRoot`, `@Entity`, `@ValueObject`, `@Identifier`, `@DomainService`, `@ApplicationService`, `@Repository`, `@Factory`, `@Port` (with `Direction`), `@Adapter`, `@Module`, `@Command`, `@Query`, `@Event` |
-| `core/`         | `noesis-scanner-core`         | The engine: ArchUnit's `ClassFileImporter` over a classes directory, stereotype detection through a configurable annotation mapping, derivers for modules, behaviours, invocations, message edges and port bindings, and a Jackson JSON writer                              |
-| `maven-plugin/` | `noesis-scanner-maven-plugin` | The `noesis:scan` goal; gathers the project's inputs and calls the core                                                                                                                                                                                                     |
+| Module          | Artifact                      | What it is                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations/`  | `noesis-annotations`          | The stereotype annotations a team can put on its classes: `@AggregateRoot`, `@DomainEntity`, `@ValueObject`, `@Identifier`, `@DomainService`, `@ApplicationService`, `@Repository`, `@Factory`, `@ExternalIntegration` (with `Direction`), `@Adapter`, `@Module`, `@Command`, `@Query`, `@Event` on message classes; and `@CommandHandler`, `@QueryHandler`, `@EventHandler` on the behaviours that handle them |
+| `core/`         | `noesis-scanner-core`         | The engine: ArchUnit's `ClassFileImporter` over a classes directory, stereotype detection through a configurable annotation mapping, derivers for modules, behaviours, invocations, message edges and port bindings, and a Jackson JSON writer                                                                                                                                                                  |
+| `maven-plugin/` | `noesis-scanner-maven-plugin` | The `noesis:scan` goal; gathers the project's inputs and calls the core                                                                                                                                                                                                                                                                                                                                         |
 
 Group id `vision.noesis`, Java 17, version `0.1.0-SNAPSHOT`; nothing is
 published to a repository yet.
@@ -35,7 +35,11 @@ The typed vocabulary (design-doc §9.4), as the `NodeType` and
   `ENTITY`, `VALUE_OBJECT`, `IDENTIFIER`, `DOMAIN_SERVICE`,
   `APPLICATION_SERVICE`, `REPOSITORY`, `FACTORY`, `PORT`, `ADAPTER`;
   messages: `COMMAND`, `QUERY`, `EVENT`; and `BEHAVIOUR` (a public method,
-  id `fqn#method(paramTypes)`).
+  id `fqn#method(paramTypes)`, other than a record accessor, `equals`,
+  `hashCode`, `toString` or an enum's `values` and `valueOf`; with a
+  `behaviourType` of `COMMAND`, `QUERY` or `EVENT` when its method carries
+  `@CommandHandler`, `@QueryHandler` or `@EventHandler`, or jMolecules'
+  `@CommandHandler` or `@DomainEventHandler`).
 - **Edges** — `CONTAINS`, `ASSOCIATION`, `INVOKES` (behaviour to behaviour),
   `SENDS` and `HANDLES` (behaviour to message), `EXPOSES`, `IMPLEMENTS`,
   `DEPENDS_ON` (block-to-block fallback).

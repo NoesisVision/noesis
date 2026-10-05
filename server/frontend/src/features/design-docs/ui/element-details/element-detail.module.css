@@ -1,51 +1,166 @@
+/* The kind's mark in a tile; the pattern and what changed over the name. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg) 0;
+}
+
+.tile {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--mantine-color-brand-light);
+
+  /* The tree's tones are for rows; here the tile carries the colour. */
+  & svg {
+    color: var(--mantine-color-brand-light-color);
+  }
+}
+
+.heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.pattern {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
 /*
- * The element is named the way its address is written, above the description
- * that is not. `Title` sets a family of its own, so the tag is named here to
- * be the more specific of the two.
+ * The element is named the way its address is written. `Title` sets a family
+ * and a size of its own, so the tag is named here to be the more specific.
  */
 h2.name {
+  font-size: 24px;
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
-.breadcrumb {
+/* The name, then what it implements in smaller type on the same line. */
+.title {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 var(--mantine-spacing-xs);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  column-gap: var(--mantine-spacing-xs);
+  min-width: 0;
 }
 
-/*
- * Decorative: the list already says these are steps of one path, and a
- * reader hearing "chevron" between every pair of them would learn nothing.
- */
-.breadcrumb li + li::before {
-  content: '›';
-  margin-right: var(--mantine-spacing-xs);
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
-}
-
-/* A long address wraps rather than pushing the panel wider than its column. */
-.step {
-  font-family: var(--mantine-font-family-monospace);
-  font-size: var(--mantine-font-size-xs);
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+.implements {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-dimmed);
   overflow-wrap: anywhere;
+}
 
-  &:hover {
-    color: light-dark(
-      var(--mantine-color-brand-7),
-      var(--mantine-color-brand-4)
-    );
+/* Named with the line, to win over the button reset a linked type gets. */
+.implements .type {
+  font: inherit;
+  font-weight: 600;
+  color: var(--mantine-color-anchor);
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+
+  &[data-link]:hover {
     text-decoration: underline;
   }
 
-  /* Whatever the mouse gets, the keyboard gets. */
-  &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+  &[data-link]:focus-visible {
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
+}
+
+/* Measured: from 44rem the scenarios stand beside the sections, split. */
+.body {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xl);
+  min-width: 0;
+  /* Room past the last section, so it can be scrolled clear of the pane's edge. */
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg)
+    calc(var(--mantine-spacing-xl) * 3);
+}
+
+.aside {
+  min-width: 0;
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+/*
+ * The handle between the sections and the scenarios is the line that used to
+ * part them: one pixel of the border colour, with Mantine's grip on it.
+ */
+.split {
+  --splitter-handle-color: var(--mantine-color-default-border);
+
+  /* The rest of the panel's height at least, so the handle always spans it. */
+  flex: 1 0 auto;
+  align-items: stretch;
+}
+
+/*
+ * The grip at the middle of what the panel shows of the handle, not of the
+ * whole handle, which runs as tall as the longer column: sticky at both edges
+ * of the panel's scroll area, so it keeps to the middle of the visible panel
+ * as the reader scrolls. Half its 3.75rem height off each. Named with the
+ * splitter, to win over Mantine's own `position: absolute`.
+ */
+.split .splitHandle {
+  /* The grip is in the flow once sticky; it must not widen the line. */
+  min-width: 0;
+}
+
+.split .splitThumb {
+  /* Its own 12px wide, centred over the 1px line as Mantine draws it. */
+  flex: none;
+  position: sticky;
+  top: calc(50% - 1.875rem);
+  bottom: calc(50% - 1.875rem);
+}
+
+/*
+ * The panel scrolls, not a column: a pane is as tall as what it holds, and
+ * lets the scenarios inside it stick. Named with the splitter, to win over
+ * Mantine's own `overflow: auto`.
+ */
+.split .splitPane {
+  min-width: 0;
+  overflow: visible;
+}
+
+/*
+ * Beside a long run of sections, the scenarios stay at the top of the panel
+ * while the sections scroll past them, until the sections end.
+ */
+.stickyScenarios {
+  position: sticky;
+  top: 0;
 }

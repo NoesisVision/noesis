@@ -1,4 +1,5 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { getRouteApi } from '@tanstack/react-router';
 import { designDocsList } from '#/features/design-docs/design-docs.api.ts';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
 import { documentsList } from '#/features/documents/documents.api.ts';
@@ -8,42 +9,46 @@ import { Card } from '#/shared/design-system/card.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { CardLink } from '#/shared/ui/card-link.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
+import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { useChangeId } from '../../current-change.ts';
 import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
 import { OverviewStat } from './overview-stat.tsx';
 
+// The change layout loads the change once for every view under it.
+const changeRoute = getRouteApi('/_shell/changes/$changeId');
+
 export function OverviewView() {
   const { changeId } = useChangeId();
+  const { change } = changeRoute.useLoaderData();
   const documents = useQuery(documentsList(changeId));
   const designDocs = useQuery(designDocsList(changeId));
 
   return (
     <Box>
-      <Box>
+      {!!change.description && (
+        <Box mb={16}>
+          <MarkdownEditor readOnly markdown={change.description} noMargin />
+        </Box>
+      )}
+      <Card padding="lg">
         <Grid>
-          <Grid.Col span={{ base: 12, md: 8, lg: 6 }}>
-            <Card padding="lg">
-              <Grid>
-                <Grid.Col span={6}>
-                  <OverviewStat title="Documents" Icon={DocumentsIcon}>
-                    <ChangesLink to="/changes/$changeId/documents">
-                      {count(documents)}
-                    </ChangesLink>
-                  </OverviewStat>
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
-                    <ChangesLink to="/changes/$changeId/design-docs">
-                      {count(designDocs)}
-                    </ChangesLink>
-                  </OverviewStat>
-                </Grid.Col>
-              </Grid>
-            </Card>
+          <Grid.Col span={6}>
+            <OverviewStat title="Documents" Icon={DocumentsIcon}>
+              <ChangesLink to="/changes/$changeId/documents">
+                {count(documents)}
+              </ChangesLink>
+            </OverviewStat>
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
+              <ChangesLink to="/changes/$changeId/design-docs">
+                {count(designDocs)}
+              </ChangesLink>
+            </OverviewStat>
           </Grid.Col>
         </Grid>
-      </Box>
+      </Card>
       <OverviewSection
         mt={16}
         title="Documents"

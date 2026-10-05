@@ -5,7 +5,7 @@ import {
   type OutlineKind,
   type OutlineNode,
   patternLabelOf,
-} from '#/shared/ui/model-tree/model-outline.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
@@ -16,7 +16,13 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
-import { refLabelOf, valueOf } from './design-doc-field.ts';
+import { type ChangeSetInput, named } from './change-set.ts';
+import {
+  type DesignDocFieldInput,
+  refLabelOf,
+  valueOf,
+} from './design-doc-field.ts';
+import { kindOf, nameOf, parentOf } from './element-id.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -28,19 +34,6 @@ import { refLabelOf, valueOf } from './design-doc-field.ts';
  * The document is read as the wire carries it — ids are plain strings, and a
  * field the writer left out is absent rather than defaulted.
  */
-
-/** What a design does to one collection, as the JSON form spells it. */
-interface ChangeSetInput<Item, Key> {
-  added?: Item[] | undefined;
-  removed?: Key[] | undefined;
-  modified?: Item[] | undefined;
-}
-
-/** Where an element sits, read out of its id and nothing else. */
-interface Place {
-  kind: OutlineKind;
-  parentPath: string | null;
-}
 
 export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
@@ -55,8 +48,10 @@ function addModules(
   nodes: Map<string, OutlineNode>,
   modules: ChangeSetInput<DesignedDomainModuleInput, string> | undefined,
 ): void {
-  for (const [module, change] of named(modules))
-    put(nodes, element(module.id, change, null, valueOf(module.description)));
+  for (const [module, change] of named(modules)) {
+    put(nodes, element(module.id, change, null, isDrawn(module)));
+    addRules(nodes, module.id, module.rules);
+  }
   for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
@@ -65,15 +60,7 @@ function addBuildingBlocks(
   blocks: ChangeSetInput<DesignedBuildingBlockInput, string> | undefined,
 ): void {
   for (const [block, change] of named(blocks)) {
-    put(
-      nodes,
-      element(
-        block.id,
-        change,
-        valueOf(block.type),
-        valueOf(block.description),
-      ),
-    );
+    put(nodes, element(block.id, change, valueOf(block.type), isDrawn(block)));
     addProperties(nodes, block.id, block.properties);
     addRules(nodes, block.id, block.rules);
     addScenarios(nodes, block.id, block.scenarios);
@@ -92,7 +79,7 @@ function addBehaviours(
         behaviour.id,
         change,
         valueOf(behaviour.type),
-        valueOf(behaviour.description),
+        isDrawn(behaviour),
       ),
     );
     addRules(nodes, behaviour.id, behaviour.rules);
@@ -169,14 +156,6 @@ function addScenarios(
 const refLabelOrNull = (ref: BuildingBlockRefInput | null) =>
   ref === null ? null : refLabelOf(ref);
 
-/** Every item the design spells out, with what it does to it; removals are keys, not items. */
-function* named<Item>(
-  set: ChangeSetInput<Item, string> | undefined,
-): Generator<[Item, OutlineChange]> {
-  for (const item of set?.added ?? []) yield [item, 'added'];
-  for (const item of set?.modified ?? []) yield [item, 'modified'];
-}
-
 /**
  * A module the document never names still has to be there, or the element
  * whose id names it has nowhere to hang. Walking up from each element stops at
@@ -205,24 +184,37 @@ function put(nodes: Map<string, OutlineNode>, node: OutlineNode): void {
   if (!nodes.has(node.path)) nodes.set(node.path, node);
 }
 
+/**
+ * An element draws its diagram in a field of its own; a definition written
+ * before it had one may still carry the fence.
+ */
+function isDrawn(designed: {
+  definition?: DesignDocFieldInput<string>;
+  diagram?: DesignDocFieldInput<string>;
+}): boolean {
+  return (
+    valueOf(designed.diagram) !== null ||
+    drawsDiagram(valueOf(designed.definition))
+  );
+}
+
 function element(
   id: string,
   change: OutlineChange,
   pattern: string | null = null,
-  description: string | null | undefined = null,
+  hasDiagram = false,
 ): OutlineNode {
-  const { kind, parentPath } = placeOf(id);
   return {
     path: id,
-    parentPath,
+    parentPath: parentOf(id),
     elementId: id,
-    kind,
+    kind: kindOf(id),
     name: nameOf(id),
     depth: 0,
     change,
     pattern,
     patternLabel: patternLabelOf(pattern),
-    hasDiagram: drawsDiagram(description),
+    hasDiagram,
   };
 }
 
@@ -275,33 +267,4 @@ export function ownerOfPart(parentPath: string): {
     elementId: parentPath.slice(0, cut),
     rule: parentPath.slice(cut + RULE_MARK.length),
   };
-}
-
-const MODULE = 'module|';
-const BUILDING_BLOCK = 'building_block|';
-const BEHAVIOUR = 'behavior|';
-
-/** An id's address: its dotted path, without the kind it is written with. */
-const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
-
-/** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
-const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
-
-/**
- * The one place that reads containment out of an id: the rule `ElementId`
- * states on the server, read back off the strings the wire carries. A
- * behaviour hangs under its building block, a building block and a submodule
- * under their module, and a root module under nothing.
- */
-function placeOf(id: string): Place {
-  const address = addressOf(id);
-  const cut = address.lastIndexOf('.');
-  const parentPath = (kind: string) =>
-    cut === -1 ? null : `${kind}${address.slice(0, cut)}`;
-
-  if (id.startsWith(BEHAVIOUR))
-    return { kind: 'behaviour', parentPath: parentPath(BUILDING_BLOCK) };
-  if (id.startsWith(BUILDING_BLOCK))
-    return { kind: 'building_block', parentPath: parentPath(MODULE) };
-  return { kind: 'module', parentPath: parentPath(MODULE) };
 }

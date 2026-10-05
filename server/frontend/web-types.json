@@ -77,6 +77,50 @@
         {
           "name": "--mantine-color-brand-outline-hover",
           "description": "Theme-aware outlined hover background for the Noesis brand palette."
+        },
+        {
+          "name": "--noesis-secondary-text",
+          "description": "Secondary text: quieter than the body text, a step more contrast than Mantine's dimmed. Gray 7 in light, dark 1 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-focus-ring",
+          "description": "The outline a control takes under the keyboard (`:focus-visible`), in the brand filled colour; each rule sets its own offset. from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-edge",
+          "description": "Lines and borders of the architecture diagram: its edges and adapter cards. Gray 6 / dark 2, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-card",
+          "description": "Background of a building-block card in the architecture diagram. White / dark 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-module",
+          "description": "Fill of a module's hexagon in the architecture diagram. Brand 0 / dark 8, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-module-border",
+          "description": "Stroke of a module's hexagon and its cards in the architecture diagram. Brand 3 / brand 8, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-core",
+          "description": "Fill of the domain core inside a module's hexagon. Brand 1 / dark 7, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-core-border",
+          "description": "Stroke of the domain core and its cards. Brand 4 / brand 7, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-architecture-selection",
+          "description": "What marks the selected element in the architecture diagram, and what relates to it: Mantine's orange filled colour, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-requirement-quote",
+          "description": "Background of a quoted need or rule statement in the requirements view. Gray 0 / dark 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-requirement-gap",
+          "description": "Text and underline of a gap in the requirements view — a need no rule traces to. Red 8 / red 4, from `cssVariablesResolver` in `theme.ts`."
         }
       ]
     }

@@ -1,11 +1,11 @@
 package com.itlibrium.discounts.weather;
 
 import vision.noesis.annotations.Direction;
-import vision.noesis.annotations.Port;
+import vision.noesis.annotations.ExternalIntegration;
 
 import io.vavr.control.Option;
 
-@Port(Direction.SECONDARY)
+@ExternalIntegration(Direction.SECONDARY)
 public interface WeatherProvider {
 
     /**

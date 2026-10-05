@@ -213,20 +213,24 @@ describe('stereotypeOf', () => {
   it('maps the stereotype annotations onto the model, first stereotype wins, others are ignored', () => {
     expect(stereotypeOf(['AggregateRoot'])).toBe('aggregate');
     expect(stereotypeOf(['Identifier'])).toBe('value_object');
-    expect(stereotypeOf(['Port'])).toBe('external_integration');
+    expect(stereotypeOf(['ExternalIntegration'])).toBe('external_integration');
     expect(stereotypeOf(['Adapter'])).toBe('external_integration');
-    expect(stereotypeOf(['Component', 'Entity', 'Repository'])).toBe('entity');
+    expect(stereotypeOf(['Component', 'DomainEntity', 'Repository'])).toBe(
+      'entity',
+    );
     expect(stereotypeOf(['Component', 'Override'])).toBeNull();
     expect(stereotypeOf([])).toBeNull();
   });
 
   it('takes a simple name for a foreign annotation when an import binds it elsewhere, and a qualified Noesis name always', () => {
-    const foreign = new Set(['Entity']);
-    expect(stereotypeOf(['Entity'], foreign)).toBeNull();
-    expect(stereotypeOf(['vision.noesis.annotations.Entity'], foreign)).toBe(
-      'entity',
-    );
-    expect(stereotypeOf(['jakarta.persistence.Entity'])).toBeNull();
+    const foreign = new Set(['Repository']);
+    expect(stereotypeOf(['Repository'], foreign)).toBeNull();
+    expect(
+      stereotypeOf(['vision.noesis.annotations.Repository'], foreign),
+    ).toBe('repository');
+    expect(
+      stereotypeOf(['org.springframework.stereotype.Repository']),
+    ).toBeNull();
   });
 });
 

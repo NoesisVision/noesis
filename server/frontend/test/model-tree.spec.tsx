@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { MantineProvider } from '../src/shared/design-system/provider';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
-import { ModelTree } from '../src/shared/ui/model-tree/model-tree';
-import { searchOutline } from '../src/shared/ui/model-tree/outline-search';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
+import { ModelTree } from '../src/features/design-docs/ui/model-tree/model-tree';
+import { searchOutline } from '../src/features/design-docs/ui/model-tree/outline-search';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import {
   type ModelTreeController,
   useModelTree,
-} from '../src/shared/ui/model-tree/use-model-tree';
+} from '../src/features/design-docs/ui/model-tree/use-model-tree';
+import { MantineProvider } from '../src/shared/design-system/provider';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 /*
@@ -98,10 +98,8 @@ describe('ModelTree', () => {
     expect(count(/tabindex="0"/g)).toBe(1);
   });
 
-  it('names the kind, the pattern and the change of a row', () => {
+  it('names the kind and the change of a row', () => {
     expect(rowOf('Order')).toContain('data-kind="building_block"');
-    expect(rowOf('Order')).toContain('Aggregate');
-    expect(rowOf('Orders')).toContain('Repository');
     // What the design does to a row is stated where the colours read it
     // from; nothing happened to the context, and nothing is claimed about it.
     expect(rowOf('orders')).toContain('data-change="added"');
@@ -164,14 +162,14 @@ function searching(query: string): ModelTreeController {
 
 const searched = renderToStaticMarkup(
   <MantineProvider>
-    <ModelTree controller={searching('total')} label="Design outline" />
+    <ModelTree controller={searching('place')} label="Design outline" />
   </MantineProvider>,
 );
 
 describe('ModelTree, searching', () => {
   it('draws the match and the line down to it, and nothing else', () => {
     expect(searched.match(/role="treeitem"/g)?.length).toBe(4);
-    expect(searched).toContain('>total<');
+    expect(searched).toContain('>place<');
     expect(searched).not.toContain('>legacy<');
     expect(searched).not.toContain('>Orders<');
   });
@@ -182,7 +180,7 @@ describe('ModelTree, searching', () => {
   });
 
   it('marks what was found, in the markup and not only in a colour', () => {
-    expect(searched).toMatch(/<mark[^>]*>total<\/mark>/);
+    expect(searched).toMatch(/<mark[^>]*>place<\/mark>/);
   });
 
   it('says which rows are only there to hold the match', () => {

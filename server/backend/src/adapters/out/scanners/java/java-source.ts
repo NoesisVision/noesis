@@ -70,14 +70,14 @@ const NOESIS_ANNOTATIONS_PACKAGE = 'vision.noesis.annotations';
  */
 const STEREOTYPE_ANNOTATIONS: Readonly<Record<string, BuildingBlockType>> = {
   AggregateRoot: 'aggregate',
-  Entity: 'entity',
+  DomainEntity: 'entity',
   ValueObject: 'value_object',
   Identifier: 'value_object',
   DomainService: 'domain_service',
   ApplicationService: 'application_service',
   Repository: 'repository',
   Factory: 'factory',
-  Port: 'external_integration',
+  ExternalIntegration: 'external_integration',
   Adapter: 'external_integration',
   Command: 'domain_command',
   Query: 'domain_query',
@@ -119,8 +119,9 @@ function packageOf(text: string): string | null {
  * The block type the annotations declare, or null when none is a
  * stereotype. An annotation is a Noesis stereotype when written fully
  * qualified with the Noesis package, or by simple name unless an import
- * binds that name to another package (`import jakarta.persistence.Entity;`
- * makes `@Entity` JPA's).
+ * binds that name to another package
+ * (`import org.springframework.stereotype.Repository;` makes `@Repository`
+ * Spring's).
  */
 export function stereotypeOf(
   annotations: string[],

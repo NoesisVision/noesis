@@ -1,4 +1,4 @@
-import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
+import type { OutlineNode } from '../../src/features/design-docs/ui/model-tree/model-outline.ts';
 
 const node = (over: Partial<OutlineNode> & Pick<OutlineNode, 'path'>) =>
   ({

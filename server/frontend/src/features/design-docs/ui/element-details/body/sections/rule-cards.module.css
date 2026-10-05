@@ -1,0 +1,120 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  padding: var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--mantine-color-brand-light);
+  color: var(--mantine-color-brand-light-color);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+
+  &[data-removed] {
+    text-decoration: line-through;
+  }
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &[data-link]:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
+.classification {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--noesis-secondary-text);
+}
+
+.needs {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--noesis-secondary-text);
+}
+
+.description {
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.55;
+  color: var(--noesis-secondary-text);
+  text-wrap: pretty;
+}
+
+/* Named with the list, to win over the anchor's own type and colour. */
+.list .scenarios {
+  display: flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  padding: 4px var(--mantine-spacing-xs) 4px 6px;
+  border-radius: 999px;
+  background: var(--mantine-color-brand-light);
+  color: var(--mantine-color-brand-light-color);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.dots {
+  display: flex;
+  gap: 3px;
+
+  & span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mantine-color-brand-filled);
+  }
+}

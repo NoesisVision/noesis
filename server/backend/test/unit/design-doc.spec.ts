@@ -198,14 +198,7 @@ describe('The elements a design changes', () => {
     });
   });
 
-  it('never modifies an implemented interface, an input or an output: it removes one and adds another', () => {
-    const modifying = (part: string) =>
-      design({
-        behaviours: {
-          modified: [{ id: ISSUE, [part]: { modified: [REFUND] } }],
-        },
-      });
-
+  it('never modifies an implemented interface: it removes one and adds another', () => {
     expect(
       isValid(
         design({
@@ -215,8 +208,46 @@ describe('The elements a design changes', () => {
         }),
       ),
     ).toBe(false);
-    expect(isValid(modifying('input'))).toBe(false);
-    expect(isValid(modifying('output'))).toBe(false);
+  });
+
+  it('knows an input by its name and an output by its type', () => {
+    const parsed = DesignDocument.parse(
+      design({
+        behaviours: {
+          modified: [
+            {
+              id: ISSUE,
+              input: {
+                removed: ['note'],
+                modified: [{ name: 'reason', optional: { value: true } }],
+              },
+              output: {
+                removed: ['primitive|boolean'],
+                modified: [{ type: REFUND, description: { value: 'Issued.' } }],
+              },
+            },
+          ],
+        },
+      }),
+    );
+    const issue = parsed.behaviours.modified[0]!;
+
+    expect(issue.input.removed).toEqual(['note']);
+    expect(issue.input.modified[0]?.name).toBe('reason');
+    expect<unknown[]>(issue.output.removed).toEqual(['primitive|boolean']);
+    expect<unknown>(issue.output.modified[0]?.type).toBe(REFUND);
+  });
+
+  it('names every input and no output', () => {
+    expect(
+      isValid(addingIssue({ input: { added: [{ type: { value: REFUND } }] } })),
+    ).toBe(false);
+    expect(
+      isValid(
+        addingIssue({ output: { added: [{ name: 'refund', type: REFUND }] } }),
+      ),
+    ).toBe(false);
+    expect(isValid(addingIssue({ input: { removed: [REFUND] } }))).toBe(false);
   });
 
   it('classifies a building block, a behaviour and a rule only by the known types', () => {
@@ -243,18 +274,18 @@ describe('A field of a design', () => {
     const block = DesignDocument.parse(addingRefund({})).buildingBlocks
       .added[0]!;
 
-    expect(block.description).toEqual({ changed: false });
+    expect(block.definition).toEqual({ changed: false });
   });
 
   it('is a change when it has a value, written by the agent unless a human wrote it', () => {
     const block = DesignDocument.parse(
       addingRefund({
-        description: { value: 'Money back.' },
+        definition: { value: 'Money back.' },
         type: { value: 'aggregate', author: 'human' },
       }),
     ).buildingBlocks.added[0]!;
 
-    expect(block.description).toEqual({
+    expect(block.definition).toEqual({
       changed: true,
       value: 'Money back.',
       author: 'agent',
@@ -268,18 +299,18 @@ describe('A field of a design', () => {
 
   it('carries neither a value nor an author when unchanged', () => {
     expect(
-      isValid(addingRefund({ description: { changed: false, value: 'x' } })),
+      isValid(addingRefund({ definition: { changed: false, value: 'x' } })),
     ).toBe(false);
     expect(
       isValid(
-        addingRefund({ description: { changed: false, author: 'human' } }),
+        addingRefund({ definition: { changed: false, author: 'human' } }),
       ),
     ).toBe(false);
   });
 
   it('is written either by an agent or by a human', () => {
     expect(
-      isValid(addingRefund({ description: { value: 'x', author: 'bot' } })),
+      isValid(addingRefund({ definition: { value: 'x', author: 'bot' } })),
     ).toBe(false);
   });
 });
@@ -313,13 +344,31 @@ describe('The type of a property, an input or an output', () => {
     expect(
       isValid(
         addingIssue({
-          input: { added: [{ collectionOf: 'building_block|sales.Line' }] },
-          output: { added: ['primitive|uuid'] },
+          input: {
+            added: [
+              {
+                name: 'lines',
+                type: { value: { collectionOf: 'building_block|sales.Line' } },
+              },
+            ],
+          },
+          output: { added: [{ type: 'primitive|uuid' }] },
         }),
       ),
     ).toBe(true);
     expect(
-      isValid(addingIssue({ input: { added: ['primitive|money'] } })),
+      isValid(
+        addingIssue({
+          input: {
+            added: [{ name: 'total', type: { value: 'primitive|money' } }],
+          },
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        addingIssue({ output: { added: [{ type: 'primitive|money' }] } }),
+      ),
     ).toBe(false);
   });
 });
@@ -360,7 +409,7 @@ describe('A design document an agent wrote', () => {
   /**
    * What the scanner found: the orders module; its Order, which implements
    * Auditable, has a total and a rule with one scenario; and Order.cancel,
-   * which takes an Order.
+   * which takes an order and returns a boolean.
    */
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
@@ -400,7 +449,8 @@ describe('A design document an agent wrote', () => {
         name: 'cancel',
         type: 'Command',
         visibility: { kind: 'private' },
-        input: [ORDER],
+        input: [{ name: 'order', type: ORDER }],
+        output: [{ type: 'primitive|boolean' }],
         source,
       },
     ],
@@ -445,7 +495,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingRefund({
-            description: { value: 'Money back.' },
+            definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             implements: { removed: [AUDITABLE] },
             properties: { removed: ['legacyFlag'] },
@@ -530,7 +580,15 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: CANCEL,
-                  input: { removed: [ORDER] },
+                  input: { removed: ['order'] },
+                  output: {
+                    modified: [
+                      {
+                        type: 'primitive|boolean',
+                        description: { value: 'Whether it was cancelled.' },
+                      },
+                    ],
+                  },
                 },
               ],
             },
@@ -568,8 +626,8 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: CANCEL,
-                  output: { removed: ['primitive|boolean'] },
-                  input: { removed: [{ collectionOf: ORDER }] },
+                  output: { removed: [{ collectionOf: ORDER }] },
+                  input: { removed: ['orders'] },
                 },
               ],
             },
@@ -594,11 +652,11 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].input.removed[{"collectionOf":"${ORDER}"}]`,
+          path: `behaviours.modified[${CANCEL}].input.removed[orders]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].output.removed[primitive|boolean]`,
+          path: `behaviours.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
           reason: 'unknownElement',
         },
       ]);
@@ -628,7 +686,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingRefund({
-            description: { value: 'Money back.' },
+            definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             properties: { removed: ['total'] },
           }),
@@ -656,7 +714,7 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: ORDER,
-                  description: { value: 'Money back.', author: 'human' },
+                  definition: { value: 'Money back.', author: 'human' },
                 },
               ],
             },
@@ -665,7 +723,7 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.modified[${ORDER}].description`,
+          path: `buildingBlocks.modified[${ORDER}].definition`,
           reason: 'humanAuthor',
         },
       ]);
@@ -680,7 +738,7 @@ describe('A design document an agent wrote', () => {
                 {
                   id: REFUND,
                   type: { value: 'aggregate' },
-                  description: { value: 'Money back.' },
+                  definition: { value: 'Money back.' },
                 },
               ],
               modified: [
@@ -713,6 +771,59 @@ describe('A design document an agent wrote', () => {
       ]);
     });
 
+    it('may leave the diagram of an added element out', () => {
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            definition: { value: 'Issues a refund.' },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
+    it('draws a diagram in its own field, never in a fence of the definition', () => {
+      const fenced = 'Issues a refund.\n\n```mermaid\nsequenceDiagram\n```';
+
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            definition: { value: fenced },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([
+        {
+          path: `behaviours.added[${ISSUE}].definition`,
+          reason: 'diagramInDefinition',
+        },
+      ]);
+      // A human may still write one, as definitions did before.
+      expect(
+        DesignDocument.validateHumanEdited(
+          DesignDocument.parse(
+            addingIssue({
+              type: { value: 'Command' },
+              definition: { value: fenced },
+              visibility: { value: { kind: 'private' } },
+            }),
+          ),
+        ),
+      ).toEqual([]);
+      expect(
+        validate(
+          addingIssue({
+            type: { value: 'Command' },
+            definition: { value: 'Issues a refund.' },
+            diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
+            visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
     it('leaves a field of a modified element unchanged', () => {
       expect(
         validate(
@@ -741,7 +852,7 @@ describe('A design document an agent wrote', () => {
       ).toEqual([
         { path: `modules.removed[${ORDERS}]`, reason: 'changedInGreenField' },
         {
-          path: `buildingBlocks.added[${REFUND}].description`,
+          path: `buildingBlocks.added[${REFUND}].definition`,
           reason: 'unchangedFieldInAddedItem',
         },
         {
@@ -750,5 +861,304 @@ describe('A design document an agent wrote', () => {
         },
       ]);
     });
+  });
+});
+
+describe('The needs of a design', () => {
+  const need = {
+    id: 'refund-single-lines',
+    name: { value: 'Refund single lines' },
+    stakeholder: { value: 'Support agents' },
+    statement: { value: 'Support agents need to refund one line of an order.' },
+  };
+
+  it('are none in a design written before designs had needs', () => {
+    expect(DesignDocument.parse(design()).needs).toEqual({
+      added: [],
+      removed: [],
+      modified: [],
+    });
+  });
+
+  it('are each known by a kebab-case id', () => {
+    expect(isValid(design({ needs: { added: [need] } }))).toBe(true);
+    expect(
+      isValid(design({ needs: { added: [{ ...need, id: 'Refund lines' }] } })),
+    ).toBe(false);
+  });
+
+  it('are only added, as no scan holds a need', () => {
+    expect(
+      DesignDocument.validateAgentGenerated(
+        DesignDocument.parse(
+          design({
+            needs: {
+              added: [need],
+              removed: ['retire-credit-notes'],
+              modified: [{ id: 'issue-refunds' }],
+            },
+          }),
+        ),
+      ),
+    ).toEqual([
+      {
+        path: 'needs.removed[retire-credit-notes]',
+        reason: 'changedInGreenField',
+      },
+      { path: 'needs.modified[issue-refunds]', reason: 'changedInGreenField' },
+    ]);
+  });
+
+  it('state who needs what, every field of an added one', () => {
+    expect(
+      DesignDocument.validateAgentGenerated(
+        DesignDocument.parse(
+          design({ needs: { added: [{ ...need, stakeholder: undefined }] } }),
+        ),
+      ),
+    ).toEqual([
+      {
+        path: 'needs.added[refund-single-lines].stakeholder',
+        reason: 'unchangedFieldInAddedItem',
+      },
+    ]);
+  });
+});
+
+describe('A rule of a design', () => {
+  const SALES = 'module|sales';
+  const ORDER = 'building_block|sales.Order';
+  const source = { path: 'src/sales' };
+  const need = {
+    id: 'refund-single-lines',
+    name: { value: 'Refund single lines' },
+    stakeholder: { value: 'Support agents' },
+    statement: { value: 'Support agents need to refund one line of an order.' },
+  };
+  const businessRule = {
+    name: 'Paid orders only',
+    category: { value: 'Business' },
+    ruleType: { value: 'State change' },
+    description: { value: 'Only a paid order is refunded.' },
+    needs: { value: ['refund-single-lines'] },
+  };
+  const qualityRule = {
+    name: 'Fast refunds',
+    category: { value: 'Quality' },
+    ruleType: { value: 'Performance' },
+    description: { value: 'A refund is issued within a second.' },
+    needs: { value: [] },
+  };
+
+  const scanned = SystemModel.parse({
+    id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
+    name: 'shop',
+    scanned_at: '2026-09-25T08:00:00.000Z',
+    modules: [
+      {
+        id: SALES,
+        name: 'sales',
+        rules: [
+          {
+            name: 'Fast refunds',
+            category: 'Quality',
+            ruleType: 'Performance',
+          },
+        ],
+        source,
+      },
+    ],
+    buildingBlocks: [
+      {
+        id: ORDER,
+        name: 'Order',
+        type: 'aggregate',
+        rules: [{ name: 'Paid orders only', ruleType: 'State change' }],
+        source,
+      },
+    ],
+  });
+
+  const addingRules = (
+    rules: { block?: object[]; module?: object[] },
+    needs: object[] = [need],
+  ) =>
+    design({
+      needs: { added: needs },
+      modules: {
+        added: [
+          {
+            id: 'module|billing',
+            name: { value: 'billing' },
+            definition: { value: 'Charging customers.' },
+            rules: { added: rules.module ?? [] },
+          },
+        ],
+      },
+      buildingBlocks: {
+        added: [
+          {
+            id: 'building_block|billing.Invoice',
+            name: { value: 'Invoice' },
+            type: { value: 'aggregate' },
+            definition: { value: 'What a customer is asked to pay.' },
+            rules: { added: rules.block ?? [] },
+          },
+        ],
+      },
+    });
+
+  const validate = (document: unknown, systemModel?: SystemModel) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(document),
+      systemModel,
+    );
+
+  it('reads back a rule written before rules had a category, needs or a rationale', () => {
+    const rule = DesignDocument.parse(
+      addingRules({ block: [{ name: 'Paid orders only' }] }),
+    ).buildingBlocks.added[0]!.rules.added[0]!;
+
+    expect(rule.category).toEqual({ changed: false });
+    expect(rule.needs).toEqual({ changed: false });
+    expect(rule.rationale).toEqual({ changed: false });
+  });
+
+  it('traces to needs the design states, or to none as a design decision', () => {
+    expect(
+      validate(
+        addingRules({
+          block: [
+            businessRule,
+            { ...businessRule, name: 'Decided', needs: { value: [] } },
+          ],
+          module: [qualityRule],
+        }),
+      ),
+    ).toEqual([]);
+    expect(
+      validate(
+        addingRules({
+          block: [{ ...businessRule, needs: { value: ['issue-refunds'] } }],
+        }),
+      ),
+    ).toEqual([
+      {
+        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs[issue-refunds]',
+        reason: 'unknownNeed',
+      },
+    ]);
+  });
+
+  it('always says its category and its needs when added, and may leave its rationale out', () => {
+    expect(
+      validate(
+        addingRules({
+          block: [
+            { ...businessRule, category: undefined, needs: undefined },
+            { ...businessRule, name: 'Reasoned', rationale: { value: 'Why.' } },
+          ],
+        }),
+      ),
+    ).toEqual([
+      {
+        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].category',
+        reason: 'unchangedFieldInAddedItem',
+      },
+      {
+        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs',
+        reason: 'unchangedFieldInAddedItem',
+      },
+    ]);
+  });
+
+  it('has a type of its own category', () => {
+    expect(
+      validate(
+        addingRules({
+          block: [{ ...businessRule, ruleType: { value: 'Performance' } }],
+        }),
+      ),
+    ).toEqual([
+      {
+        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].ruleType',
+        reason: 'ruleTypeOutsideCategory',
+      },
+    ]);
+  });
+
+  it('keeps a modified rule to the category or type the scan has for the half it leaves alone', () => {
+    const modifying = (rule: object) =>
+      design({
+        buildingBlocks: {
+          modified: [{ id: ORDER, rules: { modified: [rule] } }],
+        },
+      });
+
+    expect(
+      validate(
+        modifying({
+          name: 'Paid orders only',
+          ruleType: { value: 'Structure' },
+        }),
+        scanned,
+      ),
+    ).toEqual([]);
+    expect(
+      validate(
+        modifying({
+          name: 'Paid orders only',
+          ruleType: { value: 'Reliability' },
+        }),
+        scanned,
+      ),
+    ).toEqual([
+      {
+        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
+        reason: 'ruleTypeOutsideCategory',
+      },
+    ]);
+    expect(
+      validate(
+        modifying({ name: 'Paid orders only', category: { value: 'Quality' } }),
+        scanned,
+      ),
+    ).toEqual([
+      {
+        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
+        reason: 'ruleTypeOutsideCategory',
+      },
+    ]);
+  });
+
+  it('on a module is a quality or constraint rule, never a business one', () => {
+    expect(validate(addingRules({ module: [businessRule] }))).toEqual([
+      {
+        path: 'modules.added[module|billing].rules.added[Paid orders only].category',
+        reason: 'businessRuleOnModule',
+      },
+    ]);
+    expect(
+      validate(
+        design({
+          modules: {
+            modified: [
+              {
+                id: SALES,
+                rules: {
+                  modified: [
+                    {
+                      name: 'Fast refunds',
+                      description: { value: 'Within half a second.' },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        }),
+        scanned,
+      ),
+    ).toEqual([]);
   });
 });

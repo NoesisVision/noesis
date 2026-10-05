@@ -1,6 +1,22 @@
 {
   "name": "Partial refunds for orders",
   "description": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
+  "needs": {
+    "added": [
+      {
+        "id": "refund-single-lines",
+        "name": {
+          "value": "Refund single lines"
+        },
+        "stakeholder": {
+          "value": "Support agents"
+        },
+        "statement": {
+          "value": "Support agents need to refund one line of an order when the customer returns only part of it, without cancelling the whole order."
+        }
+      }
+    ]
+  },
   "modules": {
     "added": [
       {
@@ -8,8 +24,27 @@
         "name": {
           "value": "refunds"
         },
-        "description": {
+        "definition": {
           "value": "Everything about giving money back to a customer."
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "A refund is issued within a second",
+              "category": {
+                "value": "Quality"
+              },
+              "ruleType": {
+                "value": "Performance"
+              },
+              "description": {
+                "value": "Issuing a refund answers within one second for an order of up to 100 lines."
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              }
+            }
+          ]
         }
       }
     ],
@@ -17,7 +52,7 @@
     "modified": [
       {
         "id": "module|sales.orders",
-        "description": {
+        "definition": {
           "value": "Order lifecycle, now including the refundable state of each line.",
           "author": "human"
         }
@@ -36,7 +71,7 @@
           "value": "aggregate",
           "author": "human"
         },
-        "description": {
+        "definition": {
           "value": "A refund of one or more lines of a single order."
         },
         "properties": {
@@ -102,12 +137,21 @@
           "added": [
             {
               "name": "Refund never exceeds paid amount",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "Consistency"
               },
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
                 "author": "human"
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              },
+              "rationale": {
+                "value": "Support may never pay out more than the order brought in."
               }
             }
           ]
@@ -138,9 +182,9 @@
           "value": "RefundIssued"
         },
         "type": {
-          "value": "domain_event"
+          "value": "value_object"
         },
-        "description": {
+        "definition": {
           "value": "Tells the ledger a refund went out."
         }
       },
@@ -152,7 +196,7 @@
         "type": {
           "value": "repository"
         },
-        "description": {
+        "definition": {
           "value": "Stores refunds."
         },
         "implements": {
@@ -206,8 +250,11 @@
           "value": "Command",
           "author": "human"
         },
-        "description": {
+        "definition": {
           "value": "Issues a refund for the chosen lines of an order."
+        },
+        "diagram": {
+          "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued"
         },
         "visibility": {
           "value": {
@@ -218,25 +265,74 @@
         },
         "input": {
           "added": [
-            "building_block|sales.orders.OrderId",
             {
-              "collectionOf": "building_block|sales.refunds.RefundLine"
+              "name": "orderId",
+              "type": {
+                "value": "building_block|sales.orders.OrderId"
+              },
+              "description": {
+                "value": "The order to refund."
+              },
+              "optional": {
+                "value": false
+              }
             },
-            "primitive|string"
+            {
+              "name": "lines",
+              "type": {
+                "value": {
+                  "collectionOf": "building_block|sales.refunds.RefundLine"
+                }
+              },
+              "description": {
+                "value": "The lines to refund."
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "reason",
+              "type": {
+                "value": "primitive|string"
+              },
+              "description": {
+                "value": "Why support refunds the lines."
+              },
+              "optional": {
+                "value": true
+              }
+            }
           ]
         },
         "output": {
-          "added": ["building_block|sales.refunds.RefundIssued"]
+          "added": [
+            {
+              "type": "building_block|sales.refunds.RefundIssued",
+              "description": {
+                "value": "Tells the ledger the refund went out."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
         },
         "rules": {
           "added": [
             {
               "name": "Only paid orders are refundable",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "State change"
               },
               "description": {
                 "value": "An unpaid order has nothing to refund."
+              },
+              "needs": {
+                "value": []
               }
             }
           ]

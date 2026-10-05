@@ -1,0 +1,159 @@
+/*
+ * A document to read down, in the pane the model's element detail stands in:
+ * it scrolls there, beside the tree of needs and rules, padded as that detail
+ * is padded (by the `Stack`'s props).
+ *
+ * What a row of the tree brings into view: clear of the pane's top edge when
+ * it arrives, and marked by a rule down its side — a mark of place, which
+ * `aria-current` names for a reader who cannot see the rule.
+ */
+.page [data-entry] {
+  scroll-margin-top: var(--mantine-spacing-md);
+}
+
+.section[aria-current] > .sectionHead,
+.rule[aria-current] {
+  box-shadow: inset 3px 0 0 var(--mantine-color-brand-filled);
+  padding-left: var(--mantine-spacing-sm);
+}
+
+/* The counts in a row, wrapping; its margin, size and colour are the list's props. */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px var(--mantine-spacing-lg);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.number {
+  color: var(--mantine-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary [data-gap],
+.summary [data-gap] .number {
+  color: var(--noesis-requirement-gap);
+}
+
+.sectionHead {
+  border-bottom: 2px solid var(--mantine-color-text);
+
+  &[data-gap] {
+    border-bottom-color: var(--noesis-requirement-gap);
+  }
+}
+
+.quote {
+  border-radius: var(--mantine-radius-sm);
+  background: var(--noesis-requirement-quote);
+}
+
+.rule {
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.ruleName {
+  &[data-removed] {
+    text-decoration: line-through;
+    color: var(--noesis-secondary-text);
+  }
+}
+
+/* Named with what holds it, to win over the unstyled button's own reset, which loads later. */
+.details .toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--mantine-spacing-xs);
+  max-width: 100%;
+  padding: 4px 8px 4px 4px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-sm);
+  color: var(--noesis-secondary-text);
+
+  &:hover {
+    background: var(--noesis-requirement-quote);
+    color: var(--mantine-color-text);
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.chevron {
+  flex: none;
+  transition: transform 0.15s ease;
+
+  &[data-open] {
+    transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.peek {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The fields of a rule, their names in a column as wide in every rule; under
+ * the details' toggle, in line with its label. Its `display` would otherwise
+ * show a list the toggle has folded away.
+ */
+.details .fields {
+  padding-left: 22px;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+/* Too narrow for two columns, a name stands over its value. */
+@media (max-width: 32em) {
+  .rule .fields {
+    gap: var(--mantine-spacing-xs);
+  }
+
+  .fields .field {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .details .fields {
+    padding-left: 0;
+  }
+}
+
+.elementLink {
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
+}
+
+/* Its spacing, size and colour are the text's props. */
+.unverified {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-red-light);
+}
+
+.verification {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+}

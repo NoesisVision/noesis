@@ -2,7 +2,7 @@ import {
   DesignDocument,
   type DesignDocumentInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { OutlineNode } from '../../src/shared/ui/model-tree/model-outline.ts';
+import type { OutlineNode } from '../../src/features/design-docs/ui/model-tree/model-outline.ts';
 
 /** A small document in the form the API serves: enough to tell apart from another. */
 export const designDocFixture = {
@@ -16,7 +16,7 @@ export const designDocFixture = {
         id: 'building_block|sales.refunds.Refund',
         name: { changed: true, value: 'Refund', author: 'agent' },
         type: { changed: true, value: 'aggregate', author: 'agent' },
-        description: { changed: false },
+        definition: { changed: false },
       },
     ],
     removed: [],

@@ -4,10 +4,16 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getRouter } from '#/router';
 import { MantineProvider } from '#/shared/design-system/provider';
-import { colorSchemeManager, theme } from '#/shared/design-system/theme';
+import {
+  colorSchemeManager,
+  cssVariablesResolver,
+  theme,
+} from '#/shared/design-system/theme';
+import { DevToolsContextProvider } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { configureLogging } from '#/shared/logging.ts';
 import { getContext } from '#/shared/query/query-client.tsx';
 import { DateFormatProvider } from '#/shared/ui/date-format-provider.tsx';
+import { FullscreenPortals } from '#/shared/ui/fullscreen-portals.tsx';
 import '#/shared/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
@@ -27,14 +33,19 @@ createRoot(rootElement).render(
   <StrictMode>
     <MantineProvider
       theme={theme}
+      cssVariablesResolver={cssVariablesResolver}
       defaultColorScheme="auto"
       colorSchemeManager={colorSchemeManager}
     >
-      <QueryClientProvider client={context.queryClient}>
-        <DateFormatProvider>
-          <RouterProvider router={router} />
-        </DateFormatProvider>
-      </QueryClientProvider>
+      <FullscreenPortals>
+        <QueryClientProvider client={context.queryClient}>
+          <DevToolsContextProvider>
+            <DateFormatProvider>
+              <RouterProvider router={router} />
+            </DateFormatProvider>
+          </DevToolsContextProvider>
+        </QueryClientProvider>
+      </FullscreenPortals>
     </MantineProvider>
   </StrictMode>,
 );

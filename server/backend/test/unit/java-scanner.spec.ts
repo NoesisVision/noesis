@@ -389,7 +389,7 @@ public record Product(String sku) {}`,
 @vision.noesis.annotations.AggregateRoot
 public class Order { public void ship(Order other) {} }`,
       'src/main/java/com/acme/billing/Order.java': `package com.acme.billing;
-@vision.noesis.annotations.Entity
+@vision.noesis.annotations.DomainEntity
 public class Order {}`,
       'src/main/java/com/acme/billing/Invoice.java': `package com.acme.billing;
 @vision.noesis.annotations.AggregateRoot

@@ -1,0 +1,55 @@
+/* Inputs, a dashed seam, outputs: three columns side by side. */
+.flow {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--mantine-spacing-xl);
+  overflow-x: auto;
+}
+
+/* One row always: the inputs give way rather than the outputs moving under
+   them. Named with the grid, to win over Mantine's own rules, which load later. */
+.flow .inner {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+/* The one column that shrinks, so its boxes wrap. */
+.flow .inputs {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+
+.caption {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-dimmed);
+}
+
+.list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* What a behaviour gives back, one under another however few there are. */
+.list[data-output] {
+  flex-direction: column;
+}
+
+/* Every input and output the same width; a long name or type wraps inside. */
+.list > li {
+  width: 200px;
+}

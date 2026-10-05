@@ -14,4 +14,9 @@ public class InMemoryOrderRepository implements OrderRepository {
     public void save(Order order) {
         orders.add(order);
     }
+
+    @Override
+    public boolean exists(OrderId id) {
+        return orders.stream().anyMatch(order -> order.id().equals(id));
+    }
 }

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { DesignDocWorkbench } from '../src/features/design-docs/ui/design-doc-workbench';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { designDocDetailFixture } from './fixtures/design-doc.fixture';
@@ -7,13 +8,15 @@ import { designDocDetailFixture } from './fixtures/design-doc.fixture';
 const reading = (node: string | null, query = '') =>
   renderToStaticMarkup(
     <MantineProvider>
-      <DesignDocWorkbench
-        detail={designDocDetailFixture}
-        node={node}
-        query={query}
-        onSelect={() => {}}
-        onQuery={() => {}}
-      />
+      <DesignDocSurface document={designDocDetailFixture.document}>
+        <DesignDocWorkbench
+          detail={designDocDetailFixture}
+          selected={node}
+          query={query}
+          onSelect={() => {}}
+          onQuery={() => {}}
+        />
+      </DesignDocSurface>
     </MantineProvider>,
   );
 
@@ -51,7 +54,6 @@ describe('DesignDocWorkbench', () => {
   it('opens on the model the document describes', () => {
     expect(page.match(/role="treeitem"/g)).toHaveLength(3);
     expect(page).toContain('>Refund<');
-    expect(page).toContain('Aggregate');
   });
 
   it('lets the two columns be resized, by keyboard as well as by hand', () => {
@@ -94,10 +96,10 @@ describe('DesignDocWorkbench', () => {
   });
 
   it('carries a search from the address into the outline', () => {
-    const html = reading(null, 'aggregate');
+    const html = reading(null, 'refund');
     expect(html).toContain('<output');
     expect(html).toContain('aria-label="Clear the search"');
-    expect(html).toMatch(/<mark[^>]*>Aggregate<\/mark>/);
+    expect(html).toMatch(/<mark[^>]*>Refund<\/mark>/);
     expect(html.match(/role="treeitem"/g)).toHaveLength(3);
   });
 });

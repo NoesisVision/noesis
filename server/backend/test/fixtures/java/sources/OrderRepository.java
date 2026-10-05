@@ -1,6 +1,6 @@
 package com.acme.orders;
 
-@Port(Direction.SECONDARY)
+@ExternalIntegration(Direction.SECONDARY)
 public interface OrderRepository extends Repository<Order, OrderId>, AutoCloseable {
     void save(Order order);
     Optional<Order> findById(OrderId id);

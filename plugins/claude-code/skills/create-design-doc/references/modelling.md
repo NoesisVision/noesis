@@ -4,6 +4,30 @@ How to turn source material into modules, building blocks, behaviours,
 rules and scenarios. The design document contract says how to write them
 down; this says how to choose them.
 
+## Definitions
+
+A module, a building block and a behaviour each have a `definition`: what
+the concept is, in the language of the domain, as an entry in the system's
+glossary. A sentence or two a reader who knows no code understands. It
+defines the concept, never the change to it and never how it is built, so
+it stays true once the change ships.
+
+## Needs
+
+- A need is a stakeholder goal, not a solution: what someone must be able
+  to do or have, never how the system does it. "Start a QDoc", not "Create
+  QDoc endpoint".
+- Name it as a goal, a verb phrase in the stakeholder's terms. Its
+  `stakeholder` is who has it, as the sources name them ("Quality
+  managers"). Its `statement` says who needs what, and when or why it
+  matters: "The quality managers need to start a QDoc when a process needs
+  documenting, so that its preparation can begin."
+- One need per distinct goal. Two goals in one sentence of a source are two
+  needs; one goal said twice is one.
+- Its `id` is its name in lower-case kebab-case (`start-a-qdoc`), unique in
+  the design document.
+- A need comes from a source. Never invent one to justify a rule.
+
 ## Modules
 
 - Modules form a hierarchy. A root module is a bounded context; the modules
@@ -33,13 +57,10 @@ For a new one:
   Equal by identity; its behaviours change state and guard invariants.
 - `value_object`: a concept without identity. Immutable, validated on
   creation, rich in meaning (calculations, formatting) rather than a bag of
-  primitives.
-- `domain_event`: an immutable record of something meaningful that
-  happened. Named in the past tense; carries the minimum its subscribers
-  need.
-- `domain_command`: a request to change the domain, named in the
-  imperative.
-- `domain_query`: a request to read the domain.
+  primitives. Messages are value objects too: an event records something
+  meaningful that happened, is named in the past tense and carries the
+  minimum its subscribers need; a command is a request to change the
+  domain, named in the imperative; a query is a request to read it.
 - `domain_service`: a stateless operation that fits no entity or value
   object. Takes and returns domain concepts; owns no state.
 - `application_service`: orchestrates use cases — calls aggregates, domain
@@ -83,21 +104,43 @@ Decide what a table stands for before modelling its rows:
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
-- The description tells an implementer what to build: the input, the
-  preconditions, the steps, the output and the edge cases.
+- An input has the name the behaviour takes it under (`reason`, not
+  `string`), a description and whether it may be left out. An output has
+  no name: it is its type, a description and whether it may be absent.
+- A behaviour's `definition` says what it does for the domain, as any
+  [definition](#definitions) does. What an implementer needs beyond that has
+  a field of its own: what goes in and out in the descriptions of the input
+  and output, preconditions in rules, edge cases in scenarios, and the steps,
+  when they matter, in the diagram.
+- A module, a building block and a behaviour each have a `diagram` field:
+  the source of one Mermaid diagram, without the ` ```mermaid ` fence.
+  Never put a diagram in a `definition`; the service refuses a fence there.
+  Leave `diagram` out when there is nothing to draw: it is the one field an
+  added element may leave out.
 - When a behaviour coordinates three or more building blocks, or is the
-  entry point of a use case, end its description with a Mermaid sequence
-  diagram, adapted from the sources when they have one:
+  entry point of a use case, give it a sequence diagram, adapted from the
+  sources when they have one. Name it with `accTitle:`, the only text a
+  screen reader reads in place of the picture:
 
-  ````
-  ```mermaid
-  sequenceDiagram
-    Support agent->>RefundService: issue(orderId, lines)
-    RefundService->>OrderRepository: find(orderId)
-    RefundService->>Refund: issue(order, lines)
-    Refund-->>RefundService: RefundIssued
+  ```json
+  "diagram": {
+    "value": "sequenceDiagram\n  accTitle: Issuing a refund\n  Support agent->>RefundService: issue(orderId, lines)\n  RefundService->>OrderRepository: find(orderId)\n  RefundService->>Refund: issue(order, lines)\n  Refund-->>RefundService: RefundIssued"
+  }
   ```
-  ````
+
+- Give every aggregate an entity diagram (`erDiagram`): its root and each
+  entity and value object it holds, with their properties and the
+  cardinalities the rules set. Name it with `accTitle:` too:
+
+  ```json
+  "diagram": {
+    "value": "erDiagram\n  accTitle: Entities of the Order aggregate\n  Order {\n    OrderId id PK\n    OrderStatus status\n  }\n  OrderLine {\n    ProductId product\n    integer quantity\n  }\n  Order ||--|{ OrderLine : \"has lines\""
+  }
+  ```
+
+- Draw any other building block or a module only when a picture says more
+  than its definition: the states of an entity (`stateDiagram-v2`), the
+  collaborators of a module (`flowchart`).
 
 ## Actors
 
@@ -111,10 +154,24 @@ Decide what a table stands for before modelling its rows:
 
 ## Rules
 
-A rule is a domain truth: an invariant, a computation, a guard on a
-transition. Name it as a sentence that states the rule ("Refund never
-exceeds paid amount"). Its description says what holds, not why the name is
-true.
+A rule states one requirement. Name it as a sentence that states the rule
+("Refund never exceeds paid amount"). Its `description` is the requirement
+statement: what holds, not why the name is true. Its scenarios verify it.
+
+- One rule per requirement statement. Never merge two statements of a
+  source into one rule, even when they read alike.
+- `needs` names the ids of the needs the rule answers. A rule no need asks
+  for is a design decision: write `needs: []`, and name it in the report.
+- `rationale` says why the rule holds, when a source gives a reason. Leave
+  it out rather than invent one. It never says why the rule changed: that
+  goes in the design document's `description`.
+- A rule is one of three categories, and its `ruleType` is a type of that
+  category.
+
+### Business rules
+
+A truth of the domain: an invariant, a computation, a guard on a
+transition. On a building block or a behaviour, never on a module.
 
 | Pattern                                                                                                                   | Quick check                                                                  | `ruleType`     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------- |
@@ -125,12 +182,51 @@ true.
 | State change: a guard allowing or forbidding one operation (no seat change after check-in)                                | Does it gate a single transition that would otherwise produce a valid state? | `State change` |
 | Process flow: routing or ending a multi-step process (refunds over €1,000 go to a manager)                                | Does it pick the next step, or stop, across several steps or services?       | `State change` |
 
-- Attach a rule at exactly one level. The building block when it
-  constrains the block's shape or holds for all its behaviours; the
-  behaviour when it gates that one behaviour. Never both.
-- A technical constraint — a latency target, availability, authentication,
-  a timeout, a retry policy — is not a rule. State it in the description of
-  the narrowest element it constrains.
+A guard on who may do an operation ("Only quality managers create QDocs")
+is a business rule, `State change`, on the behaviour it guards.
+
+### Quality rules
+
+A measurable quality the system must have. State the measure and its
+bound ("answers within one second for an order of up to 100 lines"); when
+a source leaves the bound open, say so and name the open question. Types
+follow ISO/IEC 25010:
+
+| `ruleType`        | The system must…                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `Performance`     | answer, process or deliver within a time, a throughput or a resource budget           |
+| `Security`        | protect itself and its data: authentication, encryption, audit, confidentiality       |
+| `Reliability`     | keep working and recover: availability, fault tolerance, no partial failure spreading |
+| `Usability`       | be learnable and operable by its users, accessibility included                        |
+| `Compatibility`   | coexist and exchange data with other systems                                          |
+| `Maintainability` | be changed, tested and analysed at a bounded cost                                     |
+| `Portability`     | be installed on and moved between the environments it must run in                     |
+
+`Security` is how the system protects itself; who may do what is a
+business rule.
+
+### Constraint rules
+
+A limit imposed on the solution from outside the domain, which the design
+does not choose:
+
+| `ruleType`     | The solution must…                                                            |
+| -------------- | ----------------------------------------------------------------------------- |
+| `Technology`   | use, or avoid, a given platform, language, library or product                 |
+| `Regulation`   | comply with a law, a standard or a contract                                   |
+| `Interface`    | talk to another system through a protocol, format or endpoint it does not own |
+| `Organisation` | fit how the organisation works: its teams, processes, budget or schedule      |
+
+### Where a rule goes
+
+- Attach a rule at exactly one level, never two.
+- A business rule goes on the building block when it constrains the
+  block's shape or holds for all its behaviours; on the behaviour when it
+  gates that one behaviour.
+- A quality or constraint rule goes on the narrowest element it
+  constrains: a module, a building block or a behaviour. One on a part (a
+  timeout on an output, a format of a property) goes on the element that
+  owns the part.
 
 ## Scenarios
 

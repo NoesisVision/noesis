@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { InMemoryTransport } from '@modelcontextprotocol/server';
@@ -7,6 +7,7 @@ import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
@@ -89,8 +90,11 @@ describe('the MCP surface', () => {
       (tool) =>
         ![
           'list_changes',
+          'delete_change',
           'list_documents_in_change',
           'get_document_in_change',
+          'list_design_docs_in_change',
+          'get_design_doc_in_change',
           'scan_system_model',
           'get_newest_system_model',
         ].includes(tool.name),
@@ -102,7 +106,7 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('advertises every create as adding anew and every update as an idempotent overwrite', async () => {
+  it('advertises every create as adding anew, and every update and delete as idempotent and destructive', async () => {
     const { tools } = await client.listTools();
     for (const tool of tools.filter((t) => t.name.startsWith('create_'))) {
       expect(tool.annotations).toMatchObject({
@@ -111,7 +115,7 @@ describe('the MCP surface', () => {
         idempotentHint: false,
       });
     }
-    for (const tool of tools.filter((t) => t.name.startsWith('update_'))) {
+    for (const tool of tools.filter((t) => /^(update|delete)_/.test(t.name))) {
       expect(tool.annotations).toMatchObject({
         readOnlyHint: false,
         destructiveHint: true,
@@ -120,15 +124,18 @@ describe('the MCP surface', () => {
     }
   });
 
-  it('offers exactly the eleven tools, each with an input and an output schema', async () => {
+  it('offers exactly the fourteen tools, each with an input and an output schema', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'delete_change',
+      'get_design_doc_in_change',
       'get_document_in_change',
       'get_newest_system_model',
       'list_changes',
+      'list_design_docs_in_change',
       'list_documents_in_change',
       'scan_system_model',
       'update_change',
@@ -255,6 +262,36 @@ describe('update_change', () => {
 
     expect(result.isError).toBe(true);
     expect(await noesis.listChanges.handle()).toEqual([]);
+  });
+});
+
+describe('delete_change', () => {
+  it('deletes the change with everything it holds', async () => {
+    const id = await noesis.writeChange(CHANGE, { name: 'Payment retry' });
+    await noesis.writeDesignDoc(id, designDocFixture);
+
+    const result = await client.callTool({
+      name: 'delete_change',
+      arguments: { id },
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toMatchObject({
+      change: { id: CHANGE, name: 'Payment retry' },
+    });
+    expect(textOf(result)).toContain(`Deleted change ${CHANGE}`);
+    expect(await noesis.listChanges.handle()).toEqual([]);
+  });
+
+  it('answers an id that names no change in-band', async () => {
+    const result = await client.callTool({
+      name: 'delete_change',
+      arguments: { id: CHANGE },
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`No change "${CHANGE}"`);
+    expect(textOf(result)).toContain('list_changes');
   });
 });
 
@@ -866,9 +903,179 @@ describe('create_design_doc_in_change', () => {
       '- modules.removed[module|sales.credit-notes]: nothing is scanned yet',
     );
     expect(text).toContain(
-      '- modules.modified[module|sales.orders].description: write every field as the agent',
+      '- modules.modified[module|sales.orders].definition: a human wrote or accepted this field with another value, or not at all',
     );
     expect(await noesis.listDesignDocsInChange.handle({ change })).toEqual([]);
+  });
+});
+
+describe('list_design_docs_in_change', () => {
+  it('answers an empty list, pointing to the create, when the change has none', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('list_design_docs_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({ designDocs: [] });
+    expect(textOf(result)).toContain('create_design_doc_in_change');
+  });
+
+  it('lists every design document with its id, oldest first, without its content', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDesignDoc(change, {
+      ...greenFieldDesignDocFixture,
+      id: '2026-01-02-refund-notes',
+      name: 'Refund notes',
+      implemented: true,
+    });
+    await noesis.writeDesignDoc(change, greenFieldDesignDocFixture);
+
+    const result = await call('list_design_docs_in_change', { change });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      designDocs: [
+        {
+          id: greenFieldDesignDocFixture.id,
+          name: greenFieldDesignDocFixture.name,
+          implemented: false,
+        },
+        {
+          id: '2026-01-02-refund-notes',
+          name: 'Refund notes',
+          implemented: true,
+        },
+      ],
+    });
+    expect(textOf(result)).toContain(
+      `- ${greenFieldDesignDocFixture.id}: ${greenFieldDesignDocFixture.name}`,
+    );
+    expect(textOf(result)).toContain(
+      '- 2026-01-02-refund-notes: Refund notes (implemented)',
+    );
+  });
+
+  it('reports an unknown change in-band, with where to find its id', async () => {
+    const result = await call('list_design_docs_in_change', {
+      change: '2026-01-01-no-such-change',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+    expect(textOf(result)).toContain('list_changes');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const list = tools.find(
+      (tool) => tool.name === 'list_design_docs_in_change',
+    );
+    expect(list?.annotations?.readOnlyHint).toBe(true);
+  });
+});
+
+describe('get_design_doc_in_change', () => {
+  it('answers the design document whole, with the author of every field', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDesignDoc(change, designDocFixture);
+
+    const result = await call('get_design_doc_in_change', {
+      change,
+      id: designDocFixture.id,
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.structuredContent).toEqual({
+      designDoc: DesignDocument.parse(designDocFixture),
+    });
+    expect(textOf(result)).toContain(`Design document ${designDocFixture.id}`);
+  });
+
+  it('writes the design document as a working file the update reads, answering only its path', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDesignDoc(change, {
+      ...greenFieldDesignDocFixture,
+      implemented: true,
+    });
+
+    const result = await call('get_design_doc_in_change', {
+      change,
+      id: greenFieldDesignDocFixture.id,
+      workingFile: 'design-doc.json',
+    });
+
+    expect(result.isError).toBeFalsy();
+    const workingFile = join(files.dir, 'design-doc.json');
+    expect(result.structuredContent).toEqual({ workingFile });
+    expect(textOf(result)).toContain('update_design_doc_in_change');
+    const written = JSON.parse(await readFile(workingFile, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    expect(written).not.toContainKey('id');
+    expect(written).not.toContainKey('implementedAt');
+    expect(written).toMatchObject({ name: greenFieldDesignDocFixture.name });
+
+    const updated = await call('update_design_doc_in_change', {
+      change,
+      id: greenFieldDesignDocFixture.id,
+      path: workingFile,
+    });
+
+    expect(updated.isError).toBeFalsy();
+    const stored = await noesis.findDesignDoc.handle({
+      change,
+      id: DesignDocId.parse(greenFieldDesignDocFixture.id),
+    });
+    expect(stored).toEqual(
+      DesignDocument.parse({
+        ...greenFieldDesignDocFixture,
+        implemented: true,
+      }),
+    );
+  });
+
+  it('refuses a working file named by a path, writing nothing', async () => {
+    const change = await noesis.writeChange(CHANGE);
+    await noesis.writeDesignDoc(change, greenFieldDesignDocFixture);
+
+    const result = await call('get_design_doc_in_change', {
+      change,
+      id: greenFieldDesignDocFixture.id,
+      workingFile: '../design-doc.json',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(await readdir(files.sessionsRoot)).not.toContain('design-doc.json');
+  });
+
+  it('answers an id that names no design document in-band, with where to find it', async () => {
+    const change = await noesis.writeChange(CHANGE);
+
+    const result = await call('get_design_doc_in_change', {
+      change,
+      id: DESIGN_DOC_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain(`No design document "${DESIGN_DOC_ID}"`);
+    expect(textOf(result)).toContain('list_design_docs_in_change');
+  });
+
+  it('reports an unknown change in-band', async () => {
+    const result = await call('get_design_doc_in_change', {
+      change: '2026-01-01-no-such-change',
+      id: DESIGN_DOC_ID,
+    });
+
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toContain('No change "2026-01-01-no-such-change"');
+  });
+
+  it('is advertised as read-only', async () => {
+    const { tools } = await client.listTools();
+    const get = tools.find((tool) => tool.name === 'get_design_doc_in_change');
+    expect(get?.annotations?.readOnlyHint).toBe(true);
   });
 });
 

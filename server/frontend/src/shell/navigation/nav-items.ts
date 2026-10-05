@@ -1,15 +1,35 @@
-import { IconLayoutDashboard, IconTopologyStar3 } from '@tabler/icons-react';
+import {
+  IconLayoutDashboard,
+  IconTopologyStar3,
+  IconTools,
+} from '@tabler/icons-react';
 import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
 import { DocumentsIcon } from '#/features/documents/documents.model.ts';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
   DESIGN_DOCS_ROUTE_ID,
+  DEV_TOOLS_ROUTE_ID,
   DOCUMENTS_ROUTE_ID,
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
 } from '#/shared/routing/route-ids.ts';
 import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
+
+/**
+ * How every navigation link decides whether it is the one you are on.
+ * One mechanism, stated once: the link's own match against the address.
+ *
+ * `exact`, so a heading stops being active the moment one of its items opens
+ * — the heading marks that some other way, and a fuzzy match would light the
+ * heading and the item both.
+ *
+ * Search left out, because a navigation link names a view and never a reading
+ * position inside it. A design document keeps the element in hand and the
+ * search in the address, and the link that led there is still the link you
+ * are on.
+ */
+export const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const;
 
 /** What a view is called wherever the shell names it: sidebar, view header. */
 export interface NavItem {
@@ -58,8 +78,21 @@ const SYSTEM_MODEL_NAV = {
   icon: IconTopologyStar3,
 } satisfies NavItem;
 
+const DEV_TOOLS_NAV = {
+  to: '/dev-tools',
+  routeId: DEV_TOOLS_ROUTE_ID,
+  label: 'Dev tools',
+  description: 'For internal use',
+  icon: IconTools,
+} satisfies NavItem;
+
 /** The two groups the sidebar renders, in the order it renders them. */
 export const APP_PUBLIC_NAV = {
   changes: [OVERVIEW_NAV, DOCUMENTS_NAV, DESIGN_DOCS_NAV],
   documentation: [SYSTEM_MODEL_NAV],
-} satisfies { changes: NavItem[]; documentation: NavItem[] };
+  devTools: [DEV_TOOLS_NAV],
+} satisfies {
+  changes: NavItem[];
+  documentation: NavItem[];
+  devTools: NavItem[];
+};

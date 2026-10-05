@@ -8,6 +8,7 @@ import type { ChangesReader } from '#backend/app/changes/changes.repository';
 import type { Now } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
+import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
 import {
   type DesignDocument,
   DesignDocumentContent,
@@ -38,13 +39,14 @@ export type UpdateDesignDocInChangeHandler = Handler<
 export function updateDesignDocInChangeHandler(
   designDocs: ChangeOwnedRepository<DesignDocument>,
   changes: ChangesReader,
+  systemModels: SystemModelsReader,
   now: Now,
 ): UpdateDesignDocInChangeHandler {
   return {
     /**
      * Replaces the design document at `id` whole; never creates one. Throws
      * `InvalidDesignDocError` when the new version breaks the rules `writer`
-     * follows. The time it is marked implemented is the server's to keep.
+     * follows against the newest scan. The time it is marked implemented is the server's to keep.
      */
     async handle({ change, id, designDoc, writer }) {
       const before = await getOwnedOrThrow(
@@ -54,7 +56,12 @@ export function updateDesignDocInChangeHandler(
         change,
         id,
       );
-      assertDesignDocFollowsRules(designDoc, writer);
+      await assertDesignDocFollowsRules(
+        designDoc,
+        writer,
+        systemModels,
+        before,
+      );
       const updated: DesignDocument = {
         id,
         ...designDoc,

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
+import { Route as ShellDevToolsRouteImport } from './routes/_shell/dev-tools'
 import { Route as ShellSystemModelRouteImport } from './routes/_shell/system-model'
 import { Route as ShellChangesChangeIdRouteImport } from './routes/_shell/changes/$changeId'
 import { Route as ShellChangesChangeIdIndexRouteImport } from './routes/_shell/changes/$changeId/index'
@@ -28,6 +29,11 @@ const ShellRoute = ShellRouteImport.update({
 const ShellIndexRoute = ShellIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellDevToolsRoute = ShellDevToolsRouteImport.update({
+  id: '/dev-tools',
+  path: '/dev-tools',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellSystemModelRoute = ShellSystemModelRouteImport.update({
@@ -85,6 +91,7 @@ const ShellChangesChangeIdDocumentsDocumentIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
+  '/dev-tools': typeof ShellDevToolsRoute
   '/system-model': typeof ShellSystemModelRoute
   '/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
   '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRouteWithChildren
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/changes/$changeId/documents/': typeof ShellChangesChangeIdDocumentsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/dev-tools': typeof ShellDevToolsRoute
   '/system-model': typeof ShellSystemModelRoute
   '/': typeof ShellIndexRoute
   '/changes/$changeId': typeof ShellChangesChangeIdIndexRoute
@@ -107,6 +115,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shell': typeof ShellRouteWithChildren
+  '/_shell/dev-tools': typeof ShellDevToolsRoute
   '/_shell/system-model': typeof ShellSystemModelRoute
   '/_shell/': typeof ShellIndexRoute
   '/_shell/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dev-tools'
     | '/system-model'
     | '/changes/$changeId'
     | '/changes/$changeId/design-docs'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/changes/$changeId/documents/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/dev-tools'
     | '/system-model'
     | '/'
     | '/changes/$changeId'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_shell'
+    | '/_shell/dev-tools'
     | '/_shell/system-model'
     | '/_shell/'
     | '/_shell/changes/$changeId'
@@ -173,6 +185,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ShellIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/dev-tools': {
+      id: '/_shell/dev-tools'
+      path: '/dev-tools'
+      fullPath: '/dev-tools'
+      preLoaderRoute: typeof ShellDevToolsRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/system-model': {
@@ -295,12 +314,14 @@ const ShellChangesChangeIdRouteWithChildren =
   ShellChangesChangeIdRoute._addFileChildren(ShellChangesChangeIdRouteChildren)
 
 interface ShellRouteChildren {
+  ShellDevToolsRoute: typeof ShellDevToolsRoute
   ShellSystemModelRoute: typeof ShellSystemModelRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellChangesChangeIdRoute: typeof ShellChangesChangeIdRouteWithChildren
 }
 
 const ShellRouteChildren: ShellRouteChildren = {
+  ShellDevToolsRoute: ShellDevToolsRoute,
   ShellSystemModelRoute: ShellSystemModelRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellChangesChangeIdRoute: ShellChangesChangeIdRouteWithChildren,

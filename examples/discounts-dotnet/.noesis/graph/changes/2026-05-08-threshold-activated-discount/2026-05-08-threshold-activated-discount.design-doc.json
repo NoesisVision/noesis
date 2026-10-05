@@ -1,7 +1,7 @@
 {
   "id": "2026-05-08-threshold-activated-discount",
   "name": "Threshold-activated discount",
-  "description": "Adds a third discount variant to the Sales pricing model — a percentage discount that activates only when a product's price strictly exceeds a configured `Money` threshold. The new value object `ThresholdDiscount` lives next to the existing `PercentageDiscount` and `ValueDiscount`; the `Discount` discriminated union is taught to host all three variants behind one caller-facing surface so existing call sites keep working unchanged.",
+  "description": "Adds a third discount variant to the Sales pricing model — a percentage discount that activates only when a product's price strictly exceeds a configured `Money` threshold. The new value object `ThresholdDiscount` lives next to the existing `PercentageDiscount` and `ValueDiscount`; the `Discount` discriminated union is taught to host all three variants behind one caller-facing surface so existing call sites keep working unchanged.\n\nImplementation notes. Every discount, `Discount` included, is an immutable C# `readonly struct` annotated with `[DddValueObject]`: equal by value (`IEquatable<T>` with `Equals(object?)`, `GetHashCode()` and a `ToString()` consistent across the variants), built only through a static factory behind a private constructor, and exposing no public getters — equality, `ApplyOn(Money)` and `ToString()` are its only observable behaviours. `ThresholdDiscount` lives in `Sales.DeepModel.Pricing.Discounts` next to `PercentageDiscount` and `ValueDiscount` and mirrors their shape. All three implement the existing `PriceModifier` interface in the same folder, which this design does not model as a building block: it carries no `[Ddd*]` annotation, so the scanned domain model leaves it out. `PercentageDiscount`, `ValueDiscount` and the `Discount.Percentage` and `Discount.Value` factories already exist and do not change; they are added here only so this green-field design shows the whole discounts module and the union has a complete picture. Only `Sales.Pricing.Discounts` is designed; the other `Sales` modules are out of scope.",
   "modules": {
     "added": [
       {
@@ -10,8 +10,8 @@
           "value": "Sales",
           "author": "agent"
         },
-        "description": {
-          "value": "Sales bounded context — the slice that owns single-product discount value objects and the discriminated union that exposes them. Only the `Sales.Pricing.Discounts` module is described by this design doc; all other Sales modules are out of scope.",
+        "definition": {
+          "value": "The Sales bounded context: selling products to customers, including the price of a single product and the discounts that reduce it.",
           "author": "agent"
         }
       },
@@ -21,8 +21,8 @@
           "value": "Discounts",
           "author": "agent"
         },
-        "description": {
-          "value": "Single-product discount value objects (`PercentageDiscount`, `ValueDiscount`, `ThresholdDiscount`) plus the `Discount` discriminated-union type that hides them behind one caller-facing surface. Every discount is an immutable `readonly struct` annotated with `[DddValueObject]`, with a private constructor and a static `Of(...)` factory that enforces all invariants at construction time. All three discount value objects implement the existing `PriceModifier` C# interface (which lives in the same folder as a plain interface file and is intentionally not declared as a Building Block here because it has no `[Ddd*]` annotation and is therefore outside the scanned domain model). `Discount.ApplyOn(Money price)` delegates to the underlying variant; the discriminator is a private three-valued enum-like state that distinguishes the three cases exhaustively.",
+        "definition": {
+          "value": "The discounts a single product's price can be given — a percentage off, a fixed amount off, or a percentage off above a threshold — and the one `Discount` that stands for any of them.",
           "author": "agent"
         }
       }
@@ -40,8 +40,8 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
-          "value": "An immutable discount value object that applies a percentage reduction to a price, but only when the price strictly exceeds a configured `Money` threshold. Lives in `Sales.DeepModel.Pricing.Discounts` next to `PercentageDiscount` and `ValueDiscount`, mirroring their shape: C# `readonly struct` annotated with `[DddValueObject]`, implements `IEquatable<ThresholdDiscount>` with `Equals(object?)`, `GetHashCode()`, and a `ToString()` consistent with the two existing discount value objects. Implements the existing `PriceModifier` interface that already exists in the same folder and is implemented by the two existing discount value objects (this design doc does not declare `PriceModifier` itself as a Building Block because it lives outside the scanned domain model — it has no `[Ddd*]` annotation). Internal state is two private fields — a `Percentage` and a `Money` threshold — with no public getters; equality, application via `ApplyOn(Money)`, and `ToString()` are the only externally observable behaviours. Construction goes through a static `Of(Percentage value, Money threshold)` factory; the constructor is private. The factory is the only invariant gatekeeper: percentage validity is delegated to the existing `Percentage` value object, and the threshold must be strictly positive (≤ zero in its currency is rejected).",
+        "definition": {
+          "value": "A discount that reduces a price by a percentage, but only when the price is strictly above a set threshold.",
           "author": "agent"
         },
         "properties": {
@@ -252,8 +252,8 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
-          "value": "Existing immutable percentage discount value object that reduces any price by a configured `Percentage`. C# `readonly struct` annotated with `[DddValueObject]`, implementing the existing `PriceModifier` interface and `IEquatable<PercentageDiscount>` with `Equals(object?)`, `GetHashCode()` and `ToString()`. Internal state is one private `Percentage` field; equality, application via `ApplyOn(Money)`, and `ToString()` are the only externally observable behaviours. Construction goes through a static `Of(Percentage value)` factory; the constructor is private. Validity of the percentage (within `[0%, 100%]`) is enforced by the `Percentage` value object itself. This BB is described here as part of the green-field design of the discounts module so the discriminated union has a complete picture; behaviour and shape are unchanged by this design doc.",
+        "definition": {
+          "value": "A discount that reduces any price by a set percentage.",
           "author": "agent"
         },
         "properties": {
@@ -286,8 +286,8 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
-          "value": "Existing immutable absolute-value discount that reduces a price by a configured `Money` amount, capped at the price so the result never goes negative. C# `readonly struct` annotated with `[DddValueObject]`, implementing the existing `PriceModifier` interface and `IEquatable<ValueDiscount>` with `Equals(object?)`, `GetHashCode()` and `ToString()`. Internal state is one private `Money` field; equality, application via `ApplyOn(Money)`, and `ToString()` are the only externally observable behaviours. Construction goes through a static `Of(Money value)` factory; the constructor is private. This BB is described here as part of the green-field design of the discounts module so the discriminated union has a complete picture; behaviour and shape are unchanged by this design doc.",
+        "definition": {
+          "value": "A discount that takes a fixed amount of money off a price, never taking it below zero.",
           "author": "agent"
         },
         "properties": {
@@ -320,8 +320,8 @@
           "value": "value_object",
           "author": "agent"
         },
-        "description": {
-          "value": "Discriminated-union value object that exposes a single caller-facing type covering the three concrete discount kinds (`PercentageDiscount`, `ValueDiscount`, `ThresholdDiscount`). Callers across the system hold `Discount` values without knowing which variant they carry. C# `readonly struct` annotated with `[DddValueObject]`, implementing `IEquatable<Discount>` with `Equals(object?)`, `GetHashCode()` and `ToString()`. Internal state: a private three-valued discriminator (an enum-like state distinguishing `Percentage`, `Value`, `Threshold` cases — the bool discriminator that previously sufficed for two variants is replaced) plus three private variant fields (`PercentageDiscount`, `ValueDiscount`, `ThresholdDiscount`); only the field corresponding to the active discriminator is meaningful, the other two are at their default values. Construction is restricted to three public static factories: `Discount.Percentage(Percentage)`, `Discount.Value(Money)`, `Discount.Threshold(Percentage, Money)`. The two existing factories keep their exact current signatures so existing call sites do not need any change. `ApplyOn(Money)` dispatches on the discriminator and routes to the corresponding underlying value object's `ApplyOn`.",
+        "definition": {
+          "value": "Any one discount — a percentage, a fixed amount or a threshold discount — held as a single value, so a caller can apply a discount without knowing which kind it is.",
           "author": "agent"
         },
         "properties": {
@@ -333,7 +333,7 @@
                 "author": "agent"
               },
               "description": {
-                "value": "Private three-valued discriminator distinguishing the `Percentage`, `Value`, `Threshold` cases. Implementation choice (private nested enum or three named constants) is local; the rule is that dispatch over the discriminator must be exhaustive. The field is private — never observed by callers.",
+                "value": "Private three-valued discriminator distinguishing the `Percentage`, `Value`, `Threshold` cases; it replaces the two-valued (bool) one that sufficed for two variants. Implementation choice (private nested enum or three named constants) is local; the rule is that dispatch over the discriminator must be exhaustive. The field is private — never observed by callers.",
                 "author": "agent"
               },
               "optional": {
@@ -365,6 +365,59 @@
               "description": {
                 "value": "Trigger: any change to the `Discount` type that touches its factory surface. Pre-conditions: the existing public static factories `Discount.Percentage(Percentage value)` and `Discount.Value(Money value)` exist and have known signatures relied upon by call sites across the solution. Algorithm: 1. The two existing factory methods MUST keep their exact current signatures and observable behaviour. 2. New variants are added via additional public static factories (here: `Discount.Threshold(Percentage value, Money threshold)`); they do not replace, rename, or alter the existing two. 3. The internal discriminator implementation is allowed to change (e.g. bool → enum-like) provided this stability rule for the public factories is preserved. Post-conditions: existing call sites compile and behave identically; the only API surface change visible to callers is the new factory. Edge cases: any rename or signature change of the existing factories is treated as a breaking change and is out of scope of this design doc.",
                 "author": "agent"
+              }
+            },
+            {
+              "name": "A Discount always holds exactly one valid discount",
+              "ruleType": {
+                "value": "Structure",
+                "author": "agent"
+              },
+              "description": {
+                "value": "A `Discount` is made only by one of its factories, and only from a discount that could itself be made: when the underlying discount is rejected, the rejection reaches the caller and no `Discount` exists, never a partly made one. The kinds of discount it does not hold are never observed.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "Threshold factory rejects a non-positive threshold",
+                    "description": {
+                      "value": "Verifies that a rejected threshold discount leaves no Discount behind.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a percentage of 10% and a threshold of 0 PLN",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`Discount.Threshold(10%, 0 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "construction is rejected with the threshold's domain error\nAnd no `Discount` is created",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "Percentage factory rejects an invalid percentage",
+                    "description": {
+                      "value": "Verifies that a rejected percentage leaves no Discount behind.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a percentage outside `[0%, 100%]` (e.g. 150%)",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`Discount.Percentage` is invoked with it",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "construction is rejected with the percentage's own domain error\nAnd no `Discount` is created",
+                      "author": "agent"
+                    }
+                  }
+                ]
               }
             }
           ]
@@ -464,8 +517,8 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Money` price (single argument; same call shape as `PercentageDiscount.ApplyOn(Money)` and `ValueDiscount.ApplyOn(Money)`). Validation / preconditions: none at apply-time — the value object's invariants (percentage in `[0%, 100%]`, threshold strictly positive) are guaranteed by the `Of(Percentage, Money)` factory and are not re-checked here. Steps: 1. Compare the incoming `price` to the stored `threshold` using a strict greater-than (`price > threshold`). 2. If the comparison is true, return `price * (Percentage.Of100 - value)` — the same percentage-reduction formula used by `PercentageDiscount.ApplyOn`. 3. Otherwise (price equal to threshold or below), return the incoming `price` unchanged. No state is mutated; the operation is pure. Output: a `Money` value — either the price reduced by the configured percentage, or the original price. Edge cases: `price == threshold` returns the price unchanged (boundary is strict, not inclusive); a price expressed in a different currency than the threshold is a `Money`-level concern handled by the underlying multiplication / comparison operators on `Money` (not re-implemented here).",
+        "definition": {
+          "value": "Gives a price the threshold discount: reduced by the percentage when the price is above the threshold, unchanged otherwise.",
           "author": "agent"
         },
         "visibility": {
@@ -477,12 +530,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": "The price reduced by the percentage when it is strictly above the threshold; otherwise the price unchanged."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -496,8 +568,8 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Money` price (single argument). Validation / preconditions: none at apply-time — the value object's invariant (percentage in `[0%, 100%]`) is guaranteed by the `Of(Percentage)` factory and is not re-checked here. Steps: 1. Compute and return `price * (Percentage.Of100 - value)`. The operation is pure; no state is mutated. Output: a `Money` value — the price reduced by the configured percentage. Edge cases: a zero percentage returns the price unchanged; a 100% percentage returns a zero-`Money` value in the same currency as `price`. Currency mismatch between operands is a `Money`-level concern handled by the underlying arithmetic operators.",
+        "definition": {
+          "value": "Reduces a price by the discount's percentage.",
           "author": "agent"
         },
         "visibility": {
@@ -509,12 +581,107 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": "The price reduced by the percentage, in the price's currency."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "Percentage discount takes its percentage off the price",
+              "ruleType": {
+                "value": "Computation",
+                "author": "agent"
+              },
+              "description": {
+                "value": "The result is `price * (Percentage.Of100 - value)`, in the price's currency. The percentage is valid by construction, so nothing is checked when the discount is applied, and applying it changes no state.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "Ten percent off",
+                    "description": {
+                      "value": "Verifies the reduction formula.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `PercentageDiscount` of 10%",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 540 PLN",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "Zero percent leaves the price unchanged",
+                    "description": {
+                      "value": "Verifies the lower edge of the percentage range.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `PercentageDiscount` of 0%",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 600 PLN",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "A hundred percent makes the price zero",
+                    "description": {
+                      "value": "Verifies the upper edge of the percentage range.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `PercentageDiscount` of 100%",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 0 PLN",
+                      "author": "agent"
+                    }
+                  }
+                ]
+              }
+            }
           ]
         }
       },
@@ -528,8 +695,8 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Money` price (single argument). Validation / preconditions: none at apply-time — the value object's structural invariants are enforced by the `Money` value object itself. Steps: 1. Compute `price - value`. 2. Return the maximum of the result and a zero-`Money` value in `price.Currency` — the discount is capped at the price and never produces a negative result. The operation is pure; no state is mutated. Output: a `Money` value — `max(price - value, 0)` in `price.Currency`. Edge cases: when `value > price`, the result is zero `Money` in the price's currency; when `value` is zero, the price is returned unchanged. Currency mismatch between `value` and `price` is a `Money`-level concern handled by the underlying arithmetic operators.",
+        "definition": {
+          "value": "Takes the discount's amount off a price, never going below zero.",
           "author": "agent"
         },
         "visibility": {
@@ -541,12 +708,107 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": "The price less the amount, or zero in the price's currency when the amount is larger than the price."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "Value discount never takes a price below zero",
+              "ruleType": {
+                "value": "Computation",
+                "author": "agent"
+              },
+              "description": {
+                "value": "The result is `price - value`, or zero `Money` in `price.Currency` when that would be negative: `max(price - value, 0)`. Applying it changes no state.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "A fixed amount off",
+                    "description": {
+                      "value": "Verifies the subtraction.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `ValueDiscount` of 50 PLN",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 550 PLN",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "An amount larger than the price makes it zero",
+                    "description": {
+                      "value": "Verifies the cap at zero.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `ValueDiscount` of 700 PLN",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 0 PLN",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "A zero amount leaves the price unchanged",
+                    "description": {
+                      "value": "Verifies that a zero amount is allowed and changes nothing.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "value": "a `ValueDiscount` of 0 PLN",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "value": "`ApplyOn(600 PLN)` is invoked",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "value": "the result is 600 PLN",
+                      "author": "agent"
+                    }
+                  }
+                ]
+              }
+            }
           ]
         }
       },
@@ -560,8 +822,8 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Percentage` value (single argument). This is a public static factory on the `Discount` discriminated-union type that constructs a `Discount` instance carrying the percentage variant. Validation / preconditions: input validity is delegated to `PercentageDiscount.Of(Percentage)`, which relies on the `Percentage` value object's own range validation `[0%, 100%]`; if construction of the underlying VO fails, the failure propagates to the caller. Steps: 1. Build the underlying `PercentageDiscount` via `PercentageDiscount.Of(value)`. 2. Build a `Discount` instance whose discriminator is set to the percentage case and whose `_percentageDiscount` field holds the constructed value object; the other two variant fields stay at their default values. 3. Return the assembled `Discount`. Output: a `Discount` value the rest of the system can hold without knowing which variant it carries. Edge cases: failure to construct `PercentageDiscount` (invalid percentage) prevents the `Discount` from ever being assembled — there is no partially-initialised state. The signature of this factory is unchanged from the current implementation; existing call sites continue to compile and behave identically.",
+        "definition": {
+          "value": "Makes a `Discount` that reduces prices by a given percentage.",
           "author": "agent"
         },
         "visibility": {
@@ -573,12 +835,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Percentage"
+            {
+              "name": "percentage",
+              "type": {
+                "value": "building_block|Sales.Commons.Percentage"
+              },
+              "description": {
+                "value": "The percentage to take off. One outside `[0%, 100%]` is rejected by `Percentage` itself, and no `Discount` is made."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": "A `Discount` holding a percentage discount, which callers hold without knowing its kind."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -592,8 +873,8 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Money` amount (single argument). This is a public static factory on the `Discount` discriminated-union type that constructs a `Discount` instance carrying the value variant. Validation / preconditions: structural validity of the `Money` argument is the `Money` value object's responsibility; this factory does not perform additional checks. Steps: 1. Build the underlying `ValueDiscount` via `ValueDiscount.Of(value)`. 2. Build a `Discount` instance whose discriminator is set to the value case and whose `_valueDiscount` field holds the constructed value object; the other two variant fields stay at their default values. 3. Return the assembled `Discount`. Output: a `Discount` value the rest of the system can hold without knowing which variant it carries. Edge cases: a zero-`Money` argument is allowed (produces a `ValueDiscount` that, when applied, returns the price unchanged via the cap-at-zero rule). The signature of this factory is unchanged from the current implementation; existing call sites continue to compile and behave identically.",
+        "definition": {
+          "value": "Makes a `Discount` that takes a fixed amount of money off prices.",
           "author": "agent"
         },
         "visibility": {
@@ -605,12 +886,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The amount to take off. Zero is allowed: it leaves every price unchanged. Its validity is `Money`'s own concern; nothing more is checked."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": "A `Discount` holding a value discount, which callers hold without knowing its kind."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -624,8 +924,12 @@
           "value": "Command",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Percentage` value and a `Money` threshold (two arguments, mirroring `Discount.Percentage(Percentage)` and `Discount.Value(Money)`). This is the new public static factory on the `Discount` discriminated-union type; it constructs a `Discount` instance carrying the threshold variant. Validation / preconditions: input validity is delegated to `ThresholdDiscount.Of(Percentage, Money)`, which rejects non-positive thresholds and (transitively, via the `Percentage` VO) percentages outside `[0%, 100%]`. Steps: 1. Build the underlying `ThresholdDiscount` via `ThresholdDiscount.Of(value, threshold)`; if construction fails, the failure propagates to the caller. 2. Build a `Discount` instance whose discriminator is set to the threshold case and whose `_thresholdDiscount` field holds the constructed value object; the two existing variant fields stay at their default values. 3. Return the assembled `Discount`. Output: a `Discount` value the rest of the system can hold without knowing which variant it carries. Edge cases: failure to construct `ThresholdDiscount` (non-positive threshold, invalid percentage) prevents the `Discount` from ever being assembled — there is no partially-initialised state. The signatures of `Discount.Percentage(Percentage)` and `Discount.Value(Money)` remain unchanged so existing call sites continue to compile and behave as before.\n\n```mermaid\nsequenceDiagram\n    participant Caller\n    participant Discount\n    participant ThresholdDiscount\n    participant Percentage\n    Caller->>Discount: Threshold(value, threshold)\n    Discount->>ThresholdDiscount: Of(value, threshold)\n    ThresholdDiscount->>Percentage: validate value (range [0%, 100%])\n    Percentage-->>ThresholdDiscount: ok / domain error\n    ThresholdDiscount->>ThresholdDiscount: assert threshold > 0\n    ThresholdDiscount-->>Discount: ThresholdDiscount instance\n    Discount->>Discount: assemble Discount{ discriminator = Threshold, _thresholdDiscount = instance }\n    Discount-->>Caller: Discount\n```",
+        "definition": {
+          "value": "Makes a `Discount` that reduces prices by a percentage, but only above a threshold.",
+          "author": "agent"
+        },
+        "diagram": {
+          "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant ThresholdDiscount\n    participant Percentage\n    Caller->>Discount: Threshold(value, threshold)\n    Discount->>ThresholdDiscount: Of(value, threshold)\n    ThresholdDiscount->>Percentage: validate value (range [0%, 100%])\n    Percentage-->>ThresholdDiscount: ok / domain error\n    ThresholdDiscount->>ThresholdDiscount: assert threshold > 0\n    ThresholdDiscount-->>Discount: ThresholdDiscount instance\n    Discount->>Discount: assemble Discount{ discriminator = Threshold, _thresholdDiscount = instance }\n    Discount-->>Caller: Discount",
           "author": "agent"
         },
         "visibility": {
@@ -637,13 +941,43 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Percentage",
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "percentage",
+              "type": {
+                "value": "building_block|Sales.Commons.Percentage"
+              },
+              "description": {
+                "value": "The percentage to take off above the threshold; it lies within `[0%, 100%]`, which `Percentage` itself enforces."
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The threshold a price must strictly exceed for the discount to apply; it must be strictly positive."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Pricing.Discounts.Discount"
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": "A `Discount` holding a threshold discount, which callers hold without knowing its kind."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       },
@@ -657,8 +991,12 @@
           "value": "Query",
           "author": "agent"
         },
-        "description": {
-          "value": "Input: a `Money` price (single argument). Validation / preconditions: none — every `Discount` instance is valid by construction (each underlying value object enforces its own invariants in its factory). Steps: 1. Inspect the discriminator. 2. Dispatch to the corresponding underlying value object's `ApplyOn(Money)`: `_percentageDiscount.ApplyOn(price)` for the percentage variant, `_valueDiscount.ApplyOn(price)` for the value variant, `_thresholdDiscount.ApplyOn(price)` for the new threshold variant. 3. Return the result of the dispatched call. The dispatch is exhaustive across the three discriminator states; an unrecognised discriminator value is impossible by construction. Output: a `Money` value — the price modified (or returned unchanged) according to the held variant. Edge cases: equality, hash code and `ToString` similarly cover all three variants and are kept consistent with this dispatch — implementations of `Equals`, `GetHashCode` and `ToString` follow the same three-branch shape over the discriminator.\n\n```mermaid\nsequenceDiagram\n    participant Caller\n    participant Discount\n    participant Variant as Active variant<br/>(PercentageDiscount /<br/>ValueDiscount /<br/>ThresholdDiscount)\n    Caller->>Discount: ApplyOn(price)\n    Discount->>Discount: inspect discriminator\n    Discount->>Variant: ApplyOn(price)\n    Variant-->>Discount: modified Money\n    Discount-->>Caller: Money\n```",
+        "definition": {
+          "value": "Applies whichever discount the `Discount` holds to a price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant Variant as Active variant<br/>(PercentageDiscount /<br/>ValueDiscount /<br/>ThresholdDiscount)\n    Caller->>Discount: ApplyOn(price)\n    Discount->>Discount: inspect discriminator\n    Discount->>Variant: ApplyOn(price)\n    Variant-->>Discount: modified Money\n    Discount-->>Caller: Money",
           "author": "agent"
         },
         "visibility": {
@@ -670,12 +1008,31 @@
         },
         "input": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The price to discount."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         },
         "output": {
           "added": [
-            "building_block|Sales.Commons.Money"
+            {
+              "type": "building_block|Sales.Commons.Money",
+              "description": {
+                "value": "The price as the held discount changes it, or unchanged when that discount does not apply."
+              },
+              "optional": {
+                "value": false
+              }
+            }
           ]
         }
       }

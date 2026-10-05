@@ -59,6 +59,10 @@ test('ships exactly the expected plugin files', async () => {
     'skills/create-design-doc/SKILL.md',
     'skills/create-design-doc/references/modelling.md',
     'skills/create-design-doc/references/alternative-brief.md',
+    'skills/implement-java-spring/SKILL.md',
+    'skills/implement-java-spring/references/mapping.md',
+    'skills/implement-java-spring/references/building-blocks.md',
+    'skills/implement-java-spring/references/testing.md',
     'contracts/system-model.schema.json',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
@@ -157,9 +161,12 @@ test('the service the pin resolves to boots and lists tools', async () => {
       'create_change',
       'create_design_doc_in_change',
       'create_document_in_change',
+      'delete_change',
+      'get_design_doc_in_change',
       'get_document_in_change',
       'get_newest_system_model',
       'list_changes',
+      'list_design_docs_in_change',
       'list_documents_in_change',
       'scan_system_model',
       'update_change',

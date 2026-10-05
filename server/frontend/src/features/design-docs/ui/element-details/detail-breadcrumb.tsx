@@ -1,9 +1,9 @@
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Breadcrumbs } from '#/shared/design-system/breadcrumbs.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 
 /**
  * The path in words, under the rails that draw it: a reader who followed a
@@ -32,7 +32,7 @@ export function DetailBreadcrumb({
           separator={<span aria-hidden="true">&gt;</span>}
           separatorMargin="xs"
           px="xs"
-          pt="xs"
+          py="xs"
         >
           {above.map((step) => (
             <Button

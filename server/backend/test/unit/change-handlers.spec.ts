@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import {
   type Change,
@@ -198,5 +200,32 @@ describe('UpdateChangeHandler', () => {
       }),
     ).rejects.toMatchObject({ entity: 'change' });
     expect(await t.listChanges.handle()).toEqual([]);
+  });
+});
+
+describe('DeleteChangeHandler', () => {
+  it('removes the change with everything it owns, leaving the others', async () => {
+    const gone = await t.writeChange('2026-01-01-payment-retry');
+    const kept = await t.writeChange('2026-01-02-refund-retry');
+    await t.writeDesignDoc(gone, designDocFixture);
+    await t.writeDocument(gone, {
+      id: '2026-01-03-notes',
+      title: 'Notes',
+      date: '2026-01-03',
+      content: '',
+    });
+
+    expect(await t.deleteChange.handle({ id: gone })).toMatchObject({
+      id: gone,
+    });
+
+    expect((await t.listChanges.handle()).map((c) => c.id)).toEqual([kept]);
+    expect(existsSync(join(t.changesDir, gone))).toBe(false);
+  });
+
+  it('refuses an id that names no change', async () => {
+    await expect(
+      t.deleteChange.handle({ id: ChangeId.parse('2026-09-24-missing') }),
+    ).rejects.toMatchObject({ entity: 'change' });
   });
 });

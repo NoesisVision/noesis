@@ -1,0 +1,31 @@
+/*
+ * Two columns that scroll apart: the tree stays put while a long description
+ * runs on beside it, which is the whole reason the outline is worth having.
+ * The page itself does not scroll, so the surface is measured against the
+ * window rather than filled by its content.
+ */
+.surface {
+  --workbench-gutter: var(--app-shell-padding, var(--mantine-spacing-lg));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  height: calc(
+    100dvh - var(--app-shell-header-offset, 0rem) - 2 * var(--workbench-gutter)
+  );
+  min-height: 24rem;
+}
+
+.header {
+  flex: none;
+}
+
+/*
+ * The same breakpoint the shell folds its sidebar at, spelled out because a
+ * media query cannot read `--mantine-breakpoint-md`.
+ */
+@media (max-width: 61.99em) {
+  .surface {
+    height: auto;
+  }
+}

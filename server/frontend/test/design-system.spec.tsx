@@ -1,10 +1,12 @@
 import { expect, it } from 'bun:test';
-import { createRef } from 'react';
+import { createRef, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { AppShell } from '../src/shared/design-system/app-shell';
 import { Button } from '../src/shared/design-system/button';
+import { CardTooltip } from '../src/shared/design-system/card-tooltip';
 import { Menu } from '../src/shared/design-system/menu';
 import { MantineProvider } from '../src/shared/design-system/provider';
+import { Tooltip } from '../src/shared/design-system/tooltip';
 import { wrapComponent } from '../src/shared/design-system/wrap-component';
 
 it('preserves polymorphic props, refs, and Mantine styling', () => {
@@ -109,4 +111,26 @@ it('checks a default against the props of the component it is for', () => {
   wrapComponent<typeof Probe, ProbeProps>(Probe, 'Probe', { raddddius: 'md' });
   // @ts-expect-error defaults without a named props type are unchecked
   wrapComponent(Probe, 'Probe', { radius: 'md' });
+});
+
+it('draws a card tooltip as a card, and a plain one in Mantine colours', () => {
+  const html = (tooltip: ReactElement) =>
+    renderToStaticMarkup(<MantineProvider>{tooltip}</MantineProvider>);
+  const target = <button type="button">Target</button>;
+  const card = html(
+    <CardTooltip label="Tip" opened withinPortal={false}>
+      {target}
+    </CardTooltip>,
+  );
+  expect(card).toContain('dashed');
+  expect(card).toContain('--mantine-color-brand-9');
+  // Still the plain tooltip underneath, arrow and all.
+  expect(card).toContain('mantine-Tooltip-arrow');
+  const plain = html(
+    <Tooltip label="Tip" opened withinPortal={false}>
+      {target}
+    </Tooltip>,
+  );
+  expect(plain).toContain('mantine-Tooltip-arrow');
+  expect(plain).not.toContain('dashed');
 });
