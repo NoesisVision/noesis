@@ -25,7 +25,10 @@ const KIND_LABEL: Partial<Record<OutlineKind, string>> = {
   behaviour: 'behaviour',
 };
 
-/** The element a rule is on, opened in the model view with it in hand. */
+/**
+ * The element a rule is on, opened in the model view with it in hand. Only
+ * the model's place moves: the other views keep theirs for the way back.
+ */
 export function ElementLink({ traced, changeId, docId }: ElementLinkProps) {
   const { element } = traced;
   return (
@@ -39,7 +42,7 @@ export function ElementLink({ traced, changeId, docId }: ElementLinkProps) {
             {...props}
             to="/changes/$changeId/design-docs/$docId"
             params={{ changeId, docId }}
-            search={{ node: element.id }}
+            search={(prev) => ({ ...prev, view: undefined, node: element.id })}
           />
         )}
       >
@@ -119,7 +122,9 @@ export function Details({
             <dd>{rationale}</dd>
           </>
         )}
-        {trace.length > 0 && (
+        {/* A trace the design empties is a change too, and reads as one. */}
+        {(trace.length > 0 ||
+          (traced.change === 'modified' && traced.trace !== null)) && (
           <>
             <dt>Needs</dt>
             <dd>

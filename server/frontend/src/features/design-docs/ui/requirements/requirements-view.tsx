@@ -42,7 +42,10 @@ export function RequirementsView({
   detail: DesignDocDetail;
 } & ViewPlace) {
   const doc = detail.document;
-  const requirements = useMemo(() => requirementsOf(doc), [doc]);
+  const requirements = useMemo(
+    () => requirementsOf(doc, detail.outline),
+    [doc, detail.outline],
+  );
   const nodes = useMemo(
     () => requirementsTreeOf(requirements, doc),
     [requirements, doc],

@@ -1,4 +1,6 @@
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
+import { clsx } from 'clsx';
+import { createContext, useContext } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { ChangeMark } from '#/shared/ui/model-tree/change-mark.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
@@ -8,7 +10,8 @@ import {
 } from '#/shared/ui/model-tree/model-outline.ts';
 import { counted } from '#/shared/ui/plural.ts';
 import { kindOf } from '../../element-id.ts';
-import { KINDS } from './architecture-kinds.ts';
+import { fades, KINDS } from './architecture-kinds.ts';
+import type { DiagramFocus } from './architecture-selection.ts';
 import {
   CORE_HEX_INSET,
   hexagonPoints,
@@ -22,26 +25,74 @@ import classes from './architecture-diagram.module.css';
  * is chosen by pointer or by keyboard alike.
  */
 
-interface CardData extends Record<string, unknown> {
-  node: LaidOutNode;
-  state: 'selected' | 'related' | undefined;
-  warnings: number;
-  notes: number;
-  rules: number | null;
-  /** What the design does to the card's element, marked as the tree marks it; `unchanged` when the reader hides it. */
-  change: OutlineChange;
-  changeColour: string | undefined;
+/*
+ * A node holds only where its card stands, so it is the same object for as
+ * long as the layout is: React Flow measures a node it is handed anew, and
+ * a selection must not cost a measuring of every card. What a card shows that
+ * changes under the same layout — the selection, the overlays, the legend's
+ * pick — reaches it through context instead.
+ */
+export type DiagramNode = Node<{ node: LaidOutNode }>;
+
+export interface DiagramReading {
+  focus: DiagramFocus;
+  /** How many warnings and notes name each card, by its id. */
+  findings: ReadonlyMap<string, { warnings: number; notes: number }>;
+  overlays: { checks: boolean; rules: boolean; changes: boolean };
+  changeColour: (change: OutlineChange) => { color: string } | null;
+  /** The kinds the legend picks out; the rest fade. */
+  pickedKinds: readonly LaidOutNode['kind'][] | undefined;
   onSelect: (id: string) => void;
 }
 
-export type DiagramNode = Node<CardData>;
+const NOTHING_READ: DiagramReading = {
+  focus: { selected: new Set(), related: new Set() },
+  findings: new Map(),
+  overlays: { checks: false, rules: false, changes: false },
+  changeColour: () => null,
+  pickedKinds: undefined,
+  onSelect: () => {},
+};
+
+export const DiagramReadingContext = createContext(NOTHING_READ);
+
+/** What one card shows of the reading. */
+function useCard(node: LaidOutNode) {
+  const { focus, findings, overlays, changeColour, pickedKinds, onSelect } =
+    useContext(DiagramReadingContext);
+  const found = overlays.checks ? findings.get(node.id) : undefined;
+  /* What the design does to the card's element, marked as the tree marks it;
+     `unchanged` when the reader hides it. */
+  const change: OutlineChange =
+    overlays.changes && node.element !== null
+      ? node.element.change
+      : 'unchanged';
+  return {
+    state: focus.selected.has(node.id)
+      ? ('selected' as const)
+      : focus.related.has(node.id)
+        ? ('related' as const)
+        : undefined,
+    warnings: found?.warnings ?? 0,
+    notes: found?.notes ?? 0,
+    rules:
+      overlays.rules && node.element !== null
+        ? node.element.rules.length
+        : null,
+    change,
+    changeColour: changeColour(change)?.color,
+    faded: fades(node.kind, pickedKinds),
+    onSelect,
+  };
+}
 
 export function HexagonNode({
   data,
   width = 0,
   height = 0,
 }: NodeProps<DiagramNode>) {
-  const { node, state, onSelect } = data;
+  const { node } = data;
+  const { state, onSelect } = useCard(node);
   return (
     <div className={classes.frame} data-state={state}>
       <svg
@@ -79,16 +130,17 @@ export function DomainCoreNode({
 }
 
 export function CardNode({ data }: NodeProps<DiagramNode>) {
+  const { node } = data;
   const {
-    node,
     state,
     warnings,
     notes,
     rules,
     change,
     changeColour,
+    faded,
     onSelect,
-  } = data;
+  } = useCard(node);
   const { element } = node;
   const pattern = element?.pattern ?? null;
   const kind = KINDS[node.kind];
@@ -112,7 +164,7 @@ export function CardNode({ data }: NodeProps<DiagramNode>) {
         className={classes.handle}
       />
       <UnstyledButton
-        className={classes.card}
+        className={clsx(classes.card, faded && classes.faded)}
         data-kind={node.kind}
         data-state={state}
         data-change={change}

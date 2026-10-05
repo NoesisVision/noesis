@@ -81,11 +81,12 @@ export function ArchitectureView({
     },
     [hiddenMemory],
   );
-  /* Laid out afresh without them, so a type left out leaves no gap behind. */
-  const drawn = useMemo(
-    () => layoutArchitecture(withoutTypes(outline.hexagons, hiddenTypes)),
-    [outline, hiddenTypes],
-  );
+  /* Laid out afresh without them, so a type left out leaves no gap behind;
+     with none left out, it is the layout already made. */
+  const drawn = useMemo(() => {
+    const shown = withoutTypes(outline.hexagons, hiddenTypes);
+    return shown === outline.hexagons ? layout : layoutArchitecture(shown);
+  }, [outline, hiddenTypes, layout]);
   const modelTree = useMemo(() => outlineTree(detail.outline), [detail]);
   const memory = useMemo(
     () => expansionMemory(`noesis.designDocs.${doc.id}.architecture.expanded`),

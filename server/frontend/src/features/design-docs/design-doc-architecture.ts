@@ -9,7 +9,6 @@ import type { BuildingBlockRefInput } from '#backend/app/system-model/system-mod
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
-  blockOfRef,
   type Hexagon,
   isDrivenPort,
   type PlacedElement,
@@ -22,7 +21,7 @@ import {
   writtenIn,
 } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { moduleOf, nameOf, ownerOf } from './element-id.ts';
+import { blockOfRef, moduleOf, nameOf, ownerOf } from './element-id.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
@@ -69,8 +68,16 @@ export function architectureOf(
   for (const [item, change] of behaviours) {
     const owner = ownerOf(item.id);
     const visibility = valueOf(item.visibility);
-    if (typeOf.get(owner) !== APPLICATION_SERVICE) {
-      if (visibility?.kind === 'public' && typeOf.has(owner))
+    const type = typeOf.get(owner);
+    // A design may change a behaviour and leave its block out: nothing says
+    // what the block is, and the behaviour has no block here to be read with.
+    if (type === undefined) {
+      unplaced.push(behaviourElement(item, change));
+      continue;
+    }
+    if (type !== APPLICATION_SERVICE) {
+      // A block whose type the design leaves alone may well be a service.
+      if (visibility?.kind === 'public' && type !== null)
         hexagonOf(owner).exposed.push(behaviourElement(item, change));
       continue;
     }
@@ -167,29 +174,37 @@ export function inferredFlowOf(
       drivingPorts.map(({ behaviour }) => behaviour.id),
     ),
   );
-  const flows: InferredFlow[] = [];
+  // By what a reader is told: a block whose behaviours share a type would
+  // otherwise say the same flow once for each of them.
+  const flows = new Map<string, InferredFlow>();
   for (const mine of behaviours.filter(({ id }) => isOwn(id)))
     for (const other of behaviours.filter(({ id }) => !isOwn(id))) {
       const flow = (direction: InferredFlow['direction'], type: string) => {
         const taker = direction === 'gives' ? other.id : mine.id;
-        flows.push({
-          direction,
-          type,
-          other: {
-            id: other.id,
-            name: nameOf(other.id),
-            owner: nameOf(ownerOf(other.id)),
-          },
-          typeMatchOnly:
-            moduleOf(mine.id) !== moduleOf(other.id) && !ports.has(taker),
-        });
+        const typeMatchOnly =
+          moduleOf(mine.id) !== moduleOf(other.id) && !ports.has(taker);
+        const key = `${direction}:${type}:${other.id}`;
+        const known = flows.get(key);
+        // One behaviour that can take it is enough for more than a match.
+        if (known) known.typeMatchOnly &&= typeMatchOnly;
+        else
+          flows.set(key, {
+            direction,
+            type,
+            other: {
+              id: other.id,
+              name: nameOf(other.id),
+              owner: nameOf(ownerOf(other.id)),
+            },
+            typeMatchOnly,
+          });
       };
       for (const type of mine.outputs)
         if (other.inputs.has(type)) flow('gives', type);
       for (const type of mine.inputs)
         if (other.outputs.has(type)) flow('takes', type);
     }
-  return flows;
+  return [...flows.values()];
 }
 
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';

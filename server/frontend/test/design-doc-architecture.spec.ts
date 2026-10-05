@@ -15,6 +15,8 @@ import {
   architectureOf,
   inferredFlowOf,
 } from '../src/features/design-docs/design-doc-architecture';
+import { focusOf } from '../src/features/design-docs/ui/architecture/architecture-selection';
+import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
@@ -291,6 +293,65 @@ describe('an element the design leaves the type of alone', () => {
       outline.hexagons.flatMap(({ domainCore }) => domainCore),
     ).not.toContainEqual(expect.objectContaining({ name: 'Customer' }));
   });
+
+  it('does not take a public behaviour on it for the core exposed', () => {
+    const withPublic = architectureOf({
+      ...clean,
+      buildingBlocks: {
+        added: clean.buildingBlocks.added,
+        modified: [{ id: 'building_block|sales.crm.CustomerService' }],
+      },
+      behaviours: {
+        added: [
+          ...clean.behaviours.added,
+          behaviour('sales.crm.CustomerService.refund', {
+            kind: 'public',
+            actors: ['Clerk'],
+          }),
+        ],
+      },
+    });
+    expect(
+      withPublic.checks.find(
+        ({ id }) => id === 'only-application-services-are-public',
+      )?.level,
+    ).toBe('pass');
+    // And no hexagon is drawn for a module nothing is placed in.
+    expect(withPublic.hexagons.map(({ module }) => module.name)).toEqual([
+      'orders',
+      'billing',
+    ]);
+  });
+});
+
+describe('a behaviour whose building block the design leaves out', () => {
+  const outline = architectureOf({
+    ...clean,
+    buildingBlocks: {
+      added: [
+        ...clean.buildingBlocks.added,
+        block('sales.orders.Discount', 'value_object'),
+      ],
+    },
+    behaviours: {
+      added: clean.behaviours.added,
+      modified: [
+        behaviour('sales.orders.Basket.applyDiscount', PRIVATE, {
+          input: ['building_block|sales.orders.Discount'],
+        }),
+      ],
+    },
+  });
+
+  it('is listed as unplaced', () => {
+    expect(outline.unplaced.map(({ name }) => name)).toEqual(['applyDiscount']);
+  });
+
+  it('still counts for the types it uses', () => {
+    expect(
+      outline.checks.find(({ id }) => id === 'type-in-no-contract')?.level,
+    ).toBe('pass');
+  });
 });
 
 describe('the qdoc design', () => {
@@ -433,5 +494,71 @@ describe('architectureTreeOf', () => {
     expect(open.has(checkPath(outline.checks[0]!))).toBe(true);
     expect(open.has(checkPath(outline.checks.at(-1)!))).toBe(false);
     expect(open.has(needAtPortsPath('ready-to-write'))).toBe(true);
+  });
+});
+
+describe('a public behaviour off an application service', () => {
+  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const document = {
+    ...clean,
+    behaviours: {
+      added: [
+        ...clean.behaviours.added,
+        behaviour('sales.orders.Order.cancel', {
+          kind: 'public',
+          actors: ['Customer'],
+        }),
+      ],
+    },
+  };
+  const outline = architectureOf(document);
+  const exposing = outline.checks.find(
+    ({ id }) => id === 'only-application-services-are-public',
+  )!;
+
+  it('is a row that says what the design does to it', () => {
+    const row = architectureTreeOf(outline, new Set()).find(
+      ({ path }) => path === `${checkPath(exposing)}/${CANCEL}`,
+    );
+    expect(row).toMatchObject({ change: 'added', pattern: 'Command' });
+  });
+
+  it('is found on its building block’s card', () => {
+    const { nodes } = layoutArchitecture(outline.hexagons);
+    const order = 'building_block|sales.orders.Order';
+    expect([
+      ...focusOf({ kind: 'check', check: exposing }, nodes).related,
+    ]).toEqual([order]);
+    expect([
+      ...focusOf({ kind: 'element', id: CANCEL }, nodes).selected,
+    ]).toEqual([order]);
+  });
+});
+
+describe('a block whose behaviours share a type', () => {
+  it('is told each inferred flow once', () => {
+    const document = {
+      ...clean,
+      behaviours: {
+        added: [
+          ...clean.behaviours.added,
+          behaviour('sales.orders.Orders.find', PRIVATE, {
+            output: ['building_block|sales.orders.Order'],
+          }),
+          behaviour('sales.orders.Orders.all', PRIVATE, {
+            output: [{ collectionOf: 'building_block|sales.orders.Order' }],
+          }),
+          behaviour('sales.orders.OrderService.ship', PRIVATE, {
+            input: ['building_block|sales.orders.Order'],
+          }),
+        ],
+      },
+    };
+    const flows = inferredFlowOf(
+      document,
+      architectureOf(document),
+      'building_block|sales.orders.Orders',
+    );
+    expect(flows.filter(({ other }) => other.name === 'ship')).toHaveLength(1);
   });
 });

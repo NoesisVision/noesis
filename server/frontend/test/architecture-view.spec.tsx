@@ -109,3 +109,18 @@ describe('ArchitectureView', () => {
     }
   });
 });
+
+describe('what an element in hand is called', () => {
+  it('calls a module by its hexagon', () => {
+    expect(render('element:module|qdocmanagement.notifications')).toContain(
+      '>Module · hexagon<',
+    );
+  });
+
+  it('calls a behaviour no card draws a behaviour, not the ring of a card', () => {
+    const html = render(
+      'element:behavior|qdocmanagement.preparation.QDoc.create',
+    );
+    expect(html).toContain('>Behaviour<');
+  });
+});

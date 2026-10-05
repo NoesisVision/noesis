@@ -1,4 +1,5 @@
 import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 
 /*
  * The one place that reads an element's id: the rule `ElementId` states on
@@ -23,7 +24,17 @@ const parentAddressOf = (id: string) => {
 /** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
 export const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
 
-export const isBuildingBlock = (id: string) => id.startsWith(BUILDING_BLOCK);
+const isBuildingBlock = (id: string) => id.startsWith(BUILDING_BLOCK);
+
+/** The id a type reference names, a collection by its item. */
+export const refIdOf = (ref: BuildingBlockRefInput): string =>
+  typeof ref === 'string' ? ref : refIdOf(ref.collectionOf);
+
+/** The building block a type reference names, through any collection; null for a primitive. */
+export function blockOfRef(ref: BuildingBlockRefInput): string | null {
+  const id = refIdOf(ref);
+  return isBuildingBlock(id) ? id : null;
+}
 
 /** What an id names; anything that is neither a behaviour nor a building block is a module. */
 export function kindOf(

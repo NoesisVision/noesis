@@ -7,17 +7,20 @@ import {
 } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
+import { outlineOf } from '../src/features/design-docs/design-doc-outline';
 import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { RequirementsView } from '../src/features/design-docs/ui/requirements/requirements-view';
+import { Details } from '../src/features/design-docs/ui/requirements/rule-details';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { requirementsFixture } from './fixtures/design-doc-requirements.fixture';
 
 /** A router of its own, so the element links resolve without the app's route tree. */
-async function render(selected: string | null = null): Promise<string> {
-  const detail = {
-    document: DesignDocument.parse(requirementsFixture),
-    outline: [],
-  };
+async function render(
+  selected: string | null = null,
+  at = '/',
+): Promise<string> {
+  const document = DesignDocument.parse(requirementsFixture);
+  const detail = { document, outline: outlineOf(document) };
   const router = createRouter({
     routeTree: createRootRoute({
       component: () => (
@@ -33,7 +36,7 @@ async function render(selected: string | null = null): Promise<string> {
         </DesignDocSurface>
       ),
     }),
-    history: createMemoryHistory({ initialEntries: ['/'] }),
+    history: createMemoryHistory({ initialEntries: [at] }),
   }) as never as { load: () => Promise<void> };
   await router.load();
   return renderToStaticMarkup(
@@ -150,6 +153,41 @@ describe('RequirementsView', () => {
     expect(ruleNamed('Refund never exceeds paid amount')).toContain(
       'href="/changes/2026-01-01-refunds/design-docs/2026-01-01-partial-refunds?node=building_block%7Csales.refunds.Refund"',
     );
+  });
+
+  it('keeps the other views’ places in a link to the model', async () => {
+    const elsewhere = await render(
+      null,
+      '/?view=requirements&entry=there&arch=here',
+    );
+    expect(elsewhere).toContain(
+      '?entry=there&amp;arch=here&amp;node=building_block%7Csales.refunds.Refund"',
+    );
+  });
+
+  it('shows of a modified rule that its needs were all taken away', () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <Details
+          traced={{
+            name: 'A rule',
+            element: {
+              id: 'building_block|a.B',
+              name: 'B',
+              kind: 'building_block',
+            },
+            module: { id: 'module|a', name: 'a' },
+            change: 'modified',
+            rule: { name: 'A rule' },
+            trace: [],
+          }}
+          rule={{ name: 'A rule' }}
+          element="B"
+        />
+      </MantineProvider>,
+    );
+    expect(html).toContain('>changed<');
+    expect(html).toMatch(/<dt>Needs<\/dt><dd>Design decision/);
   });
 
   it('puts the needs and their rules in a tree beside the document', () => {

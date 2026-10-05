@@ -5,6 +5,7 @@ import type {
   ArchitectureOutline,
 } from '../../architecture-outline.ts';
 import { checkPath, needAtPortsPath } from '../../architecture-tree.ts';
+import { kindOf, ownerOf } from '../../element-id.ts';
 import type { LaidOutNode } from './layout-architecture.ts';
 
 /*
@@ -63,6 +64,13 @@ export interface DiagramFocus {
   related: ReadonlySet<string>;
 }
 
+/**
+ * The card an element is found on: its own, or, for a behaviour drawn on
+ * none — only a driving port is — its building block's.
+ */
+export const cardIdOf = (id: string, drawn: ReadonlySet<string>) =>
+  drawn.has(id) || kindOf(id) !== 'behaviour' ? id : ownerOf(id);
+
 const NOTHING: DiagramFocus = { selected: new Set(), related: new Set() };
 
 export function focusOf(
@@ -70,8 +78,9 @@ export function focusOf(
   nodes: readonly LaidOutNode[],
 ): DiagramFocus {
   if (subject === null) return NOTHING;
+  const drawn = new Set(nodes.map(({ id }) => id));
   const drawing = (ids: Iterable<string>) => {
-    const wanted = new Set(ids);
+    const wanted = new Set([...ids].map((id) => cardIdOf(id, drawn)));
     return new Set(
       nodes
         .filter(

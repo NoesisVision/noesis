@@ -11,7 +11,7 @@ import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { type NeedsInput, needNamesOf } from '../../design-doc-requirements.ts';
-import { isBuildingBlock } from '../../element-id.ts';
+import { blockOfRef, refIdOf } from '../../element-id.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -59,13 +59,9 @@ function* changed<Item, Key>(
   for (const key of set?.removed ?? []) yield [key, 'removed'];
 }
 
-/** The id a type reference names, a collection by its item. */
-const refIdOf = (ref: BuildingBlockRefInput): string =>
-  typeof ref === 'string' ? ref : refIdOf(ref.collectionOf);
-
 /** A type that names another building block, not a primitive. */
 const isReference = (ref: BuildingBlockRefInput): boolean =>
-  isBuildingBlock(refIdOf(ref));
+  blockOfRef(ref) !== null;
 
 /** A declaration's name and type, apart, for a reader that sets them apart. */
 const declared = (name: string, type: BuildingBlockRefInput) => ({

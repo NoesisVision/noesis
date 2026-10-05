@@ -1,7 +1,5 @@
 import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
-import { isBuildingBlock } from './element-id.ts';
 
 /*
  * The design placed in hexagons, as the architecture view and its checks read
@@ -79,11 +77,23 @@ export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
   ...hexagon.drivenPorts,
 ];
 
+/**
+ * Every element the outline holds, by id: the ones the hexagons draw, the
+ * behaviours that expose a core — on their block's card, not one of their
+ * own — and the ones no ring could take.
+ */
+export const placedById = (
+  outline: Pick<ArchitectureOutline, 'hexagons' | 'unplaced'>,
+): Map<string, PlacedElement> =>
+  new Map(
+    [
+      ...outline.hexagons.flatMap((hexagon) => [
+        ...elementsOf(hexagon),
+        ...hexagon.exposed,
+      ]),
+      ...outline.unplaced,
+    ].map((element) => [element.id, element]),
+  );
+
 export const isDrivenPort = (pattern: string | null): boolean =>
   (DRIVEN_PORTS as readonly (string | null)[]).includes(pattern);
-
-/** The building block a type reference names, through any collection; null for a primitive. */
-export function blockOfRef(ref: BuildingBlockRefInput): string | null {
-  if (typeof ref !== 'string') return blockOfRef(ref.collectionOf);
-  return isBuildingBlock(ref) ? ref : null;
-}

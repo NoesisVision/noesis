@@ -76,9 +76,11 @@ export const needNamesOf = (ids: string[], needs: NeedsInput): string[] =>
 
 export function requirementsOf(
   document: DesignDocumentInput,
+  /** The document's outline, when the caller already holds it. */
+  outline: readonly OutlineNode[] = outlineOf(document),
 ): RequirementsOutline {
   const needs = writtenIn(document.needs);
-  const rules = [...tracedRules(document)];
+  const rules = [...tracedRules(document, outline)];
   const answering = (need: DesignedNeedInput) =>
     rules.filter(
       ({ rule }) =>
@@ -120,8 +122,10 @@ const isUnverified = (traced: TracedRule): boolean =>
   traced.change === 'added' && writtenIn(traced.rule.scenarios).length === 0;
 
 /** Every rule the design touches, in the order the model view's outline lists them. */
-function* tracedRules(document: DesignDocumentInput): Generator<TracedRule> {
-  const outline = outlineOf(document);
+function* tracedRules(
+  document: DesignDocumentInput,
+  outline: readonly OutlineNode[],
+): Generator<TracedRule> {
   const byPath = new Map(outline.map((node) => [node.path, node]));
 
   for (const node of outline) {
@@ -179,6 +183,21 @@ export const UNADDRESSED_NEEDS_PATH = 'unaddressed';
 export const needPath = (needId: string, under?: string): string =>
   under === undefined ? `need:${needId}` : `${under}/need:${needId}`;
 
+/** A need's row, wherever one is drawn; `added` holds the needs the design adds. */
+export const needRow = (
+  need: DesignedNeedInput,
+  added: ReadonlySet<string>,
+  under?: string,
+): OutlineNode => ({
+  ...BARE_ROW,
+  path: needPath(need.id, under),
+  parentPath: under ?? null,
+  kind: 'need',
+  name: needNameOf(need),
+  depth: under === undefined ? 0 : 1,
+  change: added.has(need.id) ? 'added' : 'modified',
+});
+
 export const rulePath = (traced: TracedRule, under: string): string =>
   `${under}/rule:${traced.element.id}:${traced.name}`;
 
@@ -189,15 +208,7 @@ export function requirementsTreeOf(
   const added = new Set(document.needs?.added?.map(({ id }) => id));
   const nodes: OutlineNode[] = [];
   const needNode = (need: DesignedNeedInput, under?: string) => {
-    nodes.push({
-      ...BARE_ROW,
-      path: needPath(need.id, under),
-      parentPath: under ?? null,
-      kind: 'need',
-      name: needNameOf(need),
-      depth: under === undefined ? 0 : 1,
-      change: added.has(need.id) ? 'added' : 'modified',
-    });
+    nodes.push(needRow(need, added, under));
   };
   const ruleNode = (traced: TracedRule, under: string) => {
     const pattern = traced.rule === null ? null : valueOf(traced.rule.ruleType);

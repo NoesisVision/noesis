@@ -6,11 +6,10 @@ import {
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
-  elementsOf,
   LEVEL_LABEL,
-  type PlacedElement,
+  placedById,
 } from './architecture-outline.ts';
-import { needNameOf, needPath } from './design-doc-requirements.ts';
+import { needPath, needRow } from './design-doc-requirements.ts';
 import { kindOf, nameOf } from './element-id.ts';
 
 /*
@@ -84,15 +83,7 @@ export function architectureTreeOf(
   });
   for (const { need, ports } of outline.needsAtPorts) {
     const path = needAtPortsPath(need.id);
-    nodes.push({
-      ...BARE_ROW,
-      path,
-      parentPath: NEEDS_PATH,
-      kind: 'need',
-      name: needNameOf(need),
-      depth: 1,
-      change: addedNeeds.has(need.id) ? 'added' : 'modified',
-    });
+    nodes.push(needRow(need, addedNeeds, NEEDS_PATH));
     for (const id of ports) elementRow(id, path);
   }
   return nodes;
@@ -112,13 +103,4 @@ export function defaultArchitectureExpansion(
     ...outline.checks.filter(({ level }) => level !== 'pass').map(checkPath),
     ...outline.needsAtPorts.map(({ need }) => needAtPortsPath(need.id)),
   ]);
-}
-
-/** Every element the hexagons draw, and the ones they cannot place, by id. */
-function placedById(outline: ArchitectureOutline): Map<string, PlacedElement> {
-  return new Map(
-    [...outline.hexagons.flatMap(elementsOf), ...outline.unplaced].map(
-      (element) => [element.id, element],
-    ),
-  );
 }

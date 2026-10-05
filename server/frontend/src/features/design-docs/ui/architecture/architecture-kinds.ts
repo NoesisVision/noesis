@@ -63,6 +63,12 @@ export const KINDS: Record<LaidOutNode['kind'], Kind> = {
 export const isFrame = (kind: LaidOutNode['kind']) =>
   KINDS[kind].type !== 'card';
 
+/** Whether a node fades while the reader picks out these kinds; a frame is the backdrop and never does. */
+export const fades = (
+  kind: LaidOutNode['kind'],
+  picked: readonly LaidOutNode['kind'][] | undefined,
+) => picked !== undefined && !isFrame(kind) && !picked.includes(kind);
+
 export interface LegendEntry {
   label: string;
   kinds: LaidOutNode['kind'][];

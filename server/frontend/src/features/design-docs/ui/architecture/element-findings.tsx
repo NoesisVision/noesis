@@ -6,6 +6,7 @@ import {
   type ArchitectureCheck,
   type ArchitectureOutline,
   LEVEL_LABEL,
+  placedById,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
 import { nameOf } from '../../element-id.ts';
@@ -30,11 +31,13 @@ export function ElementFindings({
   const checks = outline.checks.filter(
     (check) => check.level !== 'pass' && check.elementIds.includes(id),
   );
-  const uses = cards.get(id)?.element?.uses ?? [];
   const flows = useMemo(
     () => inferredFlowOf(doc, outline, id),
     [doc, outline, id],
   );
+  // Not every element has a card of its own; the outline holds the rest.
+  const uses =
+    cards.get(id)?.element?.uses ?? placedById(outline).get(id)?.uses ?? [];
   return (
     <>
       {checks.length > 0 && (

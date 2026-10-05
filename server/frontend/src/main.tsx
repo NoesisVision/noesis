@@ -9,6 +9,7 @@ import { DevToolsContextProvider } from '#/shared/dev-tools/dev-tools-context.ts
 import { configureLogging } from '#/shared/logging.ts';
 import { getContext } from '#/shared/query/query-client.tsx';
 import { DateFormatProvider } from '#/shared/ui/date-format-provider.tsx';
+import { FullscreenPortals } from '#/shared/ui/fullscreen-portals.tsx';
 import '#/shared/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
@@ -31,13 +32,15 @@ createRoot(rootElement).render(
       defaultColorScheme="auto"
       colorSchemeManager={colorSchemeManager}
     >
-      <QueryClientProvider client={context.queryClient}>
-        <DevToolsContextProvider>
-          <DateFormatProvider>
-            <RouterProvider router={router} />
-          </DateFormatProvider>
-        </DevToolsContextProvider>
-      </QueryClientProvider>
+      <FullscreenPortals>
+        <QueryClientProvider client={context.queryClient}>
+          <DevToolsContextProvider>
+            <DateFormatProvider>
+              <RouterProvider router={router} />
+            </DateFormatProvider>
+          </DevToolsContextProvider>
+        </QueryClientProvider>
+      </FullscreenPortals>
     </MantineProvider>
   </StrictMode>,
 );

@@ -14,13 +14,13 @@ import {
 import { CHECKS_PATH } from '../../architecture-tree.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { needNameOf } from '../../design-doc-requirements.ts';
-import { nameOf } from '../../element-id.ts';
+import { kindOf, nameOf } from '../../element-id.ts';
 import { KINDS } from './architecture-kinds.ts';
 import type { ArchitectureSubject } from './architecture-selection.ts';
 import { ElementBody } from './element-body.tsx';
 import { ElementFindings } from './element-findings.tsx';
 import { ElementLinks } from './element-links.tsx';
-import type { LaidOutNode } from './layout-architecture.ts';
+import { hexagonId, type LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
 
 /*
@@ -165,9 +165,12 @@ function bodyOf({
       const node = modelTree.byPath.get(subject.id);
       if (card !== undefined && card.element === null)
         return placeholderBody(card, cards, links);
+      // A module's card is its hexagon, which goes by an id of its own.
+      const drawn = card ?? cards.get(hexagonId(subject.id));
       return {
-        eyebrow: KINDS[card?.kind ?? 'element'].name ?? 'Element',
-        title: card?.label ?? node?.name ?? nameOf(subject.id),
+        eyebrow:
+          (drawn && KINDS[drawn.kind].name) ?? UNDRAWN[kindOf(subject.id)],
+        title: drawn?.label ?? node?.name ?? nameOf(subject.id),
         address: subject.id,
         content: (
           <ElementFindings
@@ -182,6 +185,13 @@ function bodyOf({
     }
   }
 }
+
+/** What an element no card draws is called: by what it is, as no ring says more. */
+const UNDRAWN = {
+  module: 'Module',
+  building_block: 'Building block',
+  behaviour: 'Behaviour',
+} as const;
 
 function placeholderBody(
   card: LaidOutNode,

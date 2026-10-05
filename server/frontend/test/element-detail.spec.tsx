@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../src/features/design-docs/design-doc-field';
+import { ElementBody } from '../src/features/design-docs/ui/architecture/element-body';
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
 import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
@@ -513,6 +514,22 @@ describe('ElementDetail', () => {
     expect(
       scenariosOf(rule, document).map(({ name, rule }) => [name, rule]),
     ).toEqual([['An unpaid hold lapses', undefined]]);
+  });
+
+  it('gives the architecture view the column its rules point at', () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <ElementBody
+          id="building_block|pay.Hold"
+          document={document}
+          modelTree={tree}
+          onSelectElement={() => {}}
+        />
+      </MantineProvider>,
+    );
+    expect(html).toContain('href="#element-scenarios"');
+    expect(html).toContain('id="element-scenarios"');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*An unpaid hold lapses</);
   });
 
   it("marks each scenario for a rule's count to bring into view", () => {
