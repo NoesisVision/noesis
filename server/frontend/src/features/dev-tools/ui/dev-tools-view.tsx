@@ -1,6 +1,9 @@
 import { Box } from '#/shared/design-system/box.tsx';
 import { Switch } from '#/shared/design-system/switch';
-import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
+import {
+  useDevToolsContext,
+  useSetDevToolsFeatures,
+} from '#/shared/dev-tools/dev-tools-context.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 
 /**
@@ -13,7 +16,8 @@ export function featureLabel(name: string): string {
 }
 
 export function DevToolsView() {
-  const { features, setFeatures } = useDevToolsContext();
+  const { features } = useDevToolsContext();
+  const setFeatures = useSetDevToolsFeatures();
   const featureList = Object.entries(features);
   return (
     <Box>

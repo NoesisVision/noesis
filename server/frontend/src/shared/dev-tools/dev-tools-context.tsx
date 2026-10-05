@@ -24,7 +24,6 @@ type Features = Record<string, boolean>;
 
 interface DevToolsContextProps {
   enabled: boolean;
-  setEnabled: (val: boolean | ((prevState: boolean) => boolean)) => void;
   features: Features;
   setFeatures: (
     features: Features | ((prevState: Features) => Features),
@@ -33,7 +32,6 @@ interface DevToolsContextProps {
 
 const INIT_VALUE: DevToolsContextProps = {
   enabled: false,
-  setEnabled: noop,
   features: {},
   setFeatures: noop,
 };
@@ -45,7 +43,7 @@ export const DevToolsContextProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  const [enabled, setEnabled] = useLocalStorage<boolean>({
+  const [enabled] = useLocalStorage<boolean>({
     key: LOCAL_STORAGE_KEY,
     defaultValue: false,
     serialize: (value) => {
@@ -84,7 +82,6 @@ export const DevToolsContextProvider = ({
     <DevToolsContext
       value={{
         enabled,
-        setEnabled,
         features,
         setFeatures,
       }}
@@ -94,8 +91,19 @@ export const DevToolsContextProvider = ({
   );
 };
 
-export function useDevToolsContext() {
-  return useContext(DevToolsContext);
+/** What dev tools say for the current user. Flags are read here, never set. */
+export function useDevToolsContext(): Readonly<{
+  enabled: boolean;
+  features: Readonly<Features>;
+}> {
+  const { enabled, features } = useContext(DevToolsContext);
+  return { enabled, features };
+}
+
+// Oxlint allows this import only in the Dev Tools view: a flag is the user's
+// experiment, and the app flipping it would hide which behaviour they see.
+export function useSetDevToolsFeatures() {
+  return useContext(DevToolsContext).setFeatures;
 }
 
 function noop() {}

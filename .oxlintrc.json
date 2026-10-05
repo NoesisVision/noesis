@@ -255,6 +255,28 @@
               {
                 "group": ["@mantine/*"],
                 "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
+              },
+              {
+                "group": ["**/dev-tools/dev-tools-context*"],
+                "importNames": ["useSetDevToolsFeatures"],
+                "message": "Dev tools flags are set only on the Dev Tools page; read them with useDevToolsContext."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // The one place a user switches dev tools flags.
+      "files": ["server/frontend/src/features/dev-tools/ui/dev-tools-view.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@mantine/*"],
+                "message": "Import from #/shared/design-system instead. Mantine is private to the design system."
               }
             ]
           }
