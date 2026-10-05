@@ -5,7 +5,7 @@ export const BuildingBlockTypes = () => (
     <Checkbox size="sm" label="Aggregate" defaultChecked />
     <Checkbox size="sm" label="Application service" defaultChecked />
     <Checkbox size="sm" label="Driven port" />
-    <Checkbox size="sm" label="Domain event" indeterminate />
+    <Checkbox size="sm" label="Domain event" />
   </Stack>
 );
 
