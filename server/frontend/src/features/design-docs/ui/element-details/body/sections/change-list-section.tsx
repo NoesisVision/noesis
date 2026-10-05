@@ -6,9 +6,10 @@ import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
+import { AddButton, addTargetOf } from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 import { PropertyGrid } from './property-grid.tsx';
 import { Ref } from './ref.tsx';
@@ -30,10 +31,12 @@ interface ChangeListSectionProps {
  * cards, each with what the design says about it.
  */
 export function ChangeListSection({
+  element,
   title,
   kind,
   items,
 }: ChangeListSectionProps) {
+  const owner = partOwnerOf(element);
   const { has, select } = useElementNavigation();
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
@@ -47,11 +50,17 @@ export function ChangeListSection({
     <DetailSection
       title={title}
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
+      action={
+        owner !== null &&
+        (kind === 'rule' || kind === 'property') && (
+          <AddButton target={addTargetOf(kind, owner)} />
+        )
+      }
     >
       {kind === 'property' ? (
-        <PropertyGrid items={sorted} />
+        <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
-        <RuleCards items={sorted} />
+        <RuleCards items={sorted} owner={owner} />
       ) : (
         <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
           {sorted.map(({ change, label, path, description }) => (

@@ -8,6 +8,7 @@ import {
 } from '../../../../design-doc-field.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
+import { EditElementButton } from './edit-element-button.tsx';
 
 interface DescriptionSectionProps {
   element: ElementRef;
@@ -30,6 +31,7 @@ interface DescriptionSectionProps {
  * the design, the panel by the element, and the prose nests under both.
  */
 export function DescriptionSection({
+  element,
   field,
   title = 'Description',
   slots = {},
@@ -41,7 +43,12 @@ export function DescriptionSection({
    * but blank, there is nothing to read.
    */
   return (
-    <DetailSection title={title} field={field} muted>
+    <DetailSection
+      title={title}
+      field={field}
+      muted
+      action={<EditElementButton element={element} field={title} />}
+    >
       {slots?.top}
       {isUnchanged(field) || value === null ? (
         <Text c="dimmed" size="sm">

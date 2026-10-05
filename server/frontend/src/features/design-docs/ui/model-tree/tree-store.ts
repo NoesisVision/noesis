@@ -15,6 +15,12 @@ export interface TreeActions {
   readonly toggle: (path: string) => void;
   readonly expand: (path: string) => void;
   readonly collapse: (path: string) => void;
+  /** A row is picked up to be moved. */
+  readonly dragStart: (path: string) => void;
+  /** Whether the row picked up may be dropped on this one; it becomes the target if so. */
+  readonly dragOver: (path: string) => boolean;
+  readonly drop: (path: string) => void;
+  readonly dragEnd: () => void;
 }
 
 export interface TreeSnapshot {
@@ -32,6 +38,10 @@ export interface TreeSnapshot {
   /** What names each row, so a `treeitem` is labelled by its own line alone. */
   readonly rowIds: ReadonlyMap<string, string>;
   readonly colours: Readonly<Record<OutlineChange, string | undefined>>;
+  /** Whether a row may be picked up and moved; never, in a tree that moves nothing. */
+  readonly canDrag: (path: string) => boolean;
+  /** The row a dragged one would land in, if dropped now. */
+  readonly dropPath: string | null;
 }
 
 export interface TreeStore {

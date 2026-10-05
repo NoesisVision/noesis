@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { cloneElement, type ReactElement } from 'react';
+import { cloneElement, type HTMLAttributes, type ReactElement } from 'react';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
@@ -74,13 +74,15 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
  * tooltip at all.
  *
  * `name` is the element's qualified name, `a.b.C` or `name: a.b.C`; the
- * child is what the tooltip opens over, so it must take a ref.
+ * child is what the tooltip opens over, so it must take a ref. Anything else
+ * it is given — a context menu's handlers — goes on to the child.
  */
 export function ElementTooltip({
   name,
   shown = shortLabel(name),
   hint,
-  children,
+  children: child,
+  ...passed
 }: {
   name: string;
   /**
@@ -94,7 +96,9 @@ export function ElementTooltip({
    */
   hint?: boolean;
   children: ReactElement<{ className?: string }>;
-}) {
+} & HTMLAttributes<HTMLElement>) {
+  const children =
+    Object.keys(passed).length === 0 ? child : cloneElement(child, passed);
   const doc = useDesignDocument();
   const address = addressOf(name);
   const shape = doc === null ? null : shapeOf(doc, address);

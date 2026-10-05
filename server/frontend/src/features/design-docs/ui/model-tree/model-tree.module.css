@@ -291,3 +291,15 @@
     transition-duration: 1ms;
   }
 }
+
+/* A row that may be moved says so under the pointer. */
+.row[draggable='true'] {
+  cursor: grab;
+}
+
+/* Where a dragged row would land: an outline and a tint, never colour alone. */
+.row[data-drop-target] {
+  outline: 2px dashed var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+  background: var(--mantine-primary-color-light);
+}

@@ -68,8 +68,20 @@
   color: var(--mantine-color-dimmed);
 }
 
-.output {
+/* Named with the signature, to win over the reset a linked type's button gets. */
+.code .output {
+  font: inherit;
   color: var(--mantine-color-anchor);
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  &[data-link]:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
 }
 
 .definition {
@@ -78,4 +90,45 @@
   font-size: 13px;
   color: var(--noesis-secondary-text);
   white-space: pre-line;
+}
+
+/* The keyboard's way to the behaviour's menu, at the row's right edge once it has focus. */
+.actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/*
+ * A row with a menu answers the pointer with a light wash of the brand's blue rather
+ * than an edge, and keeps it while its menu — opened with a right-click — is
+ * open. The padding gives the wash room, and the margin takes it back, so
+ * nothing moves.
+ */
+.behaviour {
+  margin: -6px -8px;
+  padding: 6px 8px;
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 150ms ease;
+}
+
+.behaviour[data-context-menu]:hover,
+.behaviour[data-expanded] {
+  /* See-through, so the canvas's dots still show under it. */
+  background-color: color-mix(
+    in srgb,
+    var(--mantine-primary-color-filled) 10%,
+    transparent
+  );
+}
+
+/*
+ * A right-click menu keeps text from being picked out on a long-press; with
+ * a mouse there is no long-press, so the card's text stays selectable.
+ */
+@media (hover: hover) {
+  .behaviour {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
 }

@@ -17,6 +17,36 @@
 }
 
 /*
+ * Text being written sits in a field drawn as Mantine draws its inputs: a
+ * grey edge, the brand's while it has focus. MDXEditor lays a placeholder
+ * with these same classes over an empty editor; it keeps the room the edge
+ * takes, but draws neither edge nor ground, or it would hide the caret and
+ * the focus under it.
+ */
+.content.field {
+  min-height: 6rem;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-default);
+}
+
+.content.field[contenteditable='true'] {
+  border-color: var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+  transition: border-color 100ms ease;
+
+  &:focus {
+    border-color: var(--mantine-primary-color-filled);
+    outline: none;
+  }
+}
+
+/* Room between the toolbar and the field it works on. */
+.toolbar.toolbar {
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+/*
  * A document is hard-wrapped in its own file, and Lexical sets
  * `white-space: pre-wrap` inline on the editor's root, so every newline the
  * author typed becomes a break and the text reads at the width their editor
@@ -79,4 +109,35 @@
   align-items: center;
   justify-content: center;
   overflow-x: auto;
+}
+
+/*
+ * The box the editor's dialogs — a link, a table — open in, which MDXEditor
+ * appends to the body: over Mantine's modals, as a popover of theirs would
+ * be. The editor itself carries the class too, where it does nothing.
+ */
+.popups.popups {
+  z-index: var(--mantine-z-index-popover);
+}
+
+/*
+ * The dialog that adds a link opens in the middle of the screen, as a dialog
+ * does, not under the caret, where at the field's edge it hangs off the modal
+ * the editor is in. Radix places it with an inline transform, so only
+ * `!important` moves it; its arrow points at nothing once it is centred.
+ * MDXEditor hashes its class names, so the stable part is matched.
+ */
+.popups
+  [data-radix-popper-content-wrapper]:has(
+    > [class*='linkDialogPopoverContent']
+  ) {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.popups
+  [data-radix-popper-content-wrapper]:has(> [class*='linkDialogPopoverContent'])
+  [class*='popoverArrow'] {
+  display: none !important;
 }

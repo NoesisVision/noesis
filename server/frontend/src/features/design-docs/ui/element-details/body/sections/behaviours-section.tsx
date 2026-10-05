@@ -7,9 +7,15 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
+import {
+  AddButton,
+  addTargetOf,
+  UnitActions,
+  UnitContextMenu,
+} from '../../../unit-editor/unit-actions.tsx';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { DetailSection } from './detail-section.tsx';
 import classes from './behaviours-section.module.css';
@@ -29,28 +35,58 @@ interface BehavioursSectionProps {
  * what it takes and what it gives back, its kind, and what it is for. Its name
  * opens its row; what it takes in full is on that row's own page.
  */
-export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
+export function BehavioursSection({
+  element,
+  behaviours,
+}: BehavioursSectionProps) {
+  const owner = partOwnerOf(element);
   return (
-    <DetailSection title="Behaviours" icon={<IconBolt />}>
+    <DetailSection
+      title="Behaviours"
+      icon={<IconBolt />}
+      action={
+        owner !== null && <AddButton target={addTargetOf('behaviour', owner)} />
+      }
+    >
       <ul className={canvas.canvas}>
-        {behaviours.map(({ node, behaviour }) => (
-          <li key={node.path} className={classes.behaviour}>
-            <div className={classes.signature}>
-              <Mark node={node} />
-              {/* The name never breaks; what it takes and gives moves under
+        {behaviours.map(({ node, behaviour }) => {
+          const row = (
+            <li key={node.path} className={classes.behaviour}>
+              <div className={classes.signature}>
+                <Mark node={node} />
+                {/* The name never breaks; what it takes and gives moves under
                   it, as one piece, when the line runs out. */}
-              <code className={classes.code}>
-                <BehaviourName node={node} />
-                {behaviour !== null && (
-                  <span className={classes.shape}>
-                    <Shape behaviour={behaviour} />
+                <code className={classes.code}>
+                  <BehaviourName node={node} />
+                  {behaviour !== null && (
+                    <span className={classes.shape}>
+                      <Shape behaviour={behaviour} />
+                    </span>
+                  )}
+                </code>
+                {node.elementId !== null && (
+                  <span className={classes.actions}>
+                    <UnitActions
+                      unit={{ kind: 'behaviour', id: node.elementId }}
+                      keyboardOnly
+                    />
                   </span>
                 )}
-              </code>
-            </div>
-            {behaviour !== null && <Definition behaviour={behaviour} />}
-          </li>
-        ))}
+              </div>
+              {behaviour !== null && <Definition behaviour={behaviour} />}
+            </li>
+          );
+          return node.elementId === null ? (
+            row
+          ) : (
+            <UnitContextMenu
+              key={node.path}
+              unit={{ kind: 'behaviour', id: node.elementId }}
+            >
+              {row}
+            </UnitContextMenu>
+          );
+        })}
       </ul>
     </DetailSection>
   );
@@ -98,9 +134,9 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   const inputs = parameterItems(behaviour.input).filter(
     ({ change }) => change !== 'removed',
   );
-  const outputs = resultItems(behaviour.output)
-    .filter(({ change }) => change !== 'removed')
-    .map(({ label }) => label);
+  const outputs = resultItems(behaviour.output).filter(
+    ({ change }) => change !== 'removed',
+  );
   return (
     <>
       <span className={classes.punctuation}>(</span>
@@ -117,19 +153,40 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
-          {outputs.map((output, index) => (
-            <Fragment key={output}>
+          {outputs.map(({ label, path }, index) => (
+            <Fragment key={label}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <ElementTooltip name={output} hint>
-                <span className={classes.output}>
-                  <QualifiedName name={output} />
-                </span>
-              </ElementTooltip>
+              <OutputType label={label} path={path} />
             </Fragment>
           ))}
         </>
       )}
     </>
+  );
+}
+
+/**
+ * What a behaviour gives back, by its type's last segment: a link to that
+ * type's row when the tree has one — a building block, not a primitive.
+ */
+function OutputType({ label, path }: { label: string; path: string | null }) {
+  const { has, select } = useElementNavigation();
+  return (
+    <ElementTooltip name={label} hint>
+      {path !== null && has(path) ? (
+        <UnstyledButton
+          className={classes.output}
+          data-link
+          onClick={() => select(path)}
+        >
+          <QualifiedName name={label} />
+        </UnstyledButton>
+      ) : (
+        <span className={classes.output}>
+          <QualifiedName name={label} />
+        </span>
+      )}
+    </ElementTooltip>
   );
 }
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Grid } from '#/shared/design-system/grid.tsx';
+import type { PartOwner } from '../../../../design-doc-edit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { DeclarationBox } from './declaration-box.tsx';
 
@@ -35,12 +36,29 @@ export function BoxGrid({
 }
 
 /** Properties as the boxes inputs and outputs are drawn with. */
-export function PropertyGrid({ items }: { items: ChangeListItem[] }) {
+export function PropertyGrid({
+  items,
+  owner,
+}: {
+  items: ChangeListItem[];
+  /** The block they are written in, which a write from a box names. */
+  owner: PartOwner | null;
+}) {
   return (
     <BoxGrid
       cells={items.map((item) => ({
         key: `${item.change}:${item.label}`,
-        content: <DeclarationBox item={item} typePath={item.typePath} />,
+        content: (
+          <DeclarationBox
+            item={item}
+            typePath={item.typePath}
+            unit={
+              owner === null || item.key === undefined
+                ? undefined
+                : { kind: 'property', id: item.key, owner }
+            }
+          />
+        ),
       }))}
     />
   );

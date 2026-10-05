@@ -1,12 +1,22 @@
 import { useMemo } from 'react';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { TreeMoving } from '#/features/design-docs/ui/model-tree/model-tree.tsx';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import {
+  canMove,
+  moveDestinationsOf,
+  type UnitRef,
+} from '../design-doc-edit.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { Columns } from './columns.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
+import { AddUnitButton } from './unit-editor/unit-actions.tsx';
+import { useUnitEditing } from './unit-editor/unit-editing.ts';
 import type { ViewPlace } from './view-place.ts';
 
 /*
@@ -53,10 +63,17 @@ export function DesignDocWorkbench({
     [tree, selected],
   );
 
+  const moving = useTreeMoving();
+
   return (
     <Columns
-      search={<OutlineSearchBox controller={controller} />}
-      outline={<Outline controller={controller} />}
+      search={
+        <Stack gap="xs">
+          <OutlineSearchBox controller={controller} />
+          <AddUnitButton kind="module" style={{ alignSelf: 'flex-start' }} />
+        </Stack>
+      }
+      outline={<Outline controller={controller} moving={moving} />}
       outlineRef={outlineRef}
       detail={
         selected === null ? (
@@ -73,4 +90,42 @@ export function DesignDocWorkbench({
       }
     />
   );
+}
+
+/**
+ * Dragging an element the design adds onto another parent, which asks where
+ * it goes as the menu's "Move to…" does; nothing where the document is read
+ * only.
+ */
+function useTreeMoving(): TreeMoving | undefined {
+  const editing = useUnitEditing();
+  return useMemo(() => {
+    if (editing === null) return undefined;
+    const { document: doc, move } = editing;
+    const refOf = (node: OutlineNode): UnitRef | null =>
+      node.elementId !== null &&
+      (node.kind === 'module' ||
+        node.kind === 'building_block' ||
+        node.kind === 'behaviour')
+        ? { kind: node.kind, id: node.elementId }
+        : null;
+    return {
+      canMove: (node) => {
+        const ref = refOf(node);
+        return ref !== null && canMove(doc, ref);
+      },
+      canDrop: (node, onto) => {
+        const ref = refOf(node);
+        return (
+          ref !== null &&
+          onto.elementId !== null &&
+          moveDestinationsOf(doc, ref).includes(onto.elementId)
+        );
+      },
+      onDrop: (node, onto) => {
+        const ref = refOf(node);
+        if (ref !== null) move(ref, onto.elementId);
+      },
+    };
+  }, [editing]);
 }

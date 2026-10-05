@@ -7,11 +7,18 @@ import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';
+import type { UnitRef } from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { addressOf } from '../../../../element-id.ts';
+import {
+  AddButton,
+  addTargetOf,
+  UnitActions,
+  UnitContextMenu,
+} from '../../../unit-editor/unit-actions.tsx';
 import { ChangeBadge } from '../../change-badge.tsx';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { DetailSection } from './detail-section.tsx';
 import { BoxGrid } from './property-grid.tsx';
@@ -41,13 +48,19 @@ interface ElementCardsSectionProps {
  * are one grid with no caption.
  */
 export function ElementCardsSection({
+  element,
   title,
   kind,
   nodes,
   doc,
 }: ElementCardsSectionProps) {
+  const owner = partOwnerOf(element);
   return (
-    <DetailSection title={title} icon={<KindIcon kind={kind} pattern={null} />}>
+    <DetailSection
+      title={title}
+      icon={<KindIcon kind={kind} pattern={null} />}
+      action={owner !== null && <AddButton target={addTargetOf(kind, owner)} />}
+    >
       <div className={classes.groups}>
         {groupsOf(nodes).map(({ label, nodes: grouped }) => (
           <PatternGroup
@@ -117,7 +130,12 @@ function ElementCard({
 }) {
   const { has, select } = useElementNavigation();
   const removed = node.change === 'removed' || undefined;
-  return (
+  const unit: UnitRef | null =
+    node.elementId !== null &&
+    (node.kind === 'module' || node.kind === 'building_block')
+      ? { kind: node.kind, id: node.elementId }
+      : null;
+  const card = (
     // By its address on hover, and what the design gives it.
     <ElementTooltip name={addressOf(node.path)}>
       <div className={classes.card}>
@@ -140,6 +158,11 @@ function ElementCard({
             </span>
           )}
           <ChangeBadge change={node.change} />
+          {unit !== null && (
+            <span className={classes.actions}>
+              <UnitActions unit={unit} keyboardOnly />
+            </span>
+          )}
         </div>
         {description !== null && (
           <TextSpoiler
@@ -150,6 +173,11 @@ function ElementCard({
         )}
       </div>
     </ElementTooltip>
+  );
+  return unit === null ? (
+    card
+  ) : (
+    <UnitContextMenu unit={unit}>{card}</UnitContextMenu>
   );
 }
 

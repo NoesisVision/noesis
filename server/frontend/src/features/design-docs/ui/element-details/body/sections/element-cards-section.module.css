@@ -90,3 +90,33 @@
   line-height: 1.45;
   color: var(--mantine-color-dimmed);
 }
+
+/* The keyboard's way to the element's menu, at the head's right once it has focus. */
+.actions {
+  display: inline-flex;
+  margin-left: auto;
+}
+
+/*
+ * A card with a menu answers the pointer: its edge turns the brand's blue, and stays
+ * so while its menu — opened with a right-click — is open.
+ */
+.card {
+  transition: border-color 150ms ease;
+}
+
+.card[data-context-menu]:hover,
+.card[data-expanded] {
+  border-color: var(--mantine-primary-color-filled);
+}
+
+/*
+ * A right-click menu keeps text from being picked out on a long-press; with
+ * a mouse there is no long-press, so the card's text stays selectable.
+ */
+@media (hover: hover) {
+  .card {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+}

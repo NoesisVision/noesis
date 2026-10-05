@@ -1,0 +1,14 @@
+/*
+ * A card's menu button, for the keyboard alone: the pointer opens the menu
+ * with a right-click. Out of sight, but still in the tab order, until it has
+ * focus or its menu is open; then it takes its place in the card.
+ */
+.keyboardOnly:not(:focus-within, :has([aria-expanded='true'])) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

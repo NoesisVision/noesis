@@ -7,4 +7,5 @@ export const Menu = Object.assign(wrapComponent(MantineMenu, 'Menu'), {
   Item: wrapComponent(MantineMenu.Item, 'Menu.Item'),
   Label: wrapComponent(MantineMenu.Label, 'Menu.Label'),
   Divider: wrapComponent(MantineMenu.Divider, 'Menu.Divider'),
+  ContextMenu: wrapComponent(MantineMenu.ContextMenu, 'Menu.ContextMenu'),
 });

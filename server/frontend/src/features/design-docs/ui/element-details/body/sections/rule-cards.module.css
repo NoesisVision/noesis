@@ -118,3 +118,34 @@
     background: var(--mantine-color-brand-filled);
   }
 }
+
+/* At the card's right edge, on the line it starts on, however the title wraps. */
+.actions {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-left: auto;
+}
+
+/*
+ * A card with a menu answers the pointer: its edge turns the brand's blue, and stays
+ * so while its menu — opened with a right-click — is open.
+ */
+.card {
+  transition: border-color 150ms ease;
+}
+
+.card[data-context-menu]:hover,
+.card[data-expanded] {
+  border-color: var(--mantine-primary-color-filled);
+}
+
+/*
+ * A right-click menu keeps text from being picked out on a long-press; with
+ * a mouse there is no long-press, so the card's text stays selectable.
+ */
+@media (hover: hover) {
+  .card {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+}

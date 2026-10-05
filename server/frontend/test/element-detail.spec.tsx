@@ -279,7 +279,7 @@ describe('ElementDetail', () => {
   it('says what a block implements after its name, not in a section', () => {
     const html = show('building_block|pay.Hold');
     expect(html).toMatch(
-      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*>Lockable<\/span>, <span[^>]*>Settleable<\/span><\/span>/,
+      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*><span[^>]*>Lockable<\/span><\/span>, <span[^>]*><span[^>]*>Settleable<\/span><\/span><\/span>/,
     );
     // What the design removes stays, struck through.
     expect(html).toMatch(/<span[^>]*data-removed="true"[^>]*>Lockable<\/span>/);
@@ -573,7 +573,8 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
     // Each input its own element, so each can say what its type is.
     expect(html).toMatch(/>\(<\/span><span[^>]*>amount<\/span><span[^>]*>\)</);
-    expect(html).toContain('>Hold<');
+    // What it gives back opens its type's row, as its name opens its own.
+    expect(html).toMatch(/→ <\/span><button[^>]*data-link[^>]*>Hold<\/button>/);
     expect(html).toContain('Holds a card for a booking.');
     // What each input is for is on the behaviour's own page.
     expect(html).not.toContain('What to hold.');

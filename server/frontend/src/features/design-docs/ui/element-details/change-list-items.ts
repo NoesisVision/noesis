@@ -8,6 +8,7 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
+import { refKeyOf } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import {
@@ -28,6 +29,8 @@ export interface ChangeListItem {
   label: string;
   path: string | null;
   description?: string;
+  /** The key its change set knows it by: an input's name, an output's type. */
+  key?: string;
   /** A property's or an input's name, apart from its type. */
   name?: string;
   /** The type it is declared with, by address; `?` already folded into the name. */
@@ -97,12 +100,19 @@ export const parameterItems = (
 ): ChangeListItem[] =>
   [...changed(set)].map(([parameter, change]) => {
     if (typeof parameter === 'string')
-      return { change, label: parameter, path: null, name: parameter };
+      return {
+        change,
+        key: parameter,
+        label: parameter,
+        path: null,
+        name: parameter,
+      };
     const type = valueOf(parameter.type);
     const optional = valueOf(parameter.optional) ? '?' : '';
     const description = valueOf(parameter.description)?.trim();
     return {
       change,
+      key: parameter.name,
       label:
         type === null
           ? parameter.name
@@ -127,6 +137,7 @@ export const resultItems = (
       : undefined;
     return {
       change,
+      key: refKeyOf(type),
       label: refAddressOf(type),
       path: refIdOf(type),
       type: refAddressOf(type),
@@ -156,6 +167,7 @@ export const propertyItems = (
     const description = valueOf(property.description)?.trim();
     return {
       change,
+      key: property.name,
       label:
         type === null
           ? property.name
