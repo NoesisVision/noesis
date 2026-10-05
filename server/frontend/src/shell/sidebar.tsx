@@ -1,90 +1,20 @@
 import { Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
-import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
-import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
-import { DevToolsView } from '#/features/dev-tools/ui/dev-tools-view.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import { Box } from '#/shared/design-system/box';
-import { useDisclosure } from '#/shared/design-system/hooks.ts';
-import { Modal } from '#/shared/design-system/modal.tsx';
 import { NavLink } from '#/shared/design-system/nav-link';
 import { ScrollArea } from '#/shared/design-system/scroll-area';
 import { Text } from '#/shared/design-system/text';
-import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import {
+  ACTIVE_OPTIONS,
   APP_PUBLIC_NAV,
-  DESIGN_DOCS_NAV,
-  DOCUMENTS_NAV,
   type NavItem,
 } from '#/shell/navigation/nav-items.ts';
+import { useChangeNav } from '#/shell/navigation/use-change-nav.ts';
 import classes from './sidebar.module.css';
-
-/**
- * How every link in the sidebar decides whether it is the one you are on.
- * One mechanism, stated once: the link's own match against the address.
- *
- * `exact`, so a heading stops being active the moment one of its items opens
- * — the icon carries that instead, and a fuzzy match would light the heading
- * and the item both.
- *
- * Search left out, because a sidebar link names a view and never a reading
- * position inside it. A design document keeps the element in hand and the
- * search in the address, and the link that led there is still the link you
- * are on.
- */
-const ACTIVE_OPTIONS = { exact: true, includeSearch: false } as const;
 
 interface SidebarProps {
   onNavigate: () => void;
-}
-
-/** Where a named child of a change opens, one arm per group. */
-type ChangeChildLink =
-  | {
-      to: '/changes/$changeId/documents/$documentId';
-      params: { changeId: string; documentId: string };
-    }
-  | {
-      to: '/changes/$changeId/design-docs/$docId';
-      params: { changeId: string; docId: string };
-    };
-
-interface ChangeNavChild {
-  id: string;
-  name: string;
-  link: ChangeChildLink;
-}
-
-/** The views that name their own contents beneath them, by the view's path. */
-type ChangeNavChildren = Partial<Record<NavItem['to'], ChangeNavChild[]>>;
-
-function changeNavChildren(
-  change: ReturnType<typeof useChangesWithEntries>['activeChange'],
-  changeId: string,
-): ChangeNavChildren {
-  const entries = change?.entries ?? [];
-  return {
-    [DOCUMENTS_NAV.to]: entries
-      .filter((entry) => entry.kind === 'document')
-      .map(({ id, name }) => ({
-        id,
-        name,
-        link: {
-          to: '/changes/$changeId/documents/$documentId',
-          params: { changeId, documentId: id },
-        },
-      })),
-    [DESIGN_DOCS_NAV.to]: entries
-      .filter((entry) => entry.kind === 'design-doc')
-      .map(({ id, name }) => ({
-        id,
-        name,
-        link: {
-          to: '/changes/$changeId/design-docs/$docId',
-          params: { changeId, docId: id },
-        },
-      })),
-  };
 }
 
 interface ChangeNavHeadingProps {
@@ -121,23 +51,16 @@ function ChangeNavHeading({
   );
 }
 
-/** Change navigation and child groups for the current or last opened change. */
+/**
+ * The navigation as a list, for a screen too narrow for the header's bar:
+ * change views with their child groups, then documentation. The change
+ * picker and dev tools stay in the header.
+ */
 export function Sidebar({ onNavigate }: SidebarProps) {
-  const { changes, activeChange } = useChangesWithEntries();
-  const params = { changeId: activeChange?.id ?? '' };
-  const children = changeNavChildren(activeChange, params.changeId);
-  const { enabled } = useDevToolsContext();
-  const [devToolsOpen, devTools] = useDisclosure(false);
+  const { activeChange, params, children } = useChangeNav();
   return (
     <>
-      <AppShell.Section px="xs" pt="md" pb="md">
-        <ChangePicker
-          changes={changes}
-          current={activeChange}
-          onNavigate={onNavigate}
-        />
-      </AppShell.Section>
-      <AppShell.Section grow component={ScrollArea} px="xs">
+      <AppShell.Section grow component={ScrollArea} px="xs" pt="md">
         {APP_PUBLIC_NAV.changes.map((entry) => {
           const items = children[entry.to];
           if (!items) {
@@ -220,49 +143,6 @@ export function Sidebar({ onNavigate }: SidebarProps) {
           />
         ))}
       </AppShell.Section>
-      {enabled && (
-        <AppShell.Section
-          px="xs"
-          py="sm"
-          style={{
-            borderTop: '1px solid var(--mantine-color-default-border)',
-          }}
-        >
-          <Box px="sm" pb={4}>
-            <Text size="xs" fw={600} c="dimmed" tt="uppercase">
-              Internal
-            </Text>
-          </Box>
-
-          {/* Opened over the page rather than in place of it, so the effect
-              of a switch is seen on what was being read. The page stays at
-              its address for a link straight to it. */}
-          {APP_PUBLIC_NAV.devTools.map((entry) => (
-            <NavLink
-              key={entry.to}
-              component="button"
-              className={classes.link}
-              label={entry.label}
-              leftSection={<entry.icon size={18} stroke={1.6} />}
-              onClick={() => {
-                devTools.open();
-                onNavigate();
-              }}
-            />
-          ))}
-          <Modal
-            opened={devToolsOpen}
-            onClose={devTools.close}
-            title="Dev tools"
-            centered
-            size="lg"
-          >
-            <Box py={24}>
-              <DevToolsView />
-            </Box>
-          </Modal>
-        </AppShell.Section>
-      )}
     </>
   );
 }

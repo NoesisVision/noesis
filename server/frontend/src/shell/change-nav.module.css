@@ -1,0 +1,198 @@
+/* The header's second row: views on the left, app-wide links on the right. */
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  /* 2px more air between the groups and the rules above and below the bar. */
+  padding: 2px var(--mantine-spacing-xs);
+}
+
+.group {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1;
+  min-width: var(--mantine-spacing-md);
+}
+
+/*
+ * A link in the bar — Overview, a document, System model — as a soft tab,
+ * rounded like the change picker above it,
+ * filled with the brand's light tint when it is the one you are on.
+ */
+.tab.tab {
+  flex: none;
+  width: auto;
+  height: 30px;
+  /* 2px between neighbouring tabs; the measuring counts margins. */
+  margin: 0 1px;
+  padding: 0 var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--mantine-font-size-sm);
+  /* Bold whether open or not, so opening one never shifts its neighbours. */
+  font-weight: 700;
+  white-space: nowrap;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  background-color: transparent;
+  text-decoration: none;
+
+  &:hover {
+    color: light-dark(var(--mantine-color-brand-9), var(--mantine-color-white));
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  /* A document's or design doc's name: long ones end in an ellipsis. */
+  &[data-item] {
+    max-width: 220px;
+  }
+
+  &[aria-current='page'],
+  &[data-open] {
+    &,
+    &:hover {
+      color: var(--mantine-color-brand-light-color);
+      background-color: var(--mantine-color-brand-light);
+    }
+  }
+
+  /* No change open, or a view with nothing in it: a label, not a target. */
+  &[data-disabled] {
+    &,
+    &:hover {
+      color: var(--mantine-color-dimmed);
+      background-color: transparent;
+      cursor: default;
+    }
+  }
+}
+
+/*
+ * A group — its label and its items — on a rounded ground of its own: a light
+ * grey on the light header, a step lighter than the dark one. The ground is
+ * what parts one group from the next; the measuring counts its padding and
+ * margin with the label.
+ */
+.itemGroup {
+  /* The gap between the ground's edge and the 30px tabs, on every side. */
+  --group-inset: 3px;
+
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: calc(30px + 2 * var(--group-inset));
+  margin: 0 4px;
+  padding: 0 var(--group-inset);
+  border-radius: var(--mantine-radius-md);
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/*
+ * Corners concentric with the ground's: its radius less the inset, so a tab
+ * at either end follows the curve around it.
+ */
+.itemGroup .tab.tab,
+.itemGroup .more.more,
+.itemGroup .labelMenu.labelMenu {
+  border-radius: calc(var(--mantine-radius-md) - var(--group-inset));
+}
+
+/* Hovered on the ground, a tab lifts off it rather than sinking into it. */
+.itemGroup .tab.tab:not([aria-current='page']):hover,
+.itemGroup .more.more:hover,
+.itemGroup .more.more[data-expanded],
+.itemGroup .labelMenu.labelMenu:hover,
+.itemGroup .labelMenu.labelMenu[data-expanded] {
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-5)
+  );
+}
+
+/* A group's name: small and quiet, a heading for its items, not a link. */
+.label,
+.labelMenu.labelMenu {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 4px;
+  font-size: 11px;
+  /* Lighter than the bold tabs: it names a group, it is not one of them. */
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--mantine-color-dimmed);
+}
+
+/* The label once it opens the menu of all its items. */
+.labelMenu.labelMenu {
+  height: 30px;
+  padding: 0 var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+
+  &:hover,
+  &[data-expanded] {
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-6)
+    );
+    color: light-dark(var(--mantine-color-brand-9), var(--mantine-color-white));
+  }
+}
+
+/* `+N`: the items that did not fit. */
+.more.more {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  height: 30px;
+  margin: 0 1px;
+  padding: 0 var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-md);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+
+  &:hover,
+  &[data-expanded] {
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-6)
+    );
+    color: light-dark(var(--mantine-color-brand-9), var(--mantine-color-white));
+  }
+}
+
+.labelMenu.labelMenu,
+.more.more {
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: -2px;
+  }
+}
+
+/* Laid out to be measured, never seen. */
+.measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
+}
