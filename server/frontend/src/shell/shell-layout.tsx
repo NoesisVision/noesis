@@ -10,7 +10,7 @@ export function ShellLayout() {
 
   return (
     <AppShell
-      header={{ height: { base: 56, md: 101 } }}
+      header={{ height: { base: 56, md: 105 } }}
       // Only for a narrow screen, where the header's bar is folded away.
       navbar={{
         width: 280,

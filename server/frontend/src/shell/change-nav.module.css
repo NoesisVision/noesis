@@ -6,7 +6,8 @@
   height: 100%;
   min-width: 0;
   overflow: hidden;
-  padding: 0 var(--mantine-spacing-xs);
+  /* 2px more air between the groups and the rules above and below the bar. */
+  padding: 2px var(--mantine-spacing-xs);
 }
 
 .group {
@@ -81,17 +82,30 @@
  * margin with the label.
  */
 .itemGroup {
+  /* The gap between the ground's edge and the 30px tabs, on every side. */
+  --group-inset: 3px;
+
   display: flex;
   flex: none;
   align-items: center;
-  height: 36px;
+  height: calc(30px + 2 * var(--group-inset));
   margin: 0 4px;
-  padding: 0 3px;
+  padding: 0 var(--group-inset);
   border-radius: var(--mantine-radius-md);
   background-color: light-dark(
     var(--mantine-color-gray-1),
     var(--mantine-color-dark-6)
   );
+}
+
+/*
+ * Corners concentric with the ground's: its radius less the inset, so a tab
+ * at either end follows the curve around it.
+ */
+.itemGroup .tab.tab,
+.itemGroup .more.more,
+.itemGroup .labelMenu.labelMenu {
+  border-radius: calc(var(--mantine-radius-md) - var(--group-inset));
 }
 
 /* Hovered on the ground, a tab lifts off it rather than sinking into it. */

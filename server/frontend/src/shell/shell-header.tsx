@@ -75,7 +75,7 @@ export function ShellHeader({
           <ColorSchemeToggle />
         </Group>
       </Group>
-      <Box h={44} visibleFrom="md" className={classes.bar}>
+      <Box h={48} visibleFrom="md" className={classes.bar}>
         <ChangeNav />
       </Box>
     </Stack>
