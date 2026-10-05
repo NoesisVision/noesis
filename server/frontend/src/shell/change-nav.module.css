@@ -74,16 +74,35 @@
   }
 }
 
-/* Between Overview and a group, and between groups. */
-.dot {
+/*
+ * A group — its label and its items — on a rounded ground of its own: a light
+ * grey on the light header, a step lighter than the dark one. The ground is
+ * what parts one group from the next; the measuring counts its padding and
+ * margin with the label.
+ */
+.itemGroup {
+  display: flex;
   flex: none;
-  width: 4px;
-  height: 4px;
-  margin: 0 var(--mantine-spacing-xs);
-  border-radius: 50%;
+  align-items: center;
+  height: 36px;
+  margin: 0 4px;
+  padding: 0 3px;
+  border-radius: var(--mantine-radius-md);
   background-color: light-dark(
-    var(--mantine-color-gray-4),
-    var(--mantine-color-dark-3)
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* Hovered on the ground, a tab lifts off it rather than sinking into it. */
+.itemGroup .tab.tab:not([aria-current='page']):hover,
+.itemGroup .more.more:hover,
+.itemGroup .more.more[data-expanded],
+.itemGroup .labelMenu.labelMenu:hover,
+.itemGroup .labelMenu.labelMenu[data-expanded] {
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-5)
   );
 }
 

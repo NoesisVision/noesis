@@ -130,8 +130,7 @@ function ItemGroup({ entry, items, shown }: ItemGroupProps) {
 
   if (items.length > 0 && shown.length === 0) {
     return (
-      <>
-        <Box component="span" className={classes.dot} />
+      <Box className={classes.itemGroup}>
         <ItemsMenu label={entry.label} items={items}>
           <UnstyledButton className={classes.labelMenu}>
             <entry.icon size={14} stroke={1.8} aria-hidden />
@@ -139,39 +138,36 @@ function ItemGroup({ entry, items, shown }: ItemGroupProps) {
             <IconChevronDown size={12} stroke={2} aria-hidden />
           </UnstyledButton>
         </ItemsMenu>
-      </>
+      </Box>
     );
   }
 
   return (
-    <>
-      <Box component="span" className={classes.dot} />
-      <Box
-        // A labelled ARIA group: none of the tags the lint rule suggests
-        // describes a run of links under a name.
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-        role="group"
-        aria-labelledby={labelId}
-        className={classes.group}
-      >
-        <GroupLabel entry={entry} id={labelId} />
-        {shown.map((i) => {
-          const item = items[i];
-          return item ? <ItemTab key={item.id} item={item} /> : null;
-        })}
-        {hidden.length > 0 && (
-          <ItemsMenu label={entry.label} items={hidden}>
-            <UnstyledButton
-              className={classes.more}
-              aria-label={`More ${entry.label.toLowerCase()} (${hidden.length})`}
-            >
-              +{hidden.length}
-              <IconChevronDown size={12} stroke={2} aria-hidden />
-            </UnstyledButton>
-          </ItemsMenu>
-        )}
-      </Box>
-    </>
+    <Box
+      // A labelled ARIA group: none of the tags the lint rule suggests
+      // describes a run of links under a name.
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+      role="group"
+      aria-labelledby={labelId}
+      className={classes.itemGroup}
+    >
+      <GroupLabel entry={entry} id={labelId} />
+      {shown.map((i) => {
+        const item = items[i];
+        return item ? <ItemTab key={item.id} item={item} /> : null;
+      })}
+      {hidden.length > 0 && (
+        <ItemsMenu label={entry.label} items={hidden}>
+          <UnstyledButton
+            className={classes.more}
+            aria-label={`More ${entry.label.toLowerCase()} (${hidden.length})`}
+          >
+            +{hidden.length}
+            <IconChevronDown size={12} stroke={2} aria-hidden />
+          </UnstyledButton>
+        </ItemsMenu>
+      )}
+    </Box>
   );
 }
 
@@ -278,8 +274,7 @@ function MeasureLayer({ ref, groups }: MeasureLayerProps) {
           items === undefined ? (
             sample(entry, true)
           ) : (
-            <Box component="span" key={entry.to} className={classes.group}>
-              <Box component="span" className={classes.dot} />
+            <Box component="span" key={entry.to} className={classes.itemGroup}>
               <GroupLabel entry={entry} />
             </Box>
           ),
