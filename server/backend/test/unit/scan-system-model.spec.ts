@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp.scanner';
+import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
 import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
 import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { createScanner } from '#backend/adapters/out/scanners/scanners';

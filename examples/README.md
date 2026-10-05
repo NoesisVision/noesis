@@ -12,9 +12,6 @@ submodules; nothing in them builds as part of this monorepo.
 | `discounts-dotnet/` | .NET 8, one solution. The `Sales` domain of the [itlibrium DDD starter](https://github.com/itlibrium/DDD-starter-dotnet), annotated with `NoesisVision.Annotations` attributes: orders, pricing, discounts, offers, products, clients, plus its unit tests and the one `TechnicalStuff` project it compiles against. No adapters, persistence or migrations. | One change, `threshold-activated-discount`: its design document, the sales spec and the review meeting notes.                         |
 | `qdoc-java/`        | No code yet: the business requirements for drafting quality documents (QDocs), from a domain discovery session.                                                                                                                                                                                                                                              | No changes yet, only a system model: the requirements are plain Markdown files beside it, to be added to a change through the plugin. |
 
-Only the knowledge graph is read today. Scanning the code comes back once the
-code model is finished; the annotations are already in place for it.
-
 ## Trying the app on an example
 
 From the repository root, after `bun install`, build the page once, then
