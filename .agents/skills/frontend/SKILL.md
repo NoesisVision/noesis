@@ -7,7 +7,10 @@ description: Conventions for the Noesis SPA in server/frontend, and the accessib
 
 The structural rules — domain partitioning, the `boundaries` policy, `@mantine/*`
 being private to `shared/design-system`, literal route ids — are in `AGENT.md`
-and enforced by Oxlint. This skill covers what the linter cannot check.
+and enforced by Oxlint. This skill covers what the linter cannot check. What
+the UI is built from — Mantine through `shared/design-system` wrappers, a design
+approved before anything new, then `/design-sync` — is the
+`design-system` skill.
 
 ## How to work
 
