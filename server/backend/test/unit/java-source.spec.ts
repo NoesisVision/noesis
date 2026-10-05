@@ -6,7 +6,7 @@ import {
   blankOut,
   javadocBefore,
   type JavaType,
-  parameterTypesOf,
+  parametersOf,
   parseJavaSource,
   stereotypeOf,
 } from '#backend/adapters/out/scanners/java/java-source';
@@ -118,7 +118,7 @@ describe('parseJavaSource', () => {
     const found = await types('OrderWithNestedTypes');
     expect(found.map((f) => [f.name, f.topLevel, f.stereotype])).toEqual([
       ['Order', true, null],
-      ['Placed', false, 'domain_event'],
+      ['Placed', false, 'value_object'],
       ['Helper', false, null],
     ]);
     expect(names(found[0]?.methods ?? [])).toEqual(['place', 'cancel']);
@@ -181,7 +181,11 @@ describe('parseJavaSource', () => {
       ['packagePrivateCount', 'int', null],
     ]);
     expect(
-      basket?.methods.map((m) => [m.name, m.parameterTypes, m.javadoc]),
+      basket?.methods.map((m) => [
+        m.name,
+        m.parameters.map((p) => p.type),
+        m.javadoc,
+      ]),
     ).toEqual([
       [
         'add',
@@ -252,14 +256,18 @@ describe('blanking', () => {
   });
 });
 
-describe('parameterTypesOf', () => {
-  it('drops names, final and annotations, keeps generics and varargs whole', () => {
+describe('parametersOf', () => {
+  it('drops final and annotations, keeps names, generics and varargs whole', () => {
     expect(
-      parameterTypesOf(
+      parametersOf(
         'final Map<String, List<Integer>> counters, @Valid Order order, String... rest',
       ),
-    ).toEqual(['Map<String, List<Integer>>', 'Order', 'String...']);
-    expect(parameterTypesOf('')).toEqual([]);
+    ).toEqual([
+      { name: 'counters', type: 'Map<String, List<Integer>>' },
+      { name: 'order', type: 'Order' },
+      { name: 'rest', type: 'String...' },
+    ]);
+    expect(parametersOf('')).toEqual([]);
   });
 });
 

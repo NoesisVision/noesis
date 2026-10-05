@@ -8,10 +8,10 @@ import {
 import type { ScannedSystemModel } from '#backend/app/system-model/source-code-scanner';
 import type {
   BehaviourType,
-  BuildingBlockRef,
   ScannedBehaviour,
   ScannedBuildingBlock,
   ScannedDomainModule,
+  ScannedParameter,
   ScannedProperty,
   Visibility,
 } from '#backend/app/system-model/system-model';
@@ -144,6 +144,7 @@ function collectModules(
         id,
         name: ElementName.parse(segments.at(-1)),
         description: null,
+        rules: [],
         source: {
           path: dirOf(segments, block, dirByPath),
           line: null,
@@ -220,7 +221,7 @@ function toBuildingBlock(
   };
 }
 
-/** One behaviour per method name: overloads share an id, so their inputs are pooled. */
+/** One behaviour per method name: overloads share an id, so their inputs are pooled by name. */
 function toBehaviours(
   block: Block,
   lookup: (from: Block) => BlockLookup,
@@ -229,11 +230,28 @@ function toBehaviours(
   const behaviours = new Map<BehaviorId, ScannedBehaviour>();
   for (const method of block.type.methods) {
     const id = BehaviorId.within(block.id, method.name);
-    const input = method.parameterTypes
-      .map((type) => resolveType(type, resolve))
-      .filter((resolved) => resolved !== null)
-      .map((resolved) => resolved.ref);
-    const output = resolveType(method.returnType, resolve);
+    const input = method.parameters.flatMap((parameter) => {
+      const resolved = resolveType(parameter.type, resolve);
+      if (resolved === null) return [];
+      const scanned: ScannedParameter = {
+        name: ElementName.parse(parameter.name),
+        type: resolved.ref,
+        description: null,
+        optional: resolved.optional,
+      };
+      return [scanned];
+    });
+    const returned = resolveType(method.returnType, resolve);
+    const output =
+      returned === null
+        ? []
+        : [
+            {
+              type: returned.ref,
+              description: null,
+              optional: returned.optional,
+            },
+          ];
     const current = behaviours.get(id);
     if (current === undefined) {
       behaviours.set(id, {
@@ -244,16 +262,14 @@ function toBehaviours(
         description: method.javadoc,
         visibility: visibilityOf(block.type, method),
         input,
-        output: output === null ? [] : [output.ref],
+        output,
         rules: [],
         scenarios: [],
         source: { path: block.file.path, line: method.line },
       });
     } else {
-      current.input = uniqueRefs([...current.input, ...input]);
-      if (current.output.length === 0 && output !== null) {
-        current.output = [output.ref];
-      }
+      current.input = uniqueByName([...current.input, ...input]);
+      if (current.output.length === 0) current.output = output;
       current.description ??= method.javadoc;
     }
   }
@@ -277,12 +293,12 @@ function unique<T>(items: T[]): T[] {
   return [...new Set(items)];
 }
 
-function uniqueRefs(refs: BuildingBlockRef[]): BuildingBlockRef[] {
+/** The first parameter of each name: overloads that share a name share the input. */
+function uniqueByName(parameters: ScannedParameter[]): ScannedParameter[] {
   const seen = new Set<string>();
-  return refs.filter((ref) => {
-    const key = typeof ref === 'string' ? ref : JSON.stringify(ref);
-    if (seen.has(key)) return false;
-    seen.add(key);
+  return parameters.filter((parameter) => {
+    if (seen.has(parameter.name)) return false;
+    seen.add(parameter.name);
     return true;
   });
 }

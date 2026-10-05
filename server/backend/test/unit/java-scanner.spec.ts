@@ -231,9 +231,9 @@ describe('The Java scanner', () => {
       ],
       ['building_block|orders.order.Order', 'aggregate'],
       ['building_block|orders.order.OrderId', 'value_object'],
-      ['building_block|orders.order.OrderPlaced', 'domain_event'],
+      ['building_block|orders.order.OrderPlaced', 'value_object'],
       ['building_block|orders.order.OrderRepository', 'external_integration'],
-      ['building_block|orders.order.PlaceOrder', 'domain_command'],
+      ['building_block|orders.order.PlaceOrder', 'value_object'],
     ]);
 
     const block = (name: string) =>
@@ -265,36 +265,36 @@ describe('The Java scanner', () => {
         b.id,
         b.type,
         b.visibility.kind,
-        b.input,
-        b.output,
+        b.input.map((i) => [i.name, i.type]),
+        b.output.map((o) => o.type),
       ]),
     ).toEqual([
       [
         'behavior|orders.application.OrderApplicationService.handle',
         'Command',
         'public',
-        ['building_block|orders.order.PlaceOrder'],
+        [['command', 'building_block|orders.order.PlaceOrder']],
         [],
       ],
       [
         'behavior|orders.infrastructure.persistence.InMemoryOrderRepository.save',
         'Command',
         'public',
-        ['building_block|orders.order.Order'],
+        [['order', 'building_block|orders.order.Order']],
         [],
       ],
       [
         'behavior|orders.order.Order.place',
         'Command',
         'public',
-        ['primitive|string'],
+        [['item', 'primitive|string']],
         ['building_block|orders.order.OrderPlaced'],
       ],
       [
         'behavior|orders.order.OrderRepository.save',
         'Command',
         'public',
-        ['building_block|orders.order.Order'],
+        [['order', 'building_block|orders.order.Order']],
         [],
       ],
     ]);
@@ -318,7 +318,7 @@ describe('The Java scanner', () => {
 
     expect(ids(model.modules)).toEqual(['module|acme']);
     expect(model.buildingBlocks.map((b): unknown[] => [b.id, b.type])).toEqual([
-      ['building_block|acme.Placed', 'domain_event'],
+      ['building_block|acme.Placed', 'value_object'],
     ]);
     expect(model.behaviours).toEqual([]);
   });
@@ -366,15 +366,18 @@ public record Product(String sku) {}`,
         b.name,
         b.type,
         b.visibility.kind,
-        b.input,
-        b.output,
+        b.input.map((i) => [i.name, i.type]),
+        b.output.map((o) => o.type),
       ]),
     ).toEqual([
       [
         'add',
         'Command',
         'public',
-        ['building_block|shop.Product', 'primitive|integer'],
+        [
+          ['p', 'building_block|shop.Product'],
+          ['q', 'primitive|integer'],
+        ],
         [],
       ],
       ['audit', 'Command', 'private', [], []],
@@ -403,12 +406,20 @@ public class Invoice { public void issue(Order order) {} }`,
       'module|acme.billing',
       'module|acme.sales',
     ]);
-    expect(model.behaviours.map((b): unknown[] => [b.id, b.input])).toEqual([
+    expect(
+      model.behaviours.map((b): unknown[] => [
+        b.id,
+        b.input.map((i) => [i.name, i.type]),
+      ]),
+    ).toEqual([
       [
         'behavior|acme.billing.Invoice.issue',
-        ['building_block|acme.billing.Order'],
+        [['order', 'building_block|acme.billing.Order']],
       ],
-      ['behavior|acme.sales.Order.ship', ['building_block|acme.sales.Order']],
+      [
+        'behavior|acme.sales.Order.ship',
+        [['other', 'building_block|acme.sales.Order']],
+      ],
     ]);
   });
 });

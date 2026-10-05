@@ -24,14 +24,20 @@ interface JavaField {
   javadoc: string | null;
 }
 
+export interface JavaParameter {
+  name: string;
+  /** The type as written: `Map<String, Integer>`, `String...`. */
+  type: string;
+}
+
 export interface JavaMethod {
   name: string;
   line: number;
   isPublic: boolean;
   /** As written; `void` for none. */
   returnType: string;
-  /** The parameter types as written, in order. */
-  parameterTypes: string[];
+  /** The parameters as written, in order. */
+  parameters: JavaParameter[];
   javadoc: string | null;
 }
 
@@ -65,8 +71,9 @@ const NOESIS_ANNOTATIONS_PACKAGE = 'vision.noesis.annotations';
 /**
  * The stereotype annotations of `scanners/java/annotations`, mapped onto
  * the model's building block types. `@Identifier` is a value object in the
- * model's vocabulary; a port and an adapter are both the integration they
- * stand for; `@Module` marks a package, not a type, and has no counterpart.
+ * model's vocabulary, as a command, a query and an event are; a port and an
+ * adapter are both the integration they stand for; `@Module` marks a
+ * package, not a type, and has no counterpart.
  */
 const STEREOTYPE_ANNOTATIONS: Readonly<Record<string, BuildingBlockType>> = {
   AggregateRoot: 'aggregate',
@@ -79,9 +86,9 @@ const STEREOTYPE_ANNOTATIONS: Readonly<Record<string, BuildingBlockType>> = {
   Factory: 'factory',
   ExternalIntegration: 'external_integration',
   Adapter: 'external_integration',
-  Command: 'domain_command',
-  Query: 'domain_query',
-  Event: 'domain_event',
+  Command: 'value_object',
+  Query: 'value_object',
+  Event: 'value_object',
 };
 
 const PACKAGE = /^[ \t]*package[ \t]+([\w.]+)[ \t]*;/m;
@@ -481,7 +488,7 @@ function methodOf(
     line: statement.line + newlinesIn(trimmed.slice(0, -name.length)),
     isPublic: kind === 'interface' || modifiers.includes('public'),
     returnType,
-    parameterTypes: parameterTypesOf(
+    parameters: parametersOf(
       flat.slice(parenAt + 1, matchingParenthesis(flat, parenAt) - 1),
     ),
     javadoc: null,
@@ -500,16 +507,17 @@ function withoutTypeParameters(signature: string): string {
   return signature;
 }
 
-/** The types of a parameter list, as written; `final` and names dropped. */
-export function parameterTypesOf(list: string): string[] {
+/** The parameters of a list, types as written; `final` and annotations dropped. */
+export function parametersOf(list: string): JavaParameter[] {
   return splitTopLevel(blankAnnotations(list), ',')
     .map((parameter) => parameter.replace(/\bfinal\b/g, '').trim())
     .filter((parameter) => parameter !== '')
     .map((parameter) => {
       const name = trailingWord(parameter);
-      return parameter.slice(0, parameter.length - name.length).trim();
+      const type = parameter.slice(0, parameter.length - name.length).trim();
+      return { name, type };
     })
-    .filter((type) => type !== '');
+    .filter((parameter) => parameter.type !== '');
 }
 
 /** `text` split at `separator` outside `<…>` and `(…)`. */

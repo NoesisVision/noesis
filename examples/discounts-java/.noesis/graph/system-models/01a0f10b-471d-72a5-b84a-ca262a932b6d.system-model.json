@@ -7,6 +7,7 @@
       "id": "module|discounts",
       "name": "discounts",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts",
         "line": null
@@ -16,6 +17,7 @@
       "id": "module|discounts.calculation",
       "name": "calculation",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation",
         "line": null
@@ -25,6 +27,7 @@
       "id": "module|discounts.offers",
       "name": "offers",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers",
         "line": null
@@ -34,6 +37,7 @@
       "id": "module|discounts.users",
       "name": "users",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users",
         "line": null
@@ -43,6 +47,7 @@
       "id": "module|discounts.weather",
       "name": "weather",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/weather",
         "line": null
@@ -52,6 +57,7 @@
       "id": "module|discounts.weather.openmeteo",
       "name": "openmeteo",
       "description": null,
+      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo",
         "line": null
@@ -567,10 +573,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "name": "discountedOffer",
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -590,11 +605,25 @@
         "actors": []
       },
       "input": [
-        "building_block|discounts.offers.Offer",
-        "building_block|discounts.users.UserId"
+        {
+          "name": "offer",
+          "type": "building_block|discounts.offers.Offer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "user",
+          "type": "building_block|discounts.users.UserId",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -613,11 +642,20 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.Conditions"
+        {
+          "name": "conditions",
+          "type": "building_block|discounts.calculation.Conditions",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
         {
-          "collectionOf": "building_block|discounts.calculation.Discount"
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.Discount"
+          },
+          "description": null,
+          "optional": false
         }
       ],
       "rules": [],
@@ -637,11 +675,20 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.users.UserId"
+        {
+          "name": "userId",
+          "type": "building_block|discounts.users.UserId",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
         {
-          "collectionOf": "building_block|discounts.calculation.Discount"
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.Discount"
+          },
+          "description": null,
+          "optional": false
         }
       ],
       "rules": [],
@@ -661,10 +708,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.Discount"
+        {
+          "name": "discount",
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -683,10 +739,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.offers.Offer"
+        {
+          "name": "offer",
+          "type": "building_block|discounts.offers.Offer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -705,10 +770,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.ProductDiscount"
+        {
+          "name": "productDiscount",
+          "type": "building_block|discounts.calculation.ProductDiscount",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedProduct"
+        {
+          "type": "building_block|discounts.calculation.DiscountedProduct",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -727,10 +801,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.offers.Product"
+        {
+          "name": "product",
+          "type": "building_block|discounts.offers.Product",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedProduct"
+        {
+          "type": "building_block|discounts.calculation.DiscountedProduct",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -751,7 +834,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.calculation.DiscountConfig"
+        {
+          "type": "building_block|discounts.calculation.DiscountConfig",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -770,10 +857,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "name": "previous",
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -792,10 +888,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "name": "previous",
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -814,10 +919,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "name": "previous",
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -837,7 +951,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.calculation.Discount"
+        {
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -856,10 +974,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.Conditions"
+        {
+          "name": "conditions",
+          "type": "building_block|discounts.calculation.Conditions",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "primitive|boolean"
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -879,7 +1006,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.calculation.PercentageDiscount"
+        {
+          "type": "building_block|discounts.calculation.PercentageDiscount",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -898,10 +1029,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.Conditions"
+        {
+          "name": "conditions",
+          "type": "building_block|discounts.calculation.Conditions",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "primitive|boolean"
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -921,7 +1061,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.calculation.Discount"
+        {
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -940,10 +1084,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.Conditions"
+        {
+          "name": "conditions",
+          "type": "building_block|discounts.calculation.Conditions",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "primitive|boolean"
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -962,11 +1115,19 @@
         "kind": "private"
       },
       "input": [
-        "building_block|discounts.calculation.DiscountedOffer",
-        "building_block|discounts.calculation.DiscountedProduct"
+        {
+          "name": "previous",
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.calculation.DiscountedOffer"
+        {
+          "type": "building_block|discounts.calculation.DiscountedOffer",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -986,10 +1147,19 @@
         "actors": []
       },
       "input": [
-        "building_block|discounts.users.UserId"
+        {
+          "name": "userId",
+          "type": "building_block|discounts.users.UserId",
+          "description": null,
+          "optional": false
+        }
       ],
       "output": [
-        "building_block|discounts.users.UserStatus"
+        {
+          "type": "building_block|discounts.users.UserStatus",
+          "description": null,
+          "optional": false
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1010,7 +1180,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.weather.Weather"
+        {
+          "type": "building_block|discounts.weather.Weather",
+          "description": null,
+          "optional": true
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1031,7 +1205,11 @@
       },
       "input": [],
       "output": [
-        "building_block|discounts.weather.Weather"
+        {
+          "type": "building_block|discounts.weather.Weather",
+          "description": null,
+          "optional": true
+        }
       ],
       "rules": [],
       "scenarios": [],
