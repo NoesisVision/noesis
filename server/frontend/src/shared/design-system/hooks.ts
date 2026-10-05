@@ -6,5 +6,4 @@ export {
   useFullscreenElement,
   useLocalStorage,
   useMediaQuery,
-  useMergedRef,
 } from '@mantine/hooks';
