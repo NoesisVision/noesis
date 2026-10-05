@@ -43,12 +43,21 @@ export const ColourSchemeMenu = () => (
 
 /** Right-click a card: its menu opens where the pointer is. */
 export const CardContextMenu = () => (
-  <Menu defaultOpened withinPortal={false} shadow="md" width={200}>
+  // Opened without a pointer it anchors to the card's corner: set beside it.
+  <Menu
+    defaultOpened
+    withinPortal={false}
+    shadow="md"
+    width={150}
+    position="left-start"
+    offset={8}
+  >
     <Menu.ContextMenu>
       <div
         style={{
-          width: 280,
-          padding: 16,
+          marginLeft: 166,
+          width: 160,
+          padding: 12,
           border: '1px solid var(--mantine-primary-color-filled)',
           borderRadius: 'var(--mantine-radius-md)',
         }}

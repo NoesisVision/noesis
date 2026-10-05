@@ -134,9 +134,9 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   const inputs = parameterItems(behaviour.input).filter(
     ({ change }) => change !== 'removed',
   );
-  const outputs = resultItems(behaviour.output)
-    .filter(({ change }) => change !== 'removed')
-    .map(({ label }) => label);
+  const outputs = resultItems(behaviour.output).filter(
+    ({ change }) => change !== 'removed',
+  );
   return (
     <>
       <span className={classes.punctuation}>(</span>
@@ -153,19 +153,40 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
-          {outputs.map((output, index) => (
-            <Fragment key={output}>
+          {outputs.map(({ label, path }, index) => (
+            <Fragment key={label}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <ElementTooltip name={output} hint>
-                <span className={classes.output}>
-                  <QualifiedName name={output} />
-                </span>
-              </ElementTooltip>
+              <OutputType label={label} path={path} />
             </Fragment>
           ))}
         </>
       )}
     </>
+  );
+}
+
+/**
+ * What a behaviour gives back, by its type's last segment: a link to that
+ * type's row when the tree has one — a building block, not a primitive.
+ */
+function OutputType({ label, path }: { label: string; path: string | null }) {
+  const { has, select } = useElementNavigation();
+  return (
+    <ElementTooltip name={label} hint>
+      {path !== null && has(path) ? (
+        <UnstyledButton
+          className={classes.output}
+          data-link
+          onClick={() => select(path)}
+        >
+          <QualifiedName name={label} />
+        </UnstyledButton>
+      ) : (
+        <span className={classes.output}>
+          <QualifiedName name={label} />
+        </span>
+      )}
+    </ElementTooltip>
   );
 }
 

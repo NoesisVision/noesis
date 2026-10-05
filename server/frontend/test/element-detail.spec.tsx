@@ -573,7 +573,8 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
     // Each input its own element, so each can say what its type is.
     expect(html).toMatch(/>\(<\/span><span[^>]*>amount<\/span><span[^>]*>\)</);
-    expect(html).toContain('>Hold<');
+    // What it gives back opens its type's row, as its name opens its own.
+    expect(html).toMatch(/→ <\/span><button[^>]*data-link[^>]*>Hold<\/button>/);
     expect(html).toContain('Holds a card for a booking.');
     // What each input is for is on the behaviour's own page.
     expect(html).not.toContain('What to hold.');

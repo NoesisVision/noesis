@@ -26,6 +26,16 @@ const document: DesignDocumentInput = {
   id: '2026-10-05-holds',
   name: 'Holds',
   description: '',
+  needs: {
+    added: [
+      {
+        id: 'hold-a-card',
+        name: { value: 'Hold a card' },
+        stakeholder: { value: 'Guest' },
+        statement: { value: 'A guest wants the card held.' },
+      },
+    ],
+  },
   buildingBlocks: {
     modified: [{ id: BLOCK, type: { value: 'aggregate', author: 'agent' } }],
     removed: ['building_block|pay.Old'],
@@ -132,6 +142,16 @@ describe('the fields of a unit', () => {
     expect(html).toContain('value="Aggregate"');
   });
 
+  it("choose a behaviour's kind from chips, and a block's pattern from a list", () => {
+    const behaviour = render(<Fields kind="behaviour" id={null} />);
+    expect(behaviour).toMatch(/role="radiogroup" aria-label="Type"/);
+    for (const kind of ['Command', 'Event', 'Query'])
+      expect(behaviour).toContain(`<span>${kind}</span>`);
+    expect(render(<Fields kind="building_block" id={null} />)).toMatch(
+      /role="combobox"[^>]*>|aria-label="Type"[^>]*role="combobox"/,
+    );
+  });
+
   it('give a new need an id to choose', () => {
     const html = render(<Fields kind="need" id={null} />);
     expect(html).toMatch(/aria-label="Name"/);
@@ -145,9 +165,11 @@ describe('the fields of a part', () => {
 
   it('classify a rule and trace it to needs', () => {
     const html = render(<Fields kind="rule" id={null} owner={owner} />);
-    expect(html).toMatch(/aria-label="Category"/);
+    // Each a chip: one category, any number of needs.
+    expect(html).toMatch(/role="radiogroup" aria-label="Category"/);
+    expect(html).toMatch(/<fieldset[^>]*aria-label="Answers the needs"/);
+    expect(html).toContain('>Hold a card<');
     expect(html).toMatch(/aria-label="Rule type"/);
-    expect(html).toMatch(/aria-label="Answers the needs"/);
     expect(html).toMatch(/aria-label="Rationale"/);
   });
 

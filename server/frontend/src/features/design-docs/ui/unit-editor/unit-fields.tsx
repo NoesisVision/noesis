@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Checkbox } from '#/shared/design-system/checkbox.tsx';
+import { Chip } from '#/shared/design-system/chip.tsx';
 import type { UseFormReturnType } from '#/shared/design-system/form.ts';
+import { Group } from '#/shared/design-system/group.tsx';
 import { useDebouncedValue } from '#/shared/design-system/hooks.ts';
-import { MultiSelect } from '#/shared/design-system/multi-select.tsx';
-import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { TagsInput } from '#/shared/design-system/tags-input.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
@@ -205,25 +206,37 @@ function FieldInput({
         <MarkdownEditor
           markdown={fields.definition!.value}
           headingLevel={3}
+          blockTypes={false}
           onChange={(markdown) => form.setFieldValue(path, markdown)}
         />
       );
     case 'diagram':
       return <DiagramInput form={form} invalid={invalid} />;
-    case 'type':
-      return (
+    case 'type': {
+      const options = (TYPES_OF[kind] ?? []).map((type) => ({
+        value: type,
+        label: titleCase(type).replaceAll('_', ' '),
+      }));
+      // A behaviour's three kinds read at a glance as chips; a building
+      // block's eight patterns need a list.
+      return kind === 'behaviour' ? (
+        <ChipChoice
+          label={label}
+          options={options}
+          value={fields.type!.value}
+          onChange={(type) => form.setFieldValue(path, type)}
+        />
+      ) : (
         <Select
           {...common}
           placeholder="Choose a type"
           allowDeselect={false}
-          data={(TYPES_OF[kind] ?? []).map((type) => ({
-            value: type,
-            label: titleCase(type).replaceAll('_', ' '),
-          }))}
+          data={options}
           value={fields.type!.value || null}
           onChange={(type) => form.setFieldValue(path, type ?? '')}
         />
       );
+    }
     case 'visibility':
       return (
         <VisibilityInput
@@ -233,20 +246,19 @@ function FieldInput({
       );
     case 'category':
       return (
-        <Select
-          {...common}
-          placeholder="Choose a category"
-          allowDeselect={false}
-          data={Object.keys(RULE_TYPES_OF).filter(
+        <ChipChoice
+          label={label}
+          options={Object.keys(RULE_TYPES_OF)
             // A module holds quality and constraint rules only.
-            (category) => owner?.kind !== 'module' || category !== 'Business',
-          )}
-          value={fields.category!.value || null}
+            .filter(
+              (category) => owner?.kind !== 'module' || category !== 'Business',
+            )
+            .map((category) => ({ value: category, label: category }))}
+          value={fields.category!.value}
           onChange={(category) => {
-            form.setFieldValue(path, category ?? '');
+            form.setFieldValue(path, category);
             const ruleType = fields.ruleType!;
             if (
-              category !== null &&
               ruleType.written &&
               !RULE_TYPES_OF[category as RuleCategory].some(
                 (type) => type === ruleType.value,
@@ -276,19 +288,38 @@ function FieldInput({
         />
       );
     }
-    case 'needs':
+    case 'needs': {
+      const needs = writtenIn(doc.needs);
+      if (needs.length === 0)
+        return (
+          <Text size="sm" c="dimmed">
+            This design states no needs, so the rule is a decision of its own.
+          </Text>
+        );
       return (
-        <MultiSelect
-          {...common}
-          placeholder="None: a decision of the design's own"
-          data={writtenIn(doc.needs).map((need) => ({
-            value: need.id,
-            label: valueOf(need.name) ?? need.id,
-          }))}
+        <Chip.Group
+          multiple
           value={fields.needs!.value}
-          onChange={(needs) => form.setFieldValue(path, needs)}
-        />
+          onChange={(chosen) => form.setFieldValue(path, chosen)}
+        >
+          {/* None chosen: the rule is a decision of the design's own. */}
+          <Group
+            component="fieldset"
+            aria-label={label}
+            gap="xs"
+            m={0}
+            p={0}
+            bd="none"
+          >
+            {needs.map((need) => (
+              <Chip key={need.id} value={need.id} variant="outline">
+                {valueOf(need.name) ?? need.id}
+              </Chip>
+            ))}
+          </Group>
+        </Chip.Group>
       );
+    }
     case 'ref':
       return (
         <RefInput
@@ -413,9 +444,9 @@ function VisibilityInput({
 }) {
   return (
     <Stack gap="xs">
-      <SegmentedControl
-        aria-label="Visibility"
-        data={[
+      <ChipChoice
+        label="Visibility"
+        options={[
           { value: 'private', label: 'Private' },
           { value: 'public', label: 'Public' },
         ]}
@@ -438,6 +469,31 @@ function VisibilityInput({
         />
       )}
     </Stack>
+  );
+}
+
+/** One of a few, each a chip: picking one sets it, as a radio would. */
+function ChipChoice({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Chip.Group value={value} onChange={onChange}>
+      <Group gap="xs" role="radiogroup" aria-label={label}>
+        {options.map((option) => (
+          <Chip key={option.value} value={option.value} variant="outline">
+            {option.label}
+          </Chip>
+        ))}
+      </Group>
+    </Chip.Group>
   );
 }
 

@@ -5,8 +5,6 @@ import {
   codeBlockPlugin,
   codeMirrorPlugin,
   CreateLink,
-  diffSourcePlugin,
-  DiffSourceToggleWrapper,
   headingsPlugin,
   insertCodeBlock$,
   InsertTable,
@@ -50,6 +48,8 @@ export interface MarkdownEditorProps {
    */
   headingLevel?: HeadingDepth;
   noMargin?: boolean;
+  /** Offer the kind of block — a heading, a quote — in the toolbar; a field of plain paragraphs needs none. */
+  blockTypes?: boolean;
 }
 
 /** The fences the plain code editor offers, past the diagram of its own. */
@@ -70,6 +70,7 @@ export default function MarkdownEditorSurface({
   readOnly = false,
   headingLevel = 2,
   noMargin = false,
+  blockTypes = true,
 }: MarkdownEditorProps) {
   const scheme = useComputedColorScheme('light');
   return (
@@ -77,16 +78,17 @@ export default function MarkdownEditorSurface({
       markdown={markdown}
       onChange={onChange}
       readOnly={readOnly}
-      // MDXEditor's own stylesheet switches on this name; it is not a Mantine
-      // class, and the editor is the one part of the page Mantine does not
-      // dress.
-      className={scheme === 'dark' ? 'dark-theme' : undefined}
+      // `dark-theme` is MDXEditor's own switch, not a Mantine class: the
+      // editor is the one part of the page Mantine does not dress. The class
+      // also lands on the box its dialogs open in, at the end of the body,
+      // where `popups` lifts them over a modal the editor is in.
+      className={clsx(scheme === 'dark' && 'dark-theme', classes.popups)}
       contentEditableClassName={clsx(
         classes.content,
-        readOnly && classes.reading,
+        readOnly ? classes.reading : classes.field,
         noMargin && classes.noMargin,
       )}
-      plugins={documentPlugins(headingLevel, readOnly)}
+      plugins={documentPlugins(headingLevel, readOnly, blockTypes)}
     />
   );
 }
@@ -94,6 +96,7 @@ export default function MarkdownEditorSurface({
 function documentPlugins(
   headingLevel: HeadingDepth,
   readOnly: boolean,
+  blockTypes: boolean,
 ): RealmPlugin[] {
   return [
     headingsPlugin(),
@@ -110,33 +113,43 @@ function documentPlugins(
     }),
     codeMirrorPlugin({ codeBlockLanguages: CODE_LANGUAGES }),
     markdownShortcutPlugin(),
-    // A toolbar of controls that cannot be used is worse than none, and the
-    // source view it toggles is for an author comparing a draft to what was
-    // there before.
+    // A toolbar of controls that cannot be used is worse than none. The text
+    // is only ever written as it reads: no source or diff view to switch to.
     ...(readOnly
       ? []
       : [
-          diffSourcePlugin({ viewMode: 'rich-text' }),
-          toolbarPlugin({ toolbarContents: Toolbar }),
+          toolbarPlugin({
+            toolbarContents: () => <Toolbar blockTypes={blockTypes} />,
+            toolbarClassName: classes.toolbar,
+          }),
         ]),
   ];
 }
 
-function Toolbar() {
+/**
+ * How the text reads — history, emphasis, the kind of block — then what goes
+ * into it.
+ */
+function Toolbar({ blockTypes }: { blockTypes: boolean }) {
   return (
-    <DiffSourceToggleWrapper>
+    <>
       <UndoRedo />
       <Separator />
       <BoldItalicUnderlineToggles />
+      {blockTypes && (
+        <>
+          <Separator />
+          <BlockTypeSelect />
+        </>
+      )}
       <Separator />
-      <BlockTypeSelect />
       <ListsToggle />
       <Separator />
       <CreateLink />
       <InsertTable />
       <InsertThematicBreak />
       <InsertDiagram />
-    </DiffSourceToggleWrapper>
+    </>
   );
 }
 
