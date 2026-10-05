@@ -8,7 +8,15 @@ import { IconPencilBolt } from '@tabler/icons-react';
 export const DesignDocsIcon = IconPencilBolt;
 
 /** The ways a design document is read: as a model, as requirements, as hexagons. */
-export type DesignDocViewName = 'model' | 'requirements' | 'architecture';
+export const DESIGN_DOC_VIEWS = [
+  'model',
+  'requirements',
+  'architecture',
+] as const;
+export type DesignDocViewName = (typeof DESIGN_DOC_VIEWS)[number];
+
+export const isDesignDocView = (value: unknown): value is DesignDocViewName =>
+  (DESIGN_DOC_VIEWS as readonly unknown[]).includes(value);
 
 /**
  * What the address says about how a design document is being read: as which
@@ -39,7 +47,7 @@ const word = (value: unknown) =>
 
 // The model is the default, so the address names only the others.
 const viewOf = (value: unknown) =>
-  value === 'requirements' || value === 'architecture' ? value : undefined;
+  isDesignDocView(value) && value !== 'model' ? value : undefined;
 
 export const designDocSearch = (
   search: Record<string, unknown>,

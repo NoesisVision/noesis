@@ -1,10 +1,4 @@
 import {
-  IconZoomIn,
-  IconZoomOut,
-  IconZoomReset,
-  IconZoomScan,
-} from '@tabler/icons-react';
-import {
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -12,11 +6,10 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Modal } from '#/shared/design-system/modal.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
 import { useFullscreenRoot } from './use-fullscreen-root.ts';
+import { ZoomControls } from './zoom-controls.tsx';
 import classes from './mermaid-viewer.module.css';
 
 export interface View {
@@ -200,46 +193,15 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
 
   return (
     <>
-      <Group gap="xs" justify="flex-end">
-        <ActionIcon
-          variant="default"
+      <Group justify="flex-end">
+        <ZoomControls
           size="lg"
-          aria-label="Zoom out"
-          title="Zoom out"
-          onClick={() => zoomBy(1 / BUTTON_STEP)}
-        >
-          <IconZoomOut size={20} stroke={1.6} aria-hidden />
-        </ActionIcon>
-        <Text component="output" size="sm" w="3.5rem" ta="center">
-          {Math.round(view.scale * 100)}%
-        </Text>
-        <ActionIcon
-          variant="default"
-          size="lg"
-          aria-label="Zoom in"
-          title="Zoom in"
-          onClick={() => zoomBy(BUTTON_STEP)}
-        >
-          <IconZoomIn size={20} stroke={1.6} aria-hidden />
-        </ActionIcon>
-        <ActionIcon
-          variant="default"
-          size="lg"
-          aria-label="Fit to screen"
-          title="Fit to screen"
-          onClick={fit}
-        >
-          <IconZoomScan size={20} stroke={1.6} aria-hidden />
-        </ActionIcon>
-        <ActionIcon
-          variant="default"
-          size="lg"
-          aria-label="Actual size"
-          title="Actual size"
-          onClick={() => setView(actualView(size.current, boxOf()))}
-        >
-          <IconZoomReset size={20} stroke={1.6} aria-hidden />
-        </ActionIcon>
+          zoom={view.scale}
+          onZoomOut={() => zoomBy(1 / BUTTON_STEP)}
+          onZoomIn={() => zoomBy(BUTTON_STEP)}
+          onFit={fit}
+          onActualSize={() => setView(actualView(size.current, boxOf()))}
+        />
       </Group>
       <div
         ref={frame}

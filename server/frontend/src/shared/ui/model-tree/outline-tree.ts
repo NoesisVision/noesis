@@ -25,6 +25,9 @@ export const EXCLUDED_KINDS: readonly OutlineKind[] = [
   'rule',
 ];
 
+/** For a tree whose every row is one to read: nothing is left out. */
+export const NO_KINDS: readonly OutlineKind[] = [];
+
 export function outlineTree(
   nodes: readonly OutlineNode[],
   excludeKinds: readonly OutlineKind[] = EXCLUDED_KINDS,

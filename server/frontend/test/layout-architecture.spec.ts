@@ -7,7 +7,7 @@ import {
   hexagonId,
   type LaidOutNode,
   layoutArchitecture,
-} from '../src/features/design-docs/ui/layout-architecture';
+} from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
 const outline = architectureOf(qdocArchitectureFixture);

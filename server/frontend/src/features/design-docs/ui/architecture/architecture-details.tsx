@@ -1,23 +1,25 @@
 import { IconX } from '@tabler/icons-react';
-import { type ReactNode, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
+import { counted } from '#/shared/ui/plural.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type {
-  ArchitectureCheck,
-  ArchitectureOutline,
-} from '../architecture-outline.ts';
-import { nameOf } from '../architecture-outline.ts';
-import { CHECKS_PATH } from '../architecture-tree.ts';
-import { inferredFlowOf } from '../design-doc-architecture.ts';
-import { valueOf } from '../design-doc-field.ts';
+import {
+  type ArchitectureCheck,
+  type ArchitectureOutline,
+  LEVEL_LABEL,
+} from '../../architecture-outline.ts';
+import { CHECKS_PATH } from '../../architecture-tree.ts';
+import { valueOf } from '../../design-doc-field.ts';
+import { needNameOf } from '../../design-doc-requirements.ts';
+import { nameOf } from '../../element-id.ts';
+import { KINDS } from './architecture-kinds.ts';
 import type { ArchitectureSubject } from './architecture-selection.ts';
-import { bodySections } from './element-details/body/body-sections.tsx';
-import { DesignDocumentContext } from './element-details/design-document-context.ts';
-import { ElementNavigationContext } from './element-details/element-navigation.ts';
+import { ElementBody } from './element-body.tsx';
+import { ElementFindings } from './element-findings.tsx';
+import { ElementLinks } from './element-links.tsx';
 import type { LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
 
@@ -44,7 +46,7 @@ export interface ArchitectureDetailsProps {
 }
 
 export function ArchitectureDetails(props: ArchitectureDetailsProps) {
-  const { subject, outline, onClear } = props;
+  const { subject, onClear } = props;
   const body = bodyOf(props);
   return (
     <div className={classes.details}>
@@ -69,7 +71,12 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
       </header>
       {body.content}
       {subject.kind === 'element' && (
-        <ElementBody {...props} id={subject.id} outline={outline} />
+        <ElementBody
+          id={subject.id}
+          document={props.document}
+          modelTree={props.modelTree}
+          onSelectElement={props.onSelectElement}
+        />
       )}
     </div>
   );
@@ -119,7 +126,7 @@ function bodyOf({
     case 'check': {
       const { check } = subject;
       return {
-        eyebrow: `Check · ${LEVEL_WORD[check.level]}`,
+        eyebrow: `Check · ${LEVEL_LABEL[check.level]}`,
         title: check.title,
         content: (
           <>
@@ -137,7 +144,7 @@ function bodyOf({
       const stakeholder = valueOf(need.stakeholder);
       return {
         eyebrow: stakeholder === null ? 'Need' : `Need · ${stakeholder}`,
-        title: valueOf(need.name) ?? need.id,
+        title: needNameOf(need),
         address: `need|${need.id}`,
         content: (
           <>
@@ -159,7 +166,7 @@ function bodyOf({
       if (card !== undefined && card.element === null)
         return placeholderBody(card, cards, links);
       return {
-        eyebrow: KIND_WORD[card?.kind ?? 'element'] ?? 'Element',
+        eyebrow: KINDS[card?.kind ?? 'element'].name ?? 'Element',
         title: card?.label ?? node?.name ?? nameOf(subject.id),
         address: subject.id,
         content: (
@@ -175,20 +182,6 @@ function bodyOf({
     }
   }
 }
-
-const LEVEL_WORD: Record<ArchitectureCheck['level'], string> = {
-  warning: 'Warning',
-  note: 'Note',
-  pass: 'Pass',
-};
-
-const KIND_WORD: Partial<Record<LaidOutNode['kind'], string>> = {
-  hexagon: 'Module · hexagon',
-  drivingPort: 'Driving port',
-  service: 'Application service',
-  element: 'Domain core',
-  drivenPort: 'Driven port',
-};
 
 function placeholderBody(
   card: LaidOutNode,
@@ -264,153 +257,12 @@ function ChecksSummary({ checks }: { checks: ArchitectureCheck[] }) {
         input and output uses.
       </Text>
       <Text className={classes.text}>
-        {`${warnings} ${warnings === 1 ? 'warning' : 'warnings'} · ${notes} ${notes === 1 ? 'note' : 'notes'} · ${count('pass')} passed.`}
+        {`${counted(warnings, 'warning')} · ${counted(notes, 'note')} · ${count('pass')} passed.`}
       </Text>
       <Text className={classes.text}>
         Not checked: which service uses which driven port, and calls between
         hexagons. The design document has no call edges.
       </Text>
     </>
-  );
-}
-
-function ElementLinks({
-  title,
-  ids,
-  cards,
-  empty,
-  onSelect,
-}: {
-  title: string;
-  ids: string[];
-  cards: ReadonlyMap<string, LaidOutNode>;
-  empty?: string | undefined;
-  onSelect: (id: string) => void;
-}) {
-  if (ids.length === 0 && empty === undefined) return null;
-  return (
-    <section className={classes.section}>
-      <Title order={3} className={classes.sectionTitle}>
-        {title}
-      </Title>
-      {ids.length === 0 ? (
-        <Text className={classes.text}>{empty}</Text>
-      ) : (
-        <ul className={classes.chips}>
-          {ids.map((id) => (
-            <li key={id}>
-              <UnstyledButton
-                className={classes.chip}
-                onClick={() => onSelect(id)}
-              >
-                {cards.get(id)?.label ?? nameOf(id)}
-              </UnstyledButton>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-/** What the architecture finds about one element: its checks, its types, the flow its types suggest. */
-function ElementFindings({
-  id,
-  outline,
-  document: doc,
-  cards,
-  onSelect,
-}: {
-  id: string;
-  outline: ArchitectureOutline;
-  document: DesignDocumentInput;
-  cards: ReadonlyMap<string, LaidOutNode>;
-  onSelect: (id: string) => void;
-}) {
-  const checks = outline.checks.filter(
-    (check) => check.level !== 'pass' && check.elementIds.includes(id),
-  );
-  const uses = cards.get(id)?.element?.uses ?? [];
-  const flows = useMemo(
-    () => inferredFlowOf(doc, outline, id),
-    [doc, outline, id],
-  );
-  return (
-    <>
-      {checks.length > 0 && (
-        <section className={classes.section}>
-          <Title order={3} className={classes.sectionTitle}>
-            Checks
-          </Title>
-          <ul className={classes.findings}>
-            {checks.map((check) => (
-              <li key={check.id}>
-                <span className={classes.pill} data-level={check.level}>
-                  {LEVEL_WORD[check.level]}
-                </span>
-                <span>{check.title}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      <ElementLinks
-        title="Speaks in"
-        ids={uses}
-        cards={cards}
-        onSelect={onSelect}
-      />
-      {flows.length > 0 && (
-        <section className={classes.section}>
-          <Title order={3} className={classes.sectionTitle}>
-            Flow inferred from types
-          </Title>
-          <ul className={classes.findings}>
-            {flows.map((flow) => (
-              <li key={`${flow.direction}:${flow.type}:${flow.other.id}`}>
-                <span className={classes.direction}>
-                  {flow.direction === 'gives' ? 'gives' : 'takes'}
-                </span>
-                <span>
-                  <code>{nameOf(flow.type)}</code>
-                  {flow.direction === 'gives' ? ' to ' : ' from '}
-                  {`${flow.other.owner}.${flow.other.name}`}
-                  {flow.typeMatchOnly && (
-                    <span className={classes.note}> · type match only</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </>
-  );
-}
-
-/** The element as the model reads it, below what the architecture finds. */
-function ElementBody({
-  id,
-  document: doc,
-  modelTree,
-  onSelectElement,
-}: ArchitectureDetailsProps & { id: string }) {
-  const navigation = useMemo(
-    () => ({
-      has: (path: string) => modelTree.byPath.has(path),
-      select: onSelectElement,
-    }),
-    [modelTree, onSelectElement],
-  );
-  const node = modelTree.byPath.get(id);
-  if (node === undefined) return null;
-  return (
-    <DesignDocumentContext.Provider value={doc}>
-      <ElementNavigationContext.Provider value={navigation}>
-        <div className={classes.sections}>
-          {bodySections(node, doc, modelTree)}
-        </div>
-      </ElementNavigationContext.Provider>
-    </DesignDocumentContext.Provider>
   );
 }

@@ -1,10 +1,11 @@
 import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { isBuildingBlock } from './element-id.ts';
 
 /*
  * The design placed in hexagons, as the architecture view and its checks read
- * it, and the few facts about an element that its id alone gives away.
+ * it.
  */
 
 export interface ArchitectureOutline {
@@ -61,9 +62,14 @@ export interface ArchitectureCheck {
   elementIds: string[];
 }
 
+/** A check's level as a reader reads it, wherever it is named. */
+export const LEVEL_LABEL: Record<ArchitectureCheck['level'], string> = {
+  warning: 'Warning',
+  note: 'Note',
+  pass: 'Pass',
+};
+
 const DRIVEN_PORTS = ['repository', 'external_integration'] as const;
-const BUILDING_BLOCK = 'building_block|';
-const MODULE = 'module|';
 
 /** Every element in a hexagon, in the order the rings are drawn. */
 export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
@@ -79,24 +85,5 @@ export const isDrivenPort = (pattern: string | null): boolean =>
 /** The building block a type reference names, through any collection; null for a primitive. */
 export function blockOfRef(ref: BuildingBlockRefInput): string | null {
   if (typeof ref !== 'string') return blockOfRef(ref.collectionOf);
-  return ref.startsWith(BUILDING_BLOCK) ? ref : null;
+  return isBuildingBlock(ref) ? ref : null;
 }
-
-const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
-const parentAddressOf = (id: string) => {
-  const address = addressOf(id);
-  return address.slice(0, Math.max(0, address.lastIndexOf('.')));
-};
-
-/** The element's own name: `QDoc`, never `qdocmanagement.preparation.QDoc`. */
-export const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
-
-/** The building block a behaviour is on. */
-export const ownerOf = (behaviourId: string) =>
-  `${BUILDING_BLOCK}${parentAddressOf(behaviourId)}`;
-
-/** The module a building block sits in, or a behaviour's building block does. */
-export const moduleOf = (elementId: string) =>
-  `${MODULE}${parentAddressOf(
-    elementId.startsWith(BUILDING_BLOCK) ? elementId : ownerOf(elementId),
-  )}`;

@@ -3,13 +3,13 @@ import { cloneElement, type ReactElement } from 'react';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById } from '../../change-set.ts';
 import {
   type ChangeListItem,
   parameterItems,
   propertyItems,
   resultItems,
 } from './change-list-items.ts';
-import { findById } from './change-set.ts';
 import { useDesignDocument } from './design-document-context.ts';
 import classes from './element-tooltip.module.css';
 

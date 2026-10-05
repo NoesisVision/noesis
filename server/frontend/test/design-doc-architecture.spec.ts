@@ -9,7 +9,7 @@ import {
   architectureTreeOf,
   checkPath,
   defaultArchitectureExpansion,
-  needPath,
+  needAtPortsPath,
 } from '../src/features/design-docs/architecture-tree';
 import {
   architectureOf,
@@ -432,6 +432,6 @@ describe('architectureTreeOf', () => {
     const open = defaultArchitectureExpansion(outline);
     expect(open.has(checkPath(outline.checks[0]!))).toBe(true);
     expect(open.has(checkPath(outline.checks.at(-1)!))).toBe(false);
-    expect(open.has(needPath('ready-to-write'))).toBe(true);
+    expect(open.has(needAtPortsPath('ready-to-write'))).toBe(true);
   });
 });

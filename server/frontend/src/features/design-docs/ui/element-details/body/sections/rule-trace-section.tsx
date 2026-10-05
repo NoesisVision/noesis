@@ -1,9 +1,9 @@
-import { Text } from '#/shared/design-system/text.tsx';
 import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
+import { FieldList } from '../../../field-list.tsx';
+import { TracedNeeds } from '../../../traced-needs.tsx';
 import type { ElementRef } from '../../element-ref.ts';
 import { Field } from '../../field.tsx';
 import { DetailSection } from './detail-section.tsx';
-import classes from './rule-trace-section.module.css';
 
 interface RuleTraceSectionProps {
   element: ElementRef;
@@ -24,7 +24,7 @@ export function RuleTraceSection({
 }: RuleTraceSectionProps) {
   return (
     <DetailSection>
-      <dl className={classes.list}>
+      <FieldList>
         <dt>Category</dt>
         <dd>
           <Field field={category} />
@@ -35,25 +35,9 @@ export function RuleTraceSection({
         </dd>
         <dt>Needs</dt>
         <dd>
-          {needs === null ? (
-            'unchanged'
-          ) : needs.length === 0 ? (
-            <>
-              Design decision
-              <Text component="span" c="dimmed" size="sm">
-                {' '}
-                — no need asks for it
-              </Text>
-            </>
-          ) : (
-            <ul className={classes.needs}>
-              {needs.map((need) => (
-                <li key={need}>{need}</li>
-              ))}
-            </ul>
-          )}
+          <TracedNeeds needs={needs} />
         </dd>
-      </dl>
+      </FieldList>
     </DetailSection>
   );
 }

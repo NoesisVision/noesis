@@ -3,3 +3,14 @@ body,
 #app {
   min-height: 100%;
 }
+
+/* What the views share and Mantine has no token for. */
+:root {
+  /* Quieter than the text, with a step more contrast than Mantine's own dimmed. */
+  --noesis-color-dim: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-dark-1)
+  );
+  /* The outline a control takes under the keyboard; each says its own offset. */
+  --noesis-focus-ring: 2px solid var(--mantine-color-brand-filled);
+}

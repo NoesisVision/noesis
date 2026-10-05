@@ -5,17 +5,18 @@
   margin: 0;
   font-size: var(--mantine-font-size-sm);
 
+  /* `display` above would otherwise show a list its owner has folded away. */
+  &[hidden] {
+    display: none;
+  }
+
   & dt {
     font-weight: 600;
-    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+    color: var(--noesis-color-dim);
   }
 
   & dd {
     margin: 0;
+    min-width: 0;
   }
-}
-
-.needs {
-  margin: 0;
-  padding-left: 1.1em;
 }

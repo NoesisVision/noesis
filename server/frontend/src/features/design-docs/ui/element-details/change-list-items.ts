@@ -1,16 +1,17 @@
 import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
-  DesignedNeedInput,
   DesignedParameterInput,
   DesignedPropertyInput,
   DesignedResultInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
-import { type ChangeSetInput, findById } from './change-set.ts';
+import { type NeedsInput, needNamesOf } from '../../design-doc-requirements.ts';
+import { isBuildingBlock } from '../../element-id.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -37,18 +38,12 @@ export interface ChangeListItem {
   needs?: string[];
 }
 
-export type NeedsInput = ChangeSetInput<DesignedNeedInput, string> | undefined;
-
-/** Needs by their names, a need the document does not state by its id. */
-export const needNamesOf = (ids: string[], needs: NeedsInput): string[] =>
-  ids.map((id) => valueOf(findById(needs, id)?.name) ?? id);
-
 /** The needs a rule answers in words; a rule that answers none is the design's own decision. */
 export const tracedTo = (needs: string[]): string =>
   needs.length === 0 ? 'Design decision' : `Answers ${needs.join(', ')}`;
 
 /** A rule's category and type in one phrase, `Quality · Performance`. */
-const classificationOf = (rule: DesignedRuleInput): string | null => {
+export const classificationOf = (rule: DesignedRuleInput): string | null => {
   const words = [valueOf(rule.category), valueOf(rule.ruleType)].filter(
     (word) => word !== null,
   );
@@ -70,7 +65,7 @@ const refIdOf = (ref: BuildingBlockRefInput): string =>
 
 /** A type that names another building block, not a primitive. */
 const isReference = (ref: BuildingBlockRefInput): boolean =>
-  refIdOf(ref).startsWith('building_block|');
+  isBuildingBlock(refIdOf(ref));
 
 /** A declaration's name and type, apart, for a reader that sets them apart. */
 const declared = (name: string, type: BuildingBlockRefInput) => ({
@@ -98,10 +93,7 @@ export const implementerItems = (
   doc: DesignDocumentInput,
   id: string,
 ): ChangeListItem[] =>
-  [
-    ...(doc.buildingBlocks?.added ?? []),
-    ...(doc.buildingBlocks?.modified ?? []),
-  ].flatMap((block) =>
+  writtenIn(doc.buildingBlocks).flatMap((block) =>
     [...changed(block.implements)]
       .filter(([ref]) => ref === id)
       .map(([, change]) => ({

@@ -10,10 +10,11 @@ import { DesignDocsIcon } from '../design-docs.model.ts';
 import classes from './design-doc-surface.module.css';
 
 /*
- * What both views of a design document stand in: the document's name heading
+ * What every view of a design document stands in: the document's name heading
  * the page, the switch and full screen beside it, and the window's height
- * below for the columns. One frame for both, so switching views changes what
- * is in it and moves nothing around it.
+ * below for the columns. One frame for all, mounted once around whichever
+ * view is read, so switching views changes what is in it and moves nothing
+ * around it.
  */
 export function DesignDocSurface({
   document,
@@ -21,7 +22,7 @@ export function DesignDocSurface({
   children,
 }: {
   document: DesignDocDetail['document'];
-  /** The control that switches to the other view, beside full screen. */
+  /** The control that switches to another view, beside full screen. */
   switcher?: ReactNode;
   children: ReactNode;
 }) {

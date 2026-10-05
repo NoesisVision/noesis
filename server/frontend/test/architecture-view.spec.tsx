@@ -2,7 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
 import { outlineOf } from '../src/features/design-docs/design-doc-outline';
-import { ArchitectureView } from '../src/features/design-docs/ui/architecture-view';
+import { ArchitectureView } from '../src/features/design-docs/ui/architecture/architecture-view';
+import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
@@ -12,13 +13,15 @@ const detail = { document, outline: outlineOf(document) } as never;
 function render(selected: string | null = null): string {
   return renderToStaticMarkup(
     <MantineProvider>
-      <ArchitectureView
-        detail={detail}
-        selected={selected}
-        query=""
-        onSelect={() => {}}
-        onQuery={() => {}}
-      />
+      <DesignDocSurface document={document}>
+        <ArchitectureView
+          detail={detail}
+          selected={selected}
+          query=""
+          onSelect={() => {}}
+          onQuery={() => {}}
+        />
+      </DesignDocSurface>
     </MantineProvider>,
   );
 }

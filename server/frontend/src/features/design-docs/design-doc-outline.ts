@@ -16,11 +16,13 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { type ChangeSetInput, named } from './change-set.ts';
 import {
   type DesignDocFieldInput,
   refLabelOf,
   valueOf,
 } from './design-doc-field.ts';
+import { kindOf, nameOf, parentOf } from './element-id.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -32,19 +34,6 @@ import {
  * The document is read as the wire carries it — ids are plain strings, and a
  * field the writer left out is absent rather than defaulted.
  */
-
-/** What a design does to one collection, as the JSON form spells it. */
-interface ChangeSetInput<Item, Key> {
-  added?: Item[] | undefined;
-  removed?: Key[] | undefined;
-  modified?: Item[] | undefined;
-}
-
-/** Where an element sits, read out of its id and nothing else. */
-interface Place {
-  kind: OutlineKind;
-  parentPath: string | null;
-}
 
 export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
@@ -167,14 +156,6 @@ function addScenarios(
 const refLabelOrNull = (ref: BuildingBlockRefInput | null) =>
   ref === null ? null : refLabelOf(ref);
 
-/** Every item the design spells out, with what it does to it; removals are keys, not items. */
-function* named<Item>(
-  set: ChangeSetInput<Item, string> | undefined,
-): Generator<[Item, OutlineChange]> {
-  for (const item of set?.added ?? []) yield [item, 'added'];
-  for (const item of set?.modified ?? []) yield [item, 'modified'];
-}
-
 /**
  * A module the document never names still has to be there, or the element
  * whose id names it has nowhere to hang. Walking up from each element stops at
@@ -223,12 +204,11 @@ function element(
   pattern: string | null = null,
   hasDiagram = false,
 ): OutlineNode {
-  const { kind, parentPath } = placeOf(id);
   return {
     path: id,
-    parentPath,
+    parentPath: parentOf(id),
     elementId: id,
-    kind,
+    kind: kindOf(id),
     name: nameOf(id),
     depth: 0,
     change,
@@ -287,33 +267,4 @@ export function ownerOfPart(parentPath: string): {
     elementId: parentPath.slice(0, cut),
     rule: parentPath.slice(cut + RULE_MARK.length),
   };
-}
-
-const MODULE = 'module|';
-const BUILDING_BLOCK = 'building_block|';
-const BEHAVIOUR = 'behavior|';
-
-/** An id's address: its dotted path, without the kind it is written with. */
-const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
-
-/** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
-const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
-
-/**
- * The one place that reads containment out of an id: the rule `ElementId`
- * states on the server, read back off the strings the wire carries. A
- * behaviour hangs under its building block, a building block and a submodule
- * under their module, and a root module under nothing.
- */
-function placeOf(id: string): Place {
-  const address = addressOf(id);
-  const cut = address.lastIndexOf('.');
-  const parentPath = (kind: string) =>
-    cut === -1 ? null : `${kind}${address.slice(0, cut)}`;
-
-  if (id.startsWith(BEHAVIOUR))
-    return { kind: 'behaviour', parentPath: parentPath(BUILDING_BLOCK) };
-  if (id.startsWith(BUILDING_BLOCK))
-    return { kind: 'building_block', parentPath: parentPath(MODULE) };
-  return { kind: 'module', parentPath: parentPath(MODULE) };
 }

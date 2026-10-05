@@ -1,5 +1,6 @@
 import { IconArrowRight, IconScale } from '@tabler/icons-react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { counted } from '#/shared/ui/plural.ts';
 import { ChangeBadge } from '../../change-badge.tsx';
 import { type ChangeListItem, tracedTo } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
@@ -78,7 +79,7 @@ export function RuleCards({ items }: { items: ChangeListItem[] }) {
                     <span />
                     <span />
                   </span>
-                  {scenarios === 1 ? '1 scenario' : `${scenarios} scenarios`}
+                  {counted(scenarios, 'scenario')}
                   <IconArrowRight size={12} aria-hidden />
                 </a>
               )}

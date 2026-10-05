@@ -12,13 +12,17 @@ import {
   blockOfRef,
   type Hexagon,
   isDrivenPort,
-  moduleOf,
-  nameOf,
-  ownerOf,
   type PlacedElement,
   type PlacedRule,
 } from './architecture-outline.ts';
+import {
+  type ChangeSetInput,
+  findById,
+  named,
+  writtenIn,
+} from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
+import { moduleOf, nameOf, ownerOf } from './element-id.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
@@ -44,16 +48,10 @@ const APPLICATION_SERVICE = 'application_service';
 export function architectureOf(
   document: DesignDocumentInput,
 ): ArchitectureOutline {
-  const blocks = [
-    ...placed(document.buildingBlocks?.added, 'added'),
-    ...placed(document.buildingBlocks?.modified, 'modified'),
-  ];
-  const behaviours = [
-    ...placed(document.behaviours?.added, 'added'),
-    ...placed(document.behaviours?.modified, 'modified'),
-  ];
+  const blocks = [...named(document.buildingBlocks)];
+  const behaviours = [...named(document.behaviours)];
   const typeOf = new Map(
-    blocks.map(({ item }) => [item.id, valueOf(item.type)]),
+    blocks.map(([block]) => [block.id, valueOf(block.type)]),
   );
   const hexagons = new Map<string, Hexagon>();
   const unplaced: PlacedElement[] = [];
@@ -68,7 +66,7 @@ export function architectureOf(
   };
 
   const ports = new Set<string>();
-  for (const { item, change } of behaviours) {
+  for (const [item, change] of behaviours) {
     const owner = ownerOf(item.id);
     const visibility = valueOf(item.visibility);
     if (typeOf.get(owner) !== APPLICATION_SERVICE) {
@@ -89,9 +87,9 @@ export function architectureOf(
     });
   }
 
-  for (const { item, change } of blocks) {
+  for (const [item, change] of blocks) {
     const own = behaviours
-      .map(({ item: behaviour }) => behaviour)
+      .map(([behaviour]) => behaviour)
       .filter(
         (behaviour) =>
           ownerOf(behaviour.id) === item.id && !ports.has(behaviour.id),
@@ -124,10 +122,7 @@ function needsAtPorts(
   hexagons: Hexagon[],
 ): ArchitectureOutline['needsAtPorts'] {
   const ports = hexagons.flatMap(({ drivingPorts }) => drivingPorts);
-  return [
-    ...(document.needs?.added ?? []),
-    ...(document.needs?.modified ?? []),
-  ].map((need) => ({
+  return writtenIn(document.needs).map((need) => ({
     need,
     ports: ports
       .filter(({ behaviour }) =>
@@ -161,10 +156,7 @@ export function inferredFlowOf(
   outline: ArchitectureOutline,
   elementId: string,
 ): InferredFlow[] {
-  const behaviours = [
-    ...(document.behaviours?.added ?? []),
-    ...(document.behaviours?.modified ?? []),
-  ].map((behaviour) => ({
+  const behaviours = writtenIn(document.behaviours).map((behaviour) => ({
     id: behaviour.id,
     inputs: blocksOf(inputTypesOf(behaviour)),
     outputs: blocksOf(outputTypesOf(behaviour)),
@@ -213,29 +205,18 @@ function ringOf(pattern: string | null): Ring | null {
 const coreRank = (pattern: string | null) =>
   (DOMAIN_CORE as readonly (string | null)[]).indexOf(pattern);
 
-function* placed<Item>(
-  items: Item[] | undefined,
-  change: OutlineChange,
-): Generator<{ item: Item; change: OutlineChange }> {
-  for (const item of items ?? []) yield { item, change };
-}
-
 function blockElement(
   block: DesignedBuildingBlockInput,
   change: OutlineChange,
   behaviours: DesignedBehaviourInput[],
 ): PlacedElement {
-  const properties = [
-    ...(block.properties?.added ?? []),
-    ...(block.properties?.modified ?? []),
-  ];
   return {
     id: block.id,
     name: nameOf(block.id),
     pattern: valueOf(block.type),
     change,
     uses: usesOf(block.id, [
-      ...properties.map(({ type }) => valueOf(type)),
+      ...writtenIn(block.properties).map(({ type }) => valueOf(type)),
       ...behaviours.flatMap(typesOfBehaviour),
     ]),
     rules: [block, ...behaviours].flatMap(rulesOf),
@@ -257,15 +238,10 @@ function behaviourElement(
 }
 
 const inputTypesOf = (behaviour: DesignedBehaviourInput) =>
-  [...(behaviour.input?.added ?? []), ...(behaviour.input?.modified ?? [])].map(
-    ({ type }) => valueOf(type),
-  );
+  writtenIn(behaviour.input).map(({ type }) => valueOf(type));
 
 const outputTypesOf = (behaviour: DesignedBehaviourInput) =>
-  [
-    ...(behaviour.output?.added ?? []),
-    ...(behaviour.output?.modified ?? []),
-  ].map(({ type }) => type);
+  writtenIn(behaviour.output).map(({ type }) => type);
 
 const typesOfBehaviour = (
   behaviour: DesignedBehaviourInput,
@@ -278,16 +254,14 @@ const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>
   new Set(usesOf('', types));
 
 function rulesOf(owner: {
-  rules?: { added?: DesignedRuleInput[]; modified?: DesignedRuleInput[] };
+  rules?: ChangeSetInput<DesignedRuleInput, string> | undefined;
 }): PlacedRule[] {
-  return [...(owner.rules?.added ?? []), ...(owner.rules?.modified ?? [])].map(
-    (rule) => ({
-      name: rule.name,
-      category: valueOf(rule.category),
-      ruleType: valueOf(rule.ruleType),
-      needs: valueOf(rule.needs) ?? [],
-    }),
-  );
+  return writtenIn(owner.rules).map((rule) => ({
+    name: rule.name,
+    category: valueOf(rule.category),
+    ruleType: valueOf(rule.ruleType),
+    needs: valueOf(rule.needs) ?? [],
+  }));
 }
 
 /** The building blocks a list of types names, each once; primitives and the element itself left out. */
@@ -315,9 +289,7 @@ function emptyHexagon(id: string, name: string): Hexagon {
 }
 
 function moduleNameOf(document: DesignDocumentInput, moduleId: string) {
-  const module = [
-    ...(document.modules?.added ?? []),
-    ...(document.modules?.modified ?? []),
-  ].find(({ id }) => id === moduleId);
-  return valueOf(module?.name) ?? nameOf(moduleId);
+  return (
+    valueOf(findById(document.modules, moduleId)?.name) ?? nameOf(moduleId)
+  );
 }

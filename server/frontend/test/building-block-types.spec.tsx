@@ -5,11 +5,11 @@ import {
   withoutTypes,
 } from '../src/features/design-docs/building-block-types';
 import { architectureOf } from '../src/features/design-docs/design-doc-architecture';
-import { ArchitectureDiagram } from '../src/features/design-docs/ui/architecture-diagram';
+import { ArchitectureDiagram } from '../src/features/design-docs/ui/architecture/architecture-diagram';
 import {
   adapterOutId,
   layoutArchitecture,
-} from '../src/features/design-docs/ui/layout-architecture';
+} from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 

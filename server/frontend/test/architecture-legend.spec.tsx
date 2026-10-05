@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { buildingBlockTypesOf } from '../src/features/design-docs/building-block-types';
 import { architectureOf } from '../src/features/design-docs/design-doc-architecture';
-import { ArchitectureDiagram } from '../src/features/design-docs/ui/architecture-diagram';
-import { layoutArchitecture } from '../src/features/design-docs/ui/layout-architecture';
+import { ArchitectureDiagram } from '../src/features/design-docs/ui/architecture/architecture-diagram';
+import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
@@ -60,15 +60,11 @@ describe('the diagram legend', () => {
   });
 
   it('gives each swatch the look its cards have', () => {
-    const swatch = legend.match(
-      /<span[^>]*style="([^"]*)"[^>]*><\/span>Driving port/,
+    // Both are marked with the kind, which is what the stylesheet draws by.
+    expect(legend).toMatch(
+      /<span[^>]*data-kind="drivingPort"[^>]*><\/span>Driving port/,
     );
-    expect(swatch?.[1]).toContain(
-      '--kind-fill:var(--mantine-color-brand-filled)',
-    );
-    expect(html).toMatch(
-      /data-kind="drivingPort" style="[^"]*--kind-fill:var\(--mantine-color-brand-filled\)/,
-    );
+    expect(html).toMatch(/<button[^>]*data-kind="drivingPort"/);
   });
 });
 

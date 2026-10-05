@@ -1,10 +1,5 @@
 /* The filter's dropdown: a head, a fieldset per ring, a word on what stays. */
 .dropdown {
-  --filter-dim: light-dark(
-    var(--mantine-color-gray-7),
-    var(--mantine-color-dark-1)
-  );
-
   width: 300px;
   padding-block: 6px;
 }
@@ -20,8 +15,9 @@
   font-weight: 600;
 }
 
-.link,
-.only {
+/* Named with the dropdown, to win over the unstyled button's own reset, which loads later. */
+.dropdown .link,
+.dropdown .only {
   padding: 2px 6px;
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-anchor);
@@ -33,7 +29,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
   }
 
@@ -55,7 +51,7 @@
   padding: 6px 12px 4px;
 
   & label {
-    color: var(--filter-dim);
+    color: var(--noesis-color-dim);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -100,7 +96,7 @@
 
 .count {
   margin-left: auto;
-  color: var(--filter-dim);
+  color: var(--noesis-color-dim);
   font-size: var(--mantine-font-size-xs);
   font-variant-numeric: tabular-nums;
 }
@@ -122,6 +118,6 @@
   padding: 8px 12px 4px;
   border-top: 1px solid
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  color: var(--filter-dim);
+  color: var(--noesis-color-dim);
   font-size: var(--mantine-font-size-xs);
 }

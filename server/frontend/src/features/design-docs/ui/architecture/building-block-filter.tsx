@@ -1,4 +1,5 @@
 import { IconChevronDown, IconFilter } from '@tabler/icons-react';
+import { useId } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Checkbox } from '#/shared/design-system/checkbox.tsx';
@@ -7,7 +8,8 @@ import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import { patternLabelOf } from '#/shared/ui/model-tree/model-outline.ts';
-import type { TypeRing } from '../building-block-types.ts';
+import { plural } from '#/shared/ui/plural.ts';
+import type { TypeRing } from '../../building-block-types.ts';
 import classes from './building-block-filter.module.css';
 
 /*
@@ -24,6 +26,7 @@ export function BuildingBlockFilter({
   hidden: ReadonlySet<string>;
   onHide: (hidden: ReadonlySet<string>) => void;
 }) {
+  const title = useId();
   const all = rings.flatMap(({ types }) => types.map(({ pattern }) => pattern));
   const hiddenHere = all.filter((pattern) => hidden.has(pattern));
   const set = (patterns: string[], hide: boolean) => {
@@ -46,7 +49,7 @@ export function BuildingBlockFilter({
         >
           Building blocks
           {hiddenHere.length > 0 && (
-            <Badge size="sm" ml={8} tt="none">
+            <Badge component="span" size="sm" ml={8} tt="none">
               {`${all.length - hiddenHere.length} of ${all.length}`}
             </Badge>
           )}
@@ -55,10 +58,10 @@ export function BuildingBlockFilter({
       <Popover.Dropdown
         p={0}
         className={classes.dropdown}
-        aria-labelledby="building-block-filter-title"
+        aria-labelledby={title}
       >
         <div className={classes.head}>
-          <span id="building-block-filter-title">Show building blocks</span>
+          <span id={title}>Show building blocks</span>
           <UnstyledButton
             className={classes.link}
             disabled={hiddenHere.length === 0}
@@ -102,7 +105,7 @@ export function BuildingBlockFilter({
                           <span className={classes.count}>
                             {count}
                             <VisuallyHidden>
-                              {count === 1 ? ' card' : ' cards'}
+                              {` ${plural(count, 'card')}`}
                             </VisuallyHidden>
                           </span>
                         </span>

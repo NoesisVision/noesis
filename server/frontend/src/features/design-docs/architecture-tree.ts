@@ -1,5 +1,5 @@
 import {
-  type OutlineKind,
+  BARE_ROW,
   type OutlineNode,
   patternLabelOf,
 } from '#/shared/ui/model-tree/model-outline.ts';
@@ -7,10 +7,11 @@ import {
   type ArchitectureCheck,
   type ArchitectureOutline,
   elementsOf,
-  nameOf,
+  LEVEL_LABEL,
   type PlacedElement,
 } from './architecture-outline.ts';
-import { valueOf } from './design-doc-field.ts';
+import { needNameOf, needPath } from './design-doc-requirements.ts';
+import { kindOf, nameOf } from './element-id.ts';
 
 /*
  * The architecture as a tree beside the hexagons: the checks with the
@@ -24,17 +25,7 @@ const NEEDS_PATH = 'needs';
 
 export const checkPath = (check: ArchitectureCheck) =>
   `${CHECKS_PATH}/check:${check.id}`;
-export const needPath = (needId: string) => `${NEEDS_PATH}/need:${needId}`;
-
-/** What a row that names nothing in the design has in common. */
-const ROW = {
-  elementId: null,
-  depth: 0,
-  change: 'unchanged',
-  pattern: null,
-  patternLabel: null,
-  hasDiagram: false,
-} as const satisfies Partial<OutlineNode>;
+export const needAtPortsPath = (needId: string) => needPath(needId, NEEDS_PATH);
 
 export function architectureTreeOf(
   outline: ArchitectureOutline,
@@ -63,7 +54,7 @@ export function architectureTreeOf(
   };
 
   nodes.push({
-    ...ROW,
+    ...BARE_ROW,
     path: CHECKS_PATH,
     parentPath: null,
     kind: 'group',
@@ -72,33 +63,33 @@ export function architectureTreeOf(
   for (const check of outline.checks) {
     const path = checkPath(check);
     nodes.push({
-      ...ROW,
+      ...BARE_ROW,
       path,
       parentPath: CHECKS_PATH,
       kind: 'check',
       name: check.title,
       depth: 1,
       pattern: check.level,
-      patternLabel: patternLabelOf(check.level),
+      patternLabel: LEVEL_LABEL[check.level],
     });
     for (const id of check.elementIds) elementRow(id, path);
   }
 
   nodes.push({
-    ...ROW,
+    ...BARE_ROW,
     path: NEEDS_PATH,
     parentPath: null,
     kind: 'group',
     name: 'Needs at the ports',
   });
   for (const { need, ports } of outline.needsAtPorts) {
-    const path = needPath(need.id);
+    const path = needAtPortsPath(need.id);
     nodes.push({
-      ...ROW,
+      ...BARE_ROW,
       path,
       parentPath: NEEDS_PATH,
       kind: 'need',
-      name: valueOf(need.name) ?? need.id,
+      name: needNameOf(need),
       depth: 1,
       change: addedNeeds.has(need.id) ? 'added' : 'modified',
     });
@@ -119,7 +110,7 @@ export function defaultArchitectureExpansion(
     CHECKS_PATH,
     NEEDS_PATH,
     ...outline.checks.filter(({ level }) => level !== 'pass').map(checkPath),
-    ...outline.needsAtPorts.map(({ need }) => needPath(need.id)),
+    ...outline.needsAtPorts.map(({ need }) => needAtPortsPath(need.id)),
   ]);
 }
 
@@ -130,10 +121,4 @@ function placedById(outline: ArchitectureOutline): Map<string, PlacedElement> {
       (element) => [element.id, element],
     ),
   );
-}
-
-function kindOf(id: string): OutlineKind {
-  if (id.startsWith('behavior|')) return 'behaviour';
-  if (id.startsWith('building_block|')) return 'building_block';
-  return 'module';
 }

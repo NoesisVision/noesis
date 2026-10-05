@@ -4,10 +4,6 @@
  * is padded.
  */
 .page {
-  --req-dim: light-dark(
-    var(--mantine-color-gray-7),
-    var(--mantine-color-dark-1)
-  );
   --req-line: var(--mantine-color-default-border);
   --req-quote: light-dark(
     var(--mantine-color-gray-0),
@@ -37,7 +33,7 @@
 
 .intro {
   margin: 0;
-  color: var(--req-dim);
+  color: var(--noesis-color-dim);
   max-width: 68ch;
 }
 
@@ -49,7 +45,7 @@
   padding: 0;
   list-style: none;
   font-size: var(--mantine-font-size-sm);
-  color: var(--req-dim);
+  color: var(--noesis-color-dim);
 
   & li {
     display: inline-flex;
@@ -93,13 +89,7 @@
 .note {
   margin-top: var(--mantine-spacing-xs);
   font-size: var(--mantine-font-size-sm);
-  color: var(--req-dim);
-}
-
-.empty {
-  margin-top: var(--mantine-spacing-sm);
-  font-style: italic;
-  color: var(--req-dim);
+  color: var(--noesis-color-dim);
 }
 
 .rule {
@@ -119,7 +109,7 @@
 
   &[data-removed] {
     text-decoration: line-through;
-    color: var(--req-dim);
+    color: var(--noesis-color-dim);
   }
 }
 
@@ -127,7 +117,8 @@
   margin-top: var(--mantine-spacing-xs);
 }
 
-.toggle {
+/* Named with what holds it, to win over the unstyled button's own reset, which loads later. */
+.details .toggle {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -136,7 +127,7 @@
   padding: 4px 8px 4px 4px;
   border-radius: var(--mantine-radius-sm);
   font-size: var(--mantine-font-size-sm);
-  color: var(--req-dim);
+  color: var(--noesis-color-dim);
 
   &:hover {
     background: var(--req-quote);
@@ -145,7 +136,7 @@
 
   /* Whatever the mouse gets, the keyboard gets. */
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
   }
 }
@@ -174,34 +165,10 @@
   overflow-wrap: anywhere;
 }
 
-.changed {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: light-dark(var(--mantine-color-cyan-8), var(--mantine-color-cyan-4));
-}
-
+/* The field list, its names in a column as wide in every rule. */
 .fields {
-  display: grid;
   grid-template-columns: 7rem minmax(0, 1fr);
-  gap: 6px var(--mantine-spacing-md);
   margin: var(--mantine-spacing-xs) 0 var(--mantine-spacing-sm);
-  font-size: var(--mantine-font-size-sm);
-
-  &[hidden] {
-    display: none;
-  }
-
-  & dt {
-    font-weight: 600;
-    color: var(--req-dim);
-  }
-
-  & dd {
-    margin: 0;
-    min-width: 0;
-  }
 
   .details & {
     padding-left: 22px;
@@ -224,11 +191,8 @@
 }
 
 .elementLink {
-  color: var(--mantine-color-anchor);
-  font-weight: 600;
-
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
@@ -237,7 +201,7 @@
 .kind {
   margin-left: 6px;
   font-size: var(--mantine-font-size-xs);
-  color: var(--req-dim);
+  color: var(--noesis-color-dim);
 }
 
 .unverified {

@@ -59,7 +59,7 @@
 
   /* Whatever the mouse gets, the keyboard gets. */
   &[data-link]:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
@@ -68,18 +68,18 @@
 .classification {
   font-size: 12px;
   font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-color-dim);
 }
 
 .needs {
   font-size: 12px;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-color-dim);
 }
 
 .description {
   font-size: 14px;
   line-height: 1.55;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-color-dim);
   text-wrap: pretty;
 }
 
@@ -101,7 +101,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
   }
 }

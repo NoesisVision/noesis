@@ -1,4 +1,5 @@
 import {
+  BARE_ROW,
   type OutlineKind,
   type OutlineNode,
   patternLabelOf,
@@ -8,6 +9,13 @@ import type {
   DesignedNeedInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import {
+  type ChangeSetInput,
+  designedOf,
+  findById,
+  findByName,
+  writtenIn,
+} from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
 import { outlineOf } from './design-doc-outline.ts';
 
@@ -53,14 +61,24 @@ export type TracedRule = RulePlace &
     | { change: 'removed'; rule: null; trace: null }
   );
 
+export type NeedsInput = ChangeSetInput<DesignedNeedInput, string> | undefined;
+
+/** A need by its name, one the design leaves unnamed by its id. */
+export const needNameOf = (need: DesignedNeedInput): string =>
+  valueOf(need.name) ?? need.id;
+
+/** Needs by their names, a need the document does not state by its id. */
+export const needNamesOf = (ids: string[], needs: NeedsInput): string[] =>
+  ids.map((id) => {
+    const need = findById(needs, id);
+    return need === null ? id : needNameOf(need);
+  });
+
 export function requirementsOf(
   document: DesignDocumentInput,
 ): RequirementsOutline {
-  const needs = [
-    ...(document.needs?.added ?? []),
-    ...(document.needs?.modified ?? []),
-  ];
-  const rules = [...tracedRules(document, needs)];
+  const needs = writtenIn(document.needs);
+  const rules = [...tracedRules(document)];
   const answering = (need: DesignedNeedInput) =>
     rules.filter(
       ({ rule }) =>
@@ -99,23 +117,12 @@ export function requirementsOf(
  * does not say, so it is not counted as unverified.
  */
 const isUnverified = (traced: TracedRule): boolean =>
-  traced.change === 'added' && scenariosOf(traced.rule).length === 0;
-
-/** The scenarios the design writes for a rule: added, then modified. */
-const scenariosOf = (rule: DesignedRuleInput) => [
-  ...(rule.scenarios?.added ?? []),
-  ...(rule.scenarios?.modified ?? []),
-];
+  traced.change === 'added' && writtenIn(traced.rule.scenarios).length === 0;
 
 /** Every rule the design touches, in the order the model view's outline lists them. */
-function* tracedRules(
-  document: DesignDocumentInput,
-  needs: DesignedNeedInput[],
-): Generator<TracedRule> {
+function* tracedRules(document: DesignDocumentInput): Generator<TracedRule> {
   const outline = outlineOf(document);
   const byPath = new Map(outline.map((node) => [node.path, node]));
-  const nameOfNeed = (id: string) =>
-    valueOf(needs.find((need) => need.id === id)?.name) ?? id;
 
   for (const node of outline) {
     if (node.kind !== 'rule' || node.parentPath === null) continue;
@@ -126,14 +133,14 @@ function* tracedRules(
       yield { ...place, change: 'removed', rule: null, trace: null };
       continue;
     }
-    const rule = ruleOf(document, owner.path, node.name);
+    const rule = findByName(designedOf(document, owner.path)?.rules, node.name);
     if (rule === null) continue;
     const traced = valueOf(rule.needs);
     yield {
       ...place,
       change: node.change === 'added' ? 'added' : 'modified',
       rule,
-      trace: traced === null ? null : traced.map(nameOfNeed),
+      trace: traced === null ? null : needNamesOf(traced, document.needs),
     };
   }
 }
@@ -158,27 +165,6 @@ function placeOf(
   };
 }
 
-function ruleOf(
-  document: DesignDocumentInput,
-  ownerId: string,
-  name: string,
-): DesignedRuleInput | null {
-  const owner = [
-    ...(document.modules?.added ?? []),
-    ...(document.modules?.modified ?? []),
-    ...(document.buildingBlocks?.added ?? []),
-    ...(document.buildingBlocks?.modified ?? []),
-    ...(document.behaviours?.added ?? []),
-    ...(document.behaviours?.modified ?? []),
-  ].find(({ id }) => id === ownerId);
-  const rules = owner?.rules;
-  return (
-    [...(rules?.added ?? []), ...(rules?.modified ?? [])].find(
-      (rule) => rule.name === name,
-    ) ?? null
-  );
-}
-
 /*
  * The same document as a tree beside it: each need with the rules that answer
  * it, then the two groups the document closes on. A rule two needs share is a
@@ -189,22 +175,12 @@ function ruleOf(
 export const DESIGN_DECISIONS_PATH = 'decisions';
 export const UNADDRESSED_NEEDS_PATH = 'unaddressed';
 
-export const needPath = (need: DesignedNeedInput, under?: string): string =>
-  under === undefined ? `need:${need.id}` : `${under}/need:${need.id}`;
+/** A need's row, in whichever tree draws one: at the top, or under the group that holds it. */
+export const needPath = (needId: string, under?: string): string =>
+  under === undefined ? `need:${needId}` : `${under}/need:${needId}`;
 
 export const rulePath = (traced: TracedRule, under: string): string =>
   `${under}/rule:${traced.element.id}:${traced.name}`;
-
-/** What every row of the requirements tree has in common: no element, pattern or diagram of its own. */
-const ROW = {
-  parentPath: null,
-  elementId: null,
-  depth: 0,
-  change: 'unchanged',
-  pattern: null,
-  patternLabel: null,
-  hasDiagram: false,
-} as const satisfies Partial<OutlineNode>;
 
 export function requirementsTreeOf(
   requirements: RequirementsOutline,
@@ -214,11 +190,11 @@ export function requirementsTreeOf(
   const nodes: OutlineNode[] = [];
   const needNode = (need: DesignedNeedInput, under?: string) => {
     nodes.push({
-      ...ROW,
-      path: needPath(need, under),
+      ...BARE_ROW,
+      path: needPath(need.id, under),
       parentPath: under ?? null,
       kind: 'need',
-      name: valueOf(need.name) ?? need.id,
+      name: needNameOf(need),
       depth: under === undefined ? 0 : 1,
       change: added.has(need.id) ? 'added' : 'modified',
     });
@@ -226,7 +202,7 @@ export function requirementsTreeOf(
   const ruleNode = (traced: TracedRule, under: string) => {
     const pattern = traced.rule === null ? null : valueOf(traced.rule.ruleType);
     nodes.push({
-      ...ROW,
+      ...BARE_ROW,
       path: rulePath(traced, under),
       parentPath: under,
       kind: 'rule',
@@ -238,12 +214,12 @@ export function requirementsTreeOf(
     });
   };
   const groupNode = (path: string, name: string) => {
-    nodes.push({ ...ROW, path, kind: 'group', name });
+    nodes.push({ ...BARE_ROW, path, parentPath: null, kind: 'group', name });
   };
 
   for (const { need, rules } of requirements.needs) {
     needNode(need);
-    for (const traced of rules) ruleNode(traced, needPath(need));
+    for (const traced of rules) ruleNode(traced, needPath(need.id));
   }
   groupNode(DESIGN_DECISIONS_PATH, 'Design decisions');
   for (const traced of requirements.designDecisions)

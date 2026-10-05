@@ -1,4 +1,4 @@
-import type { Hexagon, PlacedElement } from '../architecture-outline.ts';
+import type { Hexagon, PlacedElement } from '../../architecture-outline.ts';
 
 /*
  * Every hexagon is drawn in the same bands, top to bottom: who drives it, the

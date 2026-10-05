@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { DesignDocWorkbench } from '../src/features/design-docs/ui/design-doc-workbench';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { designDocDetailFixture } from './fixtures/design-doc.fixture';
@@ -7,13 +8,15 @@ import { designDocDetailFixture } from './fixtures/design-doc.fixture';
 const reading = (node: string | null, query = '') =>
   renderToStaticMarkup(
     <MantineProvider>
-      <DesignDocWorkbench
-        detail={designDocDetailFixture}
-        node={node}
-        query={query}
-        onSelect={() => {}}
-        onQuery={() => {}}
-      />
+      <DesignDocSurface document={designDocDetailFixture.document}>
+        <DesignDocWorkbench
+          detail={designDocDetailFixture}
+          selected={node}
+          query={query}
+          onSelect={() => {}}
+          onQuery={() => {}}
+        />
+      </DesignDocSurface>
     </MantineProvider>,
   );
 

@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById, findByName } from '../../../change-set.ts';
 import { ownerOfPart } from '../../../design-doc-outline.ts';
-import { findById, findByName } from '../change-set.ts';
 import type { OwnerRef } from '../element-ref.ts';
 import { propertySections } from './property-sections.tsx';
 import { ruleSections } from './rule-sections.tsx';

@@ -7,7 +7,8 @@ import {
 } from '@tanstack/react-router';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
-import { RequirementsView } from '../src/features/design-docs/ui/requirements-view';
+import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
+import { RequirementsView } from '../src/features/design-docs/ui/requirements/requirements-view';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { requirementsFixture } from './fixtures/design-doc-requirements.fixture';
 
@@ -20,14 +21,16 @@ async function render(selected: string | null = null): Promise<string> {
   const router = createRouter({
     routeTree: createRootRoute({
       component: () => (
-        <RequirementsView
-          changeId="2026-01-01-refunds"
-          detail={detail}
-          selected={selected}
-          query=""
-          onSelect={() => {}}
-          onQuery={() => {}}
-        />
+        <DesignDocSurface document={detail.document}>
+          <RequirementsView
+            changeId="2026-01-01-refunds"
+            detail={detail}
+            selected={selected}
+            query=""
+            onSelect={() => {}}
+            onQuery={() => {}}
+          />
+        </DesignDocSurface>
       ),
     }),
     history: createMemoryHistory({ initialEntries: ['/'] }),
@@ -116,7 +119,7 @@ describe('RequirementsView', () => {
     const button = /<button[^>]*>/.exec(rule)?.[0] ?? '';
     expect(button).toContain('aria-expanded="false"');
     const controls = /aria-controls="([^"]+)"/.exec(button)?.[1];
-    expect(rule).toMatch(new RegExp(`<dl id="${controls}" hidden=""`));
+    expect(rule).toMatch(new RegExp(`<dl[^>]* id="${controls}" hidden=""`));
     // Collapsed, the line still places the rule.
     expect(rule).toContain('Business · refunds › Refund');
     expect(rule).toContain('Support never pays out more than came in.');
@@ -127,7 +130,9 @@ describe('RequirementsView', () => {
     expect(rule).toContain('modified');
     expect(rule).toContain('An order total subtracts what was refunded.');
     expect(rule).toContain('>changed<');
-    expect(rule).toContain('<dt>Trace</dt><dd>See what was refunded</dd>');
+    expect(rule).toMatch(
+      /<dt>Needs<\/dt><dd><ul[^>]*><li>See what was refunded<\/li><\/ul><\/dd>/,
+    );
     // It writes no category, so none is shown, and its scenarios stay the model's.
     expect(rule).not.toContain('<dt>Category</dt>');
     expect(rule).toContain('Scenarios unchanged');

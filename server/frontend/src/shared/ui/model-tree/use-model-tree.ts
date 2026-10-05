@@ -82,6 +82,12 @@ export interface ModelTreeState {
    * the tree has no row for says false, and the tree then has none in hand.
    */
   readonly opensAtTop?: boolean;
+  /**
+   * What a reader who has opened nothing sees; a model's shape — its modules
+   * down to their building blocks — unless said otherwise. Asked once, when
+   * the tree opens and its memory holds nothing.
+   */
+  readonly opensOn?: (tree: OutlineTree) => Set<string>;
 }
 
 export function useModelTree(
@@ -96,6 +102,7 @@ export function useModelTree(
     memory = FORGETFUL,
     excludeKinds = EXCLUDED_KINDS,
     opensAtTop = true,
+    opensOn = defaultExpansion,
   } = state;
   const tree = useMemo(
     () => outlineTree(nodes, excludeKinds),
@@ -130,7 +137,7 @@ export function useModelTree(
    * would show its element in the panel and nowhere in the tree.
    */
   const [expanded, setExpanded] = useState(() => {
-    const shape = memory.recall() ?? defaultExpansion(tree);
+    const shape = memory.recall() ?? opensOn(tree);
     return selected === null ? shape : withWayDown(shape, tree, selected);
   });
   const [shape, setShape] = useState<SearchShape>(UNTOUCHED);

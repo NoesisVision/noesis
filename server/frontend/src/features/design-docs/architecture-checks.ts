@@ -1,10 +1,10 @@
+import { plural } from '#/shared/ui/plural.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
   elementsOf,
-  moduleOf,
-  nameOf,
 } from './architecture-outline.ts';
+import { moduleOf, nameOf } from './element-id.ts';
 
 /*
  * What a hexagonal architecture asks of a design, checked against what the
@@ -84,7 +84,7 @@ function onlyApplicationServicesArePublic({
     id: 'only-application-services-are-public',
     level: 'warning',
     title,
-    text: `${list(exposed)} ${exposed.length === 1 ? 'is' : 'are'} public on a block that is not an application service: the core is exposed past its ports.`,
+    text: `${list(exposed)} ${plural(exposed.length, 'is', 'are')} public on a block that is not an application service: the core is exposed past its ports.`,
     elementIds: exposed.map(({ id }) => id),
   };
 }
@@ -137,7 +137,7 @@ function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
     id: 'type-in-no-contract',
     level: 'warning',
     title,
-    text: `${list(unused)} ${unused.length === 1 ? 'is' : 'are'} used by no property, input or output.`,
+    text: `${list(unused)} ${plural(unused.length, 'is', 'are')} used by no property, input or output.`,
     elementIds: unused.map(({ id }) => id),
   };
 }
@@ -158,7 +158,7 @@ function callerUnknown({ hexagons }: Placed): ArchitectureCheck {
     id: 'caller-unknown',
     level: 'note',
     title,
-    text: `${list(behaviours)} ${behaviours.length === 1 ? 'is' : 'are'} public and ${behaviours.length === 1 ? 'names' : 'name'} no actor, so another subsystem calls ${behaviours.length === 1 ? 'it' : 'them'}. Which one is not in the design document.`,
+    text: `${list(behaviours)} ${plural(behaviours.length, 'is', 'are')} public and ${plural(behaviours.length, 'names', 'name')} no actor, so another subsystem calls ${plural(behaviours.length, 'it', 'them')}. Which one is not in the design document.`,
     elementIds: behaviours.map(({ id }) => id),
   };
 }

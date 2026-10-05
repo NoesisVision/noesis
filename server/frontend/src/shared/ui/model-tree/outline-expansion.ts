@@ -1,4 +1,3 @@
-import type { OutlineKind } from './model-outline.ts';
 import type { OutlineSearch } from './outline-search.ts';
 import type { OutlineTree } from './outline-tree.ts';
 
@@ -27,23 +26,19 @@ export function expandablePaths(tree: OutlineTree): Set<string> {
   );
 }
 
-/** The kinds that hold the tree together, and so open on their own. */
-const OPEN_KINDS: readonly OutlineKind[] = ['module', 'group', 'need'];
-
 /**
  * What a reader who has opened nothing sees: the modules down to the building
  * blocks they hold, and no further. That is the shape the tree is for — which
  * context, which module, what is in it — with a block's own properties, rules
- * and scenarios folded away until asked for. Read as requirements, every need
- * and group is open on the rules under it: those rules are what it is for.
+ * and scenarios folded away until asked for. A tree of another shape says its
+ * own, where it is made.
  */
 export function defaultExpansion(tree: OutlineTree): Set<string> {
   return new Set(
     tree.nodes
       .filter(
         (node) =>
-          OPEN_KINDS.includes(node.kind) &&
-          tree.childrenOf(node.path).length > 0,
+          node.kind === 'module' && tree.childrenOf(node.path).length > 0,
       )
       .map((node) => node.path),
   );

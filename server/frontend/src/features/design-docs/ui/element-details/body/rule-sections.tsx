@@ -1,7 +1,10 @@
 import type { ReactElement } from 'react';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import { isUnchanged, valueOf } from '../../../design-doc-field.ts';
-import { type NeedsInput, needNamesOf } from '../change-list-items.ts';
+import {
+  type NeedsInput,
+  needNamesOf,
+} from '../../../design-doc-requirements.ts';
 import type { ElementRef, OwnerRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';

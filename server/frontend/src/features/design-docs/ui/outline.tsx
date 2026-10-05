@@ -5,15 +5,13 @@ import type { ModelTreeController } from '#/shared/ui/model-tree/use-model-tree.
 
 export function Outline({
   controller,
-  empty,
   label = 'Design outline',
 }: {
   controller: ModelTreeController;
-  empty: boolean;
   /** What the tree is of, for a reader who arrives at it by keyboard. */
   label?: string;
 }) {
-  if (empty)
+  if (controller.tree.nodes.length === 0)
     return (
       <Box pt="md">
         <Text c="dimmed">This design names no elements yet.</Text>

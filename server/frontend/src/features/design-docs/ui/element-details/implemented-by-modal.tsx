@@ -8,6 +8,7 @@ import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { counted } from '#/shared/ui/plural.ts';
 import { QualifiedName, shortName } from '#/shared/ui/qualified-name.tsx';
 import { ChangeBadge } from './change-badge.tsx';
 import type { ChangeListItem } from './change-list-items.ts';
@@ -23,7 +24,7 @@ export function ImplementedByModal({ items }: { items: ChangeListItem[] }) {
   const [opened, { open, close }] = useDisclosure(false);
   if (items.length === 0) return null;
   // What the icon is, on hover and to a screen reader alike.
-  const label = `Implemented by ${items.length} ${items.length === 1 ? 'element' : 'elements'}`;
+  const label = `Implemented by ${counted(items.length, 'element')}`;
   return (
     <>
       <Tooltip label={label} openDelay={300} color="dark">

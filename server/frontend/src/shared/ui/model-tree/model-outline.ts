@@ -53,6 +53,20 @@ export interface OutlineNode {
 }
 
 /**
+ * What a row that names nothing in the model has in common — a group, a need,
+ * a check: no element, change, pattern or diagram of its own. A projection
+ * spreads it and says the rest.
+ */
+export const BARE_ROW = {
+  elementId: null,
+  depth: 0,
+  change: 'unchanged',
+  pattern: null,
+  patternLabel: null,
+  hasDiagram: false,
+} as const satisfies Partial<OutlineNode>;
+
+/**
  * The order a reader meets a module's building blocks in: what the outside
  * calls, then how instances come and go, then the boundary, then the model
  * itself. Deliberately not alphabetical — the sequence is

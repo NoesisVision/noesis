@@ -3,8 +3,8 @@ import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type {
   ArchitectureCheck,
   ArchitectureOutline,
-} from '../architecture-outline.ts';
-import { checkPath, needPath } from '../architecture-tree.ts';
+} from '../../architecture-outline.ts';
+import { checkPath, needAtPortsPath } from '../../architecture-tree.ts';
 import type { LaidOutNode } from './layout-architecture.ts';
 
 /*
@@ -42,7 +42,7 @@ export function subjectOf(
   }
   if (row.kind === 'need') {
     const need = outline.needsAtPorts.find(
-      (one) => needPath(one.need.id) === row.path,
+      (one) => needAtPortsPath(one.need.id) === row.path,
     );
     return need === undefined ? null : { kind: 'need', need };
   }

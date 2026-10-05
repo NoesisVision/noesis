@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { findById } from '../change-set.ts';
+import { findById } from '../../../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { behaviourSections } from './behaviour-sections.tsx';
 import { buildingBlockSections } from './building-block-sections.tsx';

@@ -4,8 +4,14 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import {
+  type ChangeSetInput,
+  designedOf,
+  findById,
+  findByName,
+  writtenIn,
+} from '../../../change-set.ts';
 import { ownerOfPart } from '../../../design-doc-outline.ts';
-import { findById, findByName, type ChangeSetInput } from '../change-set.ts';
 
 /** One scenario as the column folds it: what the design does to it, and the rule it belongs to, if any. */
 export type ScenarioEntry =
@@ -51,7 +57,7 @@ export const scenarioEntriesOf = (
 const ruleEntriesOf = (
   rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
 ) =>
-  [...(rules?.added ?? []), ...(rules?.modified ?? [])].flatMap((rule) =>
+  writtenIn(rules).flatMap((rule) =>
     scenarioEntriesOf(rule.scenarios, rule.name),
   );
 
@@ -66,7 +72,7 @@ export const scenariosOf = (
 ): ScenarioEntry[] => {
   if (node.change === 'removed') return [];
   if (node.elementId !== null) {
-    const owner = ownerOf(doc, node.elementId);
+    const owner = designedOf(doc, node.elementId);
     if (owner === null) return [];
     const own = scenarioEntriesOf(
       (
@@ -78,12 +84,6 @@ export const scenariosOf = (
   }
   if (node.kind !== 'rule' || node.parentPath === null) return [];
   const { elementId } = ownerOfPart(node.parentPath);
-  const rule = findByName(ownerOf(doc, elementId)?.rules, node.name);
+  const rule = findByName(designedOf(doc, elementId)?.rules, node.name);
   return rule === null ? [] : scenarioEntriesOf(rule.scenarios);
 };
-
-/** The element that keeps rules: a building block, a behaviour or a module. */
-const ownerOf = (doc: DesignDocumentInput, id: string) =>
-  findById(doc.buildingBlocks, id) ??
-  findById(doc.behaviours, id) ??
-  findById(doc.modules, id);

@@ -3,11 +3,6 @@
  * about it, padded as the rows above are.
  */
 .details {
-  --arch-dim: light-dark(
-    var(--mantine-color-gray-7),
-    var(--mantine-color-dark-1)
-  );
-
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
@@ -33,7 +28,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--arch-dim);
+  color: var(--noesis-color-dim);
 }
 
 .title {
@@ -44,7 +39,7 @@
 .address {
   font-family: var(--mantine-font-family-monospace);
   font-size: var(--mantine-font-size-xs);
-  color: var(--arch-dim);
+  color: var(--noesis-color-dim);
   overflow-wrap: anywhere;
 }
 
@@ -60,12 +55,9 @@
   gap: 6px;
 }
 
-/* Quiet, as the model's section titles are. */
-h3.sectionTitle {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--arch-dim);
+/* Quiet, as the model's section titles are; its size is the title's own to say. */
+.sectionTitle {
+  color: var(--noesis-color-dim);
 }
 
 .chips {
@@ -90,7 +82,7 @@ h3.sectionTitle {
 
   /* Whatever the mouse gets, the keyboard gets. */
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
   }
 }
@@ -111,36 +103,16 @@ h3.sectionTitle {
   }
 }
 
-/* A level is a word as well as a colour. */
-.pill {
-  flex: none;
-  padding: 0 8px;
-  border-radius: var(--mantine-radius-xl);
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 18px;
-
-  &[data-level='warning'] {
-    background: var(--mantine-color-orange-light);
-    color: var(--mantine-color-orange-light-color);
-  }
-
-  &[data-level='note'] {
-    background: var(--mantine-color-gray-light);
-    color: var(--mantine-color-gray-light-color);
-  }
-}
-
 .direction {
   flex: none;
   width: 3.5rem;
   font-size: var(--mantine-font-size-xs);
   font-weight: 600;
-  color: var(--arch-dim);
+  color: var(--noesis-color-dim);
 }
 
 .note {
-  color: var(--arch-dim);
+  color: var(--noesis-color-dim);
   font-style: italic;
 }
 

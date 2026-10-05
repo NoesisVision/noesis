@@ -22,7 +22,7 @@
   gap: var(--mantine-spacing-xs);
   font-size: 13px;
   font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-color-dim);
 }
 
 /*

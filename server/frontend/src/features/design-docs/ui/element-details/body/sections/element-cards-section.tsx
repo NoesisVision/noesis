@@ -6,9 +6,10 @@ import type {
 } from '#/shared/ui/model-tree/model-outline.ts';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById } from '../../../../change-set.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
+import { addressOf } from '../../../../element-id.ts';
 import { ChangeBadge } from '../../change-badge.tsx';
-import { findById } from '../../change-set.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -151,9 +152,6 @@ function ElementCard({
     </ElementTooltip>
   );
 }
-
-/** `building_block|a.b.C` is at `a.b.C`. */
-const addressOf = (path: string) => path.slice(path.indexOf('|') + 1);
 
 /**
  * The first paragraph of what the design says about an element, as text: a
