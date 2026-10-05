@@ -127,6 +127,7 @@ export function MermaidViewer({
       title={name}
       classNames={{
         root: classes.viewer,
+        inner: classes.inner,
         content: classes.content,
         body: classes.body,
       }}
