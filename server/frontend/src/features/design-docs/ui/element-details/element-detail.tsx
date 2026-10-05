@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Group } from '#/shared/design-system/group.tsx';
+import { useElementSize } from '#/shared/design-system/hooks.ts';
 import { Title } from '#/shared/design-system/title.tsx';
 import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
@@ -15,6 +16,7 @@ import { ChangeBadge } from './change-badge.tsx';
 import { implementerItems, refItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
+import { ElementColumns } from './element-columns.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { ImplementedByModal } from './implemented-by-modal.tsx';
 import { ImplementsLine } from './implements-line.tsx';
@@ -65,7 +67,8 @@ export function ElementDetail({
       : [];
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
-  const withScenarios = scenarios.length > 0;
+  // Measured outside the key below, so the width is known on every element.
+  const { ref: bodyRef, width: bodyWidth } = useElementSize();
   return (
     <DesignDocumentContext.Provider value={doc}>
       <ElementNavigationContext.Provider value={navigation}>
@@ -94,23 +97,21 @@ export function ElementDetail({
             </div>
           </div>
         </header>
-        {/* A container of its own: a grid cannot ask how wide it is itself. */}
-        <div key={node.path} className={classes.body}>
+        <div ref={bodyRef} className={classes.body}>
           {/* Under the key, so every scenario is folded again on another element. */}
-          <ScenarioFocusProvider scenarios={scenarios}>
-            <div className={withScenarios ? classes.columns : undefined}>
-              <div className={classes.sections}>
-                {bodySections(node, doc, tree)}
-              </div>
-              {withScenarios && (
-                <aside className={classes.aside}>
+          <ScenarioFocusProvider key={node.path} scenarios={scenarios}>
+            <ElementColumns
+              width={bodyWidth}
+              sections={bodySections(node, doc, tree)}
+              scenarios={
+                scenarios.length > 0 ? (
                   <ScenarioColumn
                     scenarios={scenarios}
                     id={SCENARIO_COLUMN_ID}
                   />
-                </aside>
-              )}
-            </div>
+                ) : null
+              }
+            />
           </ScenarioFocusProvider>
         </div>
       </ElementNavigationContext.Provider>

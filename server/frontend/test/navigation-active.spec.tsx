@@ -15,7 +15,7 @@ import { MantineProvider } from '../src/shared/design-system/provider';
 import { getContext } from '../src/shared/query/query-client';
 
 /*
- * Exactly one link in the sidebar says it is the one you are on, and it is
+ * Exactly one link in the navigation says it is the one you are on, and it is
  * the right one. Asserted through the whole router, because what decides it
  * is the link's own match against the address — there is nothing to unit
  * test, and the two times this broke it broke in the wiring.
@@ -93,7 +93,7 @@ beforeAll(() => {
 afterEach(() => fetchSpy.mockClear());
 afterAll(() => fetchSpy.mockRestore());
 
-/** The links the sidebar marks as the one you are on, at `url`. */
+/** The links the navigation marks as the one you are on, at `url`. */
 async function currentLinks(url: string): Promise<(string | undefined)[]> {
   const context = getContext();
   const router = getRouter(context);
@@ -114,17 +114,23 @@ async function currentLinks(url: string): Promise<(string | undefined)[]> {
     .map((tag) => /href="([^"]*)"/.exec(tag[0])?.[1]);
 }
 
-describe('the sidebar', () => {
+describe('the navigation', () => {
   it.each([
     `/changes/${CHANGE}`,
-    `/changes/${CHANGE}/documents`,
     `/changes/${CHANGE}/documents/${NOTES}`,
-    `/changes/${CHANGE}/design-docs`,
     `/changes/${CHANGE}/design-docs/${DOC}`,
     '/system-model',
   ])('marks one link at %s', async (url) => {
     expect(await currentLinks(url)).toEqual([url]);
   });
+
+  it.each([`/changes/${CHANGE}/documents`, `/changes/${CHANGE}/design-docs`])(
+    'marks nothing at the list page %s, which the bar only names',
+    async (url) => {
+      // Documents and Design docs label their groups; they are not links.
+      expect(await currentLinks(url)).toEqual([]);
+    },
+  );
 
   it('leaves a heading to its item once the item is open', async () => {
     // The heading's icon carries "one of these is open" instead; the CSS

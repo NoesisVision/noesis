@@ -91,17 +91,12 @@ h2.name {
   }
 }
 
-/*
- * Sections on the left, scenarios on the right — once the panel is wide
- * enough for two columns to be read; under that, the scenarios follow.
- */
+/* Measured: from 44rem the scenarios stand beside the sections, split. */
 .body {
-  container-type: inline-size;
-}
-
-.columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .sections {
@@ -109,8 +104,9 @@ h2.name {
   flex-direction: column;
   gap: var(--mantine-spacing-xl);
   min-width: 0;
+  /* Room past the last section, so it can be scrolled clear of the pane's edge. */
   padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg)
-    var(--mantine-spacing-xl);
+    calc(var(--mantine-spacing-xl) * 3);
 }
 
 .aside {
@@ -118,15 +114,53 @@ h2.name {
   border-top: 1px solid var(--mantine-color-default-border);
 }
 
-@container (min-width: 44rem) {
-  .columns {
-    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
-    align-items: start;
-  }
+/*
+ * The handle between the sections and the scenarios is the line that used to
+ * part them: one pixel of the border colour, with Mantine's grip on it.
+ */
+.split {
+  --splitter-handle-color: var(--mantine-color-default-border);
 
-  .aside {
-    align-self: stretch;
-    border-top: none;
-    border-left: 1px solid var(--mantine-color-default-border);
-  }
+  /* The rest of the panel's height at least, so the handle always spans it. */
+  flex: 1 0 auto;
+  align-items: stretch;
+}
+
+/*
+ * The grip at the middle of what the panel shows of the handle, not of the
+ * whole handle, which runs as tall as the longer column: sticky at both edges
+ * of the panel's scroll area, so it keeps to the middle of the visible panel
+ * as the reader scrolls. Half its 3.75rem height off each. Named with the
+ * splitter, to win over Mantine's own `position: absolute`.
+ */
+.split .splitHandle {
+  /* The grip is in the flow once sticky; it must not widen the line. */
+  min-width: 0;
+}
+
+.split .splitThumb {
+  /* Its own 12px wide, centred over the 1px line as Mantine draws it. */
+  flex: none;
+  position: sticky;
+  top: calc(50% - 1.875rem);
+  bottom: calc(50% - 1.875rem);
+}
+
+/*
+ * The panel scrolls, not a column: a pane is as tall as what it holds, and
+ * lets the scenarios inside it stick. Named with the splitter, to win over
+ * Mantine's own `overflow: auto`.
+ */
+.split .splitPane {
+  min-width: 0;
+  overflow: visible;
+}
+
+/*
+ * Beside a long run of sections, the scenarios stay at the top of the panel
+ * while the sections scroll past them, until the sections end.
+ */
+.stickyScenarios {
+  position: sticky;
+  top: 0;
 }

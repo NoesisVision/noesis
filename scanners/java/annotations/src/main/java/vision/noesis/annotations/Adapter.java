@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Marks a class as a hexagonal adapter — an implementation binding a {@link Port} to technology. */
+/** Marks a class as a hexagonal adapter — an implementation binding a {@link ExternalIntegration} to technology. */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

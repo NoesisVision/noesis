@@ -1,0 +1,4 @@
+/* The change bar sits under the picker's row, ruled off from it. */
+.bar {
+  border-top: 1px solid var(--mantine-color-default-border);
+}

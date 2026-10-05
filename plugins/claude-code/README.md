@@ -70,6 +70,11 @@ nothing.
   modelling guidance in its `references/`, and stores it through
   `create_design_doc_in_change` — or, asked for several alternatives, hands
   each option to a subagent of its own with the brief in its `references/`
+  and compares what they saved; `implement-java-spring` turns a design
+  document into Java domain code for a Spring Boot project, each module,
+  building block and behaviour carrying the stereotype the Java scanner
+  reads, with one JUnit test asserted with AssertJ per scenario, following
+  the mapping, building block and testing rules in its `references/`. A skill
   and compares what they saved; `update-design-doc` fetches a design
   document as stored now through `get_design_doc_in_change` into a working
   file, lists the fields a person accepted with its `scripts/human-fields.ts`,

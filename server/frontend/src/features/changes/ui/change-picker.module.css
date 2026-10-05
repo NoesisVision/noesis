@@ -68,3 +68,48 @@
     }
   }
 }
+
+/* The header's one-line picker: as tall as the controls beside it. */
+.compact.compact {
+  display: block;
+  /* A button sizes to its content even as a block; held to its slot instead,
+     so a long name truncates rather than running off a phone's screen. */
+  width: 100%;
+  min-width: 0;
+  max-width: 420px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border-radius: var(--mantine-radius-md);
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+
+  &:hover {
+    border-color: light-dark(
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-2)
+    );
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+
+  &[data-expanded] {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: 0 0 0 2px var(--mantine-primary-color-light);
+  }
+}
+
+/*
+ * The whole picker is one button: its badges take its pointer, not the
+ * `default` cursor Mantine gives a badge of its own.
+ */
+.pick.pick *,
+.compact.compact * {
+  cursor: inherit;
+}

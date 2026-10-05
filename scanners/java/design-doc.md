@@ -278,13 +278,15 @@ A **block** is a node backed by a single annotated class — the structural ster
 
 **Derivation from the ArchUnit graph:**
 
-| Element     | Derived from                                                                                                                        |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `Behaviour` | public, non-synthetic `JavaMethod`s of annotated blocks                                                                             |
-| `INVOKES`   | `JavaMethodCall` between behaviours; calls routed through private helpers of the same block are collapsed onto the public behaviour |
-| `SENDS`     | `JavaConstructorCall` of a message-typed class inside a behaviour (dispatcher-call patterns can be added later)                     |
-| `HANDLES`   | behaviour on an `ApplicationService` with a message-typed parameter, or an explicit handler annotation                              |
-| evidence    | `SourceCodeLocation` (class + line) of the underlying accesses                                                                      |
+| Element     | Derived from                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Behaviour` | public, non-synthetic `JavaMethod`s of annotated blocks, except record accessors, `equals`, `hashCode`, `toString` and an enum's `values` and `valueOf` |
+| `INVOKES`   | `JavaMethodCall` between behaviours; calls routed through private helpers of the same block are collapsed onto the public behaviour                     |
+| `SENDS`     | `JavaConstructorCall` of a message-typed class inside a behaviour (dispatcher-call patterns can be added later)                                         |
+| `HANDLES`   | behaviour with a message-typed parameter: a handler annotation of that message's kind, or an unannotated `ApplicationService` behaviour                 |
+| evidence    | `SourceCodeLocation` (class + line) of the underlying accesses                                                                                          |
+
+**Behaviour types:** a handler annotation on a method — noesis `@CommandHandler`, `@QueryHandler`, `@EventHandler`, or jMolecules `@CommandHandler`, `@DomainEventHandler` — gives its `Behaviour` a `behaviourType` (`COMMAND`, `QUERY`, `EVENT`) and makes it a handler of the messages of its own kind it takes as parameters (an `@EventHandler` handles events, not commands), wherever it lives.
 
 **Annotation mapping:** jMolecules covers most of the vocabulary — `jmolecules-ddd` for the tactical blocks, `@DomainEvent`/`@DomainEventHandler` (`jmolecules-events`), `@Command`/`@CommandHandler` (CQRS architecture module), and the hexagonal port/adapter set. A `Query` stereotype has no jMolecules annotation — provide it via the configurable mapping (team annotation or a small `noesis-annotations` artifact).
 

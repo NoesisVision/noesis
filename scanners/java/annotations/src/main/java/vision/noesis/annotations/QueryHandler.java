@@ -6,11 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Marks an interface as a hexagonal port — a boundary the domain exposes or requires. */
+/** Marks a method as a behaviour that handles a {@link Query} and answers it without side effects. */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Port {
-
-    Direction value();
+@Target(ElementType.METHOD)
+public @interface QueryHandler {
 }

@@ -1,6 +1,6 @@
 package vision.noesis.annotations;
 
-/** Direction of a {@link Port} or {@link Adapter} in the hexagonal architecture. */
+/** Direction of a {@link ExternalIntegration} or {@link Adapter} in the hexagonal architecture. */
 public enum Direction {
     /** Driving side — the world calls the application (e.g. REST, UI). */
     PRIMARY,

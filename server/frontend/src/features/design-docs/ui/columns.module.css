@@ -92,7 +92,8 @@
 
 /* Room past the last section, so it can be scrolled clear of the pane's edge. */
 .paneBody {
-  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
+  display: flex;
+  flex-direction: column;
 }
 
 /*

@@ -59,6 +59,10 @@ test('ships exactly the expected plugin files', async () => {
     'skills/create-design-doc/SKILL.md',
     'skills/create-design-doc/references/modelling.md',
     'skills/create-design-doc/references/alternative-brief.md',
+    'skills/implement-java-spring/SKILL.md',
+    'skills/implement-java-spring/references/mapping.md',
+    'skills/implement-java-spring/references/building-blocks.md',
+    'skills/implement-java-spring/references/testing.md',
     'contracts/system-model.schema.json',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
