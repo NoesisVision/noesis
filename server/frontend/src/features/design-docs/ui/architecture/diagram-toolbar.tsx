@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Switch } from '#/shared/design-system/switch.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import type { PlacedElement } from '../../architecture-outline.ts';
 import type { TypeRing } from '../../building-block-types.ts';
 import { BuildingBlockFilter } from './building-block-filter.tsx';
@@ -44,9 +48,9 @@ export function DiagramToolbar({
   children: ReactNode;
 }) {
   return (
-    <div className={classes.toolbar}>
-      <div className={classes.toolbarRow}>
-        <span className={classes.grow} />
+    <Stack flex="none" gap={6} py="sm" px="md" className={classes.toolbar}>
+      <Group fz="sm" className={classes.toolbarRow}>
+        <Box flex={1} />
         <BuildingBlockFilter
           rings={types}
           hidden={hiddenTypes}
@@ -64,12 +68,12 @@ export function DiagramToolbar({
           />
         ))}
         {children}
-      </div>
+      </Group>
       {unplaced.length > 0 && (
-        <p className={classes.note}>
+        <Text fz="xs" c="var(--noesis-secondary-text)">
           {`Not drawn, as the design leaves their type as it is: ${unplaced.map(({ name }) => name).join(', ')}.`}
-        </p>
+        </Text>
       )}
-    </div>
+    </Stack>
   );
 }

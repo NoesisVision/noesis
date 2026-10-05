@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ChangeMark } from '../src/shared/ui/model-tree/change-mark';
-import type { OutlineChange } from '../src/shared/ui/model-tree/model-outline';
+import { ChangeMark } from '../src/features/design-docs/ui/model-tree/change-mark';
+import type { OutlineChange } from '../src/features/design-docs/ui/model-tree/model-outline';
 
 const mark = (change: OutlineChange) =>
   renderToStaticMarkup(

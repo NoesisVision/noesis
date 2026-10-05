@@ -6,9 +6,11 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
 import { useMemo, useState } from 'react';
+import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
+import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { useChangeColour } from '#/shared/ui/model-tree/use-change-colour.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { ArchitectureOutline } from '../../architecture-outline.ts';
 import type { TypeRing } from '../../building-block-types.ts';
@@ -132,7 +134,7 @@ export function ArchitectureDiagram({
   }, [layout, pickedKinds]);
 
   return (
-    <div className={classes.diagram}>
+    <Stack gap={0} flex={1} className={classes.diagram}>
       <DiagramToolbar
         types={types}
         hiddenTypes={hiddenTypes}
@@ -149,7 +151,13 @@ export function ArchitectureDiagram({
           onFit={() => void flow?.fitView(FIT)}
         />
       </DiagramToolbar>
-      <section className={classes.canvas} aria-label="Hexagons of the design">
+      <Box
+        component="section"
+        pos="relative"
+        flex={1}
+        mih={0}
+        aria-label="Hexagons of the design"
+      >
         {layout.nodes.length === 0 ? (
           <Text c="dimmed" p="lg">
             This design places no building block in a module.
@@ -182,8 +190,8 @@ export function ArchitectureDiagram({
             </ReactFlow>
           </DiagramReadingContext.Provider>
         )}
-      </section>
-    </div>
+      </Box>
+    </Stack>
   );
 }
 
@@ -212,7 +220,7 @@ function findingsOf(
 
 const ARROW = {
   type: MarkerType.ArrowClosed,
-  color: 'var(--arch-edge)',
+  color: 'var(--noesis-architecture-edge)',
   width: 16,
   height: 16,
 };

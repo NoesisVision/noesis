@@ -3,7 +3,7 @@ import {
   type OutlineKind,
   type OutlineNode,
   patternLabelOf,
-} from '#/shared/ui/model-tree/model-outline.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedNeedInput,
@@ -62,6 +62,82 @@ export type TracedRule = RulePlace &
   );
 
 export type NeedsInput = ChangeSetInput<DesignedNeedInput, string> | undefined;
+
+/**
+ * The counts a reviewer reads first, in the order they are read, each with
+ * its word. A `gap` is a count that should be zero: above it, it is marked.
+ */
+export const REQUIREMENTS_SUMMARY: readonly {
+  key: keyof RequirementsSummary;
+  one: string;
+  many: string;
+  gap: boolean;
+}[] = [
+  { key: 'needs', one: 'need', many: 'needs', gap: false },
+  { key: 'rules', one: 'rule', many: 'rules', gap: false },
+  {
+    key: 'designDecisions',
+    one: 'design decision',
+    many: 'design decisions',
+    gap: false,
+  },
+  {
+    key: 'unaddressedNeeds',
+    one: 'unaddressed need',
+    many: 'unaddressed needs',
+    gap: true,
+  },
+  {
+    key: 'rulesWithoutVerification',
+    one: 'rule without verification',
+    many: 'rules without verification',
+    gap: true,
+  },
+];
+
+/** What a rule that answers no need is: a decision of the design's own. */
+export const DESIGN_DECISION = 'Design decision';
+
+/** Why a rule is a design decision, said beside the word. */
+export const DESIGN_DECISION_REASON = 'no need asks for it';
+
+/** The needs a rule answers in words; a rule that answers none is the design's own decision. */
+export const tracedTo = (needs: string[]): string =>
+  needs.length === 0 ? DESIGN_DECISION : `Answers ${needs.join(', ')}`;
+
+/** A rule's category and type in one phrase, `Quality · Performance`. */
+export const classificationOf = (rule: DesignedRuleInput): string | null => {
+  const words = [valueOf(rule.category), valueOf(rule.ruleType)].filter(
+    (word) => word !== null,
+  );
+  return words.length > 0 ? words.join(' · ') : null;
+};
+
+/** What a rule can be on, in words: the kind of element it constrains. */
+export const RULE_PLACE_KIND: Partial<Record<OutlineKind, string>> = {
+  module: 'module',
+  building_block: 'building block',
+  behaviour: 'behaviour',
+};
+
+/**
+ * A modified rule the design changes more than the statement of: its
+ * classification, its rationale or the needs it answers. Its details are
+ * marked changed, so the reader opens them.
+ */
+export const changesDetails = (traced: TracedRule): boolean =>
+  traced.change === 'modified' &&
+  (classificationOf(traced.rule) !== null ||
+    valueOf(traced.rule.rationale) !== null ||
+    traced.trace !== null);
+
+/**
+ * Whether a rule's trace is worth a line: it answers some need, or the design
+ * empties it — a trace taken away is a change too, and reads as one.
+ */
+export const showsTrace = (traced: TracedRule): boolean =>
+  (traced.trace ?? []).length > 0 ||
+  (traced.change === 'modified' && traced.trace !== null);
 
 /** A need by its name, one the design leaves unnamed by its id. */
 export const needNameOf = (need: DesignedNeedInput): string =>
@@ -179,6 +255,13 @@ function placeOf(
 export const DESIGN_DECISIONS_PATH = 'decisions';
 export const UNADDRESSED_NEEDS_PATH = 'unaddressed';
 
+/** The two groups the document closes on, as both the tree and the page name them. */
+export const DESIGN_DECISIONS_TITLE = 'Design decisions';
+export const UNADDRESSED_NEEDS_TITLE = 'Unaddressed needs';
+
+/** What the requirements tree says when the design states nothing to put in it. */
+export const NO_REQUIREMENTS = 'This design states no needs or rules yet.';
+
 /** A need's row, in whichever tree draws one: at the top, or under the group that holds it. */
 export const needPath = (needId: string, under?: string): string =>
   under === undefined ? `need:${needId}` : `${under}/need:${needId}`;
@@ -232,10 +315,10 @@ export function requirementsTreeOf(
     needNode(need);
     for (const traced of rules) ruleNode(traced, needPath(need.id));
   }
-  groupNode(DESIGN_DECISIONS_PATH, 'Design decisions');
+  groupNode(DESIGN_DECISIONS_PATH, DESIGN_DECISIONS_TITLE);
   for (const traced of requirements.designDecisions)
     ruleNode(traced, DESIGN_DECISIONS_PATH);
-  groupNode(UNADDRESSED_NEEDS_PATH, 'Unaddressed needs');
+  groupNode(UNADDRESSED_NEEDS_PATH, UNADDRESSED_NEEDS_TITLE);
   for (const need of requirements.unaddressedNeeds)
     needNode(need, UNADDRESSED_NEEDS_PATH);
   return nodes;

@@ -1,7 +1,8 @@
-import { Text } from '#/shared/design-system/text.tsx';
-import { Title } from '#/shared/design-system/title.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { nameOf } from '../../element-id.ts';
+import { DetailSection, DetailText } from './detail-parts.tsx';
 import type { LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
 
@@ -21,26 +22,27 @@ export function ElementLinks({
 }) {
   if (ids.length === 0 && empty === undefined) return null;
   return (
-    <section className={classes.section}>
-      <Title order={3} size={13} className={classes.sectionTitle}>
-        {title}
-      </Title>
+    <DetailSection title={title}>
       {ids.length === 0 ? (
-        <Text className={classes.text}>{empty}</Text>
+        <DetailText>{empty}</DetailText>
       ) : (
-        <ul className={classes.chips}>
+        <Group component="ul" gap={6} m={0} p={0} className={classes.list}>
           {ids.map((id) => (
-            <li key={id}>
+            <Box component="li" key={id}>
               <UnstyledButton
                 className={classes.chip}
+                py={2}
+                px="xs"
+                fz="sm"
+                c="var(--mantine-color-anchor)"
                 onClick={() => onSelect(id)}
               >
                 {cards.get(id)?.label ?? nameOf(id)}
               </UnstyledButton>
-            </li>
+            </Box>
           ))}
-        </ul>
+        </Group>
       )}
-    </section>
+    </DetailSection>
   );
 }

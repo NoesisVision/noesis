@@ -17,7 +17,10 @@
       "theme": {
         "$ref": "theme"
       },
-      "defaultColorScheme": "light"
+      "defaultColorScheme": "light",
+      "cssVariablesResolver": {
+        "$ref": "cssVariablesResolver"
+      }
     }
   },
   "libOverrides": {
@@ -58,6 +61,10 @@
     },
     "TextInput": {
       "cardMode": "column"
+    },
+    "Popover": {
+      "cardMode": "single",
+      "viewport": "360x300"
     }
   },
   "readmeHeader": ".design-sync/conventions.md"

@@ -3,7 +3,7 @@ import {
   outlineOf,
   ownerOfPart,
 } from '../src/features/design-docs/design-doc-outline';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline';
 import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
 const outline = outlineOf(changedEverywhereFixture);

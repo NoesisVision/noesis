@@ -2,59 +2,19 @@
  * The diagram pane: the toolbar, then the canvas filling the rest. Every
  * colour is a Mantine token in light-dark(), so both schemes hold.
  */
+/* Its cards are named under it, to win over the unstyled button's own reset. */
 .diagram {
-  --arch-edge: light-dark(
-    var(--mantine-color-gray-6),
-    var(--mantine-color-dark-2)
-  );
-  --arch-card: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-6)
-  );
-  --arch-hex: light-dark(
-    var(--mantine-color-brand-0),
-    var(--mantine-color-dark-8)
-  );
-  --arch-hex-line: light-dark(
-    var(--mantine-color-brand-3),
-    var(--mantine-color-brand-8)
-  );
-  --arch-core: light-dark(
-    var(--mantine-color-brand-1),
-    var(--mantine-color-dark-7)
-  );
-  --arch-core-line: light-dark(
-    var(--mantine-color-brand-4),
-    var(--mantine-color-brand-7)
-  );
-  --arch-select: var(--mantine-color-orange-filled);
-
-  display: flex;
-  flex: 1;
-  flex-direction: column;
   min-height: 0;
 }
 
 .toolbar {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  gap: 6px;
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
   border-bottom: 1px solid
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
-.toolbarRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+/* Rows closer than the controls in them; named with the toolbar, to win over the group's own gap. */
+.toolbar .toolbarRow {
   gap: 8px 18px;
-  font-size: var(--mantine-font-size-sm);
-}
-
-.grow {
-  flex-grow: 1;
 }
 
 .legend {
@@ -65,17 +25,12 @@
   background: var(--mantine-color-body);
   box-shadow: var(--mantine-shadow-sm);
   font-size: var(--mantine-font-size-xs);
+}
 
-  & ul {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin: 4px 0 0;
-    padding: 0;
-    list-style: none;
-  }
+.legend .legendList {
+  list-style: none;
 
-  & ul[hidden] {
+  &[hidden] {
     display: none;
   }
 }
@@ -89,12 +44,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  width: 100%;
-  padding: 3px 8px;
   border-radius: var(--mantine-radius-sm);
-  color: var(--noesis-color-dim);
   font-size: inherit;
-  font-weight: 600;
 
   &:hover {
     background: var(--mantine-color-default-hover);
@@ -110,8 +61,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  padding: 3px 8px;
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text);
   font-size: inherit;
@@ -140,15 +89,15 @@
  */
 .card,
 .swatch {
-  --kind-border: 1px solid var(--arch-edge);
-  --kind-fill: var(--arch-card);
+  --kind-border: 1px solid var(--noesis-architecture-edge);
+  --kind-fill: var(--noesis-architecture-card);
 
   /* Not designed: the design holds no adapters, and names no caller. */
   &[data-kind='caller'],
   &[data-kind='adapterIn'],
   &[data-kind='adapterOut'] {
-    --kind-border: 1.5px dashed var(--arch-edge);
-    --kind-ink: var(--noesis-color-dim);
+    --kind-border: 1.5px dashed var(--noesis-architecture-edge);
+    --kind-ink: var(--noesis-secondary-text);
   }
 
   &[data-kind='drivingPort'] {
@@ -158,11 +107,11 @@
   }
 
   &[data-kind='service'] {
-    --kind-border: 1px solid var(--arch-hex-line);
+    --kind-border: 1px solid var(--noesis-architecture-module-border);
   }
 
   &[data-kind='element'] {
-    --kind-border: 1px solid var(--arch-core-line);
+    --kind-border: 1px solid var(--noesis-architecture-core-border);
   }
 
   &[data-kind='drivenPort'] {
@@ -186,18 +135,6 @@
   opacity: 0.25;
 }
 
-.note {
-  margin: 0;
-  font-size: var(--mantine-font-size-xs);
-  color: var(--noesis-color-dim);
-}
-
-.canvas {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-}
-
 /* React Flow lays the frames out; the polygon fills them. */
 .frame {
   position: relative;
@@ -215,24 +152,24 @@
 }
 
 .hexagon polygon {
-  fill: var(--arch-hex);
-  stroke: var(--arch-hex-line);
+  fill: var(--noesis-architecture-module);
+  stroke: var(--noesis-architecture-module-border);
   stroke-width: 2px;
 }
 
 .core polygon {
-  fill: var(--arch-core);
-  stroke: var(--arch-core-line);
+  fill: var(--noesis-architecture-core);
+  stroke: var(--noesis-architecture-core-border);
   stroke-width: 1.5px;
 }
 
 .frame[data-state='selected'] .hexagon polygon {
-  stroke: var(--arch-select);
+  stroke: var(--noesis-architecture-selection);
   stroke-width: 3px;
 }
 
 .frame[data-state='related'] .hexagon polygon {
-  stroke: var(--arch-select);
+  stroke: var(--noesis-architecture-selection);
   stroke-dasharray: 8 6;
 }
 
@@ -241,16 +178,11 @@
   top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 2px 10px;
+  padding: 2px var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text);
   white-space: nowrap;
   pointer-events: all;
-
-  & small {
-    color: var(--noesis-color-dim);
-    font-size: var(--mantine-font-size-xs);
-  }
 
   &:hover {
     background: var(--mantine-color-default-hover);
@@ -267,9 +199,6 @@
   top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   white-space: nowrap;
   color: light-dark(var(--mantine-color-brand-8), var(--mantine-color-brand-3));
 }
@@ -279,7 +208,7 @@
 }
 
 .edge :global(.react-flow__edge-path) {
-  stroke: var(--arch-edge);
+  stroke: var(--noesis-architecture-edge);
   stroke-width: 2px;
 }
 
@@ -291,7 +220,7 @@
   gap: 8px;
   width: 100%;
   height: 100%;
-  padding: 4px 10px;
+  padding: 4px var(--mantine-spacing-xs);
   border: var(--kind-border);
   border-radius: var(--mantine-radius-md);
   background: var(--kind-fill);
@@ -323,53 +252,31 @@
   }
 
   &[data-kind='drivingPort'] {
-    & small {
-      color: var(--mantine-color-brand-1);
-    }
-
+    & .subtitle,
     & svg {
       color: var(--mantine-color-brand-1);
     }
   }
 
-  &[data-change='removed'] b {
+  &[data-change='removed'] .name {
     text-decoration: line-through;
   }
 
   /* Outlined as well as coloured: in hand, solid; concerned, dashed. */
   &[data-state='selected'] {
-    outline: 3px solid var(--arch-select);
+    outline: 3px solid var(--noesis-architecture-selection);
     outline-offset: 2px;
   }
 
   &[data-state='related'] {
-    outline: 2px dashed var(--arch-select);
+    outline: 2px dashed var(--noesis-architecture-selection);
     outline-offset: 2px;
   }
 }
 
-.icon {
-  display: inline-flex;
-  flex: none;
-}
-
-.text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.2;
-
-  & b {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--mantine-font-size-sm);
-  }
-
-  & small {
-    font-size: var(--mantine-font-size-xs);
-    color: var(--noesis-color-dim);
-  }
+/* The type under the name; a driving port's is lighter, on its fill. */
+.subtitle {
+  color: var(--noesis-secondary-text);
 }
 
 .marker {
@@ -382,8 +289,6 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  font-size: 13px;
-  font-weight: 700;
 
   &[data-level='warning'] {
     background: var(--mantine-color-orange-filled);
@@ -400,11 +305,8 @@
   position: absolute;
   right: 6px;
   bottom: -9px;
-  padding: 0 6px;
   border: 1px solid var(--mantine-color-yellow-outline);
   border-radius: 999px;
   background: var(--mantine-color-yellow-light);
   color: var(--mantine-color-yellow-light-color);
-  font-size: 11px;
-  line-height: 16px;
 }

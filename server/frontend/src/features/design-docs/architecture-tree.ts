@@ -2,11 +2,12 @@ import {
   BARE_ROW,
   type OutlineNode,
   patternLabelOf,
-} from '#/shared/ui/model-tree/model-outline.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { ElementId } from '#backend/app/element-id.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
-  LEVEL_LABEL,
+  CHECK_LEVEL_META,
   placedById,
 } from './architecture-outline.ts';
 import { needPath, needRow } from './design-doc-requirements.ts';
@@ -31,11 +32,11 @@ export function architectureTreeOf(
   addedNeeds: ReadonlySet<string>,
 ): OutlineNode[] {
   const placed = placedById(outline);
-  const modules = new Map(
+  const modules = new Map<ElementId, string>(
     outline.hexagons.map(({ module }) => [module.id, module.name]),
   );
   const nodes: OutlineNode[] = [];
-  const elementRow = (id: string, under: string) => {
+  const elementRow = (id: ElementId, under: string) => {
     const element = placed.get(id);
     const pattern = element?.pattern ?? null;
     nodes.push({
@@ -69,7 +70,7 @@ export function architectureTreeOf(
       name: check.title,
       depth: 1,
       pattern: check.level,
-      patternLabel: LEVEL_LABEL[check.level],
+      patternLabel: CHECK_LEVEL_META[check.level].label,
     });
     for (const id of check.elementIds) elementRow(id, path);
   }

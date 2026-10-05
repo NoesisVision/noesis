@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { MantineProvider } from '../src/shared/design-system/provider';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
-import { ModelTree } from '../src/shared/ui/model-tree/model-tree';
-import { searchOutline } from '../src/shared/ui/model-tree/outline-search';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
+import { ModelTree } from '../src/features/design-docs/ui/model-tree/model-tree';
+import { searchOutline } from '../src/features/design-docs/ui/model-tree/outline-search';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import {
   type ModelTreeController,
   useModelTree,
-} from '../src/shared/ui/model-tree/use-model-tree';
+} from '../src/features/design-docs/ui/model-tree/use-model-tree';
+import { MantineProvider } from '../src/shared/design-system/provider';
 import { outlineFixture } from './fixtures/outline.fixture';
 
 /*

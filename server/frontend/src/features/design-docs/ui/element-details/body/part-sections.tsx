@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById, findByName } from '../../../change-set.ts';
 import { ownerOfPart } from '../../../design-doc-outline.ts';

@@ -4,7 +4,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { getRouter } from '#/router';
 import { MantineProvider } from '#/shared/design-system/provider';
-import { colorSchemeManager, theme } from '#/shared/design-system/theme';
+import {
+  colorSchemeManager,
+  cssVariablesResolver,
+  theme,
+} from '#/shared/design-system/theme';
 import { DevToolsContextProvider } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { configureLogging } from '#/shared/logging.ts';
 import { getContext } from '#/shared/query/query-client.tsx';
@@ -29,6 +33,7 @@ createRoot(rootElement).render(
   <StrictMode>
     <MantineProvider
       theme={theme}
+      cssVariablesResolver={cssVariablesResolver}
       defaultColorScheme="auto"
       colorSchemeManager={colorSchemeManager}
     >

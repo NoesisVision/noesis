@@ -35,3 +35,5 @@ Run everything from `server/frontend`.
 - Previews mirror app compositions (shell, change picker, dev-tools modal, scenario accordion) - they don't update when those screens change.
 - Mantine module augmentation (`mantine.d.ts`, the `brand` colour) isn't seen by the d.ts extractor, so `color` unions omit `"brand"`; the conventions header documents it instead.
 - New wrapper modules in src/shared/design-system are picked up automatically by build-pkg.mjs; add a preview for each.
+- The provider also gets `cssVariablesResolver` (`$ref` to the export in theme.ts), so the `--noesis-*` variables resolve in previews as in the app.
+- `portal-target.tsx` is in `SKIP`: a provider that moves portals, with nothing to draw.

@@ -1,14 +1,17 @@
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { clsx } from 'clsx';
 import { createContext, useContext } from 'react';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { ChangeMark } from '#/shared/ui/model-tree/change-mark.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
+import { ChangeMark } from '#/features/design-docs/ui/model-tree/change-mark.tsx';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import {
   type OutlineChange,
   patternLabelOf,
-} from '#/shared/ui/model-tree/model-outline.ts';
-import { counted } from '#/shared/ui/plural.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { counted } from '#/features/design-docs/ui/plural.ts';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { kindOf } from '../../element-id.ts';
 import { fades, KINDS } from './architecture-kinds.ts';
 import type { DiagramFocus } from './architecture-selection.ts';
@@ -94,7 +97,7 @@ export function HexagonNode({
   const { node } = data;
   const { state, onSelect } = useCard(node);
   return (
-    <div className={classes.frame} data-state={state}>
+    <Box className={classes.frame} data-state={state}>
       <svg
         width={width}
         height={height}
@@ -106,28 +109,51 @@ export function HexagonNode({
       <UnstyledButton
         className={classes.moduleLabel}
         aria-pressed={state === 'selected'}
-        aria-label={`${node.label}, module drawn as a hexagon`}
+        // The dashed stroke of a related frame, said in words.
+        aria-label={withState(
+          `${node.label}, ${KINDS[node.kind].word} drawn as a hexagon`,
+          state,
+        )}
         onClick={() => onSelect(node.selects)}
       >
-        <b>{node.label}</b> <small>module</small>
+        <Text component="span" inherit fw={700}>
+          {node.label}
+        </Text>{' '}
+        <Text component="span" inherit fz="xs" c="var(--noesis-secondary-text)">
+          {KINDS[node.kind].word}
+        </Text>
       </UnstyledButton>
-    </div>
+    </Box>
   );
 }
 
 export function DomainCoreNode({
+  data,
   width = 0,
   height = 0,
 }: NodeProps<DiagramNode>) {
   return (
-    <div className={classes.frame}>
+    <Box className={classes.frame}>
       <svg width={width} height={height} aria-hidden className={classes.core}>
         <polygon points={hexagonPoints(width, height, CORE_HEX_INSET)} />
       </svg>
-      <span className={classes.ringLabel}>Domain core</span>
-    </div>
+      <Text
+        component="span"
+        className={classes.ringLabel}
+        inherit
+        fz={11}
+        lts="0.06em"
+        tt="uppercase"
+      >
+        {data.node.label}
+      </Text>
+    </Box>
   );
 }
+
+/** What a frame or card is to the selection, for a reader who cannot see its outline. */
+const withState = (label: string, state: 'selected' | 'related' | undefined) =>
+  state === 'related' ? `${label}, concerned by the selection` : label;
 
 export function CardNode({ data }: NodeProps<DiagramNode>) {
   const { node } = data;
@@ -169,34 +195,57 @@ export function CardNode({ data }: NodeProps<DiagramNode>) {
         data-state={state}
         data-change={change}
         aria-pressed={state === 'selected'}
-        aria-label={label}
+        aria-label={withState(label, state)}
         title={label}
         onClick={() => onSelect(node.selects)}
       >
         {element !== null && (
-          <span className={classes.icon}>
+          <Box component="span" display="inline-flex" flex="none">
             <ChangeMark change={change} color={changeColour}>
               <KindIcon kind={kindOf(element.id)} pattern={pattern} />
             </ChangeMark>
-          </span>
+          </Box>
         )}
-        <span className={classes.text}>
-          <b>{node.label}</b>
-          {subtitle !== null && <small>{subtitle}</small>}
-        </span>
+        <Stack component="span" gap={0} miw={0} lh={1.2}>
+          <Text
+            component="span"
+            inherit
+            fz="sm"
+            fw={700}
+            truncate
+            className={classes.name}
+          >
+            {node.label}
+          </Text>
+          {subtitle !== null && (
+            <Text component="span" inherit fz="xs" className={classes.subtitle}>
+              {subtitle}
+            </Text>
+          )}
+        </Stack>
         {(warnings > 0 || notes > 0) && (
-          <span
+          <Box
+            component="span"
             className={classes.marker}
             data-level={warnings > 0 ? 'warning' : 'note'}
+            fz={13}
+            fw={700}
             aria-hidden
           >
             {warnings > 0 ? '!' : 'i'}
-          </span>
+          </Box>
         )}
         {rules !== null && (
-          <span className={classes.ruleCount} aria-hidden>
+          <Box
+            component="span"
+            className={classes.ruleCount}
+            px={6}
+            fz={11}
+            lh="16px"
+            aria-hidden
+          >
             {counted(rules, 'rule')}
-          </span>
+          </Box>
         )}
       </UnstyledButton>
       <Handle

@@ -43,7 +43,7 @@ describe('the diagram legend', () => {
       /<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>Legend/,
     );
     expect(toggle).not.toBeNull();
-    expect(legend).toMatch(new RegExp(`<ul id="${toggle?.[1]}" hidden=""`));
+    expect(legend).toMatch(new RegExp(`<ul[^>]*id="${toggle?.[1]}" hidden=""`));
   });
 
   it('names every drawn kind once, in the order the cards are drawn', () => {

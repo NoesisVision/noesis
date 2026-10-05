@@ -1,18 +1,3 @@
-/* A group by its legend, and nothing a fieldset draws of its own. */
-.zoom {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
-
-  &[data-size='lg'] {
-    gap: var(--mantine-spacing-xs);
-  }
-}
-
 /* Wide enough for `100%`, so the buttons beside it stand still as it changes. */
 .level {
   min-width: 3rem;

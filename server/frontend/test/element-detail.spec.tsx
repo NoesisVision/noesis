@@ -14,9 +14,9 @@ import { DesignDocumentContext } from '../src/features/design-docs/ui/element-de
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
 import { ImplementedByList } from '../src/features/design-docs/ui/element-details/implemented-by-modal';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
 
 const DIAGRAM = [
   'Holds a card while a booking settles.',
@@ -665,7 +665,9 @@ describe('ElementDetail', () => {
 
   it('points a rule at the scenarios that cover it', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toMatch(/<a href="#element-scenarios"[^>]*>.*?1 scenario</);
+    expect(html).toMatch(
+      /<a [^>]*href="#element-scenarios"[^>]*>.*?1 scenario</,
+    );
     expect(html).toContain('id="element-scenarios"');
   });
 

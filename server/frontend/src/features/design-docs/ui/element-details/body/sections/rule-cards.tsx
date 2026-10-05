@@ -1,8 +1,10 @@
 import { IconArrowRight, IconScale } from '@tabler/icons-react';
+import { counted } from '#/features/design-docs/ui/plural.ts';
+import { Anchor } from '#/shared/design-system/anchor.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { counted } from '#/shared/ui/plural.ts';
+import { tracedTo } from '../../../../design-doc-requirements.ts';
 import { ChangeBadge } from '../../change-badge.tsx';
-import { type ChangeListItem, tracedTo } from '../../change-list-items.ts';
+import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
 import { useScenarioFocus } from '../scenario-focus.tsx';
@@ -64,8 +66,9 @@ export function RuleCards({ items }: { items: ChangeListItem[] }) {
                 <span className={classes.needs}>{tracedTo(needs)}</span>
               )}
               {scenarios !== undefined && (
-                <a
+                <Anchor
                   href={`#${SCENARIO_COLUMN_ID}`}
+                  underline="never"
                   className={classes.scenarios}
                   // Straight to the rule's first scenario, not the top of the
                   // column; the link alone is for a rule drawn without one.
@@ -81,7 +84,7 @@ export function RuleCards({ items }: { items: ChangeListItem[] }) {
                   </span>
                   {counted(scenarios, 'scenario')}
                   <IconArrowRight size={12} aria-hidden />
-                </a>
+                </Anchor>
               )}
             </div>
           </li>

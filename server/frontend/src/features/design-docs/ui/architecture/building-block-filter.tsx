@@ -1,14 +1,16 @@
 import { IconChevronDown, IconFilter } from '@tabler/icons-react';
 import { useId } from 'react';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
+import { patternLabelOf } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { plural } from '#/features/design-docs/ui/plural.ts';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Checkbox } from '#/shared/design-system/checkbox.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Popover } from '#/shared/design-system/popover.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
-import { patternLabelOf } from '#/shared/ui/model-tree/model-outline.ts';
-import { plural } from '#/shared/ui/plural.ts';
 import type { TypeRing } from '../../building-block-types.ts';
 import classes from './building-block-filter.module.css';
 
@@ -55,21 +57,33 @@ export function BuildingBlockFilter({
           )}
         </Button>
       </Popover.Target>
-      <Popover.Dropdown
-        p={0}
-        className={classes.dropdown}
-        aria-labelledby={title}
-      >
-        <div className={classes.head}>
-          <span id={title}>Show building blocks</span>
+      <Popover.Dropdown p={0} w={300} aria-labelledby={title}>
+        <Group
+          justify="space-between"
+          wrap="nowrap"
+          gap={0}
+          pt={6}
+          px="sm"
+          pb={8}
+          fz="sm"
+          fw={600}
+          className={classes.head}
+        >
+          <Text component="span" inherit id={title}>
+            Show building blocks
+          </Text>
           <UnstyledButton
             className={classes.link}
+            px={6}
+            py={2}
+            fz="xs"
+            fw={600}
             disabled={hiddenHere.length === 0}
             onClick={() => set(all, false)}
           >
             Show all
           </UnstyledButton>
-        </div>
+        </Group>
         {rings.map(({ ring, types }) => {
           const patterns = types.map(({ pattern }) => pattern);
           const shown = patterns.filter((pattern) => !hidden.has(pattern));
@@ -78,6 +92,9 @@ export function BuildingBlockFilter({
               <VisuallyHidden component="legend">{ring}</VisuallyHidden>
               <Checkbox
                 className={classes.ring}
+                pt={6}
+                px="sm"
+                pb={4}
                 size="xs"
                 label={ring}
                 aria-label={`Every type in ${ring.toLowerCase()}`}
@@ -90,25 +107,46 @@ export function BuildingBlockFilter({
               {types.map(({ pattern, count }) => {
                 const label = patternLabelOf(pattern);
                 return (
-                  <div key={pattern} className={classes.row}>
+                  <Group
+                    key={pattern}
+                    wrap="nowrap"
+                    gap={0}
+                    pl={28}
+                    pr={8}
+                    className={classes.row}
+                  >
                     <Checkbox
                       classNames={{
-                        root: classes.type,
                         labelWrapper: classes.grow,
                         label: classes.block,
                       }}
+                      flex={1}
+                      miw={0}
+                      py={7}
                       size="xs"
                       label={
-                        <span className={classes.label}>
+                        <Group
+                          component="span"
+                          wrap="nowrap"
+                          gap={8}
+                          className={classes.label}
+                        >
                           <KindIcon kind="building_block" pattern={pattern} />
                           {label}
-                          <span className={classes.count}>
+                          <Text
+                            component="span"
+                            inherit
+                            ml="auto"
+                            fz="xs"
+                            c="var(--noesis-secondary-text)"
+                            className={classes.count}
+                          >
                             {count}
                             <VisuallyHidden>
                               {` ${plural(count, 'card')}`}
                             </VisuallyHidden>
-                          </span>
-                        </span>
+                          </Text>
+                        </Group>
                       }
                       checked={!hidden.has(pattern)}
                       onChange={(event) =>
@@ -117,6 +155,10 @@ export function BuildingBlockFilter({
                     />
                     <UnstyledButton
                       className={classes.only}
+                      px={6}
+                      py={2}
+                      fz="xs"
+                      fw={600}
                       aria-label={`Show only ${label}`}
                       onClick={() =>
                         onHide(new Set(all.filter((each) => each !== pattern)))
@@ -124,15 +166,23 @@ export function BuildingBlockFilter({
                     >
                       Only
                     </UnstyledButton>
-                  </div>
+                  </Group>
                 );
               })}
             </fieldset>
           );
         })}
-        <p className={classes.foot}>
+        <Text
+          mt={6}
+          pt={8}
+          px="sm"
+          pb={4}
+          fz="xs"
+          c="var(--noesis-secondary-text)"
+          className={classes.foot}
+        >
           Driving ports and who drives them always show.
-        </p>
+        </Text>
       </Popover.Dropdown>
     </Popover>
   );

@@ -1,4 +1,13 @@
-/* The dialog is the screen: its body takes what the header leaves. */
+/*
+ * The dialog is the screen: a column whose body takes what the header leaves.
+ * Named with the dialog's root, because Mantine's own `display: block` on the
+ * content is a rule of one class that comes later in the bundle.
+ */
+.viewer .content {
+  display: flex;
+  flex-direction: column;
+}
+
 .body {
   display: flex;
   flex: 1;
@@ -18,13 +27,18 @@
   position: relative;
   flex: 1;
   overflow: hidden;
-  border-radius: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
   cursor: grab;
   touch-action: none;
   user-select: none;
 
   &:active {
     cursor: grabbing;
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: -2px;
   }
 }
 

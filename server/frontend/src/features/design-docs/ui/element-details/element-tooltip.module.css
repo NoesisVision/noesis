@@ -28,7 +28,7 @@
 
 .line {
   font-family: var(--mantine-font-family-monospace);
-  font-size: 12px;
+  font-size: var(--mantine-font-size-xs);
 
   /* A dot per line, in the blue a declaration box is edged with. */
   &::before {

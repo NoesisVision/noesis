@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { expandablePaths } from '#/shared/ui/model-tree/outline-expansion.ts';
-import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
-import { NO_KINDS } from '#/shared/ui/model-tree/outline-tree.ts';
-import { useFollowingTree } from '#/shared/ui/model-tree/use-following-tree.ts';
+import { expandablePaths } from '#/features/design-docs/ui/model-tree/outline-expansion.ts';
+import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
+import { NO_KINDS } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
 import {
+  NO_REQUIREMENTS,
   requirementsOf,
   requirementsTreeOf,
 } from '../../design-doc-requirements.ts';
@@ -87,7 +88,13 @@ export function RequirementsView({
   return (
     <Columns
       search={<OutlineSearchBox controller={controller} counts="rows" />}
-      outline={<Outline controller={controller} label="Requirements outline" />}
+      outline={
+        <Outline
+          controller={controller}
+          label="Requirements outline"
+          empty={NO_REQUIREMENTS}
+        />
+      }
       outlineRef={outlineRef}
       detail={
         <RequirementsDocument

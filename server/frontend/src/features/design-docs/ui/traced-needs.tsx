@@ -1,5 +1,9 @@
+import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import classes from './traced-needs.module.css';
+import {
+  DESIGN_DECISION,
+  DESIGN_DECISION_REASON,
+} from '../design-doc-requirements.ts';
 
 /**
  * The needs a rule answers, as the value of a field: each by its name; or
@@ -11,18 +15,18 @@ export function TracedNeeds({ needs }: { needs: string[] | null }) {
   if (needs.length === 0)
     return (
       <>
-        Design decision
+        {DESIGN_DECISION}
         <Text component="span" c="dimmed" size="sm">
           {' '}
-          — no need asks for it
+          — {DESIGN_DECISION_REASON}
         </Text>
       </>
     );
   return (
-    <ul className={classes.needs}>
+    <List fz="inherit" ps="md">
       {needs.map((need) => (
-        <li key={need}>{need}</li>
+        <List.Item key={need}>{need}</List.Item>
       ))}
-    </ul>
+    </List>
   );
 }

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
-import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
+import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';

@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react';
+import { DataList } from '#/shared/design-system/data-list.tsx';
 import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
-import { FieldList } from '../../../field-list.tsx';
 import { TracedNeeds } from '../../../traced-needs.tsx';
 import type { ElementRef } from '../../element-ref.ts';
 import { Field } from '../../field.tsx';
@@ -24,20 +25,29 @@ export function RuleTraceSection({
 }: RuleTraceSectionProps) {
   return (
     <DetailSection>
-      <FieldList>
-        <dt>Category</dt>
-        <dd>
+      {/* Names in a column as wide as the longest of them, `Category`. */}
+      <DataList gap={6} labelWidth="4.5rem">
+        <TraceField name="Category">
           <Field field={category} />
-        </dd>
-        <dt>Type</dt>
-        <dd>
+        </TraceField>
+        <TraceField name="Type">
           <Field field={ruleType} />
-        </dd>
-        <dt>Needs</dt>
-        <dd>
+        </TraceField>
+        <TraceField name="Needs">
           <TracedNeeds needs={needs} />
-        </dd>
-      </FieldList>
+        </TraceField>
+      </DataList>
     </DetailSection>
+  );
+}
+
+function TraceField({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <DataList.Item>
+      <DataList.ItemLabel fw={600} c="var(--noesis-secondary-text)">
+        {name}
+      </DataList.ItemLabel>
+      <DataList.ItemValue miw={0}>{children}</DataList.ItemValue>
+    </DataList.Item>
   );
 }

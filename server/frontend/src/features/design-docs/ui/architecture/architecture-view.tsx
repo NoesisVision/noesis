@@ -1,8 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
+import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
+import {
+  NO_KINDS,
+  outlineTree,
+} from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
 import { Text } from '#/shared/design-system/text.tsx';
-import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
-import { NO_KINDS, outlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
-import { useFollowingTree } from '#/shared/ui/model-tree/use-following-tree.ts';
 import {
   architectureTreeOf,
   defaultArchitectureExpansion,

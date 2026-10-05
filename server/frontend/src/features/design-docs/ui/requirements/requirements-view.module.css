@@ -1,120 +1,67 @@
 /*
  * A document to read down, in the pane the model's element detail stands in:
  * it scrolls there, beside the tree of needs and rules, padded as that detail
- * is padded.
- */
-.page {
-  --req-line: var(--mantine-color-default-border);
-  --req-quote: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-dark-6)
-  );
-  --req-gap: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-4));
-
-  display: flex;
-  flex-direction: column;
-  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg) 0;
-}
-
-/*
+ * is padded (by the `Stack`'s props).
+ *
  * What a row of the tree brings into view: clear of the pane's top edge when
- * it arrives, and marked by a rule down its side — a mark of place, not of
- * state, so it needs no word beside it.
+ * it arrives, and marked by a rule down its side — a mark of place, which
+ * `aria-current` names for a reader who cannot see the rule.
  */
 .page [data-entry] {
   scroll-margin-top: var(--mantine-spacing-md);
 }
 
-.section[data-selected] > .sectionHead,
-.rule[data-selected] {
+.section[aria-current] > .sectionHead,
+.rule[aria-current] {
   box-shadow: inset 3px 0 0 var(--mantine-color-brand-filled);
   padding-left: var(--mantine-spacing-sm);
 }
 
-.intro {
-  margin: 0;
-  color: var(--noesis-color-dim);
-  max-width: 68ch;
-}
-
+/* The counts in a row, wrapping; its margin, size and colour are the list's props. */
 .summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 18px;
-  margin: var(--mantine-spacing-sm) 0 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--mantine-font-size-sm);
-  color: var(--noesis-color-dim);
-
-  & li {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  & b {
-    color: var(--mantine-color-text);
-    font-variant-numeric: tabular-nums;
-  }
-
-  & li[data-gap],
-  & li[data-gap] b {
-    color: var(--req-gap);
-  }
+  gap: 6px var(--mantine-spacing-lg);
 }
 
-.section {
-  margin-top: var(--mantine-spacing-xl);
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.number {
+  color: var(--mantine-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary [data-gap],
+.summary [data-gap] .number {
+  color: var(--noesis-requirement-gap);
 }
 
 .sectionHead {
-  padding-bottom: var(--mantine-spacing-sm);
   border-bottom: 2px solid var(--mantine-color-text);
 
   &[data-gap] {
-    border-bottom-color: var(--req-gap);
+    border-bottom-color: var(--noesis-requirement-gap);
   }
 }
 
 .quote {
-  margin: var(--mantine-spacing-xs) 0 0;
-  padding: 8px 14px;
   border-radius: var(--mantine-radius-sm);
-  background: var(--req-quote);
-  max-width: 70ch;
-}
-
-.meta,
-.note {
-  margin-top: var(--mantine-spacing-xs);
-  font-size: var(--mantine-font-size-sm);
-  color: var(--noesis-color-dim);
+  background: var(--noesis-requirement-quote);
 }
 
 .rule {
-  padding: var(--mantine-spacing-md) 0;
-  border-bottom: 1px solid var(--req-line);
-}
-
-.ruleHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 10px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
 .ruleName {
-  margin: 0;
-
   &[data-removed] {
     text-decoration: line-through;
-    color: var(--noesis-color-dim);
+    color: var(--noesis-secondary-text);
   }
-}
-
-.details {
-  margin-top: var(--mantine-spacing-xs);
 }
 
 /* Named with what holds it, to win over the unstyled button's own reset, which loads later. */
@@ -122,15 +69,15 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
+  gap: 4px var(--mantine-spacing-xs);
   max-width: 100%;
   padding: 4px 8px 4px 4px;
   border-radius: var(--mantine-radius-sm);
   font-size: var(--mantine-font-size-sm);
-  color: var(--noesis-color-dim);
+  color: var(--noesis-secondary-text);
 
   &:hover {
-    background: var(--req-quote);
+    background: var(--noesis-requirement-quote);
     color: var(--mantine-color-text);
   }
 
@@ -156,33 +103,32 @@
   }
 }
 
-.toggleLabel {
-  font-weight: 600;
-}
-
 .peek {
-  font-size: var(--mantine-font-size-xs);
   overflow-wrap: anywhere;
 }
 
-/* The field list, its names in a column as wide in every rule. */
-.fields {
-  grid-template-columns: 7rem minmax(0, 1fr);
-  margin: var(--mantine-spacing-xs) 0 var(--mantine-spacing-sm);
+/*
+ * The fields of a rule, their names in a column as wide in every rule; under
+ * the details' toggle, in line with its label. Its `display` would otherwise
+ * show a list the toggle has folded away.
+ */
+.details .fields {
+  padding-left: 22px;
 
-  .details & {
-    padding-left: 22px;
+  &[hidden] {
+    display: none;
   }
 }
 
+/* Too narrow for two columns, a name stands over its value. */
 @media (max-width: 32em) {
-  .fields {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
+  .rule .fields {
+    gap: var(--mantine-spacing-xs);
   }
 
-  .fields dd {
-    margin-bottom: 8px;
+  .fields .field {
+    flex-direction: column;
+    gap: 2px;
   }
 
   .details .fields {
@@ -198,27 +144,16 @@
   }
 }
 
-.kind {
-  margin-left: 6px;
-  font-size: var(--mantine-font-size-xs);
-  color: var(--noesis-color-dim);
-}
-
+/* Its spacing, size and colour are the text's props. */
 .unverified {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: var(--mantine-spacing-xs) 0 0;
-  padding: 8px 14px;
+  gap: var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-color-red-light);
-  color: var(--req-gap);
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 600;
 }
 
 .verification {
-  margin-top: var(--mantine-spacing-xs);
-  border: 1px solid var(--req-line);
+  border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
 }

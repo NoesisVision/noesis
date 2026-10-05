@@ -1,15 +1,18 @@
 import { IconX } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { counted } from '#/features/design-docs/ui/plural.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
-import { counted } from '#/shared/ui/plural.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
-  LEVEL_LABEL,
+  CHECK_LEVEL_META,
+  UNDRAWN_NAME,
 } from '../../architecture-outline.ts';
 import { CHECKS_PATH } from '../../architecture-tree.ts';
 import { valueOf } from '../../design-doc-field.ts';
@@ -17,6 +20,7 @@ import { needNameOf } from '../../design-doc-requirements.ts';
 import { kindOf, nameOf } from '../../element-id.ts';
 import { KINDS } from './architecture-kinds.ts';
 import type { ArchitectureSubject } from './architecture-selection.ts';
+import { DetailText } from './detail-parts.tsx';
 import { ElementBody } from './element-body.tsx';
 import { ElementFindings } from './element-findings.tsx';
 import { ElementLinks } from './element-links.tsx';
@@ -49,17 +53,34 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
   const { subject, onClear } = props;
   const body = bodyOf(props);
   return (
-    <div className={classes.details}>
-      <header className={classes.head}>
-        <div className={classes.heading}>
-          <span className={classes.eyebrow}>{body.eyebrow}</span>
-          <Title order={2} size="h4" className={classes.title}>
+    <Stack gap="md" p="md">
+      <Group component="header" align="flex-start" gap="xs" wrap="nowrap">
+        <Stack gap={2} flex={1} miw={0}>
+          <Text
+            component="span"
+            fz={11}
+            fw={600}
+            lts="0.06em"
+            tt="uppercase"
+            c="var(--noesis-secondary-text)"
+          >
+            {body.eyebrow}
+          </Text>
+          <Title order={2} size="h4" className={classes.wraps}>
             {body.title}
           </Title>
           {body.address !== undefined && (
-            <span className={classes.address}>{body.address}</span>
+            <Text
+              component="span"
+              ff="monospace"
+              fz="xs"
+              c="var(--noesis-secondary-text)"
+              className={classes.wraps}
+            >
+              {body.address}
+            </Text>
           )}
-        </div>
+        </Stack>
         <ActionIcon
           variant="subtle"
           aria-label="Clear the selection"
@@ -68,7 +89,7 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
         >
           <IconX size={18} stroke={1.6} aria-hidden />
         </ActionIcon>
-      </header>
+      </Group>
       {body.content}
       {subject.kind === 'element' && (
         <ElementBody
@@ -78,7 +99,7 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
           onSelectElement={props.onSelectElement}
         />
       )}
-    </div>
+    </Stack>
   );
 }
 
@@ -118,23 +139,20 @@ function bodyOf({
             eyebrow: 'Group',
             title: 'Needs at the ports',
             content: (
-              <Text className={classes.text}>
+              <DetailText>
                 Each need, and the driving ports whose rules answer it.
-              </Text>
+              </DetailText>
             ),
           };
     case 'check': {
       const { check } = subject;
       return {
-        eyebrow: `Check · ${LEVEL_LABEL[check.level]}`,
+        eyebrow: `Check · ${CHECK_LEVEL_META[check.level].label}`,
         title: check.title,
         content: (
           <>
-            <Text className={classes.text}>{check.text}</Text>
-            {links(
-              check.level === 'pass' ? 'Checked' : 'Concerns',
-              check.elementIds,
-            )}
+            <DetailText>{check.text}</DetailText>
+            {links(CHECK_LEVEL_META[check.level].elements, check.elementIds)}
           </>
         ),
       };
@@ -148,9 +166,7 @@ function bodyOf({
         address: `need|${need.id}`,
         content: (
           <>
-            <Text className={classes.text}>
-              {valueOf(need.statement) ?? ''}
-            </Text>
+            <DetailText>{valueOf(need.statement) ?? ''}</DetailText>
             {links(
               'Answered at',
               ports,
@@ -169,7 +185,7 @@ function bodyOf({
       const drawn = card ?? cards.get(hexagonId(subject.id));
       return {
         eyebrow:
-          (drawn && KINDS[drawn.kind].name) ?? UNDRAWN[kindOf(subject.id)],
+          (drawn && KINDS[drawn.kind].name) ?? UNDRAWN_NAME[kindOf(subject.id)],
         title: drawn?.label ?? node?.name ?? nameOf(subject.id),
         address: subject.id,
         content: (
@@ -186,13 +202,6 @@ function bodyOf({
   }
 }
 
-/** What an element no card draws is called: by what it is, as no ring says more. */
-const UNDRAWN = {
-  module: 'Module',
-  building_block: 'Building block',
-  behaviour: 'Behaviour',
-} as const;
-
 function placeholderBody(
   card: LaidOutNode,
   cards: ReadonlyMap<string, LaidOutNode>,
@@ -200,58 +209,17 @@ function placeholderBody(
 ): Body {
   const port = card.id.slice(card.id.indexOf(':') + 1);
   const portName = cards.get(port)?.label ?? nameOf(port);
-  switch (card.kind) {
-    case 'adapterIn':
-      return {
-        eyebrow: 'In adapter · not designed',
-        title: `In adapter for ${portName}`,
-        content: (
-          <>
-            <Text className={classes.text}>
-              {`Turns a request into a call of the driving port ${portName}: a REST endpoint, a UI, a message listener. The design document holds no adapters.`}
-            </Text>
-            {links('Adapts', [port])}
-          </>
-        ),
-      };
-    case 'adapterOut':
-      return {
-        eyebrow: 'Out adapter · not designed',
-        title: `Out adapter for ${portName}`,
-        content: (
-          <>
-            <Text className={classes.text}>
-              {`Implements the driven port ${portName} with a technology: a database, a message broker, an HTTP client. The design document holds no adapters.`}
-            </Text>
-            {links('Implements', [port])}
-          </>
-        ),
-      };
-    case 'caller':
-      return {
-        eyebrow: 'Caller · unknown',
-        title: card.label,
-        content: (
-          <>
-            <Text className={classes.text}>
-              {`${portName} is public and names no actor, so another subsystem calls it. Which one is not in the design document.`}
-            </Text>
-            {links('Calls', [port])}
-          </>
-        ),
-      };
-    default:
-      return {
-        eyebrow: 'Actor',
-        title: card.label,
-        content: (
-          <Text className={classes.text}>
-            Named on a public behaviour as the actor that calls it, through an
-            in adapter.
-          </Text>
-        ),
-      };
-  }
+  const { about, word } = KINDS[card.kind];
+  return {
+    eyebrow: about?.eyebrow ?? word,
+    title: about?.title?.(portName) ?? card.label,
+    content: (
+      <>
+        {about !== undefined && <DetailText>{about.text(portName)}</DetailText>}
+        {about?.port !== undefined && links(about.port, [port])}
+      </>
+    ),
+  };
 }
 
 /** What the checks found, counted, and what they cannot see. */
@@ -262,17 +230,17 @@ function ChecksSummary({ checks }: { checks: ArchitectureCheck[] }) {
   const notes = count('note');
   return (
     <>
-      <Text className={classes.text}>
+      <DetailText>
         Read from building block types, visibility and the types each property,
         input and output uses.
-      </Text>
-      <Text className={classes.text}>
+      </DetailText>
+      <DetailText>
         {`${counted(warnings, 'warning')} · ${counted(notes, 'note')} · ${count('pass')} passed.`}
-      </Text>
-      <Text className={classes.text}>
+      </DetailText>
+      <DetailText>
         Not checked: which service uses which driven port, and calls between
         hexagons. The design document has no call edges.
-      </Text>
+      </DetailText>
     </>
   );
 }

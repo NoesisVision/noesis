@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { CHANGE_COLOUR } from '#/features/design-docs/ui/model-tree/outline-change.ts';
 import { Badge, type BadgeProps } from '#/shared/design-system/badge.tsx';
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
-import { CHANGE_COLOUR } from '#/shared/ui/model-tree/outline-change.ts';
 
 interface ChangeBadge {
   change: OutlineChange;

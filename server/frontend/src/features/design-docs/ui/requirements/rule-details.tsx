@@ -2,14 +2,20 @@ import { IconChevronRight } from '@tabler/icons-react';
 import { Link } from '@tanstack/react-router';
 import { type ReactNode, useId, useState } from 'react';
 import { Anchor } from '#/shared/design-system/anchor.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
+import { DataList } from '#/shared/design-system/data-list.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../design-doc-field.ts';
-import type { TracedRule } from '../../design-doc-requirements.ts';
+import {
+  changesDetails,
+  classificationOf,
+  RULE_PLACE_KIND,
+  showsTrace,
+  type TracedRule,
+} from '../../design-doc-requirements.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
-import { classificationOf } from '../element-details/change-list-items.ts';
-import { FieldList } from '../field-list.tsx';
 import { TracedNeeds } from '../traced-needs.tsx';
 import classes from './requirements-view.module.css';
 
@@ -18,12 +24,6 @@ export interface ElementLinkProps {
   changeId: string;
   docId: string;
 }
-
-const KIND_LABEL: Partial<Record<OutlineKind, string>> = {
-  module: 'module',
-  building_block: 'building block',
-  behaviour: 'behaviour',
-};
 
 /**
  * The element a rule is on, opened in the model view with it in hand. Only
@@ -48,8 +48,52 @@ export function ElementLink({ traced, changeId, docId }: ElementLinkProps) {
       >
         {element.name}
       </Anchor>
-      <span className={classes.kind}>{KIND_LABEL[element.kind]}</span>
+      <Text span ml={6} fz="xs" c="var(--noesis-secondary-text)">
+        {RULE_PLACE_KIND[element.kind]}
+      </Text>
     </>
+  );
+}
+
+/**
+ * What is said of a rule, field by field: names in a column as wide in every
+ * rule, each beside its value. Its children are `RuleField`s.
+ */
+export function RuleFields({
+  children,
+  ...props
+}: {
+  children: ReactNode;
+  id?: string;
+  hidden?: boolean;
+}) {
+  return (
+    <DataList
+      gap={6}
+      mt="xs"
+      mb="sm"
+      classNames={{ root: classes.fields, item: classes.field }}
+      {...props}
+    >
+      {children}
+    </DataList>
+  );
+}
+
+export function RuleField({
+  name,
+  children,
+}: {
+  name: string;
+  children: ReactNode;
+}) {
+  return (
+    <DataList.Item>
+      <DataList.ItemLabel fw={600} c="var(--noesis-secondary-text)">
+        {name}
+      </DataList.ItemLabel>
+      <DataList.ItemValue miw={0}>{children}</DataList.ItemValue>
+    </DataList.Item>
   );
 }
 
@@ -71,13 +115,9 @@ export function Details({
   const id = useId();
   const classification = classificationOf(rule);
   const rationale = valueOf(rule.rationale);
-  const trace = traced.trace ?? [];
-  const changed =
-    traced.change === 'modified' &&
-    (classification !== null || rationale !== null || traced.trace !== null);
 
   return (
-    <div className={classes.details}>
+    <Box className={classes.details} mt="xs">
       <UnstyledButton
         className={classes.toggle}
         aria-expanded={open}
@@ -90,49 +130,38 @@ export function Details({
           data-open={open || undefined}
           aria-hidden
         />
-        <span className={classes.toggleLabel}>Details</span>
-        <span className={classes.peek}>
+        <Text span inherit fw={600}>
+          Details
+        </Text>
+        <Text span inherit fz="xs" className={classes.peek}>
           {[
             valueOf(rule.category),
             `${traced.module.name} › ${traced.element.name}`,
           ]
             .filter((word) => word !== null)
             .join(' · ')}
-        </span>
-        {changed && (
+        </Text>
+        {changesDetails(traced) && (
           <ChangeBadge change="modified" inline>
             changed
           </ChangeBadge>
         )}
       </UnstyledButton>
-      <FieldList id={id} hidden={!open} className={classes.fields}>
+      <RuleFields id={id} hidden={!open}>
         {classification !== null && (
-          <>
-            <dt>Category</dt>
-            <dd>{classification}</dd>
-          </>
+          <RuleField name="Category">{classification}</RuleField>
         )}
-        <dt>Subsystem</dt>
-        <dd>{traced.module.name}</dd>
-        <dt>Element</dt>
-        <dd>{element}</dd>
+        <RuleField name="Subsystem">{traced.module.name}</RuleField>
+        <RuleField name="Element">{element}</RuleField>
         {rationale !== null && (
-          <>
-            <dt>Rationale</dt>
-            <dd>{rationale}</dd>
-          </>
+          <RuleField name="Rationale">{rationale}</RuleField>
         )}
-        {/* A trace the design empties is a change too, and reads as one. */}
-        {(trace.length > 0 ||
-          (traced.change === 'modified' && traced.trace !== null)) && (
-          <>
-            <dt>Needs</dt>
-            <dd>
-              <TracedNeeds needs={trace} />
-            </dd>
-          </>
+        {showsTrace(traced) && (
+          <RuleField name="Needs">
+            <TracedNeeds needs={traced.trace ?? []} />
+          </RuleField>
         )}
-      </FieldList>
-    </div>
+      </RuleFields>
+    </Box>
   );
 }

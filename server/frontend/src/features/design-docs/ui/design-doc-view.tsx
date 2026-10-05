@@ -1,6 +1,6 @@
 import { getRouteApi } from '@tanstack/react-router';
 import { useCallback } from 'react';
-import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
+import type { SelectSource } from '#/features/design-docs/ui/model-tree/use-model-tree.ts';
 import type { DesignDocViewName } from '../design-docs.model.ts';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 import type { ViewPlace } from './view-place.ts';

@@ -5,8 +5,11 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { Accordion } from '#/shared/design-system/accordion.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../design-doc-field.ts';
 import { ChangeBadge } from '../change-badge.tsx';
@@ -49,15 +52,24 @@ export function ScenarioColumn({
   const [own, setOwn] = useState<string[]>(defaultOpen ? values : []);
   const { open, setOpen } = focus ?? { open: own, setOpen: setOwn };
   const allOpen = open.length === scenarios.length;
-  const Heading =
-    headingOrder === undefined ? 'span' : (`h${headingOrder}` as const);
+  const heading = (
+    <>
+      <IconListCheck size={16} aria-hidden />
+      Scenarios
+    </>
+  );
   return (
-    <section id={id} className={classes.column}>
-      <div className={classes.head}>
-        <Heading className={classes.title}>
-          <IconListCheck size={16} aria-hidden />
-          Scenarios
-        </Heading>
+    <Box component="section" id={id} className={classes.column}>
+      <Group justify="space-between" gap="xs" px="sm" wrap="nowrap">
+        {headingOrder === undefined ? (
+          <Text span className={classes.title}>
+            {heading}
+          </Text>
+        ) : (
+          <Title order={headingOrder} className={classes.title}>
+            {heading}
+          </Title>
+        )}
         <Button
           variant="subtle"
           size="xs"
@@ -65,7 +77,7 @@ export function ScenarioColumn({
         >
           {allOpen ? 'Collapse all' : 'Expand all'}
         </Button>
-      </div>
+      </Group>
       <Accordion
         multiple
         value={open}
@@ -118,7 +130,7 @@ export function ScenarioColumn({
           </Accordion.Item>
         ))}
       </Accordion>
-    </section>
+    </Box>
   );
 }
 

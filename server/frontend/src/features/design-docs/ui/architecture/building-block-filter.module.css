@@ -1,28 +1,18 @@
-/* The filter's dropdown: a head, a fieldset per ring, a word on what stays. */
-.dropdown {
-  width: 300px;
-  padding-block: 6px;
-}
-
+/*
+ * The filter's dropdown: a head, a fieldset per ring, a word on what stays.
+ * Spacing and type are the components' props; what is here is what props
+ * cannot say.
+ */
 .head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px 8px;
   border-bottom: 1px solid
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 600;
 }
 
-/* Named with the dropdown, to win over the unstyled button's own reset, which loads later. */
-.dropdown .link,
-.dropdown .only {
-  padding: 2px 6px;
+/* Named with what holds them, to win over the unstyled button's own reset, which loads later. */
+.head .link,
+.row .only {
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-anchor);
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 600;
 
   &:hover {
     background: var(--mantine-color-default-hover);
@@ -47,32 +37,17 @@
   min-width: 0;
 }
 
-.ring {
-  padding: 6px 12px 4px;
-
-  & label {
-    color: var(--noesis-color-dim);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
+/* The ring's own checkbox reads as the group's heading. */
+.ring label {
+  color: var(--noesis-secondary-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  padding: 0 8px 0 28px;
-
-  &:hover {
-    background: var(--mantine-color-default-hover);
-  }
-}
-
-.type {
-  flex: 1;
-  min-width: 0;
-  padding-block: 7px;
+.row:hover {
+  background: var(--mantine-color-default-hover);
 }
 
 .grow {
@@ -84,20 +59,11 @@
   display: block;
 }
 
-.label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  & svg {
-    flex: none;
-  }
+.label svg {
+  flex: none;
 }
 
 .count {
-  margin-left: auto;
-  color: var(--noesis-color-dim);
-  font-size: var(--mantine-font-size-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -114,10 +80,6 @@
 }
 
 .foot {
-  margin: 6px 0 0;
-  padding: 8px 12px 4px;
   border-top: 1px solid
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  color: var(--noesis-color-dim);
-  font-size: var(--mantine-font-size-xs);
 }

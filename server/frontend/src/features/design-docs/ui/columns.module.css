@@ -74,8 +74,7 @@
   max-height: 60%;
   min-height: 0;
   overflow: auto;
-  border-top: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-top: 1px solid var(--mantine-color-default-border);
 }
 
 .below:empty {

@@ -1,6 +1,8 @@
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import { Panel } from '@xyflow/react';
 import { useId, useState } from 'react';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { LegendEntry } from './architecture-kinds.ts';
 import classes from './architecture-diagram.module.css';
@@ -28,6 +30,11 @@ export function Legend({
     <Panel position="bottom-right" className={classes.legend}>
       <UnstyledButton
         className={classes.legendToggle}
+        w="100%"
+        py={3}
+        px={8}
+        fw={600}
+        c="var(--noesis-secondary-text)"
         aria-expanded={open}
         aria-controls={list}
         onClick={() => {
@@ -38,25 +45,39 @@ export function Legend({
         Legend
         <Chevron size={14} stroke={1.8} aria-hidden />
       </UnstyledButton>
-      <ul id={list} hidden={!open} aria-label="Legend: pick out a kind of card">
+      <Stack
+        component="ul"
+        id={list}
+        hidden={!open}
+        aria-label="Legend: pick out a kind of card"
+        gap={2}
+        mt={4}
+        mb={0}
+        p={0}
+        className={classes.legendList}
+      >
         {entries.map(({ label, kinds }) => (
-          <li key={label}>
+          <Box component="li" key={label}>
             <UnstyledButton
               className={classes.legendEntry}
+              w="100%"
+              py={3}
+              px={8}
               aria-pressed={picked === label}
               onClick={() => onPick(picked === label ? null : label)}
             >
               {/* Marked with a kind it stands for, so it takes that kind's look. */}
-              <span
+              <Box
+                component="span"
                 className={classes.swatch}
                 data-kind={kinds[0]}
                 aria-hidden
               />
               {label}
             </UnstyledButton>
-          </li>
+          </Box>
         ))}
-      </ul>
+      </Stack>
     </Panel>
   );
 }

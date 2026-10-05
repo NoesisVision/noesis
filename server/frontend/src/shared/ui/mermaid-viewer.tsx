@@ -1,13 +1,16 @@
 import {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Modal } from '#/shared/design-system/modal.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { useFullscreenRoot } from './use-fullscreen-root.ts';
 import { ZoomControls } from './zoom-controls.tsx';
 import classes from './mermaid-viewer.module.css';
@@ -35,6 +38,16 @@ const MAX_FIT_SCALE = 2;
 /** What fitting leaves around the diagram, so its edges do not touch the frame. */
 const FIT_SHARE = 0.95;
 const BUTTON_STEP = 1.25;
+/** How far an arrow key moves the picture, in screen pixels; Shift moves further. */
+const KEY_STEP = 40;
+const SHIFT_KEY_STEP = 200;
+/** Which way each arrow key moves the view, as scrolling would. */
+const KEY_DIRECTION: Readonly<Record<string, Point>> = {
+  ArrowLeft: { x: 1, y: 0 },
+  ArrowRight: { x: -1, y: 0 },
+  ArrowUp: { x: 0, y: 1 },
+  ArrowDown: { x: 0, y: -1 },
+};
 
 const clampScale = (scale: number) =>
   Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
@@ -97,12 +110,13 @@ export function MermaidViewer({
   // In full screen the browser takes Escape for itself and leaves full screen
   // before the dialog hears it, so the key meant to close the diagram takes
   // the page out of full screen instead. The diagram goes too: one press
-  // should not need a second to finish what it was meant to do.
+  // should not need a second to finish what it was meant to do. Going into
+  // full screen leaves it open.
   const shownIn = useRef(root);
   useEffect(() => {
-    if (shownIn.current === root) return;
+    const left = shownIn.current !== null && root === null;
     shownIn.current = root;
-    onClose();
+    if (left) onClose();
   }, [root, onClose]);
 
   return (
@@ -111,11 +125,11 @@ export function MermaidViewer({
       onClose={onClose}
       fullScreen
       title={name}
-      portalProps={{ target: root ?? undefined }}
-      // Mantine's own `display: block` on the content comes later in the
-      // bundle than a class could, so the column is set where it always wins.
-      styles={{ content: { display: 'flex', flexDirection: 'column' } }}
-      classNames={{ body: classes.body }}
+      classNames={{
+        root: classes.viewer,
+        content: classes.content,
+        body: classes.body,
+      }}
     >
       <Canvas svg={svg} name={name} />
     </Modal>
@@ -123,6 +137,7 @@ export function MermaidViewer({
 }
 
 function Canvas({ svg, name }: { svg: string; name: string }) {
+  const hint = useId();
   const frame = useRef<HTMLDivElement>(null);
   const picture = useRef<HTMLDivElement>(null);
   const size = useRef<Size>({ width: 1, height: 1 });
@@ -184,6 +199,13 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
     return () => element.removeEventListener('wheel', onWheel);
   }, []);
 
+  const panBy = (by: Point) =>
+    setView((current) => ({
+      ...current,
+      x: current.x + by.x,
+      y: current.y + by.y,
+    }));
+
   const zoomBy = (factor: number) => {
     const box = boxOf();
     setView((current) =>
@@ -203,9 +225,24 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
           onActualSize={() => setView(actualView(size.current, boxOf()))}
         />
       </Group>
-      <div
+      <Box
         ref={frame}
         className={classes.canvas}
+        // Not an `img`: the picture is an inline SVG document mounted below,
+        // and an `img` cannot hold one. The role is what names it.
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+        role="img"
+        aria-label={name}
+        aria-describedby={hint}
+        // Focusable so the arrow keys can move the picture as a drag does.
+        tabIndex={0}
+        onKeyDown={(event) => {
+          const direction = KEY_DIRECTION[event.key];
+          if (direction === undefined) return;
+          event.preventDefault();
+          const step = event.shiftKey ? SHIFT_KEY_STEP : KEY_STEP;
+          panBy({ x: direction.x * step, y: direction.y * step });
+        }}
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           event.currentTarget.setPointerCapture(event.pointerId);
@@ -215,11 +252,7 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
           const from = dragFrom.current;
           if (from === null) return;
           dragFrom.current = { x: event.clientX, y: event.clientY };
-          setView((current) => ({
-            ...current,
-            x: current.x + event.clientX - from.x,
-            y: current.y + event.clientY - from.y,
-          }));
+          panBy({ x: event.clientX - from.x, y: event.clientY - from.y });
         }}
         onPointerUp={() => {
           dragFrom.current = null;
@@ -234,15 +267,16 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
           style={{
             transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
           }}
-          // The same inline SVG document `MermaidDiagram` mounts, named the
-          // same way: see there.
-          // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-          role="img"
-          aria-label={name}
+          // The same inline SVG document `MermaidDiagram` mounts; the canvas
+          // around it carries the name.
           // oxlint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={html}
         />
-      </div>
+      </Box>
+      <VisuallyHidden id={hint}>
+        Drag, or use the arrow keys, to move around the diagram; hold Shift to
+        move further.
+      </VisuallyHidden>
     </>
   );
 }

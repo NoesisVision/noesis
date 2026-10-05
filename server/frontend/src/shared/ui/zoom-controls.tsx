@@ -5,11 +5,14 @@ import {
   IconZoomScan,
 } from '@tabler/icons-react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import classes from './zoom-controls.module.css';
 
 const ICON_SIZE = { md: 16, lg: 20 } as const;
+/** Snug beside a small canvas's buttons; the theme's step beside a large one's. */
+const GAP = { md: 4, lg: 'xs' } as const;
 
 /**
  * The buttons a canvas is zoomed with, the same wherever one is drawn: out,
@@ -39,7 +42,18 @@ export function ZoomControls({
   const button = { variant: 'default', size, disabled } as const;
   const icon = { size: ICON_SIZE[size], stroke: 1.6, 'aria-hidden': true };
   return (
-    <fieldset className={classes.zoom} data-size={size}>
+    // A fieldset by its legend, laid out as a group, with nothing a fieldset
+    // draws of its own: Group takes no `component`, so it is given the tag.
+    <Group
+      renderRoot={(props) => <fieldset {...props} />}
+      gap={GAP[size]}
+      wrap="nowrap"
+      m={0}
+      p={0}
+      bd={0}
+      miw={0}
+      data-size={size}
+    >
       <VisuallyHidden component="legend">Zoom</VisuallyHidden>
       <ActionIcon
         {...button}
@@ -82,6 +96,6 @@ export function ZoomControls({
           <IconZoomReset {...icon} />
         </ActionIcon>
       )}
-    </fieldset>
+    </Group>
   );
 }

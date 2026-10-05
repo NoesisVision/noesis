@@ -78,9 +78,11 @@ export function useFollowingTree(
     opening.current = null;
     // The tree first and at once, so nothing is asked after the follower's
     // own scroll that could cut it short.
-    if (!own)
-      revealRow(outlineRef.current, at, onArrive ? 'instant' : undefined);
+    const cancel = own
+      ? undefined
+      : revealRow(outlineRef.current, at, onArrive ? 'instant' : undefined);
     onArrive?.(at);
+    return cancel;
   }, [at, onArrive]);
 
   const { select: selectRow } = controller;

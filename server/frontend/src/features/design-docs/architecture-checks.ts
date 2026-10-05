@@ -1,4 +1,6 @@
-import { plural } from '#/shared/ui/plural.ts';
+import { plural } from '#/features/design-docs/ui/plural.ts';
+import type { ElementId } from '#backend/app/element-id.ts';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
@@ -115,7 +117,11 @@ function noTypeCrossesHexagons({ hexagons }: Placed): ArchitectureCheck {
 }
 
 /** Types: the blocks a property, an input or an output can be of. */
-const TYPES = ['aggregate', 'entity', 'value_object'];
+const TYPES: readonly BuildingBlockType[] = [
+  'aggregate',
+  'entity',
+  'value_object',
+];
 
 function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
   const used = new Set(
@@ -176,7 +182,7 @@ function pass(
   id: string,
   title: string,
   text: string,
-  elementIds: string[],
+  elementIds: ElementId[],
 ): ArchitectureCheck {
   return { id, level: 'pass', title, text, elementIds };
 }
@@ -191,4 +197,4 @@ function list(named: { name: string }[]): string {
 /** Clauses of one finding, joined into one sentence. */
 const sentence = (clauses: string[]) => clauses.join('; ');
 
-const unique = (ids: readonly string[]) => [...new Set(ids)];
+const unique = (ids: readonly ElementId[]) => [...new Set(ids)];

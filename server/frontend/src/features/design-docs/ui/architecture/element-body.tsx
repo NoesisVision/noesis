@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { bodySections } from '../element-details/body/body-sections.tsx';
 import {
@@ -40,14 +42,12 @@ export function ElementBody({
       <ElementNavigationContext.Provider value={navigation}>
         {/* Keyed, so every scenario is folded again on another element. */}
         <ScenarioFocusProvider key={id} scenarios={scenarios}>
-          <div className={classes.sections}>
-            {bodySections(node, doc, modelTree)}
-          </div>
+          <Stack gap="xl">{bodySections(node, doc, modelTree)}</Stack>
           {/* Under the sections: the pane is too narrow for a column beside them. */}
           {scenarios.length > 0 && (
-            <div className={classes.scenarios}>
+            <Box mx="-md" className={classes.scenarios}>
               <ScenarioColumn scenarios={scenarios} id={SCENARIO_COLUMN_ID} />
-            </div>
+            </Box>
           )}
         </ScenarioFocusProvider>
       </ElementNavigationContext.Provider>

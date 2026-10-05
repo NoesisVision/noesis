@@ -1,4 +1,9 @@
-import type { Hexagon, PlacedElement } from '../../architecture-outline.ts';
+import {
+  ARCHITECTURE_KIND_META,
+  type ArchitectureKind,
+  type Hexagon,
+  type PlacedElement,
+} from '../../architecture-outline.ts';
 
 /*
  * Every hexagon is drawn in the same bands, top to bottom: who drives it, the
@@ -11,17 +16,7 @@ import type { Hexagon, PlacedElement } from '../../architecture-outline.ts';
  * Positions are absolute, in the canvas's own pixels.
  */
 
-type LaidOutKind =
-  | 'hexagon'
-  | 'domainCore'
-  | 'actor'
-  | 'caller'
-  | 'adapterIn'
-  | 'adapterOut'
-  | 'drivingPort'
-  | 'service'
-  | 'element'
-  | 'drivenPort';
+type LaidOutKind = ArchitectureKind;
 
 export interface LaidOutNode {
   /** The element's id for a card that draws one; a made-up id for the rest. */
@@ -126,7 +121,7 @@ function measure(hexagon: Hexagon): Column {
     if (actors.length === 0)
       drivers.push({
         id: callerId(behaviour.id),
-        label: 'Another subsystem',
+        label: labelOf('caller'),
         ports: [behaviour.id],
         known: false,
       });
@@ -261,7 +256,7 @@ function placeColumn(
         x: x + (CARD.width - ADAPTER.width) / 2,
         y: ACTOR.height + BAND_GAP,
         ...ADAPTER,
-        label: 'in adapter',
+        label: labelOf('adapterIn'),
         element: null,
         selects: adapterInId(behaviour.id),
       });
@@ -299,7 +294,7 @@ function placeColumn(
       y,
       width: column.coreWidth,
       height: column.coreHeight,
-      label: 'Domain core',
+      label: labelOf('domainCore'),
       element: null,
       selects: moduleId,
     });
@@ -333,7 +328,7 @@ function placeColumn(
         x: x + (CARD.width - ADAPTER.width) / 2,
         y: outTop,
         ...ADAPTER,
-        label: 'out adapter',
+        label: labelOf('adapterOut'),
         element: null,
         selects: adapterOutId(port.id),
       });
@@ -371,3 +366,8 @@ export const hexagonPoints = (
     .join(' ');
 
 export const CORE_HEX_INSET = CORE_INSET - 8;
+
+/** The name of a node that draws no element of the design. */
+function labelOf(kind: LaidOutKind): string {
+  return ARCHITECTURE_KIND_META[kind].label ?? '';
+}

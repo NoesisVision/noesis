@@ -15,6 +15,11 @@ import {
   architectureOf,
   inferredFlowOf,
 } from '../src/features/design-docs/design-doc-architecture';
+import {
+  behaviourIdAt,
+  blockIdAt,
+  moduleOf,
+} from '../src/features/design-docs/element-id';
 import { focusOf } from '../src/features/design-docs/ui/architecture/architecture-selection';
 import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
@@ -104,8 +109,8 @@ describe('architectureOf', () => {
 
   it('draws a hexagon for each module that holds building blocks', () => {
     expect(outline.hexagons.map(({ module }) => module)).toEqual([
-      { id: 'module|sales.orders', name: 'orders' },
-      { id: 'module|sales.billing', name: 'billing' },
+      { id: moduleOf('module|sales.orders'), name: 'orders' },
+      { id: moduleOf('module|sales.billing'), name: 'billing' },
     ]);
   });
 
@@ -124,7 +129,7 @@ describe('architectureOf', () => {
     expect(orders?.drivingPorts).toEqual([
       expect.objectContaining({
         behaviour: expect.objectContaining({ name: 'place' }),
-        service: 'building_block|sales.orders.OrderService',
+        service: blockIdAt('sales.orders.OrderService'),
         actors: ['Customer'],
       }),
     ]);
@@ -132,13 +137,13 @@ describe('architectureOf', () => {
 
   it('reads a type through a collection', () => {
     expect(orders?.drivingPorts[0]?.behaviour.uses).toEqual([
-      'building_block|sales.orders.OrderLine',
+      blockIdAt('sales.orders.OrderLine'),
     ]);
   });
 
   it('counts a block’s own behaviours in what it uses', () => {
     const repository = orders?.drivenPorts[0];
-    expect(repository?.uses).toEqual(['building_block|sales.orders.Order']);
+    expect(repository?.uses).toEqual([blockIdAt('sales.orders.Order')]);
   });
 
   it('passes every check on a design that keeps to the architecture', () => {
@@ -153,9 +158,9 @@ describe('architectureOf', () => {
 
   it('lists what a pass looked at', () => {
     expect(checkOf(clean, 'domain-depends-on-no-port')?.elementIds).toEqual([
-      'building_block|sales.orders.Order',
-      'building_block|sales.orders.OrderLine',
-      'building_block|sales.billing.Invoice',
+      blockIdAt('sales.orders.Order'),
+      blockIdAt('sales.orders.OrderLine'),
+      blockIdAt('sales.billing.Invoice'),
     ]);
   });
 
@@ -370,13 +375,15 @@ describe('the qdoc design', () => {
 
   it('finds NewQDocNotification in no contract', () => {
     expect(check('type-in-no-contract')?.elementIds).toEqual([
-      'building_block|qdocmanagement.preparation.NewQDocNotification',
+      blockIdAt('qdocmanagement.preparation.NewQDocNotification'),
     ]);
   });
 
   it('finds notifyUsers called by another subsystem', () => {
     expect(check('caller-unknown')?.elementIds).toEqual([
-      'behavior|qdocmanagement.notifications.NotificationService.notifyUsers',
+      behaviourIdAt(
+        'qdocmanagement.notifications.NotificationService.notifyUsers',
+      ),
     ]);
   });
 
@@ -386,13 +393,21 @@ describe('the qdoc design', () => {
     ).toEqual([
       [
         'start-a-qdoc',
-        ['behavior|qdocmanagement.preparation.QDocCreationService.createQDoc'],
+        [
+          behaviourIdAt(
+            'qdocmanagement.preparation.QDocCreationService.createQDoc',
+          ),
+        ],
       ],
       [
         'know-about-new-qdocs',
         [
-          'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc',
-          'behavior|qdocmanagement.notifications.NotificationService.notifyUsers',
+          behaviourIdAt(
+            'qdocmanagement.preparation.QDocCreationService.createQDoc',
+          ),
+          behaviourIdAt(
+            'qdocmanagement.notifications.NotificationService.notifyUsers',
+          ),
         ],
       ],
       ['ready-to-write', []],
@@ -408,9 +423,11 @@ describe('the qdoc design', () => {
       ),
     ).toContainEqual({
       direction: 'takes',
-      type: 'building_block|qdocmanagement.preparation.DocumentNumber',
+      type: blockIdAt('qdocmanagement.preparation.DocumentNumber'),
       other: {
-        id: 'behavior|qdocmanagement.preparation.DocumentNumberGenerator.next',
+        id: behaviourIdAt(
+          'qdocmanagement.preparation.DocumentNumberGenerator.next',
+        ),
         name: 'next',
         owner: 'DocumentNumberGenerator',
       },
@@ -441,9 +458,9 @@ describe('an inferred flow', () => {
     ).toEqual([
       {
         direction: 'gives',
-        type: 'building_block|sales.billing.Invoice',
+        type: blockIdAt('sales.billing.Invoice'),
         other: {
-          id: 'behavior|sales.orders.Order.invoice',
+          id: behaviourIdAt('sales.orders.Order.invoice'),
           name: 'invoice',
           owner: 'Order',
         },

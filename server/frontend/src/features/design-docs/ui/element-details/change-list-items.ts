@@ -1,4 +1,4 @@
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedParameterInput,
@@ -10,7 +10,11 @@ import type { BuildingBlockRefInput } from '#backend/app/system-model/system-mod
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
-import { type NeedsInput, needNamesOf } from '../../design-doc-requirements.ts';
+import {
+  classificationOf,
+  type NeedsInput,
+  needNamesOf,
+} from '../../design-doc-requirements.ts';
 import { blockOfRef, refIdOf } from '../../element-id.ts';
 import { refAddressOf } from './ref-address.ts';
 
@@ -37,18 +41,6 @@ export interface ChangeListItem {
   /** The needs a rule answers, by name; none for a design decision. */
   needs?: string[];
 }
-
-/** The needs a rule answers in words; a rule that answers none is the design's own decision. */
-export const tracedTo = (needs: string[]): string =>
-  needs.length === 0 ? 'Design decision' : `Answers ${needs.join(', ')}`;
-
-/** A rule's category and type in one phrase, `Quality · Performance`. */
-export const classificationOf = (rule: DesignedRuleInput): string | null => {
-  const words = [valueOf(rule.category), valueOf(rule.ruleType)].filter(
-    (word) => word !== null,
-  );
-  return words.length > 0 ? words.join(' · ') : null;
-};
 
 /** Every item of a change set, each with what the design does to it. */
 function* changed<Item, Key>(

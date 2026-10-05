@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
+import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
+import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
 import { Text } from '#/shared/design-system/text.tsx';
-import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
-import { useFollowingTree } from '#/shared/ui/model-tree/use-following-tree.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { Columns } from './columns.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';

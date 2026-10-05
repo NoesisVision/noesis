@@ -1,9 +1,9 @@
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type {
   OutlineKind,
   OutlineNode,
-} from '#/shared/ui/model-tree/model-outline.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';

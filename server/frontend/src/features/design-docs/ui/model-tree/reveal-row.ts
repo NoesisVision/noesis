@@ -12,15 +12,18 @@
  * What is centred is the label and never the item that holds it: a `treeitem`
  * contains its whole subtree, so a module's is as tall as everything under it
  * and centring that would put the module's own line off the top.
+ *
+ * Gives back what calls it off, for a caller that may be gone, or have moved
+ * on, before the tick comes.
  */
 export function revealRow(
   within: HTMLElement | null,
   path: string,
   behavior?: ScrollBehavior,
-): void {
+): () => void {
   // Asked in the same tick as the move the view stays where it was; asked a
   // tick later, once the rows are laid out, it arrives.
-  setTimeout(() => {
+  const pending = setTimeout(() => {
     const items = within?.querySelectorAll<HTMLElement>('[data-path]');
     for (const item of items ?? []) {
       if (item.dataset.path !== path) continue;
@@ -31,4 +34,5 @@ export function revealRow(
       return;
     }
   }, 0);
+  return () => clearTimeout(pending);
 }

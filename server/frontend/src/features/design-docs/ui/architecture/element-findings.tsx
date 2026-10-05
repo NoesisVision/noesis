@@ -1,15 +1,18 @@
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
-import { Title } from '#/shared/design-system/title.tsx';
+import { Code } from '#/shared/design-system/code.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
-  type ArchitectureCheck,
   type ArchitectureOutline,
-  LEVEL_LABEL,
+  CHECK_LEVEL_META,
   placedById,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
 import { nameOf } from '../../element-id.ts';
+import { DetailSection } from './detail-parts.tsx';
 import { ElementLinks } from './element-links.tsx';
 import type { LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
@@ -29,7 +32,8 @@ export function ElementFindings({
   onSelect: (id: string) => void;
 }) {
   const checks = outline.checks.filter(
-    (check) => check.level !== 'pass' && check.elementIds.includes(id),
+    (check) =>
+      check.level !== 'pass' && check.elementIds.some((one) => one === id),
   );
   const flows = useMemo(
     () => inferredFlowOf(doc, outline, id),
@@ -41,27 +45,26 @@ export function ElementFindings({
   return (
     <>
       {checks.length > 0 && (
-        <section className={classes.section}>
-          <Title order={3} size={13} className={classes.sectionTitle}>
-            Checks
-          </Title>
-          <ul className={classes.findings}>
+        <DetailSection title="Checks">
+          <Findings>
             {checks.map((check) => (
-              <li key={check.id}>
+              <Finding key={check.id}>
                 <Badge
-                  color={LEVEL_COLOUR[check.level]}
+                  color={CHECK_LEVEL_META[check.level].color}
                   variant="light"
                   size="sm"
                   tt="none"
                   flex="none"
                 >
-                  {LEVEL_LABEL[check.level]}
+                  {CHECK_LEVEL_META[check.level].label}
                 </Badge>
-                <span>{check.title}</span>
-              </li>
+                <Text component="span" inherit>
+                  {check.title}
+                </Text>
+              </Finding>
             ))}
-          </ul>
-        </section>
+          </Findings>
+        </DetailSection>
       )}
       <ElementLinks
         title="Speaks in"
@@ -70,36 +73,60 @@ export function ElementFindings({
         onSelect={onSelect}
       />
       {flows.length > 0 && (
-        <section className={classes.section}>
-          <Title order={3} size={13} className={classes.sectionTitle}>
-            Flow inferred from types
-          </Title>
-          <ul className={classes.findings}>
+        <DetailSection title="Flow inferred from types">
+          <Findings>
             {flows.map((flow) => (
-              <li key={`${flow.direction}:${flow.type}:${flow.other.id}`}>
-                <span className={classes.direction}>
+              <Finding key={`${flow.direction}:${flow.type}:${flow.other.id}`}>
+                <Text
+                  component="span"
+                  flex="none"
+                  w="3.5rem"
+                  fz="xs"
+                  fw={600}
+                  c="var(--noesis-secondary-text)"
+                >
                   {flow.direction === 'gives' ? 'gives' : 'takes'}
-                </span>
-                <span>
-                  <code>{nameOf(flow.type)}</code>
+                </Text>
+                <Text component="span" inherit>
+                  <Code bg="transparent" p={0}>
+                    {nameOf(flow.type)}
+                  </Code>
                   {flow.direction === 'gives' ? ' to ' : ' from '}
                   {`${flow.other.owner}.${flow.other.name}`}
                   {flow.typeMatchOnly && (
-                    <span className={classes.note}> · type match only</span>
+                    <Text
+                      component="span"
+                      inherit
+                      fs="italic"
+                      c="var(--noesis-secondary-text)"
+                    >
+                      {' · type match only'}
+                    </Text>
                   )}
-                </span>
-              </li>
+                </Text>
+              </Finding>
             ))}
-          </ul>
-        </section>
+          </Findings>
+        </DetailSection>
       )}
     </>
   );
 }
 
-/** A level is a word as well as a colour. */
-const LEVEL_COLOUR: Record<ArchitectureCheck['level'], string> = {
-  warning: 'orange',
-  note: 'gray',
-  pass: 'green',
-};
+/** A list of findings, one to a line. */
+function Findings({ children }: { children: ReactNode }) {
+  return (
+    <Stack component="ul" gap={6} m={0} p={0} fz="sm" className={classes.list}>
+      {children}
+    </Stack>
+  );
+}
+
+/** One finding: its mark, then what it says, on one baseline. */
+function Finding({ children }: { children: ReactNode }) {
+  return (
+    <Group component="li" align="baseline" gap="xs" wrap="nowrap">
+      {children}
+    </Group>
+  );
+}

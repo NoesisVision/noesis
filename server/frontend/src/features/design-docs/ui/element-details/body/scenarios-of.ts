@@ -1,4 +1,4 @@
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedRuleInput,

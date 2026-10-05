@@ -1,16 +1,26 @@
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,
   DesignedBuildingBlockInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import type {
+  BehaviorId,
+  BuildingBlockId,
+  ModuleId,
+} from '#backend/app/element-id.ts';
+import type {
+  BuildingBlockRefInput,
+  BuildingBlockType,
+} from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
   type Hexagon,
   isDrivenPort,
+  type PlacedBehaviour,
+  type PlacedBlock,
   type PlacedElement,
   type PlacedRule,
 } from './architecture-outline.ts';
@@ -21,7 +31,14 @@ import {
   writtenIn,
 } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { blockOfRef, moduleOf, nameOf, ownerOf } from './element-id.ts';
+import {
+  asBehaviour,
+  asBuildingBlock,
+  blockOfRef,
+  moduleOf,
+  nameOf,
+  ownerOf,
+} from './element-id.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
@@ -41,8 +58,8 @@ const DOMAIN_CORE = [
   'domain_service',
   'factory',
   'value_object',
-] as const;
-const APPLICATION_SERVICE = 'application_service';
+] as const satisfies readonly BuildingBlockType[];
+const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockType;
 
 export function architectureOf(
   document: DesignDocumentInput,
@@ -52,7 +69,7 @@ export function architectureOf(
   const typeOf = new Map(
     blocks.map(([block]) => [block.id, valueOf(block.type)]),
   );
-  const hexagons = new Map<string, Hexagon>();
+  const hexagons = new Map<ModuleId, Hexagon>();
   const unplaced: PlacedElement[] = [];
   const hexagonOf = (elementId: string) => {
     const moduleId = moduleOf(elementId);
@@ -64,7 +81,7 @@ export function architectureOf(
     return hexagon;
   };
 
-  const ports = new Set<string>();
+  const ports = new Set<BehaviorId>();
   for (const [item, change] of behaviours) {
     const owner = ownerOf(item.id);
     const visibility = valueOf(item.visibility);
@@ -86,7 +103,7 @@ export function architectureOf(
       continue;
     }
     if (visibility.kind !== 'public') continue;
-    ports.add(item.id);
+    ports.add(asBehaviour(item.id));
     hexagonOf(owner).drivingPorts.push({
       behaviour: behaviourElement(item, change),
       service: owner,
@@ -99,7 +116,8 @@ export function architectureOf(
       .map(([behaviour]) => behaviour)
       .filter(
         (behaviour) =>
-          ownerOf(behaviour.id) === item.id && !ports.has(behaviour.id),
+          ownerOf(behaviour.id) === item.id &&
+          !ports.has(asBehaviour(behaviour.id)),
       );
     const element = blockElement(item, change, own);
     const ring = ringOf(element.pattern);
@@ -142,9 +160,9 @@ function needsAtPorts(
 /** A type one behaviour gives back and another takes, read from the types alone. */
 export interface InferredFlow {
   direction: 'gives' | 'takes';
-  type: string;
+  type: BuildingBlockId;
   /** The behaviour at the other end. */
-  other: { id: string; name: string; owner: string };
+  other: { id: BehaviorId; name: string; owner: string };
   /**
    * The types match, but the design keeps the two apart: a private behaviour
    * in another hexagon cannot be what takes it.
@@ -164,7 +182,7 @@ export function inferredFlowOf(
   elementId: string,
 ): InferredFlow[] {
   const behaviours = writtenIn(document.behaviours).map((behaviour) => ({
-    id: behaviour.id,
+    id: asBehaviour(behaviour.id),
     inputs: blocksOf(inputTypesOf(behaviour)),
     outputs: blocksOf(outputTypesOf(behaviour)),
   }));
@@ -179,7 +197,10 @@ export function inferredFlowOf(
   const flows = new Map<string, InferredFlow>();
   for (const mine of behaviours.filter(({ id }) => isOwn(id)))
     for (const other of behaviours.filter(({ id }) => !isOwn(id))) {
-      const flow = (direction: InferredFlow['direction'], type: string) => {
+      const flow = (
+        direction: InferredFlow['direction'],
+        type: BuildingBlockId,
+      ) => {
         const taker = direction === 'gives' ? other.id : mine.id;
         const typeMatchOnly =
           moduleOf(mine.id) !== moduleOf(other.id) && !ports.has(taker);
@@ -209,24 +230,24 @@ export function inferredFlowOf(
 
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
 
-function ringOf(pattern: string | null): Ring | null {
+function ringOf(pattern: BuildingBlockType | null): Ring | null {
   if (pattern === APPLICATION_SERVICE) return 'applicationServices';
   if (isDrivenPort(pattern)) return 'drivenPorts';
-  if ((DOMAIN_CORE as readonly (string | null)[]).includes(pattern))
+  if ((DOMAIN_CORE as readonly (BuildingBlockType | null)[]).includes(pattern))
     return 'domainCore';
   return null;
 }
 
-const coreRank = (pattern: string | null) =>
-  (DOMAIN_CORE as readonly (string | null)[]).indexOf(pattern);
+const coreRank = (pattern: BuildingBlockType | null) =>
+  (DOMAIN_CORE as readonly (BuildingBlockType | null)[]).indexOf(pattern);
 
 function blockElement(
   block: DesignedBuildingBlockInput,
   change: OutlineChange,
   behaviours: DesignedBehaviourInput[],
-): PlacedElement {
+): PlacedBlock {
   return {
-    id: block.id,
+    id: asBuildingBlock(block.id),
     name: nameOf(block.id),
     pattern: valueOf(block.type),
     change,
@@ -241,9 +262,9 @@ function blockElement(
 function behaviourElement(
   behaviour: DesignedBehaviourInput,
   change: OutlineChange,
-): PlacedElement {
+): PlacedBehaviour {
   return {
-    id: behaviour.id,
+    id: asBehaviour(behaviour.id),
     name: nameOf(behaviour.id),
     pattern: valueOf(behaviour.type),
     change,
@@ -283,8 +304,8 @@ function rulesOf(owner: {
 function usesOf(
   self: string,
   types: (BuildingBlockRefInput | null)[],
-): string[] {
-  const uses = new Set<string>();
+): BuildingBlockId[] {
+  const uses = new Set<BuildingBlockId>();
   for (const type of types) {
     const block = type === null ? null : blockOfRef(type);
     if (block !== null && block !== self) uses.add(block);
@@ -292,7 +313,7 @@ function usesOf(
   return [...uses];
 }
 
-function emptyHexagon(id: string, name: string): Hexagon {
+function emptyHexagon(id: ModuleId, name: string): Hexagon {
   return {
     module: { id, name },
     drivingPorts: [],
@@ -303,7 +324,7 @@ function emptyHexagon(id: string, name: string): Hexagon {
   };
 }
 
-function moduleNameOf(document: DesignDocumentInput, moduleId: string) {
+function moduleNameOf(document: DesignDocumentInput, moduleId: ModuleId) {
   return (
     valueOf(findById(document.modules, moduleId)?.name) ?? nameOf(moduleId)
   );

@@ -134,10 +134,10 @@ describe('RequirementsView', () => {
     expect(rule).toContain('An order total subtracts what was refunded.');
     expect(rule).toContain('>changed<');
     expect(rule).toMatch(
-      /<dt>Needs<\/dt><dd><ul[^>]*><li>See what was refunded<\/li><\/ul><\/dd>/,
+      /<dt[^>]*>Needs<\/dt><dd[^>]*><ul[^>]*><li[^>]*>(?:<[^>]+>)*See what was refunded(?:<\/[^>]+>)*<\/li><\/ul><\/dd>/,
     );
     // It writes no category, so none is shown, and its scenarios stay the model's.
-    expect(rule).not.toContain('<dt>Category</dt>');
+    expect(rule).not.toMatch(/<dt[^>]*>Category<\/dt>/);
     expect(rule).toContain('Scenarios unchanged');
     expect(rule).not.toContain('No scenario verifies this rule');
   });
@@ -146,7 +146,7 @@ describe('RequirementsView', () => {
     const rule = ruleNamed('Paid orders are final');
     expect(rule).toContain('removed');
     expect(rule).not.toContain('<button');
-    expect(rule).toContain('<dt>Subsystem</dt><dd>orders</dd>');
+    expect(rule).toMatch(/<dt[^>]*>Subsystem<\/dt><dd[^>]*>orders<\/dd>/);
   });
 
   it('links a rule to its element in the model view', () => {
@@ -187,7 +187,7 @@ describe('RequirementsView', () => {
       </MantineProvider>,
     );
     expect(html).toContain('>changed<');
-    expect(html).toMatch(/<dt>Needs<\/dt><dd>Design decision/);
+    expect(html).toMatch(/<dt[^>]*>Needs<\/dt><dd[^>]*>Design decision/);
   });
 
   it('puts the needs and their rules in a tree beside the document', () => {
@@ -208,13 +208,13 @@ describe('RequirementsView', () => {
     );
   });
 
-  it('marks the entry the address names, and the row of it in the tree', async () => {
+  it('marks the entry the address names as the reader’s place, and the row of it in the tree', async () => {
     const path =
       'decisions/rule:building_block|sales.orders.Order:Paid orders are final';
     const at = await render(path);
     expect(at).toMatch(
       new RegExp(
-        `data-entry="${path.replaceAll('|', '\\|')}" data-selected="true"`,
+        `data-entry="${path.replaceAll('|', '\\|')}" aria-current="location"`,
       ),
     );
     expect(at).toMatch(

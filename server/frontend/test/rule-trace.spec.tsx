@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { outlineOf } from '../src/features/design-docs/design-doc-outline';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
 import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
 const tree = outlineTree(outlineOf(changedEverywhereFixture), []);
@@ -36,10 +36,10 @@ const MODULE_RULE = `${MODULE}#rule:A refund is issued within a second`;
 describe('A rule in the details panel', () => {
   it('says its category, its type and the needs it answers, by name', () => {
     const html = show(BLOCK_RULE);
-    expect(html).toMatch(/<dt>Category<\/dt><dd>Business<\/dd>/);
-    expect(html).toMatch(/<dt>Type<\/dt><dd>Consistency<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Category<\/dt><dd[^>]*>Business<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Type<\/dt><dd[^>]*>Consistency<\/dd>/);
     expect(html).toMatch(
-      /<dt>Needs<\/dt><dd><ul[^>]*><li>Refund single lines<\/li>/,
+      /<dt[^>]*>Needs<\/dt><dd[^>]*><ul[^>]*><li[^>]*>(?:<[^>]+>)*Refund single lines(?:<\/[^>]+>)*<\/li>/,
     );
   });
 
@@ -51,7 +51,9 @@ describe('A rule in the details panel', () => {
   });
 
   it('marks a rule no need asks for as a design decision', () => {
-    expect(show(DECISION)).toMatch(/<dt>Needs<\/dt><dd>Design decision/);
+    expect(show(DECISION)).toMatch(
+      /<dt[^>]*>Needs<\/dt><dd[^>]*>Design decision/,
+    );
   });
 
   it('says unchanged for what the design leaves as it is', () => {
@@ -78,8 +80,8 @@ describe('A rule in the details panel', () => {
         />
       </MantineProvider>,
     );
-    expect(html).toMatch(/<dt>Category<\/dt><dd>unchanged<\/dd>/);
-    expect(html).toMatch(/<dt>Needs<\/dt><dd>unchanged<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Category<\/dt><dd[^>]*>unchanged<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Needs<\/dt><dd[^>]*>unchanged<\/dd>/);
   });
 });
 
@@ -105,7 +107,7 @@ describe('The rules an element lists', () => {
 
   it("open a module's rule in the panel", () => {
     const html = show(MODULE_RULE);
-    expect(html).toMatch(/<dt>Category<\/dt><dd>Quality<\/dd>/);
-    expect(html).toMatch(/<dt>Type<\/dt><dd>Performance<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Category<\/dt><dd[^>]*>Quality<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Type<\/dt><dd[^>]*>Performance<\/dd>/);
   });
 });

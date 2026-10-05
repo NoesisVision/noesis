@@ -1,4 +1,4 @@
-import type { SelectSource } from '#/shared/ui/model-tree/use-model-tree.ts';
+import type { SelectSource } from '#/features/design-docs/ui/model-tree/use-model-tree.ts';
 
 /**
  * Where the reader is in a view that reads the document through a tree of its

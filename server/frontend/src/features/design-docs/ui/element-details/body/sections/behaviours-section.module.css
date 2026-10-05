@@ -8,7 +8,7 @@
 .signature {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--mantine-spacing-xs);
 }
 
 .mark {
@@ -76,6 +76,6 @@
   margin: 0;
   padding-left: 38px;
   font-size: 13px;
-  color: var(--noesis-color-dim);
+  color: var(--noesis-secondary-text);
   white-space: pre-line;
 }

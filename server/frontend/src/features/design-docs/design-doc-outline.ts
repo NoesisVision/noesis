@@ -5,7 +5,7 @@ import {
   type OutlineKind,
   type OutlineNode,
   patternLabelOf,
-} from '#/shared/ui/model-tree/model-outline.ts';
+} from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviourInput,

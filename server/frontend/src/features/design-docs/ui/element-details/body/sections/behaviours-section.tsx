@@ -1,9 +1,9 @@
 import { IconBolt } from '@tabler/icons-react';
 import { Fragment } from 'react';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';

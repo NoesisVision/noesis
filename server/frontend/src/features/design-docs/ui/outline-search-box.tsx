@@ -1,4 +1,5 @@
 import { IconSearch, IconX } from '@tabler/icons-react';
+import type { ModelTreeController } from '#/features/design-docs/ui/model-tree/use-model-tree.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
@@ -8,7 +9,6 @@ import {
   IconChevronsDownUp,
   IconChevronsUpDown,
 } from '#/shared/ui/icons/icons.ts';
-import type { ModelTreeController } from '#/shared/ui/model-tree/use-model-tree.ts';
 import classes from './outline-search-box.module.css';
 
 /**

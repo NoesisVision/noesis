@@ -27,7 +27,7 @@
 
   padding: var(--mantine-spacing-sm);
   overflow-x: auto;
-  border-radius: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
 
   & svg {
     max-width: 100%;
