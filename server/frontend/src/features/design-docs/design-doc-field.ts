@@ -1,5 +1,6 @@
 import type { DesignDocFieldAuthor } from '#backend/app/design-docs/design-doc-field.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { nameOf } from './element-id.ts';
 
 /*
  * A field of a designed element as the wire carries it: left out or marked
@@ -38,6 +39,5 @@ export function isHumanAuthored(field: DesignDocFieldInput<unknown>): boolean {
  */
 export function refLabelOf(ref: BuildingBlockRefInput): string {
   if (typeof ref !== 'string') return `${refLabelOf(ref.collectionOf)}[]`;
-  const address = ref.slice(ref.indexOf('|') + 1);
-  return address.split('.').at(-1) ?? address;
+  return nameOf(ref);
 }

@@ -1,7 +1,11 @@
 import {
   IconActivity,
+  IconAlertTriangle,
   IconAssembly,
   IconBlocks,
+  IconCategory,
+  IconChecklist,
+  IconCircleCheck,
   IconCircleLetterC,
   IconCircleLetterE,
   IconCircleLetterQ,
@@ -9,6 +13,7 @@ import {
   IconDiamond,
   IconFolder,
   IconId,
+  IconInfoCircle,
   IconListCheck,
   IconMathFunction,
   IconPackageExport,
@@ -19,6 +24,7 @@ import {
   IconShield,
   IconSitemap,
   IconStatusChange,
+  IconTarget,
   IconWorld,
 } from '@tabler/icons-react';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
@@ -31,6 +37,9 @@ const KIND_ICONS = {
   property: IconPoint,
   rule: IconScale,
   scenario: IconListCheck,
+  group: IconCategory,
+  need: IconTarget,
+  check: IconChecklist,
 } as const satisfies Record<OutlineKind, unknown>;
 
 /** Every pattern the model knows, spelled as the model spells it. */
@@ -85,8 +94,44 @@ const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
   Command: 'command',
 };
 
+/*
+ * A check is no part of the model, so what it carries is no pattern of the
+ * model's: it is what the check found, and it is drawn by that — a check that
+ * found something and one that found nothing in tones of their own.
+ */
+const CHECK_ICONS = {
+  warning: IconAlertTriangle,
+  note: IconInfoCircle,
+  pass: IconCircleCheck,
+} as const;
+type CheckLevel = keyof typeof CHECK_ICONS;
+
+const CHECK_TONES: Partial<Record<CheckLevel, 'warning' | 'pass'>> = {
+  warning: 'warning',
+  pass: 'pass',
+};
+
+const isCheckLevel = (value: string): value is CheckLevel =>
+  Object.hasOwn(CHECK_ICONS, value);
+
 const isPattern = (value: string): value is Pattern =>
   (PATTERNS as readonly string[]).includes(value);
+
+/*
+ * The pattern first, since it says more than the kind does; the kind when
+ * there is none, or none the model knows. A property's pattern is its type,
+ * which only happens to share the vocabulary, so a property always reads as
+ * a property.
+ */
+function drawingOf(kind: OutlineKind, pattern: string | null | undefined) {
+  if (pattern != null) {
+    if (kind === 'check' && isCheckLevel(pattern))
+      return { Icon: CHECK_ICONS[pattern], tone: CHECK_TONES[pattern] };
+    if (kind !== 'property' && isPattern(pattern))
+      return { Icon: PATTERN_ICONS[pattern], tone: PATTERN_TONES[pattern] };
+  }
+  return { Icon: KIND_ICONS[kind], tone: undefined };
+}
 
 /** Decorative: the name beside it already says what the row is. */
 export function KindIcon({
@@ -96,21 +141,13 @@ export function KindIcon({
   kind: OutlineKind;
   pattern: OutlineNode['pattern'] | undefined;
 }) {
-  /* The pattern first, since it says more than the kind does; the kind when
-     there is none, or none the model knows. A property's pattern is its type,
-     which only happens to share the vocabulary, so a property always reads as
-     a property. */
-  const known =
-    kind !== 'property' && pattern != null && isPattern(pattern)
-      ? pattern
-      : null;
-  const Icon = known === null ? KIND_ICONS[kind] : PATTERN_ICONS[known];
+  const { Icon, tone } = drawingOf(kind, pattern);
   return (
     <Icon
       size={20}
       stroke={2}
       className={classes.icon}
-      data-tone={known === null ? undefined : PATTERN_TONES[known]}
+      data-tone={tone}
       aria-hidden
     />
   );

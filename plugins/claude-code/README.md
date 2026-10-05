@@ -31,12 +31,15 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes twelve MCP tools: `create_change`, `update_change`,
+The service exposes fourteen MCP tools: `create_change`, `update_change`,
 `delete_change`, `list_changes`, `create_document_in_change`, `update_document_in_change`,
 `list_documents_in_change`, `get_document_in_change`,
 `create_design_doc_in_change`, `update_design_doc_in_change`,
+`list_design_docs_in_change`, `get_design_doc_in_change`,
 `scan_system_model` and `get_newest_system_model`. Tools never
-take content inline. The agent writes
+take content inline: `get_design_doc_in_change`, asked for a working file,
+writes the design document into the scratch directory and answers with its
+path. The agent writes
 a working file to the session's scratch directory (`.noesis/sessions/<session>/`,
 named in the server's instructions) and calls the tool that consumes it by
 path. That tool checks the file against its contract before writing
@@ -72,6 +75,12 @@ nothing.
   building block and behaviour carrying the stereotype the Java scanner
   reads, with one JUnit test asserted with AssertJ per scenario, following
   the mapping, building block and testing rules in its `references/`. A skill
+  and compares what they saved; `update-design-doc` fetches a design
+  document as stored now through `get_design_doc_in_change` into a working
+  file, lists the fields a person accepted with its `scripts/human-fields.ts`,
+  asks before changing any of them, edits it as the user asks and stores it
+  in place through `update_design_doc_in_change`, which keeps an accepted
+  field the agent left alone in the person's name. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the
   skill writes its working file to the session's scratch directory and hands
@@ -89,7 +98,9 @@ nothing.
   shipped.
 - `test/` — asserts a build leaves only fresh contracts, that every
   contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills included,
-  and that the working-file script copies its source verbatim.
+  and that the skill scripts do what their skills say: the working-file
+  script copies its source verbatim, the human-fields script names every
+  field a person wrote or accepted.
 
 Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
 (the `files` field in `package.json`).

@@ -24,17 +24,18 @@ export class InvalidDesignDocError extends Error {
 /**
  * Throws `InvalidDesignDocError` when the document breaks the rules `writer`
  * follows against the newest scan; before the first one, every design is a
- * green field.
+ * green field. `before` is the version an update replaces.
  */
 export async function assertDesignDocFollowsRules(
   document: DesignDocumentContent,
   writer: DesignDocFieldAuthor,
   systemModels: SystemModelsReader,
+  before?: DesignDocumentContent,
 ): Promise<void> {
   const systemModel = (await systemModels.findNewest()) ?? undefined;
   const violations =
     writer === 'agent'
-      ? DesignDocument.validateAgentGenerated(document, systemModel)
+      ? DesignDocument.validateAgentGenerated(document, systemModel, before)
       : DesignDocument.validateHumanEdited(document, systemModel);
   if (violations.length > 0) throw new InvalidDesignDocError(violations);
 }

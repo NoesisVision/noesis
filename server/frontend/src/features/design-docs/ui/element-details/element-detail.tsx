@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
-import { findById } from '#/features/design-docs/ui/element-details/change-set.ts';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { Group } from '#/shared/design-system/group.tsx';
 import { useElementSize } from '#/shared/design-system/hooks.ts';
 import { Title } from '#/shared/design-system/title.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { bodySections } from './body/body-sections.tsx';
-import { ScenarioColumn } from './body/scenario-column.tsx';
+import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
@@ -105,7 +105,10 @@ export function ElementDetail({
               sections={bodySections(node, doc, tree)}
               scenarios={
                 scenarios.length > 0 ? (
-                  <ScenarioColumn scenarios={scenarios} />
+                  <ScenarioColumn
+                    scenarios={scenarios}
+                    id={SCENARIO_COLUMN_ID}
+                  />
                 ) : null
               }
             />

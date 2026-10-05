@@ -1,5 +1,6 @@
 import { IconSearch, IconTopologyStar3, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
+import { counted } from '#/features/design-docs/ui/plural.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { useDisclosure } from '#/shared/design-system/hooks.ts';
 import { Modal } from '#/shared/design-system/modal.tsx';
@@ -23,7 +24,7 @@ export function ImplementedByModal({ items }: { items: ChangeListItem[] }) {
   const [opened, { open, close }] = useDisclosure(false);
   if (items.length === 0) return null;
   // What the icon is, on hover and to a screen reader alike.
-  const label = `Implemented by ${items.length} ${items.length === 1 ? 'element' : 'elements'}`;
+  const label = `Implemented by ${counted(items.length, 'element')}`;
   return (
     <>
       <Tooltip label={label} openDelay={300} color="dark">

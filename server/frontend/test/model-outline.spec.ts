@@ -4,7 +4,7 @@ import {
   drawsDiagram,
   type OutlineNode,
   patternLabelOf,
-} from '../src/shared/ui/model-tree/model-outline';
+} from '../src/features/design-docs/ui/model-tree/model-outline';
 
 describe('patternLabelOf', () => {
   it('writes out the vocabulary the model spells in lower case', () => {

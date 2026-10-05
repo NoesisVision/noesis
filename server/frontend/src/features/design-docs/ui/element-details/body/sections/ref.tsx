@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { Text } from '#/shared/design-system/text.tsx';
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 

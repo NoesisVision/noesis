@@ -1,6 +1,22 @@
 {
   "name": "Partial refunds for orders",
   "description": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
+  "needs": {
+    "added": [
+      {
+        "id": "refund-single-lines",
+        "name": {
+          "value": "Refund single lines"
+        },
+        "stakeholder": {
+          "value": "Support agents"
+        },
+        "statement": {
+          "value": "Support agents need to refund one line of an order when the customer returns only part of it, without cancelling the whole order."
+        }
+      }
+    ]
+  },
   "modules": {
     "added": [
       {
@@ -10,6 +26,25 @@
         },
         "definition": {
           "value": "Everything about giving money back to a customer."
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "A refund is issued within a second",
+              "category": {
+                "value": "Quality"
+              },
+              "ruleType": {
+                "value": "Performance"
+              },
+              "description": {
+                "value": "Issuing a refund answers within one second for an order of up to 100 lines."
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              }
+            }
+          ]
         }
       }
     ],
@@ -102,12 +137,21 @@
           "added": [
             {
               "name": "Refund never exceeds paid amount",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "Consistency"
               },
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
                 "author": "human"
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              },
+              "rationale": {
+                "value": "Support may never pay out more than the order brought in."
               }
             }
           ]
@@ -278,11 +322,17 @@
           "added": [
             {
               "name": "Only paid orders are refundable",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "State change"
               },
               "description": {
                 "value": "An unpaid order has nothing to refund."
+              },
+              "needs": {
+                "value": []
               }
             }
           ]

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import type {
   DesignDocumentInput,
   DesignedBuildingBlockInput,
@@ -25,7 +25,7 @@ export const buildingBlockSections = (
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(block.id, block.rules),
+      items: ruleItems(block.id, block.rules, doc.needs),
     }),
     ...section(ChangeListSection, 'properties', {
       element,

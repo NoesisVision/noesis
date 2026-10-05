@@ -22,6 +22,8 @@ const SKIP = new Set([
   'create-polymorphic-wrapper.ts',
   'styles.ts',
   'mantine.d.ts',
+  // A provider that moves portals; it draws nothing to preview.
+  'portal-target.tsx',
 ]);
 
 rmSync(OUT, { recursive: true, force: true });

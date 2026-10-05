@@ -1,0 +1,39 @@
+/*
+ * The selection's details under the rows. Spacing, type and colour are the
+ * components' props; what is here is what props cannot say.
+ */
+
+/* A long name or address breaks anywhere rather than widen the pane. */
+.wraps {
+  overflow-wrap: anywhere;
+}
+
+/* A paragraph keeps the line breaks it was written with. */
+.text {
+  white-space: pre-line;
+}
+
+.list {
+  list-style: none;
+}
+
+/* Named with its list, to win over the unstyled button's own reset, which loads later. */
+.list .chip {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-xl);
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  /* Whatever the mouse gets, the keyboard gets. */
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* The scenarios' own rows are padded; the line sets them apart from the sections. */
+.scenarios {
+  border-top: 1px solid var(--mantine-color-default-border);
+}

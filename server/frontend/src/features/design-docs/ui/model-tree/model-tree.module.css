@@ -56,7 +56,7 @@
     outline: none;
 
     & > .row {
-      outline: 2px solid var(--mantine-color-brand-filled);
+      outline: var(--noesis-focus-ring);
       outline-offset: -2px;
     }
   }
@@ -142,6 +142,21 @@
 
   &[data-tone='command'] {
     color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+  }
+
+  /* A check that found something, and one that found nothing. */
+  &[data-tone='warning'] {
+    color: light-dark(
+      var(--mantine-color-orange-8),
+      var(--mantine-color-orange-4)
+    );
+  }
+
+  &[data-tone='pass'] {
+    color: light-dark(
+      var(--mantine-color-green-8),
+      var(--mantine-color-green-4)
+    );
   }
 }
 
@@ -252,7 +267,8 @@
 
   & > * {
     fill: currentColor;
-    stroke: var(--mantine-color-body);
+    /* The colour of what the mark sits on: the page's unless set otherwise. */
+    stroke: var(--change-ring, var(--mantine-color-body));
     stroke-width: 1.5px;
     stroke-opacity: 0.8;
     paint-order: stroke;

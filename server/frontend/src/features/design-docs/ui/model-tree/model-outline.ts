@@ -19,6 +19,11 @@ const OUTLINE_KINDS = [
   'property',
   'rule',
   'scenario',
+  // A design's requirements: a group of them, and the need a rule answers.
+  'group',
+  'need',
+  // What the architecture view finds when it checks the design.
+  'check',
 ] as const;
 export type OutlineKind = (typeof OUTLINE_KINDS)[number];
 
@@ -46,6 +51,20 @@ export interface OutlineNode {
   /** The description draws a diagram. */
   hasDiagram: boolean;
 }
+
+/**
+ * What a row that names nothing in the model has in common — a group, a need,
+ * a check: no element, change, pattern or diagram of its own. A projection
+ * spreads it and says the rest.
+ */
+export const BARE_ROW = {
+  elementId: null,
+  depth: 0,
+  change: 'unchanged',
+  pattern: null,
+  patternLabel: null,
+  hasDiagram: false,
+} as const satisfies Partial<OutlineNode>;
 
 /**
  * The order a reader meets a module's building blocks in: what the outside
@@ -76,6 +95,9 @@ const KIND_ORDER: readonly OutlineKind[] = [
   'property',
   'rule',
   'scenario',
+  'group',
+  'need',
+  'check',
 ];
 
 /** Past the end of both orders, so anything unplaced sorts after everything placed. */

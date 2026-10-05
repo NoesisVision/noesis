@@ -1,8 +1,8 @@
 import type { ReactElement } from 'react';
-import type { OutlineNode } from '#/shared/ui/model-tree/model-outline.ts';
-import type { OutlineTree } from '#/shared/ui/model-tree/outline-tree.ts';
+import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { findById } from '../change-set.ts';
+import { findById } from '../../../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { behaviourSections } from './behaviour-sections.tsx';
 import { buildingBlockSections } from './building-block-sections.tsx';
@@ -39,7 +39,7 @@ export const bodySections = (
   const block = findById(doc.buildingBlocks, node.elementId);
   if (block) return buildingBlockSections(block, tree, doc);
   const behaviour = findById(doc.behaviours, node.elementId);
-  if (behaviour) return behaviourSections(behaviour);
+  if (behaviour) return behaviourSections(behaviour, doc);
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [

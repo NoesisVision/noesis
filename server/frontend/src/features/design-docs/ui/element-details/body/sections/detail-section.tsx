@@ -3,7 +3,9 @@ import { clsx } from 'clsx';
 import type { ComponentProps, PropsWithChildren, ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Divider } from '#/shared/design-system/divider.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import {
   type DesignDocFieldInput,
   isHumanAuthored as humanAuthored,
@@ -40,25 +42,25 @@ export function DetailSection({
       {/* A rule, not a border: the divider is the design system's. */}
       {muted && <Divider mb="xs" />}
       {!!title && (
-        <div className={classes.title}>
+        <Group gap="xs" wrap="nowrap" className={classes.title}>
           {icon && (
-            <span className={classes.icon} aria-hidden="true">
+            <Box component="span" className={classes.icon} aria-hidden="true">
               {icon}
-            </span>
+            </Box>
           )}
           {title}
           {isHumanAuthored !== null && (
             // Said in words, so it needs no name of its own.
-            <span className={classes.author}>
+            <Text span fz="xs" fw={500} c="dimmed" className={classes.author}>
               {isHumanAuthored ? (
                 <IconUser size={14} aria-hidden />
               ) : (
                 <IconSparkles size={14} aria-hidden />
               )}
               {isHumanAuthored ? 'Written by a human' : 'AI-generated'}
-            </span>
+            </Text>
           )}
-        </div>
+        </Group>
       )}
       <Box>{children}</Box>
     </Stack>

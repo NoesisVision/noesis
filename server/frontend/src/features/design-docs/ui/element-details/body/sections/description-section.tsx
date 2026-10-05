@@ -12,8 +12,8 @@ import { DetailSection } from './detail-section.tsx';
 interface DescriptionSectionProps {
   element: ElementRef;
   field: DesignDocFieldInput<string>;
-  /** A module, building block or behaviour is defined; anything else described. */
-  title?: 'Description' | 'Definition';
+  /** A module, building block or behaviour is defined; anything else described, and a rule reasoned for. */
+  title?: 'Description' | 'Definition' | 'Rationale';
   slots?: {
     top?: ReactNode;
     bottom?: ReactNode;

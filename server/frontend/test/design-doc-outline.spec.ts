@@ -3,7 +3,7 @@ import {
   outlineOf,
   ownerOfPart,
 } from '../src/features/design-docs/design-doc-outline';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline';
 import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
 
 const outline = outlineOf(changedEverywhereFixture);
@@ -85,7 +85,20 @@ describe('outlineOf', () => {
       'RefundRepository',
       'Refund',
       'RefundIssued',
+      'A refund is issued within a second',
     ]);
+  });
+
+  it("hangs a module's rules under the module, after its building blocks", () => {
+    expect(
+      at('module|sales.refunds#rule:A refund is issued within a second'),
+    ).toMatchObject({
+      kind: 'rule',
+      change: 'added',
+      elementId: null,
+      pattern: 'Performance',
+      parentPath: 'module|sales.refunds',
+    });
   });
 
   it('puts rules and scenarios last inside a building block', () => {

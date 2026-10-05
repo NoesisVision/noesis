@@ -9,14 +9,27 @@ import {
 import {
   BehaviourType,
   BuildingBlockType,
+  RULE_TYPES_OF,
+  RuleCategory,
   RuleType,
   BuildingBlockRef,
+  type ScannedRule,
   type SystemModel,
   Visibility,
 } from '#backend/app/system-model/system-model';
-import { DesignDocField } from './design-doc-field';
+import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { MermaidSource } from './mermaid-source';
+import { NeedId } from './need-id';
+
+/** A stakeholder goal the design answers: who needs what, never a solution. */
+export const DesignedNeed = z.strictObject({
+  id: NeedId,
+  name: DesignDocField(ElementName),
+  stakeholder: DesignDocField(z.string()),
+  statement: DesignDocField(z.string()),
+});
+export type DesignedNeed = z.infer<typeof DesignedNeed>;
 
 export const DesignedScenario = z.strictObject({
   name: ElementName,
@@ -56,8 +69,17 @@ export type DesignedResult = z.infer<typeof DesignedResult>;
 
 export const DesignedRule = z.strictObject({
   name: ElementName,
+  category: DesignDocField(RuleCategory),
   ruleType: DesignDocField(RuleType),
   description: DesignDocField(z.string()),
+  needs: DesignDocField(
+    z
+      .array(NeedId)
+      .describe(
+        'The needs of this design document the rule answers; empty for a design decision no need asks for.',
+      ),
+  ),
+  rationale: DesignDocField(z.string()),
   scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedRule = z.infer<typeof DesignedRule>;
@@ -67,6 +89,7 @@ export const DesignedDomainModule = z.strictObject({
   name: DesignDocField(ElementName),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
+  rules: changeSet(DesignedRule, ElementName),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 
@@ -103,6 +126,7 @@ const designDocumentSchema = z.strictObject({
   ),
   name: z.string().describe('The design document name.'),
   description: z.string(),
+  needs: changeSet(DesignedNeed, NeedId),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviours: changeSet(DesignedBehaviour, BehaviorId),
@@ -122,13 +146,18 @@ const designDocumentSchema = z.strictObject({
 export const DesignDocument = Object.assign(designDocumentSchema, {
   /** A human may write a field in their own name. */
   validateHumanEdited: rulesOfEveryDesign,
-  /** An agent never writes a field in a human's name. */
+  /**
+   * An agent never writes a field in a human's name. Revising `before`, it
+   * keeps a field a human wrote or accepted there, value and author, as long
+   * as it leaves the field alone.
+   */
   validateAgentGenerated: (
     document: DesignDocumentContent,
     systemModel?: SystemModel,
+    before?: DesignDocumentContent,
   ): DesignDocViolation[] => [
     ...rulesOfEveryDesign(document, systemModel),
-    ...humanAuthoredFields(document),
+    ...humanAuthoredFieldsNotKept(document, before),
     ...diagramsInDefinitions(document),
   ],
 });
@@ -141,7 +170,10 @@ export interface DesignDocViolation {
     | 'unknownElement'
     | 'unchangedFieldInAddedItem'
     | 'humanAuthor'
-    | 'diagramInDefinition';
+    | 'diagramInDefinition'
+    | 'unknownNeed'
+    | 'ruleTypeOutsideCategory'
+    | 'businessRuleOnModule';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -174,6 +206,7 @@ export type DesignedPropertyInput = z.input<typeof DesignedProperty>;
 export type DesignedParameterInput = z.input<typeof DesignedParameter>;
 export type DesignedResultInput = z.input<typeof DesignedResult>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
+export type DesignedNeedInput = z.input<typeof DesignedNeed>;
 export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
 
 type ChangeSet<
@@ -310,17 +343,139 @@ function rulesOfEveryDesign(
   document: DesignDocumentContent,
   systemModel?: SystemModel,
 ): DesignDocViolation[] {
+  const rules = [...rulesIn(document, systemModel)];
   return [
     ...changesMissingFrom(systemModel, document),
     ...unchangedFieldsInAddedItems(document),
+    ...unknownNeeds(document, rules),
+    ...ruleTypesOutsideCategory(rules),
+    ...businessRulesOnModules(rules),
   ];
+}
+
+const ELEMENT_COLLECTIONS = [
+  'modules',
+  'buildingBlocks',
+  'behaviours',
+] as const;
+type ElementCollection = (typeof ELEMENT_COLLECTIONS)[number];
+
+interface DesignedElementWithRules {
+  id: string;
+  rules: { added: DesignedRule[]; modified: DesignedRule[] };
+}
+
+interface ScannedElementWithRules {
+  id: string;
+  rules: ScannedRule[];
+}
+
+/** A rule the design adds or modifies, and the scanned rule a modified one changes. */
+interface RuleInDesign {
+  path: string;
+  collection: ElementCollection;
+  designed: DesignedRule;
+  scanned: ScannedRule | undefined;
+}
+
+function* rulesIn(
+  document: DesignDocumentContent,
+  systemModel: SystemModel | undefined,
+): Generator<RuleInDesign> {
+  for (const collection of ELEMENT_COLLECTIONS) {
+    const scannedElements: readonly ScannedElementWithRules[] =
+      systemModel?.[collection] ?? [];
+    for (const kind of ['added', 'modified'] as const) {
+      const elements: readonly DesignedElementWithRules[] =
+        document[collection][kind];
+      for (const element of elements) {
+        const scannedRules =
+          kind === 'modified'
+            ? (scannedElements.find(({ id }) => id === element.id)?.rules ?? [])
+            : [];
+        for (const ruleKind of ['added', 'modified'] as const) {
+          for (const rule of element.rules[ruleKind]) {
+            yield {
+              path: `${collection}.${kind}[${element.id}].rules.${ruleKind}[${rule.name}]`,
+              collection,
+              designed: rule,
+              scanned:
+                ruleKind === 'modified'
+                  ? scannedRules.find(({ name }) => name === rule.name)
+                  : undefined,
+            };
+          }
+        }
+      }
+    }
+  }
+}
+
+/** A rule traces only to needs this design document states. */
+function unknownNeeds(
+  document: DesignDocumentContent,
+  rules: RuleInDesign[],
+): DesignDocViolation[] {
+  const stated = new Set<string>(document.needs.added.map(({ id }) => id));
+  return rules.flatMap(({ path, designed }) =>
+    designed.needs.changed
+      ? designed.needs.value
+          .filter((need) => !stated.has(need))
+          .map((need) => ({
+            path: `${path}.needs[${need}]`,
+            reason: 'unknownNeed' as const,
+          }))
+      : [],
+  );
+}
+
+/** A rule's type is one its category allows, the scanned rule filling in the half a modified one leaves alone. */
+function ruleTypesOutsideCategory(rules: RuleInDesign[]): DesignDocViolation[] {
+  return rules
+    .filter(({ designed, scanned }) => {
+      if (!designed.category.changed && !designed.ruleType.changed) {
+        return false;
+      }
+      const category = valueOf(designed.category, scanned?.category);
+      const ruleType = valueOf(designed.ruleType, scanned?.ruleType);
+      return (
+        category !== undefined &&
+        ruleType !== undefined &&
+        !RULE_TYPES_OF[category].includes(ruleType)
+      );
+    })
+    .map(({ path }) => ({
+      path: `${path}.ruleType`,
+      reason: 'ruleTypeOutsideCategory',
+    }));
+}
+
+/** A module holds quality and constraint rules; a domain truth belongs to a building block or a behaviour. */
+function businessRulesOnModules(rules: RuleInDesign[]): DesignDocViolation[] {
+  return rules
+    .filter(
+      ({ collection, designed, scanned }) =>
+        collection === 'modules' &&
+        valueOf(designed.category, scanned?.category) === 'Business',
+    )
+    .map(({ path }) => ({
+      path: `${path}.category`,
+      reason: 'businessRuleOnModule',
+    }));
+}
+
+function valueOf<Value>(
+  field: DesignDocField<Value>,
+  held: Value | undefined,
+): Value | undefined {
+  return field.changed ? field.value : held;
 }
 
 /**
  * Fields an added element may leave out: the model never has them, so there
  * is nothing for the design to keep.
  */
-const OPTIONAL_FIELDS = new Set(['diagram']);
+const OPTIONAL_FIELDS = new Set(['diagram', 'rationale']);
 
 function unchangedFieldsInAddedItems(
   document: DesignDocumentContent,
@@ -367,12 +522,47 @@ function diagramsInDefinitions(
   );
 }
 
-function humanAuthoredFields(
+function humanAuthoredFieldsNotKept(
   document: DesignDocumentContent,
+  before: DesignDocumentContent | undefined,
 ): DesignDocViolation[] {
+  const kept = new Map(
+    before === undefined
+      ? []
+      : [...fieldsOf(before, '')].filter(([, field]) => isHumanAuthored(field)),
+  );
   return [...fieldsOf(document, '')]
-    .filter(([, field]) => field.changed && field.author === 'human')
+    .filter(
+      ([path, field]) =>
+        isHumanAuthored(field) && !sameValue(field, kept.get(path)),
+    )
     .map(([path]) => ({ path, reason: 'humanAuthor' }));
+}
+
+function isHumanAuthored(
+  field: DesignDocField<unknown>,
+): field is ChangedDesignDocField<unknown> {
+  return field.changed && field.author === 'human';
+}
+
+function sameValue(
+  field: ChangedDesignDocField<unknown>,
+  stored: DesignDocField<unknown> | undefined,
+): boolean {
+  return stored?.changed === true && deepEqual(field.value, stored.value);
+}
+
+function deepEqual(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (!isObject(left) || !isObject(right)) return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  const keys = Object.keys(left);
+  return (
+    keys.length === Object.keys(right).length &&
+    keys.every((key) =>
+      deepEqual(Reflect.get(left, key), Reflect.get(right, key)),
+    )
+  );
 }
 
 function isInAddedItem(path: string): boolean {

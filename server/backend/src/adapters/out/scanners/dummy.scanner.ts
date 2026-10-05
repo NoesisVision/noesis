@@ -245,6 +245,12 @@ function flattenedModule(
       current?.description,
       at.in('definition'),
     ),
+    rules: changedParts(
+      current?.rules ?? [],
+      designed.rules,
+      flattenedRule,
+      at.in('rules'),
+    ),
     source,
   };
 }
@@ -396,6 +402,13 @@ function flattenedRule(
 ): ScannedRule {
   return {
     name: designed.name,
+    // A rule designed before rules had categories is a business rule, as a
+    // scanned one without a category is.
+    category: field(
+      designed.category,
+      current?.category ?? 'Business',
+      at.in('category'),
+    ),
     ruleType: field(designed.ruleType, current?.ruleType, at.in('ruleType')),
     description: field(
       designed.description,

@@ -5,3 +5,34 @@
     var(--mantine-color-gray-9)
   );
 }
+
+/*
+ * Full screen, the content is the page: the browser stops painting the
+ * shell's header, so there is nothing to offset by, and it scrolls itself.
+ */
+.main:fullscreen {
+  --app-shell-header-offset: 0rem;
+
+  overflow-y: auto;
+}
+
+/*
+ * On macOS the top of a full-screen page is still not the page's: the system
+ * slides its menu bar down over it, taking every click there. So the content
+ * keeps a bar of its own where the header was, about as tall as that menu
+ * bar. Every view lays itself out under the header's offset, so each one
+ * clears the bar without a rule of its own. `index.html` names the platform.
+ */
+:root[data-platform='macos'] .main:fullscreen {
+  --app-shell-header-offset: 2.5rem;
+}
+
+/* Opaque, as the header is, so what scrolls under it is hidden. */
+:root[data-platform='macos'] .main:fullscreen::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--app-shell-header-z-index, 100);
+  height: var(--app-shell-header-offset);
+  background-color: inherit;
+}

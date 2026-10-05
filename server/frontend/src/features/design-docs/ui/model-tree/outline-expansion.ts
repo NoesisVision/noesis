@@ -30,7 +30,8 @@ export function expandablePaths(tree: OutlineTree): Set<string> {
  * What a reader who has opened nothing sees: the modules down to the building
  * blocks they hold, and no further. That is the shape the tree is for — which
  * context, which module, what is in it — with a block's own properties, rules
- * and scenarios folded away until asked for.
+ * and scenarios folded away until asked for. A tree of another shape says its
+ * own, where it is made.
  */
 export function defaultExpansion(tree: OutlineTree): Set<string> {
   return new Set(

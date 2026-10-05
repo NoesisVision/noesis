@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { OutlineNode } from './model-outline.ts';
+import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import {
   closeIn,
   closeToMatches,
@@ -21,7 +21,11 @@ import {
 } from './outline-expansion.ts';
 import { type ExpansionMemory, FORGETFUL } from './outline-memory.ts';
 import { type OutlineSearch, searchOutline } from './outline-search.ts';
-import { type OutlineTree, outlineTree } from './outline-tree.ts';
+import {
+  EXCLUDED_KINDS,
+  type OutlineTree,
+  outlineTree,
+} from './outline-tree.ts';
 
 /**
  * Where a selection was made. The tree cannot tell what a page should do
@@ -70,6 +74,20 @@ export interface ModelTreeState {
   readonly query: string;
   readonly onQuery: (query: string) => void;
   readonly memory?: ExpansionMemory;
+  /** The kinds left out of the tree; a model's parts unless said otherwise. Keep it stable. */
+  readonly excludeKinds?: readonly OutlineKind[];
+  /**
+   * Whether the tree opens at its top row when the address names none of its
+   * rows; true unless said otherwise. A page whose selection may be something
+   * the tree has no row for says false, and the tree then has none in hand.
+   */
+  readonly opensAtTop?: boolean;
+  /**
+   * What a reader who has opened nothing sees; a model's shape — its modules
+   * down to their building blocks — unless said otherwise. Asked once, when
+   * the tree opens and its memory holds nothing.
+   */
+  readonly opensOn?: (tree: OutlineTree) => Set<string>;
 }
 
 export function useModelTree(
@@ -82,8 +100,14 @@ export function useModelTree(
     query,
     onQuery,
     memory = FORGETFUL,
+    excludeKinds = EXCLUDED_KINDS,
+    opensAtTop = true,
+    opensOn = defaultExpansion,
   } = state;
-  const tree = useMemo(() => outlineTree(nodes), [nodes]);
+  const tree = useMemo(
+    () => outlineTree(nodes, excludeKinds),
+    [nodes, excludeKinds],
+  );
   /*
    * The tree opens at a row whether or not the address names one: an empty
    * panel beside a full outline says nothing, and the top of the tree is where
@@ -91,13 +115,10 @@ export function useModelTree(
    * has not got is the same case and not an error to put in front of them —
    * the model was rewritten under their link.
    */
-  const selected = useMemo(
-    () =>
-      addressed !== null && tree.byPath.has(addressed)
-        ? addressed
-        : (tree.nodes[0]?.path ?? null),
-    [tree, addressed],
-  );
+  const selected = useMemo(() => {
+    if (addressed !== null && tree.byPath.has(addressed)) return addressed;
+    return opensAtTop ? (tree.nodes[0]?.path ?? null) : null;
+  }, [tree, addressed, opensAtTop]);
   /*
    * Said once, and only the page can answer it: the row is the tree's own
    * choice, so nothing else knows to put it in the address or to scroll to it.
@@ -106,17 +127,17 @@ export function useModelTree(
    */
   const opened = useRef(false);
   useEffect(() => {
-    if (opened.current || selected === null) return;
+    if (!opensAtTop || opened.current || selected === null) return;
     opened.current = true;
     onSelect(selected, 'init');
-  }, [selected, onSelect]);
+  }, [opensAtTop, selected, onSelect]);
   /*
    * Whatever shape the tree was left in, the row the address names has to be
    * a row: a link into the middle of a design that opened on a closed branch
    * would show its element in the panel and nowhere in the tree.
    */
   const [expanded, setExpanded] = useState(() => {
-    const shape = memory.recall() ?? defaultExpansion(tree);
+    const shape = memory.recall() ?? opensOn(tree);
     return selected === null ? shape : withWayDown(shape, tree, selected);
   });
   const [shape, setShape] = useState<SearchShape>(UNTOUCHED);

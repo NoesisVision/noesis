@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { KindIcon } from '../src/shared/ui/model-tree/kind-icon';
+import { KindIcon } from '../src/features/design-docs/ui/model-tree/kind-icon';
 
 const iconName = (html: string) => /tabler-icon-([a-z0-9-]+)/.exec(html)?.[1];
 

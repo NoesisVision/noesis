@@ -1,10 +1,10 @@
 import { IconBraces, IconLink, IconScale } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
+import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { KindIcon } from '#/shared/ui/model-tree/kind-icon.tsx';
-import type { OutlineKind } from '#/shared/ui/model-tree/model-outline.ts';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';

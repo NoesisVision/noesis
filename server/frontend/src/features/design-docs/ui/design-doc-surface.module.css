@@ -16,15 +16,6 @@
   min-height: 24rem;
 }
 
-.surface:fullscreen {
-  height: 100dvh;
-  padding: var(--mantine-spacing-lg);
-  background-color: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-gray-9)
-  );
-}
-
 .header {
   flex: none;
 }
