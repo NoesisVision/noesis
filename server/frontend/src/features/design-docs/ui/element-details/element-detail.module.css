@@ -127,12 +127,20 @@ h2.name {
 }
 
 /*
- * The grip on the middle of what the panel shows of the handle, not of the
- * whole handle, which runs as tall as the longer column: sticky at both edges,
- * so it keeps to the middle of the panel as the reader scrolls. Half its
- * height off each, as Mantine draws it 3.75rem tall.
+ * The grip at the middle of what the panel shows of the handle, not of the
+ * whole handle, which runs as tall as the longer column: sticky at both edges
+ * of the panel's scroll area, so it keeps to the middle of the visible panel
+ * as the reader scrolls. Half its 3.75rem height off each. Named with the
+ * splitter, to win over Mantine's own `position: absolute`.
  */
-.splitThumb {
+.split .splitHandle {
+  /* The grip is in the flow once sticky; it must not widen the line. */
+  min-width: 0;
+}
+
+.split .splitThumb {
+  /* Its own 12px wide, centred over the 1px line as Mantine draws it. */
+  flex: none;
   position: sticky;
   top: calc(50% - 1.875rem);
   bottom: calc(50% - 1.875rem);

@@ -47,7 +47,7 @@ export function ElementColumns({
   return (
     <Splitter
       className={classes.split}
-      classNames={{ thumb: classes.splitThumb }}
+      classNames={{ handle: classes.splitHandle, thumb: classes.splitThumb }}
       // The handle is a `separator` the reader can take with the keyboard,
       // so it needs a name of its own; Mantine gives it none.
       attributes={{ handle: { 'aria-label': 'Resize the scenarios' } }}
