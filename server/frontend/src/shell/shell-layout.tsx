@@ -10,11 +10,12 @@ export function ShellLayout() {
 
   return (
     <AppShell
-      header={{ height: 56 }}
+      header={{ height: { base: 56, md: 101 } }}
+      // Only for a narrow screen, where the header's bar is folded away.
       navbar={{
         width: 280,
         breakpoint: 'md',
-        collapsed: { mobile: !navbarOpened },
+        collapsed: { desktop: true, mobile: !navbarOpened },
       }}
       padding="lg"
     >
@@ -25,7 +26,7 @@ export function ShellLayout() {
         />
       </AppShell.Header>
       <AppShell.Navbar>
-        <Sidebar onNavigate={navbar.close} />
+        {navbarOpened && <Sidebar onNavigate={navbar.close} />}
       </AppShell.Navbar>
       <AppShell.Main className={classes.main}>
         <Outlet />

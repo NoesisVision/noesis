@@ -18,6 +18,8 @@ interface ChangePickerProps {
   changes: Change[];
   current: Change | null;
   onNavigate?: () => void;
+  /** One line, for the header: the swatch, the name, the key and the type. */
+  compact?: boolean;
 }
 
 function detailLine(change: Change): string {
@@ -34,6 +36,7 @@ export function ChangePicker({
   changes,
   current,
   onNavigate,
+  compact = false,
 }: ChangePickerProps) {
   const navigate = useNavigate();
 
@@ -46,60 +49,113 @@ export function ChangePicker({
   };
 
   return (
-    <Box>
-      <Menu width="target" position="bottom-start" shadow="md" offset={4}>
+    <Box miw={0}>
+      <Menu
+        width={compact ? 320 : 'target'}
+        position="bottom-start"
+        shadow="md"
+        offset={4}
+      >
         <Menu.Target>
-          <UnstyledButton className={classes.pick} aria-label="Switch change">
-            <Group gap={10} wrap="nowrap" align="stretch">
-              <Box
-                className={classes.bar}
-                mih={24}
-                bg={
-                  current
-                    ? changeSwatch(current.id)
-                    : 'var(--mantine-color-gray-4)'
-                }
-              />
-              <Box style={{ flex: 1, minWidth: 0 }}>
+          {compact ? (
+            <UnstyledButton
+              className={classes.compact}
+              aria-label="Switch change"
+            >
+              <Group gap={10} wrap="nowrap">
+                <Box
+                  className={classes.bar}
+                  h={22}
+                  bg={
+                    current
+                      ? changeSwatch(current.id)
+                      : 'var(--mantine-color-gray-4)'
+                  }
+                />
                 <Text size="sm" fw={600} truncate lh={1.3}>
                   {current ? current.name : 'No change yet'}
                 </Text>
-                {current ? (
-                  <>
-                    {current.key ? (
-                      <Text size="xs" c="dimmed" ff="monospace" lh={1.4}>
-                        {current.key}
-                      </Text>
-                    ) : null}
-                    <Group gap={6} mt={4} wrap="nowrap">
-                      <Badge
-                        size="xs"
-                        variant="outline"
-                        color={CHANGE_TYPE_META[current.type].color}
-                      >
-                        {CHANGE_TYPE_META[current.type].label}
-                      </Badge>
-                      <Badge
-                        size="xs"
-                        variant="light"
-                        color={CHANGE_STATUS_META[current.status].color}
-                      >
-                        {CHANGE_STATUS_META[current.status].label}
-                      </Badge>
-                    </Group>
-                  </>
-                ) : (
-                  <Text size="xs" c="dimmed" truncate lh={1.3}>
-                    Ask the agent to create one
+                {current?.key ? (
+                  <Text
+                    size="xs"
+                    c="dimmed"
+                    ff="monospace"
+                    visibleFrom="sm"
+                    style={{ flex: 'none' }}
+                  >
+                    {current.key}
                   </Text>
-                )}
-              </Box>
-              <IconSelector
-                size={16}
-                style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
-              />
-            </Group>
-          </UnstyledButton>
+                ) : null}
+                {current ? (
+                  <Badge
+                    size="xs"
+                    variant="outline"
+                    visibleFrom="lg"
+                    color={CHANGE_TYPE_META[current.type].color}
+                    style={{ flex: 'none' }}
+                  >
+                    {CHANGE_TYPE_META[current.type].label}
+                  </Badge>
+                ) : null}
+                <IconSelector
+                  size={16}
+                  style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
+                />
+              </Group>
+            </UnstyledButton>
+          ) : (
+            <UnstyledButton className={classes.pick} aria-label="Switch change">
+              <Group gap={10} wrap="nowrap" align="stretch">
+                <Box
+                  className={classes.bar}
+                  mih={24}
+                  bg={
+                    current
+                      ? changeSwatch(current.id)
+                      : 'var(--mantine-color-gray-4)'
+                  }
+                />
+                <Box style={{ flex: 1, minWidth: 0 }}>
+                  <Text size="sm" fw={600} truncate lh={1.3}>
+                    {current ? current.name : 'No change yet'}
+                  </Text>
+                  {current ? (
+                    <>
+                      {current.key ? (
+                        <Text size="xs" c="dimmed" ff="monospace" lh={1.4}>
+                          {current.key}
+                        </Text>
+                      ) : null}
+                      <Group gap={6} mt={4} wrap="nowrap">
+                        <Badge
+                          size="xs"
+                          variant="outline"
+                          color={CHANGE_TYPE_META[current.type].color}
+                        >
+                          {CHANGE_TYPE_META[current.type].label}
+                        </Badge>
+                        <Badge
+                          size="xs"
+                          variant="light"
+                          color={CHANGE_STATUS_META[current.status].color}
+                        >
+                          {CHANGE_STATUS_META[current.status].label}
+                        </Badge>
+                      </Group>
+                    </>
+                  ) : (
+                    <Text size="xs" c="dimmed" truncate lh={1.3}>
+                      Ask the agent to create one
+                    </Text>
+                  )}
+                </Box>
+                <IconSelector
+                  size={16}
+                  style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
+                />
+              </Group>
+            </UnstyledButton>
+          )}
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Label>

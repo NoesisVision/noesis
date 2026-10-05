@@ -68,3 +68,36 @@
     }
   }
 }
+
+/* The header's one-line picker: as tall as the controls beside it. */
+.compact.compact {
+  display: block;
+  min-width: 0;
+  max-width: 420px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border-radius: var(--mantine-radius-md);
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
+
+  &:hover {
+    border-color: light-dark(
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-2)
+    );
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+
+  &[data-expanded] {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: 0 0 0 2px var(--mantine-primary-color-light);
+  }
+}
