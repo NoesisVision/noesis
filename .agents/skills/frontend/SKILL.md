@@ -19,6 +19,45 @@ write the least code that does the job, keep every change traceable to the
 request, and loop until a check passes — here, a render-to-markup test (see
 [Checking it](#checking-it)) and `bun run ci`.
 
+## Style via Mantine props, then CSS
+
+A change to how something looks or sits — position, size, spacing, what
+sticks, what truncates, what shows at which width — is made, in this order:
+
+1. **Mantine props** that resolve against the theme: `gap="sm"`, `c="dimmed"`,
+   `miw={0}`, `visibleFrom="lg"`, `truncate`, a component's own variant or
+   size props.
+2. **CSS** in a module, for what props cannot express, reading Mantine's CSS
+   variables: hover and focus states, `light-dark()`, and the layout tools CSS
+   already has (`position: sticky`, flex and grid, `min-width: 0`, container
+   queries).
+
+Exhaust both before reaching for TypeScript.
+
+When CSS seems not to work, look for why before leaving it. The usual
+culprits here: a Mantine rule of equal specificity winning (name the class
+with its parent, `.split .splitThumb`, as `design-system` wrappers do), a
+flex item that will not shrink (`min-width: 0`) or will (`flex: none`), a
+`<button>` sizing to its content even as a block (`width: 100%`), an
+ancestor whose `overflow` breaks `sticky`. Check the computed style in a
+browser rather than guess.
+
+If CSS truly cannot do it — the layout needs a number only script can know,
+such as where an element sits on screen — **stop and ask the developer**
+whether they want a TypeScript solution, before writing one. Put the
+trade-off in front of them, in this case's terms:
+
+| CSS                                                                                                    | A hook or other script (`useElementSize`, a `ResizeObserver`, measuring in an effect)                                                                                |
+| ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laid out before the first paint, in the browser's own layout pass: no flash, no lag while resizing.     | Runs after layout: the first frame can show the wrong state, and every resize or scroll it follows costs a re-render.                                              |
+| Holds in every render — server markup, tests, a disabled script — with nothing to clean up.             | Absent in `renderToStaticMarkup` and tests (`bun run` reads CSS modules as `{}` too), and needs listeners and observers set up and torn down without leaking.        |
+| Lives with the rest of the look, where a designer and `/design-sync` see it.                            | Splits one visual rule between a stylesheet and a component, and adds React state the component did not otherwise need.                                             |
+| Bounded by what CSS knows: it cannot read positions or sizes from elsewhere on the page.               | Can do exactly what was asked — e.g. centre on the window rather than on the scrolling panel.                                                                        |
+
+Often the honest answer is a near miss in CSS (centred on the visible panel
+rather than the window) against the exact result in script. Offer both and
+let the developer choose; do not ship a hook they did not ask for.
+
 ## Accessibility
 
 **Follow WCAG 2.2 level AA wherever it applies.** The UI is a reading tool: it
