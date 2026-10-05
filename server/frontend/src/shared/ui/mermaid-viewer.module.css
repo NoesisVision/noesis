@@ -10,22 +10,14 @@
 
 /*
  * Opened while the app is full screen, the dialog is portalled into the
- * shell's content rather than the body, and two things follow.
- *
- * Mantine fixes the dialog's frame without a left edge, so it starts where
- * the content's padding ends and runs off the right of the screen, close
- * button and all; it is pinned to the screen's edge instead.
- *
- * The content keeps a bar clear at the top on macOS for the menu bar the
- * system slides over it (shell-layout.module.css), so the dialog starts under
- * that bar too, or its close button sits where no click reaches it. Only in
- * full screen: outside it the offset is the shell header's height, which the
- * dialog covers on purpose.
- *
- * Named with the root and its attribute to outweigh Mantine's own rules.
+ * shell's content, which keeps a bar clear at the top on macOS for the menu
+ * bar the system slides over it (shell-layout.module.css). The dialog starts
+ * under that bar too, or its close button sits where no click reaches it.
+ * Only in full screen: outside it the offset is the shell header's height,
+ * which the dialog covers on purpose. Named with the root and its attribute
+ * to outweigh Mantine's own full-screen rules.
  */
 :fullscreen .viewer[data-full-screen] .inner {
-  left: 0;
   padding-top: var(--app-shell-header-offset, 0rem);
 }
 

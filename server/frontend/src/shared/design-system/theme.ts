@@ -2,6 +2,7 @@ import {
   type CSSVariablesResolver,
   createTheme,
   localStorageColorSchemeManager,
+  Modal,
 } from '@mantine/core';
 
 /** The noesis.vision palette. */
@@ -27,6 +28,16 @@ export const theme = createTheme({
     "'Raleway Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
   headings: { fontWeight: '600' },
   defaultRadius: 'sm',
+  components: {
+    Modal: Modal.extend({
+      // Mantine fixes a modal's frame with a top and a width but no left
+      // edge. In the body that edge is the screen's; portalled into the
+      // shell's content while it is full screen, it is where the content's
+      // padding ends, so the frame starts in from the left and runs off the
+      // right. Pinned to the screen's edge, it sits where it does in the body.
+      styles: { inner: { left: 0 } },
+    }),
+  },
 });
 
 /**
