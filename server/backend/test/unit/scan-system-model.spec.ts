@@ -5,10 +5,7 @@ import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scann
 import { createScanner } from '#backend/adapters/out/scanners/scanners';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type {
-  ScannedSystemModel,
-  SourceCodeScanner,
-} from '#backend/app/system-model/source-code-scanner';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
@@ -23,25 +20,26 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const found = (name: string): ScannedSystemModel =>
-  SystemModel.omit({ id: true }).parse({
+const found = (name: string): SystemModel =>
+  SystemModel.parse({
+    id: SystemModelId.mint(),
     name,
     scanned_at: '2026-09-29T08:00:00.000Z',
   });
 
-const scannerOf = (model: ScannedSystemModel): SourceCodeScanner => ({
+const scannerOf = (model: SystemModel): SourceCodeScanner => ({
   scan: () => Promise.resolve(model),
 });
 
 describe('Scanning the system model', () => {
-  it('stores what the scanner finds at a minted id and answers with it', async () => {
-    const scan = scanSystemModelHandler(scannerOf(found('shop')), systemModels);
+  it('stores what the scanner finds and answers with it', async () => {
+    const shop = found('shop');
+    const scan = scanSystemModelHandler(scannerOf(shop), systemModels);
 
     const model = await scan.handle();
 
-    expect(SystemModelId.safeParse(model.id).success).toBe(true);
-    expect(model).toEqual({ ...found('shop'), id: model.id });
-    expect(await systemModels.list()).toEqual([model]);
+    expect(model).toEqual(shop);
+    expect(await systemModels.list()).toEqual([shop]);
   });
 
   it('keeps every scan, the last one newest', async () => {

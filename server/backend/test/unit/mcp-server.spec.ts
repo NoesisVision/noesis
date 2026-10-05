@@ -338,7 +338,8 @@ describe('list_changes', () => {
 });
 
 describe('scan_system_model', () => {
-  const found = SystemModel.omit({ id: true }).parse({
+  const found = SystemModel.parse({
+    id: SystemModelId.mint(),
     name: 'shop',
     scanned_at: '2026-09-29T08:00:00.000Z',
     modules: [
@@ -372,7 +373,7 @@ describe('scan_system_model', () => {
     return scanning;
   }
 
-  it('stores the model the scanner finds at a minted id and answers with it counted', async () => {
+  it('stores the model the scanner finds and answers with it counted', async () => {
     const scanning = await scanningClient();
 
     const result = await scanning.callTool({ name: 'scan_system_model' });
@@ -382,7 +383,7 @@ describe('scan_system_model', () => {
     const { systemModel } = result.structuredContent as {
       systemModel: Record<string, unknown>;
     };
-    const id = SystemModelId.parse(systemModel.id);
+    const { id } = found;
     expect(systemModel).toEqual({
       id,
       name: 'shop',
@@ -394,7 +395,7 @@ describe('scan_system_model', () => {
     expect(textOf(result)).toContain(`Scanned shop (${id}): 1 modules`);
     expect(
       await new NoesisSystemModelsRepository(noesis.noesis).list(),
-    ).toEqual([{ ...found, id }]);
+    ).toEqual([found]);
   });
 
   it('answers a failed scan in-band', async () => {
