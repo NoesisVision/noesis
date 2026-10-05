@@ -2,7 +2,7 @@ import { IconArrowsExchange } from '@tabler/icons-react';
 import { useId } from 'react';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
-import { UnitActions } from '../../../unit-editor/unit-actions.tsx';
+import { AddButton, addTargetOf } from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DeclarationBox } from './declaration-box.tsx';
@@ -62,8 +62,20 @@ function Side({
   const caption = useId();
   return (
     <div className={classes.side}>
-      <span id={caption} className={classes.caption}>
-        {`${label} · ${items.length}`}
+      <span className={classes.captionRow}>
+        <span id={caption} className={classes.caption}>
+          {`${label} · ${items.length}`}
+        </span>
+        {behaviour !== null && (
+          <span className={classes.add}>
+            <AddButton
+              target={addTargetOf(output ? 'result' : 'parameter', {
+                kind: 'behaviour',
+                id: behaviour,
+              })}
+            />
+          </span>
+        )}
       </span>
       <ul
         aria-labelledby={caption}
@@ -78,17 +90,14 @@ function Side({
             // A parameter's or a result's path is its type's own row.
             typePath={item.path}
             output={output}
-            actions={
-              behaviour !== null &&
-              item.key !== undefined && (
-                <UnitActions
-                  unit={{
+            unit={
+              behaviour === null || item.key === undefined
+                ? undefined
+                : {
                     kind: output ? 'result' : 'parameter',
                     id: item.key,
                     owner: { kind: 'behaviour', id: behaviour },
-                  }}
-                />
-              )
+                  }
             }
           />
         ))}

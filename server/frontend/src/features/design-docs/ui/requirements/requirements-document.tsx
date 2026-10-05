@@ -61,9 +61,7 @@ export function RequirementsDocument({
   return (
     <Stack ref={ref} gap={0} px="lg" pt="lg" className={classes.page}>
       {doc.description !== '' && (
-        <Text c="var(--noesis-secondary-text)" maw="68ch">
-          {doc.description}
-        </Text>
+        <Text c="var(--noesis-secondary-text)">{doc.description}</Text>
       )}
       <Summary summary={requirements.summary} />
       <AddUnitButton kind="need" mt="sm" style={{ alignSelf: 'flex-start' }} />

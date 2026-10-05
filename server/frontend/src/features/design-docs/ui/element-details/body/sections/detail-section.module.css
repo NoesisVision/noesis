@@ -33,3 +33,24 @@
     color: var(--mantine-color-dimmed);
   }
 }
+
+/*
+ * The header's action shows while the pointer is over the section, or focus
+ * is in it — hidden by opacity alone, so the keyboard still reaches it. A
+ * screen with no hover keeps it in sight.
+ */
+.action {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+/* Its own header only: a section inside it reveals its own. */
+.root:is(:hover, :focus-within) > .title > .action {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .action {
+    opacity: 1;
+  }
+}

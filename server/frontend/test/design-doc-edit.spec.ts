@@ -6,8 +6,11 @@ import {
 import {
   applyEdit,
   draftErrors,
+  canMove,
   draftOfUnit,
   idOfDraft,
+  moveDestinationsOf,
+  movedIdOf,
   isEditableField,
   refKeyOf,
   UNIT_FIELDS,
@@ -498,5 +501,63 @@ describe('a part', () => {
     expect(fields).toEqual({
       'fields.needs.value': 'It answers a need this design does not state.',
     });
+  });
+});
+
+describe('moving an element', () => {
+  const hold = { kind: 'building_block', id: HOLD } as const;
+
+  it('is for one the design adds', () => {
+    expect(canMove(doc(), hold)).toBe(true);
+    expect(canMove(doc(), { kind: 'building_block', id: LEDGER })).toBe(false);
+    expect(
+      moveDestinationsOf(doc(), { kind: 'building_block', id: LEDGER }),
+    ).toEqual([]);
+  });
+
+  it('goes where a parent of its kind stands, never where it is', () => {
+    const next = applyEdit(doc(), {
+      op: 'add',
+      ref: { kind: 'module', id: 'module|refunds' },
+      unit: { id: 'module|refunds', name: { value: 'refunds' } },
+    });
+    expect(moveDestinationsOf(next, hold)).toEqual(['module|refunds']);
+    // A root module may go into another module, not to the top it is at.
+    expect(
+      moveDestinationsOf(next, { kind: 'module', id: 'module|refunds' }),
+    ).toEqual([MODULE]);
+  });
+
+  it('takes what is under it and what names it along', () => {
+    const next = applyEdit(doc(), {
+      op: 'move',
+      ref: hold,
+      to: 'module|refunds',
+    });
+    const moved = movedIdOf(hold, 'module|refunds');
+    expect(moved).toBe('building_block|refunds.Hold');
+    expect(next.buildingBlocks?.added?.[0]?.id).toBe(moved);
+    expect(next.behaviours?.added?.[0]?.id).toBe(
+      'behavior|refunds.Hold.settle',
+    );
+    expect(next.behaviours?.added?.[0]?.output?.added?.[0]?.type).toBe(moved);
+  });
+
+  it('brings a submodule to the top', () => {
+    const child = { kind: 'module', id: 'module|pay.cards' } as const;
+    const next = applyEdit(
+      applyEdit(doc(), {
+        op: 'add',
+        ref: child,
+        unit: { id: child.id, name: { value: 'cards' } },
+      }),
+      { op: 'move', ref: child, to: null },
+    );
+    expect(unitStateOf(next, { kind: 'module', id: 'module|cards' })).toBe(
+      'added',
+    );
+    expect(
+      moveDestinationsOf(next, { kind: 'module', id: 'module|cards' }),
+    ).toEqual([MODULE]);
   });
 });

@@ -279,7 +279,7 @@ describe('ElementDetail', () => {
   it('says what a block implements after its name, not in a section', () => {
     const html = show('building_block|pay.Hold');
     expect(html).toMatch(
-      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*>Lockable<\/span>, <span[^>]*>Settleable<\/span><\/span>/,
+      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*><span[^>]*>Lockable<\/span><\/span>, <span[^>]*><span[^>]*>Settleable<\/span><\/span><\/span>/,
     );
     // What the design removes stays, struck through.
     expect(html).toMatch(/<span[^>]*data-removed="true"[^>]*>Lockable<\/span>/);

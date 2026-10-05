@@ -6,10 +6,10 @@ import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
-import type { PartOwner } from '../../../../design-doc-edit.ts';
+import { AddButton, addTargetOf } from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 import { PropertyGrid } from './property-grid.tsx';
 import { Ref } from './ref.tsx';
@@ -36,7 +36,7 @@ export function ChangeListSection({
   kind,
   items,
 }: ChangeListSectionProps) {
-  const owner = ownerOf(element);
+  const owner = partOwnerOf(element);
   const { has, select } = useElementNavigation();
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
@@ -50,6 +50,12 @@ export function ChangeListSection({
     <DetailSection
       title={title}
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
+      action={
+        owner !== null &&
+        (kind === 'rule' || kind === 'property') && (
+          <AddButton target={addTargetOf(kind, owner)} />
+        )
+      }
     >
       {kind === 'property' ? (
         <PropertyGrid items={sorted} owner={owner} />
@@ -103,15 +109,3 @@ const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
 /** Shown only when the design touches the list at all. */
 ChangeListSection.shows = ({ items }: ChangeListSectionProps) =>
   items.length > 0;
-
-const KIND_OF = {
-  modules: 'module',
-  buildingBlocks: 'building_block',
-  behaviours: 'behaviour',
-} as const;
-
-/** The element a list's parts are written in; none for a part's own list. */
-const ownerOf = (element: ElementRef): PartOwner | null =>
-  'collection' in element
-    ? { kind: KIND_OF[element.collection], id: element.id }
-    : null;

@@ -51,6 +51,7 @@ export function DesignDocDetail({
         changeId={changeId}
         docId={id}
         document={document.data.document}
+        onMoved={(moved) => model.onSelect(moved, 'detail')}
       >
         {view === 'requirements' ? (
           <RequirementsView

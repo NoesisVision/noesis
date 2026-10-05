@@ -187,3 +187,39 @@ describe('ModelTree, searching', () => {
     expect(searched.match(/data-context/g)?.length).toBe(3);
   });
 });
+
+describe('a tree that moves rows', () => {
+  function Moving({ movable }: { movable: string }) {
+    const controller = useModelTree(outlineFixture, {
+      selected: null,
+      onSelect: nothing,
+      query: '',
+      onQuery: nothing,
+    });
+    return (
+      <ModelTree
+        controller={controller}
+        label="Design outline"
+        moving={{
+          canMove: (node) => node.name === movable,
+          canDrop: () => true,
+          onDrop: nothing,
+        }}
+      />
+    );
+  }
+
+  it('lets only a row that may move be dragged', () => {
+    const root = outlineFixture.find((node) => node.depth === 0)!;
+    const markup = renderToStaticMarkup(
+      <MantineProvider>
+        <Moving movable={root.name} />
+      </MantineProvider>,
+    );
+    expect(markup.match(/draggable="true"/g)).toHaveLength(1);
+  });
+
+  it('lets nothing be dragged where it moves nothing', () => {
+    expect(html).not.toContain('draggable');
+  });
+});

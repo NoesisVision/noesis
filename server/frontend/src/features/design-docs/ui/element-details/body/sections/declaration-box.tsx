@@ -1,7 +1,11 @@
-import type { ReactNode } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
+import type { UnitRef } from '../../../../design-doc-edit.ts';
+import {
+  UnitActions,
+  UnitContextMenu,
+} from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -21,7 +25,7 @@ export function DeclarationBox({
   typePath,
   component: Component = 'div',
   output,
-  actions,
+  unit,
 }: {
   item: ChangeListItem;
   /** The row the type opens, if the tree has one. */
@@ -30,14 +34,18 @@ export function DeclarationBox({
   component?: 'div' | 'li';
   /** What a behaviour gives back, drawn in the brand's tint. */
   output?: boolean;
-  /** What may be done to the declaration, in the box's corner. */
-  actions?: ReactNode;
+  /** The unit the box stands for: right-clicked, it opens that unit's menu. */
+  unit?: UnitRef;
 }) {
   const { change, label, name, type, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
     <Component className={classes.box} data-output={output || undefined}>
-      {actions && <span className={classes.actions}>{actions}</span>}
+      {unit && (
+        <span className={classes.actions}>
+          <UnitActions unit={unit} keyboardOnly />
+        </span>
+      )}
       {name !== undefined && (
         <span className={classes.name} data-removed={removed}>
           {name}
@@ -60,10 +68,16 @@ export function DeclarationBox({
       )}
     </Component>
   );
-  return type === undefined ? (
-    box
+  const card =
+    type === undefined ? (
+      box
+    ) : (
+      <ElementTooltip name={type}>{box}</ElementTooltip>
+    );
+  return unit === undefined ? (
+    card
   ) : (
-    <ElementTooltip name={type}>{box}</ElementTooltip>
+    <UnitContextMenu unit={unit}>{card}</UnitContextMenu>
   );
 }
 

@@ -1,23 +1,13 @@
 import type { ReactNode } from 'react';
-import { Box } from '#/shared/design-system/box.tsx';
+import { Blockquote } from '#/shared/design-system/blockquote.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import classes from './requirements-view.module.css';
 
 /** What a need or a rule says, set apart as a quotation of the design. */
 export function Statement({ children }: { children: ReactNode }) {
   return (
-    <Box
-      component="blockquote"
-      className={classes.quote}
-      mt="xs"
-      mb={0}
-      mx={0}
-      py="xs"
-      px="sm"
-      maw="70ch"
-    >
+    <Blockquote color="brand" radius="sm" mt="xs" py="xs" px="sm">
       {children}
-    </Box>
+    </Blockquote>
   );
 }
 

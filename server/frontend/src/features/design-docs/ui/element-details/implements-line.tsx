@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName, shortName } from '#/shared/ui/qualified-name.tsx';
-import { UnitActions } from '../unit-editor/unit-actions.tsx';
+import { RemoveButton } from '../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from './change-list-items.ts';
 import { useElementNavigation } from './element-navigation.ts';
 import { ElementTooltip } from './element-tooltip.tsx';
@@ -34,31 +34,34 @@ export function ImplementsLine({
         return (
           <Fragment key={`${change}:${label}`}>
             {index > 0 && ', '}
-            <ElementTooltip name={label}>
-              {path !== null && has(path) ? (
-                <UnstyledButton
-                  className={classes.type}
-                  data-link
-                  data-removed={removed}
-                  onClick={() => select(path)}
-                >
-                  <QualifiedName name={label} />
-                </UnstyledButton>
-              ) : (
-                <span className={classes.type} data-removed={removed}>
-                  <QualifiedName name={label} />
-                </span>
+            <span className={classes.implemented}>
+              <ElementTooltip name={label}>
+                {path !== null && has(path) ? (
+                  <UnstyledButton
+                    className={classes.type}
+                    data-link
+                    data-removed={removed}
+                    onClick={() => select(path)}
+                  >
+                    <QualifiedName name={label} />
+                  </UnstyledButton>
+                ) : (
+                  <span className={classes.type} data-removed={removed}>
+                    <QualifiedName name={label} />
+                  </span>
+                )}
+              </ElementTooltip>
+              {block !== null && path !== null && (
+                <RemoveButton
+                  className={classes.remove}
+                  unit={{
+                    kind: 'implements',
+                    id: path,
+                    owner: { kind: 'building_block', id: block },
+                  }}
+                />
               )}
-            </ElementTooltip>
-            {block !== null && path !== null && (
-              <UnitActions
-                unit={{
-                  kind: 'implements',
-                  id: path,
-                  owner: { kind: 'building_block', id: block },
-                }}
-              />
-            )}
+            </span>
           </Fragment>
         );
       })}

@@ -24,12 +24,26 @@ export interface ModelTreeProps {
   controller: ModelTreeController;
   /** What the tree is of, for a reader who arrives at it by keyboard. */
   label: string;
+  /** Which rows may be dragged, where to, and what a drop does; none for a tree read only. */
+  moving?: TreeMoving;
 }
+
+/**
+ * Moving a row by dragging it onto another. Dragging is never the only way:
+ * whoever passes this offers the same move without a pointer.
+ */
+export interface TreeMoving {
+  canMove: (node: OutlineNode) => boolean;
+  canDrop: (node: OutlineNode, onto: OutlineNode) => boolean;
+  onDrop: (node: OutlineNode, onto: OutlineNode) => void;
+}
+
+const NEVER = () => false;
 
 const CHANGES = Object.keys(CHANGE_COLOUR) as OutlineChange[];
 const NONE: readonly OutlineNode[] = [];
 
-export function ModelTree({ controller, label }: ModelTreeProps) {
+export function ModelTree({ controller, label, moving }: ModelTreeProps) {
   const baseId = useId();
   const { tree, selected, search, isExpanded } = controller;
 
@@ -38,19 +52,50 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
    * whatever the controller is now: a callback that changed with every render
    * would render every row with it.
    */
-  const latest = useRef(controller);
+  const latest = useRef({ controller, moving });
   useLayoutEffect(() => {
-    latest.current = controller;
+    latest.current = { controller, moving };
   });
-  const actions = useMemo<TreeActions>(
-    () => ({
-      select: (path, source) => latest.current.select(path, source),
-      toggle: (path) => latest.current.toggle(path),
-      expand: (path) => latest.current.expand(path),
-      collapse: (path) => latest.current.collapse(path),
-    }),
-    [],
-  );
+  // Held outside state: a drag is one gesture, and only its target is drawn.
+  const dragged = useRef<string | null>(null);
+  const [dropPath, setDropPath] = useState<string | null>(null);
+  const actions = useMemo<TreeActions>(() => {
+    /** The row being dragged and the one under it, as nodes; null when either is gone. */
+    const draggedOnto = (path: string): [OutlineNode, OutlineNode] | null => {
+      const { tree: now } = latest.current.controller;
+      const node =
+        dragged.current === null ? undefined : now.byPath.get(dragged.current);
+      const onto = now.byPath.get(path);
+      return node === undefined || onto === undefined ? null : [node, onto];
+    };
+    return {
+      select: (path, source) => latest.current.controller.select(path, source),
+      toggle: (path) => latest.current.controller.toggle(path),
+      expand: (path) => latest.current.controller.expand(path),
+      collapse: (path) => latest.current.controller.collapse(path),
+      dragStart: (path) => {
+        dragged.current = path;
+      },
+      dragOver: (path) => {
+        const pair = draggedOnto(path);
+        const allowed =
+          pair !== null && (latest.current.moving?.canDrop(...pair) ?? false);
+        setDropPath(allowed ? path : null);
+        return allowed;
+      },
+      drop: (path) => {
+        const pair = draggedOnto(path);
+        if (pair !== null && latest.current.moving?.canDrop(...pair))
+          latest.current.moving.onDrop(...pair);
+        dragged.current = null;
+        setDropPath(null);
+      },
+      dragEnd: () => {
+        dragged.current = null;
+        setDropPath(null);
+      },
+    };
+  }, []);
 
   const rowIds = useMemo(
     () =>
@@ -103,6 +148,14 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
   // reach the rest.
   const focusPath = selected ?? roots[0]?.path ?? null;
 
+  const canDrag = useMemo(() => {
+    if (moving === undefined) return NEVER;
+    return (path: string) => {
+      const node = tree.byPath.get(path);
+      return node !== undefined && moving.canMove(node);
+    };
+  }, [tree, moving]);
+
   const snapshot = useMemo<TreeSnapshot>(
     () => ({
       selected,
@@ -114,6 +167,8 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
       matched: search.active ? search.matched : null,
       rowIds,
       colours,
+      canDrag,
+      dropPath,
     }),
     [
       selected,
@@ -124,6 +179,8 @@ export function ModelTree({ controller, label }: ModelTreeProps) {
       search,
       rowIds,
       colours,
+      canDrag,
+      dropPath,
     ],
   );
   // Made with the first snapshot, so the first render is already whole.

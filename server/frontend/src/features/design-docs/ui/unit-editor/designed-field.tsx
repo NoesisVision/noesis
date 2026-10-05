@@ -48,11 +48,11 @@ export function DesignedField({
             <Tooltip label="Keep what the model says" openDelay={300}>
               <ActionIcon
                 variant="subtle"
-                size="sm"
+                size="md"
                 aria-label={`Keep the ${label.toLowerCase()} the model has`}
                 onClick={onReset}
               >
-                <IconArrowBackUp size={16} aria-hidden />
+                <IconArrowBackUp size={20} aria-hidden />
               </ActionIcon>
             </Tooltip>
           </Group>

@@ -164,3 +164,42 @@ h2.name {
   position: sticky;
   top: 0;
 }
+
+/* A type with the icon that removes it, kept together on the line. */
+.implemented {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/*
+ * The icon shows while the pointer is over its type, or focus is on it.
+ * Hidden, it takes no room, so the line reads "A, B" without a gap; it is
+ * hidden by opacity and size alone, so the keyboard still reaches it. A
+ * screen with no hover keeps it in sight. Named with its type to win over
+ * the size the icon button gives itself.
+ */
+.implemented .remove {
+  width: 0;
+  min-width: 0;
+  border-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.implemented:is(:hover, :focus-within) .remove {
+  width: var(--ai-size);
+  min-width: var(--ai-size);
+  margin-left: 2px;
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .implemented .remove {
+    width: var(--ai-size);
+    min-width: var(--ai-size);
+    margin-left: 2px;
+    opacity: 1;
+  }
+}

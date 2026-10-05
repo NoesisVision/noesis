@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import type { PartOwner } from '../../../../design-doc-edit.ts';
-import { UnitActions } from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { DeclarationBox } from './declaration-box.tsx';
 
@@ -53,11 +52,10 @@ export function PropertyGrid({
           <DeclarationBox
             item={item}
             typePath={item.typePath}
-            actions={
-              owner !== null &&
-              item.key !== undefined && (
-                <UnitActions unit={{ kind: 'property', id: item.key, owner }} />
-              )
+            unit={
+              owner === null || item.key === undefined
+                ? undefined
+                : { kind: 'property', id: item.key, owner }
             }
           />
         ),

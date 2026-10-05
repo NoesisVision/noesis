@@ -220,7 +220,6 @@ function FieldInput({
             value: type,
             label: titleCase(type).replaceAll('_', ' '),
           }))}
-          comboboxProps={{ withinPortal: false }}
           value={fields.type!.value || null}
           onChange={(type) => form.setFieldValue(path, type ?? '')}
         />
@@ -242,7 +241,6 @@ function FieldInput({
             // A module holds quality and constraint rules only.
             (category) => owner?.kind !== 'module' || category !== 'Business',
           )}
-          comboboxProps={{ withinPortal: false }}
           value={fields.category!.value || null}
           onChange={(category) => {
             form.setFieldValue(path, category ?? '');
@@ -273,7 +271,6 @@ function FieldInput({
             group,
             items: [...RULE_TYPES_OF[group]],
           }))}
-          comboboxProps={{ withinPortal: false }}
           value={fields.ruleType!.value || null}
           onChange={(ruleType) => form.setFieldValue(path, ruleType ?? '')}
         />
@@ -288,7 +285,6 @@ function FieldInput({
             value: need.id,
             label: valueOf(need.name) ?? need.id,
           }))}
-          comboboxProps={{ withinPortal: false }}
           value={fields.needs!.value}
           onChange={(needs) => form.setFieldValue(path, needs)}
         />
@@ -368,7 +364,6 @@ function RefInput({
         nothingFoundMessage="No such type in this design"
         allowDeselect={false}
         data={data}
-        comboboxProps={{ withinPortal: false }}
         value={typeof item === 'string' && item !== '' ? item : null}
         onChange={(next) => onChange(wrap(next ?? '', collection))}
       />
@@ -440,7 +435,6 @@ function VisibilityInput({
           placeholder="Add an actor"
           value={value.actors}
           onChange={(actors) => onChange({ kind: 'public', actors })}
-          comboboxProps={{ withinPortal: false }}
         />
       )}
     </Stack>

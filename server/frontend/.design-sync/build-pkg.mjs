@@ -102,7 +102,7 @@ export interface ButtonProps extends MantineButtonProps {
 export declare const Button: (<C = 'button'>(props: PolymorphicComponentProps<C, ButtonProps>) => React.ReactElement) & Pick<typeof MantineButton, 'extend' | 'classes' | 'Group' | 'GroupSection'>;
 `,
   'menu.d.ts': `import type { Menu as MantineMenu } from '@mantine/core';
-export declare const Menu: ((props: import('@mantine/core').MenuProps) => React.ReactElement) & Pick<typeof MantineMenu, 'Target' | 'Dropdown' | 'Item' | 'Label' | 'Divider'>;
+export declare const Menu: ((props: import('@mantine/core').MenuProps) => React.ReactElement) & Pick<typeof MantineMenu, 'Target' | 'Dropdown' | 'Item' | 'Label' | 'Divider' | 'ContextMenu'>;
 `,
 };
 const dtsDir = `${OUT}/dist/${DS}`;

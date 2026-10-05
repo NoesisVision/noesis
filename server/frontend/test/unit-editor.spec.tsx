@@ -8,8 +8,13 @@ import {
   type UnitRef,
   unitOf,
 } from '../src/features/design-docs/design-doc-edit';
+import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
+import { DiagramSection } from '../src/features/design-docs/ui/element-details/body/sections/diagram-section';
 import { DesignedField } from '../src/features/design-docs/ui/unit-editor/designed-field';
-import { UnitActions } from '../src/features/design-docs/ui/unit-editor/unit-actions';
+import {
+  RemoveButton,
+  UnitActions,
+} from '../src/features/design-docs/ui/unit-editor/unit-actions';
 import { UnitEditingContext } from '../src/features/design-docs/ui/unit-editor/unit-editing';
 import { UnitFields } from '../src/features/design-docs/ui/unit-editor/unit-fields';
 import { useForm } from '../src/shared/design-system/form';
@@ -172,7 +177,7 @@ describe('the fields of a part', () => {
 });
 
 describe('the actions on a unit', () => {
-  const editing = { document, write: noop, remove: noop };
+  const editing = { document, write: noop, remove: noop, move: noop };
 
   it('are nowhere the document is read only', () => {
     expect(
@@ -202,5 +207,91 @@ describe('the actions on a unit', () => {
       </UnitEditingContext.Provider>,
     );
     expect(html).toBe(render(null));
+  });
+});
+
+describe('a section of an element', () => {
+  const editing = { document, write: noop, remove: noop, move: noop };
+  const element = { collection: 'buildingBlocks', id: BLOCK } as const;
+  const rules = (
+    <ChangeListSection element={element} title="Rules" kind="rule" items={[]} />
+  );
+
+  it('adds one more of what it lists from its header', () => {
+    const html = render(
+      <UnitEditingContext.Provider value={editing}>
+        {rules}
+      </UnitEditingContext.Provider>,
+    );
+    expect(html).toContain('aria-label="Add rule"');
+  });
+
+  it('edits the field it shows from its header', () => {
+    const html = render(
+      <UnitEditingContext.Provider value={editing}>
+        <DiagramSection
+          element={element}
+          field={{ value: 'flowchart TD\n  A --> B', author: 'agent' }}
+        />
+      </UnitEditingContext.Provider>,
+    );
+    expect(html).toContain('aria-label="Edit the diagram"');
+  });
+
+  it('adds nothing where the document is read only', () => {
+    expect(render(rules)).not.toContain('Add rule');
+  });
+
+  it('adds nothing to an element the design removes', () => {
+    const html = render(
+      <UnitEditingContext.Provider value={editing}>
+        <ChangeListSection
+          element={{
+            collection: 'buildingBlocks',
+            id: 'building_block|pay.Old',
+          }}
+          title="Rules"
+          kind="rule"
+          items={[]}
+        />
+      </UnitEditingContext.Provider>,
+    );
+    expect(html).not.toContain('Add rule');
+  });
+});
+
+describe('an implemented type', () => {
+  const lockable = 'building_block|pay.Lockable';
+  const settleable = 'building_block|pay.Settleable';
+  const withImplements: DesignDocumentInput = {
+    ...document,
+    buildingBlocks: {
+      modified: [
+        { id: BLOCK, implements: { added: [lockable], removed: [settleable] } },
+      ],
+    },
+  };
+  const editing = {
+    document: withImplements,
+    write: noop,
+    remove: noop,
+    move: noop,
+  };
+  const owner = { kind: 'building_block', id: BLOCK } as const;
+  const button = (id: string) =>
+    render(
+      <UnitEditingContext.Provider value={editing}>
+        <RemoveButton unit={{ kind: 'implements', id, owner }} />
+      </UnitEditingContext.Provider>,
+    );
+
+  it('is removed with one small icon', () => {
+    expect(button(lockable)).toContain(
+      'aria-label="Remove the implemented type Lockable"',
+    );
+  });
+
+  it('offers nothing once the design removes it', () => {
+    expect(button(settleable)).toBe(render(null));
   });
 });

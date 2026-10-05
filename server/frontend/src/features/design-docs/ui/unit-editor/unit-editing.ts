@@ -12,6 +12,8 @@ export interface UnitEditing {
   write: (target: UnitTarget) => void;
   /** Asks before the unit leaves the design, or comes back to it. */
   remove: (ref: UnitRef) => void;
+  /** Asks where an element goes, or confirms where a drop put it. */
+  move: (ref: UnitRef, to?: string | null) => void;
 }
 
 export const UnitEditingContext = createContext<UnitEditing | null>(null);

@@ -67,13 +67,33 @@
   color: var(--mantine-color-dimmed);
 }
 
-/* The unit's actions in the corner, clear of the name beside them. */
-.box:has(.actions) {
-  padding-right: 32px;
-}
-
+/* The keyboard's way to the unit's menu, in the corner once it has focus. */
 .actions {
   position: absolute;
   top: 4px;
   right: 4px;
+}
+
+/*
+ * A card with a menu answers the pointer: its edge turns the brand's blue, and stays
+ * so while its menu — opened with a right-click — is open.
+ */
+.box {
+  transition: border-color 150ms ease;
+}
+
+.box[data-context-menu]:hover,
+.box[data-expanded] {
+  border-color: var(--mantine-primary-color-filled);
+}
+
+/*
+ * A right-click menu keeps text from being picked out on a long-press; with
+ * a mouse there is no long-press, so the card's text stays selectable.
+ */
+@media (hover: hover) {
+  .box {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
 }

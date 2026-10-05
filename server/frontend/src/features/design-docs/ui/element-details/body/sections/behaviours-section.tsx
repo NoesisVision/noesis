@@ -7,9 +7,15 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
+import {
+  AddButton,
+  addTargetOf,
+  UnitActions,
+  UnitContextMenu,
+} from '../../../unit-editor/unit-actions.tsx';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { DetailSection } from './detail-section.tsx';
 import classes from './behaviours-section.module.css';
@@ -29,28 +35,58 @@ interface BehavioursSectionProps {
  * what it takes and what it gives back, its kind, and what it is for. Its name
  * opens its row; what it takes in full is on that row's own page.
  */
-export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
+export function BehavioursSection({
+  element,
+  behaviours,
+}: BehavioursSectionProps) {
+  const owner = partOwnerOf(element);
   return (
-    <DetailSection title="Behaviours" icon={<IconBolt />}>
+    <DetailSection
+      title="Behaviours"
+      icon={<IconBolt />}
+      action={
+        owner !== null && <AddButton target={addTargetOf('behaviour', owner)} />
+      }
+    >
       <ul className={canvas.canvas}>
-        {behaviours.map(({ node, behaviour }) => (
-          <li key={node.path} className={classes.behaviour}>
-            <div className={classes.signature}>
-              <Mark node={node} />
-              {/* The name never breaks; what it takes and gives moves under
+        {behaviours.map(({ node, behaviour }) => {
+          const row = (
+            <li key={node.path} className={classes.behaviour}>
+              <div className={classes.signature}>
+                <Mark node={node} />
+                {/* The name never breaks; what it takes and gives moves under
                   it, as one piece, when the line runs out. */}
-              <code className={classes.code}>
-                <BehaviourName node={node} />
-                {behaviour !== null && (
-                  <span className={classes.shape}>
-                    <Shape behaviour={behaviour} />
+                <code className={classes.code}>
+                  <BehaviourName node={node} />
+                  {behaviour !== null && (
+                    <span className={classes.shape}>
+                      <Shape behaviour={behaviour} />
+                    </span>
+                  )}
+                </code>
+                {node.elementId !== null && (
+                  <span className={classes.actions}>
+                    <UnitActions
+                      unit={{ kind: 'behaviour', id: node.elementId }}
+                      keyboardOnly
+                    />
                   </span>
                 )}
-              </code>
-            </div>
-            {behaviour !== null && <Definition behaviour={behaviour} />}
-          </li>
-        ))}
+              </div>
+              {behaviour !== null && <Definition behaviour={behaviour} />}
+            </li>
+          );
+          return node.elementId === null ? (
+            row
+          ) : (
+            <UnitContextMenu
+              key={node.path}
+              unit={{ kind: 'behaviour', id: node.elementId }}
+            >
+              {row}
+            </UnitContextMenu>
+          );
+        })}
       </ul>
     </DetailSection>
   );
