@@ -58,6 +58,31 @@ Often the honest answer is a near miss in CSS (centred on the visible panel
 rather than the window) against the exact result in script. Offer both and
 let the developer choose; do not ship a hook they did not ask for.
 
+### A new CSS variable goes through Mantine
+
+CSS reads Mantine's variables (`var(--mantine-color-…)`, `--mantine-spacing-…`)
+rather than literal values. When a value the CSS needs has no variable yet — a
+colour or size used in more than one place, or one that differs between light
+and dark — do not declare it on `:root` in a stylesheet or set it from a
+component. Add it the way Mantine defines its own, with a
+[CSS variables resolver](https://mantine.dev/styles/css-variables/#css-variables-resolver):
+
+- Write the resolver in `src/shared/design-system/theme.ts`, beside the theme
+  (it is the one place `@mantine/core` may be imported for it), typed
+  `CSSVariablesResolver`, returning `variables` for both schemes and `light` /
+  `dark` for the ones that differ. Read its values from the theme
+  (`theme.colors`, `theme.other`) rather than repeating hex codes.
+- Pass it to `MantineProvider` in `src/main.tsx` as `cssVariablesResolver`,
+  next to `theme`.
+- Name it `--noesis-…` (Mantine keeps `--mantine-…` for itself), after what it
+  is for, not what it looks like: `--noesis-page-background`, not
+  `--noesis-gray-0`.
+- Declare it in [`server/frontend/web-types.json`](../../../server/frontend/web-types.json)
+  under `contributions.css.properties`, with a `name` and a `description`
+  that says what it is for and where its value comes from, as the brand
+  entries there do. That is what lets the IDE complete it and stop flagging it
+  as unknown in a CSS module.
+
 ## Accessibility
 
 **Follow WCAG 2.2 level AA wherever it applies.** The UI is a reading tool: it
