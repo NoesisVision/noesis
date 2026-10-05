@@ -30,7 +30,7 @@
     "prepublishOnly": "bun run generate"
   },
   "devDependencies": {
-    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/client": "2.2.0",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:"
