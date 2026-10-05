@@ -16,23 +16,39 @@ const WIDE = '(min-width: 62em)';
 
 /**
  * A width left in storage by another version of the app must not decide how a
- * page is laid out, so anything that is not a pair of shares reads as the
- * default. Parsing is the one throwing call, and it is kept to this helper.
+ * page is laid out, so anything that is not a set of shares like `defaults`
+ * reads as `defaults`. Parsing is the one throwing call, and it is kept to
+ * this helper.
  */
-function toColumns(stored: string | undefined): number[] {
+function toShares(stored: string | undefined, defaults: number[]): number[] {
   try {
     const parsed: unknown = stored === undefined ? null : JSON.parse(stored);
-    const pair =
+    const valid =
       Array.isArray(parsed) &&
-      parsed.length === DEFAULT_COLUMNS.length &&
+      parsed.length === defaults.length &&
       parsed.every(
         (share) => typeof share === 'number' && share > 0 && share < 100,
       );
-    if (pair) return parsed as number[];
+    if (valid) return parsed as number[];
   } catch {
     // Unreadable is the same as absent.
   }
-  return DEFAULT_COLUMNS;
+  return defaults;
+}
+
+/**
+ * How a splitter's panes were last left, as percentage shares, kept under
+ * `key`: a layout the reader chose, not one any document decides.
+ */
+export function useStoredShares(key: string, defaults: number[]) {
+  return useLocalStorage<number[]>({
+    key,
+    defaultValue: defaults,
+    deserialize: (stored) => toShares(stored, defaults),
+    // Nothing renders on a server here, so the stored widths can be read
+    // while the first paint is drawn rather than corrected after it.
+    getInitialValueInEffect: false,
+  });
 }
 
 /**
@@ -57,14 +73,7 @@ export function Columns({
   detail: ReactNode;
 }) {
   const wide = useMediaQuery(WIDE, true);
-  const [columns, setColumns] = useLocalStorage<number[]>({
-    key: COLUMNS_KEY,
-    defaultValue: DEFAULT_COLUMNS,
-    deserialize: toColumns,
-    // Nothing renders on a server here, so the stored widths can be read
-    // while the first paint is drawn rather than corrected after it.
-    getInitialValueInEffect: false,
-  });
+  const [columns, setColumns] = useStoredShares(COLUMNS_KEY, DEFAULT_COLUMNS);
 
   // One of the two branches renders, so the outline's scroller is one element.
   const outlinePane = (

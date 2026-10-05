@@ -91,17 +91,9 @@ h2.name {
   }
 }
 
-/*
- * Sections on the left, scenarios on the right — once the panel is wide
- * enough for two columns to be read; under that, the scenarios follow.
- */
+/* Measured: from 44rem the scenarios stand beside the sections, split. */
 .body {
-  container-type: inline-size;
-}
-
-.columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
 
 .sections {
@@ -118,15 +110,26 @@ h2.name {
   border-top: 1px solid var(--mantine-color-default-border);
 }
 
-@container (min-width: 44rem) {
-  .columns {
-    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
-    align-items: start;
-  }
+/*
+ * The handle between the sections and the scenarios is the line that used to
+ * part them: one pixel of the border colour, with Mantine's grip on it.
+ */
+.split {
+  --splitter-handle-color: var(--mantine-color-default-border);
 
-  .aside {
-    align-self: stretch;
-    border-top: none;
-    border-left: 1px solid var(--mantine-color-default-border);
-  }
+  align-items: stretch;
+}
+
+/*
+ * The grip near the top rather than halfway down a column that may be far
+ * taller than the screen: 53px down, where the reader finds it.
+ */
+.splitThumb {
+  top: 53px;
+}
+
+/* The panel scrolls, not a column: a pane is as tall as what it holds. */
+.splitPane {
+  min-width: 0;
+  overflow: visible;
 }
