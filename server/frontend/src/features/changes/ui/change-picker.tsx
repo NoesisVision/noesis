@@ -97,6 +97,17 @@ export function ChangePicker({
                     {CHANGE_TYPE_META[current.type].label}
                   </Badge>
                 ) : null}
+                {current ? (
+                  <Badge
+                    size="xs"
+                    variant="light"
+                    visibleFrom="lg"
+                    color={CHANGE_STATUS_META[current.status].color}
+                    style={{ flex: 'none' }}
+                  >
+                    {CHANGE_STATUS_META[current.status].label}
+                  </Badge>
+                ) : null}
                 <IconSelector
                   size={16}
                   style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}

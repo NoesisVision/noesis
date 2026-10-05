@@ -72,6 +72,9 @@
 /* The header's one-line picker: as tall as the controls beside it. */
 .compact.compact {
   display: block;
+  /* A button sizes to its content even as a block; held to its slot instead,
+     so a long name truncates rather than running off a phone's screen. */
+  width: 100%;
   min-width: 0;
   max-width: 420px;
   height: 38px;
@@ -100,4 +103,13 @@
     border-color: var(--mantine-primary-color-filled);
     box-shadow: 0 0 0 2px var(--mantine-primary-color-light);
   }
+}
+
+/*
+ * The whole picker is one button: its badges take its pointer, not the
+ * `default` cursor Mantine gives a badge of its own.
+ */
+.pick.pick *,
+.compact.compact * {
+  cursor: inherit;
 }
