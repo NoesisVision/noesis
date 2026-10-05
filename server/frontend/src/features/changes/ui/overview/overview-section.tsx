@@ -34,7 +34,7 @@ export function OverviewSection({
       </Title>
       <Grid>
         {items.map((item) => (
-          <Grid.Col key={item.id} span={{ base: 12, md: 6, lg: 4 }}>
+          <Grid.Col key={item.id} span={{ base: 12, md: 6 }}>
             {item.card}
           </Grid.Col>
         ))}

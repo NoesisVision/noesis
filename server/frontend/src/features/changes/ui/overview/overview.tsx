@@ -31,28 +31,24 @@ export function OverviewView() {
           <MarkdownEditor readOnly markdown={change.description} noMargin />
         </Box>
       )}
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <Card padding="lg">
-            <Grid>
-              <Grid.Col span={6}>
-                <OverviewStat title="Documents" Icon={DocumentsIcon}>
-                  <ChangesLink to="/changes/$changeId/documents">
-                    {count(documents)}
-                  </ChangesLink>
-                </OverviewStat>
-              </Grid.Col>
-              <Grid.Col span={6}>
-                <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
-                  <ChangesLink to="/changes/$changeId/design-docs">
-                    {count(designDocs)}
-                  </ChangesLink>
-                </OverviewStat>
-              </Grid.Col>
-            </Grid>
-          </Card>
-        </Grid.Col>
-      </Grid>
+      <Card padding="lg">
+        <Grid>
+          <Grid.Col span={6}>
+            <OverviewStat title="Documents" Icon={DocumentsIcon}>
+              <ChangesLink to="/changes/$changeId/documents">
+                {count(documents)}
+              </ChangesLink>
+            </OverviewStat>
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
+              <ChangesLink to="/changes/$changeId/design-docs">
+                {count(designDocs)}
+              </ChangesLink>
+            </OverviewStat>
+          </Grid.Col>
+        </Grid>
+      </Card>
       <OverviewSection
         mt={16}
         title="Documents"
