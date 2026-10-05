@@ -2,6 +2,7 @@ import { IconAlertCircle } from '@tabler/icons-react';
 import type { ReactNode, Ref } from 'react';
 import { plural } from '#/features/design-docs/ui/plural.ts';
 import { Box } from '#/shared/design-system/box.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { List } from '#/shared/design-system/list.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -22,6 +23,7 @@ import {
   UNADDRESSED_NEEDS_TITLE,
 } from '../../design-doc-requirements.ts';
 import type { DesignDocDetail } from '../../design-docs.api.ts';
+import { AddUnitButton, UnitActions } from '../unit-editor/unit-actions.tsx';
 import { type EntryMark, entryMark } from './entry-mark.ts';
 import { RuleEntry } from './rule-entry.tsx';
 import { Remark, Statement } from './statement.tsx';
@@ -64,13 +66,17 @@ export function RequirementsDocument({
         </Text>
       )}
       <Summary summary={requirements.summary} />
+      <AddUnitButton kind="need" mt="sm" style={{ alignSelf: 'flex-start' }} />
 
       {requirements.needs.map(({ need, rules }) => (
         <Section key={need.id} {...mark(needPath(need.id))}>
           <SectionHead>
-            <Title order={2} size="h3">
-              {needNameOf(need)}
-            </Title>
+            <Group justify="space-between" wrap="nowrap">
+              <Title order={2} size="h3">
+                {needNameOf(need)}
+              </Title>
+              <UnitActions unit={{ kind: 'need', id: need.id }} />
+            </Group>
             <NeedBody need={need} />
           </SectionHead>
           {rules.length > 0 ? (
@@ -116,9 +122,12 @@ export function RequirementsDocument({
               py="md"
               {...mark(needPath(need.id, UNADDRESSED_NEEDS_PATH))}
             >
-              <Title order={3} size="h5">
-                {needNameOf(need)}
-              </Title>
+              <Group justify="space-between" wrap="nowrap">
+                <Title order={3} size="h5">
+                  {needNameOf(need)}
+                </Title>
+                <UnitActions unit={{ kind: 'need', id: need.id }} />
+              </Group>
               <NeedBody need={need} />
             </Box>
           ))

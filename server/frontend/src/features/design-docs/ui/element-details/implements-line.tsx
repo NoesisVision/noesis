@@ -1,6 +1,7 @@
 import { Fragment } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName, shortName } from '#/shared/ui/qualified-name.tsx';
+import { UnitActions } from '../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from './change-list-items.ts';
 import { useElementNavigation } from './element-navigation.ts';
 import { ElementTooltip } from './element-tooltip.tsx';
@@ -12,7 +13,14 @@ import classes from './element-detail.module.css';
  * segment, its address on hover, opening its row when the tree has one; one
  * the design removes is struck through.
  */
-export function ImplementsLine({ items }: { items: ChangeListItem[] }) {
+export function ImplementsLine({
+  items,
+  block,
+}: {
+  items: ChangeListItem[];
+  /** The block that implements them, which a write from the line names. */
+  block: string | null;
+}) {
   const { has, select } = useElementNavigation();
   if (items.length === 0) return null;
   const sorted = [...items].sort((a, b) =>
@@ -42,6 +50,15 @@ export function ImplementsLine({ items }: { items: ChangeListItem[] }) {
                 </span>
               )}
             </ElementTooltip>
+            {block !== null && path !== null && (
+              <UnitActions
+                unit={{
+                  kind: 'implements',
+                  id: path,
+                  owner: { kind: 'building_block', id: block },
+                }}
+              />
+            )}
           </Fragment>
         );
       })}

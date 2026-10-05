@@ -21,6 +21,7 @@
     "@lexical/rich-text": "^0.48.0",
     "@logtape/logtape": "^2.3.4",
     "@mantine/core": "^9.6.1",
+    "@mantine/form": "^9.6.1",
     "@mantine/hooks": "^9.6.1",
     "@mdxeditor/editor": "^4.2.5",
     "@tabler/icons-react": "^3.46.0",

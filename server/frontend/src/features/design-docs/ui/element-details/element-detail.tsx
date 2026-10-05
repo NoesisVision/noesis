@@ -7,7 +7,11 @@ import { useElementSize } from '#/shared/design-system/hooks.ts';
 import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../change-set.ts';
+import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
+import { ownerOfPart } from '../../design-doc-outline.ts';
+import { kindOf } from '../../element-id.ts';
+import { UnitActions } from '../unit-editor/unit-actions.tsx';
 import { bodySections } from './body/body-sections.tsx';
 import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
@@ -87,13 +91,17 @@ export function ElementDetail({
                 <VisibilityBadge visibility={visibility} />
                 <ChangeBadge change={node.change} />
                 <ImplementedByModal items={implementers} />
+                <NodeActions node={node} />
               </Group>
             </div>
             <div className={classes.title}>
               <Title order={2} className={classes.name}>
                 {node.name}
               </Title>
-              <ImplementsLine items={implemented} />
+              <ImplementsLine
+                items={implemented}
+                block={node.kind === 'building_block' ? node.elementId : null}
+              />
             </div>
           </div>
         </header>
@@ -108,6 +116,7 @@ export function ElementDetail({
                   <ScenarioColumn
                     scenarios={scenarios}
                     id={SCENARIO_COLUMN_ID}
+                    owner={partOwnerOf(node)}
                   />
                 ) : null
               }
@@ -117,4 +126,50 @@ export function ElementDetail({
       </ElementNavigationContext.Provider>
     </DesignDocumentContext.Provider>
   );
+}
+
+/**
+ * The actions on the unit a row stands for: an element, or a property, rule
+ * or scenario found through the element — and the rule — it is written in.
+ * A row for anything else stands for no unit.
+ */
+function NodeActions({ node }: { node: OutlineNode }) {
+  const unit = unitRefOf(node);
+  return unit === null ? null : <UnitActions unit={unit} />;
+}
+
+function unitRefOf(node: OutlineNode): UnitRef | null {
+  if (
+    node.kind === 'module' ||
+    node.kind === 'building_block' ||
+    node.kind === 'behaviour'
+  )
+    return node.elementId === null
+      ? null
+      : { kind: node.kind, id: node.elementId };
+  if (
+    (node.kind !== 'property' &&
+      node.kind !== 'rule' &&
+      node.kind !== 'scenario') ||
+    node.parentPath === null
+  )
+    return null;
+  const { elementId, rule } = ownerOfPart(node.parentPath);
+  return {
+    kind: node.kind,
+    id: node.name,
+    owner: {
+      kind: kindOf(elementId),
+      id: elementId,
+      ...(rule === null ? {} : { rule }),
+    },
+  };
+}
+
+/** The element a node's scenarios are written in, when it is one. */
+function partOwnerOf(node: OutlineNode): PartOwner | undefined {
+  const unit = unitRefOf(node);
+  return unit === null || 'owner' in unit
+    ? undefined
+    : { kind: unit.kind as PartOwner['kind'], id: unit.id };
 }

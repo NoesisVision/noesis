@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
@@ -20,6 +21,7 @@ export function DeclarationBox({
   typePath,
   component: Component = 'div',
   output,
+  actions,
 }: {
   item: ChangeListItem;
   /** The row the type opens, if the tree has one. */
@@ -28,11 +30,14 @@ export function DeclarationBox({
   component?: 'div' | 'li';
   /** What a behaviour gives back, drawn in the brand's tint. */
   output?: boolean;
+  /** What may be done to the declaration, in the box's corner. */
+  actions?: ReactNode;
 }) {
   const { change, label, name, type, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
     <Component className={classes.box} data-output={output || undefined}>
+      {actions && <span className={classes.actions}>{actions}</span>}
       {name !== undefined && (
         <span className={classes.name} data-removed={removed}>
           {name}

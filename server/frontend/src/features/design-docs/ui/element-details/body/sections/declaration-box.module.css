@@ -1,4 +1,5 @@
 .box {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -64,4 +65,15 @@
   font-size: 11px;
   line-height: 1.45;
   color: var(--mantine-color-dimmed);
+}
+
+/* The unit's actions in the corner, clear of the name beside them. */
+.box:has(.actions) {
+  padding-right: 32px;
+}
+
+.actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
 }

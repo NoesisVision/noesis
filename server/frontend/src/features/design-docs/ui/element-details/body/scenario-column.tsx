@@ -11,7 +11,9 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
+import type { PartOwner } from '../../../design-doc-edit.ts';
 import { valueOf } from '../../../design-doc-field.ts';
+import { UnitActions } from '../../unit-editor/unit-actions.tsx';
 import { ChangeBadge } from '../change-badge.tsx';
 import { SCENARIO_TRANSITION, useScenarioFocus } from './scenario-focus.tsx';
 import type { ScenarioEntry } from './scenarios-of.ts';
@@ -37,6 +39,7 @@ export function ScenarioColumn({
   id,
   defaultOpen = false,
   headingOrder,
+  owner,
 }: {
   scenarios: ScenarioEntry[];
   /** What a link to the column points at; only one on a page may have it. */
@@ -45,6 +48,8 @@ export function ScenarioColumn({
   defaultOpen?: boolean;
   /** The title as a heading of this level; a plain label when not given. */
   headingOrder?: 3 | 4 | 5 | 6;
+  /** The element the scenarios are written in; none where they are only read. */
+  owner?: PartOwner;
 }) {
   // The value goes into the ids Mantine writes, which take no spaces.
   const values = scenarios.map((_, index) => String(index));
@@ -119,6 +124,20 @@ export function ScenarioColumn({
               <ChangeBadge change={entry.change} inline />
             </Accordion.Control>
             <Accordion.Panel>
+              {owner !== undefined && (
+                <Group justify="flex-end">
+                  <UnitActions
+                    unit={{
+                      kind: 'scenario',
+                      id: entry.name,
+                      owner:
+                        entry.rule === undefined
+                          ? owner
+                          : { ...owner, rule: entry.rule },
+                    }}
+                  />
+                </Group>
+              )}
               {entry.scenario === null ? (
                 <Text c="dimmed" size="sm">
                   This design removes it.

@@ -6,6 +6,7 @@ import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
+import type { PartOwner } from '../../../../design-doc-edit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
@@ -30,10 +31,12 @@ interface ChangeListSectionProps {
  * cards, each with what the design says about it.
  */
 export function ChangeListSection({
+  element,
   title,
   kind,
   items,
 }: ChangeListSectionProps) {
+  const owner = ownerOf(element);
   const { has, select } = useElementNavigation();
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
@@ -49,9 +52,9 @@ export function ChangeListSection({
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
     >
       {kind === 'property' ? (
-        <PropertyGrid items={sorted} />
+        <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
-        <RuleCards items={sorted} />
+        <RuleCards items={sorted} owner={owner} />
       ) : (
         <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
           {sorted.map(({ change, label, path, description }) => (
@@ -100,3 +103,15 @@ const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
 /** Shown only when the design touches the list at all. */
 ChangeListSection.shows = ({ items }: ChangeListSectionProps) =>
   items.length > 0;
+
+const KIND_OF = {
+  modules: 'module',
+  buildingBlocks: 'building_block',
+  behaviours: 'behaviour',
+} as const;
+
+/** The element a list's parts are written in; none for a part's own list. */
+const ownerOf = (element: ElementRef): PartOwner | null =>
+  'collection' in element
+    ? { kind: KIND_OF[element.collection], id: element.id }
+    : null;

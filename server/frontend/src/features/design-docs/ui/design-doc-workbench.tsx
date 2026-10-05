@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { Columns } from './columns.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
+import { AddUnitButton } from './unit-editor/unit-actions.tsx';
 import type { ViewPlace } from './view-place.ts';
 
 /*
@@ -55,7 +57,12 @@ export function DesignDocWorkbench({
 
   return (
     <Columns
-      search={<OutlineSearchBox controller={controller} />}
+      search={
+        <Stack gap="xs">
+          <OutlineSearchBox controller={controller} />
+          <AddUnitButton kind="module" style={{ alignSelf: 'flex-start' }} />
+        </Stack>
+      }
       outline={<Outline controller={controller} />}
       outlineRef={outlineRef}
       detail={

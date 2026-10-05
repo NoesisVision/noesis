@@ -2,7 +2,9 @@ import { IconArrowRight, IconScale } from '@tabler/icons-react';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Anchor } from '#/shared/design-system/anchor.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import type { PartOwner } from '../../../../design-doc-edit.ts';
 import { tracedTo } from '../../../../design-doc-requirements.ts';
+import { UnitActions } from '../../../unit-editor/unit-actions.tsx';
 import { ChangeBadge } from '../../change-badge.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
@@ -16,7 +18,14 @@ import classes from './rule-cards.module.css';
  * scenarios cover it, which points to the column of them and opens those,
  * closing the rest.
  */
-export function RuleCards({ items }: { items: ChangeListItem[] }) {
+export function RuleCards({
+  items,
+  owner,
+}: {
+  items: ChangeListItem[];
+  /** The element they are written in, which a write from a card names. */
+  owner: PartOwner | null;
+}) {
   const { has, select } = useElementNavigation();
   const focus = useScenarioFocus();
   return (
@@ -55,6 +64,9 @@ export function RuleCards({ items }: { items: ChangeListItem[] }) {
                   </span>
                 )}
                 <ChangeBadge change={change} />
+                {owner !== null && (
+                  <UnitActions unit={{ kind: 'rule', id: label, owner }} />
+                )}
               </div>
               {classification !== undefined && (
                 <span className={classes.classification}>{classification}</span>
