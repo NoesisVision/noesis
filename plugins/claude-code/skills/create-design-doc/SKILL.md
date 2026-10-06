@@ -120,15 +120,19 @@ it at step 5.
    memory: it changes every session.
 8. **Write the working file** into the scratch directory, e.g.
    `<scratch directory>/design-doc.json`: `name` (a human title, usually the
-   change's), `description` (what the design covers and why, in a
-   paragraph, including why each element it modifies changes), `modules`,
-   `buildingBlocks` and `behaviours`. No `id`, no `implemented`. Write
+   change's), `description` (the overview: a condensed ADR of the
+   decisions the design makes, their drivers and how they connect, with
+   links to the elements they are about; read
+   `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
+   before writing it), `modules`, `buildingBlocks` and `behaviours`. No `id`, no `implemented`. Write
    every field as `{ "value": … }` and never with `author`: you are the
    agent. Leave out a change set with nothing in it.
    Before saving, check that every reference — the `type` of a property, an
    input or an output, `implements` — names a building block this design
    adds or modifies, one the system model has, or a primitive, and that
-   nothing refers to an id the design removes.
+   nothing refers to an id the design removes. Check likewise that every
+   `noesis:` link in `description` names an element this design adds,
+   modifies or removes, or one the system model has.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
