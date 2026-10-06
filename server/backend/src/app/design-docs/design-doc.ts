@@ -102,7 +102,11 @@ const designDocumentSchema = z.strictObject({
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
   ),
   name: z.string().describe('The design document name.'),
-  description: z.string(),
+  description: z
+    .string()
+    .describe(
+      "The design's overview, read first when it is opened: a condensed ADR of the decisions it makes, their drivers and how they connect, in Markdown of at most about 200 lines, Mermaid diagrams allowed. Names the elements each decision is about with links whose target is 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)'.",
+    ),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviours: changeSet(DesignedBehaviour, BehaviorId),
