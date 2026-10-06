@@ -41,6 +41,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
           theme: 'base',
           themeVariables: diagramTheme(theme, scheme),
           themeCSS: diagramCss(theme, scheme),
+          // A label names a building block as the code spells it, and an
+          // identifier has nowhere to break: narrower, mermaid clips it.
+          flowchart: { wrappingWidth: 320 },
         });
         const { svg } = await mermaid.render(id, chart);
         if (live) setDrawing({ state: 'drawn', svg });
