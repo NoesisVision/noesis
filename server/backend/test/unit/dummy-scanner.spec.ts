@@ -15,6 +15,7 @@ import {
   ScannedParameter,
   ScannedResult,
 } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 const SALES = ChangeId.parse('2026-01-01-sales');
@@ -115,6 +116,14 @@ async function descriptionOf(id: string) {
 }
 
 describe('The dummy scanner', () => {
+  it('mints a new id for every scan, the later one higher', async () => {
+    const first = await scanner.scan();
+    const second = await scanner.scan();
+
+    expect(SystemModelId.safeParse(first.id).success).toBe(true);
+    expect(second.id > first.id).toBe(true);
+  });
+
   it('finds an empty model named after the repository before any design is implemented', async () => {
     await t.writeDesignDoc(SALES, {
       id: '2026-01-01-draft',
@@ -124,6 +133,7 @@ describe('The dummy scanner', () => {
     });
 
     expect(await scanner.scan()).toEqual({
+      id: expect.any(String),
       name: basename(t.root),
       scanned_at: NOW,
       modules: [],
@@ -198,6 +208,77 @@ describe('The dummy scanner', () => {
         source,
       }),
     ]);
+  });
+
+  it('finds the rules of a module, with the category of every rule, and without its needs or rationale', async () => {
+    await implemented(SALES, '2026-01-01-orders', null, {
+      needs: {
+        added: [
+          {
+            id: 'order-quickly',
+            name: { value: 'Order quickly' },
+            stakeholder: { value: 'Customers' },
+            statement: { value: 'Customers need to order in seconds.' },
+          },
+        ],
+      },
+      modules: {
+        added: [
+          {
+            ...salesModule,
+            rules: {
+              added: [
+                {
+                  name: 'Orders in a second',
+                  category: { value: 'Quality' },
+                  ruleType: { value: 'Performance' },
+                  description: { value: 'Placing an order takes a second.' },
+                  needs: { value: ['order-quickly'] },
+                  rationale: { value: 'Customers leave a slow shop.' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    const [sales] = (await scanner.scan()).modules;
+
+    expect(sales?.rules).toEqual([
+      {
+        name: 'Orders in a second',
+        category: 'Quality',
+        ruleType: 'Performance',
+        description: 'Placing an order takes a second.',
+        scenarios: [],
+      },
+    ]);
+  });
+
+  it('takes a rule designed before rules had a category for a business rule', async () => {
+    await implemented(SALES, '2026-01-01-orders', null, {
+      buildingBlocks: {
+        added: [
+          {
+            ...orderBlock,
+            rules: {
+              added: [
+                {
+                  name: 'Never empty',
+                  ruleType: { value: 'Consistency' },
+                  description: { value: 'An order has a line.' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    const [order] = (await scanner.scan()).buildingBlocks;
+
+    expect(order?.rules[0]?.category).toBe('Business');
   });
 
   it('applies a later design over an earlier one: what it changes, at every level, and nothing else', async () => {

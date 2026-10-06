@@ -1,29 +1,13 @@
-import {
-  IconMaximize,
-  IconMinimize,
-  IconViewportNarrow,
-  IconViewportWide,
-} from '@tabler/icons-react';
-import {
-  type MouseEvent,
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
+import { IconViewportNarrow, IconViewportWide } from '@tabler/icons-react';
+import { type MouseEvent, type ReactNode, useEffect, useState } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
-import {
-  useFullscreenElement,
-  useLocalStorage,
-  useMergedRef,
-} from '#/shared/design-system/hooks.ts';
+import { useLocalStorage } from '#/shared/design-system/hooks.ts';
 import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { type IconComponent, IconHeading } from '#/shared/ui/icon-heading.tsx';
+import { FullscreenButton } from '#/shared/ui/shell-fullscreen.tsx';
 import classes from './reading-pane.module.css';
 
 /** The two measures a document is read at, in the order the switch shows them. */
@@ -79,11 +63,11 @@ interface ReadingPaneProps {
  *
  * The header rests at the very offset it sticks to, so where it sits says
  * nothing about whether it is holding anything back; what the reader has
- * scrolled does. Either scroller counts — the pane's own in full screen, the
- * page's otherwise — and a scroll event does not bubble but is seen on the way
- * down, so one capturing listener hears whichever of the two it was.
+ * scrolled does. Either scroller counts — the shell's content in full screen,
+ * the page's otherwise — and a scroll event does not bubble but is seen on the
+ * way down, so one capturing listener hears whichever of the two it was.
  */
-function useScrolledUnder(pane: RefObject<HTMLDivElement | null>): boolean {
+function useScrolledUnder(): boolean {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -91,7 +75,7 @@ function useScrolledUnder(pane: RefObject<HTMLDivElement | null>): boolean {
       setScrolled(
         Math.max(
           document.scrollingElement?.scrollTop ?? 0,
-          pane.current?.scrollTop ?? 0,
+          document.fullscreenElement?.scrollTop ?? 0,
         ) > 0,
       );
 
@@ -103,16 +87,15 @@ function useScrolledUnder(pane: RefObject<HTMLDivElement | null>): boolean {
       document.removeEventListener('scroll', read, { capture: true });
       document.removeEventListener('fullscreenchange', read);
     };
-  }, [pane]);
+  }, []);
 
   return scrolled;
 }
 
 /**
  * The surface a whole document is read on: its heading, and above it the
- * controls for how much of the window it takes. Full screen is the browser's
- * own, asked for on this element, so the shell around it is simply not painted
- * rather than told to hide.
+ * controls for how much of the window it takes, full screen among them —
+ * the shell's, so the pane is laid out the same in it and out of it.
  */
 export function ReadingPane({
   title,
@@ -145,18 +128,10 @@ export function ReadingPane({
       setWidth(otherWidth(width));
     }
   };
-  const { ref, toggle, fullscreen } = useFullscreenElement<HTMLDivElement>();
-  const fullscreenLabel = fullscreen ? 'Exit full screen' : 'Full screen';
-  // A browser that refuses the request leaves the pane as it is, which is the
-  // state the button already shows, so there is nothing to report.
-  const toggleFullscreen = () => void toggle().catch(() => {});
-  // The pane is both what goes full screen and what scrolls while it is.
-  const pane = useRef<HTMLDivElement>(null);
-  const paneRef = useMergedRef(ref, pane);
-  const stuck = useScrolledUnder(pane);
+  const stuck = useScrolledUnder();
 
   return (
-    <Box component="article" ref={paneRef} className={classes.surface}>
+    <Box component="article" className={classes.surface}>
       <Box
         className={classes.header}
         data-width={width}
@@ -196,19 +171,7 @@ export function ReadingPane({
               ),
             }))}
           />
-          <ActionIcon
-            variant="default"
-            size="lg"
-            aria-label={fullscreenLabel}
-            title={fullscreenLabel}
-            onClick={toggleFullscreen}
-          >
-            {fullscreen ? (
-              <IconMinimize size={22} stroke={1.6} aria-hidden />
-            ) : (
-              <IconMaximize size={22} stroke={1.6} aria-hidden />
-            )}
-          </ActionIcon>
+          <FullscreenButton />
         </Group>
       </Box>
       <Box className={classes.column} data-width={width}>

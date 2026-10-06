@@ -1,17 +1,9 @@
-/*
- * Mermaid sizes its SVG to the viewport it was rendered against, which is not
- * the column it ends up in, so the diagram is scaled to the column instead.
- */
-.diagram {
-  margin: 0 0 var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-sm);
-  overflow-x: auto;
-  border-radius: var(--mantine-spacing-sm);
+/* A dot grid tiled from one gradient, so the canvas costs no request. */
+.grid {
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-dark-7)
   );
-  /* A dot grid tiled from one gradient, so the canvas costs no request. */
   background-image: radial-gradient(
     circle at center,
     light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4)) 1px,
@@ -19,6 +11,23 @@
   );
   background-position: center;
   background-size: 16px 16px;
+}
+
+.frame {
+  position: relative;
+  margin: 0 0 var(--mantine-spacing-sm);
+}
+
+/*
+ * Mermaid sizes its SVG to the viewport it was rendered against, which is not
+ * the column it ends up in, so the diagram is scaled to the column instead.
+ */
+.diagram {
+  composes: grid;
+
+  padding: var(--mantine-spacing-sm);
+  overflow-x: auto;
+  border-radius: var(--mantine-radius-md);
 
   & svg {
     max-width: 100%;
@@ -30,4 +39,25 @@
   margin: var(--mantine-spacing-xs) 0 0;
   white-space: pre-wrap;
   font-family: var(--mantine-font-family-monospace);
+}
+
+/*
+ * The way into the full-screen view stays out of the picture until the
+ * pointer or the focus is on it; a screen that cannot hover always shows it.
+ */
+.expand {
+  position: absolute;
+  top: var(--mantine-spacing-xs);
+  right: var(--mantine-spacing-xs);
+  opacity: 0;
+  transition: opacity 100ms ease;
+
+  .frame:hover &,
+  &:has(:focus-visible) {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
 }

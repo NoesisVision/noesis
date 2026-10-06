@@ -1,19 +1,23 @@
-import { TanStackDevtools } from '@tanstack/react-devtools';
 import { Outlet } from '@tanstack/react-router';
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import TanStackQueryDevtools from '#/shared/query/devtools.tsx';
+import { lazy, Suspense } from 'react';
+
+/*
+ * Only while developing: a production build drops the branch, and with it the
+ * import, so the devtools and their launcher never reach a reader's page.
+ */
+const Devtools = import.meta.env.DEV
+  ? lazy(() => import('./devtools.tsx'))
+  : null;
 
 export function RootLayout() {
   return (
     <>
       <Outlet />
-      <TanStackDevtools
-        config={{ position: 'bottom-right' }}
-        plugins={[
-          { name: 'Tanstack Router', render: <TanStackRouterDevtoolsPanel /> },
-          TanStackQueryDevtools,
-        ]}
-      />
+      {Devtools && (
+        <Suspense fallback={null}>
+          <Devtools />
+        </Suspense>
+      )}
     </>
   );
 }

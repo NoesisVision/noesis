@@ -8,7 +8,7 @@
 .signature {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: var(--mantine-spacing-xs);
 }
 
 .mark {
@@ -54,7 +54,7 @@
   }
 
   &[data-link]:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
@@ -76,6 +76,6 @@
   margin: 0;
   padding-left: 38px;
   font-size: 13px;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-secondary-text);
   white-space: pre-line;
 }

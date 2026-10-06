@@ -417,6 +417,85 @@ describe('Updating a design document', () => {
     ).toContain('humanAuthor');
   });
 
+  describe('revising a design a human edited, an agent', () => {
+    const NEED = 'refund-single-lines';
+    const STATEMENT = 'Support agents need to refund one line of an order.';
+
+    /** byHuman with the statement of its need, a human's field, replaced. */
+    const withStatement = (statement: Record<string, unknown>) =>
+      DesignDocumentContent.parse({
+        ...byHuman,
+        needs: {
+          ...byHuman.needs,
+          added: byHuman.needs.added.map((need) => ({ ...need, statement })),
+        },
+      });
+
+    async function editedByHuman() {
+      const { id } = await t.createDesignDocInChange.handle({
+        change: CHANGE,
+        designDoc: byAgent,
+      });
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: byHuman,
+        writer: 'human',
+      });
+      return id;
+    }
+
+    it("keeps every field a human wrote or accepted that it leaves alone, in the human's name", async () => {
+      const id = await editedByHuman();
+
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: { ...byHuman, description: 'Refunds by line.' },
+        writer: 'agent',
+      });
+
+      expect(await t.findDesignDoc.handle({ change: CHANGE, id })).toEqual(
+        DesignDocument.parse({
+          ...humanEditedDesignDocFixture,
+          id,
+          description: 'Refunds by line.',
+        }),
+      );
+    });
+
+    it("refuses a human's field it changes but leaves in the human's name", async () => {
+      const id = await editedByHuman();
+
+      expect(
+        await brokenRules(
+          t.updateDesignDocInChange.handle({
+            change: CHANGE,
+            id,
+            designDoc: withStatement({ value: STATEMENT, author: 'human' }),
+            writer: 'agent',
+          }),
+        ),
+      ).toEqual(['humanAuthor']);
+    });
+
+    it("writes a human's field it changes in its own name", async () => {
+      const id = await editedByHuman();
+
+      await t.updateDesignDocInChange.handle({
+        change: CHANGE,
+        id,
+        designDoc: withStatement({ value: STATEMENT }),
+        writer: 'agent',
+      });
+
+      const stored = await t.findDesignDoc.handle({ change: CHANGE, id });
+      expect(
+        stored.needs.added.find(({ id }) => id === NEED)?.statement,
+      ).toEqual({ changed: true, value: STATEMENT, author: 'agent' });
+    });
+  });
+
   it('holds a human to the rules every design follows', async () => {
     const { id } = await t.createDesignDocInChange.handle({
       change: CHANGE,

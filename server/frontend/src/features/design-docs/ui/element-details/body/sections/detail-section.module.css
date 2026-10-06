@@ -2,14 +2,14 @@
   min-width: 0;
 }
 
-/* Sentence case, quiet: the section heads its content, it does not shout. */
+/*
+ * Sentence case, quiet: the section heads its content, it does not shout. Its
+ * layout is the group's props; its colour stays here, for `.muted` to quieten.
+ */
 .title {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-xs);
   font-size: 13px;
   font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  color: var(--noesis-secondary-text);
 }
 
 .icon {
@@ -25,9 +25,6 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--mantine-color-dimmed);
 }
 
 /* What is said about the element, under a rule and a shade quieter. */

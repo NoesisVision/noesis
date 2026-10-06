@@ -1,4 +1,4 @@
-import type { OutlineChange } from '#/shared/ui/model-tree/model-outline.ts';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedParameterInput,
@@ -7,9 +7,15 @@ import type {
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
-import type { ChangeSetInput } from './change-set.ts';
+import {
+  classificationOf,
+  type NeedsInput,
+  needNamesOf,
+} from '../../design-doc-requirements.ts';
+import { blockOfRef, refIdOf } from '../../element-id.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -30,6 +36,10 @@ export interface ChangeListItem {
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
   scenarios?: number;
+  /** A rule's category and type, as far as the design writes them. */
+  classification?: string;
+  /** The needs a rule answers, by name; none for a design decision. */
+  needs?: string[];
 }
 
 /** Every item of a change set, each with what the design does to it. */
@@ -41,13 +51,9 @@ function* changed<Item, Key>(
   for (const key of set?.removed ?? []) yield [key, 'removed'];
 }
 
-/** The id a type reference names, a collection by its item. */
-const refIdOf = (ref: BuildingBlockRefInput): string =>
-  typeof ref === 'string' ? ref : refIdOf(ref.collectionOf);
-
 /** A type that names another building block, not a primitive. */
 const isReference = (ref: BuildingBlockRefInput): boolean =>
-  refIdOf(ref).startsWith('building_block|');
+  blockOfRef(ref) !== null;
 
 /** A declaration's name and type, apart, for a reader that sets them apart. */
 const declared = (name: string, type: BuildingBlockRefInput) => ({
@@ -75,10 +81,7 @@ export const implementerItems = (
   doc: DesignDocumentInput,
   id: string,
 ): ChangeListItem[] =>
-  [
-    ...(doc.buildingBlocks?.added ?? []),
-    ...(doc.buildingBlocks?.modified ?? []),
-  ].flatMap((block) =>
+  writtenIn(doc.buildingBlocks).flatMap((block) =>
     [...changed(block.implements)]
       .filter(([ref]) => ref === id)
       .map(([, change]) => ({
@@ -165,21 +168,26 @@ export const propertyItems = (
     };
   });
 
-/** Rules, each by its name with the description the design gives it. */
+/** Rules, each by its name with what the design says of it and the needs it answers. */
 export const ruleItems = (
   owner: string,
   set: ChangeSetInput<DesignedRuleInput, string> | undefined,
+  needs?: NeedsInput,
 ): ChangeListItem[] =>
   [...changed(set)].map(([rule, change]) => {
     if (typeof rule === 'string')
       return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
     const description = valueOf(rule.description)?.trim();
     const scenarios = [...changed(rule.scenarios)].length;
+    const classification = classificationOf(rule);
+    const traced = valueOf(rule.needs);
     return {
       change,
       label: rule.name,
       path: partPathOf(owner, 'rule', rule.name),
       ...(description ? { description } : {}),
       ...(scenarios > 0 ? { scenarios } : {}),
+      ...(classification ? { classification } : {}),
+      ...(traced ? { needs: needNamesOf(traced, needs) } : {}),
     };
   });

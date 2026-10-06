@@ -56,7 +56,12 @@ export function updateDesignDocInChangeHandler(
         change,
         id,
       );
-      await assertDesignDocFollowsRules(designDoc, writer, systemModels);
+      await assertDesignDocFollowsRules(
+        designDoc,
+        writer,
+        systemModels,
+        before,
+      );
       const updated: DesignDocument = {
         id,
         ...designDoc,

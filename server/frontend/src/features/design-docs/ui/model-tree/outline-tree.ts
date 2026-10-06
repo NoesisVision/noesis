@@ -1,0 +1,72 @@
+import type { OutlineKind, OutlineNode } from './model-outline.ts';
+
+/*
+ * The outline comes flat and in reading order, because a node's subtree is
+ * then the run of nodes after it. A reader needs it by parent, so the
+ * relations are grouped once here and the tree is rendered from them; the
+ * order inside each group is the order it was projected in, never re-sorted.
+ */
+
+export interface OutlineTree {
+  /** As served: pre-order, already in reading order. */
+  readonly nodes: readonly OutlineNode[];
+  readonly byPath: ReadonlyMap<string, OutlineNode>;
+  readonly roots: readonly OutlineNode[];
+  readonly childrenOf: (path: string) => readonly OutlineNode[];
+  /** Root first, the node itself last. Empty when the path is not in the tree. */
+  readonly ancestryOf: (path: string) => readonly string[];
+}
+
+const NONE: readonly OutlineNode[] = [];
+/** A model's parts are read in the panel beside its tree, not in the tree. */
+export const EXCLUDED_KINDS: readonly OutlineKind[] = [
+  'property',
+  'scenario',
+  'rule',
+];
+
+/** For a tree whose every row is one to read: nothing is left out. */
+export const NO_KINDS: readonly OutlineKind[] = [];
+
+export function outlineTree(
+  nodes: readonly OutlineNode[],
+  excludeKinds: readonly OutlineKind[] = EXCLUDED_KINDS,
+): OutlineTree {
+  const targetNodes = nodes.filter((node) => !excludeKinds.includes(node.kind));
+  const byPath = new Map(targetNodes.map((node) => [node.path, node]));
+
+  const children = new Map<string, OutlineNode[]>();
+  const roots: OutlineNode[] = [];
+
+  for (const node of targetNodes) {
+    if (node.parentPath === null) {
+      roots.push(node);
+      continue;
+    }
+    // A node whose parent did not arrive is unreachable rather than a root:
+    // showing it at the top would claim a place the design never gave it.
+    if (!byPath.has(node.parentPath)) continue;
+    const siblings = children.get(node.parentPath);
+    if (siblings) siblings.push(node);
+    else children.set(node.parentPath, [node]);
+  }
+
+  return {
+    nodes: targetNodes,
+    byPath,
+    roots,
+    childrenOf: (path) => children.get(path) ?? NONE,
+    ancestryOf: (path) => {
+      const line: string[] = [];
+      for (
+        let node = byPath.get(path);
+        node !== undefined;
+        node =
+          node.parentPath === null ? undefined : byPath.get(node.parentPath)
+      ) {
+        line.unshift(node.path);
+      }
+      return line;
+    },
+  };
+}

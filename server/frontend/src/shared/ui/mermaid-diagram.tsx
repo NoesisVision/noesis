@@ -1,9 +1,16 @@
+import { IconMaximize } from '@tabler/icons-react';
 import { useEffect, useId, useState } from 'react';
+import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Alert } from '#/shared/design-system/alert.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
-import { useMantineTheme } from '#/shared/design-system/hooks.ts';
+import {
+  useDisclosure,
+  useMantineTheme,
+} from '#/shared/design-system/hooks.ts';
 import { Text } from '#/shared/design-system/text.tsx';
 import { diagramCss, diagramTheme } from './mermaid-diagram-theme.ts';
+import { MermaidViewer } from './mermaid-viewer.tsx';
 import classes from './mermaid-diagram.module.css';
 
 type Drawing =
@@ -20,6 +27,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const scheme = useComputedColorScheme('light');
   const theme = useMantineTheme();
   const [drawing, setDrawing] = useState<Drawing>({ state: 'drawing' });
+  const [viewing, viewer] = useDisclosure(false);
   // `useId` is stable across renders but contains colons, which are not valid
   // in the DOM id mermaid puts on the element it renders through.
   const id = `mermaid-${useId().replaceAll(':', '')}`;
@@ -80,17 +88,38 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   // renders to; `securityLevel: 'strict'` is what keeps the input from
   // reaching the output unescaped. The wrapper carries the name, because the
   // SVG inside it is a picture and arrives without one.
+  const name = diagramName(chart);
   return (
-    <div
-      className={classes.diagram}
-      // Not an `img`: the picture is an inline SVG document mounted here, and
-      // an `img` cannot hold one. The role is what names it.
-      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-      role="img"
-      aria-label={diagramName(chart)}
-      // oxlint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: drawing.svg }}
-    />
+    <Box className={classes.frame}>
+      <Box
+        className={classes.diagram}
+        // Not an `img`: the picture is an inline SVG document mounted here, and
+        // an `img` cannot hold one. The role is what names it.
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+        role="img"
+        aria-label={name}
+        // oxlint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: drawing.svg }}
+      />
+      {/* Placed by a wrapper: Mantine's own `position` on the button comes
+          later in the bundle than a class on it could. */}
+      <Box className={classes.expand}>
+        <ActionIcon
+          variant="default"
+          aria-label="Open diagram full screen"
+          title="Open diagram full screen"
+          onClick={viewer.open}
+        >
+          <IconMaximize size={18} stroke={1.6} aria-hidden />
+        </ActionIcon>
+      </Box>
+      <MermaidViewer
+        svg={drawing.svg}
+        name={name}
+        opened={viewing}
+        onClose={viewer.close}
+      />
+    </Box>
   );
 }
 

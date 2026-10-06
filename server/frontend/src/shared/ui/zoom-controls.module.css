@@ -1,0 +1,10 @@
+/* Wide enough for `100%`, so the buttons beside it stand still as it changes. */
+.level {
+  min-width: 3rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  [data-size='lg'] > & {
+    min-width: 3.5rem;
+  }
+}

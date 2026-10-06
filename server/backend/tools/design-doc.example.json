@@ -1,6 +1,22 @@
 {
   "name": "Partial refunds for orders",
   "description": "# Context\n\nSupport asks to refund single order lines rather than whole orders (refunds spec, R1–R3), and finance wants the legacy credit note flow gone (finance notes).\n\n# Decisions\n\n## D1. A refund is an aggregate of its own\n\n[Refund](noesis:building_block|sales.refunds.Refund), in a new refunds module, records the lines given back; [Refund.issue](noesis:behavior|sales.refunds.Refund.issue) announces it with [RefundIssued](noesis:building_block|sales.refunds.RefundIssued).\n\n- **Why:** a refund has a lifecycle of its own (R2), and keeping it out of the order keeps the order aggregate small.\n- **Trade-off:** the order learns of a refund through the event, not in the same transaction.\n\n## D2. The order only records which lines were refunded\n\n[Order](noesis:building_block|sales.orders.Order) gains the refunded lines and nothing else (R3).\n\n## D3. Credit notes are retired\n\n[CreditNote](noesis:building_block|sales.credit-notes.CreditNote) and its issue behaviour are removed; refunds replace them (finance notes).\n\n# Left out and open\n\n- Partial refunds of a single line's quantity: a later change.",
+  "needs": {
+    "added": [
+      {
+        "id": "refund-single-lines",
+        "name": {
+          "value": "Refund single lines"
+        },
+        "stakeholder": {
+          "value": "Support agents"
+        },
+        "statement": {
+          "value": "Support agents need to refund one line of an order when the customer returns only part of it, without cancelling the whole order."
+        }
+      }
+    ]
+  },
   "modules": {
     "added": [
       {
@@ -10,6 +26,25 @@
         },
         "definition": {
           "value": "Everything about giving money back to a customer."
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "A refund is issued within a second",
+              "category": {
+                "value": "Quality"
+              },
+              "ruleType": {
+                "value": "Performance"
+              },
+              "description": {
+                "value": "Issuing a refund answers within one second for an order of up to 100 lines."
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              }
+            }
+          ]
         }
       }
     ],
@@ -102,12 +137,21 @@
           "added": [
             {
               "name": "Refund never exceeds paid amount",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "Consistency"
               },
               "description": {
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
                 "author": "human"
+              },
+              "needs": {
+                "value": ["refund-single-lines"]
+              },
+              "rationale": {
+                "value": "Support may never pay out more than the order brought in."
               }
             }
           ]
@@ -278,11 +322,17 @@
           "added": [
             {
               "name": "Only paid orders are refundable",
+              "category": {
+                "value": "Business"
+              },
               "ruleType": {
                 "value": "State change"
               },
               "description": {
                 "value": "An unpaid order has nothing to refund."
+              },
+              "needs": {
+                "value": []
               }
             }
           ]

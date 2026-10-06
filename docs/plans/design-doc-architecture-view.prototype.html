@@ -1,0 +1,2605 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design Doc Architecture View</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      /*
+       * Prototype of the architecture view (docs/plans/design-doc-architecture-view.md).
+       * Data: examples/qdoc-java, design doc 2026-10-02-create-a-qdoc.
+       * Layout: the design document surface, the tree pane on the left with the
+       * details below its rows, the hexagons on the right.
+       */
+      :root {
+        --fg: #212529;
+        --dim: #495057;
+        --faint: #868e96;
+        --line: #dee2e6;
+        --line-input: #ced4da;
+        --hover: #f8f9fa;
+        --quiet: #f1f3f5;
+        --brand: #1d4ed8;
+        --brand-0: #eff6ff;
+        --brand-1: #dbeafe;
+        --brand-2: #bfdbfe;
+        --brand-3: #93c5fd;
+        --brand-4: #60a5fa;
+        --brand-9: #1e3a8a;
+        --select: #ea580c;
+        --mono: 'JetBrains Mono', ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--fg);
+        font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      summary:focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: -2px;
+      }
+      .page {
+        height: 100vh;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      /* Surface header: the document's name, the view switch, full screen. */
+      .surface-header {
+        flex: none;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .heading-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--brand-0);
+        color: var(--brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .heading h1 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 35px;
+        font-weight: 600;
+      }
+      .heading p {
+        margin: 0;
+        color: var(--dim);
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .segmented {
+        display: flex;
+        gap: 2px;
+        padding: 4px;
+        border-radius: 4px;
+        background: var(--quiet);
+      }
+      .segmented button {
+        border: 0;
+        background: transparent;
+        color: var(--dim);
+        font-weight: 500;
+        padding: 6px 14px;
+        min-height: 32px;
+        border-radius: 4px;
+      }
+      .segmented button[aria-pressed='true'] {
+        background: #ffffff;
+        color: var(--fg);
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line-input);
+        border-radius: 4px;
+        background: #ffffff;
+      }
+
+      /* Two columns, as the other views have them. */
+      .cols {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        gap: 4px;
+      }
+      .pane {
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: #ffffff;
+      }
+      .pane-left {
+        flex: 0 0 38%;
+        min-width: 16rem;
+      }
+      .pane-right {
+        flex: 1 1 0;
+        min-width: 20rem;
+      }
+      .splitter {
+        flex: none;
+        width: 4px;
+        cursor: col-resize;
+      }
+
+      /* Tree pane: the search bar, the rows, the details below them. */
+      .search-bar {
+        flex: none;
+        padding: 16px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .search-row {
+        display: flex;
+        gap: 10px;
+      }
+      .search {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+      }
+      .search svg {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+      }
+      .search input {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px 0 34px;
+        border: 1px solid var(--line-input);
+        border-radius: 4px;
+        font: inherit;
+        color: var(--fg);
+      }
+      .search input:focus {
+        border-color: var(--brand);
+        outline: none;
+      }
+      .search-count {
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .tree-body {
+        flex: 1 1 0;
+        min-height: 120px;
+        overflow: auto;
+        padding: 10px 10px 16px;
+      }
+      .tree {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .tree li {
+        display: flex;
+        list-style: none;
+      }
+      .rail {
+        flex: none;
+        width: 20px;
+        align-self: stretch;
+        background: linear-gradient(var(--line), var(--line)) no-repeat 10px 0 /
+          1px 100%;
+      }
+      .rail.lit {
+        background-image: linear-gradient(var(--brand-4), var(--brand-4));
+      }
+      .row {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 28px;
+        padding: 6px 10px 6px 2px;
+        border-radius: 4px;
+      }
+      .row:hover {
+        background: var(--hover);
+      }
+      .row.selected {
+        background: var(--brand-9);
+        color: var(--brand-0);
+      }
+      .chevron {
+        flex: none;
+        align-self: stretch;
+        width: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 2px;
+        background: transparent;
+        color: #adb5bd;
+      }
+      .chevron svg {
+        transition: transform 0.12s ease;
+      }
+      .chevron[aria-expanded='true'] svg {
+        transform: rotate(90deg);
+      }
+      .chevron:hover {
+        background: #e9ecef;
+        color: #343a40;
+      }
+      .row.selected .chevron {
+        color: var(--brand-2);
+      }
+      .row.selected .chevron:hover {
+        background: #1d4ed8;
+        color: var(--brand-0);
+      }
+      .leaf-gap {
+        flex: none;
+        width: 16px;
+      }
+      .pick {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        text-align: left;
+      }
+      .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+      }
+      .name.ancestor {
+        font-weight: 700;
+      }
+      .name.context {
+        opacity: 0.75;
+      }
+      .count {
+        margin-left: auto;
+        padding-left: 10px;
+        flex: none;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      .row.selected .count {
+        color: var(--brand-2);
+      }
+      .details {
+        flex: 0 1 auto;
+        max-height: 60%;
+        min-height: 0;
+        overflow: auto;
+        border-top: 1px solid var(--line);
+      }
+      .details-body {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .details-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .details-head > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+      }
+      .eyebrow {
+        font-size: 12px;
+        color: var(--dim);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .details h2 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 26px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+      }
+      .details h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .address {
+        font-size: 12px;
+        color: var(--dim);
+        font-family: var(--mono);
+        overflow-wrap: anywhere;
+      }
+      .close {
+        flex: none;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--dim);
+      }
+      .definition {
+        margin: 0;
+        color: #343a40;
+        white-space: pre-line;
+      }
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip-link {
+        padding: 4px 10px;
+        min-height: 28px;
+        border-radius: 14px;
+        background: var(--brand-0);
+        color: var(--brand-9);
+        border: 1px solid var(--brand-2);
+        font-size: 12px;
+      }
+      .chip-type {
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: var(--quiet);
+        color: #343a40;
+        border: 1px solid var(--line);
+        font-size: 12px;
+        font-family: var(--mono);
+      }
+      .check-line {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 13px;
+      }
+      .pill {
+        flex: none;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 8px;
+        border-radius: 10px;
+      }
+      .pill.Warning {
+        background: #fef3c7;
+        color: #78350f;
+      }
+      .pill.Pass {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .pill.Note {
+        background: #e9ecef;
+        color: #343a40;
+      }
+      .pill.Business {
+        background: var(--brand-1);
+        color: var(--brand-9);
+      }
+      .pill.Quality {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+      .pill.Constraint {
+        background: #e9ecef;
+        color: #343a40;
+      }
+      .signature {
+        padding: 8px 10px;
+        border-radius: 4px;
+        background: var(--quiet);
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 18px;
+        overflow-wrap: anywhere;
+      }
+      .signature span {
+        color: var(--dim);
+      }
+      .listed {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        font-size: 13px;
+        padding: 6px 0;
+        border-top: 1px solid var(--quiet);
+      }
+      .listed .dir {
+        flex: 0 0 40px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .listed code {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .listed .note {
+        font-size: 12px;
+        color: #9a3412;
+      }
+      .rule {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 0;
+        border-top: 1px solid var(--quiet);
+        font-size: 13px;
+      }
+      .rule b {
+        font-weight: 600;
+      }
+      .rule .meta {
+        font-size: 12px;
+        color: var(--dim);
+      }
+      details.sequence {
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 8px 12px;
+      }
+      details.sequence summary {
+        cursor: pointer;
+        font-weight: 600;
+        line-height: 28px;
+      }
+      details.sequence pre {
+        margin: 8px 0 0;
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 16px;
+        white-space: pre-wrap;
+        color: #343a40;
+      }
+
+      /* Diagram pane: the toolbar, then the hexagons. */
+      .toolbar {
+        flex: none;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .toolbar-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 18px;
+        font-size: 13px;
+        color: #343a40;
+      }
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+      }
+      .toolbar label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 28px;
+        cursor: pointer;
+      }
+      .toolbar input[type='checkbox'] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: var(--brand);
+      }
+      .zoom {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .zoom button {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--line-input);
+        border-radius: 4px;
+        background: #ffffff;
+      }
+      .zoom output {
+        min-width: 40px;
+        text-align: center;
+        font-size: 12px;
+      }
+      .toolbar-note {
+        font-size: 12px;
+        line-height: 16px;
+        color: var(--dim);
+      }
+      .diagram-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 24px;
+      }
+      .host {
+        position: relative;
+        width: 1056px;
+        height: 1008px;
+        margin: 0 auto;
+      }
+      .host > * {
+        position: absolute;
+      }
+      .hex {
+        clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+      }
+      .ring-label {
+        font-size: 12px;
+        line-height: 16px;
+        color: #1e40af;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .arrow {
+        overflow: visible;
+        fill: none;
+        stroke: #64748b;
+        stroke-width: 2;
+        stroke-linecap: round;
+      }
+      .arrow.dashed {
+        stroke-dasharray: 6 6;
+      }
+      .card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #0f172a;
+        line-height: 18px;
+        text-align: center;
+        border: 1px solid #94a3b8;
+      }
+      .card small {
+        display: block;
+        font-size: 12px;
+        line-height: 16px;
+        color: #475569;
+      }
+      .card.module {
+        justify-content: flex-start;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        font-size: 16px;
+      }
+      .card.module small {
+        display: inline;
+        font-size: 13px;
+      }
+      .card.actor {
+        border: 1px solid #cbd5e1;
+        border-radius: 24px;
+        font-weight: 600;
+      }
+      .card.actor.unknown {
+        border: 1.5px dashed #64748b;
+        color: #334155;
+      }
+      .card.adapter {
+        border: 1.5px dashed #64748b;
+        color: #475569;
+      }
+      .card.driving {
+        border: 0;
+        background: var(--brand);
+        color: #ffffff;
+      }
+      .card.driving small {
+        color: var(--brand-1);
+      }
+      .card.service {
+        border-color: var(--brand-3);
+      }
+      .card.driven {
+        border: 2px solid var(--brand);
+        color: var(--brand-9);
+      }
+      .card.is-selected {
+        outline: 3px solid var(--select);
+        outline-offset: 2px;
+      }
+      .card.is-related {
+        outline: 2px dashed var(--select);
+        outline-offset: 2px;
+      }
+      .marker {
+        width: 22px;
+        height: 22px;
+        border-radius: 11px;
+        background: #f59e0b;
+        color: #422006;
+        font-weight: 700;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .marker.note {
+        background: #475569;
+        color: #ffffff;
+      }
+      .rule-count {
+        height: 20px;
+        border-radius: 10px;
+        background: #fef3c7;
+        color: #78350f;
+        border: 1px solid #fcd34d;
+        font-size: 11px;
+        line-height: 18px;
+        text-align: center;
+      }
+
+      /* Narrow: the panes stack and the page scrolls. */
+      @media (max-width: 61.99em) {
+        .page {
+          height: auto;
+        }
+        .cols {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .pane-left,
+        .pane-right {
+          flex: none;
+          min-width: 0;
+        }
+        .splitter {
+          display: none;
+        }
+        .tree-body {
+          flex: none;
+          max-height: 420px;
+        }
+        .details {
+          max-height: none;
+        }
+        .diagram-scroll {
+          flex: none;
+          height: 720px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="surface-header">
+        <div class="heading">
+          <span class="heading-icon" aria-hidden="true">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4 M19 16l-2 3h4l-2 3"
+              />
+            </svg>
+          </span>
+          <div>
+            <h1>Create a QDoc</h1>
+            <p>Draft</p>
+          </div>
+        </div>
+        <div class="actions">
+          <div
+            class="segmented"
+            role="group"
+            aria-label="Read the design document as"
+          >
+            <button type="button" aria-pressed="false">Model</button>
+            <button type="button" aria-pressed="false">Requirements</button>
+            <button type="button" aria-pressed="true">Architecture</button>
+          </div>
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Full screen"
+            title="Full screen"
+            style="width: 40px; height: 40px"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 8v-2a2 2 0 0 1 2 -2h2 M4 16v2a2 2 0 0 0 2 2h2 M16 4h2a2 2 0 0 1 2 2v2 M16 20h2a2 2 0 0 0 2 -2v-2"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="cols">
+        <section class="pane pane-left" aria-label="Architecture checks">
+          <div class="search-bar">
+            <div class="search-row">
+              <div class="search">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#868e96"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6" />
+                </svg>
+                <input
+                  id="query"
+                  type="search"
+                  aria-label="Search the checks"
+                  placeholder="Search checks and names"
+                />
+              </div>
+              <button
+                type="button"
+                class="icon-button"
+                id="expand-all"
+                aria-label="Expand everything"
+                title="Expand everything"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 8l5 -5l5 5 M7 16l5 5l5 -5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="icon-button"
+                id="collapse-all"
+                aria-label="Collapse everything"
+                title="Collapse everything"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 20l5 -5l5 5 M7 4l5 5l5 -5" />
+                </svg>
+              </button>
+            </div>
+            <output id="search-count" class="search-count" hidden></output>
+          </div>
+          <div class="tree-body">
+            <ul id="tree" class="tree" aria-label="Checks and needs"></ul>
+          </div>
+          <section
+            id="details"
+            class="details"
+            aria-label="Selected"
+            hidden
+          ></section>
+        </section>
+
+        <div class="splitter" aria-hidden="true"></div>
+
+        <section class="pane pane-right" aria-label="Hexagons">
+          <div class="toolbar">
+            <div class="toolbar-row">
+              <span class="legend"
+                ><span
+                  class="swatch"
+                  style="border: 1.5px dashed #64748b"
+                ></span
+                >In / out adapter</span
+              >
+              <span class="legend"
+                ><span class="swatch" style="background: var(--brand)"></span
+                >Driving port</span
+              >
+              <span class="legend"
+                ><span
+                  class="swatch"
+                  style="border: 1px solid var(--brand-3)"
+                ></span
+                >Application service</span
+              >
+              <span class="legend"
+                ><span
+                  class="swatch"
+                  style="
+                    background: var(--brand-1);
+                    border: 1px solid var(--brand-4);
+                  "
+                ></span
+                >Domain core</span
+              >
+              <span class="legend"
+                ><span
+                  class="swatch"
+                  style="border: 2px solid var(--brand)"
+                ></span
+                >Driven port</span
+              >
+              <span style="flex-grow: 1"></span>
+              <label
+                ><input type="checkbox" id="show-checks" checked />Check
+                markers</label
+              >
+              <label
+                ><input type="checkbox" id="show-rules" />Rule counts</label
+              >
+              <div class="zoom" role="group" aria-label="Zoom">
+                <button type="button" id="zoom-out" aria-label="Zoom out">
+                  −
+                </button>
+                <output id="zoom-label">80%</output>
+                <button type="button" id="zoom-in" aria-label="Zoom in">
+                  +
+                </button>
+              </div>
+            </div>
+            <div class="toolbar-note">
+              Green field: every element is added. Lines show what the design
+              document holds; calls between services and driven ports are not in
+              it.
+            </div>
+          </div>
+
+          <div class="diagram-scroll">
+            <div class="host" id="host">
+              <!-- preparation: the hexagon, then its domain core -->
+              <div
+                class="hex"
+                style="
+                  left: 0;
+                  top: 264px;
+                  width: 640px;
+                  height: 600px;
+                  background: var(--brand-3);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 2px;
+                  top: 266px;
+                  width: 636px;
+                  height: 596px;
+                  background: var(--brand-0);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 80px;
+                  top: 400px;
+                  width: 480px;
+                  height: 312px;
+                  background: var(--brand-4);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 82px;
+                  top: 402px;
+                  width: 476px;
+                  height: 308px;
+                  background: var(--brand-1);
+                "
+              ></div>
+              <!-- notifications -->
+              <div
+                class="hex"
+                style="
+                  left: 704px;
+                  top: 264px;
+                  width: 336px;
+                  height: 432px;
+                  background: var(--brand-3);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 706px;
+                  top: 266px;
+                  width: 332px;
+                  height: 428px;
+                  background: var(--brand-0);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 744px;
+                  top: 400px;
+                  width: 256px;
+                  height: 216px;
+                  background: var(--brand-4);
+                "
+              ></div>
+              <div
+                class="hex"
+                style="
+                  left: 746px;
+                  top: 402px;
+                  width: 252px;
+                  height: 212px;
+                  background: var(--brand-1);
+                "
+              ></div>
+
+              <!-- edges: actor to in adapter, in adapter to driving port, port to service, out adapter to driven port -->
+              <svg
+                class="arrow"
+                style="left: 316px; top: 96px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 0 L 4 42 M 0 38 L 4 44 L 8 38" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 316px; top: 192px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 0 L 4 42" />
+                <path d="M 0 38 L 4 44 L 8 38" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow"
+                style="left: 316px; top: 288px"
+                width="8"
+                height="32"
+                viewBox="0 0 8 32"
+              >
+                <path d="M 4 0 L 4 32" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 124px; top: 890px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 46 L 4 4" />
+                <path d="M 0 8 L 4 2 L 8 8" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 316px; top: 890px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 46 L 4 4" />
+                <path d="M 0 8 L 4 2 L 8 8" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 508px; top: 890px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 46 L 4 4" />
+                <path d="M 0 8 L 4 2 L 8 8" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 868px; top: 96px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 0 L 4 42" />
+                <path d="M 0 38 L 4 44 L 8 38" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 868px; top: 192px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 0 L 4 42" />
+                <path d="M 0 38 L 4 44 L 8 38" style="stroke-dasharray: none" />
+              </svg>
+              <svg
+                class="arrow"
+                style="left: 868px; top: 288px"
+                width="8"
+                height="32"
+                viewBox="0 0 8 32"
+              >
+                <path d="M 4 0 L 4 32" />
+              </svg>
+              <svg
+                class="arrow dashed"
+                style="left: 868px; top: 722px"
+                width="8"
+                height="46"
+                viewBox="0 0 8 46"
+              >
+                <path d="M 4 46 L 4 4" />
+                <path d="M 0 8 L 4 2 L 8 8" style="stroke-dasharray: none" />
+              </svg>
+
+              <div
+                class="ring-label"
+                style="left: 448px; top: 336px; width: 120px"
+              >
+                Application
+              </div>
+              <div
+                class="ring-label"
+                style="
+                  left: 248px;
+                  top: 414px;
+                  width: 144px;
+                  text-align: center;
+                "
+              >
+                Domain core
+              </div>
+              <div
+                class="ring-label"
+                style="
+                  left: 800px;
+                  top: 414px;
+                  width: 144px;
+                  text-align: center;
+                "
+              >
+                Domain core
+              </div>
+
+              <button
+                type="button"
+                class="card module"
+                data-key="prep"
+                style="left: 0; top: 0; width: 240px; height: 36px"
+              >
+                <span><b>preparation</b> <small>bounded context</small></span>
+              </button>
+              <button
+                type="button"
+                class="card module"
+                data-key="notif"
+                style="left: 704px; top: 0; width: 240px; height: 36px"
+              >
+                <span><b>notifications</b> <small>bounded context</small></span>
+              </button>
+
+              <button
+                type="button"
+                class="card actor"
+                data-key="actorQM"
+                style="left: 224px; top: 48px; width: 192px; height: 48px"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></svg
+                ><span>Quality manager</span>
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adInQM"
+                style="left: 248px; top: 144px; width: 144px; height: 48px"
+              >
+                <span>in adapter<small>not designed</small></span>
+              </button>
+              <button
+                type="button"
+                class="card driving"
+                data-key="createQDoc"
+                style="left: 232px; top: 240px; width: 176px; height: 48px"
+              >
+                <span><b>createQDoc</b><small>Command</small></span>
+              </button>
+              <button
+                type="button"
+                class="card service"
+                data-key="QDocCreationService"
+                style="left: 208px; top: 320px; width: 224px; height: 48px"
+              >
+                <span
+                  ><b>QDocCreationService</b
+                  ><small>application service</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="QDoc"
+                style="left: 128px; top: 444px; width: 176px; height: 56px"
+              >
+                <span><b>QDoc</b><small>aggregate</small></span>
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="DNG"
+                style="left: 336px; top: 444px; width: 176px; height: 56px"
+              >
+                <span
+                  ><b>DocumentNumber&shy;Generator</b
+                  ><small>domain service</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="Entities"
+                style="left: 128px; top: 516px; width: 176px; height: 48px"
+              >
+                <span
+                  ><b>Version · ContentFile</b><small>2 entities</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="QDocCreated"
+                style="left: 336px; top: 516px; width: 176px; height: 48px"
+              >
+                <span
+                  ><b>QDocCreated</b><small>event · value object</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="VOs"
+                style="
+                  left: 128px;
+                  top: 580px;
+                  width: 384px;
+                  height: 104px;
+                  padding: 8px 12px;
+                "
+              >
+                <span
+                  ><b>12 value objects</b
+                  ><small
+                    >QDocId · UserId · QDocTitle · DocumentType · DocumentNumber
+                    · QDocStatus · VersionStatus · AssignmentRole · Assignment ·
+                    ContentFileId · CreateQDoc · NewQDocNotification</small
+                  ></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card driven"
+                data-key="QDocRepository"
+                style="left: 40px; top: 840px; width: 176px; height: 48px"
+              >
+                <span><b>QDocRepository</b><small>repository</small></span>
+              </button>
+              <button
+                type="button"
+                class="card driven"
+                data-key="IdentityProvider"
+                style="left: 232px; top: 840px; width: 176px; height: 48px"
+              >
+                <span
+                  ><b>IdentityProvider</b
+                  ><small>external integration</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card driven"
+                data-key="PreparationEventPublisher"
+                style="
+                  left: 424px;
+                  top: 840px;
+                  width: 176px;
+                  height: 48px;
+                  padding: 4px 8px;
+                  font-size: 13px;
+                  line-height: 17px;
+                "
+              >
+                <span
+                  ><b>PreparationEvent&shy;Publisher</b
+                  ><small>external integration</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adRepo"
+                style="left: 56px; top: 936px; width: 144px; height: 48px"
+              >
+                <span>out adapter<small>not designed</small></span>
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adIdp"
+                style="left: 248px; top: 936px; width: 144px; height: 48px"
+              >
+                <span>out adapter<small>not designed</small></span>
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adPub"
+                style="left: 440px; top: 936px; width: 144px; height: 48px"
+              >
+                <span>out adapter<small>not designed</small></span>
+              </button>
+
+              <button
+                type="button"
+                class="card actor unknown"
+                data-key="actorOther"
+                style="left: 776px; top: 48px; width: 192px; height: 48px"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <rect x="3" y="4" width="18" height="12" rx="2" />
+                  <path d="M8 20h8M12 16v4" /></svg
+                ><span>Another subsystem</span>
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adInOther"
+                style="left: 800px; top: 144px; width: 144px; height: 48px"
+              >
+                <span>in adapter<small>not designed</small></span>
+              </button>
+              <button
+                type="button"
+                class="card driving"
+                data-key="notifyUsers"
+                style="left: 784px; top: 240px; width: 176px; height: 48px"
+              >
+                <span><b>notifyUsers</b><small>Command</small></span>
+              </button>
+              <button
+                type="button"
+                class="card service"
+                data-key="NotificationService"
+                style="left: 760px; top: 320px; width: 224px; height: 48px"
+              >
+                <span
+                  ><b>NotificationService</b
+                  ><small>application service</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="Notification"
+                style="left: 784px; top: 444px; width: 176px; height: 48px"
+              >
+                <span><b>Notification</b><small>value object</small></span>
+              </button>
+              <button
+                type="button"
+                class="card"
+                data-key="NVOs"
+                style="left: 784px; top: 508px; width: 176px; height: 56px"
+              >
+                <span
+                  ><b>2 value objects</b
+                  ><small>Recipient · NotifyUsers</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card driven"
+                data-key="NotificationSender"
+                style="left: 784px; top: 672px; width: 176px; height: 48px"
+              >
+                <span
+                  ><b>NotificationSender</b
+                  ><small>external integration</small></span
+                >
+              </button>
+              <button
+                type="button"
+                class="card adapter"
+                data-key="adSender"
+                style="left: 800px; top: 768px; width: 144px; height: 48px"
+              >
+                <span>out adapter<small>not designed</small></span>
+              </button>
+
+              <!-- overlays -->
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: in adapter undecided"
+                style="left: 396px; top: 229px"
+              >
+                !
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: in adapter undecided"
+                style="left: 948px; top: 229px"
+              >
+                !
+              </div>
+              <div
+                class="marker note"
+                data-overlay="checks"
+                title="Public with no actors: caller unknown"
+                style="left: 774px; top: 229px"
+              >
+                i
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: out adapter undecided"
+                style="left: 204px; top: 829px"
+              >
+                !
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: out adapter undecided"
+                style="left: 396px; top: 829px"
+              >
+                !
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: out adapter undecided"
+                style="left: 588px; top: 829px"
+              >
+                !
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="No Constraint rule: out adapter undecided"
+                style="left: 948px; top: 661px"
+              >
+                !
+              </div>
+              <div
+                class="marker"
+                data-overlay="checks"
+                title="NewQDocNotification is in no contract"
+                style="left: 500px; top: 569px"
+              >
+                !
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 344px; top: 278px; width: 64px"
+                hidden
+              >
+                4 rules
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 248px; top: 490px; width: 64px"
+                hidden
+              >
+                2 rules
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 248px; top: 554px; width: 64px"
+                hidden
+              >
+                5 rules
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 456px; top: 674px; width: 64px"
+                hidden
+              >
+                6 rules
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 896px; top: 278px; width: 72px"
+                hidden
+              >
+                3 rules · 2 Q
+              </div>
+              <div
+                class="rule-count"
+                data-overlay="rules"
+                style="left: 948px; top: 8px; width: 72px"
+                hidden
+              >
+                1 rule · Q
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      // ---- The design, as the view would project it --------------------------------
+      const NEED = {
+        start: 'Start a QDoc',
+        know: 'Know about new QDocs',
+        ready: 'Ready to write',
+      };
+      const check = (level, text) => ({ level, text });
+      const rule = (cat, type, name, needs) => ({
+        cat,
+        type,
+        name,
+        needs: needs.length
+          ? needs.map((n) => NEED[n]).join(', ')
+          : 'none, a design decision',
+      });
+      const sig = (s, vis) => ({ sig: s, vis });
+      const types = (...names) => names;
+      const from = (type, text, note) => ({
+        dir: 'from',
+        type,
+        text,
+        note: note || '',
+      });
+      const to = (type, text, note) => ({
+        dir: 'to',
+        type,
+        text,
+        note: note || '',
+      });
+      const outAdapter = (port) => ({
+        kind: 'Out adapter · not designed',
+        title: 'Out adapter for ' + port,
+        where: 'not in the design document',
+        def:
+          'Implements the driven port ' +
+          port +
+          ' with a technology: a database, a message broker, an HTTP client. The design document holds no adapters. A Constraint rule of type Technology or Interface on ' +
+          port +
+          ' would name what sits here.',
+        checks: [check('Note', 'Placeholder drawn for every driven port.')],
+      });
+      const inAdapter = (port, caller) => ({
+        kind: 'In adapter · not designed',
+        title: 'In adapter for ' + port,
+        where: 'not in the design document',
+        def:
+          'Turns a request from ' +
+          caller +
+          ' into a call of the driving port ' +
+          port +
+          ': a REST endpoint, a UI, a message listener. The design document holds no adapters. A Constraint rule of type Interface on ' +
+          port +
+          ' would name what sits here.',
+        checks: [check('Note', 'Placeholder drawn for every driving port.')],
+      });
+      const noConstraintOut = check(
+        'Warning',
+        'No Constraint rule: the technology or interface behind this port is undecided.',
+      );
+      const noConstraintIn = check(
+        'Warning',
+        'No Constraint rule: how callers reach this port (REST, UI, messaging) is undecided.',
+      );
+      const CREATE_SEQ =
+        'sequenceDiagram\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService->>IdentityProvider: findQualityManagers()\n  QDocCreationService->>NotificationService: notifyUsers(NewQDocNotification for the quality managers)\n  QDocCreationService-->>QM: QDocId';
+      const NOTIFY_SEQ =
+        'sequenceDiagram\n  participant Caller as Calling subsystem\n  Caller->>NotificationService: notifyUsers(command)\n  loop each recipient\n    NotificationService->>NotificationSender: send(Notification)\n  end';
+
+      const D = {
+        prep: {
+          kind: 'Module · hexagon',
+          title: 'preparation',
+          where: 'module|qdocmanagement.preparation',
+          def: 'Bounded context of the Preparation subsystem (area code PRE): creates and numbers QDocs and versions, assigns people, holds the files of a version, shares versions for review, records review marks, creates new versions and archives QDocs.\n\n1 driving port · 1 application service · 17 domain blocks · 3 driven ports.',
+          checks: [check('Pass', 'Uses no type of the notifications module.')],
+        },
+        notif: {
+          kind: 'Module · hexagon',
+          title: 'notifications',
+          where: 'module|qdocmanagement.notifications',
+          def: 'Bounded context of the Notifications subsystem (area code NOT), a platform subsystem and an open host: tells users what the other subsystems ask it to tell them. Holds no process of its own and knows nothing of the subsystems that call it.\n\n1 driving port · 1 application service · 3 domain blocks · 1 driven port.',
+          checks: [
+            check(
+              'Pass',
+              'No property, input or output here uses a type of another module, which agrees with its Maintainability rule.',
+            ),
+          ],
+          rules: [
+            rule(
+              'Quality',
+              'Maintainability',
+              'Notifications depends on no other subsystem',
+              [],
+            ),
+          ],
+        },
+        actorQM: {
+          kind: 'Actor',
+          title: 'Quality manager',
+          where: 'visibility.actors of createQDoc',
+          def: 'The one actor named on a public behaviour of preparation. Reaches createQDoc through an in adapter.',
+        },
+        adInQM: inAdapter('createQDoc', 'a quality manager'),
+        createQDoc: {
+          kind: 'Driving port · Command',
+          title: 'createQDoc',
+          where:
+            'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc',
+          def: 'Creates a QDoc on a quality manager’s request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it.',
+          contract: [
+            sig(
+              'createQDoc(command: CreateQDoc): QDocId',
+              'public · Quality manager',
+            ),
+          ],
+          speaks: types('CreateQDoc', 'QDocId'),
+          flow: [to('CreateQDoc', 'also taken by QDoc.create')],
+          checks: [noConstraintIn],
+          rules: [
+            rule(
+              'Business',
+              'State change',
+              'Only quality managers create QDocs',
+              ['start'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'A new QDoc carries a document number',
+              ['start'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'A QDoc is saved and announced together',
+              ['know'],
+            ),
+            rule(
+              'Business',
+              'State change',
+              'Each quality manager learns of a new QDoc',
+              ['know'],
+            ),
+          ],
+          seq: CREATE_SEQ,
+        },
+        QDocCreationService: {
+          kind: 'Application service',
+          title: 'QDocCreationService',
+          where:
+            'building_block|qdocmanagement.preparation.QDocCreationService',
+          def: 'Use cases that create QDocs in the Preparation subsystem.',
+          contract: [
+            sig(
+              'createQDoc(command: CreateQDoc): QDocId',
+              'public · Quality manager',
+            ),
+          ],
+          checks: [
+            check(
+              'Note',
+              'Which driven ports it uses is not in the design document. Its sequence diagram names them as text.',
+            ),
+          ],
+          seq: CREATE_SEQ,
+        },
+        QDoc: {
+          kind: 'Aggregate',
+          title: 'QDoc',
+          where: 'building_block|qdocmanagement.preparation.QDoc',
+          def: 'A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived.',
+          contract: [
+            sig(
+              'create(command: CreateQDoc, documentNumber: DocumentNumber): QDocCreated',
+              'private',
+            ),
+          ],
+          speaks: types(
+            'QDocId',
+            'QDocTitle',
+            'DocumentType',
+            'DocumentNumber',
+            'QDocStatus',
+            'Version[]',
+            'UserId',
+            'datetime',
+            'CreateQDoc',
+            'QDocCreated',
+          ),
+          flow: [
+            from('CreateQDoc', 'taken by createQDoc too'),
+            from('DocumentNumber', 'returned by DocumentNumberGenerator.next'),
+            from('Version', 'returned by Version.createFirst'),
+            to('QDocCreated', 'taken by PreparationEventPublisher.publish'),
+            to('QDoc', 'taken by QDocRepository.save'),
+          ],
+          rules: [
+            rule(
+              'Business',
+              'Consistency',
+              'A QDoc keeps at least one version',
+              ['ready'],
+            ),
+            rule('Business', 'State change', 'A new QDoc is active', ['start']),
+          ],
+          checks: [
+            check('Pass', 'References no port and no application service.'),
+          ],
+        },
+        DNG: {
+          kind: 'Domain service',
+          title: 'DocumentNumberGenerator',
+          where:
+            'building_block|qdocmanagement.preparation.DocumentNumberGenerator',
+          def: 'Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique.',
+          contract: [
+            sig('next(documentType: DocumentType): DocumentNumber', 'private'),
+          ],
+          speaks: types('DocumentType', 'DocumentNumber'),
+          flow: [to('DocumentNumber', 'taken by QDoc.create')],
+          checks: [
+            check('Pass', 'References no port and no application service.'),
+          ],
+        },
+        Entities: {
+          kind: '2 entities',
+          title: 'Version · ContentFile',
+          where:
+            'building_block|qdocmanagement.preparation.{Version, ContentFile}',
+          def: 'Version: a complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.\n\nContentFile: a rich-text file the authors write; the body of a QDoc version.',
+          contract: [
+            sig(
+              'Version.createFirst(authors: UserId[], reviewers?: UserId[], approvers?: UserId[]): Version',
+              'private',
+            ),
+          ],
+          speaks: types(
+            'integer',
+            'VersionStatus',
+            'ContentFile[]',
+            'Assignment[]',
+            'ContentFileId',
+            'UserId[]',
+          ),
+          flow: [
+            to('Version', 'held by QDoc.versions'),
+            from(
+              'UserId[]',
+              'returned by IdentityProvider.findQualityManagers',
+              'Type match only. The authors come from CreateQDoc, not from this port.',
+            ),
+          ],
+          rules: [
+            rule(
+              'Business',
+              'State change',
+              'Version 1 starts with the status new',
+              ['ready'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'Version 1 holds one empty content file',
+              ['ready'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'The named authors are assigned to version 1',
+              ['start'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'The named reviewers are assigned to version 1',
+              ['start'],
+            ),
+            rule(
+              'Business',
+              'Consistency',
+              'The named approvers are assigned to version 1',
+              ['start'],
+            ),
+          ],
+        },
+        QDocCreated: {
+          kind: 'Event · value object',
+          title: 'QDocCreated',
+          where: 'building_block|qdocmanagement.preparation.QDocCreated',
+          def: 'Event: a QDoc was created. Published by the Preparation subsystem for any subsystem that follows new QDocs.',
+          speaks: types(
+            'QDocId',
+            'QDocTitle',
+            'DocumentNumber',
+            'UserId',
+            'datetime',
+          ),
+          flow: [
+            from('QDocCreated', 'returned by QDoc.create'),
+            to('QDocCreated', 'taken by PreparationEventPublisher.publish'),
+          ],
+        },
+        VOs: {
+          kind: '12 value objects',
+          title: 'Value objects of preparation',
+          where: 'building_block|qdocmanagement.preparation.*',
+          def: 'QDocId · UserId · QDocTitle · DocumentType · DocumentNumber · QDocStatus · VersionStatus · AssignmentRole · Assignment · ContentFileId · CreateQDoc · NewQDocNotification',
+          checks: [
+            check(
+              'Warning',
+              'NewQDocNotification is used by no property, input or output. Only the sequence diagram of createQDoc names it.',
+            ),
+          ],
+          rules: [
+            rule('Business', 'Structure', 'A title is never blank', []),
+            rule(
+              'Business',
+              'Structure',
+              'A document type comes from the list of document types',
+              ['start'],
+            ),
+            rule(
+              'Business',
+              'Structure',
+              'A QDoc is either active or archived',
+              [],
+            ),
+            rule(
+              'Business',
+              'Structure',
+              'A version status comes from the workflow statuses',
+              [],
+            ),
+            rule(
+              'Business',
+              'Structure',
+              'An assignment role is author, reviewer or approver',
+              [],
+            ),
+            rule(
+              'Business',
+              'Structure',
+              'A creation request names a title, a document type and at least one author',
+              ['start'],
+            ),
+          ],
+        },
+        QDocRepository: {
+          kind: 'Driven port · repository',
+          title: 'QDocRepository',
+          where: 'building_block|qdocmanagement.preparation.QDocRepository',
+          def: 'Stores and loads QDoc aggregates, whole.',
+          contract: [sig('save(qdoc: QDoc)', 'private')],
+          speaks: types('QDoc'),
+          flow: [from('QDoc', 'the aggregate itself')],
+          checks: [noConstraintOut, check('Pass', 'Speaks only domain types.')],
+        },
+        IdentityProvider: {
+          kind: 'Driven port · external integration',
+          title: 'IdentityProvider',
+          where: 'building_block|qdocmanagement.preparation.IdentityProvider',
+          def: 'Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.',
+          contract: [
+            sig('isQualityManager(user: UserId): boolean', 'private'),
+            sig('findQualityManagers(): UserId[]', 'private'),
+          ],
+          speaks: types('UserId', 'boolean'),
+          flow: [
+            to(
+              'UserId[]',
+              'taken by Version.createFirst',
+              'Type match only. Not a real flow: the authors come from CreateQDoc.',
+            ),
+          ],
+          checks: [noConstraintOut, check('Pass', 'Speaks only domain types.')],
+        },
+        PreparationEventPublisher: {
+          kind: 'Driven port · external integration',
+          title: 'PreparationEventPublisher',
+          where:
+            'building_block|qdocmanagement.preparation.PreparationEventPublisher',
+          def: 'Port that publishes the events of the Preparation subsystem to the other subsystems.',
+          contract: [sig('publish(event: QDocCreated)', 'private')],
+          speaks: types('QDocCreated'),
+          flow: [from('QDocCreated', 'returned by QDoc.create')],
+          checks: [noConstraintOut, check('Pass', 'Speaks only domain types.')],
+        },
+        adRepo: outAdapter('QDocRepository'),
+        adIdp: outAdapter('IdentityProvider'),
+        adPub: outAdapter('PreparationEventPublisher'),
+        actorOther: {
+          kind: 'Caller · unknown',
+          title: 'Another subsystem',
+          where: 'visibility of notifyUsers: public, no actors',
+          def: 'notifyUsers is public and names no actor, so another subsystem calls it through an in adapter. Which one is not in the design document without call edges.',
+        },
+        adInOther: inAdapter('notifyUsers', 'another subsystem'),
+        notifyUsers: {
+          kind: 'Driving port · Command',
+          title: 'notifyUsers',
+          where:
+            'behavior|qdocmanagement.notifications.NotificationService.notifyUsers',
+          def: 'Tells each user another subsystem names what that subsystem wants them told: one notification per recipient, with the subject and the body of the request.',
+          contract: [
+            sig('notifyUsers(command: NotifyUsers)', 'public · no actors'),
+          ],
+          speaks: types('NotifyUsers'),
+          flow: [
+            from('NotifyUsers', 'returned by no behaviour in this design'),
+          ],
+          checks: [
+            noConstraintIn,
+            check(
+              'Note',
+              'Public with no actors: called by another subsystem.',
+            ),
+          ],
+          rules: [
+            rule(
+              'Business',
+              'State change',
+              'Each named recipient receives the notification',
+              ['know'],
+            ),
+            rule(
+              'Quality',
+              'Performance',
+              'A notification arrives within the maximum delay',
+              ['know'],
+            ),
+            rule('Quality', 'Reliability', 'A failed delivery stops no other', [
+              'know',
+            ]),
+          ],
+          seq: NOTIFY_SEQ,
+        },
+        NotificationService: {
+          kind: 'Application service',
+          title: 'NotificationService',
+          where:
+            'building_block|qdocmanagement.notifications.NotificationService',
+          def: 'The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.',
+          contract: [
+            sig('notifyUsers(command: NotifyUsers)', 'public · no actors'),
+          ],
+          seq: NOTIFY_SEQ,
+        },
+        Notification: {
+          kind: 'Value object',
+          title: 'Notification',
+          where: 'building_block|qdocmanagement.notifications.Notification',
+          def: 'A message to one user: a subject and a body, as the requesting subsystem wrote them.',
+          speaks: types('Recipient', 'string'),
+          flow: [to('Notification', 'taken by NotificationSender.send')],
+          checks: [
+            check('Pass', 'References no port and no application service.'),
+          ],
+        },
+        NVOs: {
+          kind: '2 value objects',
+          title: 'Recipient · NotifyUsers',
+          where:
+            'building_block|qdocmanagement.notifications.{Recipient, NotifyUsers}',
+          def: 'Recipient: a user a notification goes to, by the user’s identifier in the identity provider. Its userId is a string, not preparation’s UserId.\n\nNotifyUsers: a request from another subsystem to tell users something, naming the recipients, a subject and a body.',
+          speaks: types('Recipient[]', 'string'),
+          flow: [to('NotifyUsers', 'taken by notifyUsers')],
+        },
+        NotificationSender: {
+          kind: 'Driven port · external integration',
+          title: 'NotificationSender',
+          where:
+            'building_block|qdocmanagement.notifications.NotificationSender',
+          def: 'Port that delivers a notification to a user.',
+          contract: [sig('send(notification: Notification)', 'private')],
+          speaks: types('Notification'),
+          flow: [
+            from('Notification', 'returned by no behaviour in this design'),
+          ],
+          checks: [noConstraintOut, check('Pass', 'Speaks only domain types.')],
+        },
+        adSender: outAdapter('NotificationSender'),
+      };
+
+      const CHECKS = {
+        'chk-ports': {
+          level: 'Warning',
+          title: 'Ports with no Constraint rule',
+          text: 'None of the 6 ports carries a Constraint rule, so every in and out adapter is undecided: how callers reach the driving ports, and what technology sits behind the driven ports.',
+          els: [
+            'createQDoc',
+            'notifyUsers',
+            'QDocRepository',
+            'IdentityProvider',
+            'PreparationEventPublisher',
+            'NotificationSender',
+          ],
+        },
+        'chk-orphan': {
+          level: 'Warning',
+          title: 'Type in no contract',
+          text: 'NewQDocNotification is used by no property, input or output. Only the sequence diagram of createQDoc names it.',
+          els: ['VOs'],
+        },
+        'chk-caller': {
+          level: 'Note',
+          title: 'Caller unknown',
+          text: 'notifyUsers is public and names no actor, so another subsystem calls it. Which one is not in the design document without call edges.',
+          els: ['notifyUsers', 'actorOther'],
+        },
+        'chk-domain': {
+          level: 'Pass',
+          title: 'Domain depends on no port',
+          text: 'No property, input or output of a domain block uses a repository, an external integration or an application service.',
+          els: [
+            'QDoc',
+            'DNG',
+            'Entities',
+            'QDocCreated',
+            'VOs',
+            'Notification',
+            'NVOs',
+          ],
+        },
+        'chk-public': {
+          level: 'Pass',
+          title: 'Only application services are public',
+          text: 'The two public behaviours, createQDoc and notifyUsers, are both on application services.',
+          els: ['createQDoc', 'notifyUsers'],
+        },
+        'chk-cross': {
+          level: 'Pass',
+          title: 'No type crosses hexagons',
+          text: 'No property, input or output in preparation uses a type of notifications, or the other way round.',
+          els: ['prep', 'notif'],
+        },
+      };
+      const NEEDS = {
+        'need-start': {
+          name: 'Start a QDoc',
+          stakeholder: 'Quality managers',
+          id: 'start-a-qdoc',
+          statement:
+            'The quality managers need to start a QDoc in the QDoc System when the organisation decides the QDoc is needed, naming the authors who will write the QDoc.',
+          els: ['createQDoc'],
+        },
+        'need-know': {
+          name: 'Know about new QDocs',
+          stakeholder: 'Quality managers',
+          id: 'know-about-new-qdocs',
+          statement:
+            'The quality managers need to learn of each QDoc another quality manager creates.',
+          els: ['createQDoc', 'notifyUsers'],
+        },
+        'need-ready': {
+          name: 'Ready to write',
+          stakeholder: 'Authors',
+          id: 'ready-to-write',
+          statement:
+            'The authors need a version with a content file to write in from the moment the QDoc exists.\n\nNo port answers it: its rules sit on QDoc and Version only.',
+          els: ['QDoc', 'Entities'],
+        },
+      };
+      const GROUPS = {
+        'grp-checks': {
+          title: 'Checks',
+          def: 'Read from building block types, visibility and the types each property, input and output uses.\n\n2 warnings · 1 note · 3 passed.\n\nNot checked: which service uses which driven port, and calls between hexagons. The design document has no call edges.',
+        },
+        'grp-needs': {
+          title: 'Needs at the ports',
+          def: 'Each need, and the driving ports whose rules answer it.',
+        },
+      };
+
+      const NAME = {
+        prep: 'preparation',
+        notif: 'notifications',
+        actorOther: 'Another subsystem',
+        createQDoc: 'createQDoc',
+        notifyUsers: 'notifyUsers',
+        QDocRepository: 'QDocRepository',
+        IdentityProvider: 'IdentityProvider',
+        PreparationEventPublisher: 'PreparationEventPublisher',
+        NotificationSender: 'NotificationSender',
+        VOs: '12 value objects',
+        QDoc: 'QDoc',
+        DNG: 'DocumentNumberGenerator',
+        Entities: 'Version · ContentFile',
+        QDocCreated: 'QDocCreated',
+        Notification: 'Notification',
+        NVOs: 'Recipient · NotifyUsers',
+      };
+      const KIND = {
+        prep: 'module',
+        notif: 'module',
+        actorOther: 'actor',
+        createQDoc: 'command',
+        notifyUsers: 'command',
+        QDocRepository: 'repository',
+        IdentityProvider: 'integration',
+        PreparationEventPublisher: 'integration',
+        NotificationSender: 'integration',
+        VOs: 'vo',
+        QDoc: 'aggregate',
+        DNG: 'service',
+        Entities: 'entity',
+        QDocCreated: 'event',
+        Notification: 'vo',
+        NVOs: 'vo',
+      };
+      const el = (key, name) => ({
+        id: key,
+        name: name || NAME[key],
+        icon: KIND[key],
+      });
+      const checkNode = (id, icon, count, names) => ({
+        id,
+        name: CHECKS[id].title,
+        icon,
+        count,
+        children: CHECKS[id].els.map((k) => el(k, names && names[k])),
+      });
+      const TREE = [
+        {
+          id: 'grp-checks',
+          name: 'Checks',
+          icon: 'group',
+          count: '2 · 1 · 3',
+          children: [
+            checkNode('chk-ports', 'warning', '6'),
+            checkNode('chk-orphan', 'warning', '1', {
+              VOs: 'NewQDocNotification',
+            }),
+            checkNode('chk-caller', 'note', '1'),
+            checkNode('chk-domain', 'pass', ''),
+            checkNode('chk-public', 'pass', ''),
+            checkNode('chk-cross', 'pass', ''),
+          ],
+        },
+        {
+          id: 'grp-needs',
+          name: 'Needs at the ports',
+          icon: 'group',
+          count: '3',
+          children: Object.keys(NEEDS).map((id) => ({
+            id,
+            name: NEEDS[id].name,
+            icon: 'need',
+            count: id === 'need-ready' ? 'no port' : '',
+            children: NEEDS[id].els.map((k) => el(k)),
+          })),
+        },
+      ];
+
+      // Tabler outlines, as the model tree draws its kinds.
+      const ICON_D = {
+        warning:
+          'M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z M12 16h.01',
+        pass: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M9 12l2 2l4 -4',
+        note: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 9h.01 M11 12h1v4h1',
+        group:
+          'M4 4h6v6h-6z M14 4h6v6h-6z M4 14h6v6h-6z M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+        need: 'M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0 M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0',
+        module:
+          'M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2',
+        actor:
+          'M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0 M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2',
+        command:
+          'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M14 10a2 2 0 1 0 -4 0v4a2 2 0 1 0 4 0',
+        event: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M14 8h-4v8h4 M10 12h2.5',
+        repository:
+          'M4 6a8 3 0 1 0 16 0a8 3 0 1 0 -16 0 M4 6v6a8 3 0 0 0 16 0v-6 M4 12v6a8 3 0 0 0 16 0v-6',
+        integration:
+          'M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M3.6 9h16.8 M3.6 15h16.8 M11.5 3a17 17 0 0 0 0 18 M12.5 3a17 17 0 0 1 0 18',
+        vo: 'M6 5h12l3 5l-8.5 9.5a.7 .7 0 0 1 -1 0l-8.5 -9.5l3 -5 M10 12l-2 -2.2l.6 -1',
+        aggregate:
+          'M12 21l-8 -4.5v-9l8 -4.5l8 4.5v4.5 M12 12l8 -4.5 M12 12v9 M12 12l-8 -4.5 M15 18h7 M19 15l3 3l-3 3',
+        entity:
+          'M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z M7 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M15 8l2 0 M15 12l2 0 M7 16l10 0',
+        service:
+          'M12 3l7 4v10l-7 4l-7 -4v-10z M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
+      };
+      const TONE = {
+        warning: '#e8590c',
+        pass: '#2f9e44',
+        note: '#868e96',
+        command: '#1971c2',
+        event: '#e8590c',
+      };
+
+      const RELATED = {
+        prep: [
+          'actorQM',
+          'adInQM',
+          'createQDoc',
+          'QDocCreationService',
+          'QDoc',
+          'DNG',
+          'Entities',
+          'QDocCreated',
+          'VOs',
+          'QDocRepository',
+          'IdentityProvider',
+          'PreparationEventPublisher',
+        ],
+        notif: [
+          'actorOther',
+          'adInOther',
+          'notifyUsers',
+          'NotificationService',
+          'Notification',
+          'NVOs',
+          'NotificationSender',
+        ],
+        actorQM: ['adInQM', 'createQDoc'],
+        adInQM: ['actorQM', 'createQDoc'],
+        createQDoc: ['adInQM', 'QDocCreationService', 'VOs', 'QDoc'],
+        QDocCreationService: ['createQDoc'],
+        QDoc: [
+          'VOs',
+          'Entities',
+          'DNG',
+          'QDocCreated',
+          'QDocRepository',
+          'createQDoc',
+        ],
+        DNG: ['QDoc', 'VOs'],
+        Entities: ['QDoc', 'VOs', 'IdentityProvider'],
+        QDocCreated: ['QDoc', 'PreparationEventPublisher', 'VOs'],
+        VOs: [
+          'QDoc',
+          'Entities',
+          'QDocCreated',
+          'createQDoc',
+          'DNG',
+          'IdentityProvider',
+        ],
+        QDocRepository: ['QDoc', 'adRepo'],
+        IdentityProvider: ['VOs', 'Entities', 'adIdp'],
+        PreparationEventPublisher: ['QDocCreated', 'adPub'],
+        adRepo: ['QDocRepository'],
+        adIdp: ['IdentityProvider'],
+        adPub: ['PreparationEventPublisher'],
+        actorOther: ['adInOther', 'notifyUsers'],
+        adInOther: ['actorOther', 'notifyUsers'],
+        notifyUsers: ['adInOther', 'NotificationService', 'NVOs'],
+        NotificationService: ['notifyUsers'],
+        Notification: ['NotificationSender', 'NVOs'],
+        NVOs: ['Notification', 'notifyUsers'],
+        NotificationSender: ['Notification', 'adSender'],
+        adSender: ['NotificationSender'],
+      };
+      Object.keys(CHECKS).forEach((id) => (RELATED[id] = CHECKS[id].els));
+      Object.keys(NEEDS).forEach((id) => (RELATED[id] = NEEDS[id].els));
+
+      // Every path in the tree, with the paths above it, for revealing a row.
+      const ALL = [];
+      (function index(nodes, parent, ancestors) {
+        nodes.forEach((n) => {
+          const path = parent + '/' + n.id;
+          ALL.push({
+            id: n.id,
+            path,
+            ancestors,
+            parent: !!(n.children && n.children.length),
+          });
+          if (n.children) index(n.children, path, [...ancestors, path]);
+        });
+      })(TREE, '', []);
+
+      // ---- State and rendering --------------------------------------------------------
+      const state = {
+        sel: null,
+        selPath: null,
+        query: '',
+        expanded: {
+          '/grp-checks/chk-domain': false,
+          '/grp-checks/chk-public': false,
+          '/grp-checks/chk-cross': false,
+        },
+        zoom: 0.8,
+      };
+      const ZOOMS = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25];
+
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              '&': '&amp;',
+              '<': '&lt;',
+              '>': '&gt;',
+              '"': '&quot;',
+              "'": '&#39;',
+            })[c],
+        );
+      const isOpen = (p) => state.expanded[p] !== false;
+      const inPath = (p) =>
+        !!state.selPath &&
+        (state.selPath === p || state.selPath.startsWith(p + '/'));
+
+      function selectRow(key, path) {
+        if (state.sel === key && state.selPath === path)
+          Object.assign(state, { sel: null, selPath: null });
+        else Object.assign(state, { sel: key, selPath: path });
+        render();
+      }
+
+      // From the diagram or a link: the first row naming the element, opened to.
+      function selectElement(key) {
+        if (state.sel === key) {
+          Object.assign(state, { sel: null, selPath: null });
+        } else {
+          const hit = ALL.find((a) => a.id === key);
+          if (hit) hit.ancestors.forEach((a) => (state.expanded[a] = true));
+          Object.assign(state, { sel: key, selPath: hit ? hit.path : null });
+        }
+        render();
+      }
+
+      function renderTree() {
+        const q = state.query.trim().toLowerCase();
+        const searching = q !== '';
+        const matches = (n) => n.name.toLowerCase().includes(q);
+        const subtreeMatches = (n) =>
+          matches(n) || (n.children || []).some(subtreeMatches);
+        const html = [];
+        let matched = 0;
+        (function walk(nodes, parent, ancestors) {
+          nodes.forEach((n) => {
+            if (searching && !subtreeMatches(n)) return;
+            if (searching && matches(n)) matched++;
+            const path = parent + '/' + n.id;
+            const hasChildren = !!(n.children && n.children.length);
+            const open = hasChildren && (searching || isOpen(path));
+            const selected = state.selPath === path;
+            const nameClass = [
+              'name',
+              !selected && inPath(path) ? 'ancestor' : '',
+              searching && !matches(n) ? 'context' : '',
+            ].join(' ');
+            const rails = ancestors
+              .map(
+                (a) =>
+                  `<span class="rail${inPath(a) ? ' lit' : ''}" aria-hidden="true"></span>`,
+              )
+              .join('');
+            const chevron = hasChildren
+              ? `<button type="button" class="chevron" data-toggle="${esc(path)}" aria-expanded="${open}" aria-label="${open ? 'Collapse' : 'Expand'} ${esc(n.name)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></button>`
+              : '<span class="leaf-gap" aria-hidden="true"></span>';
+            const colour = selected
+              ? 'var(--brand-2)'
+              : TONE[n.icon] || 'var(--faint)';
+            html.push(
+              `<li>${rails}<div class="row${selected ? ' selected' : ''}">${chevron}` +
+                `<button type="button" class="pick" data-key="${esc(n.id)}" data-path="${esc(path)}" aria-pressed="${selected}">` +
+                `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${colour}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="${ICON_D[n.icon] || ICON_D.vo}"/></svg>` +
+                `<span class="${nameClass}">${esc(n.name)}</span><span class="count">${esc(n.count || '')}</span></button></div></li>`,
+            );
+            if (open) walk(n.children, path, [...ancestors, path]);
+          });
+        })(TREE, '', []);
+        document.getElementById('tree').innerHTML = html.join('');
+        const count = document.getElementById('search-count');
+        count.hidden = !searching;
+        count.textContent = `${matched} of ${ALL.length} rows`;
+      }
+
+      function detailsOf(key) {
+        const links = (keys) =>
+          keys.map((k) => ({ key: k, name: NAME[k] || D[k].title }));
+        if (D[key]) return D[key];
+        if (CHECKS[key]) {
+          const c = CHECKS[key];
+          return {
+            kind: 'Check · ' + c.level,
+            title: c.title,
+            def: c.text,
+            linksTitle: c.level === 'Pass' ? 'Checked' : 'Concerns',
+            links: links(c.els),
+          };
+        }
+        if (NEEDS[key]) {
+          const n = NEEDS[key];
+          return {
+            kind: 'Need · ' + n.stakeholder,
+            title: n.name,
+            where: 'need|' + n.id,
+            def: n.statement,
+            linksTitle: 'Answered at',
+            links: links(n.els),
+          };
+        }
+        if (GROUPS[key])
+          return {
+            kind: 'Group',
+            title: GROUPS[key].title,
+            def: GROUPS[key].def,
+          };
+        return null;
+      }
+
+      function renderDetails() {
+        const box = document.getElementById('details');
+        const d = state.sel && detailsOf(state.sel);
+        box.hidden = !d;
+        if (!d) return (box.innerHTML = '');
+        const part = [];
+        part.push(
+          `<div class="details-head"><div><span class="eyebrow">${esc(d.kind)}</span><h2>${esc(d.title)}</h2>` +
+            (d.where ? `<span class="address">${esc(d.where)}</span>` : '') +
+            `</div><button type="button" class="close" data-clear aria-label="Clear the selection" title="Clear the selection"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12 M6 6l12 12"/></svg></button></div>`,
+          `<p class="definition">${esc(d.def)}</p>`,
+        );
+        if (d.checks && d.checks.length)
+          part.push(
+            `<div class="section">${d.checks.map((c) => `<div class="check-line"><span class="pill ${c.level}">${c.level}</span><span>${esc(c.text)}</span></div>`).join('')}</div>`,
+          );
+        if (d.links && d.links.length)
+          part.push(
+            `<div class="section"><h3>${esc(d.linksTitle)}</h3><div class="chips">${d.links.map((l) => `<button type="button" class="chip-link" data-element="${esc(l.key)}">${esc(l.name)}</button>`).join('')}</div></div>`,
+          );
+        if (d.contract && d.contract.length)
+          part.push(
+            `<div class="section"><h3>Contract</h3>${d.contract.map((c) => `<div class="signature">${esc(c.sig)}<br><span>${esc(c.vis)}</span></div>`).join('')}</div>`,
+          );
+        if (d.speaks && d.speaks.length)
+          part.push(
+            `<div class="section"><h3>Speaks in</h3><div class="chips">${d.speaks.map((t) => `<span class="chip-type">${esc(t)}</span>`).join('')}</div></div>`,
+          );
+        if (d.flow && d.flow.length)
+          part.push(
+            `<div class="section"><h3>Flow inferred from types</h3>${d.flow
+              .map(
+                (f) =>
+                  `<div class="listed"><span class="dir">${f.dir}</span><span><code>${esc(f.type)}</code> ${esc(f.text)}${f.note ? `<br><span class="note">${esc(f.note)}</span>` : ''}</span></div>`,
+              )
+              .join('')}</div>`,
+          );
+        if (d.rules && d.rules.length)
+          part.push(
+            `<div class="section"><h3>Rules</h3>${d.rules
+              .map(
+                (r) =>
+                  `<div class="rule"><span><span class="pill ${r.cat}">${r.cat}</span> <span class="meta">${esc(r.type)}</span></span><b>${esc(r.name)}</b><span class="meta">Need: ${esc(r.needs)}</span></div>`,
+              )
+              .join('')}</div>`,
+          );
+        if (d.seq)
+          part.push(
+            `<details class="sequence"><summary>Sequence diagram, as written</summary><pre>${esc(d.seq)}</pre></details>`,
+          );
+        box.innerHTML = `<div class="details-body">${part.join('')}</div>`;
+      }
+
+      function renderDiagram() {
+        const related = state.sel ? RELATED[state.sel] || [] : [];
+        document.querySelectorAll('#host [data-key]').forEach((card) => {
+          const key = card.dataset.key;
+          card.classList.toggle('is-selected', key === state.sel);
+          card.classList.toggle(
+            'is-related',
+            key !== state.sel && related.includes(key),
+          );
+          card.setAttribute('aria-pressed', String(key === state.sel));
+        });
+        document.getElementById('host').style.zoom = state.zoom;
+        document.getElementById('zoom-label').textContent =
+          Math.round(state.zoom * 100) + '%';
+      }
+
+      function render() {
+        renderTree();
+        renderDetails();
+        renderDiagram();
+      }
+
+      // ---- Events ---------------------------------------------------------------------
+      document.getElementById('tree').addEventListener('click', (event) => {
+        const toggle = event.target.closest('[data-toggle]');
+        if (toggle) {
+          const path = toggle.dataset.toggle;
+          state.expanded[path] = !(
+            toggle.getAttribute('aria-expanded') === 'true'
+          );
+          return render();
+        }
+        const pick = event.target.closest('.pick');
+        if (pick) selectRow(pick.dataset.key, pick.dataset.path);
+      });
+      document.getElementById('details').addEventListener('click', (event) => {
+        if (event.target.closest('[data-clear]')) {
+          Object.assign(state, { sel: null, selPath: null });
+          return render();
+        }
+        const link = event.target.closest('[data-element]');
+        if (link) selectElement(link.dataset.element);
+      });
+      document.getElementById('host').addEventListener('click', (event) => {
+        const card = event.target.closest('[data-key]');
+        if (card) selectElement(card.dataset.key);
+      });
+      document.getElementById('query').addEventListener('input', (event) => {
+        state.query = event.target.value;
+        renderTree();
+      });
+      document.getElementById('expand-all').addEventListener('click', () => {
+        state.expanded = {};
+        render();
+      });
+      document.getElementById('collapse-all').addEventListener('click', () => {
+        state.expanded = {};
+        ALL.filter((a) => a.parent).forEach(
+          (a) => (state.expanded[a.path] = false),
+        );
+        render();
+      });
+      const overlay = (name, on) =>
+        document
+          .querySelectorAll(`[data-overlay="${name}"]`)
+          .forEach((m) => (m.hidden = !on));
+      document
+        .getElementById('show-checks')
+        .addEventListener('change', (event) =>
+          overlay('checks', event.target.checked),
+        );
+      document
+        .getElementById('show-rules')
+        .addEventListener('change', (event) =>
+          overlay('rules', event.target.checked),
+        );
+      const zoomBy = (step) => {
+        const i = Math.max(0, ZOOMS.indexOf(state.zoom));
+        state.zoom = ZOOMS[Math.min(ZOOMS.length - 1, Math.max(0, i + step))];
+        renderDiagram();
+      };
+      document
+        .getElementById('zoom-in')
+        .addEventListener('click', () => zoomBy(1));
+      document
+        .getElementById('zoom-out')
+        .addEventListener('click', () => zoomBy(-1));
+
+      render();
+    </script>
+  </body>
+</html>

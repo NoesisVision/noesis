@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../src/features/design-docs/design-doc-field';
+import { ElementBody } from '../src/features/design-docs/ui/architecture/element-body';
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
 import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
@@ -13,9 +14,9 @@ import { DesignDocumentContext } from '../src/features/design-docs/ui/element-de
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
 import { ImplementedByList } from '../src/features/design-docs/ui/element-details/implemented-by-modal';
+import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
-import type { OutlineNode } from '../src/shared/ui/model-tree/model-outline.ts';
-import { outlineTree } from '../src/shared/ui/model-tree/outline-tree';
 
 const DIAGRAM = [
   'Holds a card while a booking settles.',
@@ -515,6 +516,22 @@ describe('ElementDetail', () => {
     ).toEqual([['An unpaid hold lapses', undefined]]);
   });
 
+  it('gives the architecture view the column its rules point at', () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <ElementBody
+          id="building_block|pay.Hold"
+          document={document}
+          modelTree={tree}
+          onSelectElement={() => {}}
+        />
+      </MantineProvider>,
+    );
+    expect(html).toContain('href="#element-scenarios"');
+    expect(html).toContain('id="element-scenarios"');
+    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*An unpaid hold lapses</);
+  });
+
   it("marks each scenario for a rule's count to bring into view", () => {
     const html = show('building_block|pay.Hold');
     expect(html).toContain('data-scenario="0"');
@@ -648,7 +665,9 @@ describe('ElementDetail', () => {
 
   it('points a rule at the scenarios that cover it', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toMatch(/<a href="#element-scenarios"[^>]*>.*?1 scenario</);
+    expect(html).toMatch(
+      /<a [^>]*href="#element-scenarios"[^>]*>.*?1 scenario</,
+    );
     expect(html).toContain('id="element-scenarios"');
   });
 

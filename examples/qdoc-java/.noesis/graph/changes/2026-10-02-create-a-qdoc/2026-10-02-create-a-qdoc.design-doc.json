@@ -1,7 +1,67 @@
 {
   "id": "2026-10-02-create-a-qdoc",
   "name": "Create a QDoc",
-  "description": "# Context\n\nThis design covers UC-1, Create a QDoc, in a green field: a quality manager starts a quality document, the QDoc System numbers it, creates version 1 with an empty content file and tells the other quality managers (UC-1). The drivers:\n\n- **The subsystem structure** of the QDoc System: value-stream subsystems such as Preparation, platform subsystems such as Notifications and Identity that hold no process of their own (QDoc System structure).\n- **Who may create, and what a new QDoc must hold:** only quality managers (SR-PRE-001); a title, a type from the list and at least one author (FR-PRE-001, FR-PRE-002); an active QDoc with a number and version 1 in the status new with one empty content file (FR-PRE-003 to FR-PRE-005, FR-PRE-009); never a QDoc without a version (FR-PRE-010).\n- **Every quality manager learns of each new QDoc** (FR-NOT-001), within a delay still open (TBD-01).\n\n# Decisions\n\n## D1. One bounded context per subsystem, only the two UC-1 needs\n\nThe new root [qdocmanagement](noesis:module|qdocmanagement) holds one module per subsystem, each its own bounded context. UC-1 needs [preparation](noesis:module|qdocmanagement.preparation) and [notifications](noesis:module|qdocmanagement.notifications); the others arrive with the use cases that need them.\n\n- **Why:** the structure document already splits the system and gives each subsystem its area code; following it keeps requirement ids and modules aligned.\n- **Trade-off:** Identity is reached through a port in each context rather than a shared module (D3, D4).\n\n## D2. QDoc is the aggregate, and owns its versions\n\n[QDoc](noesis:building_block|qdocmanagement.preparation.QDoc) is the aggregate root; [Version](noesis:building_block|qdocmanagement.preparation.Version) and [ContentFile](noesis:building_block|qdocmanagement.preparation.ContentFile) are entities inside it. [QDoc.create](noesis:behavior|qdocmanagement.preparation.QDoc.create) makes an active QDoc together with its first version, from [Version.createFirst](noesis:behavior|qdocmanagement.preparation.Version.createFirst).\n\n- **Why:** creating a QDoc is creating its version 1 (FR-PRE-004), and \"at least one version\" (FR-PRE-010) is an invariant only the QDoc can keep. A QDoc's own status is active or archived; workflow statuses belong to versions.\n- **Trade-off:** the whole QDoc is loaded and saved together ([QDocRepository](noesis:building_block|qdocmanagement.preparation.QDocRepository)). Here a content file only exists: its editing, history and comments belong to Content management (UC-4).\n\n## D3. An application service runs the use case and announces it atomically\n\n[QDocCreationService.createQDoc](noesis:behavior|qdocmanagement.preparation.QDocCreationService.createQDoc) takes a [CreateQDoc](noesis:building_block|qdocmanagement.preparation.CreateQDoc) command, checks the requester's role through the [IdentityProvider](noesis:building_block|qdocmanagement.preparation.IdentityProvider) port, takes a number from [DocumentNumberGenerator](noesis:building_block|qdocmanagement.preparation.DocumentNumberGenerator), creates the QDoc, then saves it and publishes [QDocCreated](noesis:building_block|qdocmanagement.preparation.QDocCreated) through [PreparationEventPublisher](noesis:building_block|qdocmanagement.preparation.PreparationEventPublisher) in one unit of work.\n\n- **Why:** the role check is a security rule at the boundary (SR-PRE-001) and needs the Identity subsystem; the number is required from the start (FR-PRE-009) but its format is UC-2's, so it sits behind a domain service of its own.\n- **Saved and announced together:** either both happen or neither, so no quality manager hears of a QDoc that does not exist.\n\n## D4. Notifications react to an event, one recipient at a time\n\n[NewQDocNotifier.onQDocCreated](noesis:behavior|qdocmanagement.notifications.NewQDocNotifier.onQDocCreated) reacts to `QDocCreated`, lists the quality managers through [QualityManagerDirectory](noesis:building_block|qdocmanagement.notifications.QualityManagerDirectory) and sends each a [NewQDocNotification](noesis:building_block|qdocmanagement.notifications.NewQDocNotification) through [NotificationSender](noesis:building_block|qdocmanagement.notifications.NotificationSender). A failed delivery to one stops no other.\n\n- **Why:** Notifications is a platform subsystem with no process of its own (structure); an event keeps Preparation unaware of who is told and how.\n- **Trade-off:** notification is eventual. Its channel and maximum delay are TBD-01.\n\n## D5. People are assigned as given, until UC-3\n\nVersion 1 holds an [Assignment](noesis:building_block|qdocmanagement.preparation.Assignment) for each author named in the request, and for each reviewer and approver if any are named (FR-PRE-006 to FR-PRE-008).\n\n- **Why:** the checks on assignees (role held, active account) are UC-3's; reviewers and approvers are optional because they can be added later, and an approver is needed only when a version is shared (UC-6).\n- **Trade-off:** until UC-3, a request can assign someone who would fail those checks.\n\n## D6. Closed vocabularies are value objects\n\n[QDocTitle](noesis:building_block|qdocmanagement.preparation.QDocTitle) is never blank; [DocumentType](noesis:building_block|qdocmanagement.preparation.DocumentType), [QDocStatus](noesis:building_block|qdocmanagement.preparation.QDocStatus), [VersionStatus](noesis:building_block|qdocmanagement.preparation.VersionStatus) and [AssignmentRole](noesis:building_block|qdocmanagement.preparation.AssignmentRole) each take one value from their list.\n\n- **Why:** FR-PRE-001 and FR-PRE-002; the glossary fixes each list. The document types may grow, which is a change to that list, not to any QDoc.\n\n# How they connect\n\nD1 decides where each piece lives; D2 decides what one transaction holds; D3 orchestrates within Preparation and ends at the event D4 listens to. D5 and D6 are what D2 and D3 check today, leaving the rest to UC-2 and UC-3.\n\n```mermaid\nsequenceDiagram\n  accTitle: Creating a QDoc across Preparation and Notifications\n  actor QM as Quality manager\n  participant S as QDocCreationService\n  participant I as IdentityProvider\n  participant N as DocumentNumberGenerator\n  participant Q as QDoc\n  participant R as QDocRepository + PreparationEventPublisher\n  participant NN as NewQDocNotifier\n  QM->>S: createQDoc(CreateQDoc)\n  S->>I: isQualityManager(requester)\n  S->>N: next(documentType)\n  S->>Q: create(command, number)\n  Q-->>S: QDocCreated (version 1 inside)\n  S->>R: save + publish, one unit of work\n  R--)NN: QDocCreated\n  NN->>NN: notify each quality manager, failures isolated\n```\n\n# Left out and open\n\n- The document number's format, sequence and uniqueness: UC-2.\n- Role and active-account checks on assignees: UC-3.\n- Editing, history and comments of content files: UC-4, in Content management.\n- The notification channel and its maximum delay: TBD-01.",
+  "description": "# Context\n\nThis design covers UC-1, Create a QDoc, in a green field: a quality manager starts a quality document, the QDoc System numbers it, creates version 1 with an empty content file and tells the other quality managers (UC-1). The drivers:\n\n- **The subsystem structure** of the QDoc System: value-stream subsystems such as Preparation, platform subsystems such as Notifications and Identity that hold no process of their own (QDoc System structure).\n- **Who may create, and what a new QDoc must hold:** only quality managers (SR-PRE-001); a title, a type from the list and at least one author (FR-PRE-001, FR-PRE-002); an active QDoc with a number and version 1 in the status new with one empty content file (FR-PRE-003 to FR-PRE-005, FR-PRE-009); never a QDoc without a version (FR-PRE-010).\n- **Every quality manager learns of each new QDoc** (FR-NOT-001), within a delay still open (TBD-01).\n\n# Decisions\n\n## D1. One bounded context per subsystem, only the two UC-1 needs\n\nThe new root [qdocmanagement](noesis:module|qdocmanagement) holds one module per subsystem, each its own bounded context. UC-1 needs [preparation](noesis:module|qdocmanagement.preparation) and [notifications](noesis:module|qdocmanagement.notifications); the others arrive with the use cases that need them.\n\n- **Why:** the structure document already splits the system and gives each subsystem its area code; following it keeps requirement ids and modules aligned.\n- **Trade-off:** Identity is reached through a port of the context that needs it rather than a shared module (D3).\n\n## D2. QDoc is the aggregate, and owns its versions\n\n[QDoc](noesis:building_block|qdocmanagement.preparation.QDoc) is the aggregate root; [Version](noesis:building_block|qdocmanagement.preparation.Version) and [ContentFile](noesis:building_block|qdocmanagement.preparation.ContentFile) are entities inside it. [QDoc.create](noesis:behavior|qdocmanagement.preparation.QDoc.create) makes an active QDoc together with its first version, from [Version.createFirst](noesis:behavior|qdocmanagement.preparation.Version.createFirst).\n\n- **Why:** creating a QDoc is creating its version 1 (FR-PRE-004), and \"at least one version\" (FR-PRE-010) is an invariant only the QDoc can keep. A QDoc's own status is active or archived; workflow statuses belong to versions.\n- **Trade-off:** the whole QDoc is loaded and saved together ([QDocRepository](noesis:building_block|qdocmanagement.preparation.QDocRepository)). Here a content file only exists: its editing, history and comments belong to Content management (UC-4).\n\n## D3. An application service runs the use case and announces it atomically\n\n[QDocCreationService.createQDoc](noesis:behavior|qdocmanagement.preparation.QDocCreationService.createQDoc) takes a [CreateQDoc](noesis:building_block|qdocmanagement.preparation.CreateQDoc) command, checks the requester's role through the [IdentityProvider](noesis:building_block|qdocmanagement.preparation.IdentityProvider) port, takes a number from [DocumentNumberGenerator](noesis:building_block|qdocmanagement.preparation.DocumentNumberGenerator), creates the QDoc, saves it and publishes [QDocCreated](noesis:building_block|qdocmanagement.preparation.QDocCreated) through [PreparationEventPublisher](noesis:building_block|qdocmanagement.preparation.PreparationEventPublisher) in one unit of work.\n\n- **Why:** the role check is a security rule at the boundary (SR-PRE-001) and needs the Identity subsystem; the number is required from the start (FR-PRE-009) but its format is UC-2's, so it sits behind a domain service of its own.\n- **Saved and announced together:** either both happen or neither, so no quality manager hears of a QDoc that does not exist.\n\n## D4. Notifications is a generic service; Preparation decides who is told\n\nThe [notifications](noesis:module|qdocmanagement.notifications) context knows nothing of QDocs. [NotificationService.notifyUsers](noesis:behavior|qdocmanagement.notifications.NotificationService.notifyUsers) takes a [NotifyUsers](noesis:building_block|qdocmanagement.notifications.NotifyUsers) request naming the recipients, a subject and a body, and sends each recipient a [Notification](noesis:building_block|qdocmanagement.notifications.Notification) through [NotificationSender](noesis:building_block|qdocmanagement.notifications.NotificationSender); a failed delivery to one stops no other. `createQDoc` finds the quality managers through [IdentityProvider.findQualityManagers](noesis:behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers), builds the [NewQDocNotification](noesis:building_block|qdocmanagement.preparation.NewQDocNotification) and asks Notifications to deliver it (FR-NOT-001).\n\n- **Why:** Notifications is a platform subsystem with no process of its own (structure); as an open host it serves new versions and assignments the same way, without learning each caller's language.\n- **Trade-off:** every subsystem that wants someone told composes the message and picks the recipients itself. `QDocCreated` is still published for whoever follows new QDocs. The channel and the maximum delay are TBD-01.\n\n## D5. People are assigned as given, until UC-3\n\nVersion 1 holds an [Assignment](noesis:building_block|qdocmanagement.preparation.Assignment) for each author named in the request, and for each reviewer and approver if any are named (FR-PRE-006 to FR-PRE-008).\n\n- **Why:** the checks on assignees (role held, active account) are UC-3's; reviewers and approvers are optional because they can be added later, and an approver is needed only when a version is shared (UC-6).\n- **Trade-off:** until UC-3, a request can assign someone who would fail those checks.\n\n## D6. Closed vocabularies are value objects\n\n[QDocTitle](noesis:building_block|qdocmanagement.preparation.QDocTitle) is never blank; [DocumentType](noesis:building_block|qdocmanagement.preparation.DocumentType), [QDocStatus](noesis:building_block|qdocmanagement.preparation.QDocStatus), [VersionStatus](noesis:building_block|qdocmanagement.preparation.VersionStatus) and [AssignmentRole](noesis:building_block|qdocmanagement.preparation.AssignmentRole) each take one value from their list.\n\n- **Why:** FR-PRE-001 and FR-PRE-002; the glossary fixes each list. The document types may grow, which is a change to that list, not to any QDoc.\n\n# How they connect\n\nD1 decides where each piece lives; D2 decides what one transaction holds; D3 orchestrates within Preparation and, through D4, has the quality managers told. D5 and D6 are what D2 and D3 check today, leaving the rest to UC-2 and UC-3.\n\n```mermaid\nsequenceDiagram\n  accTitle: Creating a QDoc and telling the quality managers\n  actor QM as Quality manager\n  participant S as QDocCreationService\n  participant I as IdentityProvider\n  participant N as DocumentNumberGenerator\n  participant Q as QDoc\n  participant R as QDocRepository + PreparationEventPublisher\n  participant NS as NotificationService\n  QM->>S: createQDoc(CreateQDoc)\n  S->>I: isQualityManager(requester)\n  S->>N: next(documentType)\n  S->>Q: create(command, number)\n  Q-->>S: QDocCreated (version 1 inside)\n  S->>R: save + publish, one unit of work\n  S->>I: findQualityManagers()\n  S->>NS: notifyUsers(NewQDocNotification)\n  NS->>NS: send to each recipient, failures isolated\n```\n\n# Left out and open\n\n- The document number's format, sequence and uniqueness: UC-2.\n- Role and active-account checks on assignees: UC-3.\n- Editing, history and comments of content files: UC-4, in Content management.\n- The notification channel and its maximum delay: TBD-01.",
+  "needs": {
+    "added": [
+      {
+        "id": "start-a-qdoc",
+        "name": {
+          "changed": true,
+          "value": "Start a QDoc",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "changed": true,
+          "value": "Quality managers",
+          "author": "agent"
+        },
+        "statement": {
+          "changed": true,
+          "value": "The quality managers need to start a QDoc in the QDoc System when the organisation decides the QDoc is needed, naming the authors who will write the QDoc.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "know-about-new-qdocs",
+        "name": {
+          "changed": true,
+          "value": "Know about new QDocs",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "changed": true,
+          "value": "Quality managers",
+          "author": "agent"
+        },
+        "statement": {
+          "changed": true,
+          "value": "The quality managers need to learn of each QDoc another quality manager creates.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "ready-to-write",
+        "name": {
+          "changed": true,
+          "value": "Ready to write",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "changed": true,
+          "value": "Authors",
+          "author": "agent"
+        },
+        "statement": {
+          "changed": true,
+          "value": "The authors need a version with a content file to write in from the moment the QDoc exists.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "modules": {
     "added": [
       {
@@ -18,8 +78,13 @@
         },
         "diagram": {
           "changed": true,
-          "value": "flowchart LR\n  accTitle: Subsystems taking part in creating a QDoc\n  QM([Quality manager]) -->|createQDoc| PRE[preparation]\n  PRE -->|QDocCreated| NOT[notifications]\n  NOT -->|notification| QMs([Each quality manager])",
+          "value": "flowchart LR\n  accTitle: Subsystems taking part in creating a QDoc\n  QM([Quality manager]) -->|createQDoc| PRE[preparation]\n  PRE -->|notifyUsers| NOT[notifications]\n  NOT -->|notification| QMs([Each quality manager])",
           "author": "agent"
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
@@ -36,6 +101,11 @@
         },
         "diagram": {
           "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
@@ -47,11 +117,48 @@
         },
         "definition": {
           "changed": true,
-          "value": "Bounded context of the Notifications subsystem (area code NOT), a platform subsystem: tells users about events such as new QDocs, new versions and assignments. Holds no process of its own.",
+          "value": "Bounded context of the Notifications subsystem (area code NOT), a platform subsystem and an open host: tells users what the other subsystems ask it to tell them, such as a new QDoc, a new version or an assignment. Holds no process of its own and knows nothing of the subsystems that call it.",
           "author": "agent"
         },
         "diagram": {
           "changed": false
+        },
+        "rules": {
+          "added": [
+            {
+              "name": "Notifications depends on no other subsystem",
+              "category": {
+                "changed": true,
+                "value": "Quality",
+                "author": "agent"
+              },
+              "ruleType": {
+                "changed": true,
+                "value": "Maintainability",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The Notifications subsystem subscribes to no event and refers to no building block of another subsystem. The other subsystems reach it only by calling NotificationService, in the types the Notifications subsystem itself defines (NotifyUsers, Recipient).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
         }
       }
     ],
@@ -230,6 +337,11 @@
           "added": [
             {
               "name": "A title is never blank",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -240,13 +352,21 @@
                 "value": "A QDoc title holds at least one character other than whitespace; a blank title cannot be created.",
                 "author": "agent"
               },
+              "needs": {
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
               "scenarios": {
                 "added": [
                   {
                     "name": "Blank title",
                     "description": {
                       "changed": true,
-                      "value": "A creation request with a blank title is rejected (FR-PRE-001).",
+                      "value": "A creation request with a blank title is rejected.",
                       "author": "agent"
                     },
                     "given": {
@@ -332,6 +452,11 @@
           "added": [
             {
               "name": "A document type comes from the list of document types",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -340,6 +465,18 @@
               "description": {
                 "changed": true,
                 "value": "A document type is one of procedure, guideline, instruction and policy (FR-PRE-002). Adding a type to the list is a change to this list, not to any QDoc.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "The organisation named procedure, guideline, instruction and policy as its document types, and the list may grow.",
                 "author": "agent"
               },
               "scenarios": {
@@ -516,6 +653,11 @@
           "added": [
             {
               "name": "A QDoc is either active or archived",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -525,6 +667,14 @@
                 "changed": true,
                 "value": "A QDoc status takes exactly one of two values: active, archived.",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [],
@@ -594,6 +744,11 @@
           "added": [
             {
               "name": "A version status comes from the workflow statuses",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -603,6 +758,14 @@
                 "changed": true,
                 "value": "A version status takes exactly one of the values new, approved, published, no longer in force and archived.",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [],
@@ -672,6 +835,11 @@
           "added": [
             {
               "name": "An assignment role is author, reviewer or approver",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -681,6 +849,14 @@
                 "changed": true,
                 "value": "An assignment role takes exactly one of the values author, reviewer and approver.",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [],
@@ -982,6 +1158,11 @@
           "added": [
             {
               "name": "A creation request names a title, a document type and at least one author",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Structure",
@@ -990,6 +1171,18 @@
               "description": {
                 "changed": true,
                 "value": "A QDoc creation request that lacks the title, the document type or at least one author is rejected (FR-PRE-001). Reviewers and approvers are optional.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "These three are the checks made before a QDoc is created; reviewers and approvers may be added later (UC-3).",
                 "author": "agent"
               },
               "scenarios": {
@@ -1115,7 +1308,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Event: a QDoc was created. Published by the Preparation subsystem for the other subsystems, carrying what the notification of the quality managers needs.",
+          "value": "Event: a QDoc was created. Published by the Preparation subsystem for any subsystem that follows new QDocs.",
           "author": "agent"
         },
         "diagram": {
@@ -1445,7 +1638,7 @@
         },
         "diagram": {
           "changed": true,
-          "value": "stateDiagram-v2\n  accTitle: Statuses of a QDoc\n  [*] --> active: create\n  active --> archived: archive (UC-9)",
+          "value": "erDiagram\n  accTitle: Entities of the QDoc aggregate\n  QDoc {\n    QDocId id PK\n    QDocTitle title\n    DocumentType documentType\n    DocumentNumber documentNumber\n    QDocStatus status\n    UserId createdBy\n    datetime createdAt\n  }\n  Version {\n    integer number\n    VersionStatus status\n  }\n  ContentFile {\n    ContentFileId id PK\n    string text\n  }\n  Assignment {\n    UserId user\n    AssignmentRole role\n  }\n  QDoc ||--|{ Version : \"has versions\"\n  Version ||--|{ ContentFile : \"holds content files\"\n  Version ||--|{ Assignment : \"assigns people\"",
           "author": "agent"
         },
         "implements": {
@@ -1608,6 +1801,11 @@
           "added": [
             {
               "name": "A QDoc keeps at least one version",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Consistency",
@@ -1616,6 +1814,18 @@
               "description": {
                 "changed": true,
                 "value": "Every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "ready-to-write"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "A QDoc without a version has nothing to review, approve or publish.",
                 "author": "agent"
               },
               "scenarios": {
@@ -1752,7 +1962,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds.",
+          "value": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.",
           "author": "agent"
         },
         "diagram": {
@@ -1918,7 +2128,7 @@
         }
       },
       {
-        "id": "building_block|qdocmanagement.notifications.NewQDocNotification",
+        "id": "building_block|qdocmanagement.preparation.NewQDocNotification",
         "name": {
           "changed": true,
           "value": "NewQDocNotification",
@@ -1931,7 +2141,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "The message telling a quality manager about a new QDoc: names the QDoc, its document number and its creator.",
+          "value": "The message telling the quality managers about a new QDoc: names the QDoc, its document number and its creator, and gives the subject and the body the Notifications subsystem is asked to deliver.",
           "author": "agent"
         },
         "diagram": {
@@ -1944,28 +2154,10 @@
         "properties": {
           "added": [
             {
-              "name": "recipient",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.Recipient",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager notified.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
               "name": "qdocTitle",
               "type": {
                 "changed": true,
-                "value": "primitive|string",
+                "value": "building_block|qdocmanagement.preparation.QDocTitle",
                 "author": "agent"
               },
               "description": {
@@ -1983,7 +2175,7 @@
               "name": "documentNumber",
               "type": {
                 "changed": true,
-                "value": "primitive|string",
+                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
                 "author": "agent"
               },
               "description": {
@@ -2001,7 +2193,7 @@
               "name": "createdBy",
               "type": {
                 "changed": true,
-                "value": "primitive|string",
+                "value": "building_block|qdocmanagement.preparation.UserId",
                 "author": "agent"
               },
               "description": {
@@ -2031,20 +2223,20 @@
         }
       },
       {
-        "id": "building_block|qdocmanagement.notifications.QualityManagerDirectory",
+        "id": "building_block|qdocmanagement.notifications.NotifyUsers",
         "name": {
           "changed": true,
-          "value": "QualityManagerDirectory",
+          "value": "NotifyUsers",
           "author": "agent"
         },
         "type": {
           "changed": true,
-          "value": "external_integration",
+          "value": "value_object",
           "author": "agent"
         },
         "definition": {
           "changed": true,
-          "value": "Port to the Identity subsystem that lists the quality managers of the organisation.",
+          "value": "Command: a request from another subsystem to tell users something, naming the recipients, a subject and a body. The requesting subsystem chooses the recipients and writes the text.",
           "author": "agent"
         },
         "diagram": {
@@ -2055,7 +2247,159 @@
           "removed": []
         },
         "properties": {
+          "added": [
+            {
+              "name": "recipients",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|qdocmanagement.notifications.Recipient"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The users to notify.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "subject",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "What the notification is about, in one line.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "body",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The text of the notification.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
           "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|qdocmanagement.notifications.Notification",
+        "name": {
+          "changed": true,
+          "value": "Notification",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A message to one user: a subject and a body, as the requesting subsystem wrote them.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "recipient",
+              "type": {
+                "changed": true,
+                "value": "building_block|qdocmanagement.notifications.Recipient",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The user notified.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "subject",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "What the notification is about, in one line.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "body",
+              "type": {
+                "changed": true,
+                "value": "primitive|string",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The text of the notification.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
           "removed": [],
           "modified": []
         },
@@ -2111,10 +2455,10 @@
         }
       },
       {
-        "id": "building_block|qdocmanagement.notifications.NewQDocNotifier",
+        "id": "building_block|qdocmanagement.notifications.NotificationService",
         "name": {
           "changed": true,
-          "value": "NewQDocNotifier",
+          "value": "NotificationService",
           "author": "agent"
         },
         "type": {
@@ -2124,7 +2468,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Reacts to events of the Preparation subsystem about new QDocs and tells the users concerned.",
+          "value": "The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.",
           "author": "agent"
         },
         "diagram": {
@@ -2170,12 +2514,12 @@
         },
         "definition": {
           "changed": true,
-          "value": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, and announces the new QDoc to the other subsystems.",
+          "value": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it.",
           "author": "agent"
         },
         "diagram": {
           "changed": true,
-          "value": "sequenceDiagram\n  accTitle: Creating a QDoc\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService-->>QM: QDocId",
+          "value": "sequenceDiagram\n  accTitle: Creating a QDoc\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService->>IdentityProvider: findQualityManagers()\n  QDocCreationService->>NotificationService: notifyUsers(NewQDocNotification for the quality managers)\n  QDocCreationService-->>QM: QDocId",
           "author": "agent"
         },
         "visibility": {
@@ -2235,6 +2579,11 @@
           "added": [
             {
               "name": "Only quality managers create QDocs",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "State change",
@@ -2243,6 +2592,18 @@
               "description": {
                 "changed": true,
                 "value": "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing. The requester's roles are those held at the moment of the request.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "Creating a QDoc is a quality manager's decision. An auditor has read-only access (SR-ACT-002) and creates nothing.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2300,6 +2661,11 @@
             },
             {
               "name": "A new QDoc carries a document number",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Consistency",
@@ -2308,6 +2674,18 @@
               "description": {
                 "changed": true,
                 "value": "Every QDoc gets its document number when it is created (FR-PRE-009), from the DocumentNumberGenerator; the format is defined by UC-2.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "Each QDoc needs a number from the moment it exists, for searching and for referring to it.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2342,6 +2720,11 @@
             },
             {
               "name": "A QDoc is saved and announced together",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Consistency",
@@ -2351,6 +2734,16 @@
                 "changed": true,
                 "value": "The new QDoc is saved and QDocCreated is published in the same unit of work: either both happen or neither does. A rejected request creates nothing and publishes nothing.",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "know-about-new-qdocs"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
@@ -2374,6 +2767,88 @@
                     "then": {
                       "changed": true,
                       "value": "the request is rejected, no QDoc is saved and no QDocCreated is published",
+                      "author": "agent"
+                    }
+                  }
+                ],
+                "removed": [],
+                "modified": []
+              }
+            },
+            {
+              "name": "Each quality manager learns of a new QDoc",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
+              "ruleType": {
+                "changed": true,
+                "value": "State change",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "When a QDoc is created, the Preparation subsystem asks the Notifications subsystem to notify each quality manager of the organisation, naming the QDoc, its number and its creator (FR-NOT-001). The quality managers are those holding the role at the moment the QDoc is created.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "know-about-new-qdocs"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "The creation of a procedure matters to each quality manager, not only to the one who created it.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
+                  {
+                    "name": "Three quality managers notified",
+                    "description": {
+                      "changed": true,
+                      "value": "Everyone with the role is told.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "changed": true,
+                      "value": "an organisation with 3 quality managers",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "changed": true,
+                      "value": "one of them creates a QDoc",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "changed": true,
+                      "value": "each of the 3 receives a notification naming the QDoc, its document number and its creator",
+                      "author": "agent"
+                    }
+                  },
+                  {
+                    "name": "A rejected request notifies nobody",
+                    "description": {
+                      "changed": true,
+                      "value": "No QDoc, no notification.",
+                      "author": "agent"
+                    },
+                    "given": {
+                      "changed": true,
+                      "value": "an organisation with 3 quality managers",
+                      "author": "agent"
+                    },
+                    "when": {
+                      "changed": true,
+                      "value": "one of them submits a QDoc creation request that names no author",
+                      "author": "agent"
+                    },
+                    "then": {
+                      "changed": true,
+                      "value": "the request is rejected and no quality manager is notified",
                       "author": "agent"
                     }
                   }
@@ -2407,7 +2882,7 @@
               },
               "then": {
                 "changed": true,
-                "value": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, and QDocCreated is published",
+                "value": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc",
                 "author": "agent"
               }
             }
@@ -2508,6 +2983,11 @@
           "added": [
             {
               "name": "A new QDoc is active",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "State change",
@@ -2516,6 +2996,18 @@
               "description": {
                 "changed": true,
                 "value": "A QDoc starts with the status active (FR-PRE-003).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "A QDoc itself has only two statuses, active and archived; workflow statuses belong to versions.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2674,6 +3166,11 @@
           "added": [
             {
               "name": "Version 1 starts with the status new",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "State change",
@@ -2682,6 +3179,18 @@
               "description": {
                 "changed": true,
                 "value": "Creating a QDoc creates its version 1, with the status new (FR-PRE-004).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "ready-to-write"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "Creating a QDoc is creating its first version.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2716,6 +3225,11 @@
             },
             {
               "name": "Version 1 holds one empty content file",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Consistency",
@@ -2724,6 +3238,18 @@
               "description": {
                 "changed": true,
                 "value": "Version 1 is created with exactly one content file holding no text, and no attachment (FR-PRE-005).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "ready-to-write"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "Each version has at least one content file (UC-4); the authors fill the first one.",
                 "author": "agent"
               },
               "scenarios": {
@@ -2757,7 +3283,12 @@
               }
             },
             {
-              "name": "The people named at creation are assigned to version 1",
+              "name": "The named authors are assigned to version 1",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "Consistency",
@@ -2765,8 +3296,18 @@
               },
               "description": {
                 "changed": true,
-                "value": "Each author named in the creation request is assigned to version 1 as author (FR-PRE-006); each named reviewer as reviewer (FR-PRE-007); each named approver as approver (FR-PRE-008).",
+                "value": "Each author named in the creation request is assigned to version 1 as author (FR-PRE-006).",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
@@ -2792,7 +3333,43 @@
                       "value": "both appear as authors of version 1 and can edit the content file",
                       "author": "agent"
                     }
-                  },
+                  }
+                ],
+                "removed": [],
+                "modified": []
+              }
+            },
+            {
+              "name": "The named reviewers are assigned to version 1",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
+              "ruleType": {
+                "changed": true,
+                "value": "Consistency",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Each reviewer named in the creation request is assigned to version 1 as reviewer (FR-PRE-007).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "Reviewers are optional and may be added now or later (UC-3).",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
                   {
                     "name": "Two reviewers",
                     "description": {
@@ -2838,7 +3415,43 @@
                       "value": "the request is accepted and version 1 has no reviewer",
                       "author": "agent"
                     }
-                  },
+                  }
+                ],
+                "removed": [],
+                "modified": []
+              }
+            },
+            {
+              "name": "The named approvers are assigned to version 1",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
+              "ruleType": {
+                "changed": true,
+                "value": "Consistency",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Each approver named in the creation request is assigned to version 1 as approver (FR-PRE-008).",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "start-a-qdoc"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": true,
+                "value": "At least one approver is needed only when the version is shared (UC-6), so naming none at creation is allowed.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [
                   {
                     "name": "Two approvers",
                     "description": {
@@ -3197,25 +3810,25 @@
         }
       },
       {
-        "id": "behavior|qdocmanagement.notifications.NewQDocNotifier.onQDocCreated",
+        "id": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
         "name": {
           "changed": true,
-          "value": "onQDocCreated",
+          "value": "notifyUsers",
           "author": "agent"
         },
         "type": {
           "changed": true,
-          "value": "Event",
+          "value": "Command",
           "author": "agent"
         },
         "definition": {
           "changed": true,
-          "value": "Tells every quality manager of the organisation that a QDoc was created, naming the QDoc's title, its document number and its creator.",
+          "value": "Tells each user another subsystem names what that subsystem wants them told: one notification per recipient, with the subject and the body of the request.",
           "author": "agent"
         },
         "diagram": {
           "changed": true,
-          "value": "sequenceDiagram\n  accTitle: Notifying the quality managers of a new QDoc\n  participant PRE as preparation\n  PRE->>NewQDocNotifier: QDocCreated\n  NewQDocNotifier->>QualityManagerDirectory: findQualityManagers()\n  loop each quality manager\n    NewQDocNotifier->>NotificationSender: send(NewQDocNotification)\n  end",
+          "value": "sequenceDiagram\n  accTitle: Notifying users on another subsystem's request\n  participant Caller as Calling subsystem\n  Caller->>NotificationService: notifyUsers(command)\n  loop each recipient\n    NotificationService->>NotificationSender: send(Notification)\n  end",
           "author": "agent"
         },
         "visibility": {
@@ -3229,15 +3842,15 @@
         "input": {
           "added": [
             {
-              "name": "event",
+              "name": "command",
               "type": {
                 "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocCreated",
+                "value": "building_block|qdocmanagement.notifications.NotifyUsers",
                 "author": "agent"
               },
               "description": {
                 "changed": true,
-                "value": "The event published when a QDoc is created.",
+                "value": "The request: the recipients, the subject and the body.",
                 "author": "agent"
               },
               "optional": {
@@ -3258,7 +3871,12 @@
         "rules": {
           "added": [
             {
-              "name": "Each quality manager learns of a new QDoc",
+              "name": "Each named recipient receives the notification",
+              "category": {
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
                 "value": "State change",
@@ -3266,31 +3884,41 @@
               },
               "description": {
                 "changed": true,
-                "value": "When a QDoc is created, each quality manager of the organisation is notified, naming the QDoc, its number and its creator (FR-NOT-001).",
+                "value": "When a subsystem asks the Notifications subsystem to notify users, each recipient the request names receives one notification carrying the subject and the body of the request (FR-NOT-001).",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "know-about-new-qdocs"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
                   {
-                    "name": "Three quality managers notified",
+                    "name": "Three recipients notified",
                     "description": {
                       "changed": true,
-                      "value": "Everyone with the role is told.",
+                      "value": "Everyone named is told.",
                       "author": "agent"
                     },
                     "given": {
                       "changed": true,
-                      "value": "an organisation with 3 quality managers",
+                      "value": "a request naming 3 recipients, a subject and a body",
                       "author": "agent"
                     },
                     "when": {
                       "changed": true,
-                      "value": "one of them creates a QDoc",
+                      "value": "a subsystem asks the Notifications subsystem to notify them",
                       "author": "agent"
                     },
                     "then": {
                       "changed": true,
-                      "value": "each of the 3 receives a notification naming the QDoc, its document number and its creator",
+                      "value": "each of the 3 receives one notification with that subject and that body",
                       "author": "agent"
                     }
                   }
@@ -3300,16 +3928,64 @@
               }
             },
             {
-              "name": "A failed delivery stops no other",
+              "name": "A notification arrives within the maximum delay",
+              "category": {
+                "changed": true,
+                "value": "Quality",
+                "author": "agent"
+              },
               "ruleType": {
                 "changed": true,
-                "value": "State change",
+                "value": "Performance",
                 "author": "agent"
               },
               "description": {
                 "changed": true,
-                "value": "When delivering the notification to one quality manager fails, the notifications to the other quality managers are still sent.",
+                "value": "Each recipient receives the notification within the maximum delay of TBD-01 after the request (FR-NOT-001). The delay and the channel are not settled yet (TBD-01).",
                 "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "know-about-new-qdocs"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
+              }
+            },
+            {
+              "name": "A failed delivery stops no other",
+              "category": {
+                "changed": true,
+                "value": "Quality",
+                "author": "agent"
+              },
+              "ruleType": {
+                "changed": true,
+                "value": "Reliability",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "When delivering the notification to one recipient fails, the notifications to the other recipients are still sent.",
+                "author": "agent"
+              },
+              "needs": {
+                "changed": true,
+                "value": [
+                  "know-about-new-qdocs"
+                ],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
               },
               "scenarios": {
                 "added": [
@@ -3322,17 +3998,17 @@
                     },
                     "given": {
                       "changed": true,
-                      "value": "an organisation with 3 quality managers, and delivery to one of them fails",
+                      "value": "a request naming 3 recipients, and delivery to one of them fails",
                       "author": "agent"
                     },
                     "when": {
                       "changed": true,
-                      "value": "a QDoc is created",
+                      "value": "a subsystem asks the Notifications subsystem to notify them",
                       "author": "agent"
                     },
                     "then": {
                       "changed": true,
-                      "value": "the other 2 quality managers each receive a notification naming the QDoc, its document number and its creator",
+                      "value": "the other 2 recipients each receive the notification with the subject and the body of the request",
                       "author": "agent"
                     }
                   }
@@ -3352,7 +4028,7 @@
         }
       },
       {
-        "id": "behavior|qdocmanagement.notifications.QualityManagerDirectory.findQualityManagers",
+        "id": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
         "name": {
           "changed": true,
           "value": "findQualityManagers",
@@ -3365,7 +4041,7 @@
         },
         "definition": {
           "changed": true,
-          "value": "Lists every user who holds the quality manager role in the organisation.",
+          "value": "Lists every user who holds the quality manager role in the organisation at the moment of the call.",
           "author": "agent"
         },
         "diagram": {
@@ -3387,7 +4063,7 @@
           "added": [
             {
               "type": {
-                "collectionOf": "building_block|qdocmanagement.notifications.Recipient"
+                "collectionOf": "building_block|qdocmanagement.preparation.UserId"
               },
               "description": {
                 "changed": true,
@@ -3448,7 +4124,7 @@
               "name": "notification",
               "type": {
                 "changed": true,
-                "value": "building_block|qdocmanagement.notifications.NewQDocNotification",
+                "value": "building_block|qdocmanagement.notifications.Notification",
                 "author": "agent"
               },
               "description": {

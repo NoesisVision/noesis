@@ -10,7 +10,7 @@
 
   /* Whatever the mouse gets, the keyboard gets. */
   &:focus-visible {
-    outline: 2px solid var(--mantine-color-brand-filled);
+    outline: var(--noesis-focus-ring);
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }

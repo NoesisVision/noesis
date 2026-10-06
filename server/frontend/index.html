@@ -29,6 +29,18 @@
         );
       } catch {}
     </script>
+    <!--
+      The platform, for the one place CSS has to know it: macOS slides its menu
+      bar over the top of a full-screen page (shell-layout.module.css).
+    -->
+    <script>
+      // `macOS` from the newer API, `MacIntel` from the older one.
+      if (
+        /^mac/i.test(navigator.userAgentData?.platform ?? navigator.platform)
+      ) {
+        document.documentElement.setAttribute('data-platform', 'macos');
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>

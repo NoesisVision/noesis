@@ -21,10 +21,7 @@ import {
   type ElementName,
   ModuleId,
 } from '#backend/app/element-id';
-import type {
-  ScannedSystemModel,
-  SourceCodeScanner,
-} from '#backend/app/system-model/source-code-scanner';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import type {
   BuildingBlockRef,
   ScannedBehaviour,
@@ -36,7 +33,9 @@ import type {
   ScannedRule,
   ScannedScenario,
   SourceLocation,
+  SystemModel,
 } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 export interface DummyScannerDeps {
@@ -71,13 +70,16 @@ export class DummySourceCodeScanner implements SourceCodeScanner {
     this.now = now;
   }
 
-  async scan(): Promise<ScannedSystemModel> {
+  /** Mints the id as the scan starts, so the newest scan has the highest id. */
+  async scan(): Promise<SystemModel> {
+    const id = SystemModelId.mint();
     const scannedAt = this.now();
     const model = FlattenedModel.empty();
     for (const design of await this.implementedDesignsInOrder()) {
       model.apply(design);
     }
     return {
+      id,
       name: basename(this.noesis.root),
       scanned_at: scannedAt,
       ...model.elements(),
@@ -189,10 +191,7 @@ class FlattenedModel {
     );
   }
 
-  elements(): Pick<
-    ScannedSystemModel,
-    'modules' | 'buildingBlocks' | 'behaviours'
-  > {
+  elements(): Pick<SystemModel, 'modules' | 'buildingBlocks' | 'behaviours'> {
     return {
       modules: [...this.modules.values()],
       buildingBlocks: [...this.buildingBlocks.values()],
@@ -244,6 +243,12 @@ function flattenedModule(
       designed.definition,
       current?.description,
       at.in('definition'),
+    ),
+    rules: changedParts(
+      current?.rules ?? [],
+      designed.rules,
+      flattenedRule,
+      at.in('rules'),
     ),
     source,
   };
@@ -396,6 +401,13 @@ function flattenedRule(
 ): ScannedRule {
   return {
     name: designed.name,
+    // A rule designed before rules had categories is a business rule, as a
+    // scanned one without a category is.
+    category: field(
+      designed.category,
+      current?.category ?? 'Business',
+      at.in('category'),
+    ),
     ruleType: field(designed.ruleType, current?.ruleType, at.in('ruleType')),
     description: field(
       designed.description,

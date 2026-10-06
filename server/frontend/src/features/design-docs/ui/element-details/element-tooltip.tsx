@@ -3,13 +3,14 @@ import { cloneElement, type ReactElement } from 'react';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById } from '../../change-set.ts';
+import { behaviourIdAt, blockIdAt } from '../../element-id.ts';
 import {
   type ChangeListItem,
   parameterItems,
   propertyItems,
   resultItems,
 } from './change-list-items.ts';
-import { findById } from './change-set.ts';
 import { useDesignDocument } from './design-document-context.ts';
 import classes from './element-tooltip.module.css';
 
@@ -50,12 +51,12 @@ const lines = (items: ChangeListItem[]): Line[] =>
 
 /** The shape the document gives the element at an address, if it gives one. */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
-  const block = findById(doc.buildingBlocks, `building_block|${address}`);
+  const block = findById(doc.buildingBlocks, blockIdAt(address));
   if (block) {
     const properties = lines(propertyItems(block.id, block.properties));
     return properties.length > 0 ? { properties } : null;
   }
-  const behaviour = findById(doc.behaviours, `behavior|${address}`);
+  const behaviour = findById(doc.behaviours, behaviourIdAt(address));
   if (behaviour) {
     const input = lines(parameterItems(behaviour.input));
     const output = lines(resultItems(behaviour.output));

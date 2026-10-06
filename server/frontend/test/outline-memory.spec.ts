@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   expansionMemory,
   FORGETFUL,
-} from '../src/shared/ui/model-tree/outline-memory';
+} from '../src/features/design-docs/ui/model-tree/outline-memory';
 
 const KEY = 'noesis.designDocs.doc.expanded';
 const memory = expansionMemory(KEY);

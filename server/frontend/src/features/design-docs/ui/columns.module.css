@@ -65,9 +65,34 @@
     var(--mantine-spacing-md) var(--mantine-spacing-xs);
 }
 
+/*
+ * Under the rows and apart from them: what the row in hand says, read without
+ * scrolling the rows out of sight, and scrolled on its own when it is long.
+ */
+.below {
+  flex: 0 1 auto;
+  max-height: 60%;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.below:empty {
+  display: none;
+}
+
+/* A canvas pans and zooms itself, so the pane only gives it its size. */
+.paneFill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* Room past the last section, so it can be scrolled clear of the pane's edge. */
 .paneBody {
-  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
+  display: flex;
+  flex-direction: column;
 }
 
 /*
@@ -75,8 +100,14 @@
  * above the other on a phone is worse than one long page.
  */
 .stacked .outlineBody,
-.stacked .paneBody {
+.stacked .paneBody,
+.stacked .below {
   overflow: visible;
+}
+
+/* Stacked, a canvas still needs a height of its own to pan in. */
+.stacked .paneFill {
+  height: 70vh;
 }
 
 /* Asked for no motion, a pane simply arrives where it was sent. */

@@ -1,8 +1,3 @@
-/*
- * The pane is the element asked to go full screen, so it has to be the page
- * for as long as it is one: a fullscreen element paints on black and scrolls
- * nothing until it is told otherwise.
- */
 .surface {
   /* The switch, the button and the gap between them. */
   --reading-controls-width: 8rem;
@@ -14,25 +9,6 @@
    * heading leading the text it heads.
    */
   --reading-width-change: 150ms ease;
-}
-
-.surface:fullscreen {
-  /* Nothing insets the pane in full screen: it is the page, gutter included. */
-  --reading-gutter: var(--mantine-spacing-lg);
-
-  overflow-y: auto;
-  /*
-   * The gutter belongs to the page, never to the column inside it: a column
-   * that pads itself spends its own 900px on that padding, so the card ends
-   * up narrower than, and to the right of, the title above it — which pads
-   * nothing. Sides and foot only, so the sticky header still reaches the top.
-   */
-  padding-inline: var(--reading-gutter);
-  padding-bottom: var(--reading-gutter);
-  background-color: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-gray-9)
-  );
 }
 
 /*
@@ -81,18 +57,6 @@
     0 1px 0 0
       light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)),
     0 8px 12px -12px light-dark(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
-}
-
-/*
- * Nothing above it in full screen, so there is no shell padding to pull back
- * over either. The bleed itself needs no override: it is the pane's own
- * gutter that the header now reaches across. The pane is the element in the
- * top layer, which is why `:fullscreen` is its and the header is reached
- * through it.
- */
-.surface:fullscreen .header {
-  top: 0;
-  margin-top: 0;
 }
 
 /*
