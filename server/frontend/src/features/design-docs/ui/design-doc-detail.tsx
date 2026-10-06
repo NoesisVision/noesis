@@ -11,6 +11,7 @@ export interface DesignDocDetailProps {
   node: string | null;
   query: string;
   onSelect: (path: string, source: SelectSource) => void;
+  onOverview: () => void;
   onQuery: (query: string) => void;
 }
 

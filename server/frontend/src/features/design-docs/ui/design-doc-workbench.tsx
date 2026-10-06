@@ -4,7 +4,6 @@ import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { useFullscreenElement } from '#/shared/design-system/hooks.ts';
-import { Text } from '#/shared/design-system/text.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { expansionMemory } from '#/shared/ui/model-tree/outline-memory.ts';
 import { revealRow } from '#/shared/ui/model-tree/reveal-row.ts';
@@ -15,6 +14,7 @@ import {
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DesignDocsIcon } from '../design-docs.model.ts';
 import { Columns } from './columns.tsx';
+import { DesignDocOverview, OverviewLink } from './design-doc-overview.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
@@ -35,12 +35,15 @@ export function DesignDocWorkbench({
   node,
   query,
   onSelect,
+  onOverview,
   onQuery,
 }: {
   detail: DesignDocDetail;
   node: string | null;
   query: string;
   onSelect: (path: string, source: SelectSource) => void;
+  /** Back to the design as a whole, where the page opens. */
+  onOverview: () => void;
   onQuery: (query: string) => void;
 }) {
   const { document: doc, outline } = detail;
@@ -67,6 +70,8 @@ export function DesignDocWorkbench({
     query,
     onQuery,
     memory,
+    // The page opens on the overview, not on an element.
+    opensAtTop: false,
   });
   /*
    * The outline follows the reading position, however it moved: a step of the
@@ -92,7 +97,12 @@ export function DesignDocWorkbench({
   // already shows, so there is nothing to report.
   const toggleFullscreen = () => void toggle().catch(() => {});
   const selected = controller.selectedNode;
-  const { tree } = controller;
+  const { tree, select } = controller;
+  const has = useCallback((path: string) => tree.byPath.has(path), [tree]);
+  const selectFromDetail = useCallback(
+    (path: string) => select(path, 'detail'),
+    [select],
+  );
   const selectedPath = useMemo(
     () =>
       selected === null
@@ -130,18 +140,25 @@ export function DesignDocWorkbench({
       <Columns
         search={<OutlineSearchBox controller={controller} />}
         outline={
-          <Outline controller={controller} empty={outline.length === 0} />
+          <>
+            <OverviewLink active={selected === null} onOpen={onOverview} />
+            <Outline controller={controller} empty={outline.length === 0} />
+          </>
         }
         outlineRef={outlineBody}
         detail={
           selected === null ? (
-            <Text c="dimmed">Choose an element to read it.</Text>
+            <DesignDocOverview
+              description={doc.description}
+              has={has}
+              onSelect={selectFromDetail}
+            />
           ) : (
             <ElementDetail
               node={selected}
               path={selectedPath}
               document={doc}
-              onSelect={(path) => controller.select(path, 'detail')}
+              onSelect={selectFromDetail}
               tree={controller.tree}
             />
           )

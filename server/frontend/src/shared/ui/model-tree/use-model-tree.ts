@@ -70,6 +70,12 @@ export interface ModelTreeState {
   readonly query: string;
   readonly onQuery: (query: string) => void;
   readonly memory?: ExpansionMemory;
+  /**
+   * Whether the tree picks its top row when the address names none. A page
+   * with something of its own to show before any element — a design's
+   * overview — leaves the tree with nothing selected instead.
+   */
+  readonly opensAtTop?: boolean;
 }
 
 export function useModelTree(
@@ -82,6 +88,7 @@ export function useModelTree(
     query,
     onQuery,
     memory = FORGETFUL,
+    opensAtTop = true,
   } = state;
   const tree = useMemo(() => outlineTree(nodes), [nodes]);
   /*
@@ -95,8 +102,10 @@ export function useModelTree(
     () =>
       addressed !== null && tree.byPath.has(addressed)
         ? addressed
-        : (tree.nodes[0]?.path ?? null),
-    [tree, addressed],
+        : opensAtTop
+          ? (tree.nodes[0]?.path ?? null)
+          : null,
+    [tree, addressed, opensAtTop],
   );
   /*
    * Said once, and only the page can answer it: the row is the tree's own
@@ -104,7 +113,8 @@ export function useModelTree(
    * An outline that has no rows yet has nothing to open at, and says so when
    * it has.
    */
-  const opened = useRef(false);
+  // A tree that does not pick a row of its own has nothing to say.
+  const opened = useRef(!opensAtTop);
   useEffect(() => {
     if (opened.current || selected === null) return;
     opened.current = true;

@@ -26,6 +26,9 @@ export function DesignDocView() {
     },
     [navigate],
   );
+  const onOverview = useCallback(() => {
+    void navigate({ search: (prev) => ({ ...prev, node: undefined }) });
+  }, [navigate]);
   // Typing is not a place to come back to, so a query replaces the entry it
   // is in rather than adding one per keystroke.
   const onQuery = useCallback(
@@ -45,6 +48,7 @@ export function DesignDocView() {
       node={node ?? null}
       query={q ?? ''}
       onSelect={onSelect}
+      onOverview={onOverview}
       onQuery={onQuery}
     />
   );
