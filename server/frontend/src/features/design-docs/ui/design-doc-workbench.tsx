@@ -1,9 +1,13 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
-import { Text } from '#/shared/design-system/text.tsx';
+import {
+  type DescriptionTarget,
+  descriptionTargets,
+} from '../design-doc-description.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { Columns } from './columns.tsx';
+import { DesignDocOverview, OverviewLink } from './design-doc-overview.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
@@ -25,8 +29,11 @@ export function DesignDocWorkbench({
   query,
   onSelect,
   onQuery,
+  onRequirement,
 }: {
   detail: DesignDocDetail;
+  /** Opens the requirements view on one of its entries. */
+  onRequirement: (entry: string) => void;
 } & ViewPlace) {
   const { document: doc, outline } = detail;
   const memory = useMemo(
@@ -39,9 +46,28 @@ export function DesignDocWorkbench({
     query,
     onQuery,
     memory,
+    // The page opens on the overview, not on an element.
+    opensAtTop: false,
   });
   const selected = controller.selectedNode;
-  const { tree } = controller;
+  const { tree, select } = controller;
+  const resolve = useMemo(
+    () => descriptionTargets((path) => tree.byPath.has(path), doc),
+    [tree, doc],
+  );
+  const selectFromDetail = useCallback(
+    (path: string) => select(path, 'detail'),
+    [select],
+  );
+  const open = useCallback(
+    (target: DescriptionTarget) => {
+      if (target.view === 'model') selectFromDetail(target.node);
+      else onRequirement(target.entry);
+    },
+    [selectFromDetail, onRequirement],
+  );
+  // Nothing in hand is the overview, and leaves no row in the address.
+  const openOverview = useCallback(() => onSelect('', 'detail'), [onSelect]);
   const selectedPath = useMemo(
     () =>
       selected === null
@@ -56,17 +82,26 @@ export function DesignDocWorkbench({
   return (
     <Columns
       search={<OutlineSearchBox controller={controller} />}
-      outline={<Outline controller={controller} />}
+      outline={
+        <>
+          <OverviewLink active={selected === null} onOpen={openOverview} />
+          <Outline controller={controller} />
+        </>
+      }
       outlineRef={outlineRef}
       detail={
         selected === null ? (
-          <Text c="dimmed">Choose an element to read it.</Text>
+          <DesignDocOverview
+            description={doc.description}
+            resolve={resolve}
+            onOpen={open}
+          />
         ) : (
           <ElementDetail
             node={selected}
             path={selectedPath}
             document={doc}
-            onSelect={(path) => controller.select(path, 'detail')}
+            onSelect={selectFromDetail}
             tree={controller.tree}
           />
         )

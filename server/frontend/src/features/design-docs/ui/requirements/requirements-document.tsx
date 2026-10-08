@@ -58,11 +58,6 @@ export function RequirementsDocument({
 
   return (
     <Stack ref={ref} gap={0} px="lg" pt="lg" className={classes.page}>
-      {doc.description !== '' && (
-        <Text c="var(--noesis-secondary-text)" maw="68ch">
-          {doc.description}
-        </Text>
-      )}
       <Summary summary={requirements.summary} />
 
       {requirements.needs.map(({ need, rules }) => (

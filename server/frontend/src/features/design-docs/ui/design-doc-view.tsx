@@ -36,12 +36,23 @@ export function DesignDocView() {
     [navigate],
   );
 
+  // A link from the overview into the requirements is a place to come back to.
+  const onRequirement = useCallback(
+    (entry: string) => {
+      void navigate({
+        search: (prev) => ({ ...prev, view: 'requirements', entry }),
+      });
+    },
+    [navigate],
+  );
+
   return (
     <DesignDocDetail
       changeId={changeId}
       id={docId}
       view={view ?? 'model'}
       onView={onView}
+      onRequirement={onRequirement}
       model={model}
       requirements={requirements}
       architecture={architecture}

@@ -1,6 +1,6 @@
 {
   "name": "Partial refunds for orders",
-  "description": "Lets support refund individual order lines instead of the whole order, and retires the legacy credit note flow.",
+  "description": "This design lets support refund single order lines rather than whole orders, and retires credit notes.\n\n# Where it lands\n\n- A new refunds module beside orders ([Refund single lines](noesis:need|refund-single-lines)).\n\n# Where to start reading\n\n1. [Refund](noesis:building_block|sales.refunds.Refund) records the lines given back; [Refund.issue](noesis:behavior|sales.refunds.Refund.issue) issues it and publishes [RefundIssued](noesis:building_block|sales.refunds.RefundIssued).\n2. [Order](noesis:building_block|sales.orders.Order) keeps the amount refunded so far, gains a partially refunded status and drops its credit note.\n\n# Around them\n\n- [CreditNote](noesis:building_block|sales.credit-notes.CreditNote) is removed with its issue behaviour.",
   "needs": {
     "added": [
       {

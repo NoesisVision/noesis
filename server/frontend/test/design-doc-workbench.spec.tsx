@@ -14,6 +14,7 @@ const reading = (node: string | null, query = '') =>
           selected={node}
           query={query}
           onSelect={() => {}}
+          onRequirement={() => {}}
           onQuery={() => {}}
         />
       </DesignDocSurface>
@@ -33,8 +34,10 @@ describe('DesignDocWorkbench', () => {
     expect(first[0]?.[1]).toContain('Partial refunds');
   });
 
-  it('heads the panel with the element in hand, a level down', () => {
-    expect(headings[1]).toEqual([2, 'sales']);
+  it('opens on the overview of the design, a level down', () => {
+    expect(headings[1]).toEqual([2, 'Overview']);
+    expect(page).not.toContain('aria-selected="true"');
+    expect(page).toMatch(/<button[^>]*aria-current="location"[^>]*>/);
   });
 
   it('never skips a heading level on the way down', () => {
@@ -65,8 +68,10 @@ describe('DesignDocWorkbench', () => {
   });
 
   it('says nothing is being searched until something is', () => {
-    expect(page).not.toContain('<output');
-    expect(page).not.toContain('aria-label="Clear the search"');
+    // On an element, so the overview's editor is not loading beside it.
+    const html = reading('module|sales');
+    expect(html).not.toContain('<output');
+    expect(html).not.toContain('aria-label="Clear the search"');
   });
 
   it('opens on the element the address names', () => {
@@ -86,13 +91,15 @@ describe('DesignDocWorkbench', () => {
   });
 
   it('marks nothing above a row that is already at the top', () => {
-    expect(page).not.toContain('data-ancestor');
+    expect(reading('module|sales')).not.toContain('data-ancestor');
   });
 
-  it('falls back to the top when the address names nothing here', () => {
+  it('falls back to the overview when the address names nothing here', () => {
     // A design document is rewritten by the agent; a bookmark outlives the
     // element it named, and that is not a page to show an error on.
-    expect(reading('building_block|gone.Away')).toMatch(/<h2[^>]*>sales<\/h2>/);
+    expect(reading('building_block|gone.Away')).toMatch(
+      /<h2[^>]*>Overview<\/h2>/,
+    );
   });
 
   it('carries a search from the address into the outline', () => {

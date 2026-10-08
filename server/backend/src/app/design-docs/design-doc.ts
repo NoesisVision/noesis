@@ -125,7 +125,11 @@ const designDocumentSchema = z.strictObject({
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
   ),
   name: z.string().describe('The design document name.'),
-  description: z.string(),
+  description: z
+    .string()
+    .describe(
+      "The design's overview, read first when it is opened: a short guide to its changes in the model, from the general to the particular, in Markdown of at most about 60 lines. States facts the design shows or its sources state, and cites the source for every reason. Links elements with 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)', and needs with 'noesis:need|' and the need's id.",
+    ),
   needs: changeSet(DesignedNeed, NeedId),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
