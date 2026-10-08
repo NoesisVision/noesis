@@ -1,75 +1,67 @@
 # Writing the design document's description
 
 The description is the design document's overview: the first thing a reader
-sees when they open the design, before the tree of what it changes. A design
-document is a system of decisions, and the overview is a condensed ADR of
-them: what was decided, what drove each decision, what it trades away and
-how the decisions hang together. It is not the description of one element,
-and none of the rules for an element's description apply to it.
+sees when they open the design, before the tree of what it changes. It is a
+short guide to reading the changes in the model, from the general to the
+particular: a skeleton the reader hangs their own understanding on while
+they walk the elements. It speaks the model's language, names building
+blocks and behaviours as the design does, and links them.
 
-## What goes in
+Readers learn the domain from the requirements view and the change's
+documents; the overview does not teach it again. It says what changes in the
+model and which need or requirement each change answers, nothing more.
 
-1. **Context**, a few lines: the problem the change solves and the drivers
-   that shape the design. Refer to the change's documents and to the
-   requirement, rule or decision ids they carry (`FR-PRE-009`, "spec, A3",
-   "review notes"); never restate them. The reader opens the documents for
-   the business background; here they need only what drives the decisions.
-2. **The decisions**, one section each, in the order a reader needs them:
-   - **Decision:** what was decided, linking the elements it is about.
-   - **Why:** the driver behind it, by reference to the source, or the
-     reasoning when no source states it.
-   - **Trade-off:** what it costs or rules out, and the alternative that was
-     set aside, when there was a real one.
+## Facts only
 
-   A decision is a choice a reader could question: where the work lands
-   (an existing module or a new one), where an aggregate's boundary runs,
-   which building block owns a rule, a new building block or an extended
-   one, a direct call or an event, a port and its adapter, what is kept
-   stable for existing callers, what is retired. Each modified element
-   appears under the decision that changes it, so the reader learns why it
-   is in the diff.
+- Every sentence states something the design itself shows (a module, a
+  building block, a behaviour, a rule, an event) or something a source
+  states.
+- Give a reason only when a source states it, and cite the source: link the
+  need (`noesis:need|…`), or name the requirement or decision id the
+  document carries (`FR-PRE-009`, "spec, A3"). Without a source, state the
+  fact and no reason.
+- No rationale, trade-offs or alternatives of your own, no adjectives that
+  judge the design, no restating of the documents.
 
-3. **How the decisions connect**, when more than two depend on each other:
-   which one makes another necessary, and what one decision means for the
-   next. A Mermaid diagram helps when the structure or the flow is the
-   point, e.g. which module calls which, an event crossing a context
-   boundary, the variants behind one type. Draw only what explains a
-   decision; the tree already shows the model. Give every diagram an
-   `accTitle:` line.
-4. **Left out and open**: what the sources ask for that the design
-   deliberately does not do, and the questions it leaves open, each in a
-   line, with the change or the open issue that will settle it.
+## Order: from the general to the particular
 
-Leave out what the tree shows by itself (the list of elements, every
-property, rule and scenario), implementation detail that does not change a
-decision, and the business background the documents already give.
+1. **In one or two sentences**, what the change does to the model.
+2. **Where it lands**: the modules the design adds or changes, each with
+   the need or requirement it serves.
+3. **Where to start reading**: the two to five elements the rest hangs on
+   (an aggregate, the service that runs the use case, the port to another
+   context, the union a variant joins), in the order to read them, one line
+   each: what it is in this change and what it answers.
+4. **Around them**, in a line or two each: the elements that support the
+   core (the value objects, the events, the ports), grouped, not listed
+   one by one. A modified element says in a few words what changes in it.
+5. **Left for later**, when the sources say so: what is out of scope and
+   which use case, change or open issue settles it.
 
 ## Shape
 
-- Markdown. Sections are `#` headings (Context, Decisions, How they
-  connect, Left out and open); each decision is a `##` heading naming it.
-  The page nests them under its own headings.
-- No longer than about 200 lines, diagrams included. A small change may
-  need 40; reach for length only when there are that many decisions. Say
-  each thing once.
+- Short: most designs need 15 to 40 lines; never more than about 60. The
+  tree and the requirements view carry the detail.
+- Markdown: a few `#` headings or bold lead-ins, short lists, no tables. No
+  diagrams: the model and architecture views draw the model.
 - In the dominant language of the sources, like every other description.
 
 ## Links
 
-Name an element by a Markdown link whose target is `noesis:` and its id:
+Link with Markdown links whose target is `noesis:` and an id:
 
 ```markdown
-[Refund](noesis:building_block|sales.refunds.Refund) owns the refunded lines;
-[Refund.issue](noesis:behavior|sales.refunds.Refund.issue) announces them.
+[Refund](noesis:building_block|sales.refunds.Refund) records the returned
+lines ([Refund single lines](noesis:need|refund-single-lines)).
 ```
 
-- The label is the element's name, or `Block.behaviour` for a behaviour.
-- Link the elements each decision is about, the first time it names them.
-  The reader opens them in the tree from the overview.
-- Link an element of the system model that the design leaves unchanged only
-  when it explains a decision, e.g. the existing building block a new one
-  follows the pattern of. Never an id that neither the design nor the model
-  has.
-- Link modules, building blocks and behaviours only; a property, rule or
-  scenario has no id. Name one in words beside its element's link.
-- No links inside a Mermaid diagram; name the elements there in words.
+- **Elements:** a module, a building block or a behaviour by its id. The
+  label is its name, or `Block.behaviour` for a behaviour. They open in the
+  model view. A property, rule or scenario has no id: name it in words beside
+  its element's link.
+- **Needs:** `noesis:need|` and the need's id, for every need the design
+  states. They open in the requirements view.
+- Link what the design adds, modifies or removes, or a need it states. Link
+  an element of the system model the design leaves unchanged only when the
+  overview names it; never an id the design and the model do not have.
+- Link each element or need the first time it is named.

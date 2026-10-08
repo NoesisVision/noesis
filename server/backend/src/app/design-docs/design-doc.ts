@@ -128,7 +128,7 @@ const designDocumentSchema = z.strictObject({
   description: z
     .string()
     .describe(
-      "The design's overview, read first when it is opened: a condensed ADR of the decisions it makes, their drivers and how they connect, in Markdown of at most about 200 lines, Mermaid diagrams allowed. Names the elements each decision is about with links whose target is 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)'.",
+      "The design's overview, read first when it is opened: a short guide to its changes in the model, from the general to the particular, in Markdown of at most about 60 lines. States facts the design shows or its sources state, and cites the source for every reason. Links elements with 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)', and needs with 'noesis:need|' and the need's id.",
     ),
   needs: changeSet(DesignedNeed, NeedId),
   modules: changeSet(DesignedDomainModule, ModuleId),
