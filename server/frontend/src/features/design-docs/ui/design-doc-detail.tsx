@@ -15,6 +15,8 @@ export interface DesignDocDetailProps {
   /** Whether the document is read as a model, as requirements or as hexagons. */
   view: DesignDocViewName;
   onView: (view: DesignDocViewName) => void;
+  /** Opens the requirements view on one of its entries. */
+  onRequirement: (entry: string) => void;
   /** Where the reader is in the model, as the address names it. */
   model: ViewPlace;
   /** Where the reader is in the requirements, as the address names it. */
@@ -28,6 +30,7 @@ export function DesignDocDetail({
   id,
   view,
   onView,
+  onRequirement,
   model,
   requirements,
   architecture,
@@ -56,7 +59,12 @@ export function DesignDocDetail({
       ) : view === 'architecture' ? (
         <ArchitectureView key={id} detail={document.data} {...architecture} />
       ) : (
-        <DesignDocWorkbench key={id} detail={document.data} {...model} />
+        <DesignDocWorkbench
+          key={id}
+          detail={document.data}
+          onRequirement={onRequirement}
+          {...model}
+        />
       )}
     </DesignDocSurface>
   );

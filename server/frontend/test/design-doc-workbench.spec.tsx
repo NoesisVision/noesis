@@ -14,6 +14,7 @@ const reading = (node: string | null, query = '') =>
           selected={node}
           query={query}
           onSelect={() => {}}
+          onRequirement={() => {}}
           onQuery={() => {}}
         />
       </DesignDocSurface>

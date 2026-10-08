@@ -1,6 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
+import {
+  type DescriptionTarget,
+  descriptionTargets,
+} from '../design-doc-description.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { Columns } from './columns.tsx';
 import { DesignDocOverview, OverviewLink } from './design-doc-overview.tsx';
@@ -25,8 +29,11 @@ export function DesignDocWorkbench({
   query,
   onSelect,
   onQuery,
+  onRequirement,
 }: {
   detail: DesignDocDetail;
+  /** Opens the requirements view on one of its entries. */
+  onRequirement: (entry: string) => void;
 } & ViewPlace) {
   const { document: doc, outline } = detail;
   const memory = useMemo(
@@ -44,10 +51,20 @@ export function DesignDocWorkbench({
   });
   const selected = controller.selectedNode;
   const { tree, select } = controller;
-  const has = useCallback((path: string) => tree.byPath.has(path), [tree]);
+  const resolve = useMemo(
+    () => descriptionTargets((path) => tree.byPath.has(path), doc),
+    [tree, doc],
+  );
   const selectFromDetail = useCallback(
     (path: string) => select(path, 'detail'),
     [select],
+  );
+  const open = useCallback(
+    (target: DescriptionTarget) => {
+      if (target.view === 'model') selectFromDetail(target.node);
+      else onRequirement(target.entry);
+    },
+    [selectFromDetail, onRequirement],
   );
   // Nothing in hand is the overview, and leaves no row in the address.
   const openOverview = useCallback(() => onSelect('', 'detail'), [onSelect]);
@@ -76,8 +93,8 @@ export function DesignDocWorkbench({
         selected === null ? (
           <DesignDocOverview
             description={doc.description}
-            has={has}
-            onSelect={selectFromDetail}
+            resolve={resolve}
+            onOpen={open}
           />
         ) : (
           <ElementDetail

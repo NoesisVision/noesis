@@ -8,8 +8,9 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import {
-  elementOfHref,
+  type DescriptionTarget,
   readableDescription,
+  targetOfHref,
 } from '../design-doc-description.ts';
 
 const OverviewIcon = IconFileDescription;
@@ -38,34 +39,35 @@ export function OverviewLink({
 }
 
 /**
- * What the design decides, in a few lines, and where: the first thing a reader
- * meets on opening a design. A link to an element the outline has opens it in
- * the outline; any other is read as words.
+ * The design read from the top: what it changes in the model and where to
+ * start reading, the first thing a reader meets on opening it. A link to an
+ * element the outline has opens it in the outline, one to a need opens the
+ * requirements on it; any other is read as words.
  */
 export function DesignDocOverview({
   description,
-  has,
-  onSelect,
+  resolve,
+  onOpen,
 }: {
   description: string;
-  has: (path: string) => boolean;
-  onSelect: (path: string) => void;
+  resolve: (target: string) => DescriptionTarget | null;
+  onOpen: (target: DescriptionTarget) => void;
 }) {
   const page = pageAddress();
   const markdown = useMemo(
-    () => readableDescription(description, has, page),
-    [description, has, page],
+    () => readableDescription(description, resolve, page),
+    [description, resolve, page],
   );
   // The links are the editor's own anchors; the page takes the click from
   // them, so the reader stays on it rather than reloading it.
   const onClickCapture = (event: MouseEvent<HTMLElement>) => {
     if (!(event.target instanceof Element)) return;
     const href = event.target.closest('a')?.getAttribute('href');
-    const element = href ? elementOfHref(href, page) : null;
-    if (element === null || event.metaKey || event.ctrlKey) return;
+    const target = href ? targetOfHref(href, page) : null;
+    if (target === null || event.metaKey || event.ctrlKey) return;
     event.preventDefault();
     event.stopPropagation();
-    onSelect(element);
+    onOpen(target);
   };
 
   return (
