@@ -12,10 +12,6 @@ submodules; nothing in them builds as part of this monorepo.
 | `discounts-dotnet/` | .NET 8, one solution. The `Sales` domain of the [itlibrium DDD starter](https://github.com/itlibrium/DDD-starter-dotnet), annotated with `NoesisVision.Annotations` attributes: orders, pricing, discounts, offers, products, clients, plus its unit tests and the one `TechnicalStuff` project it compiles against. No adapters, persistence or migrations. | One change, `threshold-activated-discount`: its design document, the sales spec and the review meeting notes.                                      |
 | `qdoc-java/`        | No code yet: the business requirements for drafting quality documents (QDocs), from a domain discovery session.                                                                                                                                                                                                                                              | No changes yet, only a system model: the requirements are plain Markdown files beside it, to be added to a change through the plugin.              |
 
-The Java example also carries the system model the `java` scanner found in
-its code (`.noesis/graph/system-models/`); `test/integration/java-scanner-discounts.spec.ts`
-keeps the scanner finding exactly that model.
-
 ## Trying the app on an example
 
 From the repository root, after `bun install`, build the page once, then
@@ -62,10 +58,8 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-`discounts-java` also sets `NOESIS_SCANNER=java`, so `scan_system_model` there
-reads the code rather than replaying design documents. `qdoc-java` sets
-`NOESIS_SCANNER=dummy`, as does `dev:qdoc-java`: it has no code to scan, so a
-scan replays its implemented design documents.
+`qdoc-java` also sets `NOESIS_SCANNER=dummy`, as does `dev:qdoc-java`: it has
+no code to scan, so a scan replays its implemented design documents.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.

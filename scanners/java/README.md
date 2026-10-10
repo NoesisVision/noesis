@@ -8,12 +8,9 @@ one another. The research and the schema are in
 graph vocabulary.
 
 **Status: standalone, not yet integrated with the service.** The scanner
-writes a JSON graph file in its own vocabulary, not the `SystemModel` schema
-the service stores under `.noesis/graph/system-models/`; reconciling the
-two is a later decision. What the service runs today is the primitive Java
-scanner in `server/backend/src/adapters/out/scanners/java/`, which reads the
-same stereotype annotations from source without compiling and writes the
-`SystemModel` schema directly.
+writes a JSON graph file; how that file feeds `.noesis/graph/system-models/` is a
+later decision, once the file format settles. The TypeScript scanner inside `server/backend` is the only one the
+service runs today.
 
 ## Modules
 
