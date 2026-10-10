@@ -9,7 +9,6 @@ import {
   resolveType,
 } from '#backend/adapters/out/scanners/java/type-refs';
 import { BuildingBlockId, ModuleId } from '#backend/app/element-id';
-import type { ScannedSystemModel } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
@@ -172,10 +171,11 @@ describe('commonPackagePrefix', () => {
 
 /* ----------------------------------------------------------- the model */
 
-async function scanned(): Promise<ScannedSystemModel> {
+async function scanned(): Promise<SystemModel> {
   const model = await scanner.scan();
-  // Whatever the scanner finds must fit the contract once the server adds the id.
-  SystemModel.parse({ ...model, id: SystemModelId.mint() });
+  // Whatever the scanner finds must fit the contract, at an id it minted.
+  SystemModel.parse(model);
+  expect(SystemModelId.safeParse(model.id).success).toBe(true);
   return model;
 }
 

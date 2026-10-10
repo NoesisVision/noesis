@@ -5,7 +5,6 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
-import type { ScannedSystemModel } from '#backend/app/system-model/source-code-scanner';
 import type {
   BehaviourType,
   ScannedBehaviour,
@@ -13,6 +12,7 @@ import type {
   ScannedDomainModule,
   ScannedParameter,
   ScannedProperty,
+  SystemModel,
   Visibility,
 } from '#backend/app/system-model/system-model';
 import type { JavaMethod, JavaSource, JavaType } from './java-source';
@@ -37,7 +37,7 @@ export interface ParsedJavaFile {
 }
 
 export type JavaModel = Pick<
-  ScannedSystemModel,
+  SystemModel,
   'modules' | 'buildingBlocks' | 'behaviours'
 >;
 

@@ -14,8 +14,7 @@ submodules; nothing in them builds as part of this monorepo.
 
 The Java example also carries the system model the `java` scanner found in
 its code (`.noesis/graph/system-models/`); `test/integration/java-scanner-discounts.spec.ts`
-keeps the scanner finding exactly that model. The .NET example is read for
-its knowledge graph only until a C# scanner exists.
+keeps the scanner finding exactly that model.
 
 ## Trying the app on an example
 

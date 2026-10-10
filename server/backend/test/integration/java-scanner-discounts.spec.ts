@@ -8,8 +8,8 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import type { ScannedSystemModel } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const EXAMPLE = resolve(__dirname, '../../../../examples/discounts-java');
@@ -20,7 +20,7 @@ const DESIGN_DOC = join(
 const SYSTEM_MODELS = join(EXAMPLE, '.noesis/graph/system-models');
 
 // Read only: the scanner reads the checkout and writes nothing.
-async function scan(): Promise<ScannedSystemModel> {
+async function scan(): Promise<SystemModel> {
   return new JavaSourceCodeScanner({
     noesis: new NoesisDir(EXAMPLE),
     now: () => '2026-09-30T00:00:00.000Z',
@@ -80,8 +80,9 @@ describe('The Java scanner on examples/discounts-java', () => {
     expect(id).toMatch(/^[0-9a-f-]{36}$/);
     expect(scanned_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
-    const { scanned_at: now, ...found } = await scan();
+    const { id: scannedId, scanned_at: now, ...found } = await scan();
 
+    expect(SystemModelId.safeParse(scannedId).success).toBe(true);
     expect(now).toBe('2026-09-30T00:00:00.000Z');
     expect(found).toEqual(committed);
     expect<unknown>(found.modules.map((m) => m.id)).toEqual([

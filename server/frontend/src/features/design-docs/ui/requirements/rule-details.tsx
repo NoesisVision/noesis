@@ -12,11 +12,9 @@ import {
   changesDetails,
   classificationOf,
   RULE_PLACE_KIND,
-  showsTrace,
   type TracedRule,
 } from '../../design-doc-requirements.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
-import { TracedNeeds } from '../traced-needs.tsx';
 import classes from './requirements-view.module.css';
 
 export interface ElementLinkProps {
@@ -151,15 +149,10 @@ export function Details({
         {classification !== null && (
           <RuleField name="Category">{classification}</RuleField>
         )}
-        <RuleField name="Subsystem">{traced.module.name}</RuleField>
+        <RuleField name="Module">{traced.module.name}</RuleField>
         <RuleField name="Element">{element}</RuleField>
         {rationale !== null && (
           <RuleField name="Rationale">{rationale}</RuleField>
-        )}
-        {showsTrace(traced) && (
-          <RuleField name="Needs">
-            <TracedNeeds needs={traced.trace ?? []} />
-          </RuleField>
         )}
       </RuleFields>
     </Box>

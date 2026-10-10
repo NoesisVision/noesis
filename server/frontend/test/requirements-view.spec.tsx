@@ -128,14 +128,14 @@ describe('RequirementsView', () => {
     expect(rule).toContain('Support never pays out more than came in.');
   });
 
-  it('shows of a modified rule what it changes, its trace marked changed', () => {
+  it('shows of a modified rule what it changes, its needs left to the document', () => {
     const rule = ruleNamed('Order total counts refunds');
     expect(rule).toContain('modified');
     expect(rule).toContain('An order total subtracts what was refunded.');
-    expect(rule).toContain('>changed<');
-    expect(rule).toMatch(
-      /<dt[^>]*>Needs<\/dt><dd[^>]*><ul[^>]*><li[^>]*>(?:<[^>]+>)*See what was refunded(?:<\/[^>]+>)*<\/li><\/ul><\/dd>/,
-    );
+    // Retraced only: the rule already stands under its need, so its details
+    // neither repeat the need nor read as changed.
+    expect(rule).not.toContain('>changed<');
+    expect(rule).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
     // It writes no category, so none is shown, and its scenarios stay the model's.
     expect(rule).not.toMatch(/<dt[^>]*>Category<\/dt>/);
     expect(rule).toContain('Scenarios unchanged');
@@ -146,7 +146,7 @@ describe('RequirementsView', () => {
     const rule = ruleNamed('Paid orders are final');
     expect(rule).toContain('removed');
     expect(rule).not.toContain('<button');
-    expect(rule).toMatch(/<dt[^>]*>Subsystem<\/dt><dd[^>]*>orders<\/dd>/);
+    expect(rule).toMatch(/<dt[^>]*>Module<\/dt><dd[^>]*>orders<\/dd>/);
   });
 
   it('links a rule to its element in the model view', () => {
@@ -165,7 +165,7 @@ describe('RequirementsView', () => {
     );
   });
 
-  it('shows of a modified rule that its needs were all taken away', () => {
+  it('names the module in a rule’s details and marks a changed rationale, needs left out', () => {
     const html = renderToStaticMarkup(
       <MantineProvider>
         <Details
@@ -178,16 +178,24 @@ describe('RequirementsView', () => {
             },
             module: { id: 'module|a', name: 'a' },
             change: 'modified',
-            rule: { name: 'A rule' },
+            rule: {
+              name: 'A rule',
+              rationale: { value: 'Because.', author: 'agent' },
+            },
             trace: [],
           }}
-          rule={{ name: 'A rule' }}
+          rule={{
+            name: 'A rule',
+            rationale: { value: 'Because.', author: 'agent' },
+          }}
           element="B"
         />
       </MantineProvider>,
     );
     expect(html).toContain('>changed<');
-    expect(html).toMatch(/<dt[^>]*>Needs<\/dt><dd[^>]*>Design decision/);
+    expect(html).toMatch(/<dt[^>]*>Module<\/dt><dd[^>]*>a<\/dd>/);
+    expect(html).toMatch(/<dt[^>]*>Rationale<\/dt><dd[^>]*>Because\.<\/dd>/);
+    expect(html).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
   });
 
   it('puts the needs and their rules in a tree beside the document', () => {

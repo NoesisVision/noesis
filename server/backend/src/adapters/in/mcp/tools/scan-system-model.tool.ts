@@ -31,7 +31,7 @@ export function scanSystemModelTool(
     SCAN_SYSTEM_MODEL,
     {
       title: 'Scan system model',
-      description: `Scans the repository's code and stores the system model found — its modules, building blocks and behaviours — as a new scan, keeping every one before; ${GET_NEWEST_SYSTEM_MODEL} answers with the latest. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the id the server minted, the model's name, scan time and how many elements of each kind it holds.`,
+      description: `Scans the repository's code and stores the system model found — its modules, building blocks and behaviours — as a new scan, keeping every one before; ${GET_NEWEST_SYSTEM_MODEL} answers with the latest. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the id the scanner minted, the model's name, scan time and how many elements of each kind it holds.`,
       inputSchema,
       outputSchema,
       annotations: CREATE,

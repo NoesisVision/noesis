@@ -1,9 +1,6 @@
 import type { SystemModel } from './system-model';
 
-/** What a scanner finds; the server gives it its id. */
-export type ScannedSystemModel = Omit<SystemModel, 'id'>;
-
-/** Reads a codebase and tells what it implements. */
+/** Reads a codebase and tells what it implements, at an id it mints. */
 export interface SourceCodeScanner {
-  scan(): Promise<ScannedSystemModel>;
+  scan(): Promise<SystemModel>;
 }

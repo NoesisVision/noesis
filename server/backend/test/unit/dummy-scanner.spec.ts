@@ -15,6 +15,7 @@ import {
   ScannedParameter,
   ScannedResult,
 } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 const SALES = ChangeId.parse('2026-01-01-sales');
@@ -115,6 +116,14 @@ async function descriptionOf(id: string) {
 }
 
 describe('The dummy scanner', () => {
+  it('mints a new id for every scan, the later one higher', async () => {
+    const first = await scanner.scan();
+    const second = await scanner.scan();
+
+    expect(SystemModelId.safeParse(first.id).success).toBe(true);
+    expect(second.id > first.id).toBe(true);
+  });
+
   it('finds an empty model named after the repository before any design is implemented', async () => {
     await t.writeDesignDoc(SALES, {
       id: '2026-01-01-draft',
@@ -124,6 +133,7 @@ describe('The dummy scanner', () => {
     });
 
     expect(await scanner.scan()).toEqual({
+      id: expect.any(String),
       name: basename(t.root),
       scanned_at: NOW,
       modules: [],

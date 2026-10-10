@@ -1,10 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { basename, relative, sep } from 'node:path';
 import type { Now } from '#backend/app/clock';
-import type {
-  ScannedSystemModel,
-  SourceCodeScanner,
-} from '#backend/app/system-model/source-code-scanner';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import type { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { findJavaSources } from './java/java-files';
 import { type ParsedJavaFile, projectJavaModel } from './java/java-model';
@@ -31,7 +30,10 @@ export class JavaSourceCodeScanner implements SourceCodeScanner {
     this.now = now;
   }
 
-  async scan(): Promise<ScannedSystemModel> {
+  /** Mints the id as the scan starts, so the newest scan has the highest id. */
+  async scan(): Promise<SystemModel> {
+    const id = SystemModelId.mint();
+    const scannedAt = this.now();
     const root = this.noesis.root;
     const paths = await findJavaSources(root);
     if (paths.length === 0) {
@@ -43,8 +45,9 @@ export class JavaSourceCodeScanner implements SourceCodeScanner {
       paths.map((path) => this.parse(root, path)),
     );
     return {
+      id,
       name: basename(root),
-      scanned_at: this.now(),
+      scanned_at: scannedAt,
       ...projectJavaModel(files),
     };
   }

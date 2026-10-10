@@ -3,6 +3,13 @@
 **Placeholder. Nothing is implemented here yet**: this directory holds only
 this file.
 
+Meanwhile the service has a text-level C# scanner of its own, in
+`server/backend/src/adapters/out/scanners/csharp/` (`NOESIS_SCANNER=csharp`).
+It reads `.cs` files without compiling them: namespaces become modules
+(mapped by `noesis-config.json`), types marked with a `Ddd*` attribute become
+building blocks and their public methods behaviours. It finds no properties,
+parameters or relations; that is what a compiler-backed scanner here would add.
+
 The intent is a .NET counterpart of the Java scanner in
 [`scanners/java`](../java/README.md): a build-tool plugin that reads
 compiled assemblies, detects DDD stereotypes through annotations (a
