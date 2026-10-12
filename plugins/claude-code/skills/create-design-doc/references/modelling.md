@@ -27,6 +27,10 @@ it stays true once the change ships.
 - Its `id` is its name in lower-case kebab-case (`start-a-qdoc`), unique in
   the design document.
 - A need comes from a source. Never invent one to justify a rule.
+- So does its stakeholder. When the sources name nobody who has the goal,
+  leave `stakeholder` empty (`""`) and write the `statement` without a
+  subject, in the sources' words: "Grant a 10% discount while it rains",
+  never "The shop needs to…". Do not infer a stakeholder from the domain.
 
 ## Modules
 
