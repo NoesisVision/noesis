@@ -1,7 +1,56 @@
 {
   "id": "2026-09-17-weather-based-discount",
   "name": "Weather-based discount",
-  "description": "Adds a 10 percent offer-level discount granted while it is raining or snowing in Warsaw, read from the Open-Meteo API through a new weather module, and prepares the extension points for further weather-based discounts (temperature, wind, cloud cover, humidity, UV index). The weather module pairs the Weather snapshot with its WeatherProvider port, as the users module pairs UserStatus with UserStatusProvider. Conditions gains the optional weather, so every potential discount reads it from there rather than from the provider. DiscountPolicyFactory takes a WeatherProvider and reads the weather once per resolution; the shape of get(UserId) stays as it is. DiscountsConfigProvider registers the PotentialPrecipitationDiscount next to PotentialVipUserDiscount, and is where every further weather-based discount is registered, in the same shape. OpenMeteoWeatherProvider sends GET https://api.open-meteo.com/v1/forecast?latitude=52.2297&longitude=21.0122&current=precipitation with java.net.http.HttpClient and parses the body with Jackson. Its base URL is injectable so tests point it at a local HTTP stub; the Warsaw coordinates and the list of requested current parameters are its configuration constants, so a new weather parameter extends that list and the mapping. The request has an explicit timeout so a slow API cannot block discount calculation, and the adapter neither caches nor retries. The location is the adapter's configuration, not an input of WeatherProvider.getCurrent, because every discount is evaluated for the one shop. Unit tests of DiscountPolicyFactory stub the WeatherProvider.",
+  "description": "This design adds a 10 percent offer-level discount granted while it rains or snows in Warsaw ([Discount in bad weather](noesis:need|rain-discount)), and prepares the model for further weather-based discounts ([Further weather discounts](noesis:need|further-weather-discounts)).\n\n# Where it lands\n\n- The new [weather](noesis:module|discounts.weather) module holds the current weather, as a condition a discount can depend on.\n- The new [openmeteo](noesis:module|discounts.weather.openmeteo) module inside it holds the Open-Meteo service as the source of that weather.\n- The existing calculation module gains the new discounts and carries the weather to them.\n\n# Where to start reading\n\n1. [WeatherProvider](noesis:building_block|discounts.weather.WeatherProvider) is the port: [getCurrent](noesis:behavior|discounts.weather.WeatherProvider.getCurrent) gives a [Weather](noesis:building_block|discounts.weather.Weather) snapshot, precipitation in millimetres, or says the weather is unknown.\n2. [OpenMeteoWeatherProvider](noesis:building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider) implements it; any failure of the API means unknown weather, never an error in discount calculation ([Pricing without weather](noesis:need|pricing-without-weather)).\n3. [DiscountPolicyFactory.get](noesis:behavior|discounts.calculation.DiscountPolicyFactory.get) reads the weather once per policy resolution (spec, rule 4) and puts it into [Conditions](noesis:building_block|discounts.calculation.Conditions), which gains the optional weather.\n4. [PotentialPrecipitationDiscount.isApplicableFor](noesis:behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor) holds exactly when the known precipitation is above 0 mm (spec, rule 1); unknown weather grants nothing (spec, rule 2). [Its discount](noesis:behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount) is a [PercentageDiscount](noesis:building_block|discounts.calculation.PercentageDiscount) of 10 percent.\n\n# Around them\n\n- [PercentageDiscount.apply](noesis:behavior|discounts.calculation.PercentageDiscount.apply) records one offer-level discount amount; weather discounts stack with every other discount (spec, rule 3).\n- [DiscountPolicyFactory](noesis:building_block|discounts.calculation.DiscountPolicyFactory) gains the weather port. [DiscountsConfigProvider](noesis:building_block|discounts.calculation.DiscountsConfigProvider) registers the precipitation discount next to the VIP discount in [getDiscountsConfig](noesis:behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig).\n\n# Left for later\n\n- Further weather discounts: a field on `Weather`, a parameter in the adapter and a potential discount registered in the configuration (spec, Extension recipe).\n- Caching, retries and a configurable location (spec, Scope).",
+  "needs": {
+    "added": [
+      {
+        "id": "rain-discount",
+        "name": {
+          "value": "Discount in bad weather",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "Grant a 10% offer-level discount while it is raining or snowing in Warsaw, that is while precipitation is above 0 mm.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "further-weather-discounts",
+        "name": {
+          "value": "Further weather discounts",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "Add each further weather-based discount (temperature, wind speed, cloud cover, humidity, UV index) with one new field, one new query parameter and one new potential discount.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "pricing-without-weather",
+        "name": {
+          "value": "Pricing without weather",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "Calculate discounts when the weather API fails: the weather is unknown, and no exception leaves the discount calculation.",
+          "author": "agent"
+        }
+      }
+    ]
+  },
   "modules": {
     "added": [
       {
@@ -67,12 +116,23 @@
           "added": [
             {
               "name": "Weather snapshot carries precipitation in millimetres",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
               },
               "description": {
                 "value": "The snapshot describes the current weather at the configured location; precipitation is a numeric value in millimetres exactly as reported by the provider, without rounding. Future weather parameters become further fields on this same snapshot so every weather discount reads from one object taken at one moment.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "rain-discount",
+                  "further-weather-discounts"
+                ],
                 "author": "agent"
               }
             }
@@ -156,6 +216,10 @@
           "added": [
             {
               "name": "Percentage discount is an offer-level discount recorded as a discount amount",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
@@ -163,16 +227,32 @@
               "description": {
                 "value": "A percentage discount holds a percentage value and, when applied, appends exactly one DiscountAmount referencing itself to the offer-level discounts of the DiscountedOffer, leaving product-level discounts untouched. It follows the same shape as FixedDiscount; no money computation happens in this iteration.",
                 "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "rain-discount"
+                ],
+                "author": "agent"
               }
             },
             {
               "name": "Weather discounts stack with other discounts",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Consistency",
                 "author": "agent"
               },
               "description": {
                 "value": "A weather-based discount neither excludes any other discount nor is excluded by one; a VIP user in the rain receives both the VIP fixed discount and the precipitation discount. Exclusivity is only introduced if a configurator wraps the discount in the existing ExclusiveOfferLevelDiscount.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "rain-discount"
+                ],
                 "author": "agent"
               }
             }
@@ -338,12 +418,22 @@
           "added": [
             {
               "name": "Provider failure means unknown weather",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "State change",
                 "author": "agent"
               },
               "description": {
                 "value": "Any network error, timeout, non-2xx HTTP status or unparsable response body results in an empty result, i.e. weather unknown. The adapter never propagates an exception into discount calculation; missing weather is a normal outcome, not an error.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "pricing-without-weather"
+                ],
                 "author": "agent"
               }
             }
@@ -482,6 +572,10 @@
           "added": [
             {
               "name": "Precipitation above zero makes the precipitation discount applicable",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Computation",
                 "author": "agent"
@@ -489,16 +583,32 @@
               "description": {
                 "value": "The discount is applicable exactly when the conditions carry a known weather snapshot whose precipitation is strictly greater than 0 mm. Precipitation equal to 0 is dry weather and yields no discount. The threshold is a business constant of this discount, not of the weather provider.",
                 "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "rain-discount"
+                ],
+                "author": "agent"
               }
             },
             {
               "name": "Unknown weather never grants a weather discount",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Computation",
                 "author": "agent"
               },
               "description": {
                 "value": "When the weather provider could not deliver a snapshot and the conditions carry no weather, every weather-based potential discount reports itself as not applicable. Missing data is treated as no rain, never as an error and never as rain.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "pricing-without-weather"
+                ],
                 "author": "agent"
               }
             }
@@ -618,12 +728,20 @@
           "added": [
             {
               "name": "Weather is read once per policy resolution",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Consistency",
                 "author": "agent"
               },
               "description": {
                 "value": "A single call to get(userId) queries the weather provider exactly once and places the result into Conditions, so every potential discount evaluated in that call sees the same weather snapshot taken at the same moment.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [],
                 "author": "agent"
               }
             }
