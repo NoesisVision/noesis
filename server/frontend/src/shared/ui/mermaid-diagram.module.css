@@ -28,6 +28,13 @@
   padding: var(--mantine-spacing-sm);
   overflow-x: auto;
   border-radius: var(--mantine-radius-md);
+  /*
+   * Inside markdown the editor's root sets `word-break: break-word` inline,
+   * and the labels would inherit it: mermaid measures a label without it,
+   * on one line, so a name with no space broken in the middle spills its
+   * second line out of the box measured for it, and is cut off.
+   */
+  word-break: normal;
 
   & svg {
     max-width: 100%;
