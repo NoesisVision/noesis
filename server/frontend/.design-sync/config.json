@@ -65,6 +65,9 @@
     "Popover": {
       "cardMode": "single",
       "viewport": "360x300"
+    },
+    "Textarea": {
+      "cardMode": "column"
     }
   },
   "readmeHeader": ".design-sync/conventions.md"

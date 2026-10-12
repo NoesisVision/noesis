@@ -1,0 +1,26 @@
+.unchanged {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border: 1px dashed var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-sm);
+  font-style: italic;
+}
+
+.unchanged:hover {
+  border-color: var(--mantine-color-brand-filled);
+  color: var(--mantine-color-text);
+}
+
+.unchanged:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.author {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,6 +1,6 @@
+import { IconTool } from '@tabler/icons-react';
 import { DevToolsView } from '#/features/dev-tools/ui/dev-tools-view.tsx';
-import { Box } from '#/shared/design-system/box';
-import { Modal } from '#/shared/design-system/modal.tsx';
+import { ModalBody, ModalFrame } from '#/shared/ui/modal-frame.tsx';
 
 interface DevToolsDialogProps {
   opened: boolean;
@@ -14,16 +14,15 @@ interface DevToolsDialogProps {
  */
 export function DevToolsDialog({ opened, onClose }: DevToolsDialogProps) {
   return (
-    <Modal
+    <ModalFrame
       opened={opened}
       onClose={onClose}
+      icon={<IconTool size={22} aria-hidden />}
       title="Dev tools"
-      centered
-      size="lg"
     >
-      <Box py={24}>
+      <ModalBody>
         <DevToolsView />
-      </Box>
-    </Modal>
+      </ModalBody>
+    </ModalFrame>
   );
 }

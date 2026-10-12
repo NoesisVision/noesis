@@ -48,11 +48,6 @@
   }
 }
 
-.quote {
-  border-radius: var(--mantine-radius-sm);
-  background: var(--noesis-requirement-quote);
-}
-
 .rule {
   border-bottom: 1px solid var(--mantine-color-default-border);
 }

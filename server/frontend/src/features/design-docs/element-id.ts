@@ -96,6 +96,38 @@ export function parentOf(id: string): ModuleId | BuildingBlockId | null {
     : asModule(`${MODULE}${parentAddressOf(id)}`);
 }
 
+/** Whether a string is an element id of any kind, rather than a name or a primitive. */
+export const isElementId = (value: string): boolean =>
+  isModule(value) || isBuildingBlock(value) || isBehaviour(value);
+
+const PREFIX_OF = {
+  module: MODULE,
+  building_block: BUILDING_BLOCK,
+  behaviour: BEHAVIOUR,
+} as const;
+
+/**
+ * The id an element named `name` takes under `parent`: a root module under
+ * nothing, a submodule or building block under a module, a behaviour under
+ * a building block.
+ */
+export const childIdOf = (
+  kind: keyof typeof PREFIX_OF,
+  parent: string | null,
+  name: string,
+): string =>
+  `${PREFIX_OF[kind]}${parent === null ? '' : `${addressOf(parent)}.`}${name}`;
+
+/**
+ * Whether `id` is `ancestor` itself or sits under it: a module holds every
+ * kind, a building block only its behaviours.
+ */
+export function isWithin(id: string, ancestor: string): boolean {
+  if (id === ancestor) return true;
+  if (!addressOf(id).startsWith(`${addressOf(ancestor)}.`)) return false;
+  return isModule(ancestor) || (isBuildingBlock(ancestor) && isBehaviour(id));
+}
+
 function parentAddressOf(id: string): string {
   const address = addressOf(id);
   return address.slice(0, Math.max(0, address.lastIndexOf('.')));

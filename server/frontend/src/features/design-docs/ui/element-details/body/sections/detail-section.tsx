@@ -13,8 +13,9 @@ import {
 import classes from './detail-section.module.css';
 
 interface DetailSectionProps
-  extends PropsWithChildren, ComponentProps<typeof Stack> {
-  title?: string;
+  extends PropsWithChildren, Omit<ComponentProps<typeof Stack>, 'title'> {
+  /** The section's name, and what follows it on its line: a count, say. */
+  title?: ReactNode;
   /** Decorative, before the title: the title already says what it shows. */
   icon?: ReactNode;
   field?: DesignDocFieldInput<unknown>;

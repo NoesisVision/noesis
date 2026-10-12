@@ -144,3 +144,42 @@ function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
     </span>
   );
 }
+
+/**
+ * A list under a title, in the card the types' tooltip is drawn on: a rule's
+ * scenarios under the rule's name, say. Nothing to list, no tooltip.
+ */
+export function ListTooltip({
+  title,
+  label,
+  items,
+  children,
+}: {
+  title: string;
+  /** What the items are, over them: "Scenarios". */
+  label: string;
+  items: readonly string[];
+  children: ReactElement;
+}) {
+  if (items.length === 0) return children;
+  return (
+    <CardTooltip
+      openDelay={300}
+      multiline
+      label={
+        <span className={classes.details}>
+          <span className={classes.title}>{title}</span>
+          <Lines
+            label={label}
+            lines={items.map((item, index) => ({
+              key: `${index}`,
+              name: item,
+            }))}
+          />
+        </span>
+      }
+    >
+      {children}
+    </CardTooltip>
+  );
+}

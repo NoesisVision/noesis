@@ -164,3 +164,26 @@ h2.name {
   position: sticky;
   top: 0;
 }
+
+/* The name written in place reads in the heading's own type, not a button's. */
+.name .nameText {
+  font: inherit;
+  color: inherit;
+}
+
+/*
+ * What the element is, under the header, read as a behaviour's card reads it:
+ * smaller, in the secondary text. The prose of the editor that draws it is
+ * named with the definition, to win over the editor's own type.
+ */
+.definition {
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg) 0;
+  color: var(--noesis-secondary-text);
+
+  & p,
+  & li {
+    font-size: var(--mantine-font-size-sm);
+    line-height: 1.55;
+    color: var(--noesis-secondary-text);
+  }
+}

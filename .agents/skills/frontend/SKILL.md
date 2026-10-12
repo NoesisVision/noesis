@@ -83,6 +83,38 @@ component. Add it the way Mantine defines its own, with a
   entries there do. That is what lets the IDE complete it and stop flagging it
   as unknown in a CSS module.
 
+## Every modal uses `ModalFrame`
+
+A dialog is built from `ModalFrame`, `ModalBody` and `ModalFooter` in
+[`src/shared/ui/modal-frame.tsx`](../../../server/frontend/src/shared/ui/modal-frame.tsx),
+never a bare `Modal` with a `title` string. Every modal then reads the same, top
+to bottom:
+
+1. **Header**, one line, centred on each other: a 44px light `ThemeIcon` tile
+   for what the modal is about or does (the unit's `KindIcon`, a trash in red
+   for a removal), the title in bold at `h3` size, the close button. A badge
+   (e.g. `ChangeBadge`) may sit after the title. A bottom border.
+2. **`ModalBody`**: the content, 20px between fields. The order of fields
+   puts the one the user names first (Name before Belongs to).
+3. **`ModalFooter`** (only when the modal acts): grey, a top border, a dimmed
+   `xs` note on the left saying what is still needed ("A name is required." /
+   "Ready to add."), and the buttons on the right — Cancel first, then the
+   action, red for a destructive one, `+` before an Add. The action stays
+   disabled until the form can be sent.
+
+Spacing: every part has the same padding on all four sides
+(`--mantine-spacing-lg`), so the header, the fields and the footer line up. The modal is
+620px wide, `radius="lg"`, `shadow="xl"`, centred, and stays open while a save
+is on its way (`busy`).
+
+No breadcrumb: the page behind the modal already says where its subject sits.
+
+Accessibility: the dialog is named by its title alone. A badge beside the
+title is `aria-hidden` — it repeats what the page already says.
+
+A full-screen canvas (the diagram viewer) is not a dialog of this kind; it
+keeps `Modal` with `fullScreen`, its title in the same bold `h3` type.
+
 ## Accessibility
 
 **Follow WCAG 2.2 level AA wherever it applies.** The UI is a reading tool: it

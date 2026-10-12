@@ -11,7 +11,10 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
+import type { PartOwner } from '../../../design-doc-edit.ts';
 import { valueOf } from '../../../design-doc-field.ts';
+import { NewScenarioButton } from '../../unit-editor/new-buttons.tsx';
+import { ScenarioActions } from '../../unit-editor/scenario-actions.tsx';
 import { ChangeBadge } from '../change-badge.tsx';
 import { SCENARIO_TRANSITION, useScenarioFocus } from './scenario-focus.tsx';
 import type { ScenarioEntry } from './scenarios-of.ts';
@@ -37,6 +40,7 @@ export function ScenarioColumn({
   id,
   defaultOpen = false,
   headingOrder,
+  owner,
 }: {
   scenarios: ScenarioEntry[];
   /** What a link to the column points at; only one on a page may have it. */
@@ -45,6 +49,8 @@ export function ScenarioColumn({
   defaultOpen?: boolean;
   /** The title as a heading of this level; a plain label when not given. */
   headingOrder?: 3 | 4 | 5 | 6;
+  /** The element the scenarios are written in; none where they are only read. */
+  owner?: PartOwner;
 }) {
   // The value goes into the ids Mantine writes, which take no spaces.
   const values = scenarios.map((_, index) => String(index));
@@ -60,7 +66,7 @@ export function ScenarioColumn({
   );
   return (
     <Box component="section" id={id} className={classes.column}>
-      <Group justify="space-between" gap="xs" px="sm" wrap="nowrap">
+      <Group gap="xs" px="sm">
         {headingOrder === undefined ? (
           <Text span className={classes.title}>
             {heading}
@@ -70,14 +76,18 @@ export function ScenarioColumn({
             {heading}
           </Title>
         )}
-        <Button
-          variant="subtle"
-          size="xs"
-          onClick={() => setOpen(allOpen ? [] : values)}
-        >
-          {allOpen ? 'Collapse all' : 'Expand all'}
-        </Button>
+        {scenarios.length > 0 && (
+          <Button
+            variant="subtle"
+            size="xs"
+            ml="auto"
+            onClick={() => setOpen(allOpen ? [] : values)}
+          >
+            {allOpen ? 'Collapse all' : 'Expand all'}
+          </Button>
+        )}
       </Group>
+      {owner !== undefined && <NewScenarioButton owner={owner} />}
       <Accordion
         multiple
         value={open}
@@ -100,24 +110,43 @@ export function ScenarioColumn({
             // What a rule's count looks for to bring it into view.
             data-scenario={values[index]}
           >
-            <Accordion.Control>
-              <IconListCheck size={16} className={classes.dim} aria-hidden />
-              <span className={classes.text}>
-                <span
-                  className={classes.name}
-                  data-removed={entry.change === 'removed' || undefined}
-                >
-                  {entry.name}
-                </span>
-                {entry.rule !== undefined && (
-                  <span className={classes.rule}>
-                    <IconScale size={12} aria-hidden />
-                    <span className={classes.ellipsis}>{entry.rule}</span>
+            {/* The buttons sit beside the control, not in it: a button holds no other. */}
+            <div className={classes.head}>
+              <Accordion.Control>
+                <IconListCheck size={16} className={classes.dim} aria-hidden />
+                <span className={classes.text}>
+                  <span className={classes.nameLine}>
+                    <span
+                      className={classes.name}
+                      // Cut short where the column is narrow: whole on hover.
+                      title={entry.name}
+                      data-removed={entry.change === 'removed' || undefined}
+                    >
+                      {entry.name}
+                    </span>
+                    <ChangeBadge change={entry.change} inline />
                   </span>
-                )}
-              </span>
-              <ChangeBadge change={entry.change} inline />
-            </Accordion.Control>
+                  {entry.rule !== undefined && (
+                    <span className={classes.rule}>
+                      <IconScale size={12} aria-hidden />
+                      <span className={classes.ellipsis}>{entry.rule}</span>
+                    </span>
+                  )}
+                </span>
+              </Accordion.Control>
+              {owner !== undefined && (
+                <ScenarioActions
+                  scenario={{
+                    kind: 'scenario',
+                    id: entry.name,
+                    owner:
+                      entry.rule === undefined
+                        ? owner
+                        : { ...owner, rule: entry.rule },
+                  }}
+                />
+              )}
+            </div>
             <Accordion.Panel>
               {entry.scenario === null ? (
                 <Text c="dimmed" size="sm">

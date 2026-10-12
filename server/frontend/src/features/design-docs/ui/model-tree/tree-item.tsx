@@ -1,4 +1,9 @@
-import { type KeyboardEvent, memo, type MouseEvent } from 'react';
+import {
+  type DragEvent,
+  type KeyboardEvent,
+  memo,
+  type MouseEvent,
+} from 'react';
 import { ChangeMark } from './change-mark.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
@@ -28,7 +33,16 @@ export interface TreeItemProps {
  */
 export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
   const path = node.path;
-  const { select, toggle, expand, collapse } = useTreeActions();
+  const {
+    select,
+    toggle,
+    expand,
+    collapse,
+    dragStart,
+    dragOver,
+    drop,
+    dragEnd,
+  } = useTreeActions();
   const children = useTreeState((s) => s.childrenOf(path));
   const hasChildren = children.length > 0;
   const expanded = useTreeState((s) => hasChildren && s.isExpanded(path));
@@ -41,6 +55,31 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
   const tokens = useTreeState((s) => s.tokens);
   const rowId = useTreeState((s) => s.rowIds.get(path));
   const colour = useTreeState((s) => s.colours[node.change]);
+  const draggable = useTreeState((s) => s.canDrag(path));
+  const dropTarget = useTreeState((s) => s.dropPath === path);
+
+  /*
+   * A row is dragged by its own line and dropped on another's; the item
+   * around it holds its subtree, which every event inside would reach.
+   */
+  const onDragStart = (event: DragEvent<HTMLSpanElement>) => {
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = 'move';
+    // Some browsers start no drag without data.
+    event.dataTransfer.setData('text/plain', node.name);
+    dragStart(path);
+  };
+  const onDragOver = (event: DragEvent<HTMLSpanElement>) => {
+    event.stopPropagation();
+    if (!dragOver(path)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+  const onDrop = (event: DragEvent<HTMLSpanElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    drop(path);
+  };
 
   // A pointer event lands on every row it is inside; only the innermost
   // meant it.
@@ -119,7 +158,17 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
     >
       {/* The one line of the row: what the tree scrolls to, never the item
           around it, which holds everything below it as well. */}
-      <span id={rowId} data-row className={classes.row}>
+      <span
+        id={rowId}
+        data-row
+        data-drop-target={dropTarget || undefined}
+        className={classes.row}
+        draggable={draggable || undefined}
+        onDragStart={draggable ? onDragStart : undefined}
+        onDragEnd={draggable ? dragEnd : undefined}
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
         <Chevron
           opens={hasChildren}
           expanded={expanded}

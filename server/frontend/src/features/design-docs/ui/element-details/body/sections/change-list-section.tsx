@@ -3,12 +3,15 @@ import type { ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { List } from '#/shared/design-system/list.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
+import { NewRuleButton } from '../../../unit-editor/new-buttons.tsx';
+import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 import { PropertyGrid } from './property-grid.tsx';
 import { Ref } from './ref.tsx';
@@ -30,28 +33,68 @@ interface ChangeListSectionProps {
  * cards, each with what the design says about it.
  */
 export function ChangeListSection({
+  element,
   title,
   kind,
   items,
 }: ChangeListSectionProps) {
   const { has, select } = useElementNavigation();
+  const owner = partOwnerOf(element);
+  // An element's rules are listed where it may be written even before it
+  // has any, for the first to be added there.
+  const writable = useWritableUnit(
+    kind === 'rule' && owner !== null
+      ? { kind: owner.kind, id: owner.id }
+      : null,
+  );
+  if (items.length === 0 && writable === null) return null;
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
   const sortKey = (label: string) =>
     qualified ? shortName(label).type : label;
-  const sorted = [...items].sort((a, b) =>
-    sortKey(a.label).localeCompare(sortKey(b.label)),
-  );
+  // Rules read in the design's own order, the newest added on top; the
+  // rest by name.
+  const sorted =
+    kind === 'rule'
+      ? items
+      : [...items].sort((a, b) =>
+          sortKey(a.label).localeCompare(sortKey(b.label)),
+        );
 
   return (
     <DetailSection
-      title={title}
+      title={
+        // Rules say how many there are, dimmed after the name.
+        kind === 'rule' && items.length > 0 ? (
+          <>
+            {title}
+            <Text span c="dimmed" fw={400}>
+              {items.length}
+            </Text>
+          </>
+        ) : (
+          title
+        )
+      }
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
     >
       {kind === 'property' ? (
-        <PropertyGrid items={sorted} />
+        <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
-        <RuleCards items={sorted} />
+        <Stack gap={10}>
+          {writable !== null && owner !== null && (
+            <NewRuleButton owner={owner} />
+          )}
+          {sorted.length === 0 ? (
+            writable === null && (
+              <Text size="sm" c="dimmed">
+                No rules yet.
+              </Text>
+            )
+          ) : (
+            <RuleCards items={sorted} owner={owner} />
+          )}
+        </Stack>
       ) : (
         <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
           {sorted.map(({ change, label, path, description }) => (
@@ -98,5 +141,10 @@ const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
 };
 
 /** Shown only when the design touches the list at all. */
-ChangeListSection.shows = ({ items }: ChangeListSectionProps) =>
-  items.length > 0;
+/**
+ * Shown when there is something to list — and an element's rules always, for
+ * where it may be written the first is added there; the section itself says
+ * when it may not.
+ */
+ChangeListSection.shows = ({ items, kind, element }: ChangeListSectionProps) =>
+  items.length > 0 || (kind === 'rule' && partOwnerOf(element) !== null);

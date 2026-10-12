@@ -36,14 +36,43 @@
   min-width: 0;
 }
 
+/* One line: a long name wraps in its own room, the buttons stay at the end. */
 .head {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--mantine-spacing-xs);
+
+  & > :first-child {
+    min-width: 0;
+  }
+
+  & > :not(:first-child) {
+    flex: none;
+  }
 }
 
-.title {
+/* The name in running text, the badge after its last word wherever that falls. */
+.titleLine {
+  flex: 1;
+
+  & > :first-child {
+    display: inline;
+  }
+
+  & > :last-child {
+    display: inline-flex;
+    margin-inline-start: var(--mantine-spacing-xs);
+    vertical-align: 0.15em;
+  }
+}
+
+/* A rule's own buttons, at the end of its head. */
+.actions {
+  margin-inline-start: auto;
+}
+
+/* Named with the card, to win over the reset of a button written in place. */
+.card .title {
   font-size: 17px;
   font-weight: 600;
   line-height: 1.35;
@@ -65,18 +94,18 @@
   }
 }
 
-.classification {
+.card .classification {
   font-size: var(--mantine-font-size-xs);
   font-weight: 600;
   color: var(--noesis-secondary-text);
 }
 
-.needs {
+.card .needs {
   font-size: var(--mantine-font-size-xs);
   color: var(--noesis-secondary-text);
 }
 
-.description {
+.card .description {
   font-size: var(--mantine-font-size-sm);
   line-height: 1.55;
   color: var(--noesis-secondary-text);

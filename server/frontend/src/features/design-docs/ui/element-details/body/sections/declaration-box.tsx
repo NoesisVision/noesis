@@ -12,8 +12,8 @@ const DESCRIPTION_LENGTH = 80;
 /**
  * One declaration — a property, an input, an output — as a box: its name, if
  * it has one, over its type read short, and what the design says it is,
- * folded past 80 characters. The type opens its row when the tree has one;
- * hovering anywhere on the box says what that type is.
+ * folded past 80 characters. The type opens its row when the tree has one,
+ * and hovering it says what that type is.
  */
 export function DeclarationBox({
   item,
@@ -39,7 +39,11 @@ export function DeclarationBox({
         </span>
       )}
       {type !== undefined && (
-        <Type type={type} path={typePath} named={name !== undefined} />
+        <DeclarationType
+          type={type}
+          path={typePath}
+          named={name !== undefined}
+        />
       )}
       {name === undefined && type === undefined && (
         <span className={classes.name} data-removed={removed}>
@@ -55,15 +59,11 @@ export function DeclarationBox({
       )}
     </Component>
   );
-  return type === undefined ? (
-    box
-  ) : (
-    <ElementTooltip name={type}>{box}</ElementTooltip>
-  );
+  return box;
 }
 
 /** The type by its last segment; a link to its row when the tree has one. */
-function Type({
+export function DeclarationType({
   type,
   path,
   named,
@@ -75,17 +75,22 @@ function Type({
 }) {
   const { has, select } = useElementNavigation();
   const className = named ? classes.type : classes.name;
-  return path != null && has(path) ? (
-    <UnstyledButton
-      className={className}
-      data-link
-      onClick={() => select(path)}
-    >
-      <QualifiedName name={type} />
-    </UnstyledButton>
-  ) : (
-    <span className={className}>
-      <QualifiedName name={type} />
-    </span>
+  // Hovering the type says what it is: what it holds, or takes and gives.
+  return (
+    <ElementTooltip name={type}>
+      {path != null && has(path) ? (
+        <UnstyledButton
+          className={className}
+          data-link
+          onClick={() => select(path)}
+        >
+          <QualifiedName name={type} />
+        </UnstyledButton>
+      ) : (
+        <span className={className}>
+          <QualifiedName name={type} />
+        </span>
+      )}
+    </ElementTooltip>
   );
 }

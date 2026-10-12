@@ -1,0 +1,53 @@
+/*
+ * A ghost row where the next item goes: a dashed outline in the secondary
+ * text, lit in the brand's colour while pointed at or focused. Named twice,
+ * to win over the reset of the button it is.
+ */
+.ghost.ghost {
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px dashed
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
+  border-radius: 6px;
+  font-size: var(--mantine-font-size-sm);
+  color: var(--noesis-secondary-text);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: light-dark(
+      var(--mantine-color-brand-5),
+      var(--mantine-color-brand-4)
+    );
+    color: var(--mantine-color-brand-light-color);
+    background-color: var(--mantine-color-brand-light);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+  }
+}
+
+/* Kept off the column's edges, as its header is; as wide as what is left. */
+.ghost.inset {
+  width: auto;
+  margin-inline: var(--mantine-spacing-sm);
+}
+
+/* The editor the row opens into, in the same place, outlined in the brand's colour. */
+.draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  padding: 10px;
+  border: 1px solid
+    light-dark(var(--mantine-color-brand-4), var(--mantine-color-brand-6));
+  border-radius: 6px;
+}

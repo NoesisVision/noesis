@@ -1,0 +1,19 @@
+/*
+ * An edit, add or delete icon sits grey until it is pointed at or focused,
+ * then takes its colour: the link's blue, or red for a delete, in either
+ * scheme. Named twice, to win over the icon's own colour.
+ */
+.quiet.quiet {
+  color: var(--mantine-color-dimmed);
+  transition: color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--mantine-color-anchor);
+  }
+
+  &[data-danger]:hover,
+  &[data-danger]:focus-visible {
+    color: var(--mantine-color-red-text);
+  }
+}

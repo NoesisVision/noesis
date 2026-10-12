@@ -8,6 +8,7 @@ import { DesignDocOverview } from './design-doc-overview.tsx';
 import { DesignDocSurface } from './design-doc-surface.tsx';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
 import { RequirementsView } from './requirements/requirements-view.tsx';
+import { UnitEditor } from './unit-editor/unit-editor.tsx';
 import type { ViewPlace } from './view-place.ts';
 import { ViewSwitch } from './view-switch.tsx';
 
@@ -51,20 +52,27 @@ export function DesignDocDetail({
       document={document.data.document}
       switcher={<ViewSwitch view={view} onView={onView} />}
     >
-      {view === 'overview' ? (
-        <DesignDocOverview key={id} detail={document.data} onOpen={onOpen} />
-      ) : view === 'requirements' ? (
-        <RequirementsView
-          key={id}
-          changeId={changeId}
-          detail={document.data}
-          {...requirements}
-        />
-      ) : view === 'architecture' ? (
-        <ArchitectureView key={id} detail={document.data} {...architecture} />
-      ) : (
-        <DesignDocWorkbench key={id} detail={document.data} {...model} />
-      )}
+      <UnitEditor
+        changeId={changeId}
+        docId={id}
+        document={document.data.document}
+        onMoved={(moved) => model.onSelect(moved, 'detail')}
+      >
+        {view === 'overview' ? (
+          <DesignDocOverview key={id} detail={document.data} onOpen={onOpen} />
+        ) : view === 'requirements' ? (
+          <RequirementsView
+            key={id}
+            changeId={changeId}
+            detail={document.data}
+            {...requirements}
+          />
+        ) : view === 'architecture' ? (
+          <ArchitectureView key={id} detail={document.data} {...architecture} />
+        ) : (
+          <DesignDocWorkbench key={id} detail={document.data} {...model} />
+        )}
+      </UnitEditor>
     </DesignDocSurface>
   );
 }

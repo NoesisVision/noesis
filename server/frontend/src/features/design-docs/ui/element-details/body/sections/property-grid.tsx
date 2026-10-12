@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Grid } from '#/shared/design-system/grid.tsx';
+import type { PartOwner } from '../../../../design-doc-edit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
-import { DeclarationBox } from './declaration-box.tsx';
+import { WritableDeclarationBox } from './writable-declaration-box.tsx';
 
 // Mantine asks for all five; past `md` the four columns hold.
 const BREAKPOINTS = {
@@ -34,13 +35,31 @@ export function BoxGrid({
   );
 }
 
-/** Properties as the boxes inputs and outputs are drawn with. */
-export function PropertyGrid({ items }: { items: ChangeListItem[] }) {
+/**
+ * Properties as the boxes inputs and outputs are drawn with. Where the
+ * design may be written, a property's description is written in place — and its name, while the design adds it: the model knows one it
+ * has by its name.
+ */
+export function PropertyGrid({
+  items,
+  owner = null,
+}: {
+  items: ChangeListItem[];
+  /** The block they are written in; none where they are only read. */
+  owner?: PartOwner | null;
+}) {
   return (
     <BoxGrid
       cells={items.map((item) => ({
         key: `${item.change}:${item.label}`,
-        content: <DeclarationBox item={item} typePath={item.typePath} />,
+        content: (
+          <WritableDeclarationBox
+            item={item}
+            kind="property"
+            owner={owner}
+            typePath={item.typePath}
+          />
+        ),
       }))}
     />
   );

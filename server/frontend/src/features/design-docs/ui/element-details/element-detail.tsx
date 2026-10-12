@@ -7,7 +7,10 @@ import { useElementSize } from '#/shared/design-system/hooks.ts';
 import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../change-set.ts';
-import { valueOf } from '../../design-doc-field.ts';
+import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
+import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
+import { InlineText } from '../unit-editor/inline-text.tsx';
+import { useWritableUnit } from '../unit-editor/writable-unit.ts';
 import { bodySections } from './body/body-sections.tsx';
 import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
@@ -17,6 +20,7 @@ import { implementerItems, refItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
+import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { ImplementedByModal } from './implemented-by-modal.tsx';
 import { ImplementsLine } from './implements-line.tsx';
@@ -65,8 +69,13 @@ export function ElementDetail({
     node.kind === 'building_block' && node.elementId
       ? implementerItems(doc, node.elementId)
       : [];
+  // What the element is, under its name: a module's, a block's, a behaviour's.
+  const definition = definitionOf(doc, node);
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
+  // Where the element may be written, the column shows with none yet, for
+  // the first to be added there.
+  const scenariosWritable = useWritableUnit(elementRefOf(node)) !== null;
   // Measured outside the key below, so the width is known on every element.
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   return (
@@ -91,12 +100,20 @@ export function ElementDetail({
             </div>
             <div className={classes.title}>
               <Title order={2} className={classes.name}>
-                {node.name}
+                <NodeName node={node} />
               </Title>
               <ImplementsLine items={implemented} />
             </div>
           </div>
         </header>
+        {definition !== undefined && (
+          <ElementDefinition
+            // Another element is another editor: it reads its markdown once.
+            key={node.path}
+            element={elementRefOf(node)}
+            field={definition}
+          />
+        )}
         <div ref={bodyRef} className={classes.body}>
           {/* Under the key, so every scenario is folded again on another element. */}
           <ScenarioFocusProvider key={node.path} scenarios={scenarios}>
@@ -104,10 +121,11 @@ export function ElementDetail({
               width={bodyWidth}
               sections={bodySections(node, doc, tree)}
               scenarios={
-                scenarios.length > 0 ? (
+                scenarios.length > 0 || scenariosWritable ? (
                   <ScenarioColumn
                     scenarios={scenarios}
                     id={SCENARIO_COLUMN_ID}
+                    owner={ownerOfScenarios(node)}
                   />
                 ) : null
               }
@@ -117,4 +135,55 @@ export function ElementDetail({
       </ElementNavigationContext.Provider>
     </DesignDocumentContext.Provider>
   );
+}
+
+/** The element a row stands for, as a unit; null for a part or a row of none. */
+function elementRefOf(node: OutlineNode): UnitRef | null {
+  if (node.elementId === null) return null;
+  return node.kind === 'module' ||
+    node.kind === 'building_block' ||
+    node.kind === 'behaviour'
+    ? { kind: node.kind, id: node.elementId }
+    : null;
+}
+
+/** The element's name, written in place where the document may be written. */
+function NodeName({ node }: { node: OutlineNode }) {
+  const writable = useWritableUnit(elementRefOf(node));
+  if (writable === null) return node.name;
+  return (
+    <InlineText
+      label="Name"
+      value={node.name}
+      className={classes.nameText}
+      onSave={(name) => writable.save({ name })}
+    />
+  );
+}
+
+/** The element the scenarios beside it are written in. */
+/** The definition field of the element a node shows; none for anything else. */
+function definitionOf(
+  doc: DesignDocumentInput,
+  node: OutlineNode,
+): DesignDocFieldInput<string> | undefined {
+  if (!node.elementId) return undefined;
+  const collection =
+    node.kind === 'module'
+      ? doc.modules
+      : node.kind === 'building_block'
+        ? doc.buildingBlocks
+        : node.kind === 'behaviour'
+          ? doc.behaviours
+          : undefined;
+  if (collection === undefined) return undefined;
+  // An element the design leaves alone is still shown: its definition is too.
+  return findById(collection, node.elementId)?.definition ?? { changed: false };
+}
+
+function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
+  const ref = elementRefOf(node);
+  return ref === null
+    ? undefined
+    : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

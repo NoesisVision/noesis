@@ -8,6 +8,7 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
+import { refKeyOf } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import {
@@ -28,6 +29,8 @@ export interface ChangeListItem {
   label: string;
   path: string | null;
   description?: string;
+  /** The key its change set knows it by: an input's name, an output's type. */
+  key?: string;
   /** A property's or an input's name, apart from its type. */
   name?: string;
   /** The type it is declared with, by address; `?` already folded into the name. */
@@ -36,6 +39,8 @@ export interface ChangeListItem {
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
   scenarios?: number;
+  /** Those scenarios by name, to list where the count is pointed at. */
+  scenarioNames?: string[];
   /** A rule's category and type, as far as the design writes them. */
   classification?: string;
   /** The needs a rule answers, by name; none for a design decision. */
@@ -97,12 +102,19 @@ export const parameterItems = (
 ): ChangeListItem[] =>
   [...changed(set)].map(([parameter, change]) => {
     if (typeof parameter === 'string')
-      return { change, label: parameter, path: null, name: parameter };
+      return {
+        change,
+        key: parameter,
+        label: parameter,
+        path: null,
+        name: parameter,
+      };
     const type = valueOf(parameter.type);
     const optional = valueOf(parameter.optional) ? '?' : '';
     const description = valueOf(parameter.description)?.trim();
     return {
       change,
+      key: parameter.name,
       label:
         type === null
           ? parameter.name
@@ -127,6 +139,7 @@ export const resultItems = (
       : undefined;
     return {
       change,
+      key: refKeyOf(type),
       label: refAddressOf(type),
       path: refIdOf(type),
       type: refAddressOf(type),
@@ -156,6 +169,7 @@ export const propertyItems = (
     const description = valueOf(property.description)?.trim();
     return {
       change,
+      key: property.name,
       label:
         type === null
           ? property.name
@@ -178,7 +192,10 @@ export const ruleItems = (
     if (typeof rule === 'string')
       return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
     const description = valueOf(rule.description)?.trim();
-    const scenarios = [...changed(rule.scenarios)].length;
+    const scenarioNames = [...changed(rule.scenarios)].map(([scenario]) =>
+      typeof scenario === 'string' ? scenario : scenario.name,
+    );
+    const scenarios = scenarioNames.length;
     const classification = classificationOf(rule);
     const traced = valueOf(rule.needs);
     return {
@@ -186,7 +203,7 @@ export const ruleItems = (
       label: rule.name,
       path: partPathOf(owner, 'rule', rule.name),
       ...(description ? { description } : {}),
-      ...(scenarios > 0 ? { scenarios } : {}),
+      ...(scenarios > 0 ? { scenarios, scenarioNames } : {}),
       ...(classification ? { classification } : {}),
       ...(traced ? { needs: needNamesOf(traced, needs) } : {}),
     };

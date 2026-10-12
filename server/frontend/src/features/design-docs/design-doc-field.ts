@@ -34,6 +34,51 @@ export function isHumanAuthored(field: DesignDocFieldInput<unknown>): boolean {
 }
 
 /**
+ * A field as a form holds it: whether the design writes it, and the value it
+ * would write — kept while it is not written, so writing it again picks up
+ * where it was.
+ */
+export interface FieldDraft<T> {
+  written: boolean;
+  value: T;
+}
+
+export function draftOf<T>(
+  field: DesignDocFieldInput<T>,
+  blank: T,
+  written = !isUnchanged(field),
+): FieldDraft<T> {
+  return { written, value: valueOf(field) ?? blank };
+}
+
+/**
+ * The field a draft writes, as a human. A value left as it was keeps the
+ * author it had, so opening and saving a form claims nothing for the human.
+ */
+export function fieldFrom<T>(
+  draft: FieldDraft<T>,
+  original: DesignDocFieldInput<T>,
+): DesignDocFieldInput<T> {
+  if (!draft.written) return { changed: false };
+  if (
+    original !== undefined &&
+    'value' in original &&
+    JSON.stringify(original.value) === JSON.stringify(draft.value)
+  ) {
+    return original;
+  }
+  return { changed: true, value: draft.value, author: 'human' };
+}
+
+/** Who stands behind a written field; null for one the design leaves alone. */
+export function authorOf(
+  field: DesignDocFieldInput<unknown>,
+): DesignDocFieldAuthor | null {
+  if (isUnchanged(field)) return null;
+  return isHumanAuthored(field) ? 'human' : 'agent';
+}
+
+/**
  * A type reference in words: a building block by its own name, a primitive by
  * the primitive, a collection by its item with `[]` after it.
  */

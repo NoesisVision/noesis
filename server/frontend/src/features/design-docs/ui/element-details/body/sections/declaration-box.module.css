@@ -58,7 +58,8 @@
   }
 }
 
-.description {
+/* Named with the box, to win over the reset of a button written in place. */
+.box .description {
   display: block;
   font-family: var(--mantine-font-family);
   font-size: 11px;

@@ -39,6 +39,58 @@
   }
 }
 
+/*
+ * The control is the whole row; the scenario's buttons sit over its end, and
+ * the room around them is still the control's — a press there opens the
+ * scenario, and the row lights up as one wherever the pointer is.
+ */
+.head {
+  position: relative;
+
+  &:has(> :nth-child(2)) > :first-child {
+    padding-inline-end: 80px;
+  }
+
+  & > :nth-child(2) {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: var(--mantine-spacing-xs);
+    align-items: center;
+    pointer-events: none;
+
+    & > * {
+      pointer-events: auto;
+    }
+  }
+
+  &:hover > :first-child {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+}
+
+/* The name, and what the design does to it, side by side. */
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  /* A long name gives way, not the badge after it. */
+  & > :first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  & > :last-child {
+    flex: none;
+  }
+}
+
 /* A quarter turn, as the tree's own chevrons turn, not Mantine's half. */
 .chevron {
   margin: 0;

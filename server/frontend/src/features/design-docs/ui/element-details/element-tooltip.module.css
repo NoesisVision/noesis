@@ -5,6 +5,11 @@
   padding: 2px 0;
 }
 
+/* A name in words over a list: bold, wrapping as prose does. */
+.title {
+  font-weight: 600;
+}
+
 /* The full name on one line, however long: the tooltip widens to it. */
 .address {
   font-family: var(--mantine-font-family-monospace);

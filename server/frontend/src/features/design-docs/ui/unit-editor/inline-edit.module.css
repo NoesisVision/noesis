@@ -1,0 +1,104 @@
+/* Zero weight, so the class the text already wears keeps its type and colour. */
+:where(.editable) {
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  letter-spacing: inherit;
+}
+
+/*
+ * Text that can be written in place reads as it always does, and answers the
+ * pointer with a faint edge: click it to write it. The keyboard reaches it as
+ * the button it is.
+ */
+.editable {
+  border-radius: var(--mantine-radius-xs);
+  outline: 1px dashed transparent;
+  outline-offset: 2px;
+  cursor: text;
+  transition: outline-color 120ms ease;
+
+  &:hover {
+    outline-color: var(--mantine-color-default-border);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+  }
+}
+
+/* A field with nothing written yet, inviting it. */
+.empty {
+  color: var(--mantine-color-dimmed);
+  font-style: italic;
+}
+
+/*
+ * While it is written, the field takes the whole width of what holds it — a
+ * whole line of a row it shares, too — not the width of the text it was.
+ */
+.field.field {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+/*
+ * The text being written, where it stood: an edge in the brand's colour and
+ * the page's ground. The edge's room is taken back by the margin, so the
+ * letters do not move as it opens; it is as wide as its text.
+ */
+.editing {
+  display: inline-block;
+  max-width: calc(100% + 14px);
+  margin: -3px -7px;
+  padding: 2px 6px;
+  border: 1px solid var(--mantine-primary-color-filled);
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-body);
+  outline: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: text;
+
+  /* A paragraph keeps the lines it is given. */
+  &[data-multiline] {
+    white-space: pre-wrap;
+  }
+
+  /* Nothing written yet: what goes there, dimmed. */
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: var(--mantine-color-dimmed);
+    font-style: italic;
+  }
+
+  &[aria-invalid] {
+    border-color: var(--mantine-color-error);
+  }
+
+  &[aria-busy] {
+    opacity: 0.6;
+  }
+}
+
+/*
+ * A block of prose written in place: a click, a tap or a key anywhere on it
+ * opens it, so it answers the pointer with a faint edge and the keyboard with
+ * the focus ring.
+ */
+.block {
+  border-radius: var(--mantine-radius-sm);
+  outline: 1px dashed transparent;
+  outline-offset: 4px;
+  cursor: text;
+  transition: outline-color 120ms ease;
+
+  &:hover {
+    outline-color: var(--mantine-color-default-border);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+  }
+}

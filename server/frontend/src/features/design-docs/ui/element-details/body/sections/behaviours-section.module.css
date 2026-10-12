@@ -68,8 +68,20 @@
   color: var(--mantine-color-dimmed);
 }
 
-.output {
+/* Named with the signature, to win over the reset a linked type's button gets. */
+.code .output {
+  font: inherit;
   color: var(--mantine-color-anchor);
+
+  &[data-link]:hover {
+    text-decoration: underline;
+  }
+
+  &[data-link]:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mantine-radius-xs);
+  }
 }
 
 .definition {
