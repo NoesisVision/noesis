@@ -82,7 +82,11 @@
   }
 }
 
-/* A block of prose is written in place too, a click anywhere on it. */
+/*
+ * A block of prose written in place: a click, a tap or a key anywhere on it
+ * opens it, so it answers the pointer with a faint edge and the keyboard with
+ * the focus ring.
+ */
 .block {
   border-radius: var(--mantine-radius-sm);
   outline: 1px dashed transparent;
@@ -93,15 +97,8 @@
   &:hover {
     outline-color: var(--mantine-color-default-border);
   }
-}
 
-/* The keyboard's way into a block: out of sight until it has focus. */
-.keyboardOnly:not(:focus) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+  }
 }

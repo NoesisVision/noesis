@@ -39,6 +39,8 @@ export interface ChangeListItem {
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
   scenarios?: number;
+  /** Those scenarios by name, to list where the count is pointed at. */
+  scenarioNames?: string[];
   /** A rule's category and type, as far as the design writes them. */
   classification?: string;
   /** The needs a rule answers, by name; none for a design decision. */
@@ -190,7 +192,10 @@ export const ruleItems = (
     if (typeof rule === 'string')
       return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
     const description = valueOf(rule.description)?.trim();
-    const scenarios = [...changed(rule.scenarios)].length;
+    const scenarioNames = [...changed(rule.scenarios)].map(([scenario]) =>
+      typeof scenario === 'string' ? scenario : scenario.name,
+    );
+    const scenarios = scenarioNames.length;
     const classification = classificationOf(rule);
     const traced = valueOf(rule.needs);
     return {
@@ -198,7 +203,7 @@ export const ruleItems = (
       label: rule.name,
       path: partPathOf(owner, 'rule', rule.name),
       ...(description ? { description } : {}),
-      ...(scenarios > 0 ? { scenarios } : {}),
+      ...(scenarios > 0 ? { scenarios, scenarioNames } : {}),
       ...(classification ? { classification } : {}),
       ...(traced ? { needs: needNamesOf(traced, needs) } : {}),
     };

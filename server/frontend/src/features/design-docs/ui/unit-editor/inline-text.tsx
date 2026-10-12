@@ -71,7 +71,13 @@ export function InlineText({
   };
   const written = () => {
     const text = field.current?.textContent ?? '';
-    return multiline ? text : text.replaceAll(/\s*\n\s*/g, ' ');
+    if (multiline) return text;
+    // A line typed or pasted into a one-line text joins the one before it.
+    return text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line !== '')
+      .join(' ');
   };
   const commit = async () => {
     if (cancelled.current || busy) return;

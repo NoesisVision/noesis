@@ -811,7 +811,9 @@ export const needIdOf = (name: string): string =>
   name
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '')
+    // Runs are one dash by now: at most one to drop at either end.
+    .replace(/^-/, '')
+    .replace(/-$/, '')
     .slice(0, 64);
 
 // --- Violations: the server's answer, laid over the form ---

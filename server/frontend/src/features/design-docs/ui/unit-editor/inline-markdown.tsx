@@ -1,17 +1,16 @@
-import { type MouseEvent, type ReactNode, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import classes from './inline-edit.module.css';
 
 /**
- * Prose written in place: it reads as itself until it is clicked, then it is
- * the markdown editor, kept until Save or Cancel — a paragraph half written
- * is not one to save on the way out. A link in it still opens; the keyboard
- * gets a button of its own, out of sight until it has focus.
+ * Prose written in place: it reads as itself and is the button that opens
+ * it — clicked, tapped, or focused and Enter or Space — while a link in it
+ * still opens. Opened, it is the markdown editor, kept until Save or Cancel:
+ * a paragraph half written is not one to save on the way out.
  */
 export function InlineMarkdown({
   label,
@@ -36,11 +35,6 @@ export function InlineMarkdown({
     setError(null);
     setEditing(true);
   };
-  const onClick = (event: MouseEvent) => {
-    // A link is followed, not written.
-    if ((event.target as HTMLElement).closest('a')) return;
-    start();
-  };
   const save = async () => {
     if (draft.trim() === value.trim()) {
       setEditing(false);
@@ -53,22 +47,35 @@ export function InlineMarkdown({
     else setError(problem);
   };
 
+  // A link in the prose is followed, not written.
+  const onLink = (target: EventTarget) =>
+    target instanceof Element && target.closest('a') !== null;
   if (!editing)
     return (
-      <>
-        <UnstyledButton className={classes.keyboardOnly} onClick={start}>
-          {`Edit the ${label.toLowerCase()}`}
-        </UnstyledButton>
-        {/* The pointer's way in; the keyboard's is the button above. */}
-        {/* oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-        <div
-          className={classes.block}
-          title={`Edit the ${label.toLowerCase()}`}
-          onClick={onClick}
-        >
-          {children}
-        </div>
-      </>
+      <div
+        // The prose itself opens the editor, so it is the button: one tab
+        // stop, Enter or Space, a click or a tap. A native button cannot
+        // hold the links prose may have, which keep their own tab stops.
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+        role="button"
+        tabIndex={0}
+        aria-label={`Edit the ${label.toLowerCase()}`}
+        title={`Edit the ${label.toLowerCase()}`}
+        className={classes.block}
+        onClick={(event) => {
+          if (!onLink(event.target)) start();
+        }}
+        onKeyDown={(event) => {
+          // Only the block's own keys: Enter on a link inside follows it.
+          if (event.target !== event.currentTarget) return;
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            start();
+          }
+        }}
+      >
+        {children}
+      </div>
     );
   return (
     <Stack gap="xs">

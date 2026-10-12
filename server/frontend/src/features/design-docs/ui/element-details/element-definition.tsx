@@ -42,7 +42,7 @@ export function ElementDefinition({
       >
         {blank ? (
           <Text span size="sm" c="dimmed" fs="italic">
-            {unchanged ? 'Unchanged — click to write' : 'What it is'}
+            {unchanged ? 'Unchanged' : 'No definition yet'}
           </Text>
         ) : (
           <Reading markdown={value} />

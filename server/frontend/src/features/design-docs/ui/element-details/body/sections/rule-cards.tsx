@@ -22,6 +22,7 @@ import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
 import { ChangeBadge } from '../../change-badge.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
+import { ListTooltip } from '../../element-tooltip.tsx';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
 import { useScenarioFocus } from '../scenario-focus.tsx';
 import classes from './rule-cards.module.css';
@@ -61,8 +62,16 @@ function RuleCard({
   item: ChangeListItem;
   owner: PartOwner | null;
 }) {
-  const { change, label, path, description, scenarios, classification, needs } =
-    item;
+  const {
+    change,
+    label,
+    path,
+    description,
+    scenarios,
+    scenarioNames,
+    classification,
+    needs,
+  } = item;
   const { has, select } = useElementNavigation();
   const focus = useScenarioFocus();
   const writable = useWritableUnit(
@@ -168,25 +177,32 @@ function RuleCard({
           </InlineChips>
         )}
         {scenarios !== undefined && (
-          <Anchor
-            href={`#${SCENARIO_COLUMN_ID}`}
-            underline="never"
-            className={classes.scenarios}
-            // Straight to the rule's first scenario, not the top of the
-            // column; the link alone is for a rule drawn without one.
-            onClick={(event) => {
-              if (focus === null) return;
-              event.preventDefault();
-              focus.showRule(label);
-            }}
+          // Pointed at, the count names the scenarios it would open.
+          <ListTooltip
+            title={label}
+            label="Scenarios"
+            items={scenarioNames ?? []}
           >
-            <span className={classes.dots} aria-hidden="true">
-              <span />
-              <span />
-            </span>
-            {counted(scenarios, 'scenario')}
-            <IconArrowRight size={12} aria-hidden />
-          </Anchor>
+            <Anchor
+              href={`#${SCENARIO_COLUMN_ID}`}
+              underline="never"
+              className={classes.scenarios}
+              // Straight to the rule's first scenario, not the top of the
+              // column; the link alone is for a rule drawn without one.
+              onClick={(event) => {
+                if (focus === null) return;
+                event.preventDefault();
+                focus.showRule(label);
+              }}
+            >
+              <span className={classes.dots} aria-hidden="true">
+                <span />
+                <span />
+              </span>
+              {counted(scenarios, 'scenario')}
+              <IconArrowRight size={12} aria-hidden />
+            </Anchor>
+          </ListTooltip>
         )}
       </div>
     </li>
