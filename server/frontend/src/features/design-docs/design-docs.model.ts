@@ -1,4 +1,10 @@
-import { IconPencilBolt } from '@tabler/icons-react';
+import {
+  IconBinaryTree2,
+  IconFileDescription,
+  IconHexagons,
+  IconPencilBolt,
+  IconTarget,
+} from '@tabler/icons-react';
 
 /**
  * The icon a design document is drawn with, wherever it is named: the sidebar,
@@ -18,6 +24,20 @@ export const DESIGN_DOC_VIEWS = [
   'architecture',
 ] as const;
 export type DesignDocViewName = (typeof DESIGN_DOC_VIEWS)[number];
+
+/**
+ * Each view's icon, wherever the view is named: on its tab, and on every
+ * link in the overview that opens it. One icon per view, so a reader learns
+ * where a link goes from the tab it goes to, not from a vocabulary of
+ * element kinds. The requirements' is the need's own, which is what such a
+ * link opens.
+ */
+export const DESIGN_DOC_VIEW_ICONS = {
+  overview: IconFileDescription,
+  model: IconBinaryTree2,
+  requirements: IconTarget,
+  architecture: IconHexagons,
+} as const satisfies Record<DesignDocViewName, unknown>;
 
 export const isDesignDocView = (value: unknown): value is DesignDocViewName =>
   (DESIGN_DOC_VIEWS as readonly unknown[]).includes(value);

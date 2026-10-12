@@ -1,8 +1,10 @@
 /*
  * The overview fills the frame the other views fill with their columns, in
- * the same pane they draw, and scrolls inside it as their panes do.
+ * the same pane they draw, and scrolls inside it as their panes do. It is
+ * the container its legend asks whether there is room beside the prose.
  */
 .pane {
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -15,10 +17,107 @@
   );
 }
 
-/* Prose is read at a measure a line can be followed at, not the pane's width. */
-.body {
-  max-width: 72ch;
-  margin-inline: auto;
+/* The prose centred at its measure, the legend in the margin to its right. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 72ch) minmax(0, 1fr);
+  column-gap: var(--mantine-spacing-lg);
   padding: var(--mantine-spacing-lg) var(--mantine-spacing-md)
     calc(var(--mantine-spacing-xl) * 2);
+}
+
+.body {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.legend {
+  position: sticky;
+  top: 0;
+  grid-row: 1;
+  grid-column: 3;
+  align-self: start;
+  justify-self: start;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+}
+
+.legendTitle {
+  margin-bottom: 4px;
+}
+
+/*
+ * Without room for both, the legend is one line above the prose rather than
+ * a box that would squeeze it.
+ */
+@container (max-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 72ch);
+    justify-content: center;
+  }
+
+  .body {
+    grid-row: 2;
+    grid-column: 1;
+  }
+
+  .legend {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+    align-items: center;
+    grid-row: 1;
+    grid-column: 1;
+    margin-bottom: var(--mantine-spacing-md);
+    padding: 0 0 var(--mantine-spacing-xs);
+    border: none;
+    border-bottom: 1px solid
+      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    border-radius: 0;
+  }
+
+  .legendTitle {
+    margin-bottom: 0;
+  }
+
+  .legendItems.legendItems {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--mantine-spacing-md);
+  }
+}
+
+/*
+ * Each link carries the icon of the view it opens: the same drawing as the
+ * view's tab, IconBinaryTree2 for the model and IconTarget for the
+ * requirements. The editor renders plain anchors, so the icon is painted
+ * from the link's own address rather than placed in the markup.
+ */
+/* A link is a name: it wraps whole, so its icon never ends a line alone. */
+.body a[href*='?view=model'],
+.body a[href*='?view=requirements'] {
+  white-space: nowrap;
+}
+
+.body a[href*='?view=model']::before,
+.body a[href*='?view=requirements']::before {
+  content: '';
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  margin-right: 0.2em;
+  vertical-align: -0.12em;
+  background-color: currentColor;
+  mask: var(--link-icon) center / contain no-repeat;
+}
+
+.body a[href*='?view=model']::before {
+  --link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 6a2 2 0 1 0 -4 0a2 2 0 0 0 4 0'/%3E%3Cpath d='M7 14a2 2 0 1 0 -4 0a2 2 0 0 0 4 0'/%3E%3Cpath d='M21 14a2 2 0 1 0 -4 0a2 2 0 0 0 4 0'/%3E%3Cpath d='M14 18a2 2 0 1 0 -4 0a2 2 0 0 0 4 0'/%3E%3Cpath d='M12 8v8'/%3E%3Cpath d='M6.316 12.496l4.368 -4.992'/%3E%3Cpath d='M17.684 12.496l-4.366 -4.99'/%3E%3C/svg%3E");
+}
+
+.body a[href*='?view=requirements']::before {
+  --link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0'/%3E%3Cpath d='M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0'/%3E%3Cpath d='M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0'/%3E%3C/svg%3E");
 }

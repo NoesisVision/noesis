@@ -1,5 +1,7 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
@@ -7,10 +9,12 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import {
   type DescriptionTarget,
   descriptionTargets,
+  linkedViews,
   readableDescription,
   targetOfHref,
 } from '../design-doc-description.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
+import { DESIGN_DOC_VIEW_ICONS } from '../design-docs.model.ts';
 import classes from './design-doc-overview.module.css';
 
 /**
@@ -42,6 +46,10 @@ export function DesignDocOverview({
     () => readableDescription(doc.description, resolve, page),
     [doc.description, resolve, page],
   );
+  const views = useMemo(
+    () => linkedViews(doc.description, resolve),
+    [doc.description, resolve],
+  );
   // The links are the editor's own anchors; the page takes the click from
   // them, so the reader stays on it rather than reloading it.
   const onClickCapture = (event: MouseEvent<HTMLElement>) => {
@@ -56,23 +64,59 @@ export function DesignDocOverview({
 
   return (
     <Box className={classes.pane}>
-      <Box className={classes.body} onClickCapture={onClickCapture}>
-        <VisuallyHidden>
-          <Title order={2}>Overview</Title>
-        </VisuallyHidden>
-        {doc.description.trim() === '' ? (
-          <Text c="dimmed" size="sm">
-            This design has no overview yet.
-          </Text>
-        ) : (
-          <MarkdownEditor
-            markdown={markdown}
-            headingLevel={3}
-            readOnly
-            noMargin
-          />
-        )}
+      <Box className={classes.layout}>
+        {views.length > 0 && <LinkLegend views={views} />}
+        <Box className={classes.body} onClickCapture={onClickCapture}>
+          <VisuallyHidden>
+            <Title order={2}>Overview</Title>
+          </VisuallyHidden>
+          {doc.description.trim() === '' ? (
+            <Text c="dimmed" size="sm">
+              This design has no overview yet.
+            </Text>
+          ) : (
+            <MarkdownEditor
+              markdown={markdown}
+              headingLevel={3}
+              readOnly
+              noMargin
+            />
+          )}
+        </Box>
       </Box>
+    </Box>
+  );
+}
+
+const OPENS_IN_LABEL: Record<DescriptionTarget['view'], string> = {
+  model: 'opens in Model',
+  requirements: 'opens in Requirements',
+};
+
+/**
+ * What the two link icons mean, beside the prose while there is room for it
+ * and above it where there is not. Only the kinds of link the overview has
+ * are listed.
+ */
+function LinkLegend({ views }: { views: DescriptionTarget['view'][] }) {
+  return (
+    <Box component="aside" aria-label="Links" className={classes.legend}>
+      <Text size="xs" fw={600} c="dimmed" className={classes.legendTitle}>
+        Links
+      </Text>
+      <Stack gap={4} className={classes.legendItems}>
+        {views.map((view) => {
+          const Icon = DESIGN_DOC_VIEW_ICONS[view];
+          return (
+            <Group key={view} gap={6} wrap="nowrap">
+              <Icon size={14} stroke={1.8} aria-hidden />
+              <Text size="xs" c="dimmed">
+                {OPENS_IN_LABEL[view]}
+              </Text>
+            </Group>
+          );
+        })}
+      </Stack>
     </Box>
   );
 }
