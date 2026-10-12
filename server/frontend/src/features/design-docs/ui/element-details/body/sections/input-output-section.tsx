@@ -2,7 +2,6 @@ import { IconArrowsExchange } from '@tabler/icons-react';
 import { useId } from 'react';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
-import { AddButton, addTargetOf } from '../../../unit-editor/unit-actions.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DeclarationBox } from './declaration-box.tsx';
@@ -22,12 +21,7 @@ interface InputOutputSectionProps {
  * `DeclarationBox` as a block's properties are. Inputs that outgrow the
  * panel run on to the next row; the seam and the outputs stay beside them.
  */
-export function InputOutputSection({
-  element,
-  input,
-  output,
-}: InputOutputSectionProps) {
-  const behaviour = 'id' in element ? element.id : null;
+export function InputOutputSection({ input, output }: InputOutputSectionProps) {
   return (
     <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
       <Grid
@@ -35,11 +29,11 @@ export function InputOutputSection({
         classNames={{ inner: classes.inner }}
       >
         <Grid.Col span={{ base: 'content' }} className={classes.inputs}>
-          <Side label="Inputs" items={input} behaviour={behaviour} />
+          <Side label="Inputs" items={input} />
         </Grid.Col>
         <Divider orientation="vertical" variant="dashed" />
         <Grid.Col span={{ base: 'content' }}>
-          <Side label="Outputs" items={output} behaviour={behaviour} output />
+          <Side label="Outputs" items={output} output />
         </Grid.Col>
       </Grid>
     </DetailSection>
@@ -50,32 +44,17 @@ export function InputOutputSection({
 function Side({
   label,
   items,
-  behaviour,
   output,
 }: {
   label: string;
   items: ChangeListItem[];
-  /** The behaviour they are written in, which a write from them names. */
-  behaviour: string | null;
   output?: boolean;
 }) {
   const caption = useId();
   return (
     <div className={classes.side}>
-      <span className={classes.captionRow}>
-        <span id={caption} className={classes.caption}>
-          {`${label} · ${items.length}`}
-        </span>
-        {behaviour !== null && (
-          <span className={classes.add}>
-            <AddButton
-              target={addTargetOf(output ? 'result' : 'parameter', {
-                kind: 'behaviour',
-                id: behaviour,
-              })}
-            />
-          </span>
-        )}
+      <span id={caption} className={classes.caption}>
+        {`${label} · ${items.length}`}
       </span>
       <ul
         aria-labelledby={caption}
@@ -90,15 +69,6 @@ function Side({
             // A parameter's or a result's path is its type's own row.
             typePath={item.path}
             output={output}
-            unit={
-              behaviour === null || item.key === undefined
-                ? undefined
-                : {
-                    kind: output ? 'result' : 'parameter',
-                    id: item.key,
-                    owner: { kind: 'behaviour', id: behaviour },
-                  }
-            }
           />
         ))}
       </ul>

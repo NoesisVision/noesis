@@ -2,19 +2,26 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
+  applyEdit,
   draftOfUnit,
+  newRuleOf,
   type PartOwner,
   type UnitKind,
   type UnitRef,
   unitOf,
 } from '../src/features/design-docs/design-doc-edit';
-import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
-import { DiagramSection } from '../src/features/design-docs/ui/element-details/body/sections/diagram-section';
+import { PropertyGrid } from '../src/features/design-docs/ui/element-details/body/sections/property-grid';
+import { RuleCards } from '../src/features/design-docs/ui/element-details/body/sections/rule-cards';
+import {
+  propertyItems,
+  ruleItems,
+} from '../src/features/design-docs/ui/element-details/change-list-items';
 import { DesignedField } from '../src/features/design-docs/ui/unit-editor/designed-field';
 import {
-  RemoveButton,
-  UnitActions,
-} from '../src/features/design-docs/ui/unit-editor/unit-actions';
+  NewRuleButton,
+  NewScenarioButton,
+} from '../src/features/design-docs/ui/unit-editor/new-buttons';
+import { ScenarioActions } from '../src/features/design-docs/ui/unit-editor/scenario-actions';
 import { UnitEditingContext } from '../src/features/design-docs/ui/unit-editor/unit-editing';
 import { UnitFields } from '../src/features/design-docs/ui/unit-editor/unit-fields';
 import { useForm } from '../src/shared/design-system/form';
@@ -198,122 +205,184 @@ describe('the fields of a part', () => {
   });
 });
 
-describe('the actions on a unit', () => {
-  const editing = { document, write: noop, remove: noop, move: noop };
+const parts: DesignDocumentInput = {
+  ...document,
+  buildingBlocks: {
+    modified: [
+      {
+        id: BLOCK,
+        rules: {
+          added: [
+            {
+              name: 'held once',
+              category: { value: 'Business' },
+              ruleType: { value: 'Consistency' },
+              description: { value: 'Once.' },
+              needs: { value: [] },
+            },
+          ],
+        },
+        properties: {
+          added: [
+            {
+              name: 'amount',
+              type: { value: 'primitive|decimal' },
+              description: { value: 'How much.' },
+              optional: { value: false },
+            },
+          ],
+          modified: [{ name: 'currency', description: { value: 'Which.' } }],
+        },
+        scenarios: {
+          added: [
+            {
+              name: 'settles',
+              description: { value: '' },
+              given: { value: 'a hold' },
+              when: { value: 'it settles' },
+              // oxlint-disable-next-line unicorn/no-thenable
+              then: { value: 'it is gone' }, // NOSONAR
+            },
+          ],
+        },
+      },
+    ],
+    removed: ['building_block|pay.Old'],
+  },
+};
+const writing = {
+  document: parts,
+  write: noop,
+  remove: noop,
+  move: noop,
+  saveFields: async () => null,
+  apply: async () => null,
+};
+const owner = { kind: 'building_block', id: BLOCK } as const;
+const block = parts.buildingBlocks!.modified![0]!;
+const editable = (html: string) =>
+  [...html.matchAll(/title="Edit the ([a-z ]+)"/g)].map((match) => match[1]);
 
-  it('are nowhere the document is read only', () => {
-    expect(
-      render(<UnitActions unit={{ kind: 'building_block', id: BLOCK }} />),
-    ).toBe(render(null));
-  });
-
-  it('are one button named for the unit', () => {
-    const html = render(
-      <UnitEditingContext.Provider value={editing}>
-        <UnitActions unit={{ kind: 'building_block', id: BLOCK }} />
-      </UnitEditingContext.Provider>,
-    );
-    expect(html).toContain('aria-label="Edit the building block Hold"');
-  });
-
-  it('are none on a part of a removed element', () => {
-    const html = render(
-      <UnitEditingContext.Provider value={editing}>
-        <UnitActions
-          unit={{
-            kind: 'property',
-            id: 'amount',
-            owner: { kind: 'building_block', id: 'building_block|pay.Old' },
-          }}
-        />
-      </UnitEditingContext.Provider>,
-    );
-    expect(html).toBe(render(null));
-  });
-});
-
-describe('a section of an element', () => {
-  const editing = { document, write: noop, remove: noop, move: noop };
-  const element = { collection: 'buildingBlocks', id: BLOCK } as const;
-  const rules = (
-    <ChangeListSection element={element} title="Rules" kind="rule" items={[]} />
+describe('a rule card', () => {
+  const card = (
+    <RuleCards items={ruleItems(BLOCK, block.rules)} owner={owner} />
   );
 
-  it('adds one more of what it lists from its header', () => {
+  it('writes its name, kind, description and needs in place', () => {
     const html = render(
-      <UnitEditingContext.Provider value={editing}>
-        {rules}
+      <UnitEditingContext.Provider value={writing}>
+        {card}
       </UnitEditingContext.Provider>,
     );
-    expect(html).toContain('aria-label="Add rule"');
+    expect(editable(html)).toEqual([
+      'name',
+      'rule type',
+      'description',
+      'needs it answers',
+    ]);
+    expect(html).toContain('>Business · Consistency<');
+    expect(html).toContain('New scenario');
   });
 
-  it('edits the field it shows from its header', () => {
-    const html = render(
-      <UnitEditingContext.Provider value={editing}>
-        <DiagramSection
-          element={element}
-          field={{ value: 'flowchart TD\n  A --> B', author: 'agent' }}
-        />
-      </UnitEditingContext.Provider>,
-    );
-    expect(html).toContain('aria-label="Edit the diagram"');
-  });
-
-  it('adds nothing where the document is read only', () => {
-    expect(render(rules)).not.toContain('Add rule');
-  });
-
-  it('adds nothing to an element the design removes', () => {
-    const html = render(
-      <UnitEditingContext.Provider value={editing}>
-        <ChangeListSection
-          element={{
-            collection: 'buildingBlocks',
-            id: 'building_block|pay.Old',
-          }}
-          title="Rules"
-          kind="rule"
-          items={[]}
-        />
-      </UnitEditingContext.Provider>,
-    );
-    expect(html).not.toContain('Add rule');
+  it('only reads where the document is read only', () => {
+    expect(editable(render(card))).toEqual([]);
   });
 });
 
-describe('an implemented type', () => {
-  const lockable = 'building_block|pay.Lockable';
-  const settleable = 'building_block|pay.Settleable';
-  const withImplements: DesignDocumentInput = {
-    ...document,
-    buildingBlocks: {
-      modified: [
-        { id: BLOCK, implements: { added: [lockable], removed: [settleable] } },
-      ],
-    },
-  };
-  const editing = {
-    document: withImplements,
-    write: noop,
-    remove: noop,
-    move: noop,
-  };
-  const owner = { kind: 'building_block', id: BLOCK } as const;
-  const button = (id: string) =>
-    render(
-      <UnitEditingContext.Provider value={editing}>
-        <RemoveButton unit={{ kind: 'implements', id, owner }} />
+describe('a property tile', () => {
+  const grid = (
+    <PropertyGrid
+      items={propertyItems(BLOCK, block.properties)}
+      owner={owner}
+    />
+  );
+
+  it("writes its description in place, and an added one's name; never its type", () => {
+    const html = render(
+      <UnitEditingContext.Provider value={writing}>
+        {grid}
       </UnitEditingContext.Provider>,
     );
-
-  it('is removed with one small icon', () => {
-    expect(button(lockable)).toContain(
-      'aria-label="Remove the implemented type Lockable"',
-    );
+    // `amount` is added: its name too; `currency` is the model's, kept by name.
+    expect(editable(html)).toEqual(['name', 'description', 'description']);
   });
 
-  it('offers nothing once the design removes it', () => {
-    expect(button(settleable)).toBe(render(null));
+  it('only reads where the document is read only', () => {
+    expect(editable(render(grid))).toEqual([]);
+  });
+});
+
+describe("a scenario's buttons", () => {
+  const scenario = { kind: 'scenario', id: 'settles', owner } as const;
+
+  it('edit it and delete it', () => {
+    const html = render(
+      <UnitEditingContext.Provider value={writing}>
+        <ScenarioActions scenario={scenario} />
+      </UnitEditingContext.Provider>,
+    );
+    expect(html).toContain('aria-label="Edit the scenario settles"');
+    expect(html).toContain('aria-label="Delete the scenario settles"');
+  });
+
+  it('are none where the document is read only, or in a removed element', () => {
+    expect(render(<ScenarioActions scenario={scenario} />)).toBe(render(null));
+    expect(
+      render(
+        <UnitEditingContext.Provider value={writing}>
+          <ScenarioActions
+            scenario={{
+              ...scenario,
+              owner: { kind: 'building_block', id: 'building_block|pay.Old' },
+            }}
+          />
+        </UnitEditingContext.Provider>,
+      ),
+    ).toBe(render(null));
+  });
+});
+
+describe('the new buttons', () => {
+  it('add a rule, and open a scenario on its rule', () => {
+    const html = render(
+      <UnitEditingContext.Provider value={writing}>
+        <NewRuleButton owner={owner} />
+        <NewScenarioButton owner={owner} />
+      </UnitEditingContext.Provider>,
+    );
+    expect(html).toContain('New rule');
+    expect(html).toContain('New scenario');
+  });
+
+  it('are none where the document is read only', () => {
+    expect(
+      render(
+        <>
+          <NewRuleButton owner={owner} />
+          <NewScenarioButton owner={owner} />
+        </>,
+      ),
+    ).toBe(render(null));
+  });
+});
+
+describe('a new rule', () => {
+  it('is named "New rule", a name none of its rules has, and written whole', () => {
+    const edit = newRuleOf(parts, owner);
+    expect(edit).toMatchObject({
+      op: 'add',
+      ref: { kind: 'rule', id: 'New rule', owner },
+      unit: {
+        category: { value: 'Business' },
+        ruleType: { value: 'Consistency' },
+      },
+    });
+    const twice = applyEdit(parts, edit);
+    expect(newRuleOf(twice, owner).ref.id).toBe('New rule 2');
+  });
+
+  it('is no business rule in a module', () => {
+    const edit = newRuleOf(parts, { kind: 'module', id: 'module|pay' });
+    expect(edit).toMatchObject({ unit: { category: { value: 'Quality' } } });
   });
 });

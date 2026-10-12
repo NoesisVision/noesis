@@ -5,7 +5,6 @@ import {
 } from '../../../../design-doc-field.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { EditElementButton } from './edit-element-button.tsx';
 
 interface DiagramSectionProps {
   element: ElementRef;
@@ -13,16 +12,12 @@ interface DiagramSectionProps {
 }
 
 /** The element's diagram, drawn: the design writes its Mermaid source alone. */
-export function DiagramSection({ element, field }: DiagramSectionProps) {
+export function DiagramSection({ field }: DiagramSectionProps) {
   const source = valueOf(field);
   if (source === null) return null;
 
   return (
-    <DetailSection
-      title="Diagram"
-      field={field}
-      action={<EditElementButton element={element} field="Diagram" />}
-    >
+    <DetailSection title="Diagram" field={field}>
       <MermaidDiagram chart={source} />
     </DetailSection>
   );

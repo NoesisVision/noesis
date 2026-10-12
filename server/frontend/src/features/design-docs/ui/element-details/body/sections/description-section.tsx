@@ -6,9 +6,10 @@ import {
   isUnchanged,
   valueOf,
 } from '../../../../design-doc-field.ts';
-import type { ElementRef } from '../../element-ref.ts';
+import { InlineMarkdown } from '../../../unit-editor/inline-markdown.tsx';
+import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
+import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
-import { EditElementButton } from './edit-element-button.tsx';
 
 interface DescriptionSectionProps {
   element: ElementRef;
@@ -37,31 +38,46 @@ export function DescriptionSection({
   slots = {},
 }: DescriptionSectionProps) {
   const value = valueOf(field);
+  // An element's definition is written in place; nothing else here is.
+  const owner = title === 'Definition' ? partOwnerOf(element) : null;
+  const writable = useWritableUnit(owner);
 
-  /*
-   * Left alone, the description is whatever the model already says; written
-   * but blank, there is nothing to read.
-   */
   return (
-    <DetailSection
-      title={title}
-      field={field}
-      muted
-      action={<EditElementButton element={element} field={title} />}
-    >
+    <DetailSection title={title} field={field} muted>
       {slots?.top}
-      {isUnchanged(field) || value === null ? (
-        <Text c="dimmed" size="sm">
-          unchanged
-        </Text>
-      ) : value.trim() === '' ? (
-        <Text c="dimmed" size="sm">
-          Not specified.
-        </Text>
+      {writable === null ? (
+        <Reading field={field} />
       ) : (
-        <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
+        <InlineMarkdown
+          label={title}
+          value={value ?? ''}
+          onSave={(definition) => writable.save({ definition })}
+        >
+          <Reading field={field} />
+        </InlineMarkdown>
       )}
       {slots?.bottom}
     </DetailSection>
   );
+}
+
+/**
+ * Left alone, the description is whatever the model already says; written
+ * but blank, there is nothing to read.
+ */
+function Reading({ field }: { field: DesignDocFieldInput<string> }) {
+  const value = valueOf(field);
+  if (isUnchanged(field) || value === null)
+    return (
+      <Text c="dimmed" size="sm">
+        unchanged
+      </Text>
+    );
+  if (value.trim() === '')
+    return (
+      <Text c="dimmed" size="sm">
+        Not specified.
+      </Text>
+    );
+  return <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />;
 }

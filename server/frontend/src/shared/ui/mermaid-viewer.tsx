@@ -11,6 +11,7 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Modal } from '#/shared/design-system/modal.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import { ModalTitle } from './modal-title.tsx';
 import { useFullscreenRoot } from './use-fullscreen-root.ts';
 import { ZoomControls } from './zoom-controls.tsx';
 import classes from './mermaid-viewer.module.css';
@@ -124,7 +125,7 @@ export function MermaidViewer({
       opened={opened}
       onClose={onClose}
       fullScreen
-      title={name}
+      title={<ModalTitle trail={[]}>{name}</ModalTitle>}
       classNames={{
         root: classes.viewer,
         inner: classes.inner,

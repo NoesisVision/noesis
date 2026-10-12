@@ -20,7 +20,7 @@ interface DetailSectionProps
   field?: DesignDocFieldInput<unknown>;
   /** Read last and quieter, under a rule: what is said about the element rather than what it is. */
   muted?: boolean;
-  /** What may be done from the header — add one more, edit it — at its right. */
+  /** What the header offers beside its title: adding one more, say. */
   action?: ReactNode;
 }
 
@@ -38,15 +38,13 @@ export function DetailSection({
   return (
     <Stack
       component="section"
-      // What every card's actions inside it show on, from their own stylesheets.
-      data-section
       gap={10}
       className={clsx(classes.root, muted && classes.muted, className)}
       {...props}
     >
       {/* A rule, not a border: the divider is the design system's. */}
       {muted && <Divider mb="xs" />}
-      {(!!title || !!action) && (
+      {!!title && (
         <Group gap="xs" wrap="nowrap" className={classes.title}>
           {icon && (
             <Box component="span" className={classes.icon} aria-hidden="true">
@@ -65,11 +63,7 @@ export function DetailSection({
               {isHumanAuthored ? 'Written by a human' : 'AI-generated'}
             </Text>
           )}
-          {action && (
-            <Box component="span" className={classes.action}>
-              {action}
-            </Box>
-          )}
+          {action}
         </Group>
       )}
       <Box>{children}</Box>

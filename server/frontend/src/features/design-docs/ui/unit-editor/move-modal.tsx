@@ -8,6 +8,7 @@ import { Modal } from '#/shared/design-system/modal.tsx';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { ModalTitle } from '#/shared/ui/modal-title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   movedIdOf,
@@ -20,6 +21,7 @@ import {
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
 import { addressOf, parentOf } from '../../element-id.ts';
+import { trailOfRef } from './unit-trail.ts';
 
 /** The top of the design, as a value a select can hold. */
 const TOP = '';
@@ -87,7 +89,11 @@ export function MoveModal({
     <Modal
       opened
       onClose={onClose}
-      title={`Move ${UNIT_LABEL[unit.kind]}`}
+      title={
+        <ModalTitle trail={trailOfRef(unit)}>
+          {`Move ${UNIT_LABEL[unit.kind]}`}
+        </ModalTitle>
+      }
       size="lg"
       centered
       closeOnClickOutside={!save.isPending}

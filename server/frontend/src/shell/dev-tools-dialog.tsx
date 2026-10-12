@@ -1,6 +1,7 @@
 import { DevToolsView } from '#/features/dev-tools/ui/dev-tools-view.tsx';
 import { Box } from '#/shared/design-system/box';
 import { Modal } from '#/shared/design-system/modal.tsx';
+import { ModalTitle } from '#/shared/ui/modal-title.tsx';
 
 interface DevToolsDialogProps {
   opened: boolean;
@@ -17,7 +18,7 @@ export function DevToolsDialog({ opened, onClose }: DevToolsDialogProps) {
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Dev tools"
+      title={<ModalTitle trail={[]}>Dev tools</ModalTitle>}
       centered
       size="lg"
     >

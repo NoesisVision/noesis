@@ -3,7 +3,6 @@ import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-out
 import type { TreeMoving } from '#/features/design-docs/ui/model-tree/model-tree.tsx';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
-import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import {
   canMove,
@@ -15,7 +14,6 @@ import { Columns } from './columns.tsx';
 import { ElementDetail } from './element-details/element-detail.tsx';
 import { OutlineSearchBox } from './outline-search-box.tsx';
 import { Outline } from './outline.tsx';
-import { AddUnitButton } from './unit-editor/unit-actions.tsx';
 import { useUnitEditing } from './unit-editor/unit-editing.ts';
 import type { ViewPlace } from './view-place.ts';
 
@@ -67,12 +65,7 @@ export function DesignDocWorkbench({
 
   return (
     <Columns
-      search={
-        <Stack gap="xs">
-          <OutlineSearchBox controller={controller} />
-          <AddUnitButton kind="module" style={{ alignSelf: 'flex-start' }} />
-        </Stack>
-      }
+      search={<OutlineSearchBox controller={controller} />}
       outline={<Outline controller={controller} moving={moving} />}
       outlineRef={outlineRef}
       detail={

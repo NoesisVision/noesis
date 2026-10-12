@@ -8,6 +8,7 @@ import { Modal } from '#/shared/design-system/modal.tsx';
 import { Radio } from '#/shared/design-system/radio.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { ModalTitle } from '#/shared/ui/modal-title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type Removal,
@@ -22,6 +23,7 @@ import {
   violationsInWords,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
+import { trailOfRef } from './unit-trail.ts';
 
 const SITUATION: Record<UnitState, (name: string) => string> = {
   added: (name) =>
@@ -87,7 +89,11 @@ export function ConfirmRemovalModal({
     <Modal
       opened
       onClose={onClose}
-      title={`${state === 'removed' ? 'Restore' : 'Remove'} ${label}?`}
+      title={
+        <ModalTitle trail={trailOfRef(unit)}>
+          {`${state === 'removed' ? 'Restore' : 'Remove'} ${label}?`}
+        </ModalTitle>
+      }
       centered
       closeOnClickOutside={!save.isPending}
     >

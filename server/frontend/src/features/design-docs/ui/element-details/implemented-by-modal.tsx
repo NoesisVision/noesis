@@ -9,6 +9,7 @@ import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { ModalTitle } from '#/shared/ui/modal-title.tsx';
 import { QualifiedName, shortName } from '#/shared/ui/qualified-name.tsx';
 import { ChangeBadge } from './change-badge.tsx';
 import type { ChangeListItem } from './change-list-items.ts';
@@ -20,7 +21,14 @@ import classes from './implemented-by-modal.module.css';
  * The blocks that implement a type, behind one icon beside its badges: a
  * modal of `ImplementedByList`. Closing it drops what was typed in its box.
  */
-export function ImplementedByModal({ items }: { items: ChangeListItem[] }) {
+export function ImplementedByModal({
+  items,
+  trail,
+}: {
+  items: ChangeListItem[];
+  /** The steps down to the type they implement, over the modal's title. */
+  trail: readonly string[];
+}) {
   const [opened, { open, close }] = useDisclosure(false);
   if (items.length === 0) return null;
   // What the icon is, on hover and to a screen reader alike.
@@ -37,7 +45,12 @@ export function ImplementedByModal({ items }: { items: ChangeListItem[] }) {
           <IconTopologyStar3 size={16} aria-hidden="true" />
         </ActionIcon>
       </Tooltip>
-      <Modal opened={opened} onClose={close} title="Implemented by" centered>
+      <Modal
+        opened={opened}
+        onClose={close}
+        title={<ModalTitle trail={trail}>Implemented by</ModalTitle>}
+        centered
+      >
         <ImplementedByList items={items} onOpen={close} />
       </Modal>
     </>

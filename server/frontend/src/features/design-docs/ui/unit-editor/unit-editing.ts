@@ -1,6 +1,11 @@
 import { createContext, useContext } from 'react';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type { UnitRef, UnitTarget } from '../../design-doc-edit.ts';
+import type {
+  DesignDocEdit,
+  InlineFields,
+  UnitRef,
+  UnitTarget,
+} from '../../design-doc-edit.ts';
 
 /**
  * Opens the editor on a unit from anywhere under the document: one editor
@@ -14,6 +19,13 @@ export interface UnitEditing {
   remove: (ref: UnitRef) => void;
   /** Asks where an element goes, or confirms where a drop put it. */
   move: (ref: UnitRef, to?: string | null) => void;
+  /**
+   * Saves some fields of a unit written in place. Answers what is wrong, in
+   * words, when it could not — the field stays open with it — or null.
+   */
+  saveFields: (ref: UnitRef, fields: InlineFields) => Promise<string | null>;
+  /** Saves one edit as it is — a new rule, say. Answers what is wrong, or null. */
+  apply: (edit: DesignDocEdit) => Promise<string | null>;
 }
 
 export const UnitEditingContext = createContext<UnitEditing | null>(null);

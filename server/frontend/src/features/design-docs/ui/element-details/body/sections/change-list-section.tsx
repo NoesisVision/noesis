@@ -6,7 +6,8 @@ import { List } from '#/shared/design-system/list.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
-import { AddButton, addTargetOf } from '../../../unit-editor/unit-actions.tsx';
+import { NewRuleButton } from '../../../unit-editor/new-buttons.tsx';
+import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
@@ -36,31 +37,47 @@ export function ChangeListSection({
   kind,
   items,
 }: ChangeListSectionProps) {
-  const owner = partOwnerOf(element);
   const { has, select } = useElementNavigation();
+  const owner = partOwnerOf(element);
+  // An element's rules are listed where it may be written even before it
+  // has any, for the first to be added there.
+  const writable = useWritableUnit(
+    kind === 'rule' && owner !== null
+      ? { kind: owner.kind, id: owner.id }
+      : null,
+  );
+  if (items.length === 0 && writable === null) return null;
   // Building blocks go by qualified names, read by their last segment.
   const qualified = kind === 'building_block';
   const sortKey = (label: string) =>
     qualified ? shortName(label).type : label;
-  const sorted = [...items].sort((a, b) =>
-    sortKey(a.label).localeCompare(sortKey(b.label)),
-  );
+  // Rules read in the design's own order, the newest added on top; the
+  // rest by name.
+  const sorted =
+    kind === 'rule'
+      ? items
+      : [...items].sort((a, b) =>
+          sortKey(a.label).localeCompare(sortKey(b.label)),
+        );
 
   return (
     <DetailSection
       title={title}
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
       action={
-        owner !== null &&
-        (kind === 'rule' || kind === 'property') && (
-          <AddButton target={addTargetOf(kind, owner)} />
-        )
+        writable !== null && owner !== null && <NewRuleButton owner={owner} />
       }
     >
       {kind === 'property' ? (
         <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
-        <RuleCards items={sorted} owner={owner} />
+        sorted.length === 0 ? (
+          <Text size="sm" c="dimmed">
+            No rules yet.
+          </Text>
+        ) : (
+          <RuleCards items={sorted} owner={owner} />
+        )
       ) : (
         <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
           {sorted.map(({ change, label, path, description }) => (
@@ -107,5 +124,10 @@ const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
 };
 
 /** Shown only when the design touches the list at all. */
-ChangeListSection.shows = ({ items }: ChangeListSectionProps) =>
-  items.length > 0;
+/**
+ * Shown when there is something to list — and an element's rules always, for
+ * where it may be written the first is added there; the section itself says
+ * when it may not.
+ */
+ChangeListSection.shows = ({ items, kind, element }: ChangeListSectionProps) =>
+  items.length > 0 || (kind === 'rule' && partOwnerOf(element) !== null);

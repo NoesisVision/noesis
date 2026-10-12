@@ -9,9 +9,8 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 import { findById } from '../../change-set.ts';
 import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
-import { ownerOfPart } from '../../design-doc-outline.ts';
-import { kindOf } from '../../element-id.ts';
-import { UnitActions } from '../unit-editor/unit-actions.tsx';
+import { InlineText } from '../unit-editor/inline-text.tsx';
+import { useWritableUnit } from '../unit-editor/writable-unit.ts';
 import { bodySections } from './body/body-sections.tsx';
 import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
@@ -71,6 +70,9 @@ export function ElementDetail({
       : [];
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
+  // Where the element may be written, the column shows with none yet, for
+  // the first to be added there.
+  const scenariosWritable = useWritableUnit(elementRefOf(node)) !== null;
   // Measured outside the key below, so the width is known on every element.
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   return (
@@ -90,18 +92,17 @@ export function ElementDetail({
               <Group gap="xs" ml="auto">
                 <VisibilityBadge visibility={visibility} />
                 <ChangeBadge change={node.change} />
-                <ImplementedByModal items={implementers} />
-                <NodeActions node={node} />
+                <ImplementedByModal
+                  items={implementers}
+                  trail={path.map((step) => step.name)}
+                />
               </Group>
             </div>
             <div className={classes.title}>
               <Title order={2} className={classes.name}>
-                {node.name}
+                <NodeName node={node} />
               </Title>
-              <ImplementsLine
-                items={implemented}
-                block={node.kind === 'building_block' ? node.elementId : null}
-              />
+              <ImplementsLine items={implemented} />
             </div>
           </div>
         </header>
@@ -112,11 +113,11 @@ export function ElementDetail({
               width={bodyWidth}
               sections={bodySections(node, doc, tree)}
               scenarios={
-                scenarios.length > 0 ? (
+                scenarios.length > 0 || scenariosWritable ? (
                   <ScenarioColumn
                     scenarios={scenarios}
                     id={SCENARIO_COLUMN_ID}
-                    owner={partOwnerOf(node)}
+                    owner={ownerOfScenarios(node)}
                   />
                 ) : null
               }
@@ -128,48 +129,34 @@ export function ElementDetail({
   );
 }
 
-/**
- * The actions on the unit a row stands for: an element, or a property, rule
- * or scenario found through the element — and the rule — it is written in.
- * A row for anything else stands for no unit.
- */
-function NodeActions({ node }: { node: OutlineNode }) {
-  const unit = unitRefOf(node);
-  return unit === null ? null : <UnitActions unit={unit} />;
-}
-
-function unitRefOf(node: OutlineNode): UnitRef | null {
-  if (
-    node.kind === 'module' ||
+/** The element a row stands for, as a unit; null for a part or a row of none. */
+function elementRefOf(node: OutlineNode): UnitRef | null {
+  if (node.elementId === null) return null;
+  return node.kind === 'module' ||
     node.kind === 'building_block' ||
     node.kind === 'behaviour'
-  )
-    return node.elementId === null
-      ? null
-      : { kind: node.kind, id: node.elementId };
-  if (
-    (node.kind !== 'property' &&
-      node.kind !== 'rule' &&
-      node.kind !== 'scenario') ||
-    node.parentPath === null
-  )
-    return null;
-  const { elementId, rule } = ownerOfPart(node.parentPath);
-  return {
-    kind: node.kind,
-    id: node.name,
-    owner: {
-      kind: kindOf(elementId),
-      id: elementId,
-      ...(rule === null ? {} : { rule }),
-    },
-  };
+    ? { kind: node.kind, id: node.elementId }
+    : null;
 }
 
-/** The element a node's scenarios are written in, when it is one. */
-function partOwnerOf(node: OutlineNode): PartOwner | undefined {
-  const unit = unitRefOf(node);
-  return unit === null || 'owner' in unit
+/** The element's name, written in place where the document may be written. */
+function NodeName({ node }: { node: OutlineNode }) {
+  const writable = useWritableUnit(elementRefOf(node));
+  if (writable === null) return node.name;
+  return (
+    <InlineText
+      label="Name"
+      value={node.name}
+      className={classes.nameText}
+      onSave={(name) => writable.save({ name })}
+    />
+  );
+}
+
+/** The element the scenarios beside it are written in. */
+function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
+  const ref = elementRefOf(node);
+  return ref === null
     ? undefined
-    : { kind: unit.kind as PartOwner['kind'], id: unit.id };
+    : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

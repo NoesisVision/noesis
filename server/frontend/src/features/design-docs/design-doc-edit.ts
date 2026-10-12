@@ -48,7 +48,7 @@ import {
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behaviour';
-export type PartKind =
+type PartKind =
   | 'rule'
   | 'scenario'
   | 'property'
@@ -150,12 +150,15 @@ function ownerRefOf(ref: UnitRef): UnitRef | null {
 }
 
 export type DesignDocEdit =
-  | { op: 'add'; ref: UnitRef; unit: Unit }
+  /** `first`: ahead of what the design already adds, the newest on top. */
+  | { op: 'add'; ref: UnitRef; unit: Unit; first?: boolean }
   /** `unit` may carry another key than `ref`: an added unit renamed moves, an element with what is under it. */
   | { op: 'write'; ref: UnitRef; unit: Unit }
   | { op: Removal; ref: UnitRef }
   /** An element the design adds, under another parent — or, a module, at the top. */
-  | { op: 'move'; ref: UnitRef; to: string | null };
+  | { op: 'move'; ref: UnitRef; to: string | null }
+  /** A part the design adds, written into another owner — a scenario into another rule. */
+  | { op: 'relocate'; from: UnitRef; ref: UnitRef; unit: Unit };
 
 /**
  * Taking a unit out, by what the design does to it: an added one is
@@ -223,6 +226,7 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
 export const refKeyOf = (ref: BuildingBlockRefInput): string =>
   typeof ref === 'string' ? ref : JSON.stringify(ref);
 
+/** A type reference back from the key a change set knows it by. */
 const refOfKey = (key: string): BuildingBlockRefInput =>
   key.startsWith('{') ? (JSON.parse(key) as BuildingBlockRefInput) : key;
 
@@ -235,7 +239,9 @@ export function applyEdit<Doc extends DesignDocumentInput>(
     case 'add':
       return updateAt(doc, ref, (set) => ({
         ...set,
-        added: [...(set.added ?? []), edit.unit],
+        added: edit.first
+          ? [edit.unit, ...(set.added ?? [])]
+          : [...(set.added ?? []), edit.unit],
       }));
     case 'write':
       return written(doc, ref, edit.unit);
@@ -255,6 +261,11 @@ export function applyEdit<Doc extends DesignDocumentInput>(
       );
     case 'move':
       return renamed(doc, ref.id, movedIdOf(ref, edit.to));
+    case 'relocate':
+      return updateAt(discarded(doc, edit.from), ref, (set) => ({
+        ...set,
+        added: [...(set.added ?? []), edit.unit],
+      }));
     case 'restore':
       return updateAt(doc, ref, (set) => ({
         ...set,
@@ -709,6 +720,88 @@ export function draftErrors(
       `This design already has ${kind === 'need' ? 'a need with this id' : `this ${UNIT_LABEL[kind]} here`}.`;
   }
   return errors;
+}
+
+/**
+ * A rule to write in place: added to an element under a name none of its
+ * rules has, with a kind the element may hold — a module holds no business
+ * rules — and nothing said of it yet.
+ */
+export function newRuleOf(
+  doc: DesignDocumentInput,
+  owner: PartOwner,
+): DesignDocEdit {
+  const taken = new Set(rulesOf(doc, owner));
+  let name = 'New rule';
+  for (let n = 2; taken.has(name); n += 1) name = `New rule ${n}`;
+  const [category, ruleType]: [RuleCategory, RuleType] =
+    owner.kind === 'module'
+      ? ['Quality', 'Performance']
+      : ['Business', 'Consistency'];
+  const written = <T>(value: T) => ({
+    changed: true as const,
+    value,
+    author: 'human' as const,
+  });
+  return {
+    op: 'add',
+    first: true,
+    ref: { kind: 'rule', id: name, owner },
+    unit: {
+      name,
+      category: written(category),
+      ruleType: written(ruleType),
+      description: written(''),
+      needs: written([]),
+    },
+  };
+}
+
+/** The names of the rules the design writes for an element: added, then modified. */
+export function rulesOf(doc: DesignDocumentInput, owner: PartOwner): string[] {
+  const element = unitOf(doc, {
+    kind: owner.kind,
+    id: owner.id,
+  }) as ElementWithRules | null;
+  return [
+    ...(element?.rules?.added ?? []),
+    ...(element?.rules?.modified ?? []),
+  ].map(({ name }) => name);
+}
+
+/** Fields written in place, by name, each with its new value. */
+export type InlineFields = Partial<UnitFieldValues>;
+
+/**
+ * One unit with some of its fields written in place, as a human, the rest
+ * as the design has them: the edit that saves it, and the id the unit has
+ * after it — an added element renamed moves — or what is wrong with it.
+ */
+export function inlineEditOf(
+  doc: DesignDocumentInput,
+  ref: UnitRef,
+  fields: InlineFields,
+): { edit: DesignDocEdit; id: string } | { error: string } {
+  const state = unitStateOf(doc, ref);
+  const original = unitOf(doc, ref);
+  const draft = draftOfUnit(ref.kind, original, state);
+  for (const [name, value] of Object.entries(fields))
+    (draft.fields as Record<string, FieldDraft<unknown>>)[name] = {
+      written: true,
+      value,
+    };
+  const target: UnitTarget = { mode: 'edit', ref };
+  const [error] = Object.values(draftErrors(doc, target, draft));
+  if (error !== undefined) return { error };
+  const id = idOfDraft(doc, target, draft);
+  return {
+    edit: {
+      op: 'write',
+      ref,
+      unit: unitFromDraft(ref.kind, draft, original, id),
+    },
+    id,
+  };
 }
 
 /** A need's id from its name, while its writer has not chosen one. */
