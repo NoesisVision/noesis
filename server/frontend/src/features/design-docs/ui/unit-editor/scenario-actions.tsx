@@ -6,6 +6,7 @@ import type { UnitRef } from '../../design-doc-edit.ts';
 import { RemoveButton } from './remove-button.tsx';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
+import quiet from './icon-button.module.css';
 
 /**
  * A scenario's own buttons: Edit opens the form on it, Delete asks first.
@@ -20,6 +21,7 @@ export function ScenarioActions({ scenario }: { scenario: UnitRef }) {
     <Group gap={2} wrap="nowrap">
       <Tooltip label="Edit" openDelay={300}>
         <ActionIcon
+          className={quiet.quiet}
           variant="subtle"
           size="md"
           aria-label={`Edit the scenario ${scenario.id}`}

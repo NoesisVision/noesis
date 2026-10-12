@@ -9,7 +9,6 @@ import type { ElementRef } from '../element-ref.ts';
 import { childSections } from './child-sections.tsx';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
-import { DescriptionSection } from './sections/description-section.tsx';
 import { DiagramSection } from './sections/diagram-section.tsx';
 
 export const buildingBlockSections = (
@@ -36,11 +35,6 @@ export const buildingBlockSections = (
     ...section(DiagramSection, 'diagram', {
       element,
       field: block.diagram,
-    }),
-    ...section(DescriptionSection, 'definition', {
-      element,
-      title: 'Definition',
-      field: block.definition,
     }),
   ];
 };

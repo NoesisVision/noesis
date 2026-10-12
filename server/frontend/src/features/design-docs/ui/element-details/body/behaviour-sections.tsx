@@ -11,7 +11,6 @@ import {
 import type { ElementRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { ChangeListSection } from './sections/change-list-section.tsx';
-import { DescriptionSection } from './sections/description-section.tsx';
 import { DiagramSection } from './sections/diagram-section.tsx';
 import { InputOutputSection } from './sections/input-output-section.tsx';
 
@@ -35,11 +34,6 @@ export const behaviourSections = (
     ...section(DiagramSection, 'diagram', {
       element,
       field: behaviour.diagram,
-    }),
-    ...section(DescriptionSection, 'definition', {
-      element,
-      title: 'Definition',
-      field: behaviour.definition,
     }),
   ];
 };

@@ -1,14 +1,17 @@
+import { IconArrowBackUp, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { describeFailure } from '#/shared/api/failure.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
-import { Modal } from '#/shared/design-system/modal.tsx';
 import { Radio } from '#/shared/design-system/radio.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { ModalTitle } from '#/shared/ui/modal-title.tsx';
+import {
+  ModalBody,
+  ModalFooter,
+  ModalFrame,
+} from '#/shared/ui/modal-frame.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type Removal,
@@ -86,18 +89,21 @@ export function ConfirmRemovalModal({
   };
 
   return (
-    <Modal
-      opened
+    <ModalFrame
       onClose={onClose}
-      title={
-        <ModalTitle trail={trailOfRef(unit)}>
-          {`${state === 'removed' ? 'Restore' : 'Remove'} ${label}?`}
-        </ModalTitle>
+      icon={
+        state === 'removed' ? (
+          <IconArrowBackUp size={22} aria-hidden />
+        ) : (
+          <IconTrash size={22} aria-hidden />
+        )
       }
-      centered
-      closeOnClickOutside={!save.isPending}
+      iconColor={state === 'removed' ? undefined : 'red'}
+      title={`${state === 'removed' ? 'Restore' : 'Remove'} ${label}?`}
+      trail={trailOfRef(unit)}
+      busy={save.isPending}
     >
-      <Stack gap="md">
+      <ModalBody>
         <Text size="sm">{SITUATION[state](name)}</Text>
         {choices.length > 1 && (
           <Radio.Group
@@ -136,21 +142,21 @@ export function ConfirmRemovalModal({
             </Stack>
           </Alert>
         )}
-        <Group justify="flex-end" gap="sm">
-          <Button variant="default" onClick={onClose} disabled={save.isPending}>
-            Cancel
-          </Button>
-          <Button
-            color={choice === 'restore' ? undefined : 'red'}
-            busy={save.isPending}
-            onClick={confirm}
-            data-autofocus
-          >
-            {CHOICE[choice].action}
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="default" onClick={onClose} disabled={save.isPending}>
+          Cancel
+        </Button>
+        <Button
+          color={choice === 'restore' ? undefined : 'red'}
+          busy={save.isPending}
+          onClick={confirm}
+          data-autofocus
+        >
+          {CHOICE[choice].action}
+        </Button>
+      </ModalFooter>
+    </ModalFrame>
   );
 }
 

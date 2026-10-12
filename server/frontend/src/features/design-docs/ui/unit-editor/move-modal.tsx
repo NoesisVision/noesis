@@ -1,26 +1,26 @@
+import { IconArrowsMove } from '@tabler/icons-react';
 import { useState } from 'react';
-import { counted } from '#/features/design-docs/ui/plural.ts';
 import { describeFailure } from '#/shared/api/failure.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
-import { Modal } from '#/shared/design-system/modal.tsx';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { ModalTitle } from '#/shared/ui/modal-title.tsx';
+import {
+  ModalBody,
+  ModalFooter,
+  ModalFrame,
+} from '#/shared/ui/modal-frame.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   movedIdOf,
   moveDestinationsOf,
-  UNIT_LABEL,
   type UnitRef,
   unitNameOf,
-  unitsWithin,
   violationsInWords,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
-import { addressOf, parentOf } from '../../element-id.ts';
+import { addressOf } from '../../element-id.ts';
 import { trailOfRef } from './unit-trail.ts';
 
 /** The top of the design, as a value a select can hold. */
@@ -60,8 +60,6 @@ export function MoveModal({
   const save = useDesignDocEdit(changeId, docId);
   const [problems, setProblems] = useState<string[]>([]);
   const name = unitNameOf(doc, unit);
-  const here = parentOf(unit.id);
-  const within = unitsWithin(doc, unit);
 
   const confirm = () => {
     if (to === undefined) return;
@@ -86,22 +84,14 @@ export function MoveModal({
   };
 
   return (
-    <Modal
-      opened
+    <ModalFrame
       onClose={onClose}
-      title={
-        <ModalTitle trail={trailOfRef(unit)}>
-          {`Move ${UNIT_LABEL[unit.kind]}`}
-        </ModalTitle>
-      }
-      size="lg"
-      centered
-      closeOnClickOutside={!save.isPending}
+      icon={<IconArrowsMove size={22} aria-hidden />}
+      title={`Move "${name}"`}
+      trail={trailOfRef(unit)}
+      busy={save.isPending}
     >
-      <Stack gap="md">
-        <Text size="sm">
-          {`${name} is ${here === null ? 'at the top of the design' : `in ${addressOf(here)}`}.`}
-        </Text>
+      <ModalBody>
         <Select
           label="Move to"
           placeholder="Choose where it goes"
@@ -122,11 +112,6 @@ export function MoveModal({
             setTo(value === null ? undefined : value === TOP ? null : value)
           }
         />
-        <Text size="sm" c="dimmed">
-          {within > 0
-            ? `The ${counted(within, 'element')} under it move with it, and whatever names them follows.`
-            : 'Whatever names it follows.'}
-        </Text>
         {problems.length > 0 && (
           <Alert color="red" title="The design was not saved">
             <Stack gap={4}>
@@ -138,20 +123,20 @@ export function MoveModal({
             </Stack>
           </Alert>
         )}
-        <Group justify="flex-end" gap="sm">
-          <Button variant="default" onClick={onClose} disabled={save.isPending}>
-            Cancel
-          </Button>
-          <Button
-            busy={save.isPending}
-            disabled={to === undefined}
-            onClick={confirm}
-            data-autofocus={proposedHere || undefined}
-          >
-            Move
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="default" onClick={onClose} disabled={save.isPending}>
+          Cancel
+        </Button>
+        <Button
+          busy={save.isPending}
+          disabled={to === undefined}
+          onClick={confirm}
+          data-autofocus={proposedHere || undefined}
+        >
+          Move
+        </Button>
+      </ModalFooter>
+    </ModalFrame>
   );
 }

@@ -13,15 +13,14 @@ import {
 import classes from './detail-section.module.css';
 
 interface DetailSectionProps
-  extends PropsWithChildren, ComponentProps<typeof Stack> {
-  title?: string;
+  extends PropsWithChildren, Omit<ComponentProps<typeof Stack>, 'title'> {
+  /** The section's name, and what follows it on its line: a count, say. */
+  title?: ReactNode;
   /** Decorative, before the title: the title already says what it shows. */
   icon?: ReactNode;
   field?: DesignDocFieldInput<unknown>;
   /** Read last and quieter, under a rule: what is said about the element rather than what it is. */
   muted?: boolean;
-  /** What the header offers beside its title: adding one more, say. */
-  action?: ReactNode;
 }
 
 export function DetailSection({
@@ -31,7 +30,6 @@ export function DetailSection({
   className,
   field,
   muted,
-  action,
   ...props
 }: DetailSectionProps) {
   const isHumanAuthored = field === undefined ? null : humanAuthored(field);
@@ -63,7 +61,6 @@ export function DetailSection({
               {isHumanAuthored ? 'Written by a human' : 'AI-generated'}
             </Text>
           )}
-          {action}
         </Group>
       )}
       <Box>{children}</Box>

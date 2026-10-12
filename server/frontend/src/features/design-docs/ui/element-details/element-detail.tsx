@@ -8,7 +8,7 @@ import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../change-set.ts';
 import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
-import { valueOf } from '../../design-doc-field.ts';
+import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
 import { InlineText } from '../unit-editor/inline-text.tsx';
 import { useWritableUnit } from '../unit-editor/writable-unit.ts';
 import { bodySections } from './body/body-sections.tsx';
@@ -20,6 +20,7 @@ import { implementerItems, refItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
+import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { ImplementedByModal } from './implemented-by-modal.tsx';
 import { ImplementsLine } from './implements-line.tsx';
@@ -68,6 +69,8 @@ export function ElementDetail({
     node.kind === 'building_block' && node.elementId
       ? implementerItems(doc, node.elementId)
       : [];
+  // What the element is, under its name: a module's, a block's, a behaviour's.
+  const definition = definitionOf(doc, node);
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
   // Where the element may be written, the column shows with none yet, for
@@ -106,6 +109,14 @@ export function ElementDetail({
             </div>
           </div>
         </header>
+        {definition !== undefined && (
+          <ElementDefinition
+            // Another element is another editor: it reads its markdown once.
+            key={node.path}
+            element={elementRefOf(node)}
+            field={definition}
+          />
+        )}
         <div ref={bodyRef} className={classes.body}>
           {/* Under the key, so every scenario is folded again on another element. */}
           <ScenarioFocusProvider key={node.path} scenarios={scenarios}>
@@ -154,6 +165,25 @@ function NodeName({ node }: { node: OutlineNode }) {
 }
 
 /** The element the scenarios beside it are written in. */
+/** The definition field of the element a node shows; none for anything else. */
+function definitionOf(
+  doc: DesignDocumentInput,
+  node: OutlineNode,
+): DesignDocFieldInput<string> | undefined {
+  if (!node.elementId) return undefined;
+  const collection =
+    node.kind === 'module'
+      ? doc.modules
+      : node.kind === 'building_block'
+        ? doc.buildingBlocks
+        : node.kind === 'behaviour'
+          ? doc.behaviours
+          : undefined;
+  if (collection === undefined) return undefined;
+  // An element the design leaves alone is still shown: its definition is too.
+  return findById(collection, node.elementId)?.definition ?? { changed: false };
+}
+
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
   const ref = elementRefOf(node);
   return ref === null

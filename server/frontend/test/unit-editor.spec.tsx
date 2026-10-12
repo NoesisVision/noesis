@@ -350,8 +350,8 @@ describe('the new buttons', () => {
         <NewScenarioButton owner={owner} />
       </UnitEditingContext.Provider>,
     );
-    expect(html).toContain('New rule');
-    expect(html).toContain('New scenario');
+    expect(html).toContain('Add rule');
+    expect(html).toContain('Add scenario');
   });
 
   it('are none where the document is read only', () => {

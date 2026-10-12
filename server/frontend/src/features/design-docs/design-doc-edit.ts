@@ -730,10 +730,12 @@ export function draftErrors(
 export function newRuleOf(
   doc: DesignDocumentInput,
   owner: PartOwner,
+  named?: string,
 ): DesignDocEdit {
   const taken = new Set(rulesOf(doc, owner));
-  let name = 'New rule';
-  for (let n = 2; taken.has(name); n += 1) name = `New rule ${n}`;
+  let name = named ?? 'New rule';
+  if (named === undefined)
+    for (let n = 2; taken.has(name); n += 1) name = `New rule ${n}`;
   const [category, ruleType]: [RuleCategory, RuleType] =
     owner.kind === 'module'
       ? ['Quality', 'Performance']

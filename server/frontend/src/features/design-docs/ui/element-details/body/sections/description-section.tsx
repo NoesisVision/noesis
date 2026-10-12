@@ -6,9 +6,7 @@ import {
   isUnchanged,
   valueOf,
 } from '../../../../design-doc-field.ts';
-import { InlineMarkdown } from '../../../unit-editor/inline-markdown.tsx';
-import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
-import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
+import type { ElementRef } from '../../element-ref.ts';
 import { DetailSection } from './detail-section.tsx';
 
 interface DescriptionSectionProps {
@@ -32,52 +30,31 @@ interface DescriptionSectionProps {
  * the design, the panel by the element, and the prose nests under both.
  */
 export function DescriptionSection({
-  element,
   field,
   title = 'Description',
   slots = {},
 }: DescriptionSectionProps) {
   const value = valueOf(field);
-  // An element's definition is written in place; nothing else here is.
-  const owner = title === 'Definition' ? partOwnerOf(element) : null;
-  const writable = useWritableUnit(owner);
 
+  /*
+   * Left alone, the description is whatever the model already says; written
+   * but blank, there is nothing to read.
+   */
   return (
     <DetailSection title={title} field={field} muted>
       {slots?.top}
-      {writable === null ? (
-        <Reading field={field} />
+      {isUnchanged(field) || value === null ? (
+        <Text c="dimmed" size="sm">
+          unchanged
+        </Text>
+      ) : value.trim() === '' ? (
+        <Text c="dimmed" size="sm">
+          Not specified.
+        </Text>
       ) : (
-        <InlineMarkdown
-          label={title}
-          value={value ?? ''}
-          onSave={(definition) => writable.save({ definition })}
-        >
-          <Reading field={field} />
-        </InlineMarkdown>
+        <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
       )}
       {slots?.bottom}
     </DetailSection>
   );
-}
-
-/**
- * Left alone, the description is whatever the model already says; written
- * but blank, there is nothing to read.
- */
-function Reading({ field }: { field: DesignDocFieldInput<string> }) {
-  const value = valueOf(field);
-  if (isUnchanged(field) || value === null)
-    return (
-      <Text c="dimmed" size="sm">
-        unchanged
-      </Text>
-    );
-  if (value.trim() === '')
-    return (
-      <Text c="dimmed" size="sm">
-        Not specified.
-      </Text>
-    );
-  return <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />;
 }

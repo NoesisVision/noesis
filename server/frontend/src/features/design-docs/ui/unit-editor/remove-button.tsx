@@ -4,6 +4,7 @@ import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UNIT_LABEL, type UnitRef } from '../../design-doc-edit.ts';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
+import quiet from './icon-button.module.css';
 
 /**
  * Deletes a unit, once the confirmation agrees. Nothing where the document is
@@ -16,6 +17,8 @@ export function RemoveButton({ unit }: { unit: UnitRef }) {
   return (
     <Tooltip label="Delete" openDelay={300}>
       <ActionIcon
+        className={quiet.quiet}
+        data-danger
         variant="subtle"
         color="red"
         size="md"

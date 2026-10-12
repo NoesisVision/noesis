@@ -3,13 +3,12 @@ import { useState } from 'react';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { useDisclosure } from '#/shared/design-system/hooks.ts';
-import { Modal } from '#/shared/design-system/modal.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { ModalTitle } from '#/shared/ui/modal-title.tsx';
+import { ModalBody, ModalFrame } from '#/shared/ui/modal-frame.tsx';
 import { QualifiedName, shortName } from '#/shared/ui/qualified-name.tsx';
 import { ChangeBadge } from './change-badge.tsx';
 import type { ChangeListItem } from './change-list-items.ts';
@@ -45,14 +44,17 @@ export function ImplementedByModal({
           <IconTopologyStar3 size={16} aria-hidden="true" />
         </ActionIcon>
       </Tooltip>
-      <Modal
+      <ModalFrame
         opened={opened}
         onClose={close}
-        title={<ModalTitle trail={trail}>Implemented by</ModalTitle>}
-        centered
+        icon={<IconTopologyStar3 size={22} aria-hidden />}
+        title="Implemented by"
+        trail={trail}
       >
-        <ImplementedByList items={items} onOpen={close} />
-      </Modal>
+        <ModalBody>
+          <ImplementedByList items={items} onOpen={close} />
+        </ModalBody>
+      </ModalFrame>
     </>
   );
 }

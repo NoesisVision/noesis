@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { List } from '#/shared/design-system/list.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { shortName } from '#/shared/ui/qualified-name.tsx';
@@ -62,22 +63,38 @@ export function ChangeListSection({
 
   return (
     <DetailSection
-      title={title}
-      icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
-      action={
-        writable !== null && owner !== null && <NewRuleButton owner={owner} />
+      title={
+        // Rules say how many there are, dimmed after the name.
+        kind === 'rule' && items.length > 0 ? (
+          <>
+            {title}
+            <Text span c="dimmed" fw={400}>
+              {items.length}
+            </Text>
+          </>
+        ) : (
+          title
+        )
       }
+      icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
     >
       {kind === 'property' ? (
         <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
-        sorted.length === 0 ? (
-          <Text size="sm" c="dimmed">
-            No rules yet.
-          </Text>
-        ) : (
-          <RuleCards items={sorted} owner={owner} />
-        )
+        <Stack gap={10}>
+          {writable !== null && owner !== null && (
+            <NewRuleButton owner={owner} />
+          )}
+          {sorted.length === 0 ? (
+            writable === null && (
+              <Text size="sm" c="dimmed">
+                No rules yet.
+              </Text>
+            )
+          ) : (
+            <RuleCards items={sorted} owner={owner} />
+          )}
+        </Stack>
       ) : (
         <List listStyleType="none" spacing="xs" size="sm" center pl={0}>
           {sorted.map(({ change, label, path, description }) => (

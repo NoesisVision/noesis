@@ -1,14 +1,19 @@
+import { IconHierarchy2, IconPlus } from '@tabler/icons-react';
 import { useState } from 'react';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
+import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { describeFailure } from '#/shared/api/failure.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { useForm } from '#/shared/design-system/form.ts';
-import { Group } from '#/shared/design-system/group.tsx';
-import { Modal } from '#/shared/design-system/modal.tsx';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { ModalTitle } from '#/shared/ui/modal-title.tsx';
+import {
+  ModalBody,
+  ModalFooter,
+  ModalFrame,
+} from '#/shared/ui/modal-frame.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type DesignDocEdit,
@@ -21,6 +26,7 @@ import {
   rulesOf,
   UNIT_LABEL,
   type UnitDraft,
+  type UnitKind,
   type UnitTarget,
   unitFromDraft,
   unitOf,
@@ -29,6 +35,7 @@ import {
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
+import { ScenarioFields } from './scenario-fields.tsx';
 import { UnitFields } from './unit-fields.tsx';
 import { trailOfTarget } from './unit-trail.ts';
 
@@ -116,46 +123,49 @@ export function UnitEditorModal({
   });
 
   const verb = target.mode === 'add' ? 'Add' : 'Edit';
+  const named =
+    ((form.values.fields.name?.value as string | undefined) ?? '').trim() !==
+    '';
   return (
-    <Modal
-      opened
+    <ModalFrame
       onClose={onClose}
-      title={
-        <ModalTitle trail={trailOfTarget(placed)}>
-          {`${verb} ${UNIT_LABEL[kind]} `}
-          {ref !== null && (
-            // Seen beside the title; the dialog is named by the title alone.
-            <span aria-hidden="true">
-              <ChangeBadge change={state} inline />
-            </span>
-          )}
-        </ModalTitle>
-      }
-      size="lg"
-      centered
-      closeOnClickOutside={!save.isPending}
+      icon={<KindIcon kind={ICON_KIND[kind]} pattern={null} />}
+      title={`${verb} ${UNIT_LABEL[kind]}`}
+      badge={ref === null ? undefined : <ChangeBadge change={state} inline />}
+      trail={trailOfTarget(placed)}
+      busy={save.isPending}
     >
       <form onSubmit={submit} noValidate>
-        <Stack gap="md">
-          {kind === 'scenario' && owner !== null && (
-            <ScenarioRuleField
+        <ModalBody>
+          {kind === 'scenario' ? (
+            <ScenarioFields
+              form={form}
+              state={state}
+              nameLocked={target.mode === 'edit' && state !== 'added'}
+              belongsTo={
+                owner !== null && (
+                  <ScenarioRuleField
+                    document={doc}
+                    owner={owner}
+                    // The model knows a scenario it has by its rule: only a new
+                    // one, or one the design adds, may go to another.
+                    locked={target.mode === 'edit' && state !== 'added'}
+                    onChange={setOwner}
+                  />
+                )
+              }
+            />
+          ) : (
+            <UnitFields
+              kind={kind}
+              form={form}
+              original={original}
+              state={state}
               document={doc}
-              owner={owner}
-              // The model knows a scenario it has by its rule: only a new
-              // one, or one the design adds, may go to another.
-              locked={target.mode === 'edit' && state !== 'added'}
-              onChange={setOwner}
+              owner={ownerOf(target)}
+              newNeed={kind === 'need' && target.mode === 'add'}
             />
           )}
-          <UnitFields
-            kind={kind}
-            form={form}
-            original={original}
-            state={state}
-            document={doc}
-            owner={ownerOf(target)}
-            newNeed={kind === 'need' && target.mode === 'add'}
-          />
           {problems.length > 0 && (
             <Alert color="red" title="The design was not saved">
               <Stack gap={4}>
@@ -167,23 +177,48 @@ export function UnitEditorModal({
               </Stack>
             </Alert>
           )}
-          <Group justify="flex-end" gap="sm">
-            <Button
-              variant="default"
-              onClick={onClose}
-              disabled={save.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" busy={save.isPending}>
-              {target.mode === 'add' ? 'Add' : 'Save'}
-            </Button>
-          </Group>
-        </Stack>
+        </ModalBody>
+        <ModalFooter
+          note={
+            named
+              ? `Ready to ${target.mode === 'add' ? 'add' : 'save'}.`
+              : 'A name is required.'
+          }
+        >
+          <Button variant="default" onClick={onClose} disabled={save.isPending}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            busy={save.isPending}
+            disabled={!named}
+            leftSection={
+              target.mode === 'add' ? (
+                <IconPlus size={16} aria-hidden />
+              ) : undefined
+            }
+          >
+            {target.mode === 'add' ? `Add ${UNIT_LABEL[kind]}` : 'Save'}
+          </Button>
+        </ModalFooter>
       </form>
-    </Modal>
+    </ModalFrame>
   );
 }
+
+/** The icon a unit's kind is drawn with: a part that is no row of the tree borrows one. */
+const ICON_KIND: Record<UnitKind, OutlineKind> = {
+  need: 'need',
+  module: 'module',
+  building_block: 'building_block',
+  behaviour: 'behaviour',
+  rule: 'rule',
+  scenario: 'scenario',
+  property: 'property',
+  parameter: 'property',
+  result: 'property',
+  implements: 'building_block',
+};
 
 const ownerOf = (target: UnitTarget): PartOwner | null => {
   if (target.mode === 'add') return 'owner' in target ? target.owner : null;
@@ -219,6 +254,7 @@ function ScenarioRuleField({
   return (
     <Select
       label="Belongs to"
+      leftSection={<IconHierarchy2 size={16} aria-hidden />}
       description={
         locked
           ? 'The model knows this scenario by its rule, so it stays there.'

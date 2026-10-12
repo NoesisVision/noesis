@@ -374,14 +374,13 @@ describe('ElementDetail', () => {
     expect(trail).not.toContain('<button');
   });
 
-  it('gives a definition to the markdown reader, fences and all', () => {
+  it('gives a definition to the markdown reader under the name, not a section', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toContain('>Definition<');
+    // Read in the header now; the body has no section for it.
+    expect(html).not.toContain('>Definition<');
     // Printed as it is written, the fence would be in the markup as three
     // backticks and a word; given to the reader, it becomes a picture.
     expect(html).not.toContain('```');
-    expect(html).not.toContain('Not specified.');
-    expect(html).toContain('by a human');
   });
 
   it('draws the diagram of an element in a section of its own', () => {

@@ -76,7 +76,6 @@ export function ScenarioColumn({
             {heading}
           </Title>
         )}
-        {owner !== undefined && <NewScenarioButton owner={owner} />}
         {scenarios.length > 0 && (
           <Button
             variant="subtle"
@@ -88,6 +87,7 @@ export function ScenarioColumn({
           </Button>
         )}
       </Group>
+      {owner !== undefined && <NewScenarioButton owner={owner} />}
       <Accordion
         multiple
         value={open}

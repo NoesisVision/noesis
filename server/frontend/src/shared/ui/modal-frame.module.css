@@ -1,0 +1,49 @@
+/*
+ * The header: the tile and the title, on one line, centred on each other,
+ * with the same room on all four sides. Named twice, to win over Mantine's
+ * own padding.
+ */
+.header.header {
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+/* Named with the header, to win over the size Mantine gives a modal's title. */
+.header.header .title {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  min-width: 0;
+  font-size: var(--mantine-h3-font-size);
+  font-weight: 600;
+  line-height: var(--mantine-h3-line-height);
+}
+
+/* What holds the subject: a quiet grey strip under the header, as much room above it as below. */
+.trail {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-default-hover);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: var(--mantine-spacing-lg);
+}
+
+/* The footer: a note on the left, the buttons on the right, on the strip's grey. */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-lg);
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-default-hover);
+}
