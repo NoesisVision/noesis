@@ -1,7 +1,8 @@
 import { getRouteApi } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import type { SelectSource } from '#/features/design-docs/ui/model-tree/use-model-tree.ts';
-import type { DesignDocViewName } from '../design-docs.model.ts';
+import type { DescriptionTarget } from '../design-doc-description.ts';
+import { type DesignDocViewName, readingView } from '../design-docs.model.ts';
 import { DesignDocDetail } from './design-doc-detail.tsx';
 import type { ViewPlace } from './view-place.ts';
 
@@ -14,7 +15,7 @@ const route = getRouteApi('/_shell/changes/$changeId/design-docs/$docId');
  */
 export function DesignDocView() {
   const { changeId, docId } = route.useParams();
-  const { view } = route.useSearch();
+  const view = readingView(route.useSearch());
   const navigate = route.useNavigate();
   const model = usePlace('node', 'q');
   // The requirements' place is kept as the model's is, under names of its own.
@@ -23,14 +24,24 @@ export function DesignDocView() {
   const architecture = usePlace('arch', 'archQ');
 
   // Another view is a place to come back to, so switching leaves an entry
-  // for Back; the element in hand stays in the address for the model.
+  // for Back; the element in hand stays in the address for the model. The
+  // view is named outright, since an element in hand would otherwise read as
+  // the model.
   const onView = useCallback(
     (next: DesignDocViewName) => {
+      void navigate({ search: (prev) => ({ ...prev, view: next }) });
+    },
+    [navigate],
+  );
+
+  // A link from the overview is a place to come back to, in the view it names.
+  const onOpen = useCallback(
+    (target: DescriptionTarget) => {
       void navigate({
-        search: (prev) => ({
-          ...prev,
-          view: next === 'model' ? undefined : next,
-        }),
+        search: (prev) =>
+          target.view === 'model'
+            ? { ...prev, view: target.view, node: target.node }
+            : { ...prev, view: target.view, entry: target.entry },
       });
     },
     [navigate],
@@ -40,8 +51,9 @@ export function DesignDocView() {
     <DesignDocDetail
       changeId={changeId}
       id={docId}
-      view={view ?? 'model'}
+      view={view}
       onView={onView}
+      onOpen={onOpen}
       model={model}
       requirements={requirements}
       architecture={architecture}

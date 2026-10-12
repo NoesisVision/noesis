@@ -161,7 +161,10 @@ function bodyOf({
       const { need, ports } = subject.need;
       const stakeholder = valueOf(need.stakeholder);
       return {
-        eyebrow: stakeholder === null ? 'Need' : `Need · ${stakeholder}`,
+        eyebrow:
+          stakeholder === null || stakeholder.trim() === ''
+            ? 'Need'
+            : `Need · ${stakeholder}`,
         title: needNameOf(need),
         address: `need|${need.id}`,
         content: (

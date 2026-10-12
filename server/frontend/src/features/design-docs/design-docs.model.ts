@@ -1,4 +1,10 @@
-import { IconPencilBolt } from '@tabler/icons-react';
+import {
+  IconBinaryTree2,
+  IconFileDescription,
+  IconHexagons,
+  IconPencilBolt,
+  IconTarget,
+} from '@tabler/icons-react';
 
 /**
  * The icon a design document is drawn with, wherever it is named: the sidebar,
@@ -7,13 +13,31 @@ import { IconPencilBolt } from '@tabler/icons-react';
  */
 export const DesignDocsIcon = IconPencilBolt;
 
-/** The ways a design document is read: as a model, as requirements, as hexagons. */
+/**
+ * The ways a design document is read: as its overview, as a model, as
+ * requirements, as hexagons.
+ */
 export const DESIGN_DOC_VIEWS = [
+  'overview',
   'model',
   'requirements',
   'architecture',
 ] as const;
 export type DesignDocViewName = (typeof DESIGN_DOC_VIEWS)[number];
+
+/**
+ * Each view's icon, wherever the view is named: on its tab, and on every
+ * link in the overview that opens it. One icon per view, so a reader learns
+ * where a link goes from the tab it goes to, not from a vocabulary of
+ * element kinds. The requirements' is the need's own, which is what such a
+ * link opens.
+ */
+export const DESIGN_DOC_VIEW_ICONS = {
+  overview: IconFileDescription,
+  model: IconBinaryTree2,
+  requirements: IconTarget,
+  architecture: IconHexagons,
+} as const satisfies Record<DesignDocViewName, unknown>;
 
 export const isDesignDocView = (value: unknown): value is DesignDocViewName =>
   (DESIGN_DOC_VIEWS as readonly unknown[]).includes(value);
@@ -21,9 +45,10 @@ export const isDesignDocView = (value: unknown): value is DesignDocViewName =>
 /**
  * What the address says about how a design document is being read: as which
  * view, which element is in hand, and what is being looked for. All are
- * optional — every existing link to this page carries none, a page without a
- * view is the model, and a link that names an element the document no longer
- * has falls back to the top of the tree.
+ * optional — a page without a view opens on the overview, one that names an
+ * element in the model without a view opens on the model, as every link to an
+ * element did before the overview was a view, and a link that names an
+ * element the document no longer has falls back to the top of the tree.
  *
  * Each view keeps its own place: `node` and `q` are the model's, `entry` and
  * `entryQ` the requirements', `arch` and `archQ` the architecture's, so
@@ -45,9 +70,7 @@ export interface DesignDocSearch {
 const word = (value: unknown) =>
   typeof value === 'string' && value !== '' ? value : undefined;
 
-// The model is the default, so the address names only the others.
-const viewOf = (value: unknown) =>
-  isDesignDocView(value) && value !== 'model' ? value : undefined;
+const viewOf = (value: unknown) => (isDesignDocView(value) ? value : undefined);
 
 export const designDocSearch = (
   search: Record<string, unknown>,
@@ -60,3 +83,7 @@ export const designDocSearch = (
   arch: word(search.arch),
   archQ: word(search.archQ),
 });
+
+/** The view an address opens: the one it names, else the model for an element in hand, else the overview. */
+export const readingView = (search: DesignDocSearch): DesignDocViewName =>
+  search.view ?? (search.node === undefined ? 'overview' : 'model');

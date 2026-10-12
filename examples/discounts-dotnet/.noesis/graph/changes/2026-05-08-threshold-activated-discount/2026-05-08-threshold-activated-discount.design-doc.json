@@ -1,7 +1,71 @@
 {
   "id": "2026-05-08-threshold-activated-discount",
   "name": "Threshold-activated discount",
-  "description": "Adds a third discount variant to the Sales pricing model — a percentage discount that activates only when a product's price strictly exceeds a configured `Money` threshold. The new value object `ThresholdDiscount` lives next to the existing `PercentageDiscount` and `ValueDiscount`; the `Discount` discriminated union is taught to host all three variants behind one caller-facing surface so existing call sites keep working unchanged.\n\nImplementation notes. Every discount, `Discount` included, is an immutable C# `readonly struct` annotated with `[DddValueObject]`: equal by value (`IEquatable<T>` with `Equals(object?)`, `GetHashCode()` and a `ToString()` consistent across the variants), built only through a static factory behind a private constructor, and exposing no public getters — equality, `ApplyOn(Money)` and `ToString()` are its only observable behaviours. `ThresholdDiscount` lives in `Sales.DeepModel.Pricing.Discounts` next to `PercentageDiscount` and `ValueDiscount` and mirrors their shape. All three implement the existing `PriceModifier` interface in the same folder, which this design does not model as a building block: it carries no `[Ddd*]` annotation, so the scanned domain model leaves it out. `PercentageDiscount`, `ValueDiscount` and the `Discount.Percentage` and `Discount.Value` factories already exist and do not change; they are added here only so this green-field design shows the whole discounts module and the union has a complete picture. Only `Sales.Pricing.Discounts` is designed; the other `Sales` modules are out of scope.",
+  "description": "This design adds a third discount to Sales pricing: a percentage off a single product's price that applies only when the price strictly exceeds a threshold ([Discount above a threshold](noesis:need|threshold-discount)).\n\n# Where it lands\n\n- The [Discounts](noesis:module|Sales.Pricing.Discounts) module of Sales pricing, beside the two existing discounts (spec, A1). Nothing else in Sales changes.\n\n# Where to start reading\n\n1. [Discount](noesis:building_block|Sales.Pricing.Discounts.Discount) is the one type callers hold. It gains a third variant, made by the new [Discount.Threshold](noesis:behavior|Sales.Pricing.Discounts.Discount.Threshold), while [Discount.Percentage](noesis:behavior|Sales.Pricing.Discounts.Discount.Percentage) and [Discount.Value](noesis:behavior|Sales.Pricing.Discounts.Discount.Value) keep their signatures (spec, A3; [One discount for callers](noesis:need|one-discount-for-callers)). [Discount.ApplyOn](noesis:behavior|Sales.Pricing.Discounts.Discount.ApplyOn) dispatches across all three.\n2. [ThresholdDiscount](noesis:building_block|Sales.Pricing.Discounts.ThresholdDiscount) is the new value object: a percentage and a strictly positive threshold, rejected when it is made with invalid input (spec, A4; [No malformed discount](noesis:need|no-malformed-discount)).\n3. [ThresholdDiscount.ApplyOn](noesis:behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn) reduces the price by the percentage only when the price is above the threshold; at the threshold or below it, the price is unchanged (spec, A2).\n\n# Around them\n\n- [PercentageDiscount](noesis:building_block|Sales.Pricing.Discounts.PercentageDiscount) and [ValueDiscount](noesis:building_block|Sales.Pricing.Discounts.ValueDiscount) are in the design only so this green-field model shows the whole module; they do not change ([Existing discounts unchanged](noesis:need|existing-discounts-unchanged)).\n\n# Left for later\n\n- Persisting the third variant (spec, A5).\n- Cart-level thresholds, time-bounded promotions and new stacking rules (spec, A6).",
+  "needs": {
+    "added": [
+      {
+        "id": "threshold-discount",
+        "name": {
+          "value": "Discount above a threshold",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "Sales reps",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "The sales reps need a percentage discount that applies only when a product's price strictly exceeds a threshold they set.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "one-discount-for-callers",
+        "name": {
+          "value": "One discount for callers",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "Sales reps",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "The sales reps need the new discount to go wherever a discount goes today, with no new type, caller or wiring.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "no-malformed-discount",
+        "name": {
+          "value": "No malformed discount",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "Sales reps",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "The sales reps need a discount with an invalid percentage or a non-positive threshold to be refused when it is made, never applied.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "existing-discounts-unchanged",
+        "name": {
+          "value": "Existing discounts unchanged",
+          "author": "agent"
+        },
+        "stakeholder": {
+          "value": "Sales reps",
+          "author": "agent"
+        },
+        "statement": {
+          "value": "The sales reps need the percentage and value discounts to keep behaving as they do today.",
+          "author": "agent"
+        }
+      }
+    ]
+  },
   "modules": {
     "added": [
       {
@@ -82,6 +146,10 @@
           "added": [
             {
               "name": "ThresholdDiscountIsOnlyConstructibleWhenInputsAreValid",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
@@ -89,16 +157,32 @@
               "description": {
                 "value": "Trigger: `ThresholdDiscount.Of(Percentage value, Money threshold)` is invoked. Pre-conditions: `value` and `threshold` are present. Algorithm: 1. The `Percentage` value object guarantees `value` lies within `[0%, 100%]` — no additional check is performed here (delegate, do not duplicate). 2. Inspect `threshold`: if it is non-positive (≤ zero in its currency), reject construction with a clear domain error indicating the threshold must be strictly positive. 3. If both checks pass, build the immutable instance via the private constructor and return it. Post-conditions: every existing instance has a percentage in `[0%, 100%]` and a strictly positive threshold; apply-time code can rely on this without re-checking. Edge cases: a zero threshold is rejected; a negative threshold is rejected; the rejection happens at the factory boundary so no invalid instance ever escapes.",
                 "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "no-malformed-discount"
+                ],
+                "author": "agent"
               }
             },
             {
               "name": "DiscountActivatesOnlyAboveThreshold",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Computation",
                 "author": "agent"
               },
               "description": {
                 "value": "Trigger: `ApplyOn(price)` is called on a constructed `ThresholdDiscount`. Pre-conditions: the instance is valid by construction (percentage in range, threshold strictly positive). Algorithm: 1. Evaluate the predicate `price > threshold` using strict greater-than. 2. If true, compute and return `price * (Percentage.Of100 - value)` — same reduction formula as `PercentageDiscount.ApplyOn`. 3. If false, return `price` unchanged. Post-conditions: when the predicate is true, the result is the price reduced by the configured percentage; when false, the result equals the input price. Edge cases: `price == threshold` returns the price unchanged — the comparison is strict, matching the worked example (500 PLN at a 500-PLN threshold yields 500 PLN). A `0`-PLN threshold is not constructible (rejected by the factory), so the activation predicate cannot be trivially satisfied by a zero-threshold instance.",
+                "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "threshold-discount"
+                ],
                 "author": "agent"
               }
             }
@@ -347,6 +431,10 @@
           "added": [
             {
               "name": "DiscountUnionDispatchIsExhaustiveAcrossThreeVariants",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
@@ -354,10 +442,20 @@
               "description": {
                 "value": "Trigger: any operation on a `Discount` value that dispatches by variant — `ApplyOn(Money)`, `Equals`, `GetHashCode`, `ToString`. Pre-conditions: the `Discount` is valid by construction (built through one of the three public static factories `Discount.Percentage`, `Discount.Value`, `Discount.Threshold`). Algorithm: 1. The discriminator field is a three-valued enum-like state — every dispatch must cover all three branches. 2. For each operation, route to the corresponding underlying value object: percentage variant → `_percentageDiscount`; value variant → `_valueDiscount`; threshold variant → `_thresholdDiscount`. 3. The non-active variant fields are at their default values and must not be observed. Post-conditions: every dispatch yields a single deterministic answer; no fallthrough or default branch is ever taken because the discriminator's three states cover every constructible `Discount`. Edge cases: introducing a fourth variant in the future would require updating every dispatch site — the rule mandates that an exhaustive switch (or equivalent) is used, not an `if/else` cascade that silently ignores an unknown discriminator value.",
                 "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "one-discount-for-callers"
+                ],
+                "author": "agent"
               }
             },
             {
               "name": "ExistingDiscountFactorySignaturesAreStable",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
@@ -365,10 +463,21 @@
               "description": {
                 "value": "Trigger: any change to the `Discount` type that touches its factory surface. Pre-conditions: the existing public static factories `Discount.Percentage(Percentage value)` and `Discount.Value(Money value)` exist and have known signatures relied upon by call sites across the solution. Algorithm: 1. The two existing factory methods MUST keep their exact current signatures and observable behaviour. 2. New variants are added via additional public static factories (here: `Discount.Threshold(Percentage value, Money threshold)`); they do not replace, rename, or alter the existing two. 3. The internal discriminator implementation is allowed to change (e.g. bool → enum-like) provided this stability rule for the public factories is preserved. Post-conditions: existing call sites compile and behave identically; the only API surface change visible to callers is the new factory. Edge cases: any rename or signature change of the existing factories is treated as a breaking change and is out of scope of this design doc.",
                 "author": "agent"
+              },
+              "needs": {
+                "value": [
+                  "one-discount-for-callers",
+                  "existing-discounts-unchanged"
+                ],
+                "author": "agent"
               }
             },
             {
               "name": "A Discount always holds exactly one valid discount",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Structure",
                 "author": "agent"
@@ -418,6 +527,12 @@
                     }
                   }
                 ]
+              },
+              "needs": {
+                "value": [
+                  "no-malformed-discount"
+                ],
+                "author": "agent"
               }
             }
           ]
@@ -612,6 +727,10 @@
           "added": [
             {
               "name": "Percentage discount takes its percentage off the price",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Computation",
                 "author": "agent"
@@ -680,6 +799,12 @@
                     }
                   }
                 ]
+              },
+              "needs": {
+                "value": [
+                  "existing-discounts-unchanged"
+                ],
+                "author": "agent"
               }
             }
           ]
@@ -739,6 +864,10 @@
           "added": [
             {
               "name": "Value discount never takes a price below zero",
+              "category": {
+                "value": "Business",
+                "author": "agent"
+              },
               "ruleType": {
                 "value": "Computation",
                 "author": "agent"
@@ -807,6 +936,12 @@
                     }
                   }
                 ]
+              },
+              "needs": {
+                "value": [
+                  "existing-discounts-unchanged"
+                ],
+                "author": "agent"
               }
             }
           ]

@@ -122,22 +122,14 @@ export const RULE_PLACE_KIND: Partial<Record<OutlineKind, string>> = {
 
 /**
  * A modified rule the design changes more than the statement of: its
- * classification, its rationale or the needs it answers. Its details are
- * marked changed, so the reader opens them.
+ * classification or its rationale. Its details are marked changed, so the
+ * reader opens them. The needs it answers are not among them: the document
+ * already lists the rule under each.
  */
 export const changesDetails = (traced: TracedRule): boolean =>
   traced.change === 'modified' &&
   (classificationOf(traced.rule) !== null ||
-    valueOf(traced.rule.rationale) !== null ||
-    traced.trace !== null);
-
-/**
- * Whether a rule's trace is worth a line: it answers some need, or the design
- * empties it — a trace taken away is a change too, and reads as one.
- */
-export const showsTrace = (traced: TracedRule): boolean =>
-  (traced.trace ?? []).length > 0 ||
-  (traced.change === 'modified' && traced.trace !== null);
+    valueOf(traced.rule.rationale) !== null);
 
 /** A need by its name, one the design leaves unnamed by its id. */
 export const needNameOf = (need: DesignedNeedInput): string =>

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { createMemoryHistory } from '@tanstack/react-router';
+import { readingView } from '../src/features/design-docs/design-docs.model';
 import { getRouter } from '../src/router';
 import { getContext } from '../src/shared/query/query-client';
 
@@ -31,9 +32,34 @@ describe('the view of a design document', () => {
     });
   });
 
-  it('is the model when the address names none, or one it does not know', () => {
-    expect(searchOf(routerAt(DOC))?.view).toBeUndefined();
-    expect(searchOf(routerAt(`${DOC}?view=nonsense`))?.view).toBeUndefined();
+  it('is the overview when the address names none, or one it does not know', () => {
+    expect(readingView(searchOf(routerAt(DOC)) ?? {})).toBe('overview');
+    expect(readingView(searchOf(routerAt(`${DOC}?view=nonsense`)) ?? {})).toBe(
+      'overview',
+    );
+  });
+
+  it('is the model when the address names an element and no view, as every element link did', () => {
+    expect(
+      readingView(
+        searchOf(
+          routerAt(`${DOC}?node=building_block%7Csales.refunds.Refund`),
+        ) ?? {},
+      ),
+    ).toBe('model');
+  });
+
+  it('is the view the address names, an element in hand or not', () => {
+    for (const view of ['overview', 'model'] as const)
+      expect(
+        readingView(
+          searchOf(
+            routerAt(
+              `${DOC}?view=${view}&node=building_block%7Csales.refunds.Refund`,
+            ),
+          ) ?? {},
+        ),
+      ).toBe(view);
   });
 
   it('keeps the place in the requirements apart from the place in the model', () => {
@@ -81,7 +107,7 @@ describe('the view of a design document', () => {
     expect(searchOf(router)).toMatchObject({
       node: 'building_block|sales.refunds.Refund',
     });
-    expect(searchOf(router)?.view).toBeUndefined();
+    expect(readingView(searchOf(router) ?? {})).toBe('model');
 
     router.history.back();
     expect(searchOf(router)).toMatchObject({ view: 'requirements' });

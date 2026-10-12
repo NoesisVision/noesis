@@ -37,7 +37,7 @@ export function RuleEntry({
       <Box className={classes.rule} py="md" {...mark}>
         <RuleHead name={traced.name} change="removed" />
         <RuleFields>
-          <RuleField name="Subsystem">{traced.module.name}</RuleField>
+          <RuleField name="Module">{traced.module.name}</RuleField>
           <RuleField name="Element">{element}</RuleField>
         </RuleFields>
       </Box>

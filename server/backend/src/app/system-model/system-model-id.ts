@@ -8,7 +8,7 @@ const systemModelIdSchema = z
     'Invalid SystemModelId',
   )
   .describe(
-    "A system model's id: a lower-case UUIDv7 the server mints per scan, e.g. '01a0d22d-7f47-76b9-abd4-bd21d66a1d17'. It starts with the time it was minted, so ids sort by scan time. Names its file.",
+    "A system model's id: a lower-case UUIDv7 the scanner mints per scan, e.g. '01a0d22d-7f47-76b9-abd4-bd21d66a1d17'. It starts with the time it was minted, so ids sort by scan time.",
   )
   .brand<'SystemModelId'>();
 
