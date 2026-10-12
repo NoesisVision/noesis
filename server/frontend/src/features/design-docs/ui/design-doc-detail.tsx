@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
+import type { DescriptionTarget } from '../design-doc-description.ts';
 import { designDocById } from '../design-docs.api.ts';
 import type { DesignDocViewName } from '../design-docs.model.ts';
 import { ArchitectureView } from './architecture/architecture-view.tsx';
+import { DesignDocOverview } from './design-doc-overview.tsx';
 import { DesignDocSurface } from './design-doc-surface.tsx';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
 import { RequirementsView } from './requirements/requirements-view.tsx';
@@ -12,9 +14,11 @@ import { ViewSwitch } from './view-switch.tsx';
 export interface DesignDocDetailProps {
   changeId: string;
   id: string;
-  /** Whether the document is read as a model, as requirements or as hexagons. */
+  /** Whether the document is read as its overview, a model, requirements or hexagons. */
   view: DesignDocViewName;
   onView: (view: DesignDocViewName) => void;
+  /** Opens the view a link in the overview names, on what it names. */
+  onOpen: (target: DescriptionTarget) => void;
   /** Where the reader is in the model, as the address names it. */
   model: ViewPlace;
   /** Where the reader is in the requirements, as the address names it. */
@@ -28,6 +32,7 @@ export function DesignDocDetail({
   id,
   view,
   onView,
+  onOpen,
   model,
   requirements,
   architecture,
@@ -46,7 +51,9 @@ export function DesignDocDetail({
       document={document.data.document}
       switcher={<ViewSwitch view={view} onView={onView} />}
     >
-      {view === 'requirements' ? (
+      {view === 'overview' ? (
+        <DesignDocOverview key={id} detail={document.data} onOpen={onOpen} />
+      ) : view === 'requirements' ? (
         <RequirementsView
           key={id}
           changeId={changeId}

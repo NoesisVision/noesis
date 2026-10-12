@@ -91,7 +91,7 @@ describe('RequirementsView', () => {
     expect(rule).toHaveLength(2);
   });
 
-  it('counts the needs, the rules and the gaps under the description', () => {
+  it('counts the needs, the rules and the gaps at the top', () => {
     const text = page.replace(/<[^>]+>/g, '');
     expect(text).toContain('3 needs');
     expect(text).toContain('4 rules');
