@@ -58,11 +58,6 @@ export function RequirementsDocument({
 
   return (
     <Stack ref={ref} gap={0} px="lg" pt="lg" className={classes.page}>
-      {doc.description !== '' && (
-        <Text c="var(--noesis-secondary-text)" maw="68ch">
-          {doc.description}
-        </Text>
-      )}
       <Summary summary={requirements.summary} />
 
       {requirements.needs.map(({ need, rules }) => (
@@ -190,7 +185,8 @@ function NeedBody({ need }: { need: DesignedNeedInput }) {
   return (
     <>
       {statement !== null && <Statement>{statement}</Statement>}
-      {stakeholder !== null && (
+      {/* A need whose sources name nobody says so by saying nothing. */}
+      {stakeholder !== null && stakeholder.trim() !== '' && (
         <Remark>
           Stakeholder:{' '}
           <Text span inherit fw={700}>
