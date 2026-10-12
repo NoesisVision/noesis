@@ -50,8 +50,29 @@ export const readableDescription = (
 ): string =>
   markdown.replaceAll(DESCRIPTION_LINK, (_, label: string, target: string) => {
     const opens = resolve(target);
-    return opens === null ? label : `[${label}](${hrefOf(page, opens)})`;
+    return opens === null
+      ? label
+      : `[${label}](${hrefOf(page, opens)} "${OPENS_IN[opens.view]}")`;
   });
+
+/** What a link says it does, for whoever cannot see the icon before it. */
+const OPENS_IN: Record<DescriptionTarget['view'], string> = {
+  model: 'Opens in Model',
+  requirements: 'Opens in Requirements',
+};
+
+/** The views the description's links open, in the order the tabs show them. */
+export function linkedViews(
+  markdown: string,
+  resolve: (target: string) => DescriptionTarget | null,
+): DescriptionTarget['view'][] {
+  const views = new Set(
+    [...markdown.matchAll(DESCRIPTION_LINK)].map(
+      ([, , target]) => resolve(target ?? '')?.view,
+    ),
+  );
+  return (['model', 'requirements'] as const).filter((view) => views.has(view));
+}
 
 /** Where a link written by `readableDescription` for `page` takes the reader, else null. */
 export function targetOfHref(
