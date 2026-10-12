@@ -64,7 +64,8 @@ rules, scenarios. Read it at step 5.
    name.
 5. **Design.** Read the modelling guidance now, then work through:
    - **Needs.** The stakeholder goals the change answers, each with the
-     stakeholder and a statement of who needs what and when. A need is a
+     stakeholder the sources name, or none, and a statement of what is
+     needed and when. A need is a
      goal, never a solution.
    - **Modules.** Place the work in existing modules first. A new module
      only for a cohesive group of building blocks, under the module closest
@@ -130,16 +131,20 @@ rules, scenarios. Read it at step 5.
    memory: it changes every session.
 8. **Write the working file** into the scratch directory, e.g.
    `<scratch directory>/design-doc.json`: `name` (a human title, usually the
-   change's), `description` (what the design covers and why, in a
-   paragraph, including why each element it modifies changes), `needs`,
-   `modules`, `buildingBlocks` and `behaviours`. No `id`, no
-   `implemented`. Write every field as `{ "value": … }` and never with
-   `author`: you are the agent. Leave out a change set with nothing in it.
+   change's), `description` (the overview, as the contract states it;
+   read
+   `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
+   before writing it), `needs`, `modules`, `buildingBlocks` and
+   `behaviours`. No `id`, no `implemented`. Write every field as
+   `{ "value": … }` and never with `author`: you are the agent. Leave out a
+   change set with nothing in it.
    Before saving, check that every reference — the `type` of a property, an
    input or an output, `implements` — names a building block this design
    adds or modifies, one the system model has, or a primitive, that
-   nothing refers to an id the design removes, and that every rule's
-   `needs` names only needs the design adds.
+   nothing refers to an id the design removes, that every rule's `needs`
+   names only needs the design adds, and that every `noesis:` link in
+   `description` names an element this design adds, modifies or removes,
+   one the system model has, or a need the design states.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
