@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Breadcrumbs } from '#/shared/design-system/breadcrumbs.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Modal } from '#/shared/design-system/modal.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -8,12 +7,11 @@ import classes from './modal-frame.module.css';
 
 /**
  * Every modal of the app, drawn the same: a header with a tile for what the
- * modal is about, its title in bold and the close button, on one line; under
- * it, on a grey strip, the trail of what holds the subject; then the modal's
- * own body and footer (`ModalBody`, `ModalFooter`).
+ * modal is about, its title in bold and the close button, on one line; then
+ * the modal's own body and footer (`ModalBody`, `ModalFooter`).
  *
- * The dialog is named by its title alone: the trail and a badge beside the
- * title are for the eye, hidden from assistive technology.
+ * The dialog is named by its title alone: a badge beside the title is for
+ * the eye, hidden from assistive technology.
  */
 export function ModalFrame({
   opened = true,
@@ -22,7 +20,6 @@ export function ModalFrame({
   iconColor,
   title,
   badge,
-  trail = [],
   size = 620,
   busy = false,
   children,
@@ -36,8 +33,6 @@ export function ModalFrame({
   title: string;
   /** Beside the title, for the eye: a change badge, say. */
   badge?: ReactNode;
-  /** What holds the modal's subject, from the top down; not the subject itself. */
-  trail?: readonly string[];
   size?: number | string;
   /** While a save is on its way, the modal stays open. */
   busy?: boolean;
@@ -71,22 +66,6 @@ export function ModalFrame({
           </Modal.Title>
           <Modal.CloseButton size="lg" disabled={busy} />
         </Modal.Header>
-        {trail.length > 0 && (
-          <Breadcrumbs
-            className={classes.trail}
-            separator="›"
-            separatorMargin={6}
-            aria-hidden
-          >
-            {trail.map((step, index) => (
-              // A step's name may come twice down one trail.
-              // oxlint-disable-next-line react/no-array-index-key
-              <Text key={index} size="xs" c="dimmed">
-                {step}
-              </Text>
-            ))}
-          </Breadcrumbs>
-        )}
         {children}
       </Modal.Content>
     </Modal.Root>

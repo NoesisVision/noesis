@@ -62,7 +62,8 @@ export function NewRuleButton({ owner }: { owner: PartOwner }) {
     <div className={classes.draft}>
       <Textarea
         ref={field}
-        aria-label="The new rule's name"
+        label="Rule name"
+        description="What must always hold. Its kind, description and needs are written on its card after."
         placeholder="e.g. Value must not be empty"
         autosize
         minRows={2}

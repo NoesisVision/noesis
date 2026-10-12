@@ -22,13 +22,6 @@
   line-height: var(--mantine-h3-line-height);
 }
 
-/* What holds the subject: a quiet grey strip under the header, as much room above it as below. */
-.trail {
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-lg);
-  border-bottom: 1px solid var(--mantine-color-default-border);
-  background: var(--mantine-color-default-hover);
-}
-
 .body {
   display: flex;
   flex-direction: column;

@@ -26,7 +26,6 @@ import {
   violationsInWords,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
-import { trailOfRef } from './unit-trail.ts';
 
 const SITUATION: Record<UnitState, (name: string) => string> = {
   added: (name) =>
@@ -100,7 +99,6 @@ export function ConfirmRemovalModal({
       }
       iconColor={state === 'removed' ? undefined : 'red'}
       title={`${state === 'removed' ? 'Restore' : 'Remove'} ${label}?`}
-      trail={trailOfRef(unit)}
       busy={save.isPending}
     >
       <ModalBody>

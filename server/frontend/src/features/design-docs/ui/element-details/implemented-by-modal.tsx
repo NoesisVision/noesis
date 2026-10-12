@@ -20,14 +20,7 @@ import classes from './implemented-by-modal.module.css';
  * The blocks that implement a type, behind one icon beside its badges: a
  * modal of `ImplementedByList`. Closing it drops what was typed in its box.
  */
-export function ImplementedByModal({
-  items,
-  trail,
-}: {
-  items: ChangeListItem[];
-  /** The steps down to the type they implement, over the modal's title. */
-  trail: readonly string[];
-}) {
+export function ImplementedByModal({ items }: { items: ChangeListItem[] }) {
   const [opened, { open, close }] = useDisclosure(false);
   if (items.length === 0) return null;
   // What the icon is, on hover and to a screen reader alike.
@@ -49,7 +42,6 @@ export function ImplementedByModal({
         onClose={close}
         icon={<IconTopologyStar3 size={22} aria-hidden />}
         title="Implemented by"
-        trail={trail}
       >
         <ModalBody>
           <ImplementedByList items={items} onOpen={close} />

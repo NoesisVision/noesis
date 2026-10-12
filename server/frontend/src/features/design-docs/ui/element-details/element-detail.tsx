@@ -95,10 +95,7 @@ export function ElementDetail({
               <Group gap="xs" ml="auto">
                 <VisibilityBadge visibility={visibility} />
                 <ChangeBadge change={node.change} />
-                <ImplementedByModal
-                  items={implementers}
-                  trail={path.map((step) => step.name)}
-                />
+                <ImplementedByModal items={implementers} />
               </Group>
             </div>
             <div className={classes.title}>

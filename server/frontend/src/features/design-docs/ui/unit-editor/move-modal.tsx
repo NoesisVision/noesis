@@ -1,9 +1,15 @@
-import { IconArrowsMove } from '@tabler/icons-react';
+import { IconArrowsMove, IconCheck } from '@tabler/icons-react';
 import { useState } from 'react';
 import { describeFailure } from '#/shared/api/failure.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
-import { Select } from '#/shared/design-system/select.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
+import {
+  type ComboboxItem,
+  type ComboboxParsedItem,
+  type OptionsFilter,
+  Select,
+} from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import {
@@ -12,6 +18,7 @@ import {
   ModalFrame,
 } from '#/shared/ui/modal-frame.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { findById } from '../../change-set.ts';
 import {
   movedIdOf,
   moveDestinationsOf,
@@ -19,12 +26,65 @@ import {
   unitNameOf,
   violationsInWords,
 } from '../../design-doc-edit.ts';
+import { valueOf } from '../../design-doc-field.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
-import { addressOf } from '../../element-id.ts';
-import { trailOfRef } from './unit-trail.ts';
+import { addressOf, kindOf } from '../../element-id.ts';
+import { KindIcon } from '../model-tree/kind-icon.tsx';
+import classes from './move-modal.module.css';
 
 /** The top of the design, as a value a select can hold. */
 const TOP = '';
+
+/**
+ * The places, grouped by what holds them — `a.b.Service` under `a.b` — each
+ * by its own name; the top of the design first, in a group of none.
+ */
+function choicesOf(destinations: readonly (string | null)[]) {
+  const top = destinations.includes(null)
+    ? [{ value: TOP, label: 'The top of the design' }]
+    : [];
+  const groups = new Map<string, { value: string; label: string }[]>();
+  for (const destination of destinations) {
+    if (destination === null) continue;
+    const steps = addressOf(destination).split('.');
+    const group = steps.slice(0, -1).join('.') || 'Top level';
+    groups.set(group, [
+      ...(groups.get(group) ?? []),
+      { value: destination, label: steps.at(-1) ?? destination },
+    ]);
+  }
+  return [...top, ...[...groups].map(([group, items]) => ({ group, items }))];
+}
+
+/** The icon the tree draws a place with: a module, or a block by its pattern. */
+function PlaceIcon({
+  document: doc,
+  id,
+}: {
+  document: DesignDocumentInput;
+  id: string;
+}) {
+  const kind = kindOf(id);
+  const pattern =
+    kind === 'building_block'
+      ? (valueOf(findById(doc.buildingBlocks, id)?.type) ?? null)
+      : null;
+  return <KindIcon kind={kind} pattern={pattern} />;
+}
+
+/** What is typed finds a place by its whole address, not its name alone. */
+const byAddress: OptionsFilter = ({ options, search }) => {
+  const wanted = search.trim().toLowerCase();
+  const fits = (option: ComboboxItem) =>
+    (option.value === TOP ? option.label : addressOf(option.value))
+      .toLowerCase()
+      .includes(wanted);
+  return options.flatMap((option): ComboboxParsedItem[] => {
+    if (!('group' in option)) return fits(option) ? [option] : [];
+    const items = option.items.filter(fits);
+    return items.length > 0 ? [{ ...option, items }] : [];
+  });
+};
 
 /**
  * Moves an element the design adds under another parent, chosen here or by
@@ -88,7 +148,6 @@ export function MoveModal({
       onClose={onClose}
       icon={<IconArrowsMove size={22} aria-hidden />}
       title={`Move "${name}"`}
-      trail={trailOfRef(unit)}
       busy={save.isPending}
     >
       <ModalBody>
@@ -100,13 +159,24 @@ export function MoveModal({
           // Focused, it opens its list: only when there is a choice to make.
           data-autofocus={proposedHere ? undefined : true}
           nothingFoundMessage="Nowhere in this design is called that"
-          data={destinations.map((destination) => ({
-            value: destination ?? TOP,
-            label:
-              destination === null
-                ? 'The top of the design'
-                : addressOf(destination),
-          }))}
+          data={choicesOf(destinations)}
+          filter={byAddress}
+          classNames={{ groupLabel: classes.groupLabel }}
+          renderOption={({ option, checked }) => (
+            <Group gap="xs" wrap="nowrap">
+              {/* The chosen place keeps the tick the list gives it otherwise, first. */}
+              {checked && <IconCheck size={16} aria-hidden />}
+              {option.value !== TOP && (
+                <PlaceIcon document={doc} id={option.value} />
+              )}
+              {option.label}
+            </Group>
+          )}
+          leftSection={
+            to === undefined || to === null ? undefined : (
+              <PlaceIcon document={doc} id={to} />
+            )
+          }
           value={to === undefined ? null : (to ?? TOP)}
           onChange={(value) =>
             setTo(value === null ? undefined : value === TOP ? null : value)

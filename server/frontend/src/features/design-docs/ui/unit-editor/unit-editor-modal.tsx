@@ -37,7 +37,6 @@ import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
 import { ScenarioFields } from './scenario-fields.tsx';
 import { UnitFields } from './unit-fields.tsx';
-import { trailOfTarget } from './unit-trail.ts';
 
 /**
  * Adds a unit or revises one, whatever its kind: the kind decides the fields,
@@ -132,7 +131,6 @@ export function UnitEditorModal({
       icon={<KindIcon kind={ICON_KIND[kind]} pattern={null} />}
       title={`${verb} ${UNIT_LABEL[kind]}`}
       badge={ref === null ? undefined : <ChangeBadge change={state} inline />}
-      trail={trailOfTarget(placed)}
       busy={save.isPending}
     >
       <form onSubmit={submit} noValidate>
