@@ -1,10 +1,13 @@
 /*
  * A group's label stays at the top of the list while its places scroll under
- * it, on the dropdown's own ground. Named twice, to win over Mantine's label.
+ * it, on the dropdown's own ground in either scheme. Named twice, to win over Mantine's label.
  */
 .groupLabel.groupLabel {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--mantine-color-body);
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  );
 }
