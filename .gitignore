@@ -51,3 +51,6 @@ yarn-error.log*
 
 # Local scratch — personal notes, generated references, anything not shared
 .local/
+
+# Archify diagrams (local, generated per request)
+.archify/
