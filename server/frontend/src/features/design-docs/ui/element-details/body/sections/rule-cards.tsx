@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Anchor } from '#/shared/design-system/anchor.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
+import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
@@ -19,6 +20,7 @@ import { valueOf } from '../../../../design-doc-field.ts';
 import { tracedTo } from '../../../../design-doc-requirements.ts';
 import { InlineChips } from '../../../unit-editor/inline-chips.tsx';
 import { InlineChoice } from '../../../unit-editor/inline-choice.tsx';
+import { InlineMarkdown } from '../../../unit-editor/inline-markdown.tsx';
 import { InlineText } from '../../../unit-editor/inline-text.tsx';
 import { NewScenarioButton } from '../../../unit-editor/new-buttons.tsx';
 import { RemoveButton } from '../../../unit-editor/remove-button.tsx';
@@ -35,6 +37,7 @@ import {
   humanText,
   WrittenBy,
 } from '../../human-mark.tsx';
+import { MarkdownReading } from '../../markdown-reading.tsx';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
 import { useScenarioFocus } from '../scenario-focus.tsx';
 import classes from './rule-cards.module.css';
@@ -186,21 +189,33 @@ function RuleCard({
         {writable === null ? (
           description !== undefined && (
             <WrittenBy fields={[designed?.description]}>
-              <span className={classes.description}>{description}</span>
+              <div className={classes.description}>
+                <MarkdownReading markdown={description} />
+              </div>
             </WrittenBy>
           )
         ) : (
-          <InlineText
-            label="Description"
-            human={writtenByHuman([designed?.description])}
-            value={valueOf(rule?.description) ?? ''}
-            multiline
+          <div
             className={clsx(
               classes.description,
               humanText([designed?.description]),
             )}
-            onSave={(text) => writable.save({ description: text })}
-          />
+          >
+            <InlineMarkdown
+              label="Description"
+              human={writtenByHuman([designed?.description])}
+              value={valueOf(rule?.description) ?? ''}
+              onSave={(text) => writable.save({ description: text })}
+            >
+              {(valueOf(rule?.description) ?? '').trim() === '' ? (
+                <Text span size="sm" c="dimmed" fs="italic">
+                  No description
+                </Text>
+              ) : (
+                <MarkdownReading markdown={valueOf(rule?.description) ?? ''} />
+              )}
+            </InlineMarkdown>
+          </div>
         )}
         {writable === null || needChoices.length === 0 ? (
           needs !== undefined && (

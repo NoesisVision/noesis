@@ -55,6 +55,11 @@ h2.name {
   overflow-wrap: anywhere;
 }
 
+/* On the name's line, the badges centre on it rather than sit on its baseline. */
+.badges {
+  align-self: center;
+}
+
 /* The name, then what it implements in smaller type on the same line. */
 .title {
   display: flex;

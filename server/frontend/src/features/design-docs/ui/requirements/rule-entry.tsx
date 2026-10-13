@@ -9,6 +9,7 @@ import type { TracedRule } from '../../design-doc-requirements.ts';
 import { ScenarioColumn } from '../element-details/body/scenario-column.tsx';
 import { scenarioEntriesOf } from '../element-details/body/scenarios-of.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
+import { MarkdownReading } from '../element-details/markdown-reading.tsx';
 import { entryMark } from './entry-mark.ts';
 import {
   Details,
@@ -48,7 +49,11 @@ export function RuleEntry({
   return (
     <Box className={classes.rule} py="md" {...mark}>
       <RuleHead name={traced.name} change={change} />
-      {statement !== null && <Statement>{statement}</Statement>}
+      {statement !== null && statement.trim() !== '' && (
+        <Statement>
+          <MarkdownReading markdown={statement} />
+        </Statement>
+      )}
       <Details traced={traced} rule={rule} element={element} />
       <Verification rule={rule} change={change} />
     </Box>

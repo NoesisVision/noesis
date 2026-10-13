@@ -17,33 +17,50 @@
 }
 
 /*
- * Text being written sits in a field drawn as Mantine draws its inputs: a
- * grey edge, the brand's while it has focus. MDXEditor lays a placeholder
- * with these same classes over an empty editor; it keeps the room the edge
- * takes, but draws neither edge nor ground, or it would hide the caret and
- * the focus under it.
+ * Text being written sits in a field drawn as Mantine draws its inputs, the
+ * toolbar inside it: one grey edge around both, the brand's while the text
+ * has focus. MDXEditor lays a placeholder with these same classes over an
+ * empty editor; it keeps the room the text takes and draws nothing.
  */
-.content.field {
-  min-height: 6rem;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border: 1px solid transparent;
+.frame {
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-default);
-}
-
-.content.field[contenteditable='true'] {
-  border-color: var(--mantine-color-default-border);
   background-color: var(--mantine-color-body);
   transition: border-color 100ms ease;
 
-  &:focus {
+  &:has([contenteditable='true']:focus) {
     border-color: var(--mantine-primary-color-filled);
-    outline: none;
   }
 }
 
-/* Room between the toolbar and the field it works on. */
+.content.field {
+  min-height: 6rem;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+/* Written in place, the field is as tall as its text. */
+.content.field.inline {
+  min-height: 0;
+}
+
+.content.field[contenteditable='true']:focus {
+  outline: none;
+}
+
+/* The toolbar heads the field: on its ground, a grey line under it. */
 .toolbar.toolbar {
-  margin-bottom: var(--mantine-spacing-xs);
+  margin: 0;
+  padding: 2px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background-color: var(--mantine-color-body);
+
+  /* Icons a quarter under the editor's own 24px. */
+  & svg {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 /*

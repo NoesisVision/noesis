@@ -1,0 +1,29 @@
+/*
+ * The editor sets its own type; read in a card or a column, the markdown
+ * takes the size, height and colour of the text it stands for. Named twice,
+ * and with the editable root, to win over the editor's own rule.
+ */
+.reading.reading [contenteditable] {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+
+  & p {
+    margin-block: 0 4px;
+  }
+
+  & p:last-child {
+    margin-bottom: 0;
+  }
+
+  & ul,
+  & ol {
+    margin-block: 0 4px;
+    padding-inline-start: 18px;
+  }
+
+  & li,
+  & li p {
+    margin: 0;
+  }
+}

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { mock, describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../src/features/design-docs/design-doc-field';
@@ -17,6 +17,18 @@ import { ImplementedByList } from '../src/features/design-docs/ui/element-detail
 import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
+
+// The editor that reads markdown arrives on its own and draws its text only
+// in a browser: here a description reads as its markdown, so where it lands
+// can be asserted.
+void mock.module(
+  '../src/features/design-docs/ui/element-details/markdown-reading.tsx',
+  () => ({
+    MarkdownReading: ({ markdown }: { markdown: string }) => (
+      <span data-markdown>{markdown}</span>
+    ),
+  }),
+);
 
 const DIAGRAM = [
   'Holds a card while a booking settles.',
@@ -687,7 +699,7 @@ describe('ElementDetail', () => {
     expect(html).toContain('>Rules<');
     expect(html).toContain('>Only once<');
     expect(html).toMatch(
-      /<span[^>]*>A booking holds one card at a time\.<\/span>/,
+      /<span data-markdown="true">A booking holds one card at a time\.<\/span>/,
     );
   });
 

@@ -17,6 +17,7 @@ import { NewScenarioButton } from '../../unit-editor/new-buttons.tsx';
 import { ScenarioActions } from '../../unit-editor/scenario-actions.tsx';
 import { ChangeBadge } from '../change-badge.tsx';
 import { nameFieldsOf, WrittenBy } from '../human-mark.tsx';
+import { MarkdownReading } from '../markdown-reading.tsx';
 import { SCENARIO_TRANSITION, useScenarioFocus } from './scenario-focus.tsx';
 import type { ScenarioEntry } from './scenarios-of.ts';
 import { ScenarioSteps } from './sections/scenario-steps-section.tsx';
@@ -184,8 +185,8 @@ function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
   return (
     <>
       {says && (
-        <Text size="sm" c="dimmed" mb="xs">
-          {description}
+        <Text component="div" size="sm" c="dimmed" mb="xs">
+          <MarkdownReading markdown={description} />
         </Text>
       )}
       <ScenarioSteps scenario={scenario} />

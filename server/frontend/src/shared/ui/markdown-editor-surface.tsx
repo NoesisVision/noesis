@@ -50,6 +50,10 @@ export interface MarkdownEditorProps {
   noMargin?: boolean;
   /** Offer the kind of block — a heading, a quote — in the toolbar; a field of plain paragraphs needs none. */
   blockTypes?: boolean;
+  /** Written in place: as tall as its text, with no room kept below it. */
+  inline?: boolean;
+  /** Take the focus on mount, the caret at the end of the text: for an editor the user just opened. */
+  focusOnOpen?: boolean;
 }
 
 /** The fences the plain code editor offers, past the diagram of its own. */
@@ -71,13 +75,19 @@ export default function MarkdownEditorSurface({
   headingLevel = 2,
   noMargin = false,
   blockTypes = true,
+  inline = false,
+  focusOnOpen = false,
 }: MarkdownEditorProps) {
   const scheme = useComputedColorScheme('light');
-  return (
+  const editor = (
     <MDXEditor
       markdown={markdown}
       onChange={onChange}
       readOnly={readOnly}
+      // Only where the user opened the editor themselves: the focus goes
+      // where they asked to write, not somewhere they did not look.
+      // oxlint-disable-next-line jsx-a11y/no-autofocus
+      autoFocus={focusOnOpen ? { defaultSelection: 'rootEnd' } : false}
       // `dark-theme` is MDXEditor's own switch, not a Mantine class: the
       // editor is the one part of the page Mantine does not dress. The class
       // also lands on the box its dialogs open in, at the end of the body,
@@ -86,11 +96,16 @@ export default function MarkdownEditorSurface({
       contentEditableClassName={clsx(
         classes.content,
         readOnly ? classes.reading : classes.field,
+        inline && classes.inline,
         noMargin && classes.noMargin,
       )}
       plugins={documentPlugins(headingLevel, readOnly, blockTypes)}
     />
   );
+  // Written, the toolbar and the text share one field, drawn as an input is.
+  // The frame is a box of its own: the editor's class also dresses the box
+  // its dialogs open in.
+  return readOnly ? editor : <div className={classes.frame}>{editor}</div>;
 }
 
 function documentPlugins(

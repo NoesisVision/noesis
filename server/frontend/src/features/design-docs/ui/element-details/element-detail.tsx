@@ -85,6 +85,13 @@ export function ElementDetail({
   const scenariosWritable = useWritableUnit(elementRefOf(node)) !== null;
   // Measured outside the key below, so the width is known on every element.
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
+  const badges = (
+    <Group gap="xs" ml="auto" className={classes.badges}>
+      <VisibilityBadge visibility={visibility} />
+      <ChangeBadge change={node.change} />
+      <ImplementedByModal items={implementers} />
+    </Group>
+  );
   return (
     <DesignDocumentContext.Provider value={doc}>
       <ElementNavigationContext.Provider value={navigation}>
@@ -94,22 +101,21 @@ export function ElementDetail({
             <KindIcon kind={node.kind} pattern={node.pattern} />
           </span>
           <div className={classes.heading}>
-            {/* What it is on the left, what the design does to it on the right. */}
-            <div className={classes.kind}>
-              {node.patternLabel !== null && (
+            {/* What it is on the left, what the design does to it on the
+                right; with no kind to name, the badges end the name's line
+                and the tile centres on the name alone. */}
+            {node.patternLabel !== null && (
+              <div className={classes.kind}>
                 <span className={classes.pattern}>{node.patternLabel}</span>
-              )}
-              <Group gap="xs" ml="auto">
-                <VisibilityBadge visibility={visibility} />
-                <ChangeBadge change={node.change} />
-                <ImplementedByModal items={implementers} />
-              </Group>
-            </div>
+                {badges}
+              </div>
+            )}
             <div className={classes.title}>
               <Title order={2} className={classes.name}>
                 <NodeName node={node} field={designed?.name} />
               </Title>
               <ImplementsLine items={implemented} />
+              {node.patternLabel === null && badges}
             </div>
           </div>
         </header>
