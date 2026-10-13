@@ -1,4 +1,9 @@
-import { IconSearch, IconWorld, IconX } from '@tabler/icons-react';
+import {
+  IconLayoutSidebarLeftCollapse,
+  IconSearch,
+  IconWorld,
+  IconX,
+} from '@tabler/icons-react';
 import type { OutlineScope } from '#/features/design-docs/ui/model-tree/outline-scope.ts';
 import type { ModelTreeController } from '#/features/design-docs/ui/model-tree/use-model-tree.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -11,6 +16,7 @@ import {
   IconChevronsDownUp,
   IconChevronsUpDown,
 } from '#/shared/ui/icons/icons.ts';
+import { useTreeFold } from './tree-fold.tsx';
 import classes from './outline-search-box.module.css';
 
 /**
@@ -29,10 +35,12 @@ export function OutlineSearchBox({
   scope?: { value: OutlineScope; onChange: (scope: OutlineScope) => void };
 }) {
   const { query, ask, search, tree, expandAll, collapseAll } = controller;
+  const fold = useTreeFold();
   return (
     <Stack gap={4}>
       <Group gap="xs" wrap="nowrap" align="flex-start">
         <TextInput
+          ref={fold?.searchRef}
           size="sm"
           className={classes.search}
           value={query}
@@ -92,6 +100,26 @@ export function OutlineSearchBox({
               }
             >
               <IconWorld size={18} stroke={1.6} aria-hidden />
+            </ActionIcon>
+          </Tooltip>
+        )}
+        {fold !== null && (
+          // Last, beside the buttons that fold the tree: the one that puts
+          // it away altogether, to a rail at the pane's edge.
+          <Tooltip label={`Hide tree ${fold.shortcut}`} openDelay={300}>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="input-sm"
+              aria-label="Hide the tree"
+              aria-keyshortcuts="Meta+Backslash Control+Backslash"
+              onClick={fold.hide}
+            >
+              <IconLayoutSidebarLeftCollapse
+                size={18}
+                stroke={1.6}
+                aria-hidden
+              />
             </ActionIcon>
           </Tooltip>
         )}

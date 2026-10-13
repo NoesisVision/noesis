@@ -1,4 +1,12 @@
-import type { ReactNode, RefObject } from 'react';
+import { IconLayoutSidebarLeftExpand, IconSearch } from '@tabler/icons-react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import {
   useLocalStorage,
@@ -6,10 +14,19 @@ import {
 } from '#/shared/design-system/hooks.ts';
 import { Splitter } from '#/shared/design-system/splitter.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import {
+  isTreeShortcut,
+  TREE_SHORTCUT,
+  type TreeFold,
+  TreeFoldContext,
+} from './tree-fold.tsx';
 import classes from './columns.module.css';
 
 /** How the two columns were last left, which is not about any one document. */
 const COLUMNS_KEY = 'noesis.designDocs.columns';
+/** Whether the reader put the tree away, which holds for every document. */
+const TREE_HIDDEN_KEY = 'noesis.designDocs.treeHidden';
 const DEFAULT_COLUMNS = [38, 62];
 /** The width the shell folds its sidebar at, past which two columns fit. */
 const WIDE = '(min-width: 62em)';
@@ -80,11 +97,48 @@ export function Columns({
 }) {
   const wide = useMediaQuery(WIDE, true);
   const [columns, setColumns] = useStoredShares(COLUMNS_KEY, DEFAULT_COLUMNS);
+  const [hidden, setHidden] = useLocalStorage<boolean>({
+    key: TREE_HIDDEN_KEY,
+    defaultValue: false,
+    getInitialValueInEffect: false,
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
+  // Opened from the rail's search, the tree opens with its field in hand.
+  const searchOnOpen = useRef(false);
+  const fold = useMemo<TreeFold>(
+    () => ({
+      hide: () => setHidden(true),
+      searchRef,
+      shortcut: TREE_SHORTCUT,
+    }),
+    [setHidden],
+  );
+  const treeHidden = wide && hidden;
+
+  // The tree's key, wherever the focus is; only where there are columns to
+  // fold it from.
+  useEffect(() => {
+    if (!wide) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!isTreeShortcut(event)) return;
+      event.preventDefault();
+      setHidden((was) => !was);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [wide, setHidden]);
+  useEffect(() => {
+    if (treeHidden || !searchOnOpen.current) return;
+    searchOnOpen.current = false;
+    searchRef.current?.focus();
+  }, [treeHidden]);
 
   // One of the two branches renders, so the outline's scroller is one element.
   const outlinePane = (
     <>
-      <Box className={classes.searchBar}>{search}</Box>
+      <Box className={classes.searchBar}>
+        <TreeFoldContext value={wide ? fold : null}>{search}</TreeFoldContext>
+      </Box>
       <Box className={classes.outlineBody} ref={outlineRef}>
         {outline}
       </Box>
@@ -103,6 +157,49 @@ export function Columns({
         <Box className={classes.pane}>{outlinePane}</Box>
         <Box className={classes.pane}>{detailPane}</Box>
       </Stack>
+    );
+  }
+
+  if (treeHidden) {
+    return (
+      <div className={classes.columns} data-folded>
+        {/* The tree put away: a rail where it stood, its way back in the
+            corner the button that hid it was in, and its search a press
+            away, landing in the field. */}
+        <Box className={classes.rail}>
+          <Tooltip
+            label={`Show tree ${TREE_SHORTCUT}`}
+            position="right"
+            openDelay={300}
+          >
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label="Show the tree"
+              aria-keyshortcuts="Meta+Backslash Control+Backslash"
+              onClick={() => setHidden(false)}
+            >
+              <IconLayoutSidebarLeftExpand size={18} stroke={1.6} aria-hidden />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Search" position="right" openDelay={300}>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label="Search the outline"
+              onClick={() => {
+                searchOnOpen.current = true;
+                setHidden(false);
+              }}
+            >
+              <IconSearch size={18} stroke={1.6} aria-hidden />
+            </ActionIcon>
+          </Tooltip>
+        </Box>
+        <Box className={classes.pane} data-wide>
+          {detailPane}
+        </Box>
+      </div>
     );
   }
 
