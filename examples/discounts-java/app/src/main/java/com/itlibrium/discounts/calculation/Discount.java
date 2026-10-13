@@ -34,18 +34,6 @@ class FixedDiscount implements Discount {
 
 @DomainService
 @Value
-class PercentageDiscount implements Discount {
-
-    int percentage;
-
-    @Override
-    public DiscountedOffer apply(DiscountedOffer previous) {
-        return new DiscountedOffer(previous.getProducts(), previous.getOfferLevelDiscounts().append(new DiscountAmount(this)));
-    }
-}
-
-@DomainService
-@Value
 class ExclusiveOfferLevelDiscount implements Discount {
 
     Discount discountToApply;

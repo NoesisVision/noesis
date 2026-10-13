@@ -1,7 +1,7 @@
 {
-  "id": "01a0f10b-471d-72a5-b84a-ca262a932b6d",
+  "id": "01a1366f-2a8d-7606-a494-77768a35eef5",
   "name": "discounts-java",
-  "scanned_at": "2026-09-30T06:40:43.292Z",
+  "scanned_at": "2026-10-13T18:03:13.000Z",
   "modules": [
     {
       "id": "module|discounts",
@@ -42,26 +42,6 @@
         "path": "app/src/main/java/com/itlibrium/discounts/users",
         "line": null
       }
-    },
-    {
-      "id": "module|discounts.weather",
-      "name": "weather",
-      "description": null,
-      "rules": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather",
-        "line": null
-      }
-    },
-    {
-      "id": "module|discounts.weather.openmeteo",
-      "name": "openmeteo",
-      "description": null,
-      "rules": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo",
-        "line": null
-      }
     }
   ],
   "buildingBlocks": [
@@ -77,19 +57,13 @@
           "type": "building_block|discounts.users.UserStatus",
           "description": null,
           "optional": false
-        },
-        {
-          "name": "weather",
-          "type": "building_block|discounts.weather.Weather",
-          "description": "Current weather snapshot; absent when the weather provider could not deliver one.",
-          "optional": true
         }
       ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
-        "line": 14
+        "line": 12
       }
     },
     {
@@ -124,7 +98,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java",
-        "line": 12
+        "line": 8
       }
     },
     {
@@ -189,19 +163,13 @@
           "type": "building_block|discounts.users.UserStatusProvider",
           "description": null,
           "optional": false
-        },
-        {
-          "name": "weatherProvider",
-          "type": "building_block|discounts.weather.WeatherProvider",
-          "description": null,
-          "optional": false
         }
       ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
-        "line": 16
+        "line": 13
       }
     },
     {
@@ -292,7 +260,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 49
+        "line": 37
       }
     },
     {
@@ -319,29 +287,6 @@
       }
     },
     {
-      "id": "building_block|discounts.calculation.PercentageDiscount",
-      "name": "PercentageDiscount",
-      "type": "domain_service",
-      "description": null,
-      "implements": [
-        "building_block|discounts.calculation.Discount"
-      ],
-      "properties": [
-        {
-          "name": "percentage",
-          "type": "primitive|integer",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 37
-      }
-    },
-    {
       "id": "building_block|discounts.calculation.PotentialDiscount",
       "name": "PotentialDiscount",
       "type": "domain_service",
@@ -353,29 +298,6 @@
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 8
-      }
-    },
-    {
-      "id": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-      "name": "PotentialPrecipitationDiscount",
-      "type": "domain_service",
-      "description": null,
-      "implements": [
-        "building_block|discounts.calculation.PotentialDiscount"
-      ],
-      "properties": [
-        {
-          "name": "discount",
-          "type": "building_block|discounts.calculation.PercentageDiscount",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": 29
       }
     },
     {
@@ -508,57 +430,6 @@
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "line": 7
-      }
-    },
-    {
-      "id": "building_block|discounts.weather.Weather",
-      "name": "Weather",
-      "type": "value_object",
-      "description": null,
-      "implements": [],
-      "properties": [
-        {
-          "name": "precipitation",
-          "type": "primitive|decimal",
-          "description": "Current precipitation in millimetres as reported by the weather provider (rain or snow).",
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/Weather.java",
-        "line": 9
-      }
-    },
-    {
-      "id": "building_block|discounts.weather.WeatherProvider",
-      "name": "WeatherProvider",
-      "type": "external_integration",
-      "description": null,
-      "implements": [],
-      "properties": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/WeatherProvider.java",
-        "line": 9
-      }
-    },
-    {
-      "id": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
-      "name": "OpenMeteoWeatherProvider",
-      "type": "external_integration",
-      "description": null,
-      "implements": [
-        "building_block|discounts.weather.WeatherProvider"
-      ],
-      "properties": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo/OpenMeteoWeatherProvider.java",
-        "line": 19
       }
     }
   ],
@@ -696,7 +567,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
-        "line": 24
+        "line": 19
       }
     },
     {
@@ -877,7 +748,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 56
+        "line": 44
       }
     },
     {
@@ -910,38 +781,6 @@
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 30
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.PercentageDiscount.apply",
-      "buildingBlockId": "building_block|discounts.calculation.PercentageDiscount",
-      "name": "apply",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [
-        {
-          "name": "previous",
-          "type": "building_block|discounts.calculation.DiscountedOffer",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.DiscountedOffer",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 42
       }
     },
     {
@@ -999,63 +838,6 @@
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 9
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-      "name": "getDiscount",
-      "type": "Query",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.PercentageDiscount",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": 36
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-      "name": "isApplicableFor",
-      "type": "Query",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [
-        {
-          "name": "conditions",
-          "type": "building_block|discounts.calculation.Conditions",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "primitive|boolean",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": 32
       }
     },
     {
@@ -1177,56 +959,6 @@
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "line": 9
-      }
-    },
-    {
-      "id": "behavior|discounts.weather.WeatherProvider.getCurrent",
-      "buildingBlockId": "building_block|discounts.weather.WeatherProvider",
-      "name": "getCurrent",
-      "type": "Query",
-      "description": "Current weather at the shop's fixed location, or none when it cannot be determined.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.weather.Weather",
-          "description": null,
-          "optional": true
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/WeatherProvider.java",
-        "line": 15
-      }
-    },
-    {
-      "id": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
-      "buildingBlockId": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
-      "name": "getCurrent",
-      "type": "Query",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.weather.Weather",
-          "description": null,
-          "optional": true
-        }
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/weather/openmeteo/OpenMeteoWeatherProvider.java",
-        "line": 44
       }
     }
   ]

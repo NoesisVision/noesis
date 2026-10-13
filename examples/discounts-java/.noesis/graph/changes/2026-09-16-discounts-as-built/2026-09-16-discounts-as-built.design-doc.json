@@ -1,0 +1,2528 @@
+{
+  "id": "2026-09-16-discounts-as-built",
+  "name": "Discounts as built",
+  "description": "This design reads the discounts code as it was built before the weather-based discount, every element added to an empty model: the [discounts](noesis:module|discounts) a shop grants on an offer, depending on the customer's status. It is the starting point the \"Weather-based discount\" change builds on.\n\n# Where it lands\n\n- [calculation](noesis:module|discounts.calculation) holds the discounts and the calculation that applies them.\n- [offers](noesis:module|discounts.offers) and [users](noesis:module|discounts.users) hold what the calculation receives: the offer and the customer.\n\n# Where to start reading\n\n1. [DiscountCalculation.calculate](noesis:behavior|discounts.calculation.DiscountCalculation.calculate), the one application service: it takes an [Offer](noesis:building_block|discounts.offers.Offer) and a [UserId](noesis:building_block|discounts.users.UserId) and gives a [DiscountedOffer](noesis:building_block|discounts.calculation.DiscountedOffer).\n2. [DiscountPolicyFactory.get](noesis:behavior|discounts.calculation.DiscountPolicyFactory.get) puts the customer's [UserStatus](noesis:building_block|discounts.users.UserStatus) into [Conditions](noesis:building_block|discounts.calculation.Conditions) and returns the discounts that apply under them.\n3. [DiscountConfig](noesis:building_block|discounts.calculation.DiscountConfig) lists the shop's [PotentialDiscount](noesis:building_block|discounts.calculation.PotentialDiscount)s; each tells whether it [applies](noesis:behavior|discounts.calculation.PotentialDiscount.isApplicableFor) and which [discount](noesis:behavior|discounts.calculation.PotentialDiscount.getDiscount) it grants.\n4. [Discount.apply](noesis:behavior|discounts.calculation.Discount.apply) adds one discount to the offer as discounted so far; the calculation applies them one after another.\n\n# Around them\n\n- The one potential discount so far: [PotentialVipUserDiscount](noesis:building_block|discounts.calculation.PotentialVipUserDiscount) for VIP customers.\n- The discounts themselves: [FixedDiscount](noesis:building_block|discounts.calculation.FixedDiscount), [ExclusiveOfferLevelDiscount](noesis:building_block|discounts.calculation.ExclusiveOfferLevelDiscount) and the per-product [ProductDiscount](noesis:building_block|discounts.calculation.ProductDiscount). Each granted one is a [DiscountAmount](noesis:building_block|discounts.calculation.DiscountAmount), on the offer or on a [DiscountedProduct](noesis:building_block|discounts.calculation.DiscountedProduct).\n- The sources: [DiscountsConfigProvider](noesis:building_block|discounts.calculation.DiscountsConfigProvider) gives the configuration and [UserStatusProvider](noesis:building_block|discounts.users.UserStatusProvider) the status.\n\n# Not in this design\n\n- No rules or scenarios: the Java scanner reads none from the code, and the design carries only what the scan returns.\n- Types without a stereotype annotation, such as the application's `App` entry point, and everything under `src/test`.",
+  "needs": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "modules": {
+    "added": [
+      {
+        "id": "module|discounts",
+        "name": {
+          "changed": true,
+          "value": "discounts",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The discounts a shop grants on an offer, worked out from who the customer is and what the weather is like.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|discounts.calculation",
+        "name": {
+          "changed": true,
+          "value": "calculation",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Turns an offer into a discounted offer: picks the discounts whose conditions hold for the customer and the weather, then applies them one after another.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|discounts.offers",
+        "name": {
+          "changed": true,
+          "value": "offers",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The offer a customer is about to buy and the products in it, as the calculation receives them.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|discounts.users",
+        "name": {
+          "changed": true,
+          "value": "users",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Who the customer is, as far as discounts care: their identity and whether they have VIP status.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "buildingBlocks": {
+    "added": [
+      {
+        "id": "building_block|discounts.calculation.Conditions",
+        "name": {
+          "changed": true,
+          "value": "Conditions",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Everything a potential discount looks at to decide whether it applies: the customer's status and the current weather, gathered at one moment.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "userStatus",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.users.UserStatus",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The status of the customer the offer is calculated for.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.Discount",
+        "name": {
+          "changed": true,
+          "value": "Discount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount that can be applied to a discounted offer, giving the offer with that discount added.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountAmount",
+        "name": {
+          "changed": true,
+          "value": "DiscountAmount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "One discount granted on an offer or a product, remembering which discount granted it so that discounts can exclude one another.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "appliedDiscount",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Discount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discount that granted this amount.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountCalculation",
+        "name": {
+          "changed": true,
+          "value": "DiscountCalculation",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "application_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Calculates the discounted offer for a customer: asks for the discounts that apply to them now and applies each to the offer in turn.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "discountsFactory",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountPolicyFactory",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Where the calculation gets the discounts that apply to the customer.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountConfig",
+        "name": {
+          "changed": true,
+          "value": "DiscountConfig",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The discounts the shop offers, each with the condition under which it applies.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "potentialDiscounts",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|discounts.calculation.PotentialDiscount"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Every discount the shop offers, with its condition.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": {
+          "changed": true,
+          "value": "DiscountPolicyFactory",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "factory",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Assembles the discounts that apply to a customer now, from the shop's discount configuration, the customer's status and the current weather.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "discountsConfigProvider",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountsConfigProvider",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Source of the shop's discount configuration.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "userStatusProvider",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.users.UserStatusProvider",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Source of the customer's status.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountedOffer",
+        "name": {
+          "changed": true,
+          "value": "DiscountedOffer",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "An offer as the calculation works on it: its products with their discounts, and the discounts granted on the offer as a whole.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "products",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|discounts.calculation.DiscountedProduct"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer's products, each with the discounts granted on it.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "offerLevelDiscounts",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|discounts.calculation.DiscountAmount"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discounts granted on the offer as a whole, in the order they were applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountedProduct",
+        "name": {
+          "changed": true,
+          "value": "DiscountedProduct",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A product of the offer together with the discounts granted on it.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "discountAmounts",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|discounts.calculation.DiscountAmount"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discounts granted on this product.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.DiscountsConfigProvider",
+        "name": {
+          "changed": true,
+          "value": "DiscountsConfigProvider",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Provides the shop's discount configuration: which discounts it offers and when each applies.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+        "name": {
+          "changed": true,
+          "value": "ExclusiveOfferLevelDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies another discount only when the offer does not already carry a discount of an excluding kind.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [
+            "building_block|discounts.calculation.Discount"
+          ],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "discountToApply",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Discount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discount applied when no excluding discount is on the offer yet.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.FixedDiscount",
+        "name": {
+          "changed": true,
+          "value": "FixedDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount of a fixed amount on the offer as a whole.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [
+            "building_block|discounts.calculation.Discount"
+          ],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "fixedDiscountAmount",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountAmount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The amount this discount grants.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.PotentialDiscount",
+        "name": {
+          "changed": true,
+          "value": "PotentialDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount the shop offers together with the condition under which it applies.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "name": {
+          "changed": true,
+          "value": "PotentialVipUserDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A fixed discount that applies to VIP customers.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [
+            "building_block|discounts.calculation.PotentialDiscount"
+          ],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "fixedDiscount",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.FixedDiscount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The fixed discount granted to VIP customers.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.calculation.ProductDiscount",
+        "name": {
+          "changed": true,
+          "value": "ProductDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount granted on each product of the offer rather than on the offer as a whole.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [
+            "building_block|discounts.calculation.Discount"
+          ],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.offers.Offer",
+        "name": {
+          "changed": true,
+          "value": "Offer",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The products a customer is about to buy, as one offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "products",
+              "type": {
+                "changed": true,
+                "value": {
+                  "collectionOf": "building_block|discounts.offers.Product"
+                },
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The products in the offer.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.offers.Product",
+        "name": {
+          "changed": true,
+          "value": "Product",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A product in an offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.users.UserId",
+        "name": {
+          "changed": true,
+          "value": "UserId",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Identifies a customer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "id",
+              "type": {
+                "changed": true,
+                "value": "primitive|uuid",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer's unique identifier.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.users.UserStatus",
+        "name": {
+          "changed": true,
+          "value": "UserStatus",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The customer's standing with the shop, as far as discounts care.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [
+            {
+              "name": "vip",
+              "type": {
+                "changed": true,
+                "value": "primitive|boolean",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "Whether the customer is a VIP.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|discounts.users.UserStatusProvider",
+        "name": {
+          "changed": true,
+          "value": "UserStatusProvider",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "external_integration",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells the status of a customer, from the system that knows the customers.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "behaviours": {
+    "added": [
+      {
+        "id": "behavior|discounts.calculation.Discount.apply",
+        "name": {
+          "changed": true,
+          "value": "apply",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the offer with this discount added.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "discountedOffer",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountedOffer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer as discounted so far.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with this discount added.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
+        "name": {
+          "changed": true,
+          "value": "calculate",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Calculates the discounted offer for a customer from the discounts that apply to them now.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "offer",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.offers.Offer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer to discount.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            },
+            {
+              "name": "user",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.users.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer the offer is for.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with every applicable discount applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
+        "name": {
+          "changed": true,
+          "value": "getDiscountsForConditions",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells which of the shop's discounts apply under the given conditions.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "conditions",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Conditions",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer's status and the weather to check the discounts against.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": {
+                "collectionOf": "building_block|discounts.calculation.Discount"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discounts whose conditions hold, in configuration order.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "name": {
+          "changed": true,
+          "value": "get",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the discounts that apply to a customer now, reading their status and the current weather.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.users.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer to find the discounts for.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": {
+                "collectionOf": "building_block|discounts.calculation.Discount"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discounts that apply to the customer now.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
+        "name": {
+          "changed": true,
+          "value": "applyDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies a discount to the offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "discount",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Discount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The discount to apply.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with the discount applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountedOffer.createFrom",
+        "name": {
+          "changed": true,
+          "value": "createFrom",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Starts the calculation from an offer: its products, none of them discounted yet.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "offer",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.offers.Offer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer to start from.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with no discount applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
+        "name": {
+          "changed": true,
+          "value": "applyDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies a product discount to this product.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "productDiscount",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.ProductDiscount",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The product discount to apply.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedProduct",
+              "description": {
+                "changed": true,
+                "value": "The product with the discount applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountedProduct.from",
+        "name": {
+          "changed": true,
+          "value": "from",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Starts a product's discounting with no discount on it.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "private"
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "product",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.offers.Product",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The product of the offer.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedProduct",
+              "description": {
+                "changed": true,
+                "value": "The product with no discount applied.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
+        "name": {
+          "changed": true,
+          "value": "getDiscountsConfig",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells which discounts the shop offers and when each applies.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountConfig",
+              "description": {
+                "changed": true,
+                "value": "The shop's discount configuration.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
+        "name": {
+          "changed": true,
+          "value": "apply",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the wrapped discount unless the offer already carries a discount of the excluding kind.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "previous",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountedOffer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer as discounted so far.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with the wrapped discount added, or unchanged when an excluding discount is already on it.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.FixedDiscount.apply",
+        "name": {
+          "changed": true,
+          "value": "apply",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Adds the fixed amount to the discounts granted on the offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "previous",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountedOffer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer as discounted so far.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with the fixed discount added.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
+        "name": {
+          "changed": true,
+          "value": "getDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the discount granted when the condition holds.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.Discount",
+              "description": {
+                "changed": true,
+                "value": "The discount to grant.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
+        "name": {
+          "changed": true,
+          "value": "isApplicableFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether the discount applies under the given conditions.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "conditions",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Conditions",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer's status and the weather to check.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "primitive|boolean",
+              "description": {
+                "changed": true,
+                "value": "Whether the discount applies.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
+        "name": {
+          "changed": true,
+          "value": "getDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the fixed discount granted to VIP customers.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.Discount",
+              "description": {
+                "changed": true,
+                "value": "The fixed discount to grant.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
+        "name": {
+          "changed": true,
+          "value": "isApplicableFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether the customer is a VIP.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "conditions",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.Conditions",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The conditions carrying the customer's status.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "primitive|boolean",
+              "description": {
+                "changed": true,
+                "value": "Whether the customer is a VIP.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.calculation.ProductDiscount.apply",
+        "name": {
+          "changed": true,
+          "value": "apply",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the discount to every product of the offer, leaving the offer-level discounts as they are.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "previous",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.calculation.DiscountedOffer",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The offer as discounted so far.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.calculation.DiscountedOffer",
+              "description": {
+                "changed": true,
+                "value": "The offer with the discount applied to each product.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|discounts.users.UserStatusProvider.getFor",
+        "name": {
+          "changed": true,
+          "value": "getFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells the status of a customer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "userId",
+              "type": {
+                "changed": true,
+                "value": "building_block|discounts.users.UserId",
+                "author": "agent"
+              },
+              "description": {
+                "changed": true,
+                "value": "The customer to look up.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|discounts.users.UserStatus",
+              "description": {
+                "changed": true,
+                "value": "The customer's status.",
+                "author": "agent"
+              },
+              "optional": {
+                "changed": true,
+                "value": false,
+                "author": "agent"
+              }
+            }
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "implemented": true,
+  "implementedAt": "2026-10-13T18:03:13.000Z"
+}
