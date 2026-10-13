@@ -1,0 +1,5361 @@
+{
+  "id": "2026-05-07-sales-as-built",
+  "name": "Sales as built",
+  "description": "This design reads the Sales code as it was built before the threshold-activated discount, every element added to an empty model: [Sales](noesis:module|Sales) prices a client's products for a sales channel and takes an [Order](noesis:building_block|Sales.Orders.Order) through price confirmation to placement. It is the starting point the \"Threshold-activated discount\" change builds on.\n\n# Where it lands\n\n- [Pricing](noesis:module|Sales.Pricing) works out what products cost a client, with [PriceLists](noesis:module|Sales.Pricing.PriceLists), [Discounts](noesis:module|Sales.Pricing.Discounts) and [SpecialOffers](noesis:module|Sales.Pricing.SpecialOffers) inside it.\n- [Orders](noesis:module|Sales.Orders) holds the order and its price agreements; [PriceChanges](noesis:module|Sales.Orders.PriceChanges) inside it decides when agreed prices may change.\n- [Clients](noesis:module|Sales.Clients), [Products](noesis:module|Sales.Products), [Commons](noesis:module|Sales.Commons), [ExchangeRates](noesis:module|Sales.ExchangeRates), [SalesChannels](noesis:module|Sales.SalesChannels) and [Time](noesis:module|Sales.Time) hold the values both rely on. [Integrations](noesis:module|Sales.Integrations) and its [RiskManagement](noesis:module|Sales.Integrations.RiskManagement) module hold no building block.\n\n# Where to start reading\n\n1. [CalculatePrices.For](noesis:behavior|Sales.Pricing.CalculatePrices.For) prices product amounts for a client, sales channel and currency, giving a [Quote](noesis:building_block|Sales.Pricing.Quote) or an [Offer](noesis:building_block|Sales.Pricing.Offer).\n2. [OfferModifiers.ChooseFor](noesis:behavior|Sales.Pricing.OfferModifiers.ChooseFor) picks how an [OfferRequest](noesis:building_block|Sales.Pricing.OfferRequest) is modified: the special offers, over [IndividualSalesConditions](noesis:building_block|Sales.Pricing.IndividualSalesConditions) in wholesale or [ProductLevelDiscounts](noesis:building_block|Sales.Pricing.Discounts.ProductLevelDiscounts) elsewhere. Each is an [OfferModifier](noesis:building_block|Sales.Pricing.OfferModifier).\n3. [Order](noesis:building_block|Sales.Orders.Order), the one aggregate: it [adds](noesis:behavior|Sales.Orders.Order.Add) product amounts, [confirms prices](noesis:behavior|Sales.Orders.Order.ConfirmPrices) from an offer and is [placed](noesis:behavior|Sales.Orders.Order.Place).\n4. [PriceChangesPolicies.ChooseFor](noesis:behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor) gives the [PriceChangesPolicy](noesis:building_block|Sales.Orders.PriceChanges.PriceChangesPolicy) an order's price confirmation follows, by the client's [ClientStatus](noesis:building_block|Sales.Clients.ClientStatus).\n\n# Around them\n\n- Discounts: [Discount](noesis:building_block|Sales.Pricing.Discounts.Discount) is a [PercentageDiscount](noesis:building_block|Sales.Pricing.Discounts.PercentageDiscount) or a [ValueDiscount](noesis:building_block|Sales.Pricing.Discounts.ValueDiscount); [ClientLevelDiscounts](noesis:building_block|Sales.Pricing.Discounts.ClientLevelDiscounts) and [ProductDiscount](noesis:building_block|Sales.Pricing.Discounts.ProductDiscount) say who gets which.\n- Special offers: [SpecialOffer](noesis:building_block|Sales.Pricing.SpecialOffers.SpecialOffer), with [ThreeForTwo](noesis:building_block|Sales.Pricing.SpecialOffers.ThreeForTwo) and [EverySecondBoxForHalfPrice](noesis:building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice) falling back on another modifier.\n- Orders: the [Factory](noesis:building_block|Sales.Orders.Factory) and [Repository](noesis:building_block|Sales.Orders.Repository) of orders, and [PriceAgreement](noesis:building_block|Sales.Orders.PriceAgreement) for each item's price.\n- Repositories: [ClientRepository](noesis:building_block|Sales.Clients.ClientRepository), [DiscountsRepository](noesis:building_block|Sales.Pricing.Discounts.DiscountsRepository) and [PriceListRepository](noesis:building_block|Sales.Pricing.PriceLists.PriceListRepository).\n- Values: [Money](noesis:building_block|Sales.Commons.Money), [Percentage](noesis:building_block|Sales.Commons.Percentage), [ProductAmount](noesis:building_block|Sales.Products.ProductAmount), [ProductUnit](noesis:building_block|Sales.Products.ProductUnit) and the rest of Commons and Products.\n\n# Not in this design\n\n- No properties, inputs, results, relations, rules or scenarios: the C# scanner reads none of them, and the design carries only what the scan returns.\n- Types without a `Ddd*` attribute, among them `OrderId`, `Order.Item`, the order's events, `ExchangeRateProvider` and `RiskManagementIntegration`; the `TechnicalStuff` namespaces and the test project.",
+  "needs": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "modules": {
+    "added": [
+      {
+        "id": "module|Sales",
+        "name": {
+          "changed": true,
+          "value": "Sales",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Selling products to clients: pricing an order's products for a client and sales channel, and taking the order through price confirmation to placement.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Clients",
+        "name": {
+          "changed": true,
+          "value": "Clients",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Who buys: a client's identity and whether they are a normal or a VIP client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Commons",
+        "name": {
+          "changed": true,
+          "value": "Commons",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Values every part of sales shares: money in a currency, percentages and tax ids.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.ExchangeRates",
+        "name": {
+          "changed": true,
+          "value": "ExchangeRates",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Converting prices between currencies.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Integrations",
+        "name": {
+          "changed": true,
+          "value": "Integrations",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "What sales learns from the company's other systems.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Integrations.RiskManagement",
+        "name": {
+          "changed": true,
+          "value": "RiskManagement",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Risk management, which sets the most an order of a client may cost.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Orders",
+        "name": {
+          "changed": true,
+          "value": "Orders",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A client's order: its products and amounts, the prices agreed for them and its placement.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Orders.PriceChanges",
+        "name": {
+          "changed": true,
+          "value": "PriceChanges",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Whether an order may take new prices once prices were already agreed for it.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Pricing",
+        "name": {
+          "changed": true,
+          "value": "Pricing",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Working out what products cost a client: base prices from the price list, then discounts and special offers on top.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Pricing.Discounts",
+        "name": {
+          "changed": true,
+          "value": "Discounts",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Discounts a client gets, on every product or on particular ones, as a percentage or a value off.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Pricing.PriceLists",
+        "name": {
+          "changed": true,
+          "value": "PriceLists",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The price list: the base price of each product unit for a client, before any discount.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Pricing.SpecialOffers",
+        "name": {
+          "changed": true,
+          "value": "SpecialOffers",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Promotions applied over the offer, such as three for two or every second box for half price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Products",
+        "name": {
+          "changed": true,
+          "value": "Products",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The products sold and the amounts and units they are sold in.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.SalesChannels",
+        "name": {
+          "changed": true,
+          "value": "SalesChannels",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Where a sale happens: online or wholesale.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "module|Sales.Time",
+        "name": {
+          "changed": true,
+          "value": "Time",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The current time, as the domain reads it.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "buildingBlocks": {
+    "added": [
+      {
+        "id": "building_block|Sales.Clients.ClientId",
+        "name": {
+          "changed": true,
+          "value": "ClientId",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Identifies a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Clients.ClientRepository",
+        "name": {
+          "changed": true,
+          "value": "ClientRepository",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells the status of a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Clients.ClientStatus",
+        "name": {
+          "changed": true,
+          "value": "ClientStatus",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A client's standing: normal or VIP.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Commons.Currency",
+        "name": {
+          "changed": true,
+          "value": "Currency",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A currency prices are given in: PLN, USD or EUR.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Commons.Money",
+        "name": {
+          "changed": true,
+          "value": "Money",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "An amount of money in a currency; arithmetic and comparison only between amounts of the same currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Commons.Percentage",
+        "name": {
+          "changed": true,
+          "value": "Percentage",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A whole-number percentage, readable as a fraction.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Commons.TaxId",
+        "name": {
+          "changed": true,
+          "value": "TaxId",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A tax identification number.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.ExchangeRates.ExchangeRate",
+        "name": {
+          "changed": true,
+          "value": "ExchangeRate",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The rate converting money into a target currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.InvoicingDetails",
+        "name": {
+          "changed": true,
+          "value": "InvoicingDetails",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Who the order is invoiced to: their tax id and name.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.Factory",
+        "name": {
+          "changed": true,
+          "value": "Factory",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "factory",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Creates orders: new ones capped at the most the client may spend, and ones placed at once from an offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceAgreement",
+        "name": {
+          "changed": true,
+          "value": "PriceAgreement",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "What was agreed about the price of an order item: nothing yet, a temporary price until a date, or a final price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.Repository",
+        "name": {
+          "changed": true,
+          "value": "Repository",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Stores orders and finds them by id.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.Order",
+        "name": {
+          "changed": true,
+          "value": "Order",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "aggregate",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A client's order: the product amounts in it, the price agreed for each, and whether it is placed.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.OrderItemDetails",
+        "name": {
+          "changed": true,
+          "value": "OrderItemDetails",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "One item of an order as the outside world gives it: product, amount, unit and price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceAgreementType",
+        "name": {
+          "changed": true,
+          "value": "PriceAgreementType",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The kind of price agreement: none, temporary or final.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
+        "name": {
+          "changed": true,
+          "value": "AllowAnyPriceChanges",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Lets an order take new prices whatever they are.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
+        "name": {
+          "changed": true,
+          "value": "AllowPriceChangesIfTotalPriceIsLower",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Lets an order take new prices only when they make its total lower.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
+        "name": {
+          "changed": true,
+          "value": "PriceChangesPolicies",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "factory",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Chooses the price-change policy for a client by their status: any change for a normal client, only a lower total for a VIP.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+        "name": {
+          "changed": true,
+          "value": "PriceChangesPolicy",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Decides whether an order's agreed prices may be replaced by new ones.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.CalculatePrices",
+        "name": {
+          "changed": true,
+          "value": "CalculatePrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Calculates the prices of products for a client, sales channel and currency: base prices from the price list, modified by the discounts and offers that apply, converted to the currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+        "name": {
+          "changed": true,
+          "value": "ClientLevelDiscounts",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The discounts a client has: one for particular product units, and a base discount for everything else.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.Discount",
+        "name": {
+          "changed": true,
+          "value": "Discount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount off a price, either a percentage or a value.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
+        "name": {
+          "changed": true,
+          "value": "DiscountsRepository",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds the discounts of a client and those of particular products.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+        "name": {
+          "changed": true,
+          "value": "PercentageDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount of a percentage of the price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+        "name": {
+          "changed": true,
+          "value": "ProductDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount on one product unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+        "name": {
+          "changed": true,
+          "value": "ProductLevelDiscounts",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Discounts on particular product units, applied to the quotes of those units.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+        "name": {
+          "changed": true,
+          "value": "ValueDiscount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A discount of a fixed value off the price, never taking it below zero.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.IndividualSalesConditions",
+        "name": {
+          "changed": true,
+          "value": "IndividualSalesConditions",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A wholesale client's individual conditions: of the client's and the product discounts, whichever gives the lower price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Offer",
+        "name": {
+          "changed": true,
+          "value": "Offer",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The quotes for the products a client asked about, in one currency, with their total price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.OfferModifier",
+        "name": {
+          "changed": true,
+          "value": "OfferModifier",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Changes the prices of an offer, such as a discount or a special offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.OfferModifiers",
+        "name": {
+          "changed": true,
+          "value": "OfferModifiers",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "factory",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Chooses how an offer's prices are modified for a request: the special offers, over individual sales conditions in wholesale or product discounts elsewhere.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.OfferRequest",
+        "name": {
+          "changed": true,
+          "value": "OfferRequest",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "What an offer is asked for: the client, the sales channel and the product amounts.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.PriceLists.BasePrice",
+        "name": {
+          "changed": true,
+          "value": "BasePrice",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The base price of one product unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.PriceLists.BasePrices",
+        "name": {
+          "changed": true,
+          "value": "BasePrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The base prices of several product units, from which the price of an amount is read.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+        "name": {
+          "changed": true,
+          "value": "PriceListRepository",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds the base prices of products for a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.Quote",
+        "name": {
+          "changed": true,
+          "value": "Quote",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The price of one product amount.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.QuoteModifier",
+        "name": {
+          "changed": true,
+          "value": "QuoteModifier",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Changes the price of a single quote.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+        "name": {
+          "changed": true,
+          "value": "EverySecondBoxForHalfPrice",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A special offer selling every second box at half price, falling back on another modifier; not implemented yet.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
+        "name": {
+          "changed": true,
+          "value": "SpecialOffer",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A special offer over an offer, falling back on another modifier where it does not apply.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+        "name": {
+          "changed": true,
+          "value": "ThreeForTwo",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A special offer of three for the price of two, falling back on another modifier; not implemented yet.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Products.Amount",
+        "name": {
+          "changed": true,
+          "value": "Amount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A quantity in a unit; adding or subtracting needs the same unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Products.AmountUnit",
+        "name": {
+          "changed": true,
+          "value": "AmountUnit",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The unit a product is sold in: unit, box or palette.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Products.ProductAmount",
+        "name": {
+          "changed": true,
+          "value": "ProductAmount",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "An amount of one product.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Products.ProductId",
+        "name": {
+          "changed": true,
+          "value": "ProductId",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Identifies a product.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Products.ProductUnit",
+        "name": {
+          "changed": true,
+          "value": "ProductUnit",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "A product in a given unit, as it is priced.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.SalesChannels.SalesChannel",
+        "name": {
+          "changed": true,
+          "value": "SalesChannel",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The channel a sale is made in: online or wholesale.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "building_block|Sales.Time.Clock",
+        "name": {
+          "changed": true,
+          "value": "Clock",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "domain_service",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells the current time.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "implements": {
+          "added": [],
+          "removed": []
+        },
+        "properties": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "behaviours": {
+    "added": [
+      {
+        "id": "behavior|Sales.Clients.ClientId.New",
+        "name": {
+          "changed": true,
+          "value": "New",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a new, unique client id.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Clients.ClientId.From",
+        "name": {
+          "changed": true,
+          "value": "From",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the client id of a known identifier.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
+        "name": {
+          "changed": true,
+          "value": "GetStatusFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells the status of a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Commons.Money.Zero",
+        "name": {
+          "changed": true,
+          "value": "Zero",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives no money in a currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Commons.Money.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives an amount of money in a currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Commons.Money.Max",
+        "name": {
+          "changed": true,
+          "value": "Max",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the larger of two amounts.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Commons.Percentage.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a percentage of a whole number.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the rate converting into a currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Converts a price at this rate.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Factory.NewWithMaxTotalCostFor",
+        "name": {
+          "changed": true,
+          "value": "NewWithMaxTotalCostFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Creates an order for a client, capped at the total cost risk management allows them.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Factory.NewWith",
+        "name": {
+          "changed": true,
+          "value": "NewWith",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Creates an order capped at a total cost.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Factory.ImmediatelyPlacedBasedOn",
+        "name": {
+          "changed": true,
+          "value": "ImmediatelyPlacedBasedOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Creates an order from an offer, with its prices agreed and the order placed.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceAgreement.Non",
+        "name": {
+          "changed": true,
+          "value": "Non",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the agreement of an item whose price is not agreed yet.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceAgreement.Temporary",
+        "name": {
+          "changed": true,
+          "value": "Temporary",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives an agreement on a price valid until a date.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceAgreement.Final",
+        "name": {
+          "changed": true,
+          "value": "Final",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives an agreement on a price for good.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceAgreement.CanChangePrice",
+        "name": {
+          "changed": true,
+          "value": "CanChangePrice",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether the agreed price may still change.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceAgreement.IsValidOn",
+        "name": {
+          "changed": true,
+          "value": "IsValidOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether the agreement holds on a date.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Repository.GetBy",
+        "name": {
+          "changed": true,
+          "value": "GetBy",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds an order by its id.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Repository.Save",
+        "name": {
+          "changed": true,
+          "value": "Save",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Stores an order.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Order.Add",
+        "name": {
+          "changed": true,
+          "value": "Add",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Adds a product amount to the order, to the item of that product unit if there is one.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Order.ConfirmPrices",
+        "name": {
+          "changed": true,
+          "value": "ConfirmPrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Agrees the prices of an offer for the order's items, final or until a date, where the price-change policy allows.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Order.Place",
+        "name": {
+          "changed": true,
+          "value": "Place",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Command",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Places the order, once every item has a price agreement valid now; placing it again changes nothing.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.Order.HasSameDataAs",
+        "name": {
+          "changed": true,
+          "value": "HasSameDataAs",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether another order holds the same data.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
+        "name": {
+          "changed": true,
+          "value": "CanChangePrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Allows any new prices.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
+        "name": {
+          "changed": true,
+          "value": "CanChangePrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Allows new prices only when their total is lower than that of the prices they replace.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
+        "name": {
+          "changed": true,
+          "value": "ChooseFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Chooses the price-change policy for a client by their status.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
+        "name": {
+          "changed": true,
+          "value": "CanChangePrices",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether the old quotes may be replaced by the new ones.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.CalculatePrices.For",
+        "name": {
+          "changed": true,
+          "value": "For",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Calculates the quote of one product amount, or the offer for several, for a client, sales channel and currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the client's discount for each product unit, or their base discount, to a quote or every quote of an offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
+        "name": {
+          "changed": true,
+          "value": "Percentage",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a discount of a percentage.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
+        "name": {
+          "changed": true,
+          "value": "Value",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a discount of a value.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the price after this discount.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
+        "name": {
+          "changed": true,
+          "value": "GetFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds the discounts of a client, or those on the given products.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a discount of a percentage.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the price less the percentage.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a discount on a product unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the discounts on the given product units.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the discount of each quote's product unit, where there is one, to a quote or every quote of an offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a discount of a value.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the price less the value, but never below zero.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives each quote the lower of its price after the client's discounts and after the product discounts.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Offer.FromQuotes",
+        "name": {
+          "changed": true,
+          "value": "FromQuotes",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives an offer of quotes in a currency.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Offer.Compare",
+        "name": {
+          "changed": true,
+          "value": "Compare",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Tells whether this offer's total is within an accuracy of another's.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the offer with its prices modified.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+        "name": {
+          "changed": true,
+          "value": "ChooseFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Chooses the modifier of an offer request: three for two over every second box for half price, over individual sales conditions in wholesale or product discounts elsewhere.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.OfferRequest.For",
+        "name": {
+          "changed": true,
+          "value": "For",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a request for an offer for a client, sales channel and product amounts.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the base price of a product unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives base prices of several product units.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
+        "name": {
+          "changed": true,
+          "value": "GetFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the base price of a product amount.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
+        "name": {
+          "changed": true,
+          "value": "GetBasePriceFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds the base price of a product amount for a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
+        "name": {
+          "changed": true,
+          "value": "GetBasePricesFor",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Finds the base prices of product amounts for a client.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Quote.For",
+        "name": {
+          "changed": true,
+          "value": "For",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the quote of a product amount at a price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.Quote.ChangePrice",
+        "name": {
+          "changed": true,
+          "value": "ChangePrice",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the same product amount at a new price.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the quote with its price modified.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
+        "name": {
+          "changed": true,
+          "value": "Or",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the offer with a modifier to fall back on.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the special offer to an offer; until it is implemented, the fallback modifier.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the fallback modifier to an offer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
+        "name": {
+          "changed": true,
+          "value": "Or",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the offer with a modifier to fall back on.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
+        "name": {
+          "changed": true,
+          "value": "ApplyOn",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Applies the special offer to an offer; until it is implemented, the fallback modifier.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Products.Amount.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a quantity in a unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Products.ProductAmount.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives an amount of a product.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Products.ProductId.New",
+        "name": {
+          "changed": true,
+          "value": "New",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a new, unique product id.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Products.ProductId.From",
+        "name": {
+          "changed": true,
+          "value": "From",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives the product id of a known identifier.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      },
+      {
+        "id": "behavior|Sales.Products.ProductUnit.Of",
+        "name": {
+          "changed": true,
+          "value": "Of",
+          "author": "agent"
+        },
+        "type": {
+          "changed": true,
+          "value": "Query",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Gives a product in a unit.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": true,
+          "value": {
+            "kind": "public",
+            "actors": []
+          },
+          "author": "agent"
+        },
+        "input": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "output": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "implemented": true,
+  "implementedAt": "2026-10-13T18:03:13.000Z"
+}

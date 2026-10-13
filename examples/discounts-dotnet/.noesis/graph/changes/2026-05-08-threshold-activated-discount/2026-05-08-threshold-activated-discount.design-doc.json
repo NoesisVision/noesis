@@ -67,12 +67,12 @@
     ]
   },
   "modules": {
-    "added": [
+    "added": [],
+    "modified": [
       {
         "id": "module|Sales",
         "name": {
-          "value": "Sales",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "The Sales bounded context: selling products to customers, including the price of a single product and the discounts that reduce it.",
@@ -82,8 +82,7 @@
       {
         "id": "module|Sales.Pricing.Discounts",
         "name": {
-          "value": "Discounts",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "The discounts a single product's price can be given — a percentage off, a fixed amount off, or a percentage off above a threshold — and the one `Discount` that stands for any of them.",
@@ -325,16 +324,16 @@
             }
           ]
         }
-      },
+      }
+    ],
+    "modified": [
       {
         "id": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
         "name": {
-          "value": "PercentageDiscount",
-          "author": "agent"
+          "changed": false
         },
         "type": {
-          "value": "value_object",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "A discount that reduces any price by a set percentage.",
@@ -363,12 +362,10 @@
       {
         "id": "building_block|Sales.Pricing.Discounts.ValueDiscount",
         "name": {
-          "value": "ValueDiscount",
-          "author": "agent"
+          "changed": false
         },
         "type": {
-          "value": "value_object",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "A discount that takes a fixed amount of money off a price, never taking it below zero.",
@@ -397,12 +394,10 @@
       {
         "id": "building_block|Sales.Pricing.Discounts.Discount",
         "name": {
-          "value": "Discount",
-          "author": "agent"
+          "changed": false
         },
         "type": {
-          "value": "value_object",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "Any one discount — a percentage, a fixed amount or a threshold discount — held as a single value, so a caller can apply a discount without knowing which kind it is.",
@@ -674,17 +669,21 @@
         }
       },
       {
-        "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "id": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
         "name": {
-          "value": "ApplyOn",
+          "value": "Threshold",
           "author": "agent"
         },
         "type": {
-          "value": "Query",
+          "value": "Command",
           "author": "agent"
         },
         "definition": {
-          "value": "Reduces a price by the discount's percentage.",
+          "value": "Makes a `Discount` that reduces prices by a percentage, but only above a threshold.",
+          "author": "agent"
+        },
+        "diagram": {
+          "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant ThresholdDiscount\n    participant Percentage\n    Caller->>Discount: Threshold(value, threshold)\n    Discount->>ThresholdDiscount: Of(value, threshold)\n    ThresholdDiscount->>Percentage: validate value (range [0%, 100%])\n    Percentage-->>ThresholdDiscount: ok / domain error\n    ThresholdDiscount->>ThresholdDiscount: assert threshold > 0\n    ThresholdDiscount-->>Discount: ThresholdDiscount instance\n    Discount->>Discount: assemble Discount{ discriminator = Threshold, _thresholdDiscount = instance }\n    Discount-->>Caller: Discount",
           "author": "agent"
         },
         "visibility": {
@@ -693,6 +692,65 @@
             "actors": []
           },
           "author": "agent"
+        },
+        "input": {
+          "added": [
+            {
+              "name": "percentage",
+              "type": {
+                "value": "building_block|Sales.Commons.Percentage"
+              },
+              "description": {
+                "value": "The percentage to take off above the threshold; it lies within `[0%, 100%]`, which `Percentage` itself enforces."
+              },
+              "optional": {
+                "value": false
+              }
+            },
+            {
+              "name": "money",
+              "type": {
+                "value": "building_block|Sales.Commons.Money"
+              },
+              "description": {
+                "value": "The threshold a price must strictly exceed for the discount to apply; it must be strictly positive."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
+        },
+        "output": {
+          "added": [
+            {
+              "type": "building_block|Sales.Pricing.Discounts.Discount",
+              "description": {
+                "value": "A `Discount` holding a threshold discount, which callers hold without knowing its kind."
+              },
+              "optional": {
+                "value": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "modified": [
+      {
+        "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "value": "Reduces a price by the discount's percentage.",
+          "author": "agent"
+        },
+        "visibility": {
+          "changed": false
         },
         "input": {
           "added": [
@@ -813,23 +871,17 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
         "name": {
-          "value": "ApplyOn",
-          "author": "agent"
+          "changed": false
         },
         "type": {
-          "value": "Query",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "Takes the discount's amount off a price, never going below zero.",
           "author": "agent"
         },
         "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
+          "changed": false
         },
         "input": {
           "added": [
@@ -950,8 +1002,7 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
         "name": {
-          "value": "Percentage",
-          "author": "agent"
+          "changed": false
         },
         "type": {
           "value": "Command",
@@ -962,11 +1013,7 @@
           "author": "agent"
         },
         "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
+          "changed": false
         },
         "input": {
           "added": [
@@ -1001,8 +1048,7 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
         "name": {
-          "value": "Value",
-          "author": "agent"
+          "changed": false
         },
         "type": {
           "value": "Command",
@@ -1013,11 +1059,7 @@
           "author": "agent"
         },
         "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
+          "changed": false
         },
         "input": {
           "added": [
@@ -1050,81 +1092,12 @@
         }
       },
       {
-        "id": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
-        "name": {
-          "value": "Threshold",
-          "author": "agent"
-        },
-        "type": {
-          "value": "Command",
-          "author": "agent"
-        },
-        "definition": {
-          "value": "Makes a `Discount` that reduces prices by a percentage, but only above a threshold.",
-          "author": "agent"
-        },
-        "diagram": {
-          "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant ThresholdDiscount\n    participant Percentage\n    Caller->>Discount: Threshold(value, threshold)\n    Discount->>ThresholdDiscount: Of(value, threshold)\n    ThresholdDiscount->>Percentage: validate value (range [0%, 100%])\n    Percentage-->>ThresholdDiscount: ok / domain error\n    ThresholdDiscount->>ThresholdDiscount: assert threshold > 0\n    ThresholdDiscount-->>Discount: ThresholdDiscount instance\n    Discount->>Discount: assemble Discount{ discriminator = Threshold, _thresholdDiscount = instance }\n    Discount-->>Caller: Discount",
-          "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "percentage",
-              "type": {
-                "value": "building_block|Sales.Commons.Percentage"
-              },
-              "description": {
-                "value": "The percentage to take off above the threshold; it lies within `[0%, 100%]`, which `Percentage` itself enforces."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The threshold a price must strictly exceed for the discount to apply; it must be strictly positive."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Pricing.Discounts.Discount",
-              "description": {
-                "value": "A `Discount` holding a threshold discount, which callers hold without knowing its kind."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        }
-      },
-      {
         "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
         "name": {
-          "value": "ApplyOn",
-          "author": "agent"
+          "changed": false
         },
         "type": {
-          "value": "Query",
-          "author": "agent"
+          "changed": false
         },
         "definition": {
           "value": "Applies whichever discount the `Discount` holds to a price.",
@@ -1135,11 +1108,7 @@
           "author": "agent"
         },
         "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
+          "changed": false
         },
         "input": {
           "added": [
