@@ -1,0 +1,8 @@
+{
+  "id": "2026-05-07-sales-as-built",
+  "name": "Sales as built",
+  "key": "",
+  "type": "chore",
+  "status": "done",
+  "description": "The Sales code as it was before the threshold-activated discount, as the C# scanner reads it, reverse-engineered into one green-field design document and marked implemented: the starting point the threshold change builds on."
+}

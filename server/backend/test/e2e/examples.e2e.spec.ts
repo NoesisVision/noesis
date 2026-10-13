@@ -21,6 +21,7 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
   },
   'discounts-dotnet': {
     '2026-05-08-threshold-activated-discount': { designDocs: 1, documents: 2 },
+    '2026-05-07-sales-as-built': { designDocs: 1, documents: 0 },
   },
 };
 
