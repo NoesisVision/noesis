@@ -10,7 +10,6 @@ import com.itlibrium.discounts.offers.Offer;
 import com.itlibrium.discounts.offers.Product;
 import com.itlibrium.discounts.users.UserId;
 import com.itlibrium.discounts.users.UserStatusProvider;
-import com.itlibrium.discounts.weather.openmeteo.OpenMeteoWeatherProvider;
 import io.vavr.collection.List;
 
 import java.util.UUID;
@@ -23,7 +22,7 @@ public class App {
     public static void main(String[] args) {
         DiscountCalculation discountCalculation = new DiscountCalculation(
             new DiscountPolicyFactory(
-                new DiscountsConfigProvider(), new UserStatusProvider(), new OpenMeteoWeatherProvider()
+                new DiscountsConfigProvider(), new UserStatusProvider()
             )
         );
         discountCalculation.calculate(new Offer(List.of(new Product())), new UserId(UUID.randomUUID()));

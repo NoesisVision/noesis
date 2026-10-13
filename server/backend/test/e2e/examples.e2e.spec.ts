@@ -17,6 +17,7 @@ interface ExpectedChange {
 const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
   'discounts-java': {
     '2026-09-17-weather-based-discount': { designDocs: 1, documents: 2 },
+    '2026-09-16-discounts-as-built': { designDocs: 1, documents: 0 },
   },
   'discounts-dotnet': {
     '2026-05-08-threshold-activated-discount': { designDocs: 1, documents: 2 },

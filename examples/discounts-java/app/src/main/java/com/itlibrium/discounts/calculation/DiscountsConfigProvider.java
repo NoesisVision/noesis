@@ -8,9 +8,6 @@ import io.vavr.collection.List;
 public class DiscountsConfigProvider {
 
     public DiscountConfig getDiscountsConfig() {
-        return new DiscountConfig(List.of(
-            new PotentialVipUserDiscount(new FixedDiscount(new DiscountAmount())),
-            new PotentialPrecipitationDiscount(new PercentageDiscount(10))
-        ));
+        return new DiscountConfig(List.of(new PotentialVipUserDiscount(new FixedDiscount(new DiscountAmount()))));
     }
 }

@@ -335,6 +335,10 @@
               "description": {
                 "value": "Port used to read the current weather once per policy resolution.",
                 "author": "agent"
+              },
+              "optional": {
+                "value": false,
+                "author": "agent"
               }
             }
           ]
@@ -718,12 +722,6 @@
           "value": "sequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>",
           "author": "agent"
         },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
         "rules": {
           "added": [
             {
@@ -772,15 +770,9 @@
         }
       },
       {
-        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        }
+        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
       }
     ]
   },
-  "implemented": true
+  "implemented": false
 }

@@ -30,7 +30,6 @@ dependencies {
     implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
 
     implementation 'io.vavr:vavr:0.10.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
     compileOnly 'org.projectlombok:lombok:1.18.48'
     annotationProcessor 'org.projectlombok:lombok:1.18.48'
 

@@ -23,17 +23,3 @@ class PotentialVipUserDiscount implements PotentialDiscount {
         return fixedDiscount;
     }
 }
-
-@DomainService
-@RequiredArgsConstructor
-class PotentialPrecipitationDiscount implements PotentialDiscount {
-    private final PercentageDiscount discount;
-
-    public boolean isApplicableFor(Conditions conditions) {
-        return conditions.getWeather().exists(weather -> weather.getPrecipitation() > 0);
-    }
-
-    public PercentageDiscount getDiscount() {
-        return discount;
-    }
-}
