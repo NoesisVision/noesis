@@ -8,14 +8,14 @@ const SCANNERS: Record<
   ScannerName,
   (deps: DummyScannerDeps) => SourceCodeScanner
 > = {
-  java: () => new JavaSourceCodeScanner(),
+  java: (deps) => new JavaSourceCodeScanner(deps),
   csharp: (deps) => new CSharpSourceCodeScanner(deps),
   dummy: (deps) => new DummySourceCodeScanner(deps),
 };
 
 /**
- * `deps` is what the dummy scanner replays design documents from; the C#
- * scanner takes the repository root and the clock from it.
+ * `deps` is what the dummy scanner replays design documents from; the Java
+ * and C# scanners take the repository root and the clock from it.
  */
 export function createScanner(
   name: ScannerName,
