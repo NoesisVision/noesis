@@ -1,0 +1,48 @@
+/*
+ * Text a human wrote, underlined in dotted gray: the line runs under the
+ * words themselves, line by line, never around the block that holds them.
+ * Set on everything inside too: a line drawn on a parent stops at a child
+ * laid out as a block of its own — a button written in place, a spoiler.
+ * Named twice, to win over the reset a button gives its text.
+ */
+.text.text,
+.text.text *,
+.written.written,
+.written.written * {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--mantine-color-gray-5);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+/*
+ * Being written, the text is the writer's own again: no line under it while
+ * it is open — typed in place, picked in a list or chips, or in the editor.
+ */
+.text.text:is([contenteditable='true'], [contenteditable='plaintext-only']),
+.text.text:is([contenteditable='true'], [contenteditable='plaintext-only']) *,
+.text.text:has(
+    :is(
+      [contenteditable='true'],
+      [contenteditable='plaintext-only'],
+      input,
+      textarea
+    )
+  ),
+.text.text:has(
+    :is(
+      [contenteditable='true'],
+      [contenteditable='plaintext-only'],
+      input,
+      textarea
+    )
+  )
+  * {
+  text-decoration-line: none;
+}
+
+/* Text only read, its figure hanging just past its edge. */
+.written {
+  position: relative;
+}

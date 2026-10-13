@@ -1,8 +1,13 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type { TreeMoving } from '#/features/design-docs/ui/model-tree/model-tree.tsx';
 import { expansionMemory } from '#/features/design-docs/ui/model-tree/outline-memory.ts';
+import {
+  type OutlineScope,
+  publicOutline,
+} from '#/features/design-docs/ui/model-tree/outline-scope.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
+import { useLocalStorage } from '#/shared/design-system/hooks.ts';
 import { Text } from '#/shared/design-system/text.tsx';
 import {
   canMove,
@@ -37,17 +42,36 @@ export function DesignDocWorkbench({
   detail: DesignDocDetail;
 } & ViewPlace) {
   const { document: doc, outline } = detail;
+  // All of the model, or only its public face; kept for the reader.
+  const [scope, setScope] = useLocalStorage<OutlineScope>({
+    key: 'noesis.designDocs.modelScope',
+    defaultValue: 'all',
+    getInitialValueInEffect: false,
+  });
+  const shown = useMemo(
+    () => (scope === 'public' ? publicOutline(outline, doc) : outline),
+    [scope, outline, doc],
+  );
   const memory = useMemo(
     () => expansionMemory(`noesis.designDocs.${detail.document.id}.expanded`),
     [detail.document.id],
   );
-  const { controller, outlineRef } = useFollowingTree(outline, {
+  const { controller, outlineRef } = useFollowingTree(shown, {
     selected: addressed,
     onSelect,
     query,
     onQuery,
     memory,
   });
+  // The public face is a few rows deep at most: switched to, it opens in
+  // full — once, so a row shut after is left shut and a search keeps its own.
+  const { expandAll } = controller;
+  const openedFor = useRef<OutlineScope>('all');
+  useEffect(() => {
+    if (openedFor.current === scope) return;
+    openedFor.current = scope;
+    if (scope === 'public') expandAll();
+  }, [scope, expandAll]);
   const selected = controller.selectedNode;
   const { tree } = controller;
   const selectedPath = useMemo(
@@ -65,7 +89,12 @@ export function DesignDocWorkbench({
 
   return (
     <Columns
-      search={<OutlineSearchBox controller={controller} />}
+      search={
+        <OutlineSearchBox
+          controller={controller}
+          scope={{ value: scope, onChange: setScope }}
+        />
+      }
       outline={<Outline controller={controller} moving={moving} />}
       outlineRef={outlineRef}
       detail={

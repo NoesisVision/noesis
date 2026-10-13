@@ -7,6 +7,7 @@ import {
   valueOf,
 } from '../../../../design-doc-field.ts';
 import type { ElementRef } from '../../element-ref.ts';
+import { humanText } from '../../human-mark.tsx';
 import { DetailSection } from './detail-section.tsx';
 
 interface DescriptionSectionProps {
@@ -52,7 +53,9 @@ export function DescriptionSection({
           Not specified.
         </Text>
       ) : (
-        <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
+        <div className={humanText([field])}>
+          <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
+        </div>
       )}
       {slots?.bottom}
     </DetailSection>

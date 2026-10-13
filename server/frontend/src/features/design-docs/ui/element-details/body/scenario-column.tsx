@@ -16,6 +16,7 @@ import { valueOf } from '../../../design-doc-field.ts';
 import { NewScenarioButton } from '../../unit-editor/new-buttons.tsx';
 import { ScenarioActions } from '../../unit-editor/scenario-actions.tsx';
 import { ChangeBadge } from '../change-badge.tsx';
+import { nameFieldsOf, WrittenBy } from '../human-mark.tsx';
 import { SCENARIO_TRANSITION, useScenarioFocus } from './scenario-focus.tsx';
 import type { ScenarioEntry } from './scenarios-of.ts';
 import { ScenarioSteps } from './sections/scenario-steps-section.tsx';
@@ -116,14 +117,18 @@ export function ScenarioColumn({
                 <IconListCheck size={16} className={classes.dim} aria-hidden />
                 <span className={classes.text}>
                   <span className={classes.nameLine}>
-                    <span
-                      className={classes.name}
-                      // Cut short where the column is narrow: whole on hover.
-                      title={entry.name}
-                      data-removed={entry.change === 'removed' || undefined}
-                    >
-                      {entry.name}
-                    </span>
+                    {/* The name has no writer of its own: marked only where
+                        a human made the whole scenario. */}
+                    <WrittenBy fields={nameFieldsOf(entry.scenario)}>
+                      <span
+                        className={classes.name}
+                        // Cut short where the column is narrow: whole on hover.
+                        title={entry.name}
+                        data-removed={entry.change === 'removed' || undefined}
+                      >
+                        {entry.name}
+                      </span>
+                    </WrittenBy>
                     <ChangeBadge change={entry.change} inline />
                   </span>
                   {entry.rule !== undefined && (

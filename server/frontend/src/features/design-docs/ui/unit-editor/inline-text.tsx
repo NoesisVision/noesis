@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { HoverMarks } from './hover-marks.tsx';
 import classes from './inline-edit.module.css';
 
 /**
@@ -24,6 +25,7 @@ import classes from './inline-edit.module.css';
  */
 export function InlineText({
   label,
+  human = false,
   value,
   onSave,
   multiline = false,
@@ -33,6 +35,8 @@ export function InlineText({
 }: {
   /** What the text is, for whoever cannot see it: "Name", "Description". */
   label: string;
+  /** Whether a human wrote it: its figure shows beside the pencil. */
+  human?: boolean;
   value: string;
   /** Saves the new text; answers what is wrong with it, or null. */
   onSave: (next: string) => Promise<string | null>;
@@ -112,12 +116,13 @@ export function InlineText({
     return (
       <UnstyledButton
         className={clsx(classes.editable, empty && classes.empty, className)}
-        title={`Edit the ${label.toLowerCase()}`}
+        data-edit={label.toLowerCase()}
         onClick={start}
       >
         {empty
           ? (placeholder ?? `No ${label.toLowerCase()}`)
           : (children ?? value)}
+        <HoverMarks editable human={human} />
       </UnstyledButton>
     );
   }

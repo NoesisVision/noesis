@@ -4,6 +4,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { HoverMarks } from './hover-marks.tsx';
 import classes from './inline-edit.module.css';
 
 /**
@@ -14,11 +15,14 @@ import classes from './inline-edit.module.css';
  */
 export function InlineMarkdown({
   label,
+  human = false,
   value,
   onSave,
   children,
 }: {
   label: string;
+  /** Whether a human wrote it: its figure shows beside the pencil. */
+  human?: boolean;
   value: string;
   /** Saves the new text; answers what is wrong with it, or null. */
   onSave: (next: string) => Promise<string | null>;
@@ -60,7 +64,7 @@ export function InlineMarkdown({
         role="button"
         tabIndex={0}
         aria-label={`Edit the ${label.toLowerCase()}`}
-        title={`Edit the ${label.toLowerCase()}`}
+        data-edit={label.toLowerCase()}
         className={classes.block}
         onClick={(event) => {
           if (!onLink(event.target)) start();
@@ -75,6 +79,7 @@ export function InlineMarkdown({
         }}
       >
         {children}
+        <HoverMarks editable human={human} />
       </div>
     );
   return (

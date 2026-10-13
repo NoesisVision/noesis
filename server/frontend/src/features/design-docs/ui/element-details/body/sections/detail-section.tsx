@@ -1,15 +1,11 @@
-import { IconSparkles, IconUser } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import type { ComponentProps, PropsWithChildren, ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Divider } from '#/shared/design-system/divider.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
-import {
-  type DesignDocFieldInput,
-  isHumanAuthored as humanAuthored,
-} from '../../../../design-doc-field.ts';
+import { type DesignDocFieldInput } from '../../../../design-doc-field.ts';
+import { WrittenBy } from '../../human-mark.tsx';
 import classes from './detail-section.module.css';
 
 interface DetailSectionProps
@@ -32,7 +28,6 @@ export function DetailSection({
   muted,
   ...props
 }: DetailSectionProps) {
-  const isHumanAuthored = field === undefined ? null : humanAuthored(field);
   return (
     <Stack
       component="section"
@@ -49,18 +44,8 @@ export function DetailSection({
               {icon}
             </Box>
           )}
-          {title}
-          {isHumanAuthored !== null && (
-            // Said in words, so it needs no name of its own.
-            <Text span fz="xs" fw={500} c="dimmed" className={classes.author}>
-              {isHumanAuthored ? (
-                <IconUser size={14} aria-hidden />
-              ) : (
-                <IconSparkles size={14} aria-hidden />
-              )}
-              {isHumanAuthored ? 'Written by a human' : 'AI-generated'}
-            </Text>
-          )}
+          {/* What it holds a human wrote: the title is marked as the text is. */}
+          <WrittenBy fields={[field]}>{title}</WrittenBy>
         </Group>
       )}
       <Box>{children}</Box>

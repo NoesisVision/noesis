@@ -46,7 +46,8 @@ describe('A rule in the details panel', () => {
   it('reads its rationale, when the design gives one', () => {
     const html = show(BLOCK_RULE);
     // The markdown reader draws the text itself once mounted.
-    expect(html).toMatch(/>Rationale<[\s\S]*Written by a human/);
+    // A human wrote it: the section's title is marked so.
+    expect(html).toMatch(/data-written-by="human"[^>]*>Rationale</);
     expect(show(MODULE_RULE)).not.toContain('>Rationale<');
   });
 

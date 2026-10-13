@@ -1,4 +1,5 @@
 import { IconArrowRight, IconScale } from '@tabler/icons-react';
+import { clsx } from 'clsx';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Anchor } from '#/shared/design-system/anchor.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -9,7 +10,11 @@ import type {
   RuleType,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../../../change-set.ts';
-import { type PartOwner, RULE_TYPES_OF } from '../../../../design-doc-edit.ts';
+import {
+  type PartOwner,
+  RULE_TYPES_OF,
+  unitOf,
+} from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { tracedTo } from '../../../../design-doc-requirements.ts';
 import { InlineChips } from '../../../unit-editor/inline-chips.tsx';
@@ -21,8 +26,15 @@ import { useUnitEditing } from '../../../unit-editor/unit-editing.ts';
 import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
 import { ChangeBadge } from '../../change-badge.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
+import { useDesignDocument } from '../../design-document-context.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ListTooltip } from '../../element-tooltip.tsx';
+import {
+  nameFieldsOf,
+  writtenByHuman,
+  humanText,
+  WrittenBy,
+} from '../../human-mark.tsx';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
 import { useScenarioFocus } from '../scenario-focus.tsx';
 import classes from './rule-cards.module.css';
@@ -87,6 +99,21 @@ function RuleCard({
           value: need.id,
           label: valueOf(need.name) ?? need.id,
         }));
+  // What the design writes of the rule, for who wrote it — read only or not.
+  const doc = useDesignDocument();
+  const designed =
+    doc === null || owner === null
+      ? null
+      : (unitOf(doc, {
+          kind: 'rule',
+          id: label,
+          owner,
+        }) as DesignedRuleInput | null);
+  // What the rule's kind is made of, for who wrote it.
+  const kind = [designed?.category, designed?.ruleType];
+  // The rule's name is its key, with no writer of its own: marked only where
+  // a human made the whole rule.
+  const whole = nameFieldsOf(designed);
   const removed = change === 'removed' || undefined;
   return (
     <li className={classes.card}>
@@ -98,26 +125,31 @@ function RuleCard({
           {/* The name and its badge together; the buttons keep the end. */}
           <span className={classes.titleLine}>
             {path !== null && has(path) ? (
-              <UnstyledButton
-                className={classes.title}
-                data-link
-                data-removed={removed}
-                onClick={() => select(path)}
-              >
-                {label}
-              </UnstyledButton>
+              <WrittenBy fields={whole}>
+                <UnstyledButton
+                  className={classes.title}
+                  data-link
+                  data-removed={removed}
+                  onClick={() => select(path)}
+                >
+                  {label}
+                </UnstyledButton>
+              </WrittenBy>
             ) : writable !== null && writable.state === 'added' ? (
               // A rule is known by its name: only one the design adds is renamed.
               <InlineText
                 label="Name"
+                human={writtenByHuman(whole)}
                 value={label}
-                className={classes.title}
+                className={clsx(classes.title, humanText(whole))}
                 onSave={(name) => writable.save({ name })}
               />
             ) : (
-              <span className={classes.title} data-removed={removed}>
-                {label}
-              </span>
+              <WrittenBy fields={whole}>
+                <span className={classes.title} data-removed={removed}>
+                  {label}
+                </span>
+              </WrittenBy>
             )}
             <ChangeBadge change={change} inline />
           </span>
@@ -130,14 +162,17 @@ function RuleCard({
         </div>
         {writable === null ? (
           classification !== undefined && (
-            <span className={classes.classification}>{classification}</span>
+            <WrittenBy fields={kind}>
+              <span className={classes.classification}>{classification}</span>
+            </WrittenBy>
           )
         ) : (
           <InlineChoice
             label="Rule type"
+            human={writtenByHuman(kind)}
             value={valueOf(rule?.ruleType) ?? null}
             data={ruleTypeChoices(owner)}
-            className={classes.classification}
+            className={clsx(classes.classification, humanText(kind))}
             onSave={(ruleType) =>
               writable.save({
                 category: categoryOf(ruleType as RuleType),
@@ -150,27 +185,36 @@ function RuleCard({
         )}
         {writable === null ? (
           description !== undefined && (
-            <span className={classes.description}>{description}</span>
+            <WrittenBy fields={[designed?.description]}>
+              <span className={classes.description}>{description}</span>
+            </WrittenBy>
           )
         ) : (
           <InlineText
             label="Description"
+            human={writtenByHuman([designed?.description])}
             value={valueOf(rule?.description) ?? ''}
             multiline
-            className={classes.description}
+            className={clsx(
+              classes.description,
+              humanText([designed?.description]),
+            )}
             onSave={(text) => writable.save({ description: text })}
           />
         )}
         {writable === null || needChoices.length === 0 ? (
           needs !== undefined && (
-            <span className={classes.needs}>{tracedTo(needs)}</span>
+            <WrittenBy fields={[designed?.needs]}>
+              <span className={classes.needs}>{tracedTo(needs)}</span>
+            </WrittenBy>
           )
         ) : (
           <InlineChips
             label="Needs it answers"
+            human={writtenByHuman([designed?.needs])}
             value={valueOf(rule?.needs) ?? []}
             data={needChoices}
-            className={classes.needs}
+            className={clsx(classes.needs, humanText([designed?.needs]))}
             onSave={(chosen) => writable.save({ needs: chosen })}
           >
             {tracedTo(needs ?? [])}

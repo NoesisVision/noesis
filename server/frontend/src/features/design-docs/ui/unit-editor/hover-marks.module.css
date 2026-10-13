@@ -1,0 +1,42 @@
+/*
+ * At the middle of the text's right side, inside the dashed edge it draws
+ * while pointed at: out of the flow, so nothing moves when they appear.
+ * Shown while the text is pointed at or has the keyboard's focus; the text
+ * that holds them is the one positioned.
+ */
+.marks {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  color: var(--mantine-color-dimmed);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  translate: 0 -50%;
+}
+
+:where(:hover, :focus-visible) > .marks {
+  opacity: 1;
+}
+
+/* The figure answers the pointer: it is what says who wrote the text. */
+.human {
+  display: inline-flex;
+  pointer-events: auto;
+  cursor: help;
+}
+
+/*
+ * The text keeps its right side free for them: room at its end, as wide as
+ * one mark or two, so a short line is never covered by its own pencil.
+ */
+:has(> .marks[data-count='1']) {
+  padding-inline-end: 20px;
+}
+
+:has(> .marks[data-count='2']) {
+  padding-inline-end: 36px;
+}

@@ -12,6 +12,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { HoverMarks } from './hover-marks.tsx';
 import classes from './inline-edit.module.css';
 
 /**
@@ -21,6 +22,7 @@ import classes from './inline-edit.module.css';
  */
 export function InlineChips({
   label,
+  human = false,
   value,
   data,
   onSave,
@@ -28,6 +30,8 @@ export function InlineChips({
   children,
 }: {
   label: string;
+  /** Whether a human wrote it: its figure shows beside the pencil. */
+  human?: boolean;
   value: string[];
   data: { value: string; label: string }[];
   /** Saves what is picked; answers what is wrong with it, or null. */
@@ -71,10 +75,11 @@ export function InlineChips({
     return (
       <UnstyledButton
         className={clsx(classes.editable, className)}
-        title={`Edit the ${label.toLowerCase()}`}
+        data-edit={label.toLowerCase()}
         onClick={() => setEditing(true)}
       >
         {children}
+        <HoverMarks editable human={human} />
       </UnstyledButton>
     );
   return (

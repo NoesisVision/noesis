@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react';
-import { Badge } from '#/shared/design-system/badge.tsx';
 import {
   type DesignDocFieldInput,
-  isHumanAuthored,
   isUnchanged,
   valueOf,
 } from '../../design-doc-field.ts';
+import { WrittenBy } from './human-mark.tsx';
 
 export function Field<T = string>({
   field,
@@ -21,14 +20,10 @@ export function Field<T = string>({
   render?: (text: string) => ReactNode;
 }) {
   const value = valueOf(field);
-  return (
-    <>
-      {isUnchanged(field) || value === null ? fallback : render(format(value))}
-      {isHumanAuthored(field) && (
-        <Badge size="xs" variant="light" ml="xs">
-          by a human
-        </Badge>
-      )}
-    </>
+  return isUnchanged(field) || value === null ? (
+    fallback
+  ) : (
+    // Who wrote it, as everywhere in the view: a human's is marked.
+    <WrittenBy fields={[field]}>{render(format(value))}</WrittenBy>
   );
 }

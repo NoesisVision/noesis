@@ -58,6 +58,78 @@ interface ReadingPaneProps {
 }
 
 /**
+ * The width a document is read at, remembered for the reader across every
+ * page that offers the switch.
+ */
+function useReadingWidth() {
+  const [width, setWidth] = useLocalStorage<ReadingWidth>({
+    key: WIDTH_KEY,
+    defaultValue: DEFAULT_WIDTH,
+    deserialize: toReadingWidth,
+    // Nothing renders on a server here, so the stored width can be read while
+    // the first paint is drawn rather than corrected after it.
+    getInitialValueInEffect: false,
+  });
+  return [width, setWidth] as const;
+}
+
+/**
+ * The switch between the two widths: a glyph for each, its name for a reader
+ * who cannot see it. Shown from the width the shell folds its sidebar at.
+ */
+function ReadingWidthSwitch({
+  width,
+  onChange: setWidth,
+}: {
+  width: ReadingWidth;
+  onChange: (width: ReadingWidth) => void;
+}) {
+  /**
+   * Two widths make the control a switch rather than a choice of two, so
+   * clicking the one already in force means the other. That is the one click
+   * `onChange` never hears — a radio that is already checked does not change —
+   * which is why it is read here, and why `width` is still what it was: any
+   * click that did change the radio was answered before this one bubbled.
+   *
+   * The segment is read off the input and never the label, because activating
+   * a label forwards a second click through the input it names and both reach
+   * this root — the input's is the one click the reader made.
+   */
+  const switchOnReclick = (event: MouseEvent<HTMLDivElement>) => {
+    const segment = event.target;
+    if (segment instanceof HTMLInputElement && segment.value === width) {
+      setWidth(otherWidth(width));
+    }
+  };
+  return (
+    <SegmentedControl
+      aria-label="Content width"
+      size="md"
+      visibleFrom="md"
+      value={width}
+      onChange={(value) => setWidth(value as ReadingWidth)}
+      onClick={switchOnReclick}
+      data={WIDTHS.map(({ value, label, icon: Icon }) => ({
+        value,
+        // The glyph says it at a glance; the name says it to a reader
+        // who cannot see the glyph.
+        label: (
+          <>
+            <Icon
+              size={22}
+              stroke={1.6}
+              className={classes.segmentIcon}
+              aria-hidden
+            />
+            <VisuallyHidden>{label}</VisuallyHidden>
+          </>
+        ),
+      }))}
+    />
+  );
+}
+
+/**
  * Whether the document has moved under the header, so it can draw the edge
  * that says the page carries on beneath it.
  *
@@ -103,31 +175,7 @@ export function ReadingPane({
   description,
   children,
 }: ReadingPaneProps) {
-  const [width, setWidth] = useLocalStorage<ReadingWidth>({
-    key: WIDTH_KEY,
-    defaultValue: DEFAULT_WIDTH,
-    deserialize: toReadingWidth,
-    // Nothing renders on a server here, so the stored width can be read while
-    // the first paint is drawn rather than corrected after it.
-    getInitialValueInEffect: false,
-  });
-  /**
-   * Two widths make the control a switch rather than a choice of two, so
-   * clicking the one already in force means the other. That is the one click
-   * `onChange` never hears — a radio that is already checked does not change —
-   * which is why it is read here, and why `width` is still what it was: any
-   * click that did change the radio was answered before this one bubbled.
-   *
-   * The segment is read off the input and never the label, because activating
-   * a label forwards a second click through the input it names and both reach
-   * this root — the input's is the one click the reader made.
-   */
-  const switchOnReclick = (event: MouseEvent<HTMLDivElement>) => {
-    const segment = event.target;
-    if (segment instanceof HTMLInputElement && segment.value === width) {
-      setWidth(otherWidth(width));
-    }
-  };
+  const [width, setWidth] = useReadingWidth();
   const stuck = useScrolledUnder();
 
   return (
@@ -148,29 +196,7 @@ export function ReadingPane({
           visibleFrom="md"
           className={classes.controls}
         >
-          <SegmentedControl
-            aria-label="Content width"
-            size="md"
-            value={width}
-            onChange={setWidth}
-            onClick={switchOnReclick}
-            data={WIDTHS.map(({ value, label, icon: Icon }) => ({
-              value,
-              // The glyph says it at a glance; the name says it to a reader
-              // who cannot see the glyph.
-              label: (
-                <>
-                  <Icon
-                    size={22}
-                    stroke={1.6}
-                    className={classes.segmentIcon}
-                    aria-hidden
-                  />
-                  <VisuallyHidden>{label}</VisuallyHidden>
-                </>
-              ),
-            }))}
-          />
+          <ReadingWidthSwitch width={width} onChange={setWidth} />
           <FullscreenButton />
         </Group>
       </Box>

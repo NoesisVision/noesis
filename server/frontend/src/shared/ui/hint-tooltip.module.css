@@ -1,0 +1,8 @@
+/*
+ * Small and a step back. Named twice, to win over the tooltip's own type;
+ * a filter rather than `opacity`, which the tooltip's fade sets inline.
+ */
+.hint.hint {
+  font-size: var(--mantine-font-size-xs);
+  filter: opacity(0.8);
+}

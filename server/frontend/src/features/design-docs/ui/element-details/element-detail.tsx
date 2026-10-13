@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { useMemo } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
@@ -22,6 +23,7 @@ import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
 import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
+import { humanText, WrittenBy, writtenByHuman } from './human-mark.tsx';
 import { ImplementedByModal } from './implemented-by-modal.tsx';
 import { ImplementsLine } from './implements-line.tsx';
 import { VisibilityBadge } from './visibility-badge.tsx';
@@ -70,7 +72,12 @@ export function ElementDetail({
       ? implementerItems(doc, node.elementId)
       : [];
   // What the element is, under its name: a module's, a block's, a behaviour's.
-  const definition = definitionOf(doc, node);
+  const designed = designedOf(doc, node);
+  // An element the design leaves alone is still shown: its definition is too.
+  const definition: DesignDocFieldInput<string> | undefined =
+    designed === undefined
+      ? undefined
+      : (designed?.definition ?? { changed: false });
   // Scenarios read beside the sections, not as one more of them.
   const scenarios = scenariosOf(node, doc);
   // Where the element may be written, the column shows with none yet, for
@@ -100,7 +107,7 @@ export function ElementDetail({
             </div>
             <div className={classes.title}>
               <Title order={2} className={classes.name}>
-                <NodeName node={node} />
+                <NodeName node={node} field={designed?.name} />
               </Title>
               <ImplementsLine items={implemented} />
             </div>
@@ -148,25 +155,31 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
 }
 
 /** The element's name, written in place where the document may be written. */
-function NodeName({ node }: { node: OutlineNode }) {
+function NodeName({
+  node,
+  field,
+}: {
+  node: OutlineNode;
+  /** The name as the design writes it, for who wrote it. */
+  field: DesignDocFieldInput<string> | undefined;
+}) {
   const writable = useWritableUnit(elementRefOf(node));
-  if (writable === null) return node.name;
+  if (writable === null)
+    return <WrittenBy fields={[field]}>{node.name}</WrittenBy>;
   return (
     <InlineText
       label="Name"
+      human={writtenByHuman([field])}
       value={node.name}
-      className={classes.nameText}
+      className={clsx(classes.nameText, humanText([field]))}
       onSave={(name) => writable.save({ name })}
     />
   );
 }
 
 /** The element the scenarios beside it are written in. */
-/** The definition field of the element a node shows; none for anything else. */
-function definitionOf(
-  doc: DesignDocumentInput,
-  node: OutlineNode,
-): DesignDocFieldInput<string> | undefined {
+/** What the design writes for the element a node shows; none for anything else. */
+function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
   if (!node.elementId) return undefined;
   const collection =
     node.kind === 'module'
@@ -176,9 +189,9 @@ function definitionOf(
         : node.kind === 'behaviour'
           ? doc.behaviours
           : undefined;
-  if (collection === undefined) return undefined;
-  // An element the design leaves alone is still shown: its definition is too.
-  return findById(collection, node.elementId)?.definition ?? { changed: false };
+  return collection === undefined
+    ? undefined
+    : (findById(collection, node.elementId) ?? null);
 }
 
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
