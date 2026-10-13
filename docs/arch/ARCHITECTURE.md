@@ -2,10 +2,11 @@
 
 Target architecture. The flowchart below is the diagram.
 
-**Not yet present:** the knowledge graph database, the file watcher and the source code scanner
-are part of the target but not of the service today; they will be added in future. Until then,
-services read the JSON files directly through the file repositories, and nothing indexes them or
-writes `system-models/`.
+**Not yet present:** the knowledge graph database and the file watcher are part of the target
+but not of the service today; they will be added in future. Until then, services read the JSON
+files directly through the file repositories, and nothing indexes them. The source code scanner
+is present in a first form: it writes `system-models/` when an agent asks for a scan, and does
+not feed a graph.
 
 Noesis turns documents and design drafts into a queryable knowledge graph, and drives
 design and implementation work from it. Everything runs on the user's machine — there is no
@@ -116,8 +117,10 @@ Both land on the same service layer. Neither bypasses it.
   nothing of it touches the disk.
 - **File watcher** _(not yet present)_ observes the knowledge graph files and re-indexes into the graph when they
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
-- **Source code scanner** _(not yet present)_ reads the project source and projects the implemented model into the
-  graph and into the system model files.
+- **Source code scanner** reads the project source and projects the implemented model into the
+  system model files, when an agent calls `scan_system_model`. One scanner serves the process,
+  chosen by `NOESIS_SCANNER`: `java` and `csharp` read the source as text, `dummy` replays the
+  implemented design documents instead. Projecting into the graph waits for the graph.
 
 ## Source of truth
 
