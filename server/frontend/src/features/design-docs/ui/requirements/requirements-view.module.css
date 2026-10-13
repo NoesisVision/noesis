@@ -11,10 +11,28 @@
   scroll-margin-top: var(--mantine-spacing-md);
 }
 
-.section[aria-current] > .sectionHead,
-.rule[aria-current] {
-  box-shadow: inset 3px 0 0 var(--mantine-color-brand-filled);
-  padding-left: var(--mantine-spacing-sm);
+/*
+ * The entry in hand sits on a card — the page's ground, the brand's edge a
+ * focused input has, a deep shadow — that slides to it from the last one
+ * (Mantine's floating indicator). Every entry keeps the card's inset, so the
+ * text never moves when it is picked, and stands over the card.
+ */
+.page {
+  position: relative;
+}
+
+.sectionHead,
+.rule {
+  position: relative;
+  z-index: 1;
+  padding: 32px var(--mantine-spacing-sm);
+}
+
+.indicator {
+  background-color: var(--mantine-color-body);
+  border: 1px solid var(--mantine-primary-color-filled);
+  border-radius: var(--mantine-radius-md);
+  box-shadow: var(--mantine-shadow-lg);
 }
 
 /* The counts in a row, wrapping; its margin, size and colour are the list's props. */
@@ -40,8 +58,22 @@
   color: var(--noesis-requirement-gap);
 }
 
+/*
+ * A rule's title — and an unaddressed need's — stays at the top of the pane
+ * while its entry is read, on the page's ground so what scrolls under it
+ * does not show through. It sticks within its own entry, and leaves with it.
+ */
+.entryTitle {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-block: var(--mantine-spacing-xs);
+  background-color: var(--mantine-color-body);
+}
+
+/* Ruled off from its entries by the same line as runs between them. */
 .sectionHead {
-  border-bottom: 2px solid var(--mantine-color-text);
+  border-bottom: 1px solid var(--mantine-color-default-border);
 
   &[data-gap] {
     border-bottom-color: var(--noesis-requirement-gap);
@@ -50,6 +82,18 @@
 
 .rule {
   border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+/*
+ * The card is the entry's edge: the lines that would run along it — under
+ * the entry, and under whatever sits just above it — give way, keeping their
+ * room so nothing moves.
+ */
+.section[aria-current] > .sectionHead,
+.rule[aria-current],
+.sectionHead:has(+ .rule[aria-current]),
+.rule:has(+ .rule[aria-current]) {
+  border-bottom-color: transparent;
 }
 
 .ruleName {

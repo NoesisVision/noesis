@@ -10,7 +10,7 @@ import { ScenarioColumn } from '../element-details/body/scenario-column.tsx';
 import { scenarioEntriesOf } from '../element-details/body/scenarios-of.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
 import { MarkdownReading } from '../element-details/markdown-reading.tsx';
-import { entryMark } from './entry-mark.ts';
+import { type EntryPin, entryMark } from './entry-mark.ts';
 import {
   Details,
   ElementLink,
@@ -25,17 +25,23 @@ import classes from './requirements-view.module.css';
 export function RuleEntry({
   path,
   selected,
+  pin,
   traced,
   changeId,
   docId,
-}: ElementLinkProps & { path: string; selected: boolean }) {
+}: ElementLinkProps & {
+  path: string;
+  selected: boolean;
+  /** Hands the entry, while it is the one in hand, to the card under it. */
+  pin?: EntryPin;
+}) {
   const element = (
     <ElementLink traced={traced} changeId={changeId} docId={docId} />
   );
-  const mark = entryMark(path, selected);
+  const mark = entryMark(path, selected, pin);
   if (traced.change === 'removed')
     return (
-      <Box className={classes.rule} py="md" {...mark}>
+      <Box className={classes.rule} {...mark}>
         <RuleHead name={traced.name} change="removed" />
         <RuleFields>
           <RuleField name="Module">{traced.module.name}</RuleField>
@@ -47,7 +53,7 @@ export function RuleEntry({
   const { rule, change } = traced;
   const statement = valueOf(rule.description);
   return (
-    <Box className={classes.rule} py="md" {...mark}>
+    <Box className={classes.rule} {...mark}>
       <RuleHead name={traced.name} change={change} />
       {statement !== null && statement.trim() !== '' && (
         <Statement>
@@ -68,7 +74,7 @@ function RuleHead({
   change: TracedRule['change'];
 }) {
   return (
-    <Group gap="xs" align="baseline">
+    <Group gap="xs" align="baseline" className={classes.entryTitle}>
       <Title
         order={3}
         size="h5"
