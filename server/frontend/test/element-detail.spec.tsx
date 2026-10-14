@@ -582,8 +582,10 @@ describe('ElementDetail', () => {
     expect(html).toContain('>Behaviours<');
     // Its name, which opens its row, then what it takes and gives back.
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
-    // Each input its own element, so each can say what its type is.
-    expect(html).toMatch(/>\(<\/span><span[^>]*>amount<\/span><span[^>]*>\)</);
+    // Each input by its name and its type, read short.
+    expect(html).toMatch(
+      />\(<\/span><span[^>]*>amount: <span[^>]*>Money<\/span><\/span><span[^>]*>\)</,
+    );
     // What it gives back opens its type's row, as its name opens its own.
     expect(html).toMatch(/→ <\/span><button[^>]*data-link[^>]*>Hold<\/button>/);
     expect(html).toContain('Holds a card for a booking.');
