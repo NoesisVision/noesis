@@ -195,16 +195,21 @@
                 "value": "Verifies the strict-greater-than activation: a price above the threshold is reduced by the configured percentage.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(600 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the result is 540 PLN",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(600 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the result is 540 PLN"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -214,16 +219,21 @@
                 "value": "Verifies that a price equal to the threshold returns unchanged — the comparison is strict.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(500 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the result is 500 PLN",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(500 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the result is 500 PLN"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -233,16 +243,21 @@
                 "value": "Verifies that a price below the threshold returns unchanged.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(300 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the result is 300 PLN",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `ThresholdDiscount` of 10% with a threshold of 500 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(300 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the result is 300 PLN"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -252,16 +267,21 @@
                 "value": "Verifies the construction-time invariant that the threshold must be strictly positive.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a percentage of 10% and a threshold of 0 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ThresholdDiscount.Of(10%, 0 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "construction is rejected with a domain error indicating the threshold must be strictly positive\nAnd no `ThresholdDiscount` instance is created",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a percentage of 10% and a threshold of 0 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ThresholdDiscount.Of(10%, 0 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "construction is rejected with a domain error indicating the threshold must be strictly positive\nAnd no `ThresholdDiscount` instance is created"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -271,16 +291,21 @@
                 "value": "Verifies that a strictly negative threshold is rejected at construction time.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a percentage of 10% and a threshold of -100 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ThresholdDiscount.Of(10%, -100 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "construction is rejected with a domain error indicating the threshold must be strictly positive\nAnd no `ThresholdDiscount` instance is created",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a percentage of 10% and a threshold of -100 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ThresholdDiscount.Of(10%, -100 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "construction is rejected with a domain error indicating the threshold must be strictly positive\nAnd no `ThresholdDiscount` instance is created"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -290,16 +315,21 @@
                 "value": "Verifies that the factory inherits the percentage validation already performed by the `Percentage` value object.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a percentage outside `[0%, 100%]` (e.g. 150%) and a threshold of 500 PLN",
-                "author": "agent"
-              },
-              "when": {
-                "value": "constructing the underlying `Percentage` value (which the factory delegates to)",
-                "author": "agent"
-              },
-              "then": {
-                "value": "construction is rejected with the percentage's own domain error\nAnd no `ThresholdDiscount` instance is created",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a percentage outside `[0%, 100%]` (e.g. 150%) and a threshold of 500 PLN"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "constructing the underlying `Percentage` value (which the factory delegates to)"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "construction is rejected with the percentage's own domain error\nAnd no `ThresholdDiscount` instance is created"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -309,16 +339,21 @@
                 "value": "Verifies value-object equality based on the two internal fields.",
                 "author": "agent"
               },
-              "given": {
-                "value": "two `ThresholdDiscount` instances built with the same percentage and the same threshold",
-                "author": "agent"
-              },
-              "when": {
-                "value": "they are compared with `Equals` and `==`",
-                "author": "agent"
-              },
-              "then": {
-                "value": "they are considered equal\nAnd they produce the same `GetHashCode`",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "two `ThresholdDiscount` instances built with the same percentage and the same threshold"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "they are compared with `Equals` and `==`"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "they are considered equal\nAnd they produce the same `GetHashCode`"
+                  }
+                ],
                 "author": "agent"
               }
             }
@@ -489,16 +524,21 @@
                       "value": "Verifies that a rejected threshold discount leaves no Discount behind.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a percentage of 10% and a threshold of 0 PLN",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`Discount.Threshold(10%, 0 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "construction is rejected with the threshold's domain error\nAnd no `Discount` is created",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a percentage of 10% and a threshold of 0 PLN"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`Discount.Threshold(10%, 0 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "construction is rejected with the threshold's domain error\nAnd no `Discount` is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -508,16 +548,21 @@
                       "value": "Verifies that a rejected percentage leaves no Discount behind.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a percentage outside `[0%, 100%]` (e.g. 150%)",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`Discount.Percentage` is invoked with it",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "construction is rejected with the percentage's own domain error\nAnd no `Discount` is created",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a percentage outside `[0%, 100%]` (e.g. 150%)"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`Discount.Percentage` is invoked with it"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "construction is rejected with the percentage's own domain error\nAnd no `Discount` is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -540,16 +585,21 @@
                 "value": "Verifies that a `Discount` built via the new factory routes `ApplyOn` through `ThresholdDiscount.ApplyOn`.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `Discount` constructed via `Discount.Threshold(10%, 500 PLN)`",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(600 PLN)` is invoked on the `Discount`",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the returned `Money` is 540 PLN — the same result that `ThresholdDiscount.Of(10%, 500 PLN).ApplyOn(600 PLN)` produces",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `Discount` constructed via `Discount.Threshold(10%, 500 PLN)`"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(600 PLN)` is invoked on the `Discount`"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the returned `Money` is 540 PLN — the same result that `ThresholdDiscount.Of(10%, 500 PLN).ApplyOn(600 PLN)` produces"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -559,16 +609,21 @@
                 "value": "Verifies that a `Discount` built via `Discount.Percentage` routes `ApplyOn` through `PercentageDiscount.ApplyOn`.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `Discount` constructed via `Discount.Percentage(10%)`",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(600 PLN)` is invoked on the `Discount`",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the returned `Money` is 540 PLN — the same result that `PercentageDiscount.Of(10%).ApplyOn(600 PLN)` produces",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `Discount` constructed via `Discount.Percentage(10%)`"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(600 PLN)` is invoked on the `Discount`"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the returned `Money` is 540 PLN — the same result that `PercentageDiscount.Of(10%).ApplyOn(600 PLN)` produces"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -578,16 +633,21 @@
                 "value": "Verifies that a `Discount` built via `Discount.Value` routes `ApplyOn` through `ValueDiscount.ApplyOn`.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a `Discount` constructed via `Discount.Value(50 PLN)`",
-                "author": "agent"
-              },
-              "when": {
-                "value": "`ApplyOn(600 PLN)` is invoked on the `Discount`",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the returned `Money` is 550 PLN — the same result that `ValueDiscount.Of(50 PLN).ApplyOn(600 PLN)` produces",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a `Discount` constructed via `Discount.Value(50 PLN)`"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "`ApplyOn(600 PLN)` is invoked on the `Discount`"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the returned `Money` is 550 PLN — the same result that `ValueDiscount.Of(50 PLN).ApplyOn(600 PLN)` produces"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -597,16 +657,21 @@
                 "value": "Regression guard — verifies that adding the third variant did not alter the behaviour or signatures of the two existing factories.",
                 "author": "agent"
               },
-              "given": {
-                "value": "the `Discount` type after the threshold variant is added",
-                "author": "agent"
-              },
-              "when": {
-                "value": "a `Discount` is built via `Discount.Percentage(10%)` and `ApplyOn(600 PLN)` is invoked\nAnd a separate `Discount` is built via `Discount.Value(50 PLN)` and `ApplyOn(600 PLN)` is invoked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the percentage variant returns the same `Money` value as `PercentageDiscount.Of(10%).ApplyOn(600 PLN)`\nAnd the value variant returns the same `Money` value as `ValueDiscount.Of(50 PLN).ApplyOn(600 PLN)`\nAnd the public signatures of both factories are byte-for-byte identical to before",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "the `Discount` type after the threshold variant is added"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "a `Discount` is built via `Discount.Percentage(10%)` and `ApplyOn(600 PLN)` is invoked\nAnd a separate `Discount` is built via `Discount.Value(50 PLN)` and `ApplyOn(600 PLN)` is invoked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the percentage variant returns the same `Money` value as `PercentageDiscount.Of(10%).ApplyOn(600 PLN)`\nAnd the value variant returns the same `Money` value as `ValueDiscount.Of(50 PLN).ApplyOn(600 PLN)`\nAnd the public signatures of both factories are byte-for-byte identical to before"
+                  }
+                ],
                 "author": "agent"
               }
             }
@@ -805,16 +870,21 @@
                       "value": "Verifies the reduction formula.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `PercentageDiscount` of 10%",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 540 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `PercentageDiscount` of 10%"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 540 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -824,16 +894,21 @@
                       "value": "Verifies the lower edge of the percentage range.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `PercentageDiscount` of 0%",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 600 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `PercentageDiscount` of 0%"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 600 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -843,16 +918,21 @@
                       "value": "Verifies the upper edge of the percentage range.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `PercentageDiscount` of 100%",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 0 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `PercentageDiscount` of 100%"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 0 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -936,16 +1016,21 @@
                       "value": "Verifies the subtraction.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `ValueDiscount` of 50 PLN",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 550 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `ValueDiscount` of 50 PLN"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 550 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -955,16 +1040,21 @@
                       "value": "Verifies the cap at zero.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `ValueDiscount` of 700 PLN",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 0 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `ValueDiscount` of 700 PLN"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 0 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -974,16 +1064,21 @@
                       "value": "Verifies that a zero amount is allowed and changes nothing.",
                       "author": "agent"
                     },
-                    "given": {
-                      "value": "a `ValueDiscount` of 0 PLN",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "value": "`ApplyOn(600 PLN)` is invoked",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "value": "the result is 600 PLN",
+                    "steps": {
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a `ValueDiscount` of 0 PLN"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "`ApplyOn(600 PLN)` is invoked"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the result is 600 PLN"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }

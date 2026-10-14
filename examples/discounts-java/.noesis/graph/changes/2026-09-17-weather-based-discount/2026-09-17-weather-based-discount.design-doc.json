@@ -451,16 +451,21 @@
                 "value": "Covers HTTP 500, a timeout and malformed JSON from the weather API; each must degrade to unknown weather.",
                 "author": "agent"
               },
-              "given": {
-                "value": "the weather API responds with HTTP 500, or does not respond within the request timeout, or returns a body that is not valid JSON",
-                "author": "agent"
-              },
-              "when": {
-                "value": "the current weather is requested",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the result is empty, no exception is thrown, and a subsequent discount calculation completes with no weather discount",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "the weather API responds with HTTP 500, or does not respond within the request timeout, or returns a body that is not valid JSON"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "the current weather is requested"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the result is empty, no exception is thrown, and a subsequent discount calculation completes with no weather discount"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -470,16 +475,21 @@
                 "value": "Integration test of the adapter against a local HTTP stub standing in for Open-Meteo.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a local HTTP stub answering {\"current\":{\"precipitation\":0.5}} and the adapter pointed at that stub",
-                "author": "agent"
-              },
-              "when": {
-                "value": "the current weather is requested",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the result is a Weather with precipitation 0.5",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a local HTTP stub answering {\"current\":{\"precipitation\":0.5}} and the adapter pointed at that stub"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "the current weather is requested"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the result is a Weather with precipitation 0.5"
+                  }
+                ],
                 "author": "agent"
               }
             }
@@ -626,16 +636,21 @@
                 "value": "Happy path for a non-VIP user during rain.",
                 "author": "agent"
               },
-              "given": {
-                "value": "conditions whose weather has precipitation 0.5 mm",
-                "author": "agent"
-              },
-              "when": {
-                "value": "applicability of the precipitation discount is checked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the discount is applicable and getDiscount returns the configured PercentageDiscount of 10 percent",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "conditions whose weather has precipitation 0.5 mm"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "applicability of the precipitation discount is checked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the discount is applicable and getDiscount returns the configured PercentageDiscount of 10 percent"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -645,16 +660,21 @@
                 "value": "Boundary at zero precipitation.",
                 "author": "agent"
               },
-              "given": {
-                "value": "conditions whose weather has precipitation 0 mm",
-                "author": "agent"
-              },
-              "when": {
-                "value": "applicability of the precipitation discount is checked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the discount is not applicable",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "conditions whose weather has precipitation 0 mm"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "applicability of the precipitation discount is checked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the discount is not applicable"
+                  }
+                ],
                 "author": "agent"
               }
             },
@@ -664,16 +684,21 @@
                 "value": "Domain-side half of the API failure case.",
                 "author": "agent"
               },
-              "given": {
-                "value": "conditions without any weather because the provider returned an empty result",
-                "author": "agent"
-              },
-              "when": {
-                "value": "applicability of the precipitation discount is checked",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the discount is not applicable",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "conditions without any weather because the provider returned an empty result"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "applicability of the precipitation discount is checked"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the discount is not applicable"
+                  }
+                ],
                 "author": "agent"
               }
             }
@@ -753,16 +778,21 @@
                 "value": "Verifies stacking of the VIP discount and the precipitation discount within one resolution.",
                 "author": "agent"
               },
-              "given": {
-                "value": "a VIP user and a weather provider returning precipitation above 0",
-                "author": "agent"
-              },
-              "when": {
-                "value": "discounts are resolved for the user",
-                "author": "agent"
-              },
-              "then": {
-                "value": "the list contains both the VIP FixedDiscount and the PercentageDiscount",
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a VIP user and a weather provider returning precipitation above 0"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "discounts are resolved for the user"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "the list contains both the VIP FixedDiscount and the PercentageDiscount"
+                  }
+                ],
                 "author": "agent"
               }
             }
