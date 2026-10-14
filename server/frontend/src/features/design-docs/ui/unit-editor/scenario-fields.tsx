@@ -30,11 +30,24 @@ import {
 } from '../../scenario-steps.ts';
 import classes from './scenario-fields.module.css';
 
+/** How a kind of step is drawn: its hint, placeholder, icon and colour. */
+interface KindLook {
+  hint: string;
+  placeholder: string;
+  icon: ReactNode;
+  color: string;
+}
+
+// Apart, so the `then` key below fits on the one line Sonar's NOSONAR covers.
+const THEN: KindLook = {
+  hint: 'the outcome',
+  placeholder: 'Version 1 exists with the status new',
+  icon: <IconCircleCheck size={16} aria-hidden />,
+  color: 'violet',
+};
+
 /** Each kind of step in its own colour, as the timeline draws it. */
-const KIND: Record<
-  ScenarioStepKind,
-  { hint: string; placeholder: string; icon: ReactNode; color: string }
-> = {
+const KIND: Record<ScenarioStepKind, KindLook> = {
   given: {
     hint: 'the starting state',
     placeholder: 'A document with no versions',
@@ -48,12 +61,7 @@ const KIND: Record<
     color: 'brand',
   },
   // oxlint-disable-next-line unicorn/no-thenable
-  then: {
-    hint: 'the outcome',
-    placeholder: 'Version 1 exists with the status new',
-    icon: <IconCircleCheck size={16} aria-hidden />,
-    color: 'violet',
-  }, // NOSONAR
+  then: THEN, // NOSONAR
 };
 
 /**
