@@ -1,10 +1,23 @@
+import { IconBraces } from '@tabler/icons-react';
 import { clsx } from 'clsx';
-import { cloneElement, type ReactElement } from 'react';
+import { cloneElement, type ReactElement, type ReactNode } from 'react';
+import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { findById } from '../../change-set.ts';
-import { behaviourIdAt, blockIdAt } from '../../element-id.ts';
+import type {
+  DesignDocumentInput,
+  DesignedBehaviourInput,
+} from '#backend/app/design-docs/design-doc.ts';
+import { findById, writtenIn } from '../../change-set.ts';
+import { valueOf } from '../../design-doc-field.ts';
+import {
+  behaviourIdAt,
+  blockIdAt,
+  moduleIdAt,
+  nameOf,
+  ownerOf,
+  parentOf,
+} from '../../element-id.ts';
 import {
   type ChangeListItem,
   parameterItems,
@@ -14,18 +27,26 @@ import {
 import { useDesignDocument } from './design-document-context.ts';
 import classes from './element-tooltip.module.css';
 
-/** One declaration as the tooltip lists it: its name, if any, and its type read short. */
+/**
+ * One declaration as the tooltip lists it: its name, if any, and its type
+ * read short; marked with what it is, a dot when nothing says.
+ */
 interface Line {
   key: string;
   name?: string;
   type?: string;
+  icon?: ReactNode;
 }
+
+const ICON_SIZE = 12;
 
 /** What the design says an element is made of, as the tooltip lists it. */
 interface Shape {
   properties?: Line[];
   input?: Line[];
   output?: Line[];
+  buildingBlocks?: Line[];
+  behaviours?: Line[];
 }
 
 /** The address a name points at: `name: a.b.C[]` points at `a.b.C`. */
@@ -49,26 +70,83 @@ const lines = (items: ChangeListItem[]): Line[] =>
           },
     );
 
-/** The shape the document gives the element at an address, if it gives one. */
+/** A behaviour as a signature: `place(order: Order): Receipt`, its types read short. */
+const signatureOf = (behaviour: DesignedBehaviourInput): Line => {
+  const input = lines(parameterItems(behaviour.input))
+    .map(({ name, type }) => (type === undefined ? name : `${name}: ${type}`))
+    .join(', ');
+  const output = lines(resultItems(behaviour.output))
+    .map(({ type }) => type)
+    .join(', ');
+  return {
+    key: behaviour.id,
+    name: `${nameOf(behaviour.id)}(${input})`,
+    // A command, a query, an event — as the tree marks it.
+    icon: (
+      <KindIcon
+        kind="behaviour"
+        pattern={valueOf(behaviour.type)}
+        size={ICON_SIZE}
+      />
+    ),
+    ...(output === '' ? {} : { type: output }),
+  };
+};
+
+/** A block's behaviours the document writes, each as its signature. */
+const behavioursOf = (doc: DesignDocumentInput, blockId: string): Line[] =>
+  writtenIn(doc.behaviours)
+    .filter(({ id }) => ownerOf(id) === blockId)
+    .map(signatureOf);
+
+/** A module's building blocks the document writes, each by its name and kind. */
+const buildingBlocksOf = (doc: DesignDocumentInput, moduleId: string): Line[] =>
+  writtenIn(doc.buildingBlocks)
+    .filter(({ id }) => parentOf(id) === moduleId)
+    .map((block) => ({
+      key: block.id,
+      name: nameOf(block.id),
+      type: valueOf(block.type) ?? undefined,
+    }));
+
+/** Whether any group of a shape has a line in it. */
+const isEmpty = (shape: Shape) =>
+  Object.values(shape).every((group: Line[] | undefined) => !group?.length);
+
+/**
+ * The shape the document gives the element at an address, if it gives one:
+ * a behaviour's input and output, a building block's properties and
+ * behaviours, a module's building blocks.
+ */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
-  const block = findById(doc.buildingBlocks, blockIdAt(address));
-  if (block) {
-    const properties = lines(propertyItems(block.id, block.properties));
-    return properties.length > 0 ? { properties } : null;
-  }
   const behaviour = findById(doc.behaviours, behaviourIdAt(address));
   if (behaviour) {
     const input = lines(parameterItems(behaviour.input));
     const output = lines(resultItems(behaviour.output));
     return input.length + output.length > 0 ? { input, output } : null;
   }
-  return null;
+  const blockId = blockIdAt(address);
+  const block = findById(doc.buildingBlocks, blockId);
+  const shape: Shape = {
+    behaviours: behavioursOf(doc, blockId),
+    properties: block
+      ? lines(propertyItems(block.id, block.properties)).map((line) => ({
+          ...line,
+          icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
+        }))
+      : [],
+  };
+  if (!isEmpty(shape)) return shape;
+  const moduleId = moduleIdAt(address);
+  const buildingBlocks = buildingBlocksOf(doc, moduleId);
+  return buildingBlocks.length > 0 ? { buildingBlocks } : null;
 };
 
 /**
  * What an element is, on hover over whatever names it — a word, a box, a
- * whole card: its address in full, and the properties, or the input and
- * output, the design gives it. Descriptions stay in the panel; this is the
+ * whole card: its address in full, and what the design gives it — a
+ * behaviour's input and output, a building block's properties and
+ * behaviours, a module's building blocks. Descriptions stay in the panel; this is the
  * outline at a glance. An element the document does not shape gets its
  * address alone, and a name with nothing to cut and nothing to say gets no
  * tooltip at all.
@@ -120,9 +198,11 @@ function Details({ address, shape }: { address: string; shape: Shape | null }) {
   return (
     <span className={classes.details}>
       <span className={classes.address}>{address}</span>
+      <Lines label="Behaviours" lines={shape?.behaviours} />
       <Lines label="Properties" lines={shape?.properties} />
       <Lines label="Input" lines={shape?.input} />
       <Lines label="Output" lines={shape?.output} />
+      <Lines label="Building blocks" lines={shape?.buildingBlocks} />
     </span>
   );
 }
@@ -133,9 +213,14 @@ function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
   return (
     <span className={classes.group}>
       <span className={classes.label}>{label}</span>
-      {lines.map(({ key, name, type }) => (
+      {lines.map(({ key, name, type, icon }) => (
         // `name: Type`, the type in the colour a declaration box gives it.
-        <span key={key} className={classes.line}>
+        <span
+          key={key}
+          className={classes.line}
+          data-marked={icon === undefined ? undefined : true}
+        >
+          {icon !== undefined && <span className={classes.icon}>{icon}</span>}
           {name}
           {name !== undefined && type !== undefined && ': '}
           {type !== undefined && <span className={classes.type}>{type}</span>}

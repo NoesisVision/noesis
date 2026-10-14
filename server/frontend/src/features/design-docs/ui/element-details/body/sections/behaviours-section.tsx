@@ -105,13 +105,14 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   return (
     <>
       <span className={classes.punctuation}>(</span>
-      {inputs.map(({ name, label }, index) => (
+      {inputs.map(({ name, label, type, path }, index) => (
         <Fragment key={label}>
           {index > 0 && <span className={classes.punctuation}>, </span>}
           {/* By name, and on hover what its type is: `name: a.b.C`. */}
-          <ElementTooltip name={label} shown={name ?? label} hint>
-            <span className={classes.punctuation}>{name ?? label}</span>
-          </ElementTooltip>
+          <span className={classes.punctuation}>
+            {name ?? label}:{' '}
+            <OutputType label={type ?? name ?? 'unknown'} path={path} />
+          </span>
         </Fragment>
       ))}
       <span className={classes.punctuation}>)</span>

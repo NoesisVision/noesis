@@ -46,6 +46,24 @@
     background: var(--mantine-color-brand-4);
     vertical-align: middle;
   }
+
+  /* A line marked with what it is wears that mark instead of the dot. */
+  &[data-marked]::before {
+    content: none;
+  }
+}
+
+/* What a line is, small, where the dot would be. */
+.icon {
+  display: inline-flex;
+  margin-right: 4px;
+  vertical-align: middle;
+  /* A property's braces in the tree's default gray; a behaviour's icon keeps the tree's colour. */
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+
+  & > svg {
+    display: block;
+  }
 }
 
 /* The type, coloured as a declaration box colours it. */

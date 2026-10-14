@@ -42,6 +42,16 @@ const document = {
         },
         output: { added: [{ type: 'building_block|pay.Hold' }] },
       },
+      {
+        id: 'behavior|pay.Hold.release',
+        type: plain('Command'),
+        input: { added: [{ name: 'reason', type: plain('string') }] },
+      },
+      {
+        id: 'behavior|pay.Hold.balance',
+        type: plain('Query'),
+        output: { added: [{ type: 'building_block|pay.Money' }] },
+      },
     ],
   },
   implemented: false,
@@ -85,6 +95,31 @@ describe('ElementTooltip', () => {
     expect(html).toContain('>Output<');
     // An output is its type alone.
     expect(html).toMatch(/<span[^>]*><span[^>]*>Hold<\/span><\/span>/);
+  });
+
+  it("lists a block's behaviours as signatures, over its properties", () => {
+    const html = render('pay.Hold');
+    expect(html.indexOf('>Behaviours<')).toBeLessThan(
+      html.indexOf('>Properties<'),
+    );
+    expect(html).toMatch(/>release\(reason: string\)</);
+    expect(html).toMatch(/>balance\(\): <span[^>]*>Money<\/span>/);
+    // One whose kind the design leaves as it is still listed.
+    expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
+  });
+
+  it('marks each behaviour by its kind and each property with braces', () => {
+    const html = render('pay.Hold');
+    expect(html).toContain('tabler-icon-circle-letter-c');
+    expect(html).toContain('tabler-icon-circle-letter-q');
+    expect(html).toContain('tabler-icon-activity');
+    expect(html).toContain('tabler-icon-braces');
+  });
+
+  it("lists a module's building blocks with their kind", () => {
+    const html = render('pay');
+    expect(html).toContain('>Building blocks<');
+    expect(html).toMatch(/>Hold: <span[^>]*>aggregate<\/span>/);
   });
 
   it('reads a collection by its item', () => {
