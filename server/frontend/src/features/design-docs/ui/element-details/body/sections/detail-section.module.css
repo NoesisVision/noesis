@@ -21,12 +21,6 @@
   }
 }
 
-.author {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* What is said about the element, under a rule and a shade quieter. */
 .muted {
   & .title {

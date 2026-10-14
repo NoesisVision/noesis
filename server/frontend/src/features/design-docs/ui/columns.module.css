@@ -6,6 +6,37 @@
 }
 
 /*
+ * The tree put away: a rail of the pane's frame, 36px wide, beside the
+ * detail, which takes the rest of the row.
+ */
+.columns[data-folded] {
+  display: flex;
+  gap: 4px;
+}
+
+.columns[data-folded] > .pane {
+  flex: 1;
+  min-width: 0;
+}
+
+.rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 36px;
+  padding: var(--mantine-spacing-md) 0;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+}
+
+/*
  * The pane is a frame and never the scroller: the body inside it scrolls, so
  * anything above that body — the search and the two fold buttons — keeps both
  * its place and its width. Held in one scroller with the outline, the bar was

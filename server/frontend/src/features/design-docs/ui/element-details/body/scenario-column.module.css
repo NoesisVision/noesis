@@ -86,7 +86,7 @@
     white-space: nowrap;
   }
 
-  & > :last-child {
+  & > :not(:first-child) {
     flex: none;
   }
 }

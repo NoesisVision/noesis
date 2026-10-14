@@ -1,5 +1,6 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
+import { Card } from '#/shared/design-system/card.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -66,7 +67,11 @@ export function DesignDocOverview({
     <Box className={classes.pane}>
       <Box className={classes.layout}>
         {views.length > 0 && <LinkLegend views={views} />}
-        <Box className={classes.body} onClickCapture={onClickCapture}>
+        <Card
+          withBorder
+          className={classes.body}
+          onClickCapture={onClickCapture}
+        >
           <VisuallyHidden>
             <Title order={2}>Overview</Title>
           </VisuallyHidden>
@@ -75,14 +80,11 @@ export function DesignDocOverview({
               This design has no overview yet.
             </Text>
           ) : (
-            <MarkdownEditor
-              markdown={markdown}
-              headingLevel={3}
-              readOnly
-              noMargin
-            />
+            // Read as a document is read on its own page: the same editor,
+            // the same type, in the same card.
+            <MarkdownEditor markdown={markdown} readOnly />
           )}
-        </Box>
+        </Card>
       </Box>
     </Box>
   );

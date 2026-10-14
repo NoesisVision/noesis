@@ -12,6 +12,8 @@
  * the button it is.
  */
 .editable {
+  /* Its pencil and figure sit in its corner. */
+  position: relative;
   border-radius: var(--mantine-radius-xs);
   outline: 1px dashed transparent;
   outline-offset: 2px;
@@ -88,6 +90,7 @@
  * the focus ring.
  */
 .block {
+  position: relative;
   border-radius: var(--mantine-radius-sm);
   outline: 1px dashed transparent;
   outline-offset: 4px;

@@ -14,6 +14,7 @@ import { OutlineSearchBox } from '../outline-search-box.tsx';
 import { Outline } from '../outline.tsx';
 import type { ViewPlace } from '../view-place.ts';
 import { RequirementsDocument } from './requirements-document.tsx';
+import { useScrollSpy } from './scroll-spy.ts';
 
 /*
  * The design read as a requirements document: each need with the rules that
@@ -84,6 +85,7 @@ export function RequirementsView({
     { onArrive: revealInPage, followsOpening: false },
   );
   const at = controller.selected;
+  useScrollSpy(page, outlineRef);
 
   return (
     <Columns

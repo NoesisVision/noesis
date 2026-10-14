@@ -1,11 +1,12 @@
 import { IconBolt, IconCircleCheck, IconFlag } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import type { UseFormReturnType } from '#/shared/design-system/form.ts';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
 import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
+import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { UnitDraft, UnitState } from '../../design-doc-edit.ts';
 import classes from './scenario-fields.module.css';
 
@@ -66,6 +67,7 @@ export function ScenarioFields({
   belongsTo?: ReactNode;
 }) {
   const revisable = state !== 'added';
+  const id = useId();
   const field = (name: 'name' | 'description' | StepName) => {
     const draft = form.values.fields[name] as
       | { written: boolean; value: string }
@@ -103,20 +105,32 @@ export function ScenarioFields({
         onChange={(event) => name.onChange(event.currentTarget.value)}
       />
       {belongsTo}
-      <Textarea
-        label="Description"
-        description="Optional context for readers of this scenario."
-        placeholder={unchanged(
-          description.written,
-          'Why does this case matter?',
+      {/* Markdown, as a rule's or a scenario's description is read. */}
+      <fieldset
+        className={classes.description}
+        aria-labelledby={`${id}-description`}
+      >
+        <Text id={`${id}-description`} size="sm" fw={500}>
+          Description
+        </Text>
+        <Text size="xs" c="dimmed" mb={5}>
+          {unchanged(
+            description.written,
+            'Optional context for readers of this scenario, in markdown.',
+          )}
+        </Text>
+        <MarkdownEditor
+          markdown={description.value}
+          headingLevel={3}
+          blockTypes={false}
+          onChange={description.onChange}
+        />
+        {description.error !== undefined && (
+          <Text size="xs" c="red" mt={5}>
+            {description.error}
+          </Text>
         )}
-        autosize
-        minRows={2}
-        maxRows={5}
-        value={description.value}
-        error={description.error}
-        onChange={(event) => description.onChange(event.currentTarget.value)}
-      />
+      </fieldset>
       <div className={classes.steps}>
         <div className={classes.stepsHead}>
           <Text size="sm" fw={500}>

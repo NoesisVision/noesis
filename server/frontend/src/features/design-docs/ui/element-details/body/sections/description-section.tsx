@@ -7,6 +7,7 @@ import {
   valueOf,
 } from '../../../../design-doc-field.ts';
 import type { ElementRef } from '../../element-ref.ts';
+import { humanText } from '../../human-mark.tsx';
 import { DetailSection } from './detail-section.tsx';
 
 interface DescriptionSectionProps {
@@ -14,6 +15,8 @@ interface DescriptionSectionProps {
   field: DesignDocFieldInput<string>;
   /** A module, building block or behaviour is defined; anything else described, and a rule reasoned for. */
   title?: 'Description' | 'Definition' | 'Rationale';
+  /** A property's description is plain text, not markdown. */
+  plain?: boolean;
   slots?: {
     top?: ReactNode;
     bottom?: ReactNode;
@@ -22,7 +25,8 @@ interface DescriptionSectionProps {
 
 /**
  * A description or definition is markdown, and the diagrams in it are drawn: it is the one
- * field long enough to be written rather than named. The editor reads its
+ * field long enough to be written rather than named. A property's description
+ * is the exception: plain text, its lines kept. The editor reads its
  * markdown once, on mount, so another element is another editor — which is
  * why `ElementDetail` keys the sections by the element's own path.
  *
@@ -32,6 +36,7 @@ interface DescriptionSectionProps {
 export function DescriptionSection({
   field,
   title = 'Description',
+  plain = false,
   slots = {},
 }: DescriptionSectionProps) {
   const value = valueOf(field);
@@ -51,8 +56,18 @@ export function DescriptionSection({
         <Text c="dimmed" size="sm">
           Not specified.
         </Text>
+      ) : plain ? (
+        <Text
+          size="sm"
+          className={humanText([field])}
+          style={{ whiteSpace: 'pre-line' }}
+        >
+          {value}
+        </Text>
       ) : (
-        <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
+        <div className={humanText([field])}>
+          <MarkdownEditor markdown={value} headingLevel={3} readOnly noMargin />
+        </div>
       )}
       {slots?.bottom}
     </DetailSection>

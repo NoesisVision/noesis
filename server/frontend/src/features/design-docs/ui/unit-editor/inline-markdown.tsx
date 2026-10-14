@@ -1,24 +1,31 @@
-import { type ReactNode, useState } from 'react';
-import { Button } from '#/shared/design-system/button.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
+import {
+  type ReactNode,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { Text } from '#/shared/design-system/text.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { HoverMarks } from './hover-marks.tsx';
 import classes from './inline-edit.module.css';
 
 /**
  * Prose written in place: it reads as itself and is the button that opens
  * it — clicked, tapped, or focused and Enter or Space — while a link in it
- * still opens. Opened, it is the markdown editor, kept until Save or Cancel:
- * a paragraph half written is not one to save on the way out.
+ * still opens. Opened, it is the markdown editor, as tall as the text: a
+ * click outside it, or Mod+Enter, saves; Escape leaves it as it was.
  */
 export function InlineMarkdown({
   label,
+  human = false,
   value,
   onSave,
   children,
 }: {
   label: string;
+  /** Whether a human wrote it: its figure shows beside the pencil. */
+  human?: boolean;
   value: string;
   /** Saves the new text; answers what is wrong with it, or null. */
   onSave: (next: string) => Promise<string | null>;
@@ -26,26 +33,68 @@ export function InlineMarkdown({
   children: ReactNode;
 }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const draft = useRef(value);
+  const saving = useRef(false);
+  const frame = useRef<HTMLDivElement>(null);
 
   const start = () => {
-    setDraft(value);
+    draft.current = value;
     setError(null);
     setEditing(true);
   };
-  const save = async () => {
-    if (draft.trim() === value.trim()) {
+  const save = useEffectEvent(async () => {
+    if (saving.current) return;
+    if (draft.current.trim() === value.trim()) {
       setEditing(false);
       return;
     }
-    setBusy(true);
-    const problem = await onSave(draft);
-    setBusy(false);
+    saving.current = true;
+    const problem = await onSave(draft.current);
+    saving.current = false;
     if (problem === null) setEditing(false);
     else setError(problem);
-  };
+  });
+
+  // Done when the pointer or the focus goes elsewhere: a click past the
+  // editor, or the focus moved out of it, saves. Its own popups — a link's dialog, a
+  // menu — open at the end of the page, and are still the editor.
+  useEffect(() => {
+    if (!editing) return;
+    const inside = (target: EventTarget | null) =>
+      target instanceof Node &&
+      (frame.current?.contains(target) === true ||
+        (target instanceof Element &&
+          target.closest('.mdxeditor-popup-container') !== null));
+    const onPointer = (event: PointerEvent) => {
+      if (!inside(event.target)) void save();
+    };
+    const onFocus = (event: FocusEvent) => {
+      if (event.relatedTarget !== null && !inside(event.relatedTarget))
+        void save();
+    };
+    // Escape leaves the text as it was; Mod+Enter saves it — Tab is the
+    // editor's own, indenting a list, so the keyboard leaves by these.
+    // Heard on the way in, before the editor takes the keys for its own.
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setEditing(false);
+      } else if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        void save();
+      }
+    };
+    const root = frame.current;
+    document.addEventListener('pointerdown', onPointer, true);
+    root?.addEventListener('focusout', onFocus);
+    root?.addEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer, true);
+      root?.removeEventListener('focusout', onFocus);
+      root?.removeEventListener('keydown', onKey, true);
+    };
+  }, [editing]);
 
   // A link in the prose is followed, not written.
   const onLink = (target: EventTarget) =>
@@ -60,7 +109,7 @@ export function InlineMarkdown({
         role="button"
         tabIndex={0}
         aria-label={`Edit the ${label.toLowerCase()}`}
-        title={`Edit the ${label.toLowerCase()}`}
+        data-edit={label.toLowerCase()}
         className={classes.block}
         onClick={(event) => {
           if (!onLink(event.target)) start();
@@ -75,34 +124,26 @@ export function InlineMarkdown({
         }}
       >
         {children}
+        <HoverMarks editable human={human} />
       </div>
     );
   return (
-    <Stack gap="xs">
+    <div ref={frame}>
       <MarkdownEditor
         markdown={value}
         headingLevel={3}
         blockTypes={false}
-        onChange={setDraft}
+        inline
+        focusOnOpen
+        onChange={(next) => {
+          draft.current = next;
+        }}
       />
       {error !== null && (
-        <Text size="xs" c="red">
+        <Text size="xs" c="red" mt={4}>
           {error}
         </Text>
       )}
-      <Group gap="xs" justify="flex-end">
-        <Button
-          variant="default"
-          size="xs"
-          disabled={busy}
-          onClick={() => setEditing(false)}
-        >
-          Cancel
-        </Button>
-        <Button size="xs" busy={busy} onClick={() => void save()}>
-          Save
-        </Button>
-      </Group>
-    </Stack>
+    </div>
   );
 }

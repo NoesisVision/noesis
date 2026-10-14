@@ -261,7 +261,7 @@ const writing = {
 const owner = { kind: 'building_block', id: BLOCK } as const;
 const block = parts.buildingBlocks!.modified![0]!;
 const editable = (html: string) =>
-  [...html.matchAll(/title="Edit the ([a-z ]+)"/g)].map((match) => match[1]);
+  [...html.matchAll(/data-edit="([a-z ]+)"/g)].map((match) => match[1]);
 
 describe('a rule card', () => {
   const card = (

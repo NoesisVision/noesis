@@ -1,13 +1,21 @@
+import { clsx } from 'clsx';
 import type {
   DesignedParameterInput,
   DesignedPropertyInput,
   DesignedResultInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { PartOwner } from '../../../../design-doc-edit.ts';
+import { type PartOwner, unitOf } from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { InlineText } from '../../../unit-editor/inline-text.tsx';
 import { useWritableUnit } from '../../../unit-editor/writable-unit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
+import { useDesignDocument } from '../../design-document-context.ts';
+import {
+  nameFieldsOf,
+  writtenByHuman,
+  humanText,
+  WrittenBy,
+} from '../../human-mark.tsx';
 import { DeclarationBox, DeclarationType } from './declaration-box.tsx';
 import classes from './declaration-box.module.css';
 
@@ -33,11 +41,22 @@ export function WritableDeclarationBox({
   component?: 'div' | 'li';
   output?: boolean;
 }) {
-  const writable = useWritableUnit(
+  const ref =
     owner === null || item.key === undefined
       ? null
-      : { kind, id: item.key, owner },
-  );
+      : { kind, id: item.key, owner };
+  const writable = useWritableUnit(ref);
+  // Who wrote it, whether or not it may be written here.
+  const doc = useDesignDocument();
+  const designed = (doc === null || ref === null ? null : unitOf(doc, ref)) as
+    | DesignedPropertyInput
+    | DesignedParameterInput
+    | DesignedResultInput
+    | null;
+  const written = [designed?.description];
+  // The name is the declaration's key, with no writer of its own: marked
+  // only where a human made the whole declaration.
+  const whole = nameFieldsOf(designed);
   if (writable === null || item.key === undefined)
     return (
       <DeclarationBox
@@ -45,6 +64,8 @@ export function WritableDeclarationBox({
         typePath={typePath}
         component={Component}
         output={output}
+        writtenOf={written}
+        nameWrittenOf={whole}
       />
     );
   const unit = writable.unit as
@@ -59,21 +80,25 @@ export function WritableDeclarationBox({
         (writable.state === 'added' ? (
           <InlineText
             label="Name"
+            human={writtenByHuman(whole)}
             value={item.key}
-            className={classes.name}
+            className={clsx(classes.name, humanText(whole))}
             onSave={(name) => writable.save({ name })}
           />
         ) : (
-          <span className={classes.name}>{item.name ?? item.key}</span>
+          <WrittenBy fields={whole}>
+            <span className={classes.name}>{item.name ?? item.key}</span>
+          </WrittenBy>
         ))}
       {item.type !== undefined && (
         <DeclarationType type={item.type} path={typePath} named={named} />
       )}
       <InlineText
         label="Description"
+        human={writtenByHuman(written)}
         value={valueOf(unit?.description) ?? ''}
         multiline
-        className={classes.description}
+        className={clsx(classes.description, humanText(written))}
         onSave={(description) => writable.save({ description })}
       />
     </Component>

@@ -204,6 +204,18 @@
 }
 
 /*
+ * The row of the entry at the top of the document beside the tree, as it is
+ * scrolled (the requirements' scroll spy): the pointer's hover, held. The
+ * row in hand keeps its own fill.
+ */
+.item[data-spied]:not([data-selected]) > .row {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/*
  * The way down to the row in hand, in a lighter brand blue than the row
  * itself: a reader can follow the line from the context to where they are
  * without mistaking any of it for where they are.

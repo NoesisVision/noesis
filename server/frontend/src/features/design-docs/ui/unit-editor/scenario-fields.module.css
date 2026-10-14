@@ -67,3 +67,11 @@
   gap: var(--mantine-spacing-xs);
   min-height: 30px;
 }
+
+/* The description's field set: grouped under its label, drawn as none. */
+.description {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}

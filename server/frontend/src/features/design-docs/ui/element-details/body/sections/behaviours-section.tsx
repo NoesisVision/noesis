@@ -11,6 +11,7 @@ import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
+import { MarkdownReading } from '../../markdown-reading.tsx';
 import { DetailSection } from './detail-section.tsx';
 import classes from './behaviours-section.module.css';
 import canvas from './canvas.module.css';
@@ -156,8 +157,11 @@ function OutputType({ label, path }: { label: string; path: string | null }) {
 
 function Definition({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   const definition = valueOf(behaviour.definition)?.trim();
-  // As written: a markdown reader per behaviour is too heavy a list.
-  return definition ? <p className={classes.definition}>{definition}</p> : null;
+  return definition ? (
+    <div className={classes.definition}>
+      <MarkdownReading markdown={definition} />
+    </div>
+  ) : null;
 }
 
 /** Shown only when the block has behaviours at all. */

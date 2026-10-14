@@ -4,7 +4,6 @@ import type {
   OutlineNode,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
@@ -13,12 +12,10 @@ import { ChangeBadge } from '../../change-badge.tsx';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
+import { MarkdownReading } from '../../markdown-reading.tsx';
 import { DetailSection } from './detail-section.tsx';
 import { BoxGrid } from './property-grid.tsx';
 import classes from './element-cards-section.module.css';
-
-/** How much of a description a card shows before "Show more". */
-const DESCRIPTION_LENGTH = 80;
 
 interface ElementCardsSectionProps {
   element: ElementRef;
@@ -142,11 +139,9 @@ function ElementCard({
           <ChangeBadge change={node.change} />
         </div>
         {description !== null && (
-          <TextSpoiler
-            text={description}
-            maxLength={DESCRIPTION_LENGTH}
-            className={classes.description}
-          />
+          <div className={classes.description}>
+            <MarkdownReading markdown={description} />
+          </div>
         )}
       </div>
     </ElementTooltip>
@@ -154,8 +149,8 @@ function ElementCard({
 }
 
 /**
- * The first paragraph of what the design says about an element, as text: a
- * diagram's fence or a heading is no way to start a card. None for an
+ * The first paragraph of what the design says about an element, in markdown:
+ * a diagram's fence or a heading is no way to start a card. None for an
  * element the document does not describe.
  */
 const descriptionOf = (
@@ -172,9 +167,7 @@ const descriptionOf = (
     .split(/\n\s*\n/)
     .map((part) => part.trim())
     .find((part) => part !== '' && !part.startsWith('```'));
-  return paragraph === undefined
-    ? null
-    : paragraph.replace(/^#+\s*/, '').replace(/\s+/g, ' ');
+  return paragraph === undefined ? null : paragraph.replace(/^#+\s*/, '');
 };
 
 /** Shown only when there is something under the element to list. */

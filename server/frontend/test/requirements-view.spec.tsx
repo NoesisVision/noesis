@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { mock, describe, expect, it } from 'bun:test';
 import {
   createMemoryHistory,
   createRootRoute,
@@ -13,6 +13,18 @@ import { RequirementsView } from '../src/features/design-docs/ui/requirements/re
 import { Details } from '../src/features/design-docs/ui/requirements/rule-details';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { requirementsFixture } from './fixtures/design-doc-requirements.fixture';
+
+// The editor that reads markdown arrives on its own and draws its text only
+// in a browser: here a description reads as its markdown, so where it lands
+// can be asserted.
+void mock.module(
+  '../src/features/design-docs/ui/element-details/markdown-reading.tsx',
+  () => ({
+    MarkdownReading: ({ markdown }: { markdown: string }) => (
+      <span data-markdown>{markdown}</span>
+    ),
+  }),
+);
 
 /** A router of its own, so the element links resolve without the app's route tree. */
 async function render(

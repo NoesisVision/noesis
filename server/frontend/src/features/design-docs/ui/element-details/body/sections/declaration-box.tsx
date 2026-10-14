@@ -1,9 +1,11 @@
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import { TextSpoiler } from '#/shared/ui/text-spoiler.tsx';
+import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
+import { WrittenBy } from '../../human-mark.tsx';
 import classes from './declaration-box.module.css';
 
 /** How much of a description shows before "Show more". */
@@ -20,6 +22,8 @@ export function DeclarationBox({
   typePath,
   component: Component = 'div',
   output,
+  writtenOf,
+  nameWrittenOf,
 }: {
   item: ChangeListItem;
   /** The row the type opens, if the tree has one. */
@@ -28,15 +32,21 @@ export function DeclarationBox({
   component?: 'div' | 'li';
   /** What a behaviour gives back, drawn in the brand's tint. */
   output?: boolean;
+  /** The fields the description is, for who wrote it. */
+  writtenOf?: readonly (DesignDocFieldInput<unknown> | undefined)[];
+  /** The fields of the whole declaration, for who wrote its name — which has no writer of its own. */
+  nameWrittenOf?: readonly (DesignDocFieldInput<unknown> | undefined)[];
 }) {
   const { change, label, name, type, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
     <Component className={classes.box} data-output={output || undefined}>
       {name !== undefined && (
-        <span className={classes.name} data-removed={removed}>
-          {name}
-        </span>
+        <WrittenBy fields={nameWrittenOf ?? []}>
+          <span className={classes.name} data-removed={removed}>
+            {name}
+          </span>
+        </WrittenBy>
       )}
       {type !== undefined && (
         <DeclarationType
@@ -51,11 +61,13 @@ export function DeclarationBox({
         </span>
       )}
       {description !== undefined && (
-        <TextSpoiler
-          text={description}
-          maxLength={DESCRIPTION_LENGTH}
-          className={classes.description}
-        />
+        <WrittenBy fields={writtenOf ?? []}>
+          <TextSpoiler
+            text={description}
+            maxLength={DESCRIPTION_LENGTH}
+            className={classes.description}
+          />
+        </WrittenBy>
       )}
     </Component>
   );

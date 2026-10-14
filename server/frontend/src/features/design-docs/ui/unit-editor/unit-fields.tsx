@@ -187,8 +187,27 @@ function FieldInput({
       );
     case 'stakeholder':
       return <TextInput {...common} {...valueProps(form, path)} />;
-    case 'statement':
     case 'description':
+      // A rule's or a scenario's description is markdown; a property's,
+      // an input's or an output's is plain text.
+      if (kind === 'rule' || kind === 'scenario')
+        return (
+          <MarkdownEditor
+            markdown={fields.description!.value}
+            headingLevel={3}
+            blockTypes={false}
+            onChange={(markdown) => form.setFieldValue(path, markdown)}
+          />
+        );
+      return (
+        <Textarea
+          {...common}
+          autosize
+          minRows={2}
+          {...valueProps(form, path)}
+        />
+      );
+    case 'statement':
     case 'rationale':
     case 'given':
     case 'when':
@@ -197,7 +216,7 @@ function FieldInput({
         <Textarea
           {...common}
           autosize
-          minRows={spec.name === 'description' ? 2 : 1}
+          minRows={1}
           {...valueProps(form, path)}
         />
       );

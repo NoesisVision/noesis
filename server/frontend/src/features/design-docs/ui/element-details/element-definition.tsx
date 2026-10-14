@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { UnitRef } from '../../design-doc-edit.ts';
@@ -8,6 +9,7 @@ import {
 } from '../../design-doc-field.ts';
 import { InlineMarkdown } from '../unit-editor/inline-markdown.tsx';
 import { useWritableUnit } from '../unit-editor/writable-unit.ts';
+import { humanText, WrittenBy, writtenByHuman } from './human-mark.tsx';
 import classes from './element-detail.module.css';
 
 /**
@@ -30,12 +32,15 @@ export function ElementDefinition({
   if (writable === null)
     return blank ? null : (
       <div className={classes.definition}>
-        <Reading markdown={value} />
+        <WrittenBy fields={[field]}>
+          <Reading markdown={value} />
+        </WrittenBy>
       </div>
     );
   return (
-    <div className={classes.definition}>
+    <div className={clsx(classes.definition, humanText([field]))}>
       <InlineMarkdown
+        human={writtenByHuman([field])}
         label="Definition"
         value={value ?? ''}
         onSave={(definition) => writable.save({ definition })}

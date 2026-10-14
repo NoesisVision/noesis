@@ -24,6 +24,7 @@ export const propertySections = (
     ...section(DescriptionSection, 'description', {
       element,
       field: property.description,
+      plain: true,
     }),
   ];
 };
