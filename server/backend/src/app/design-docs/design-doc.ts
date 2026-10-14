@@ -13,6 +13,7 @@ import {
   RuleCategory,
   RuleType,
   BuildingBlockRef,
+  ScenarioSteps,
   type ScannedRule,
   type SystemModel,
   Visibility,
@@ -34,10 +35,7 @@ export type DesignedNeed = z.infer<typeof DesignedNeed>;
 export const DesignedScenario = z.strictObject({
   name: ElementName,
   description: DesignDocField(z.string()),
-  given: DesignDocField(z.string()),
-  when: DesignDocField(z.string()),
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: DesignDocField(z.string()), // NOSONAR
+  steps: DesignDocField(ScenarioSteps),
 });
 export type DesignedScenario = z.infer<typeof DesignedScenario>;
 

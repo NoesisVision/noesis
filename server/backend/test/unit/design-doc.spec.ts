@@ -431,10 +431,11 @@ describe('A design document an agent wrote', () => {
               {
                 name: 'Cancelling a paid order',
                 description: 'The happy path.',
-                given: 'a paid order',
-                when: 'the customer cancels it',
-                // oxlint-disable-next-line unicorn/no-thenable
-                then: 'the order is cancelled', // NOSONAR
+                steps: [
+                  { kind: 'given', text: 'a paid order' },
+                  { kind: 'when', text: 'the customer cancels it' },
+                  { kind: 'then', text: 'the order is cancelled' },
+                ],
               },
             ],
           },

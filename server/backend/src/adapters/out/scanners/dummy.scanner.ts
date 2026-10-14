@@ -435,10 +435,7 @@ function flattenedScenario(
       current?.description,
       at.in('description'),
     ),
-    given: field(designed.given, current?.given, at.in('given')),
-    when: field(designed.when, current?.when, at.in('when')),
-    // oxlint-disable-next-line unicorn/no-thenable
-    then: field(designed.then, current?.then, at.in('then')), // NOSONAR
+    steps: field(designed.steps, current?.steps, at.in('steps')),
   };
 }
 

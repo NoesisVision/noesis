@@ -17,6 +17,7 @@ import type {
   BuildingBlockType,
   RuleCategory,
   RuleType,
+  ScenarioStep,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
 import {
@@ -408,9 +409,8 @@ interface UnitFieldValues {
   description: string;
   needs: string[];
   rationale: string;
-  given: string;
-  when: string;
-  then: string;
+  /** A scenario's steps, in the order they are read. */
+  steps: ScenarioStep[];
   /** A type reference: a property's, an input's, an output's, a block implemented. */
   ref: BuildingBlockRefInput;
   optional: boolean;
@@ -469,13 +469,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('needs'),
     field('rationale'),
   ],
-  scenario: [
-    key('name'),
-    field('description'),
-    field('given'),
-    field('when'),
-    field('then'),
-  ],
+  scenario: [key('name'), field('description'), field('steps')],
   property: TYPED_PART,
   parameter: TYPED_PART,
   result: [key('ref', 'type'), field('description'), field('optional')],
@@ -540,11 +534,12 @@ const BLANK: UnitFieldValues = {
   description: '',
   needs: [],
   rationale: '',
-  given: '',
-  when: '',
-  // The scenario's step, named as the contract names it.
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: '', // NOSONAR
+  // A new scenario starts as the classic three, each to be written or removed.
+  steps: [
+    { kind: 'given', text: '' },
+    { kind: 'when', text: '' },
+    { kind: 'then', text: '' },
+  ],
   ref: '',
   optional: false,
 };
@@ -655,7 +650,7 @@ export function draftErrors(
 ): Record<string, string> {
   const kind = kindOfTarget(target);
   const errors: Record<string, string> = {};
-  const { name, type, ref, category, ruleType } = draft.fields;
+  const { name, type, ref, category, ruleType, steps } = draft.fields;
   if (name?.written) {
     if (name.value.trim() === '')
       errors['fields.name.value'] = 'A name is required.';
@@ -670,6 +665,15 @@ export function draftErrors(
     errors['fields.category.value'] = 'Choose a category.';
   if (ruleType?.written && ruleType.value === '')
     errors['fields.ruleType.value'] = 'Choose a rule type.';
+  if (steps?.written) {
+    if (steps.value.length === 0)
+      errors['fields.steps.value'] = 'A scenario needs at least one step.';
+    steps.value.forEach((step, index) => {
+      if (step.text.trim() === '')
+        errors[`fields.steps.value.${index}.text`] =
+          'Write this step, or remove it.';
+    });
+  }
   if (
     category?.written &&
     ruleType?.written &&
@@ -1019,10 +1023,28 @@ function changesNothing(item: Container): boolean {
 }
 
 function trimmed<T>(draft: FieldDraft<T>): FieldDraft<T> {
-  return typeof draft.value === 'string'
-    ? { ...draft, value: draft.value.trim() as T }
-    : draft;
+  if (typeof draft.value === 'string')
+    return { ...draft, value: draft.value.trim() as T };
+  if (isSteps(draft.value))
+    return {
+      ...draft,
+      value: draft.value.map((step) => ({
+        ...step,
+        text: step.text.trim(),
+      })) as T,
+    };
+  return draft;
 }
+
+const isSteps = (value: unknown): value is ScenarioStep[] =>
+  Array.isArray(value) &&
+  value.every(
+    (item) =>
+      typeof item === 'object' &&
+      item !== null &&
+      'kind' in item &&
+      'text' in item,
+  );
 
 function written<Doc extends DesignDocumentInput>(
   doc: Doc,

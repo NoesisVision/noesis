@@ -73,11 +73,11 @@ export const requirementsFixture = {
                 added: [
                   {
                     name: 'Refunding more than was paid',
-                    given: agent('an order paid 100'),
-                    when: agent('support refunds 120'),
-                    // Gherkin's word; the fixture is never awaited.
-                    // oxlint-disable-next-line unicorn/no-thenable
-                    then: agent('the refund is refused'), // NOSONAR
+                    steps: agent([
+                      { kind: 'given', text: 'an order paid 100' },
+                      { kind: 'when', text: 'support refunds 120' },
+                      { kind: 'then', text: 'the refund is refused' },
+                    ]),
                   },
                 ],
               },
@@ -120,10 +120,11 @@ export const requirementsFixture = {
                 added: [
                   {
                     name: 'Refunding an unpaid order',
-                    given: agent('an order not yet paid'),
-                    when: agent('support refunds a line'),
-                    // oxlint-disable-next-line unicorn/no-thenable
-                    then: agent('the refund is refused'), // NOSONAR
+                    steps: agent([
+                      { kind: 'given', text: 'an order not yet paid' },
+                      { kind: 'when', text: 'support refunds a line' },
+                      { kind: 'then', text: 'the refund is refused' },
+                    ]),
                   },
                 ],
               },

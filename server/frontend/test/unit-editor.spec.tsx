@@ -192,7 +192,7 @@ describe('the fields of a part', () => {
     expect(html).toContain('It may be left out');
   });
 
-  it('step a scenario through given, when and then', () => {
+  it('starts a new scenario at given, when and then, each a step to switch or remove', () => {
     const html = render(
       <Fields
         kind="scenario"
@@ -200,8 +200,14 @@ describe('the fields of a part', () => {
         owner={{ kind: 'building_block', id: BLOCK }}
       />,
     );
-    for (const step of ['Given', 'When', 'Then'])
-      expect(html).toContain(`aria-label="${step}"`);
+    ['Given', 'When', 'Then'].forEach((keyword, index) => {
+      expect(html).toContain(`aria-label="Step ${index + 1}, ${keyword}"`);
+      expect(html).toContain(
+        `aria-label="Step ${index + 1}, ${keyword}: change its kind"`,
+      );
+      expect(html).toContain(`aria-label="Remove step ${index + 1}"`);
+    });
+    expect(html).toContain('>Add step<');
   });
 });
 
@@ -238,10 +244,13 @@ const parts: DesignDocumentInput = {
             {
               name: 'settles',
               description: { value: '' },
-              given: { value: 'a hold' },
-              when: { value: 'it settles' },
-              // oxlint-disable-next-line unicorn/no-thenable
-              then: { value: 'it is gone' }, // NOSONAR
+              steps: {
+                value: [
+                  { kind: 'given', text: 'a hold' },
+                  { kind: 'when', text: 'it settles' },
+                  { kind: 'then', text: 'it is gone' },
+                ],
+              },
             },
           ],
         },

@@ -212,5 +212,5 @@ step 6.
   another design document, not an earlier version of this one, not your
   memory of the code.
 - Names are English, or the code's identifiers. Every definition,
-  description and given, when and then is in the dominant language of the
+  description and scenario step is in the dominant language of the
   design document; do not translate it.

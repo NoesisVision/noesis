@@ -81,11 +81,11 @@ const document = {
                   {
                     name: 'An unpaid hold lapses',
                     description: plain('The retry window closes.'),
-                    given: plain('a hold with no payment'),
-                    when: plain('an hour passes'),
-                    // Gherkin's word; the fixture is never awaited.
-                    // oxlint-disable-next-line unicorn/no-thenable
-                    then: plain('the hold is released'), // NOSONAR
+                    steps: plain([
+                      { kind: 'given', text: 'a hold with no payment' },
+                      { kind: 'when', text: 'an hour passes' },
+                      { kind: 'then', text: 'the hold is released' },
+                    ]),
                   },
                 ],
                 removed: [],
@@ -101,11 +101,11 @@ const document = {
             {
               name: 'A hold settles',
               description: plain('The ordinary path.'),
-              given: plain('a hold'),
-              when: plain('the booking is confirmed'),
-              // Gherkin's word; the fixture is never awaited.
-              // oxlint-disable-next-line unicorn/no-thenable
-              then: plain('the hold settles'), // NOSONAR
+              steps: plain([
+                { kind: 'given', text: 'a hold' },
+                { kind: 'when', text: 'the booking is confirmed' },
+                { kind: 'then', text: 'the hold settles' },
+              ]),
             },
           ],
           removed: [],
@@ -564,7 +564,9 @@ describe('ElementDetail', () => {
       ['A hold settles', undefined],
       ['An unpaid hold lapses', 'A hold expires'],
     ]);
-    expect(valueOf(entries[1]!.scenario?.then)).toBe('the hold is released');
+    expect(valueOf(entries[1]!.scenario?.steps)?.at(-1)?.text).toBe(
+      'the hold is released',
+    );
     // A rule's own scenario says whose it is.
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
   });
@@ -613,11 +615,11 @@ describe('ElementDetail', () => {
                   name: 'A hold settles',
                   // The name again, as a sentence: a full stop says no more.
                   description: plain('A hold settles.'),
-                  given: plain('a hold'),
-                  when: plain('the booking is confirmed'),
-                  // Gherkin's word; the fixture is never awaited.
-                  // oxlint-disable-next-line unicorn/no-thenable
-                  then: plain('the hold settles'), // NOSONAR
+                  steps: plain([
+                    { kind: 'given', text: 'a hold' },
+                    { kind: 'when', text: 'the booking is confirmed' },
+                    { kind: 'then', text: 'the hold settles' },
+                  ]),
                 },
               ],
             },

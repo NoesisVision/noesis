@@ -80,7 +80,7 @@ rules, scenarios. Read it at step 5.
    - **Rules**, one per requirement statement, each with its category and
      type, the needs it answers (none for a design decision) and, when a
      source gives one, its rationale, attached at exactly one level.
-   - **Scenarios** in given, when, then, attached to the rule they verify,
+   - **Scenarios** as steps of given, when and then, attached to the rule they verify,
      else to the behaviour, else to the building block.
 
    Then look for contradictions between sources, missing information and
@@ -196,7 +196,7 @@ results.
   overloads are one behaviour.
 - A name never holds `.` or `|`, rule and scenario names included.
 - Names are English, or the code's identifiers. Every definition, every
-  description and every given, when and then is in the dominant language of
+  description and every scenario step is in the dominant language of
   the sources; do not translate them.
 
 ## When the tool refuses

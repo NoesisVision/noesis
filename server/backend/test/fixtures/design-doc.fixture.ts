@@ -155,10 +155,11 @@ export const designDocFixture = {
             {
               name: 'Refunding one line of a paid order',
               description: byAgent('The happy path of a partial refund.'),
-              given: byAgent('a paid order with two lines'),
-              when: byAgent('support refunds the first line'),
-              // oxlint-disable-next-line unicorn/no-thenable
-              then: byAgent(REFUND_OUTCOME), // NOSONAR
+              steps: byAgent([
+                { kind: 'given', text: 'a paid order with two lines' },
+                { kind: 'when', text: 'support refunds the first line' },
+                { kind: 'then', text: REFUND_OUTCOME },
+              ]),
             },
           ],
           removed: [],

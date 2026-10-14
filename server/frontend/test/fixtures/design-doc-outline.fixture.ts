@@ -88,11 +88,11 @@ export const changedEverywhereFixture = {
                 added: [
                   {
                     name: 'Refunding more than was paid',
-                    given: agent('an order paid 100'),
-                    when: agent('support refunds 120'),
-                    // Gherkin's word; the fixture is never awaited.
-                    // oxlint-disable-next-line unicorn/no-thenable
-                    then: agent('the refund is refused'), // NOSONAR
+                    steps: agent([
+                      { kind: 'given', text: 'an order paid 100' },
+                      { kind: 'when', text: 'support refunds 120' },
+                      { kind: 'then', text: 'the refund is refused' },
+                    ]),
                   },
                 ],
                 removed: ['Refunding without a receipt'],
@@ -105,11 +105,11 @@ export const changedEverywhereFixture = {
             {
               name: 'Refunding one line of a paid order',
               description: agent('The happy path of a partial refund.'),
-              given: agent('a paid order with two lines'),
-              when: agent('support refunds the first line'),
-              // Gherkin's word; the fixture is never awaited.
-              // oxlint-disable-next-line unicorn/no-thenable
-              then: agent('the line is refunded'), // NOSONAR
+              steps: agent([
+                { kind: 'given', text: 'a paid order with two lines' },
+                { kind: 'when', text: 'support refunds the first line' },
+                { kind: 'then', text: 'the line is refunded' },
+              ]),
             },
           ],
         },
