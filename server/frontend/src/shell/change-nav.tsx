@@ -1,5 +1,6 @@
 import { IconCheck, IconChevronDown } from '@tabler/icons-react';
 import { Link } from '@tanstack/react-router';
+import { clsx } from 'clsx';
 import {
   type ReactNode,
   type RefObject,
@@ -28,6 +29,9 @@ import {
   useChangeNav,
 } from '#/shell/navigation/use-change-nav.ts';
 import classes from './change-nav.module.css';
+
+/** A tab's parts the bar styles: its icon, quiet until the tab is open. */
+const TAB_PARTS = { section: classes.tabIcon };
 
 /** A change view, with its named items when it has them. */
 interface ChangeNavGroup {
@@ -89,8 +93,10 @@ function ViewTab({ entry, params, disabled }: ViewTabProps) {
   return (
     <NavLink
       className={classes.tab}
+      classNames={TAB_PARTS}
+      data-tone={entry.tone}
       label={entry.label}
-      leftSection={<entry.icon size={18} stroke={1.6} />}
+      leftSection={<entry.icon size={16} stroke={1.8} />}
       disabled={disabled}
       renderRoot={(props) => (
         <Link
@@ -154,7 +160,9 @@ function ItemGroup({ entry, items, shown }: ItemGroupProps) {
       <GroupLabel entry={entry} id={labelId} />
       {shown.map((i) => {
         const item = items[i];
-        return item ? <ItemTab key={item.id} item={item} /> : null;
+        return item ? (
+          <ItemTab key={item.id} entry={entry} item={item} />
+        ) : null;
       })}
       {hidden.length > 0 && (
         <ItemsMenu label={entry.label} items={hidden}>
@@ -171,12 +179,16 @@ function ItemGroup({ entry, items, shown }: ItemGroupProps) {
   );
 }
 
-function ItemTab({ item }: { item: ChangeNavChild }) {
+/** An item of a group, under its group's icon and in its colour when open. */
+function ItemTab({ entry, item }: { entry: NavItem; item: ChangeNavChild }) {
   return (
     <NavLink
       className={classes.tab}
+      classNames={TAB_PARTS}
       data-item
+      data-tone={entry.tone}
       label={item.name}
+      leftSection={<entry.icon size={16} stroke={1.8} />}
       noWrap
       renderRoot={(props) => (
         <Link {...props} {...item.link} activeOptions={ACTIVE_OPTIONS} />
@@ -224,21 +236,23 @@ interface AppLinksProps {
 /** The views that are not about a change: the documentation. */
 function AppLinks({ compact }: AppLinksProps) {
   return (
-    <>
+    <Box className={classes.appLinks}>
       {APP_PUBLIC_NAV.documentation.map((entry) => (
         <Tooltip key={entry.to} label={entry.label} disabled={!compact}>
           <NavLink
             className={classes.tab}
+            classNames={TAB_PARTS}
+            data-tone={entry.tone}
             label={compact ? undefined : entry.label}
             aria-label={compact ? entry.label : undefined}
-            leftSection={<entry.icon size={18} stroke={1.6} />}
+            leftSection={<entry.icon size={16} stroke={1.8} />}
             renderRoot={(props) => (
               <Link {...props} to={entry.to} activeOptions={ACTIVE_OPTIONS} />
             )}
           />
         </Tooltip>
       ))}
-    </>
+    </Box>
   );
 }
 
@@ -258,8 +272,9 @@ function MeasureLayer({ ref, groups }: MeasureLayerProps) {
       key={entry.to}
       component="span"
       className={classes.tab}
+      classNames={TAB_PARTS}
       label={label ? entry.label : undefined}
-      leftSection={<entry.icon size={18} stroke={1.6} />}
+      leftSection={<entry.icon size={16} stroke={1.8} />}
     />
   );
   const appSample = (label: boolean) => (
@@ -280,13 +295,17 @@ function MeasureLayer({ ref, groups }: MeasureLayerProps) {
           ),
         )}
       </Box>
-      <Box component="span" data-measure="app" className={classes.group}>
+      <Box
+        component="span"
+        data-measure="app"
+        className={clsx(classes.group, classes.appLinks)}
+      >
         {appSample(true)}
       </Box>
       <Box
         component="span"
         data-measure="app-compact"
-        className={classes.group}
+        className={clsx(classes.group, classes.appLinks)}
       >
         {appSample(false)}
       </Box>
@@ -326,9 +345,11 @@ function MeasureLayer({ ref, groups }: MeasureLayerProps) {
               key={item.id}
               component="span"
               className={classes.tab}
+              classNames={TAB_PARTS}
               data-item
               data-open={item.open || undefined}
               label={item.name}
+              leftSection={<entry.icon size={16} stroke={1.8} />}
               noWrap
             />
           ))}

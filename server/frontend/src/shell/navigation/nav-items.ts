@@ -3,8 +3,14 @@ import {
   IconTopologyStar3,
   IconTools,
 } from '@tabler/icons-react';
-import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
-import { DocumentsIcon } from '#/features/documents/documents.model.ts';
+import {
+  DESIGN_DOCS_TONE,
+  DesignDocsIcon,
+} from '#/features/design-docs/design-docs.model.ts';
+import {
+  DOCUMENTS_TONE,
+  DocumentsIcon,
+} from '#/features/documents/documents.model.ts';
 import type { FileRouteTypes } from '#/routeTree.gen.ts';
 import {
   type AppRouteIds,
@@ -14,7 +20,7 @@ import {
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
 } from '#/shared/routing/route-ids.ts';
-import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
+import type { IconComponent, PageTone } from '#/shared/ui/icon-heading.tsx';
 
 /**
  * How every navigation link decides whether it is the one you are on.
@@ -39,6 +45,8 @@ export interface NavItem {
   label: string;
   description?: string;
   icon: IconComponent;
+  /** The colour its tab, its page's rule and its heading are marked with. */
+  tone: PageTone;
   /** The route also matches under its children, so match the leaf exactly. */
   exact?: boolean;
 }
@@ -49,6 +57,7 @@ const OVERVIEW_NAV = {
   label: 'Overview',
   description: 'Status, scope and what happened last',
   icon: IconLayoutDashboard,
+  tone: 'gray',
   exact: true,
 } satisfies NavItem;
 
@@ -58,6 +67,7 @@ export const DOCUMENTS_NAV = {
   label: 'Documents',
   description: 'Imported material that informs the change',
   icon: DocumentsIcon,
+  tone: DOCUMENTS_TONE,
   exact: true,
 } satisfies NavItem;
 
@@ -67,6 +77,7 @@ export const DESIGN_DOCS_NAV = {
   label: 'Design docs',
   description: 'The design documents of this change',
   icon: DesignDocsIcon,
+  tone: DESIGN_DOCS_TONE,
   exact: true,
 } satisfies NavItem;
 
@@ -76,6 +87,7 @@ const SYSTEM_MODEL_NAV = {
   label: 'System model',
   description: 'What the code is made of',
   icon: IconTopologyStar3,
+  tone: 'brand',
 } satisfies NavItem;
 
 const DEV_TOOLS_NAV = {
@@ -84,6 +96,7 @@ const DEV_TOOLS_NAV = {
   label: 'Dev tools',
   description: 'For internal use',
   icon: IconTools,
+  tone: 'gray',
 } satisfies NavItem;
 
 /** The two groups the sidebar renders, in the order it renders them. */

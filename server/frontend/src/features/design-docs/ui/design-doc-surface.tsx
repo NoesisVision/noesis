@@ -4,7 +4,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
 import { FullscreenButton } from '#/shared/ui/shell-fullscreen.tsx';
 import type { DesignDocDetail } from '../design-docs.api.ts';
-import { DesignDocsIcon } from '../design-docs.model.ts';
+import { DESIGN_DOCS_TONE, DesignDocsIcon } from '../design-docs.model.ts';
 import classes from './design-doc-surface.module.css';
 
 /*
@@ -30,6 +30,8 @@ export function DesignDocSurface({
         <IconHeading
           title={document.name}
           icon={DesignDocsIcon}
+          tone={DESIGN_DOCS_TONE}
+          eyebrow="Design doc"
           description={document.implemented ? 'Implemented' : 'Draft'}
         />
         <Group gap="sm" wrap="nowrap">
