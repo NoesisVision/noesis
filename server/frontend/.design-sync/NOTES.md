@@ -26,7 +26,7 @@ Run everything from `server/frontend`.
 ## Known render warns (triaged, benign)
 - `[TOKENS_MISSING]` (~67 vars: `--affix-*`, `--app-shell-*`, `--mantine-text-wrap`...) - set at runtime by MantineProvider / component inline styles. Verified `--mantine-color-brand-6`, `--mantine-spacing-md`, `--mantine-radius-sm`, `--mantine-color-dimmed`, `--mantine-color-body` resolve in a rendered card.
 - `[RENDER_THIN]` Modal - fixed-position overlay measures 0px; screenshot shows the full dialog.
-- `[GRID_OVERFLOW]` fixed with `cardMode: column` for Grid, Group, MantineProvider, TextInput.
+- `[GRID_OVERFLOW]` fixed with `cardMode: column` for Grid, Group, MantineProvider, TextInput, Chip.
 
 ## Re-sync risks
 - `FALLBACK_DTS` in build-pkg.mjs hand-describes Button and Menu; it silently drifts if their wrappers gain props/statics.
@@ -37,3 +37,4 @@ Run everything from `server/frontend`.
 - New wrapper modules in src/shared/design-system are picked up automatically by build-pkg.mjs; add a preview for each.
 - The provider also gets `cssVariablesResolver` (`$ref` to the export in theme.ts), so the `--noesis-*` variables resolve in previews as in the app.
 - `portal-target.tsx` is in `SKIP`: a provider that moves portals, with nothing to draw.
+- Design pages crash with "React 19 can't be loaded here" when `support.js` runs before React 19 is on the page: it loads React 18.3.1 from unpkg, on which Mantine 9 cannot render. The conventions header tells pages to load `_ds/<ds>/_vendor/react.js` first. Claude Design does not copy `_vendor/` into a project's `_ds/` folder, so a page in another project needs the file uploaded there too (done by hand for "Segmented Control" and "Navigation Proposals" on 2026-10-16). A React version bump re-ships `_vendor/react.js` here, but not those copies.

@@ -2,6 +2,17 @@
 
 Noesis wraps **Mantine 9**. Every component on `window.NoesisDS` is the app's own wrapper around the Mantine component of the same name, with the same props (some ship defaults — e.g. `Card` is `withBorder`, `shadow="sm"`, `radius="md"`; `Tooltip` has an arrow and a quick pop transition). If you know Mantine, you know this API; use only the components listed in this README.
 
+## Setup — load React 19 before `support.js`
+
+Mantine 9 needs **React 19**. The page runtime, `support.js`, loads React 18 from unpkg unless `window.React` is already on the page, and Mantine cannot render on React 18 (the "React 19 can't be loaded here" error). Waiting for the bundle to load does not fix it. So every page's `<head>` starts by loading the design system's vendored React — one file that sets both `window.React` and `window.ReactDOM` — and only then the runtime:
+
+```html
+<script src="_ds/<design-system folder>/_vendor/react.js"></script>
+<script src="./support.js"></script>
+```
+
+If the project's `_ds/<design-system folder>/` has no `_vendor/react.js`, copy it there from this design system's `_vendor/react.js` first. Do not bundle another React or load one from a CDN: two copies of React on one page break every hook.
+
 ## Setup — always wrap in `MantineProvider` with the theme
 
 Components read colours, fonts, spacing and radius from Mantine's theme context. Without the provider they render unstyled or throw. Pass the exported `theme` (the noesis.vision palette):
