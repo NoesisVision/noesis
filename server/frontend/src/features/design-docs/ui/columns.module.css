@@ -6,8 +6,9 @@
 }
 
 /*
- * The tree put away: a rail of the pane's frame, 36px wide, beside the
- * detail, which takes the rest of the row.
+ * The tree put away: a rail beside the detail, which takes the rest of the
+ * row. The rail is no pane, only its two buttons, at the size they had in the
+ * tree's bar and level with the top of the detail.
  */
 .columns[data-folded] {
   display: flex;
@@ -25,15 +26,8 @@
   flex-direction: column;
   gap: 4px;
   align-items: center;
+  justify-content: flex-start;
   width: 36px;
-  padding: var(--mantine-spacing-md) 0;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
-  background-color: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-7)
-  );
 }
 
 /*
@@ -139,6 +133,56 @@
 /* Stacked, a canvas still needs a height of its own to pan in. */
 .stacked .paneFill {
   height: 70vh;
+}
+
+/*
+ * The tree put away or brought back by the reader slides rather than jumps
+ * (the columns start a view transition): the tree and its rail are one thing
+ * to the browser, and so are the two places the detail stands, each moving
+ * from its old box to its new one. The pictures keep their size and are cut
+ * at the box's edge rather than stretched to it, so no text is squeezed on
+ * the way; the tree and the rail fade one into the other as they go.
+ */
+.columns[data-folded] > .rail,
+.columns:not([data-folded]) > .pane:first-child {
+  view-transition-name: noesis-columns-tree;
+}
+
+.columns[data-folded] > .pane,
+.columns:not([data-folded]) > .pane:last-child {
+  view-transition-name: noesis-columns-detail;
+}
+
+:global(::view-transition-group(noesis-columns-tree)),
+:global(::view-transition-group(noesis-columns-detail)) {
+  overflow: clip;
+  border-radius: var(--mantine-radius-sm);
+  animation-duration: 0.24s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:global(::view-transition-old(noesis-columns-tree)),
+:global(::view-transition-new(noesis-columns-tree)),
+:global(::view-transition-old(noesis-columns-detail)),
+:global(::view-transition-new(noesis-columns-detail)) {
+  width: auto;
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+  animation-duration: 0.24s;
+}
+
+/*
+ * The detail reads the same before and after, only wider or narrower: shown
+ * as it will be from the start, its box sliding to its place, rather than
+ * the two layouts of its text faded one over the other.
+ */
+:global(::view-transition-old(noesis-columns-detail)) {
+  display: none;
+}
+
+:global(::view-transition-new(noesis-columns-detail)) {
+  animation: none;
 }
 
 /* Asked for no motion, a pane simply arrives where it was sent. */
