@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { IconHeading } from '#/shared/ui/icon-heading.tsx';
+import { useScrolledUnder } from '#/shared/ui/reading-pane.tsx';
 import { FullscreenButton } from '#/shared/ui/shell-fullscreen.tsx';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DESIGN_DOCS_TONE, DesignDocsIcon } from '../design-docs.model.ts';
@@ -17,24 +18,41 @@ import classes from './design-doc-surface.module.css';
 export function DesignDocSurface({
   document,
   switcher,
+  centred = false,
   children,
 }: {
   document: DesignDocDetail['document'];
   /** The control that switches to another view, beside full screen. */
   switcher?: ReactNode;
+  /** The title over the overview's column, as a document's is over its own. */
+  centred?: boolean;
   children: ReactNode;
 }) {
+  // Read as a document is, the overview scrolls the page under its title.
+  const stuck = useScrolledUnder();
   return (
-    <Box component="article" className={classes.surface}>
-      <Group justify="space-between" wrap="nowrap" className={classes.header}>
-        <IconHeading
-          title={document.name}
-          icon={DesignDocsIcon}
-          tone={DESIGN_DOCS_TONE}
-          eyebrow="Design doc"
-          description={document.implemented ? 'Implemented' : 'Draft'}
-        />
-        <Group gap="sm" wrap="nowrap">
+    <Box
+      component="article"
+      className={classes.surface}
+      data-centred={centred || undefined}
+    >
+      <Group
+        justify="space-between"
+        wrap="nowrap"
+        className={classes.header}
+        data-centred={centred || undefined}
+        data-stuck={(centred && stuck) || undefined}
+      >
+        <Box className={classes.title}>
+          <IconHeading
+            title={document.name}
+            icon={DesignDocsIcon}
+            tone={DESIGN_DOCS_TONE}
+            eyebrow="Design doc"
+            description={document.implemented ? 'Implemented' : 'Draft'}
+          />
+        </Box>
+        <Group gap="sm" wrap="nowrap" className={classes.controls}>
           {switcher}
           <FullscreenButton />
         </Group>

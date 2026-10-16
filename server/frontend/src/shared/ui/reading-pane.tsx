@@ -147,7 +147,7 @@ function ReadingWidthSwitch({
  * the page's otherwise — and a scroll event does not bubble but is seen on the
  * way down, so one capturing listener hears whichever of the two it was.
  */
-function useScrolledUnder(): boolean {
+export function useScrolledUnder(): boolean {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

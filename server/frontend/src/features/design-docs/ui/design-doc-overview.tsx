@@ -96,14 +96,13 @@ const OPENS_IN_LABEL: Record<DescriptionTarget['view'], string> = {
 };
 
 /**
- * What the two link icons mean, beside the prose while there is room for it
- * and above it where there is not. Only the kinds of link the overview has
- * are listed.
+ * What the two link icons mean, in one line above the prose. Only the kinds
+ * of link the overview has are listed.
  */
 function LinkLegend({ views }: { views: DescriptionTarget['view'][] }) {
   return (
     <Box component="aside" aria-label="Links" className={classes.legend}>
-      <Text size="xs" fw={600} c="dimmed" className={classes.legendTitle}>
+      <Text size="xs" fw={600} c="dimmed">
         Links
       </Text>
       <Stack gap={4} className={classes.legendItems}>

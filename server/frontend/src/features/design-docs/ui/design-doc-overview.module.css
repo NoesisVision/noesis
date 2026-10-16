@@ -1,89 +1,39 @@
 /*
- * The overview fills the frame the other views fill with their columns and
- * scrolls inside it as their panes do; it is read as a document is on its
- * own page, so it draws no pane of its own — the card holds the prose. It is
- * the container its legend asks whether there is room beside the prose.
+ * The overview is read as a document is on its own page: the page scrolls
+ * under the surface's sticky title rather than a pane of its own, and it
+ * draws no pane — the card holds the prose.
  */
 .pane {
-  container-type: inline-size;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
+  flex: none;
 }
 
 /*
- * The prose centred in a column at most 900px wide, as a document's is, the
- * legend in the margin to its right.
+ * The prose centred in a column at most 900px wide, as a document's is, under
+ * the title the surface centres over the same column.
  */
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 900px) minmax(0, 1fr);
-  column-gap: var(--mantine-spacing-lg);
+  grid-template-columns: minmax(0, 900px);
+  justify-content: center;
   padding-bottom: calc(var(--mantine-spacing-xl) * 2);
 }
 
-.body {
-  grid-row: 1;
-  grid-column: 2;
-}
-
-.legend {
-  position: sticky;
-  top: 0;
-  grid-row: 1;
-  grid-column: 3;
-  align-self: start;
-  justify-self: start;
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
-}
-
-.legendTitle {
-  margin-bottom: 4px;
-}
-
 /*
- * Without room for both, the legend is one line above the prose rather than
- * a box that would squeeze it.
+ * What the link icons mean, as one quiet line over the prose: no box of its
+ * own, the title and each kind of link side by side.
  */
-@container (max-width: 80rem) {
-  .layout {
-    grid-template-columns: minmax(0, 900px);
-    justify-content: center;
-  }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  align-items: center;
+  margin-bottom: var(--mantine-spacing-sm);
+}
 
-  .body {
-    grid-row: 2;
-    grid-column: 1;
-  }
-
-  .legend {
-    position: static;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-    align-items: center;
-    grid-row: 1;
-    grid-column: 1;
-    margin-bottom: var(--mantine-spacing-md);
-    padding: 0 0 var(--mantine-spacing-xs);
-    border: none;
-    border-bottom: 1px solid
-      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-    border-radius: 0;
-  }
-
-  .legendTitle {
-    margin-bottom: 0;
-  }
-
-  .legendItems.legendItems {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: var(--mantine-spacing-md);
-  }
+.legendItems.legendItems {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--mantine-spacing-md);
 }
 
 /*
