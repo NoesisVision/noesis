@@ -163,14 +163,22 @@
               "description": {
                 "value": "The happy path of a partial refund."
               },
-              "given": {
-                "value": "a paid order with two lines"
-              },
-              "when": {
-                "value": "support refunds the first line"
-              },
-              "then": {
-                "value": "a refund for that line's amount is issued and the second line stays refundable"
+              "steps": {
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a paid order with two lines"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "support refunds the first line"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "a refund for that line's amount is issued and the second line stays refundable"
+                  }
+                ],
+                "author": "agent"
               }
             }
           ]

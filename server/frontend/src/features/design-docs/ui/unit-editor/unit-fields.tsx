@@ -40,6 +40,7 @@ import {
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
 import { addressOf, nameOf } from '../../element-id.ts';
 import { DesignedField } from './designed-field.tsx';
+import { ScenarioStepsInput } from './scenario-fields.tsx';
 
 type UnitForm = UseFormReturnType<UnitDraft>;
 
@@ -56,10 +57,7 @@ const LABEL: Record<UnitFieldName, string> = {
   description: 'Description',
   needs: 'Answers the needs',
   rationale: 'Rationale',
-  given: 'Given',
-  when: 'When',
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: 'Then', // NOSONAR
+  steps: 'Steps',
   ref: 'Type',
   optional: 'Optional',
 };
@@ -209,9 +207,6 @@ function FieldInput({
       );
     case 'statement':
     case 'rationale':
-    case 'given':
-    case 'when':
-    case 'then':
       return (
         <Textarea
           {...common}
@@ -349,6 +344,8 @@ function FieldInput({
           onChange={(ref) => form.setFieldValue(path, ref)}
         />
       );
+    case 'steps':
+      return <ScenarioStepsInput form={form} headed={false} />;
     case 'optional':
       return (
         <Checkbox

@@ -147,13 +147,36 @@ export type ScannedParameter = z.infer<typeof ScannedParameter>;
 export const ScannedResult = ScannedParameter.omit({ name: true });
 export type ScannedResult = z.infer<typeof ScannedResult>;
 
+/** Which part of a scenario a step is: the starting state, the action, the outcome. */
+export const ScenarioStepKind = z
+  .enum(['given', 'when', 'then'])
+  .describe(
+    "'given' sets the starting state, 'when' is the action, 'then' the outcome.",
+  );
+export type ScenarioStepKind = z.infer<typeof ScenarioStepKind>;
+
+/** One step of a scenario: its kind and what it says. */
+export const ScenarioStep = z.strictObject({
+  kind: ScenarioStepKind,
+  text: z.string(),
+});
+export type ScenarioStep = z.infer<typeof ScenarioStep>;
+
+/**
+ * A scenario's steps in the order they are read. Any kind may come any
+ * number of times — none, too — but there is at least one step.
+ */
+export const ScenarioSteps = z
+  .array(ScenarioStep)
+  .min(1)
+  .describe(
+    'The steps in reading order; each kind may repeat or be left out, but there is at least one step. Consecutive steps of one kind read as "And".',
+  );
+
 export const ScannedScenario = z.strictObject({
   name: ElementName,
   description: z.string(),
-  given: z.string(),
-  when: z.string(),
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: z.string(), // NOSONAR
+  steps: ScenarioSteps,
 });
 export type ScannedScenario = z.infer<typeof ScannedScenario>;
 

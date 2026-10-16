@@ -313,10 +313,11 @@ describe('A primitive', () => {
 const scenario = {
   name: 'Placing an order',
   description: 'The happy path.',
-  given: 'a cart with one item',
-  when: 'the customer places the order',
-  // oxlint-disable-next-line unicorn/no-thenable
-  then: 'the order is placed', // NOSONAR
+  steps: [
+    { kind: 'given', text: 'a cart with one item' },
+    { kind: 'when', text: 'the customer places the order' },
+    { kind: 'then', text: 'the order is placed' },
+  ],
 };
 const rule = { name: 'Paid orders only', ruleType: 'State change' };
 

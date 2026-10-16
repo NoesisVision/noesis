@@ -31,9 +31,22 @@
 }
 
 .rail {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* At the mark's lower right, over the rail: the mark opens a menu. */
+.switchHint {
+  position: absolute;
+  top: 20px;
+  left: calc(50% + 9px);
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-dimmed);
+  pointer-events: none;
 }
 
 .line {

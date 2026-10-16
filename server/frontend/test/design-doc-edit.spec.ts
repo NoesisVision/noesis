@@ -313,6 +313,56 @@ describe('a draft', () => {
       'fields.name.value': 'This design already has this building block here.',
     });
   });
+
+  it("writes a scenario's steps as many as it has, each trimmed, and refuses none or a blank one", () => {
+    const target = {
+      mode: 'add',
+      kind: 'scenario',
+      owner: { kind: 'building_block', id: HOLD },
+    } as const;
+    const draft = draftOfUnit('scenario', null, 'added');
+    // A new scenario starts as the classic three.
+    expect(draft.fields.steps?.value.map(({ kind }) => kind)).toEqual([
+      'given',
+      'when',
+      'then',
+    ]);
+    draft.fields.name = { written: true, value: 'held twice' };
+    draft.fields.steps = {
+      written: true,
+      value: [
+        { kind: 'given', text: 'a hold' },
+        { kind: 'given', text: ' ' },
+        { kind: 'then', text: 'it is refused' },
+      ],
+    };
+    expect(draftErrors(doc(), target, draft)).toEqual({
+      'fields.steps.value.1.text': 'Write this step, or remove it.',
+    });
+    draft.fields.steps = {
+      written: true,
+      value: [
+        { kind: 'given', text: 'a hold ' },
+        { kind: 'given', text: 'a second hold' },
+        { kind: 'then', text: ' it is refused' },
+      ],
+    };
+    expect(draftErrors(doc(), target, draft)).toEqual({});
+    expect(unitFromDraft('scenario', draft, null, 'held twice')).toMatchObject({
+      steps: {
+        value: [
+          { kind: 'given', text: 'a hold' },
+          { kind: 'given', text: 'a second hold' },
+          { kind: 'then', text: 'it is refused' },
+        ],
+        author: 'human',
+      },
+    });
+    draft.fields.steps = { written: true, value: [] };
+    expect(draftErrors(doc(), target, draft)).toEqual({
+      'fields.steps.value': 'A scenario needs at least one step.',
+    });
+  });
 });
 
 describe('violations', () => {
@@ -406,10 +456,13 @@ describe('a part', () => {
       unit: {
         name: 'twice',
         description: { value: '' },
-        given: { value: 'a hold' },
-        when: { value: 'it is held again' },
-        // oxlint-disable-next-line unicorn/no-thenable
-        then: { value: 'it is refused' }, // NOSONAR
+        steps: {
+          value: [
+            { kind: 'given', text: 'a hold' },
+            { kind: 'when', text: 'it is held again' },
+            { kind: 'then', text: 'it is refused' },
+          ],
+        },
       },
     });
     expect(unitStateOf(next, ref)).toBe('added');

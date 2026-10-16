@@ -10,9 +10,9 @@ import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes
 import { updateChangeHandler } from '#backend/app/changes/update-change';
 import { localToday, type Now, type Today, utcNow } from '#backend/app/clock';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
 import { listDesignDocsInChangeHandler } from '#backend/app/design-docs/list-design-docs-in-change';
+import { StoredDesignDocument } from '#backend/app/design-docs/stored-design-doc';
 import { updateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
 import { createDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
 import { deleteDocumentFromChangeHandler } from '#backend/app/information-sources/delete-document-from-change';
@@ -39,7 +39,7 @@ export function createServices(
   const changes = new NoesisChangesRepository(noesis);
   const designDocs = new NoesisChangeOwnedRepository(
     noesis,
-    DesignDocument,
+    StoredDesignDocument,
     'design-doc',
   );
   const documents = new NoesisChangeOwnedRepository(

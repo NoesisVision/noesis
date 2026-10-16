@@ -88,6 +88,10 @@ export const blockIdAt = (address: string): BuildingBlockId =>
 export const behaviourIdAt = (address: string): BehaviorId =>
   asBehaviour(`${BEHAVIOUR}${address}`);
 
+/** The module at an address: `a.b.C` is `module|a.b.C`. */
+export const moduleIdAt = (address: string): ModuleId =>
+  asModule(`${MODULE}${address}`);
+
 /** What an element hangs under; null for a root module. */
 export function parentOf(id: string): ModuleId | BuildingBlockId | null {
   if (!addressOf(id).includes('.')) return null;

@@ -369,19 +369,22 @@
                       "value": "A creation request with a blank title is rejected.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a QDoc creation request whose title is only spaces",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a QDoc creation request whose title is only spaces"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -488,19 +491,22 @@
                       "value": "Every listed document type can be used for a new QDoc.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager and a valid creation request",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits it once with each of procedure, guideline, instruction and policy",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "each request is accepted and the QDoc carries the requested document type",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager and a valid creation request"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits it once with each of procedure, guideline, instruction and policy"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "each request is accepted and the QDoc carries the requested document type"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -511,19 +517,22 @@
                       "value": "An unknown document type is refused.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a creation request with the document type 'memo'",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a creation request with the document type 'memo'"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -1194,19 +1203,22 @@
                       "value": "Missing title.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a creation request without a title",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a creation request without a title"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -1217,19 +1229,22 @@
                       "value": "Missing document type.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a creation request without a document type",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a creation request without a document type"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -1240,19 +1255,22 @@
                       "value": "Missing authors.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a creation request naming no author",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a creation request naming no author"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -1263,19 +1281,22 @@
                       "value": "The three mandatory items suffice.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is accepted and the QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is accepted and the QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -1837,19 +1858,22 @@
                       "value": "A QDoc never exists without a version.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the QDoc holds one version",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the QDoc holds one version"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -2615,19 +2639,22 @@
                       "value": "Each other role is refused.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a user holding only the author role, one holding only the reviewer role, one holding only the approver role and an auditor",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "each submits a valid QDoc creation request",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "each request is rejected and no QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a user holding only the author role, one holding only the reviewer role, one holding only the approver role and an auditor"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "each submits a valid QDoc creation request"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "each request is rejected and no QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -2638,19 +2665,22 @@
                       "value": "The quality manager role suffices.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a user holding the quality manager role",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the user submits a valid QDoc creation request",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the QDoc is created",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a user holding the quality manager role"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the user submits a valid QDoc creation request"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the QDoc is created"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -2697,19 +2727,22 @@
                       "value": "The number exists from the start.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the new QDoc carries a document number",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the new QDoc carries a document number"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -2754,19 +2787,22 @@
                       "value": "A rejected request neither saves nor announces anything.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager submits a QDoc creation request that names no author",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected, no QDoc is saved and no QDocCreated is published",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager submits a QDoc creation request that names no author"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected, no QDoc is saved and no QDocCreated is published"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -2813,19 +2849,22 @@
                       "value": "Everyone with the role is told.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "an organisation with 3 quality managers",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "one of them creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "each of the 3 receives a notification naming the QDoc, its document number and its creator",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "an organisation with 3 quality managers"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "one of them creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "each of the 3 receives a notification naming the QDoc, its document number and its creator"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -2836,19 +2875,22 @@
                       "value": "No QDoc, no notification.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "an organisation with 3 quality managers",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "one of them submits a QDoc creation request that names no author",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is rejected and no quality manager is notified",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "an organisation with 3 quality managers"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "one of them submits a QDoc creation request that names no author"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is rejected and no quality manager is notified"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -2870,19 +2912,22 @@
                 "value": "Happy path of UC-1, end to end.",
                 "author": "agent"
               },
-              "given": {
+              "steps": {
                 "changed": true,
-                "value": "a quality manager and an organisation with 3 quality managers",
-                "author": "agent"
-              },
-              "when": {
-                "changed": true,
-                "value": "the quality manager creates the procedure 'Supplier audit' with one author and two reviewers",
-                "author": "agent"
-              },
-              "then": {
-                "changed": true,
-                "value": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc",
+                "value": [
+                  {
+                    "kind": "given",
+                    "text": "a quality manager and an organisation with 3 quality managers"
+                  },
+                  {
+                    "kind": "when",
+                    "text": "the quality manager creates the procedure 'Supplier audit' with one author and two reviewers"
+                  },
+                  {
+                    "kind": "then",
+                    "text": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc"
+                  }
+                ],
                 "author": "agent"
               }
             }
@@ -3019,19 +3064,22 @@
                       "value": "Initial status.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the QDoc is listed with the status active",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the QDoc is listed with the status active"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3202,19 +3250,22 @@
                       "value": "Shape of a fresh QDoc.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the QDoc has exactly one version, numbered 1, with the status new",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the QDoc has exactly one version, numbered 1, with the status new"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3261,19 +3312,22 @@
                       "value": "Ready to write.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a quality manager",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates a QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "version 1 holds one content file with no text and no attachment",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a quality manager"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates a QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "version 1 holds one content file with no text and no attachment"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3318,19 +3372,22 @@
                       "value": "Authors can write from the start.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a creation request naming two authors",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates the QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "both appear as authors of version 1 and can edit the content file",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a creation request naming two authors"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates the QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "both appear as authors of version 1 and can edit the content file"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3377,19 +3434,22 @@
                       "value": "Optional reviewers given.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a creation request naming two reviewers",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates the QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "version 1 has the two reviewers",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a creation request naming two reviewers"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates the QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "version 1 has the two reviewers"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -3400,19 +3460,22 @@
                       "value": "Reviewers left out.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a creation request naming no reviewer",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates the QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is accepted and version 1 has no reviewer",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a creation request naming no reviewer"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates the QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is accepted and version 1 has no reviewer"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3459,19 +3522,22 @@
                       "value": "Optional approvers given.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a creation request naming two approvers",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates the QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "version 1 has the two approvers",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a creation request naming two approvers"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates the QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "version 1 has the two approvers"
+                        }
+                      ],
                       "author": "agent"
                     }
                   },
@@ -3482,19 +3548,22 @@
                       "value": "Approvers left out.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a creation request naming no approver",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "the quality manager creates the QDoc",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the request is accepted and version 1 has no approver",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a creation request naming no approver"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "the quality manager creates the QDoc"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the request is accepted and version 1 has no approver"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3906,19 +3975,22 @@
                       "value": "Everyone named is told.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a request naming 3 recipients, a subject and a body",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "a subsystem asks the Notifications subsystem to notify them",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "each of the 3 receives one notification with that subject and that body",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a request naming 3 recipients, a subject and a body"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "a subsystem asks the Notifications subsystem to notify them"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "each of the 3 receives one notification with that subject and that body"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }
@@ -3996,19 +4068,22 @@
                       "value": "The others are still told.",
                       "author": "agent"
                     },
-                    "given": {
+                    "steps": {
                       "changed": true,
-                      "value": "a request naming 3 recipients, and delivery to one of them fails",
-                      "author": "agent"
-                    },
-                    "when": {
-                      "changed": true,
-                      "value": "a subsystem asks the Notifications subsystem to notify them",
-                      "author": "agent"
-                    },
-                    "then": {
-                      "changed": true,
-                      "value": "the other 2 recipients each receive the notification with the subject and the body of the request",
+                      "value": [
+                        {
+                          "kind": "given",
+                          "text": "a request naming 3 recipients, and delivery to one of them fails"
+                        },
+                        {
+                          "kind": "when",
+                          "text": "a subsystem asks the Notifications subsystem to notify them"
+                        },
+                        {
+                          "kind": "then",
+                          "text": "the other 2 recipients each receive the notification with the subject and the body of the request"
+                        }
+                      ],
                       "author": "agent"
                     }
                   }

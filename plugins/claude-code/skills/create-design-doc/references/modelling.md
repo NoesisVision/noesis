@@ -237,6 +237,11 @@ does not choose:
 - One scenario checks one behaviour of the domain, in given, when and then,
   in business language, with assertions a test can check. Cover the edge
   cases and error conditions, not only the happy path.
+- Its `steps` are a list in reading order, each a `kind` (`given`, `when` or
+  `then`) and its `text`. Write one step per fact: two preconditions are two
+  `given` steps, not one joined with "and". Any kind may repeat or be left
+  out, but a scenario has at least one step; keep to one `when` unless the
+  scenario truly checks a sequence.
 - Attach it to the rule it verifies; else to the behaviour, when it spans
   the use case; else to the building block, when it spans several of its
   behaviours.
@@ -244,8 +249,20 @@ does not choose:
 
 Example, attached to the rule "Cancellation after the minimum period only":
 
-- given: a subscription with a three-month minimum commitment, one month
-  after it started
+- given: a subscription with a three-month minimum commitment
+- given: one month has passed since it started
 - when: the user cancels the subscription
-- then: the cancellation is rejected and the remaining commitment period is
-  shown
+- then: the cancellation is rejected
+- then: the remaining commitment period is shown
+
+```json
+"steps": {
+  "value": [
+    { "kind": "given", "text": "a subscription with a three-month minimum commitment" },
+    { "kind": "given", "text": "one month has passed since it started" },
+    { "kind": "when", "text": "the user cancels the subscription" },
+    { "kind": "then", "text": "the cancellation is rejected" },
+    { "kind": "then", "text": "the remaining commitment period is shown" }
+  ]
+}
+```

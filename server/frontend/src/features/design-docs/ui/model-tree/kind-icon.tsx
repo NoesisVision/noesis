@@ -137,14 +137,16 @@ function drawingOf(kind: OutlineKind, pattern: string | null | undefined) {
 export function KindIcon({
   kind,
   pattern,
+  size = 20,
 }: {
   kind: OutlineKind;
   pattern: OutlineNode['pattern'] | undefined;
+  size?: number;
 }) {
   const { Icon, tone } = drawingOf(kind, pattern);
   return (
     <Icon
-      size={20}
+      size={size}
       stroke={2}
       className={classes.icon}
       data-tone={tone}
