@@ -11,6 +11,7 @@ import { findById } from '../../change-set.ts';
 import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
 import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
 import { InlineText } from '../unit-editor/inline-text.tsx';
+import { useNewScenarioOwner } from '../unit-editor/new-buttons.tsx';
 import { useWritableUnit } from '../unit-editor/writable-unit.ts';
 import { bodySections } from './body/body-sections.tsx';
 import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
@@ -82,7 +83,8 @@ export function ElementDetail({
   const scenarios = scenariosOf(node, doc);
   // Where the element may be written, the column shows with none yet, for
   // the first to be added there.
-  const scenariosWritable = useWritableUnit(elementRefOf(node)) !== null;
+  // The column shows for the scenarios it has, or for one that may be added.
+  const scenariosAddable = useNewScenarioOwner(ownerOfScenarios(node)) !== null;
   // Measured outside the key below, so the width is known on every element.
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   const badges = (
@@ -134,7 +136,7 @@ export function ElementDetail({
               width={bodyWidth}
               sections={bodySections(node, doc, tree)}
               scenarios={
-                scenarios.length > 0 || scenariosWritable ? (
+                scenarios.length > 0 || scenariosAddable ? (
                   <ScenarioColumn
                     scenarios={scenarios}
                     id={SCENARIO_COLUMN_ID}

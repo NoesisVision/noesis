@@ -37,18 +37,6 @@
   align-items: center;
 }
 
-/* At the mark's lower right, over the rail: the mark opens a menu. */
-.switchHint {
-  position: absolute;
-  top: 20px;
-  left: calc(50% + 9px);
-  padding: 1px;
-  border-radius: 50%;
-  background: var(--mantine-color-body);
-  color: var(--mantine-color-dimmed);
-  pointer-events: none;
-}
-
 .line {
   flex: 1;
   width: 2px;
@@ -63,11 +51,51 @@
   background: transparent;
 }
 
+/* Centred under a step's text, in the gap before the next: puts one between. */
+.insertRow {
+  display: flex;
+  justify-content: center;
+  margin-top: -2px;
+}
+
+/*
+ * The keyword reads as text, and only a chevron and a hover say it opens.
+ * Named with its row, to win over the button's own reset of its padding.
+ */
+.stepLabel .kindSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  /* The chevron's glyph sits 3.5px in from each side of its box: less on
+     the right, so the space either side of what is seen is the same. */
+  padding: 2px 3px 2px 6px;
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-text);
+}
+
+.stepLabel .kindSwitch svg {
+  color: var(--mantine-color-dimmed);
+}
+
+.kindSwitch:hover,
+.kindSwitch[aria-expanded='true'] {
+  /* A shade over the timeline's own, which is the default hover already. */
+  background: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-5)
+  );
+}
+
+.kindSwitch:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
 .stepBody {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-bottom: 14px;
+  padding-bottom: 6px;
 }
 
 .step:last-child .stepBody {

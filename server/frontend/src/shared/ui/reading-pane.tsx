@@ -6,7 +6,11 @@ import { useLocalStorage } from '#/shared/design-system/hooks.ts';
 import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
-import { type IconComponent, IconHeading } from '#/shared/ui/icon-heading.tsx';
+import {
+  type IconComponent,
+  IconHeading,
+  type PageTone,
+} from '#/shared/ui/icon-heading.tsx';
 import { FullscreenButton } from '#/shared/ui/shell-fullscreen.tsx';
 import classes from './reading-pane.module.css';
 
@@ -53,6 +57,10 @@ interface ReadingPaneProps {
   icon: IconComponent;
   /** A line under the title, for what the item is rather than what it says. */
   description?: ReactNode;
+  /** The colour of the kind of page, for its heading. */
+  tone?: PageTone;
+  /** The kind of page, over its title. */
+  eyebrow?: ReactNode;
   /** The document itself, laid out under the heading. */
   children: ReactNode;
 }
@@ -139,7 +147,7 @@ function ReadingWidthSwitch({
  * the page's otherwise — and a scroll event does not bubble but is seen on the
  * way down, so one capturing listener hears whichever of the two it was.
  */
-function useScrolledUnder(): boolean {
+export function useScrolledUnder(): boolean {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -173,6 +181,8 @@ export function ReadingPane({
   title,
   icon,
   description,
+  tone,
+  eyebrow,
   children,
 }: ReadingPaneProps) {
   const [width, setWidth] = useReadingWidth();
@@ -186,7 +196,13 @@ export function ReadingPane({
         data-stuck={stuck || undefined}
       >
         <Box className={classes.headerColumn}>
-          <IconHeading title={title} icon={icon} description={description} />
+          <IconHeading
+            title={title}
+            icon={icon}
+            description={description}
+            tone={tone}
+            eyebrow={eyebrow}
+          />
         </Box>
         {/* A phone has one width to read at and no chrome worth hiding; the
             same breakpoint the shell folds its sidebar at. */}

@@ -29,7 +29,11 @@ export function DesignDocView() {
   // the model.
   const onView = useCallback(
     (next: DesignDocViewName) => {
-      void navigate({ search: (prev) => ({ ...prev, view: next }) });
+      // The browser fades one view into the next, where it can.
+      void navigate({
+        search: (prev) => ({ ...prev, view: next }),
+        viewTransition: true,
+      });
     },
     [navigate],
   );
@@ -42,6 +46,7 @@ export function DesignDocView() {
           target.view === 'model'
             ? { ...prev, view: target.view, node: target.node }
             : { ...prev, view: target.view, entry: target.entry },
+        viewTransition: true,
       });
     },
     [navigate],

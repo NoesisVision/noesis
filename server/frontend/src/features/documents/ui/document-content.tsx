@@ -4,7 +4,7 @@ import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { ReadingPane } from '#/shared/ui/reading-pane.tsx';
 import type { Document } from '#backend/app/information-sources/document.ts';
-import { DocumentsIcon } from '../documents.model.ts';
+import { DOCUMENTS_TONE, DocumentsIcon } from '../documents.model.ts';
 
 /** The document is imported material: its markdown is shown as written. */
 export function DocumentContent({ document: doc }: { document: Document }) {
@@ -12,6 +12,8 @@ export function DocumentContent({ document: doc }: { document: Document }) {
     <ReadingPane
       title={doc.title}
       icon={DocumentsIcon}
+      tone={DOCUMENTS_TONE}
+      eyebrow="Document"
       description={<FormattedDate value={doc.date} />}
     >
       <Card withBorder>

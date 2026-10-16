@@ -1,0 +1,27 @@
+/*
+ * The tree and the element in hand scroll apart, as in a design document: the
+ * surface is measured against the window, below the view's own heading.
+ */
+.surface {
+  --workbench-gutter: var(--app-shell-padding, var(--mantine-spacing-lg));
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  height: calc(
+    100dvh - var(--app-shell-header-offset, 0rem) - 2 *
+      var(--workbench-gutter) - 6rem
+  );
+  min-height: 24rem;
+}
+
+.header {
+  flex: none;
+}
+
+/* Where the shell folds its sidebar, the page scrolls instead. */
+@media (max-width: 61.99em) {
+  .surface {
+    height: auto;
+  }
+}

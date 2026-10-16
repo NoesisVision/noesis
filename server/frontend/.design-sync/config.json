@@ -68,6 +68,9 @@
     },
     "Textarea": {
       "cardMode": "column"
+    },
+    "Chip": {
+      "cardMode": "column"
     }
   },
   "readmeHeader": ".design-sync/conventions.md"

@@ -192,7 +192,7 @@ describe('the fields of a part', () => {
     expect(html).toContain('It may be left out');
   });
 
-  it('starts a new scenario at given, when and then, each a step to switch or remove', () => {
+  it('starts a new scenario at given, when and then, each a step to switch, remove or add one after', () => {
     const html = render(
       <Fields
         kind="scenario"
@@ -207,6 +207,10 @@ describe('the fields of a part', () => {
       );
       expect(html).toContain(`aria-label="Remove step ${index + 1}"`);
     });
+    // A step goes in between any two, but there is nothing after the last.
+    expect(html).toContain('aria-label="Add a step after step 1"');
+    expect(html).toContain('aria-label="Add a step after step 2"');
+    expect(html).not.toContain('aria-label="Add a step after step 3"');
     expect(html).toContain('>Add step<');
   });
 });

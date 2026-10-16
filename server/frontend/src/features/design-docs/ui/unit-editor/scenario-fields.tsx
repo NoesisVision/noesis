@@ -16,6 +16,8 @@ import { Menu } from '#/shared/design-system/menu.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
+import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type {
   ScenarioStep,
@@ -157,10 +159,11 @@ export function ScenarioFields({
 }
 
 /**
- * The steps as a timeline, one row a step: its mark opens the kinds to switch
- * it to, its text says it, and it goes with the cross beside it — but the
- * last one stays, as a scenario has at least one step. A step is added at the
- * end, of the kind that most likely comes next, and is ready to be typed.
+ * The steps as a timeline, one row a step: its keyword opens the kinds to
+ * switch it to, its text says it, and it goes with the cross beside it — but
+ * the last one stays, as a scenario has at least one step. A step is added at
+ * the end, of the kind that most likely comes next, or between two by the +
+ * centred under the first one's text, and is ready to be typed.
  * Within a form that labels its fields itself, it goes without its heading.
  */
 export function ScenarioStepsInput({
@@ -189,12 +192,17 @@ export function ScenarioStepsInput({
     setKeys(rowKeys.filter((_, i) => i !== index));
     write(steps.filter((_, i) => i !== index));
   };
-  const add = () => {
+  // A step put in between goes on with the one before it, and reads "And".
+  const insert = (
+    index: number,
+    kind = steps[index - 1]?.kind ?? nextKindAfter(steps),
+  ) => {
     const key = nextKey.current++;
-    setKeys([...rowKeys, key]);
+    setKeys(rowKeys.toSpliced(index, 0, key));
     focusKey.current = key;
-    write([...steps, { kind: nextKindAfter(steps), text: '' }]);
+    write(steps.toSpliced(index, 0, { kind, text: '' }));
   };
+  const add = () => insert(steps.length, nextKindAfter(steps));
 
   const filled = steps.filter((step) => step.text.trim() !== '').length;
   const error = form.errors['fields.steps.value'];
@@ -225,49 +233,48 @@ export function ScenarioStepsInput({
           return (
             <li key={key} className={classes.step}>
               <span className={classes.rail}>
-                <Menu position="bottom-start" shadow="md" offset={4}>
-                  <Menu.Target>
-                    <ActionIcon
-                      size={30}
-                      radius="xl"
-                      variant={done ? 'filled' : 'light'}
-                      color={kind.color}
-                      aria-label={`Step ${index + 1}, ${STEP_KEYWORD[step.kind]}: change its kind`}
-                    >
-                      {kind.icon}
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {STEP_KINDS.map((each) => (
-                      <Menu.Item
-                        key={each}
-                        leftSection={KIND[each].icon}
-                        rightSection={
-                          each === step.kind ? (
-                            <IconCheck size={14} aria-hidden />
-                          ) : undefined
-                        }
-                        onClick={() => change(index, { kind: each })}
-                      >
-                        {STEP_KEYWORD[each]}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Dropdown>
-                </Menu>
-                {/* The mark opens the kinds: a chevron at its foot says so. */}
-                <IconChevronDown
-                  size={12}
-                  stroke={2.5}
-                  className={classes.switchHint}
+                <ThemeIcon
+                  size={30}
+                  radius="xl"
+                  variant={done ? 'filled' : 'light'}
+                  color={kind.color}
                   aria-hidden
-                />
+                >
+                  {kind.icon}
+                </ThemeIcon>
                 <span className={classes.line} aria-hidden="true" />
               </span>
               <div className={classes.stepBody}>
                 <div className={classes.stepLabel}>
-                  <Text size="sm" fw={600}>
-                    {keyword}
-                  </Text>
+                  <Menu position="bottom-start" shadow="md" offset={4}>
+                    <Menu.Target>
+                      <UnstyledButton
+                        className={classes.kindSwitch}
+                        aria-label={`Step ${index + 1}, ${STEP_KEYWORD[step.kind]}: change its kind`}
+                      >
+                        <Text size="sm" fw={600} span>
+                          {keyword}
+                        </Text>
+                        <IconChevronDown size={14} stroke={2} aria-hidden />
+                      </UnstyledButton>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      {STEP_KINDS.map((each) => (
+                        <Menu.Item
+                          key={each}
+                          leftSection={KIND[each].icon}
+                          rightSection={
+                            each === step.kind ? (
+                              <IconCheck size={14} aria-hidden />
+                            ) : undefined
+                          }
+                          onClick={() => change(index, { kind: each })}
+                        >
+                          {STEP_KEYWORD[each]}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Dropdown>
+                  </Menu>
                   {keyword !== 'And' && (
                     <Text size="xs" c="dimmed">
                       {kind.hint}
@@ -302,6 +309,19 @@ export function ScenarioStepsInput({
                     change(index, { text: event.currentTarget.value })
                   }
                 />
+                {index < steps.length - 1 && (
+                  <div className={classes.insertRow}>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      aria-label={`Add a step after step ${index + 1}`}
+                      onClick={() => insert(index + 1)}
+                    >
+                      <IconPlus size={14} aria-hidden />
+                    </ActionIcon>
+                  </div>
+                )}
               </div>
             </li>
           );

@@ -22,28 +22,28 @@
 }
 
 /*
- * A link in the bar — Overview, a document, System model — as a soft tab,
- * rounded like the change picker above it,
- * filled with the brand's light tint when it is the one you are on.
+ * A link in the bar — Overview, a document, System model — as a soft tab
+ * under its kind's icon, filled with a light pill of its kind's colour when it
+ * is the one you are on (`data-page-tone`, read from `page-tone.css`).
  */
 .tab.tab {
   flex: none;
   width: auto;
-  height: 30px;
+  height: 32px;
   /* 2px between neighbouring tabs; the measuring counts margins. */
   margin: 0 1px;
-  padding: 0 var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-md);
+  padding: 0 10px;
+  border-radius: var(--mantine-radius-sm);
   font-size: var(--mantine-font-size-sm);
-  /* Bold whether open or not, so opening one never shifts its neighbours. */
-  font-weight: 700;
+  /* As heavy open as not, so opening one never shifts its neighbours. */
+  font-weight: 600;
   white-space: nowrap;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   background-color: transparent;
   text-decoration: none;
 
   &:hover {
-    color: light-dark(var(--mantine-color-brand-9), var(--mantine-color-white));
+    color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-white));
     background-color: light-dark(
       var(--mantine-color-gray-1),
       var(--mantine-color-dark-6)
@@ -52,15 +52,20 @@
 
   /* A document's or design doc's name: long ones end in an ellipsis. */
   &[data-item] {
-    max-width: 220px;
+    max-width: 230px;
   }
 
   &[aria-current='page'],
   &[data-open] {
     &,
     &:hover {
-      color: var(--mantine-color-brand-light-color);
-      background-color: var(--mantine-color-brand-light);
+      /* Its kind's colour, from page-tone.css. */
+      color: var(--noesis-tone-light-color);
+      background-color: var(--noesis-tone-light);
+    }
+
+    & .tabIcon {
+      color: inherit;
     }
   }
 
@@ -75,49 +80,31 @@
   }
 }
 
-/*
- * A group — its label and its items — on a rounded ground of its own: a light
- * grey on the light header, a step lighter than the dark one. The ground is
- * what parts one group from the next; the measuring counts its padding and
- * margin with the label.
- */
-.itemGroup {
-  /* The gap between the ground's edge and the 30px tabs, on every side. */
-  --group-inset: 3px;
+/* The kind's icon: quieter than the name beside it until its tab is open. */
+.tab .tabIcon {
+  margin-inline-end: 6px;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
 
+/*
+ * A group — its label and its items — and the app's own links, each parted
+ * from what comes before by a thin rule; the measuring counts the rule with
+ * the label.
+ */
+.itemGroup,
+.appLinks {
   display: flex;
   flex: none;
   align-items: center;
-  height: calc(30px + 2 * var(--group-inset));
-  margin: 0 4px;
-  padding: 0 var(--group-inset);
-  border-radius: var(--mantine-radius-md);
-  background-color: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
-}
 
-/*
- * Corners concentric with the ground's: its radius less the inset, so a tab
- * at either end follows the curve around it.
- */
-.itemGroup .tab.tab,
-.itemGroup .more.more,
-.itemGroup .labelMenu.labelMenu {
-  border-radius: calc(var(--mantine-radius-md) - var(--group-inset));
-}
-
-/* Hovered on the ground, a tab lifts off it rather than sinking into it. */
-.itemGroup .tab.tab:not([aria-current='page']):hover,
-.itemGroup .more.more:hover,
-.itemGroup .more.more[data-expanded],
-.itemGroup .labelMenu.labelMenu:hover,
-.itemGroup .labelMenu.labelMenu[data-expanded] {
-  background-color: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-5)
-  );
+  &::before {
+    content: '';
+    flex: none;
+    width: 1px;
+    height: 20px;
+    margin: 0 10px;
+    background-color: var(--mantine-color-default-border);
+  }
 }
 
 /* A group's name: small and quiet, a heading for its items, not a link. */
@@ -139,9 +126,9 @@
 
 /* The label once it opens the menu of all its items. */
 .labelMenu.labelMenu {
-  height: 30px;
+  height: 32px;
   padding: 0 var(--mantine-spacing-xs);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--mantine-radius-sm);
 
   &:hover,
   &[data-expanded] {
@@ -159,12 +146,12 @@
   flex: none;
   align-items: center;
   gap: 2px;
-  height: 30px;
+  height: 32px;
   margin: 0 1px;
   padding: 0 var(--mantine-spacing-xs);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--mantine-radius-sm);
   font-size: var(--mantine-font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
 
   &:hover,

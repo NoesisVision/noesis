@@ -8,6 +8,14 @@ import { Title } from '#/shared/design-system/title.tsx';
 /** What the app draws an icon with; a tabler icon satisfies it. */
 export type IconComponent = ComponentType<{ size?: number; stroke?: number }>;
 
+/**
+ * The colour a kind of page is marked with, wherever it is shown — its tab in
+ * the bar, the rule over the page, its heading's tile and eyebrow: an
+ * overview grey, a document teal, a design document violet, the system model
+ * the brand's blue.
+ */
+export type PageTone = 'gray' | 'teal' | 'violet' | 'brand';
+
 interface IconHeadingProps {
   /** The view or the item: a nav label, a document's title, a design's name. */
   title: ReactNode;
@@ -20,6 +28,10 @@ interface IconHeadingProps {
    * deeper is a heading inside it — the title of a card in a list.
    */
   headingLevel?: 1 | 2 | 3 | 4;
+  /** The colour of the kind of page, for its tile and eyebrow. */
+  tone?: PageTone;
+  /** The kind of page, in small capitals over the title. */
+  eyebrow?: ReactNode;
 }
 
 /**
@@ -32,15 +44,21 @@ export function IconHeading({
   icon: Icon,
   description,
   headingLevel = 1,
+  tone,
+  eyebrow,
 }: IconHeadingProps) {
   // The page's own heading is the largest thing on it; a heading inside the
   // page carries the same icon a size down.
   const isPageHeading = headingLevel === 1;
   return (
-    <Group gap="sm" wrap="nowrap">
+    // A page's colour comes from page-tone.css, as its tab's and its tree's
+    // do; without one, the tile keeps the brand's blue.
+    <Group gap="sm" wrap="nowrap" data-page-tone={tone}>
       {/* Decorative: the title beside it already names the page. */}
       <ThemeIcon
         variant="light"
+        bg={tone && 'var(--noesis-tone-light)'}
+        c={tone && 'var(--noesis-tone-light-color)'}
         size={isPageHeading ? 'lg' : 'md'}
         radius="md"
         aria-hidden
@@ -48,6 +66,18 @@ export function IconHeading({
         <Icon size={isPageHeading ? 22 : 20} stroke={1.6} />
       </ThemeIcon>
       <Box>
+        {!!eyebrow && (
+          <Text
+            c="var(--noesis-tone-light-color)"
+            fz={11}
+            fw={700}
+            lh={1.4}
+            lts="0.08em"
+            tt="uppercase"
+          >
+            {eyebrow}
+          </Text>
+        )}
         {/* `size` holds the type scale steady while the level moves. */}
         <Title order={headingLevel} size={`h${headingLevel + 1}`} mb={0}>
           {title}

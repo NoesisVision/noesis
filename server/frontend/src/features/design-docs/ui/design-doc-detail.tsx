@@ -51,6 +51,7 @@ export function DesignDocDetail({
     <DesignDocSurface
       document={document.data.document}
       switcher={<ViewSwitch view={view} onView={onView} />}
+      centred={view === 'overview'}
     >
       <UnitEditor
         changeId={changeId}
