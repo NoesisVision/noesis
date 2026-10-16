@@ -131,9 +131,12 @@
 /*
  * The box the editor's dialogs — a link, a table — open in, which MDXEditor
  * appends to the body: over Mantine's modals, as a popover of theirs would
- * be. The editor itself carries the class too, where it does nothing.
+ * be. The editor itself carries the class too, and must not take the
+ * z-index: as a flex item in a card it would lift the whole document over
+ * the shell's header and the page's own sticky one. So only the box in the
+ * body, which MDXEditor names `mdxeditor-popup-container`, is raised.
  */
-.popups.popups {
+.popups.popups:global(.mdxeditor-popup-container) {
   z-index: var(--mantine-z-index-popover);
 }
 
