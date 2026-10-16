@@ -30,6 +30,11 @@ import {
 } from '#/shell/navigation/use-change-nav.ts';
 import classes from './change-nav.module.css';
 
+/*
+ * Every link in the bar moves to its page through a view transition: the
+ * browser fades the page left into the page reached, where it can.
+ */
+
 /** A tab's parts the bar styles: its icon, quiet until the tab is open. */
 const TAB_PARTS = { section: classes.tabIcon };
 
@@ -94,7 +99,7 @@ function ViewTab({ entry, params, disabled }: ViewTabProps) {
     <NavLink
       className={classes.tab}
       classNames={TAB_PARTS}
-      data-tone={entry.tone}
+      data-page-tone={entry.tone}
       label={entry.label}
       leftSection={<entry.icon size={16} stroke={1.8} />}
       disabled={disabled}
@@ -104,6 +109,7 @@ function ViewTab({ entry, params, disabled }: ViewTabProps) {
           to={entry.to}
           params={params}
           activeOptions={ACTIVE_OPTIONS}
+          viewTransition
         />
       )}
     />
@@ -186,12 +192,17 @@ function ItemTab({ entry, item }: { entry: NavItem; item: ChangeNavChild }) {
       className={classes.tab}
       classNames={TAB_PARTS}
       data-item
-      data-tone={entry.tone}
+      data-page-tone={entry.tone}
       label={item.name}
       leftSection={<entry.icon size={16} stroke={1.8} />}
       noWrap
       renderRoot={(props) => (
-        <Link {...props} {...item.link} activeOptions={ACTIVE_OPTIONS} />
+        <Link
+          {...props}
+          {...item.link}
+          activeOptions={ACTIVE_OPTIONS}
+          viewTransition
+        />
       )}
     />
   );
@@ -217,7 +228,12 @@ function ItemsMenu({ label, items, children }: ItemsMenuProps) {
             key={item.id}
             rightSection={item.open ? <IconCheck size={14} /> : null}
             renderRoot={(props) => (
-              <Link {...props} {...item.link} activeOptions={ACTIVE_OPTIONS} />
+              <Link
+                {...props}
+                {...item.link}
+                activeOptions={ACTIVE_OPTIONS}
+                viewTransition
+              />
             )}
           >
             {item.name}
@@ -242,12 +258,17 @@ function AppLinks({ compact }: AppLinksProps) {
           <NavLink
             className={classes.tab}
             classNames={TAB_PARTS}
-            data-tone={entry.tone}
+            data-page-tone={entry.tone}
             label={compact ? undefined : entry.label}
             aria-label={compact ? entry.label : undefined}
             leftSection={<entry.icon size={16} stroke={1.8} />}
             renderRoot={(props) => (
-              <Link {...props} to={entry.to} activeOptions={ACTIVE_OPTIONS} />
+              <Link
+                {...props}
+                to={entry.to}
+                activeOptions={ACTIVE_OPTIONS}
+                viewTransition
+              />
             )}
           />
         </Tooltip>

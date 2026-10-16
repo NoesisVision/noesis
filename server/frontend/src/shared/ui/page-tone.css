@@ -1,0 +1,87 @@
+/*
+ * The colour each kind of page is marked with, in one place: an element with
+ * `data-page-tone` sets it for everything inside, and what is marked reads
+ * only these variables, never a palette of its own. Change a kind's colour
+ * here and its tab, the rule over its page, its heading's tile, the row in
+ * hand in its tree and that row's tile all follow.
+ *
+ *   --noesis-tone-0 … -9      the colour's ten shades, light to dark
+ *   --noesis-tone-filled      a solid mark: the rule over the page
+ *   --noesis-tone-light       a tinted ground: the open tab, an icon's tile
+ *   --noesis-tone-light-color what reads on that ground
+ *
+ * The page's colours are named by `PageTone` in `icon-heading.tsx`. Outside
+ * any page — a test, a portal — the brand's blue stands in.
+ */
+
+:root,
+[data-page-tone='brand'] {
+  --noesis-tone-0: var(--mantine-color-brand-0);
+  --noesis-tone-1: var(--mantine-color-brand-1);
+  --noesis-tone-2: var(--mantine-color-brand-2);
+  --noesis-tone-3: var(--mantine-color-brand-3);
+  --noesis-tone-4: var(--mantine-color-brand-4);
+  --noesis-tone-5: var(--mantine-color-brand-5);
+  --noesis-tone-6: var(--mantine-color-brand-6);
+  --noesis-tone-7: var(--mantine-color-brand-7);
+  --noesis-tone-8: var(--mantine-color-brand-8);
+  --noesis-tone-9: var(--mantine-color-brand-9);
+  --noesis-tone-filled: var(--mantine-color-brand-6);
+  --noesis-tone-light: var(--mantine-color-brand-light);
+  --noesis-tone-light-color: var(--mantine-color-brand-light-color);
+}
+
+[data-page-tone='teal'] {
+  --noesis-tone-0: var(--mantine-color-teal-0);
+  --noesis-tone-1: var(--mantine-color-teal-1);
+  --noesis-tone-2: var(--mantine-color-teal-2);
+  --noesis-tone-3: var(--mantine-color-teal-3);
+  --noesis-tone-4: var(--mantine-color-teal-4);
+  --noesis-tone-5: var(--mantine-color-teal-5);
+  --noesis-tone-6: var(--mantine-color-teal-6);
+  --noesis-tone-7: var(--mantine-color-teal-7);
+  --noesis-tone-8: var(--mantine-color-teal-8);
+  --noesis-tone-9: var(--mantine-color-teal-9);
+  --noesis-tone-filled: var(--mantine-color-teal-6);
+  --noesis-tone-light: var(--mantine-color-teal-light);
+  --noesis-tone-light-color: var(--mantine-color-teal-light-color);
+}
+
+[data-page-tone='violet'] {
+  --noesis-tone-0: var(--mantine-color-violet-0);
+  --noesis-tone-1: var(--mantine-color-violet-1);
+  --noesis-tone-2: var(--mantine-color-violet-2);
+  --noesis-tone-3: var(--mantine-color-violet-3);
+  --noesis-tone-4: var(--mantine-color-violet-4);
+  --noesis-tone-5: var(--mantine-color-violet-5);
+  --noesis-tone-6: var(--mantine-color-violet-6);
+  --noesis-tone-7: var(--mantine-color-violet-7);
+  --noesis-tone-8: var(--mantine-color-violet-8);
+  --noesis-tone-9: var(--mantine-color-violet-9);
+  --noesis-tone-filled: var(--mantine-color-violet-6);
+  --noesis-tone-light: var(--mantine-color-violet-light);
+  --noesis-tone-light-color: var(--mantine-color-violet-light-color);
+}
+
+/* Grey is no hue: its ground is a plain step off the page, its text the text. */
+[data-page-tone='gray'] {
+  --noesis-tone-0: var(--mantine-color-gray-0);
+  --noesis-tone-1: var(--mantine-color-gray-1);
+  --noesis-tone-2: var(--mantine-color-gray-2);
+  --noesis-tone-3: var(--mantine-color-gray-3);
+  --noesis-tone-4: var(--mantine-color-gray-4);
+  --noesis-tone-5: var(--mantine-color-gray-5);
+  --noesis-tone-6: var(--mantine-color-gray-6);
+  --noesis-tone-7: var(--mantine-color-gray-7);
+  --noesis-tone-8: var(--mantine-color-gray-8);
+  --noesis-tone-9: var(--mantine-color-gray-9);
+  --noesis-tone-filled: var(--mantine-color-gray-6);
+  --noesis-tone-light: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
+  --noesis-tone-light-color: light-dark(
+    var(--mantine-color-gray-9),
+    var(--mantine-color-white)
+  );
+}

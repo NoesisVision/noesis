@@ -3,3 +3,12 @@ body,
 #app {
   min-height: 100%;
 }
+
+/* Asked for no motion, a page changes without the browser's fade. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

@@ -51,11 +51,14 @@ export function IconHeading({
   // page carries the same icon a size down.
   const isPageHeading = headingLevel === 1;
   return (
-    <Group gap="sm" wrap="nowrap">
+    // A page's colour comes from page-tone.css, as its tab's and its tree's
+    // do; without one, the tile keeps the brand's blue.
+    <Group gap="sm" wrap="nowrap" data-page-tone={tone}>
       {/* Decorative: the title beside it already names the page. */}
       <ThemeIcon
         variant="light"
-        color={tone}
+        bg={tone && 'var(--noesis-tone-light)'}
+        c={tone && 'var(--noesis-tone-light-color)'}
         size={isPageHeading ? 'lg' : 'md'}
         radius="md"
         aria-hidden
@@ -64,9 +67,8 @@ export function IconHeading({
       </ThemeIcon>
       <Box>
         {!!eyebrow && (
-          // Grey has no strong shade of its own: the overview's reads as text.
           <Text
-            c={tone === 'gray' ? undefined : tone}
+            c="var(--noesis-tone-light-color)"
             fz={11}
             fw={700}
             lh={1.4}

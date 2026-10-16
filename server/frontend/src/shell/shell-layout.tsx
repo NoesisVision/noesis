@@ -51,7 +51,7 @@ export function ShellLayout() {
       <AppShell.Main
         ref={ref}
         className={classes.main}
-        data-tone={activeItem?.tone}
+        data-page-tone={activeItem?.tone}
       >
         <ShellFullscreenContext value={shellFullscreen}>
           <Outlet />

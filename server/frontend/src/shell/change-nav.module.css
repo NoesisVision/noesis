@@ -24,7 +24,7 @@
 /*
  * A link in the bar — Overview, a document, System model — as a soft tab
  * under its kind's icon, filled with a light pill of its kind's colour when it
- * is the one you are on.
+ * is the one you are on (`data-page-tone`, read from `page-tone.css`).
  */
 .tab.tab {
   flex: none;
@@ -59,8 +59,9 @@
   &[data-open] {
     &,
     &:hover {
-      color: var(--tab-tone-color);
-      background-color: var(--tab-tone);
+      /* Its kind's colour, from page-tone.css. */
+      color: var(--noesis-tone-light-color);
+      background-color: var(--noesis-tone-light);
     }
 
     & .tabIcon {
@@ -77,33 +78,6 @@
       cursor: default;
     }
   }
-}
-
-/* Each kind's pill: Mantine's light shade of its colour, in either scheme. */
-.tab[data-tone='gray'] {
-  --tab-tone: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-5)
-  );
-  --tab-tone-color: light-dark(
-    var(--mantine-color-gray-9),
-    var(--mantine-color-white)
-  );
-}
-
-.tab[data-tone='teal'] {
-  --tab-tone: var(--mantine-color-teal-light);
-  --tab-tone-color: var(--mantine-color-teal-light-color);
-}
-
-.tab[data-tone='violet'] {
-  --tab-tone: var(--mantine-color-violet-light);
-  --tab-tone-color: var(--mantine-color-violet-light-color);
-}
-
-.tab[data-tone='brand'] {
-  --tab-tone: var(--mantine-color-brand-light);
-  --tab-tone-color: var(--mantine-color-brand-light-color);
 }
 
 /* The kind's icon: quieter than the name beside it until its tab is open. */
