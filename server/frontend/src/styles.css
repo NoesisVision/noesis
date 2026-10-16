@@ -13,6 +13,17 @@ html {
   scrollbar-gutter: stable;
 }
 
+/*
+ * A page fades into the next in 150ms, 40% quicker than the browser's own
+ * 250ms: switching tabs or views should feel like a cut that is softened,
+ * not a fade to be waited out.
+ */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 150ms;
+}
+
 /* Asked for no motion, a page changes without the browser's fade. */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
