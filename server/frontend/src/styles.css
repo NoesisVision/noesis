@@ -4,6 +4,15 @@ body,
   min-height: 100%;
 }
 
+/*
+ * A page that scrolls and one that does not are laid out at the same width:
+ * the room for the scrollbar is kept either way, so a title or a column never
+ * sits a few pixels off where it sits on the page before.
+ */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Asked for no motion, a page changes without the browser's fade. */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
