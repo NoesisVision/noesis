@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 import { Splitter } from '#/shared/design-system/splitter.tsx';
 import { useStoredShares } from '../columns.tsx';
@@ -39,7 +40,9 @@ export function ElementColumns({
     return (
       <>
         <div className={classes.sections}>{sections}</div>
-        <aside className={classes.aside}>{scenarios}</aside>
+        <aside className={clsx(classes.aside, classes.scenarioPane)}>
+          {scenarios}
+        </aside>
       </>
     );
   }
@@ -65,7 +68,7 @@ export function ElementColumns({
       <Splitter.Pane
         defaultSize={shares[1] ?? DEFAULT_SHARES[1]!}
         min="280px"
-        className={classes.splitPane}
+        className={clsx(classes.splitPane, classes.scenarioPane)}
       >
         <div className={classes.stickyScenarios}>{scenarios}</div>
       </Splitter.Pane>

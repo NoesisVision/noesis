@@ -130,6 +130,12 @@
     text-decoration: underline;
   }
 
+  /* Its scenarios are the ones that stand out: filled, as a pressed control. */
+  &[data-active] {
+    background: var(--mantine-color-brand-filled);
+    color: var(--mantine-color-white);
+  }
+
   &:focus-visible {
     outline: var(--noesis-focus-ring);
     outline-offset: 2px;

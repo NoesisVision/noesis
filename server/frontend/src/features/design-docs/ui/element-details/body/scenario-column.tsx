@@ -67,7 +67,13 @@ export function ScenarioColumn({
     </>
   );
   return (
-    <Box component="section" id={id} className={classes.column}>
+    <Box
+      component="section"
+      id={id}
+      className={classes.column}
+      // In an element's panel the scenarios are boxes on its grey; alone, a list.
+      data-panel={focus !== null || undefined}
+    >
       <Group gap="xs" px="sm">
         {headingOrder === undefined ? (
           <Text span className={classes.title}>
@@ -83,7 +89,11 @@ export function ScenarioColumn({
             variant="subtle"
             size="xs"
             ml="auto"
-            onClick={() => setOpen(allOpen ? [] : values)}
+            onClick={() => {
+              // Every scenario alike again: no rule stands out of all or none.
+              focus?.release();
+              setOpen(allOpen ? [] : values);
+            }}
           >
             {allOpen ? 'Collapse all' : 'Expand all'}
           </Button>
@@ -98,6 +108,7 @@ export function ScenarioColumn({
         chevronPosition="left"
         chevron={<IconChevronRight size={16} />}
         classNames={{
+          root: classes.accordion,
           item: classes.item,
           control: classes.control,
           chevron: classes.chevron,
@@ -111,6 +122,10 @@ export function ScenarioColumn({
             value={values[index]!}
             // What a rule's count looks for to bring it into view.
             data-scenario={values[index]}
+            // Another rule's, while one rule's scenarios stand out.
+            data-dimmed={
+              (focus?.rule != null && entry.rule !== focus.rule) || undefined
+            }
           >
             {/* The buttons sit beside the control, not in it: a button holds no other. */}
             <div className={classes.head}>
