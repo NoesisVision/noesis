@@ -61,40 +61,13 @@ h2.name {
   align-self: center;
 }
 
-/* The name, then what it implements in smaller type on the same line. */
+/* The name, and on the name's line the badges when there is no kind. */
 .title {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: var(--mantine-spacing-xs);
   min-width: 0;
-}
-
-.implements {
-  font-size: var(--mantine-font-size-sm);
-  color: var(--mantine-color-dimmed);
-  overflow-wrap: anywhere;
-}
-
-/* Named with the line, to win over the button reset a linked type gets. */
-.implements .type {
-  font: inherit;
-  font-weight: 600;
-  color: var(--mantine-color-anchor);
-
-  &[data-removed] {
-    text-decoration: line-through;
-  }
-
-  &[data-link]:hover {
-    text-decoration: underline;
-  }
-
-  &[data-link]:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--mantine-radius-xs);
-  }
 }
 
 /* Measured: from 44rem the scenarios stand beside the sections, split. */

@@ -24,9 +24,8 @@ import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
 import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
+import { ElementRelations } from './element-relations.tsx';
 import { humanText, WrittenBy, writtenByHuman } from './human-mark.tsx';
-import { ImplementedByModal } from './implemented-by-modal.tsx';
-import { ImplementsLine } from './implements-line.tsx';
 import { VisibilityBadge } from './visibility-badge.tsx';
 import classes from './element-detail.module.css';
 
@@ -61,7 +60,7 @@ export function ElementDetail({
     node.kind === 'behaviour' && node.elementId
       ? valueOf(findById(doc.behaviours, node.elementId)?.visibility)
       : null;
-  // Only a building block implements anything; it reads after its name.
+  // Only a building block implements anything, or is implemented.
   const implemented =
     node.kind === 'building_block' && node.elementId
       ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
@@ -91,7 +90,6 @@ export function ElementDetail({
     <Group gap="xs" ml="auto" className={classes.badges}>
       <VisibilityBadge visibility={visibility} />
       <ChangeBadge change={node.change} />
-      <ImplementedByModal items={implementers} />
     </Group>
   );
   return (
@@ -116,11 +114,17 @@ export function ElementDetail({
               <Title order={2} className={classes.name}>
                 <NodeName node={node} field={designed?.name} />
               </Title>
-              <ImplementsLine items={implemented} />
               {node.patternLabel === null && badges}
             </div>
           </div>
         </header>
+        {/* Between the name and what it is; opened afresh on every element. */}
+        <ElementRelations
+          key={`relations:${node.path}`}
+          implemented={implemented}
+          implementers={implementers}
+          tree={tree}
+        />
         {definition !== undefined && (
           <ElementDefinition
             // Another element is another editor: it reads its markdown once.

@@ -1,0 +1,70 @@
+/*
+ * The relations in a box of their own, inside the panel's gutter. Measured by
+ * its own width: in a narrow panel the labels go over their types.
+ */
+.relations {
+  container-type: inline-size;
+  margin: var(--mantine-spacing-md) var(--mantine-spacing-lg) 0;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  row-gap: 10px;
+  column-gap: var(--mantine-spacing-md);
+  margin: 0;
+}
+
+/* Each relation's label and types sit in the list's own two columns. */
+.relation {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: start;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  white-space: nowrap;
+}
+
+.types {
+  min-width: 0;
+  margin: 0;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 18px;
+  row-gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  overflow-wrap: anywhere;
+}
+
+@container (max-width: 32rem) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2px;
+  }
+
+  .relation + .relation {
+    margin-top: var(--mantine-spacing-xs);
+  }
+}

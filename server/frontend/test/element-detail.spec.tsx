@@ -6,14 +6,12 @@ import { ElementBody } from '../src/features/design-docs/ui/architecture/element
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
 import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
-  implementerItems,
   ruleItems,
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
-import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
-import { ImplementedByList } from '../src/features/design-docs/ui/element-details/implemented-by-modal';
+import { ElementRelations } from '../src/features/design-docs/ui/element-details/element-relations';
 import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline.ts';
 import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
@@ -288,17 +286,19 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
   });
 
-  it('says what a block implements after its name, not in a section', () => {
+  it('says what a block implements over its definition, flat', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toMatch(
-      /<h2[^>]*>Hold<\/h2><span[^>]*>implements <span[^>]*>Lockable<\/span>, <span[^>]*>Settleable<\/span><\/span>/,
-    );
+    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Implements<\/span> <span[^>]*>2</);
+    expect(html).toMatch(/>Lockable<[\s\S]*>Settleable</);
+    // Not beside the name any more.
+    expect(html).toMatch(/<h2[^>]*>Hold<\/h2><\/div>/);
     // What the design removes stays, struck through.
-    expect(html).toMatch(/<span[^>]*data-removed="true"[^>]*>Lockable<\/span>/);
-    expect(html).not.toContain('>Implements<');
+    expect(html).toMatch(/data-removed="true"[^>]*>(<[^>]+>)*Lockable</);
+    // Read flat, with nothing to group them by.
+    expect(html).not.toContain('Group by type');
   });
 
-  it('offers what implements a type beside its badges', () => {
+  it('says what implements a type', () => {
     const type = (name: string) =>
       node({
         path: `building_block|pay.${name}`,
@@ -313,32 +313,50 @@ describe('ElementDetail', () => {
     );
     // Found in the document even for a type the design leaves alone.
     expect(show('building_block|pay.Settleable', withTypes)).toMatch(
-      /<button[^>]*aria-label="Implemented by 1 element"/,
+      /Implemented by[\s\S]*<button[^>]*>(<[^>]+>)*Hold</,
     );
-    // Nothing implements Hold itself, so it has no menu.
+    // Nothing implements Hold itself, so it has no such relation.
     expect(show('building_block|pay.Hold')).not.toContain('Implemented by');
   });
 
-  it('lists each implementer under a filter box, opening its row', () => {
-    const items = implementerItems(document, 'building_block|pay.Lockable');
-    const html = renderToStaticMarkup(
+  const block = (name: string, pattern: string) =>
+    node({
+      path: `building_block|pay.${name}`,
+      parentPath: 'module|pay',
+      kind: 'building_block',
+      name,
+      pattern,
+      depth: 1,
+    });
+  const relations = (names: [string, string][]) => {
+    const tree = outlineTree(
+      names.map(([name, pattern]) => block(name, pattern)),
+      [],
+    );
+    const items = names.map(([name]) => ({
+      change: 'added' as const,
+      label: `pay.${name}`,
+      path: `building_block|pay.${name}`,
+    }));
+    return renderToStaticMarkup(
       <MantineProvider>
-        <DesignDocumentContext.Provider value={document}>
-          <ElementNavigationContext.Provider
-            value={{ has: () => true, select: () => {} }}
-          >
-            <ImplementedByList items={items} onOpen={() => {}} />
-          </ElementNavigationContext.Provider>
-        </DesignDocumentContext.Provider>
+        <ElementNavigationContext.Provider
+          value={{ has: () => true, select: () => {} }}
+        >
+          <ElementRelations implemented={items} implementers={[]} tree={tree} />
+        </ElementNavigationContext.Provider>
       </MantineProvider>,
     );
-    expect(html).toMatch(/<input[^>]*aria-label="Filter the implementers"/);
-    // The design stops Hold implementing Lockable: it stays, struck through.
-    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*Hold</);
-    expect(html).toMatch(/data-removed="true"[^>]*>Hold</);
-    expect(html).toContain('>removed<');
-    // Where it sits, after its name.
-    expect(html).toMatch(/>Hold<\/span><span[^>]*>pay<\/span>/);
+  };
+
+  it('names eight types and offers the rest', () => {
+    const names = 'ABCDEFGHIJ'
+      .split('')
+      .map((name): [string, string] => [name, 'value_object']);
+    const html = relations(names);
+    expect(html).toContain('>H<');
+    expect(html).not.toContain('>I<');
+    expect(html).toMatch(/<button[^>]*>\+2 more<\/button>/);
   });
 
   it("draws a module's building blocks as cards, each opening its row", () => {
