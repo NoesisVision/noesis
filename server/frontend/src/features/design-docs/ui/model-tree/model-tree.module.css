@@ -2,8 +2,8 @@
  * Depth is drawn the way the sidebar draws it: one rail per level, each row
  * contributing its own segment, so the line is continuous down a branch and
  * stops where the branch does. The rails along the selected row's ancestry
- * take the brand colour, which is what turns "there are levels" into "you are
- * here, under that".
+ * take the page's colour (`page-tone.css`), which is what turns "there are
+ * levels" into "you are here, under that".
  *
  * Order matters below. A name is coloured by what the design does to it,
  * then by whether it is on the way to the row in hand, then by being that
@@ -16,10 +16,7 @@
     var(--mantine-color-gray-3),
     var(--mantine-color-dark-4)
   );
-  --model-tree-rail-lit: light-dark(
-    var(--mantine-color-brand-4),
-    var(--mantine-color-brand-7)
-  );
+  --model-tree-rail-lit: light-dark(var(--noesis-tone-4), var(--noesis-tone-7));
 
   margin: 0;
   padding: 0;
@@ -216,7 +213,7 @@
 }
 
 /*
- * The way down to the row in hand, in a lighter brand blue than the row
+ * The way down to the row in hand, in a lighter shade than the row
  * itself: a reader can follow the line from the context to where they are
  * without mistaking any of it for where they are.
  */
@@ -228,30 +225,30 @@
 
 /*
  * The row in hand is filled, so everything on it has to be legible against
- * that fill rather than against the pane: the name comes up to the lightest
- * of the brand, and what the row says about itself — its kind, its pattern,
+ * that fill rather than against the pane: the fill is the darkest of the
+ * page's colour, the name comes up to its lightest, and what the row says about itself — its kind, its pattern,
  * its chevron, its diagram — a step behind it. Left alone, each of those
  * would keep the colour it is given elsewhere, which is dark on dark here.
  *
  * Last of the three, so it wins on order where it ties with them on weight.
  */
 .item[data-selected] > .row {
-  background-color: var(--mantine-color-brand-9);
-  color: var(--mantine-color-brand-0);
+  background-color: var(--noesis-tone-9);
+  color: var(--noesis-tone-0);
 
   & .name {
-    color: var(--mantine-color-brand-0);
+    color: var(--noesis-tone-0);
   }
 
   & .icon,
   & .chevron,
   & .mark {
-    color: var(--mantine-color-brand-2);
+    color: var(--noesis-tone-2);
   }
 
   & .chevron[data-opens]:hover {
-    background-color: var(--mantine-color-brand-7);
-    color: var(--mantine-color-brand-0);
+    background-color: var(--noesis-tone-7);
+    color: var(--noesis-tone-0);
   }
 }
 

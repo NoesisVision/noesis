@@ -9,7 +9,8 @@
 
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-md);
+  /* As far below the title as a document's or the overview's content is. */
+  gap: var(--mantine-spacing-lg);
   height: calc(
     100dvh - var(--app-shell-header-offset, 0rem) - 2 * var(--workbench-gutter)
   );
@@ -17,7 +18,78 @@
 }
 
 .header {
+  position: relative;
   flex: none;
+}
+
+.title {
+  min-width: 0;
+}
+
+/* Named for the browser's view transitions, so the switch holds still. */
+.controls {
+  view-transition-name: design-doc-controls;
+}
+
+/*
+ * On the overview the title heads the column the overview is read in, as a
+ * document's title does: as wide as that column and centred, the controls
+ * pinned to the right edge. Where the two would meet, the title wraps before
+ * the controls rather than under them; the room it keeps is what the controls
+ * take beyond the margin beside the column.
+ */
+/*
+ * The overview is read as a document is on its own page (`reading-pane`): the
+ * page scrolls rather than a pane, under a title that sticks straight below
+ * the shell's header. The header bleeds over the gutter on every side and
+ * pads it back, so the title rests exactly where it would without sticking,
+ * and it is opaque so the prose goes under it rather than through it.
+ */
+.surface[data-centred] {
+  gap: 0;
+  height: auto;
+}
+
+.header[data-centred] {
+  --design-doc-controls: 34rem;
+
+  position: sticky;
+  top: var(--app-shell-header-offset, 0rem);
+  z-index: 1;
+  margin: calc(-1 * var(--workbench-gutter)) calc(-1 * var(--workbench-gutter))
+    0;
+  padding: var(--workbench-gutter);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-gray-9)
+  );
+  transition: box-shadow 150ms ease;
+}
+
+/* Once the prose runs on underneath, a hairline and the softest lift. */
+.header[data-centred][data-stuck] {
+  box-shadow:
+    0 1px 0 0
+      light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)),
+    0 8px 12px -12px light-dark(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+}
+
+.header[data-centred] .title {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  padding-inline-end: max(
+    0px,
+    calc(var(--design-doc-controls) - (100% - 900px) / 2)
+  );
+}
+
+.header[data-centred] .controls {
+  position: absolute;
+  inset-block: 0;
+  right: var(--workbench-gutter);
+  height: fit-content;
+  margin-block: auto;
 }
 
 /*

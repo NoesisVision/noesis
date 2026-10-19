@@ -5,6 +5,7 @@ import {
   IconPencilBolt,
   IconTarget,
 } from '@tabler/icons-react';
+import type { PageTone } from '#/shared/ui/icon-heading.tsx';
 
 /**
  * The icon a design document is drawn with, wherever it is named: the sidebar,
@@ -12,6 +13,9 @@ import {
  * it so a view does not have to pick an icon for what it merely renders.
  */
 export const DesignDocsIcon = IconPencilBolt;
+
+/** The colour a design document's page and its tab are marked with. */
+export const DESIGN_DOCS_TONE = 'violet' satisfies PageTone;
 
 /**
  * The ways a design document is read: as its overview, as a model, as

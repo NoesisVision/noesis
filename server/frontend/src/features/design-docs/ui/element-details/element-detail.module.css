@@ -14,11 +14,12 @@
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  background: var(--mantine-color-brand-light);
+  /* As the page heading's tile: the page's colour, from page-tone.css. */
+  background: var(--noesis-tone-light);
 
   /* The tree's tones are for rows; here the tile carries the colour. */
   & svg {
-    color: var(--mantine-color-brand-light-color);
+    color: var(--noesis-tone-light-color);
   }
 }
 

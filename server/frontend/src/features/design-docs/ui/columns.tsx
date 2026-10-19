@@ -2,10 +2,12 @@ import { IconLayoutSidebarLeftExpand, IconSearch } from '@tabler/icons-react';
 import {
   type ReactNode,
   type RefObject,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
 } from 'react';
+import { flushSync } from 'react-dom';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import {
@@ -97,11 +99,28 @@ export function Columns({
 }) {
   const wide = useMediaQuery(WIDE, true);
   const [columns, setColumns] = useStoredShares(COLUMNS_KEY, DEFAULT_COLUMNS);
-  const [hidden, setHidden] = useLocalStorage<boolean>({
+  const [hidden, storeHidden] = useLocalStorage<boolean>({
     key: TREE_HIDDEN_KEY,
     defaultValue: false,
     getInitialValueInEffect: false,
   });
+  // Put away or brought back by the reader, the tree slides; as the page
+  // opens, it is simply where it was left. The browser pictures the columns
+  // before and after and moves between the two pictures, so neither pane is
+  // laid out again on every frame, nor seen while it is built.
+  const setHidden = useCallback(
+    (next: boolean | ((was: boolean) => boolean)) => {
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (document.startViewTransition === undefined || still.matches) {
+        storeHidden(next);
+        return;
+      }
+      document.startViewTransition(() => {
+        flushSync(() => storeHidden(next));
+      });
+    },
+    [storeHidden],
+  );
   const searchRef = useRef<HTMLInputElement>(null);
   // Opened from the rail's search, the tree opens with its field in hand.
   const searchOnOpen = useRef(false);
@@ -175,6 +194,7 @@ export function Columns({
             <ActionIcon
               variant="subtle"
               color="gray"
+              size="input-sm"
               aria-label="Show the tree"
               aria-keyshortcuts="Meta+Backslash Control+Backslash"
               onClick={() => setHidden(false)}
@@ -186,6 +206,7 @@ export function Columns({
             <ActionIcon
               variant="subtle"
               color="gray"
+              size="input-sm"
               aria-label="Search the outline"
               onClick={() => {
                 searchOnOpen.current = true;

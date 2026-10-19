@@ -12,6 +12,8 @@ export function ViewHeader() {
         title={activeItem.label}
         icon={activeItem.icon}
         description={activeItem.description}
+        tone={activeItem.tone}
+        eyebrow={activeItem.label}
       />
     </Box>
   );

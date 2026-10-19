@@ -6,12 +6,15 @@ import {
   useFullscreenElement,
 } from '#/shared/design-system/hooks';
 import { ShellFullscreenContext } from '#/shared/ui/shell-fullscreen.tsx';
+import { useActiveRoute } from './navigation/use-active-route.ts';
 import { ShellHeader } from './shell-header';
 import { Sidebar } from './sidebar';
 import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
   const [navbarOpened, navbar] = useDisclosure(false);
+  // The kind of page open, ruled across its top in its colour.
+  const { activeItem } = useActiveRoute();
   // The content is what goes full screen, so it stays full screen while the
   // views inside it change; the header and the sidebar are simply not painted.
   const { ref, toggle, fullscreen } = useFullscreenElement<HTMLElement>();
@@ -45,7 +48,11 @@ export function ShellLayout() {
       <AppShell.Navbar>
         {navbarOpened && <Sidebar onNavigate={navbar.close} />}
       </AppShell.Navbar>
-      <AppShell.Main ref={ref} className={classes.main}>
+      <AppShell.Main
+        ref={ref}
+        className={classes.main}
+        data-page-tone={activeItem?.tone}
+      >
         <ShellFullscreenContext value={shellFullscreen}>
           <Outlet />
         </ShellFullscreenContext>

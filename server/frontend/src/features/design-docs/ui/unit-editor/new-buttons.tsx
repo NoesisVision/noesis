@@ -102,6 +102,25 @@ export function NewRuleButton({ owner }: { owner: PartOwner }) {
 }
 
 /**
+ * Where a new scenario of this element is written — under the rule asked, or
+ * a module's first; null where none may be added: the document read only,
+ * the element not writable, or a module with no rule to put one under.
+ */
+export function useNewScenarioOwner(
+  owner: PartOwner | undefined,
+): PartOwner | null {
+  const editing = useUnitEditing();
+  const writable = useWritableUnit(
+    owner === undefined ? null : { kind: owner.kind, id: owner.id },
+  );
+  if (editing === null || writable === null || owner === undefined) return null;
+  // A module's scenarios belong to its rules: the first, unless one is asked.
+  const first = rulesOf(editing.document, owner)[0];
+  if (owner.kind !== 'module' || owner.rule !== undefined) return owner;
+  return first === undefined ? null : { ...owner, rule: first };
+}
+
+/**
  * Opens the form on a new scenario, its rule chosen already — the one it is
  * asked from — and changeable in the form. Nothing where the element may not
  * be written. As an icon, it sits among a card's own buttons.
@@ -114,17 +133,8 @@ export function NewScenarioButton({
   icon?: boolean;
 }) {
   const editing = useUnitEditing();
-  const writable = useWritableUnit({ kind: owner.kind, id: owner.id });
-  if (editing === null || writable === null) return null;
-  // A module's scenarios belong to its rules: the first, unless one is asked.
-  const first = rulesOf(editing.document, owner)[0];
-  const preset: PartOwner | null =
-    owner.kind !== 'module' || owner.rule !== undefined
-      ? owner
-      : first === undefined
-        ? null
-        : { ...owner, rule: first };
-  if (preset === null) return null;
+  const preset = useNewScenarioOwner(owner);
+  if (editing === null || preset === null) return null;
   const add = () =>
     editing.write({ mode: 'add', kind: 'scenario', owner: preset });
   if (icon)

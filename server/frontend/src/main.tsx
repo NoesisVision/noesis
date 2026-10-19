@@ -17,6 +17,7 @@ import { FullscreenPortals } from '#/shared/ui/fullscreen-portals.tsx';
 import '#/shared/design-system/styles';
 import '@fontsource-variable/raleway';
 import '#/styles.css';
+import '#/shared/ui/page-tone.css';
 
 // The backend imports `index.html`, which is how bun finds and bundles this
 // entry.

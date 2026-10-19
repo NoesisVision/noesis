@@ -121,6 +121,58 @@
         {
           "name": "--noesis-requirement-gap",
           "description": "Text and underline of a gap in the requirements view — a need no rule traces to. Red 8 / red 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-tone-0",
+          "description": "Shade 0 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-1",
+          "description": "Shade 1 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-2",
+          "description": "Shade 2 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-3",
+          "description": "Shade 3 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-4",
+          "description": "Shade 4 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-5",
+          "description": "Shade 5 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-6",
+          "description": "Shade 6 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-7",
+          "description": "Shade 7 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-8",
+          "description": "Shade 8 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-9",
+          "description": "Shade 9 of the colour of the page in hand (0 lightest, 9 darkest), set by `data-page-tone` in src/shared/ui/page-tone.css: the brand blue, a document's teal, a design document's violet or the overview's grey."
+        },
+        {
+          "name": "--noesis-tone-filled",
+          "description": "A solid mark in the colour of the page in hand, such as the rule over the page. Set by `data-page-tone` in src/shared/ui/page-tone.css."
+        },
+        {
+          "name": "--noesis-tone-light",
+          "description": "A tinted ground in the colour of the page in hand: the open tab, a heading's icon tile. Set by `data-page-tone` in src/shared/ui/page-tone.css."
+        },
+        {
+          "name": "--noesis-tone-light-color",
+          "description": "What reads on --noesis-tone-light: the open tab's name, a tile's icon, a heading's eyebrow. Set by `data-page-tone` in src/shared/ui/page-tone.css."
         }
       ]
     }
