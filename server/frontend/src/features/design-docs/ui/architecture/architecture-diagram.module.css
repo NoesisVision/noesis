@@ -12,8 +12,18 @@
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
-/* Rows closer than the controls in them; named with the toolbar, to win over the group's own gap. */
-.toolbar .toolbarRow {
+/*
+ * The controls on the right and the word on what is not drawn before them;
+ * reversed, so when the line is too short the word, not the controls, goes
+ * under. Named with the toolbar, to win over the group's own rules.
+ */
+.toolbar.toolbarRow {
+  flex-direction: row-reverse;
+  gap: 6px 18px;
+}
+
+/* Rows closer than the controls in them. */
+.toolbar .toolbarControls {
   gap: 8px 18px;
 }
 
@@ -309,4 +319,17 @@
   border-radius: 999px;
   background: var(--mantine-color-yellow-light);
   color: var(--mantine-color-yellow-light-color);
+}
+
+/* What the selection says, over the canvas's top right: as long as it is, up to the canvas's height. */
+.selection {
+  width: 360px;
+  max-width: calc(100% - 30px);
+  max-height: calc(100% - 30px);
+  overflow-y: auto;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-md);
 }

@@ -80,7 +80,8 @@ describe('ElementTooltip', () => {
     const html = render('hold: pay.Hold');
     // Over the element it is given, not a name of its own.
     expect(html).toMatch(/<div class="target[^"]*"[^>]*>a whole card<\/div>/);
-    expect(html).toContain('>pay.Hold<');
+    // Its name, then where it sits under it.
+    expect(html).toMatch(/>Hold<\/span><span[^>]*>pay</);
     expect(html).toContain('>Properties<');
     // The type apart from the name, coloured as a declaration box colours it.
     expect(html).toMatch(/>amount\?: <span[^>]*>Money<\/span>/);
@@ -135,7 +136,7 @@ describe('ElementTooltip', () => {
 
   it('gives an element the document does not shape its address alone', () => {
     const html = render('pay.Money');
-    expect(html).toContain('>pay.Money<');
+    expect(html).toMatch(/>Money<\/span><span[^>]*>pay</);
     expect(html).not.toContain('>Properties<');
   });
 

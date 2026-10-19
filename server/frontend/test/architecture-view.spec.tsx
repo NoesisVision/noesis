@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
+import { architectureOf } from '../src/features/design-docs/design-doc-architecture';
 import { outlineOf } from '../src/features/design-docs/design-doc-outline';
+import { ArchitectureDetails } from '../src/features/design-docs/ui/architecture/architecture-details';
 import { ArchitectureView } from '../src/features/design-docs/ui/architecture/architecture-view';
+import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
+import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
@@ -20,6 +24,27 @@ function render(selected: string | null = null): string {
           query=""
           onSelect={() => {}}
           onQuery={() => {}}
+        />
+      </DesignDocSurface>
+    </MantineProvider>,
+  );
+}
+
+/** What the panel on the canvas reads of an element in hand. */
+function read(id: string, glance = true): string {
+  const outline = architectureOf(document);
+  const layout = layoutArchitecture(outline.hexagons);
+  return renderToStaticMarkup(
+    <MantineProvider>
+      <DesignDocSurface document={document}>
+        <ArchitectureDetails
+          subject={{ kind: 'element', id }}
+          outline={outline}
+          document={document}
+          modelTree={outlineTree(outlineOf(document))}
+          cards={new Map(layout.nodes.map((node) => [node.id, node]))}
+          onSelectElement={() => {}}
+          glance={glance}
         />
       </DesignDocSurface>
     </MantineProvider>,
@@ -50,8 +75,8 @@ describe('ArchitectureView', () => {
     expect(page).toContain('Needs at the ports');
   });
 
-  it('asks for a choice when nothing is in hand', () => {
-    expect(page).toContain('Choose a check, a need or a card to read it.');
+  it('reads nothing on the canvas when nothing is in hand', () => {
+    expect(page).not.toContain('aria-label="Selection"');
   });
 
   it('draws a card for every port, named by what it is', () => {
@@ -83,15 +108,36 @@ describe('ArchitectureView', () => {
     expect(html).toContain('No port answers it');
   });
 
-  it('reads an element as the model does, after what the architecture finds', () => {
+  it('reads the element in hand in a panel on the canvas, outlining its card', () => {
     const html = render(`checks/check:caller-unknown/${NOTIFY}`);
-    expect(headingsOf(html)).toContainEqual([2, 'notifyUsers']);
-    expect(html).toContain('Speaks in');
+    const panel = html.slice(html.indexOf('aria-label="Selection"'));
+    expect(panel).toMatch(/^aria-label="Selection"/);
+    expect(headingsOf(panel)).toContainEqual([2, 'notifyUsers']);
+    expect(panel).toContain('Clear the selection');
     expect(html).toMatch(/data-state="selected"[^>]*aria-label="notifyUsers/);
   });
 
-  it('reads a card no row names, under a mark of its own', () => {
-    const html = render(`element:in:${NOTIFY}`);
+  it('reads an element in the panel as the model does, after what the architecture finds', () => {
+    const html = read(NOTIFY);
+    expect(headingsOf(html)).toContainEqual([2, 'notifyUsers']);
+    expect(html).toContain('Speaks in');
+    expect(html).not.toContain('Clear the selection');
+  });
+
+  it("folds a rule's description in the panel, and only there", () => {
+    const TITLE = 'building_block|qdocmanagement.preparation.QDocTitle';
+    const BLANK = 'a blank title cannot be created';
+    const glance = read(TITLE);
+    expect(glance).toMatch(/aria-expanded="false"[^>]*>Show description</);
+    expect(glance).not.toContain(BLANK);
+    expect(glance).toContain('data-glance="true"');
+    const full = read(TITLE, false);
+    expect(full).toContain(BLANK);
+    expect(full).not.toContain('Show description');
+  });
+
+  it('reads a card no row names in the panel', () => {
+    const html = read(`in:${NOTIFY}`);
     expect(headingsOf(html)).toContainEqual([2, 'In adapter for notifyUsers']);
     expect(html).toContain('not designed');
   });
@@ -112,7 +158,7 @@ describe('ArchitectureView', () => {
 
 describe('what an element in hand is called', () => {
   it('calls a module by its hexagon', () => {
-    expect(render('element:module|qdocmanagement.notifications')).toContain(
+    expect(read('module|qdocmanagement.notifications')).toContain(
       '>Module · hexagon<',
     );
   });

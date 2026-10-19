@@ -144,12 +144,12 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
 
 /**
  * What an element is, on hover over whatever names it — a word, a box, a
- * whole card: its address in full, and what the design gives it — a
+ * whole card: its name over where it sits, and what the design gives it — a
  * behaviour's input and output, a building block's properties and
- * behaviours, a module's building blocks. Descriptions stay in the panel; this is the
- * outline at a glance. An element the document does not shape gets its
- * address alone, and a name with nothing to cut and nothing to say gets no
- * tooltip at all.
+ * behaviours, a module's building blocks. Descriptions stay in the panel;
+ * this is the outline at a glance. An element the document does not shape
+ * gets its address alone, and a name with nothing to cut and nothing to say
+ * gets no tooltip at all.
  *
  * `name` is the element's qualified name, `a.b.C` or `name: a.b.C`; the
  * child is what the tooltip opens over, so it must take a ref.
@@ -197,12 +197,28 @@ export function ElementTooltip({
 function Details({ address, shape }: { address: string; shape: Shape | null }) {
   return (
     <span className={classes.details}>
-      <span className={classes.address}>{address}</span>
+      <Address address={address} />
       <Lines label="Behaviours" lines={shape?.behaviours} />
       <Lines label="Properties" lines={shape?.properties} />
       <Lines label="Input" lines={shape?.input} />
       <Lines label="Output" lines={shape?.output} />
       <Lines label="Building blocks" lines={shape?.buildingBlocks} />
+    </span>
+  );
+}
+
+/**
+ * The element's address, read as a heading: its name, over where it sits,
+ * small and gray. A root module has no place to say.
+ */
+function Address({ address }: { address: string }) {
+  const dot = address.lastIndexOf('.');
+  return (
+    <span className={classes.address}>
+      <span className={classes.name}>{address.slice(dot + 1)}</span>
+      {dot !== -1 && (
+        <span className={classes.place}>{address.slice(0, dot)}</span>
+      )}
     </span>
   );
 }

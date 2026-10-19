@@ -31,10 +31,10 @@ describe('the diagram legend', () => {
     expect(legend).toContain('aria-label="Legend: pick out a kind of card"');
   });
 
-  it('sits in the bottom right corner, the attribution moved out of its way', () => {
-    expect(legend).toMatch(/^react-flow__panel[^"]*bottom right/);
+  it('sits in the bottom left corner, the attribution moved out of its way', () => {
+    expect(legend).toMatch(/^react-flow__panel[^"]*bottom left/);
     expect(html).toMatch(
-      /react-flow__panel[^"]*bottom left[^"]*react-flow__attribution|react-flow__attribution[^"]*bottom left/,
+      /react-flow__panel[^"]*bottom right[^"]*react-flow__attribution|react-flow__attribution[^"]*bottom right/,
     );
   });
 

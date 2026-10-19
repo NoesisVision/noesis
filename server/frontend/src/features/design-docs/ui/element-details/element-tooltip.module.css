@@ -10,11 +10,24 @@
   font-weight: 600;
 }
 
-/* The full name on one line, however long: the tooltip widens to it. */
+/* The element's name over where it sits, each on one line however long: the tooltip widens to them. */
 .address {
-  font-family: var(--mantine-font-family-monospace);
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
   white-space: nowrap;
+  /* Tight lines, so where it sits is close under the name. */
+  line-height: 1.2;
+}
+
+.place {
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}
+
+/* In the tooltip's own text colour, a size up: the tooltip's title. */
+.name {
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
 }
 
 .group {

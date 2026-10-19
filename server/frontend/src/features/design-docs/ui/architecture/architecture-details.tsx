@@ -1,5 +1,5 @@
 import { IconX } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -18,6 +18,9 @@ import { CHECKS_PATH } from '../../architecture-tree.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { needNameOf } from '../../design-doc-requirements.ts';
 import { kindOf, nameOf } from '../../element-id.ts';
+import { DesignDocumentContext } from '../element-details/design-document-context.ts';
+import { ElementNavigationContext } from '../element-details/element-navigation.ts';
+import { GlanceReadingContext } from '../element-details/glance-reading.ts';
 import { KINDS } from './architecture-kinds.ts';
 import type { ArchitectureSubject } from './architecture-selection.ts';
 import { DetailText } from './detail-parts.tsx';
@@ -46,60 +49,92 @@ export interface ArchitectureDetailsProps {
   /** Every card the diagram draws, by id. */
   cards: ReadonlyMap<string, LaidOutNode>;
   onSelectElement: (id: string) => void;
-  onClear: () => void;
+  /** Clears the selection; without it — over a card, say — there is no close button. */
+  onClear?: () => void;
+  /** Read at a glance, over its card: smaller type, descriptions folded. */
+  glance?: boolean;
 }
 
 export function ArchitectureDetails(props: ArchitectureDetailsProps) {
-  const { subject, onClear } = props;
+  const {
+    subject,
+    onClear,
+    glance = false,
+    modelTree,
+    onSelectElement,
+  } = props;
   const body = bodyOf(props);
+  // A type is opened as a card is: its row, or the element alone.
+  const navigation = useMemo(
+    () => ({
+      has: (path: string) => modelTree.byPath.has(path),
+      select: onSelectElement,
+    }),
+    [modelTree, onSelectElement],
+  );
   return (
-    <Stack gap="md" p="md">
-      <Group component="header" align="flex-start" gap="xs" wrap="nowrap">
-        <Stack gap={2} flex={1} miw={0}>
-          <Text
-            component="span"
-            fz={11}
-            fw={600}
-            lts="0.06em"
-            tt="uppercase"
-            c="var(--noesis-secondary-text)"
-          >
-            {body.eyebrow}
-          </Text>
-          <Title order={2} size="h4" className={classes.wraps}>
-            {body.title}
-          </Title>
-          {body.address !== undefined && (
-            <Text
-              component="span"
-              ff="monospace"
-              fz="xs"
-              c="var(--noesis-secondary-text)"
-              className={classes.wraps}
+    <DesignDocumentContext.Provider value={props.document}>
+      <ElementNavigationContext.Provider value={navigation}>
+        <GlanceReadingContext.Provider value={glance}>
+          <Stack gap="md" p="md" data-glance={glance || undefined}>
+            {/* What is in hand and the way out of it, kept in view over
+                whatever the panel is scrolled to. */}
+            <Group
+              component="header"
+              align="flex-start"
+              gap="xs"
+              wrap="nowrap"
+              className={classes.head}
             >
-              {body.address}
-            </Text>
-          )}
-        </Stack>
-        <ActionIcon
-          variant="subtle"
-          aria-label="Clear the selection"
-          title="Clear the selection"
-          onClick={onClear}
-        >
-          <IconX size={18} stroke={1.6} aria-hidden />
-        </ActionIcon>
-      </Group>
-      {body.content}
-      {subject.kind === 'element' && (
-        <ElementBody
-          id={subject.id}
-          document={props.document}
-          modelTree={props.modelTree}
-          onSelectElement={props.onSelectElement}
-        />
-      )}
-    </Stack>
+              <Stack gap={2} flex={1} miw={0}>
+                <Text
+                  component="span"
+                  fz={11}
+                  fw={600}
+                  lts="0.06em"
+                  tt="uppercase"
+                  c="var(--noesis-secondary-text)"
+                >
+                  {body.eyebrow}
+                </Text>
+                <Title order={2} size="h4" className={classes.wraps}>
+                  {body.title}
+                </Title>
+              </Stack>
+              {onClear !== undefined && (
+                <ActionIcon
+                  variant="subtle"
+                  aria-label="Clear the selection"
+                  title="Clear the selection"
+                  onClick={onClear}
+                >
+                  <IconX size={18} stroke={1.6} aria-hidden />
+                </ActionIcon>
+              )}
+            </Group>
+            {/* Small and gray, as the element tooltip says where an element sits. */}
+            {body.address !== undefined && (
+              <Text
+                component="span"
+                fz="xs"
+                mt="calc(-1 * var(--mantine-spacing-sm))"
+                className={`${classes.wraps} ${classes.address}`}
+              >
+                {body.address}
+              </Text>
+            )}
+            {body.content}
+            {subject.kind === 'element' && (
+              <ElementBody
+                id={subject.id}
+                document={props.document}
+                modelTree={props.modelTree}
+              />
+            )}
+          </Stack>
+        </GlanceReadingContext.Provider>
+      </ElementNavigationContext.Provider>
+    </DesignDocumentContext.Provider>
   );
 }
 
@@ -197,7 +232,7 @@ function bodyOf({
             outline={outline}
             document={doc}
             cards={cards}
-            onSelect={onSelectElement}
+            modelTree={modelTree}
           />
         ),
       };

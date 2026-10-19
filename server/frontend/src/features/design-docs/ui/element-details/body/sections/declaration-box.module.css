@@ -66,3 +66,13 @@
   line-height: 1.45;
   color: var(--mantine-color-dimmed);
 }
+
+/* Read at a glance, over a card: a size down. */
+[data-glance] .box .name {
+  font-size: 11px;
+}
+
+[data-glance] .box .type,
+[data-glance] .box .description {
+  font-size: 10px;
+}

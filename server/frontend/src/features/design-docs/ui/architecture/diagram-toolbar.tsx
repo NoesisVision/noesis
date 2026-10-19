@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
-import { Box } from '#/shared/design-system/box.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
 import { Switch } from '#/shared/design-system/switch.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import type { PlacedElement } from '../../architecture-outline.ts';
@@ -24,8 +22,8 @@ const OVERLAYS: { key: keyof Overlays; label: string }[] = [
 
 /*
  * What the reader draws the hexagons with: which building blocks, which marks
- * over the cards, and how close. Under the controls, a word on what the
- * diagram cannot draw.
+ * over the cards, and how close. Before the controls, a word on what the
+ * diagram cannot draw, on a line of its own when they leave it no room.
  */
 export function DiagramToolbar({
   types,
@@ -48,9 +46,15 @@ export function DiagramToolbar({
   children: ReactNode;
 }) {
   return (
-    <Stack flex="none" gap={6} py="sm" px="md" className={classes.toolbar}>
-      <Group fz="sm" className={classes.toolbarRow}>
-        <Box flex={1} />
+    // Reversed, so the controls keep the right and the word wraps under them.
+    <Group
+      flex="none"
+      py="sm"
+      px="md"
+      fz="sm"
+      className={`${classes.toolbar} ${classes.toolbarRow}`}
+    >
+      <Group fz="sm" className={classes.toolbarControls}>
         <BuildingBlockFilter
           rings={types}
           hidden={hiddenTypes}
@@ -70,10 +74,10 @@ export function DiagramToolbar({
         {children}
       </Group>
       {unplaced.length > 0 && (
-        <Text fz="xs" c="var(--noesis-secondary-text)">
+        <Text fz="xs" flex="1 1 16rem" c="var(--noesis-secondary-text)">
           {`Not drawn, as the design leaves their type as it is: ${unplaced.map(({ name }) => name).join(', ')}.`}
         </Text>
       )}
-    </Stack>
+    </Group>
   );
 }

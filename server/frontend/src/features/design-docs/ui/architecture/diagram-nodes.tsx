@@ -1,6 +1,6 @@
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import { clsx } from 'clsx';
-import { createContext, useContext } from 'react';
+import { createContext, type ReactElement, useContext } from 'react';
 import { ChangeMark } from '#/features/design-docs/ui/model-tree/change-mark.tsx';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import {
@@ -12,7 +12,8 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { kindOf } from '../../element-id.ts';
+import { addressOf, kindOf } from '../../element-id.ts';
+import { ElementTooltip } from '../element-details/element-tooltip.tsx';
 import { fades, KINDS } from './architecture-kinds.ts';
 import type { DiagramFocus } from './architecture-selection.ts';
 import {
@@ -25,7 +26,8 @@ import classes from './architecture-diagram.module.css';
 /*
  * What React Flow draws at each node of the layout: the two frames, and the
  * card every other kind is. A card and a module's name are buttons, so either
- * is chosen by pointer or by keyboard alike.
+ * is chosen by pointer or by keyboard alike; hovered or focused, either says
+ * what the element it stands for is, as the model's tooltips do.
  */
 
 /*
@@ -106,23 +108,30 @@ export function HexagonNode({
       >
         <polygon points={hexagonPoints(width, height)} />
       </svg>
-      <UnstyledButton
-        className={classes.moduleLabel}
-        aria-pressed={state === 'selected'}
-        // The dashed stroke of a related frame, said in words.
-        aria-label={withState(
-          `${node.label}, ${KINDS[node.kind].word} drawn as a hexagon`,
-          state,
-        )}
-        onClick={() => onSelect(node.selects)}
-      >
-        <Text component="span" inherit fw={700}>
-          {node.label}
-        </Text>{' '}
-        <Text component="span" inherit fz="xs" c="var(--noesis-secondary-text)">
-          {KINDS[node.kind].word}
-        </Text>
-      </UnstyledButton>
+      <Details id={node.selects}>
+        <UnstyledButton
+          className={classes.moduleLabel}
+          aria-pressed={state === 'selected'}
+          // The dashed stroke of a related frame, said in words.
+          aria-label={withState(
+            `${node.label}, ${KINDS[node.kind].word} drawn as a hexagon`,
+            state,
+          )}
+          onClick={() => onSelect(node.selects)}
+        >
+          <Text component="span" inherit fw={700}>
+            {node.label}
+          </Text>{' '}
+          <Text
+            component="span"
+            inherit
+            fz="xs"
+            c="var(--noesis-secondary-text)"
+          >
+            {KINDS[node.kind].word}
+          </Text>
+        </UnstyledButton>
+      </Details>
     </Box>
   );
 }
@@ -148,6 +157,25 @@ export function DomainCoreNode({
         {data.node.label}
       </Text>
     </Box>
+  );
+}
+
+/**
+ * What the element a card stands for is, on hover over it: its address and
+ * its outline, as the model's tooltips say it. An actor or an adapter is no
+ * element of the design, and says nothing more than its card.
+ */
+function Details({
+  id,
+  children,
+}: {
+  id: string | null;
+  children: ReactElement<{ className?: string }>;
+}) {
+  return id === null ? (
+    children
+  ) : (
+    <ElementTooltip name={addressOf(id)}>{children}</ElementTooltip>
   );
 }
 
@@ -189,65 +217,71 @@ export function CardNode({ data }: NodeProps<DiagramNode>) {
         position={Position.Top}
         className={classes.handle}
       />
-      <UnstyledButton
-        className={clsx(classes.card, faded && classes.faded)}
-        data-kind={node.kind}
-        data-state={state}
-        data-change={change}
-        aria-pressed={state === 'selected'}
-        aria-label={withState(label, state)}
-        title={label}
-        onClick={() => onSelect(node.selects)}
-      >
-        {element !== null && (
-          <Box component="span" display="inline-flex" flex="none">
-            <ChangeMark change={change} color={changeColour}>
-              <KindIcon kind={kindOf(element.id)} pattern={pattern} />
-            </ChangeMark>
-          </Box>
-        )}
-        <Stack component="span" gap={0} miw={0} lh={1.2}>
-          <Text
-            component="span"
-            inherit
-            fz="sm"
-            fw={700}
-            truncate
-            className={classes.name}
-          >
-            {node.label}
-          </Text>
-          {subtitle !== null && (
-            <Text component="span" inherit fz="xs" className={classes.subtitle}>
-              {subtitle}
-            </Text>
+      <Details id={element === null ? null : element.id}>
+        <UnstyledButton
+          className={clsx(classes.card, faded && classes.faded)}
+          data-kind={node.kind}
+          data-state={state}
+          data-change={change}
+          aria-pressed={state === 'selected'}
+          aria-label={withState(label, state)}
+          onClick={() => onSelect(node.selects)}
+        >
+          {element !== null && (
+            <Box component="span" display="inline-flex" flex="none">
+              <ChangeMark change={change} color={changeColour}>
+                <KindIcon kind={kindOf(element.id)} pattern={pattern} />
+              </ChangeMark>
+            </Box>
           )}
-        </Stack>
-        {(warnings > 0 || notes > 0) && (
-          <Box
-            component="span"
-            className={classes.marker}
-            data-level={warnings > 0 ? 'warning' : 'note'}
-            fz={13}
-            fw={700}
-            aria-hidden
-          >
-            {warnings > 0 ? '!' : 'i'}
-          </Box>
-        )}
-        {rules !== null && (
-          <Box
-            component="span"
-            className={classes.ruleCount}
-            px={6}
-            fz={11}
-            lh="16px"
-            aria-hidden
-          >
-            {counted(rules, 'rule')}
-          </Box>
-        )}
-      </UnstyledButton>
+          <Stack component="span" gap={0} miw={0} lh={1.2}>
+            <Text
+              component="span"
+              inherit
+              fz="sm"
+              fw={700}
+              truncate
+              className={classes.name}
+            >
+              {node.label}
+            </Text>
+            {subtitle !== null && (
+              <Text
+                component="span"
+                inherit
+                fz="xs"
+                className={classes.subtitle}
+              >
+                {subtitle}
+              </Text>
+            )}
+          </Stack>
+          {(warnings > 0 || notes > 0) && (
+            <Box
+              component="span"
+              className={classes.marker}
+              data-level={warnings > 0 ? 'warning' : 'note'}
+              fz={13}
+              fw={700}
+              aria-hidden
+            >
+              {warnings > 0 ? '!' : 'i'}
+            </Box>
+          )}
+          {rules !== null && (
+            <Box
+              component="span"
+              className={classes.ruleCount}
+              px={6}
+              fz={11}
+              lh="16px"
+              aria-hidden
+            >
+              {counted(rules, 'rule')}
+            </Box>
+          )}
+        </UnstyledButton>
+      </Details>
       <Handle
         type="source"
         position={Position.Bottom}

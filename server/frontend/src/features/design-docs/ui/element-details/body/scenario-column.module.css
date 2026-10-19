@@ -110,9 +110,9 @@
   }
 }
 
-.dim {
-  flex-shrink: 0;
-  color: var(--mantine-color-dimmed);
+/* Read at a glance, on the canvas: the rule by its name alone, no room spent on its icon. */
+[data-glance] .rule svg {
+  display: none;
 }
 
 .label {
