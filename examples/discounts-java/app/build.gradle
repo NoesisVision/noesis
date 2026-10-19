@@ -29,7 +29,7 @@ dependencies {
     // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ...
     implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
 
-    implementation 'io.vavr:vavr:0.10.3'
+    implementation 'io.vavr:vavr:0.11.0'
     compileOnly 'org.projectlombok:lombok:1.18.48'
     annotationProcessor 'org.projectlombok:lombok:1.18.48'
 
