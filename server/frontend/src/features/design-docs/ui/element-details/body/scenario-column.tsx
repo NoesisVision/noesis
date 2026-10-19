@@ -74,7 +74,7 @@ export function ScenarioColumn({
       // In an element's panel the scenarios are boxes on its grey; alone, a list.
       data-panel={focus !== null || undefined}
     >
-      <Group gap="xs" px="sm">
+      <Group gap="xs" px="sm" className={classes.header}>
         {headingOrder === undefined ? (
           <Text span className={classes.title}>
             {heading}

@@ -8,6 +8,15 @@
 }
 
 /*
+ * The title's line is as tall as the button it may hold (Mantine's `xs`), so
+ * the title sits at the same height whether or not there are scenarios to
+ * expand.
+ */
+.header {
+  min-height: calc(1.875rem * var(--mantine-scale));
+}
+
+/*
  * A label or a heading, whichever the page needs, drawn the same: named with
  * the column, to win over the type scale of Mantine's own text and title.
  */
