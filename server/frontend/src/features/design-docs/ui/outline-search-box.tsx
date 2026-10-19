@@ -37,8 +37,8 @@ export function OutlineSearchBox({
   const { query, ask, search, tree, expandAll, collapseAll } = controller;
   const fold = useTreeFold();
   return (
-    <Stack gap={4}>
-      <Group gap="xs" wrap="nowrap" align="flex-start">
+    <Stack gap={4} className={classes.box}>
+      <Group gap="xs" wrap="nowrap" align="flex-start" className={classes.bar}>
         <TextInput
           ref={fold?.searchRef}
           size="sm"

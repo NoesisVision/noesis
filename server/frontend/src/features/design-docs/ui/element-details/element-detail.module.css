@@ -61,40 +61,13 @@ h2.name {
   align-self: center;
 }
 
-/* The name, then what it implements in smaller type on the same line. */
+/* The name, and on the name's line the badges when there is no kind. */
 .title {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: var(--mantine-spacing-xs);
   min-width: 0;
-}
-
-.implements {
-  font-size: var(--mantine-font-size-sm);
-  color: var(--mantine-color-dimmed);
-  overflow-wrap: anywhere;
-}
-
-/* Named with the line, to win over the button reset a linked type gets. */
-.implements .type {
-  font: inherit;
-  font-weight: 600;
-  color: var(--mantine-color-anchor);
-
-  &[data-removed] {
-    text-decoration: line-through;
-  }
-
-  &[data-link]:hover {
-    text-decoration: underline;
-  }
-
-  &[data-link]:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-    border-radius: var(--mantine-radius-xs);
-  }
 }
 
 /* Measured: from 44rem the scenarios stand beside the sections, split. */
@@ -160,6 +133,50 @@ h2.name {
 .split .splitPane {
   min-width: 0;
   overflow: visible;
+}
+
+/*
+ * The scenarios on a grey of their own, as tall as the pane they are in: from
+ * the top of the panel beside the element, or under it in a narrow one.
+ */
+.scenarioPane {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+}
+
+/*
+ * Side by side on a wide page, the element is one pane of the page or two —
+ * its content and its scenarios — each scrolling on its own: the panel gives
+ * them its height and scrolls nothing itself.
+ */
+.body:has(> [data-own-scroll]) {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.frame,
+.frames {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.scroller {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Named with the panes, to win over the frame's own surface. */
+.frames > .scenarioPane {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
 }
 
 /*

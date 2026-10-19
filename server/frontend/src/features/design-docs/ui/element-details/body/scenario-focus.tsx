@@ -4,14 +4,20 @@ import type { ScenarioEntry } from './scenarios-of.ts';
 /**
  * Which of an element's scenarios are open, shared by the column that folds
  * them and the rules that point at them: a rule's count opens its own
- * scenarios, closes the rest, and takes the reader to the first of them.
+ * scenarios, closes the rest and greys them out, and takes the reader to the
+ * first of them. The same count again lets go: every scenario folded, none
+ * greyed out.
  */
 interface ScenarioFocus {
   /** The open scenarios, by their place in the column. */
   open: string[];
   setOpen: (open: string[]) => void;
-  /** Opens a rule's scenarios, and only those, and brings the first into view. */
+  /** The rule whose scenarios stand out from the rest; null while none does. */
+  rule: string | null;
+  /** Opens a rule's scenarios, and only those, and brings the first into view; asked again, lets go of them. */
   showRule: (rule: string) => void;
+  /** Lets go of the rule, leaving the scenarios as they are. */
+  release: () => void;
 }
 
 const ScenarioFocusContext = createContext<ScenarioFocus | null>(null);
@@ -43,6 +49,20 @@ export const scenariosOfRule = (
     entry.rule === rule ? [String(index)] : [],
   );
 
+/**
+ * Where a rule's count leaves the column: its rule standing out and its
+ * scenarios open, or — asked by the rule that already stands out — no rule
+ * and every scenario folded.
+ */
+export const focusRule = (
+  scenarios: ScenarioEntry[],
+  current: string | null,
+  asked: string,
+): { rule: string | null; open: string[] } =>
+  asked === current
+    ? { rule: null, open: [] }
+    : { rule: asked, open: scenariosOfRule(scenarios, asked) };
+
 /** None outside an element's panel: a rule drawn alone has no column to open. */
 export const useScenarioFocus = () => useContext(ScenarioFocusContext);
 
@@ -55,13 +75,18 @@ export function ScenarioFocusProvider({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState<string[]>([]);
-  const showRule = (rule: string) => {
-    const values = scenariosOfRule(scenarios, rule);
-    setOpen(values);
-    if (values[0] !== undefined) revealScenario(values[0]);
+  const [rule, setRule] = useState<string | null>(null);
+  const showRule = (asked: string) => {
+    const next = focusRule(scenarios, rule, asked);
+    setRule(next.rule);
+    setOpen(next.open);
+    if (next.open[0] !== undefined) revealScenario(next.open[0]);
   };
+  const release = () => setRule(null);
   return (
-    <ScenarioFocusContext.Provider value={{ open, setOpen, showRule }}>
+    <ScenarioFocusContext.Provider
+      value={{ open, setOpen, rule, showRule, release }}
+    >
       {children}
     </ScenarioFocusContext.Provider>
   );

@@ -55,6 +55,13 @@
   background-color: var(--pane-surface);
 }
 
+/* Around a detail that draws its own panes: only the place, not the frame. */
+.pane[data-bare] {
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+
 /*
  * What each pane actually scrolls, and all it scrolls. Whoever moves the
  * reading position — the tree, a step of the breadcrumb, an address opened

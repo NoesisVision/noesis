@@ -34,6 +34,18 @@ const DEFAULT_COLUMNS = [38, 62];
 const WIDE = '(min-width: 62em)';
 
 /**
+ * The frame every pane of the page is drawn in, for a detail that draws its
+ * own panes side by side (`detailFrames`) to draw them as the tree's is.
+ */
+export const PANE_FRAME = classes.pane;
+
+/**
+ * Whether the page has room for its columns side by side; under it they stack
+ * and the page scrolls as one.
+ */
+export const useWideColumns = () => useMediaQuery(WIDE, true);
+
+/**
  * A width left in storage by another version of the app must not decide how a
  * page is laid out, so anything that is not a set of shares like `defaults`
  * reads as `defaults`. Parsing is the one throwing call, and it is kept to
@@ -86,6 +98,7 @@ export function Columns({
   below,
   detail,
   detailFills = false,
+  detailFrames = false,
 }: {
   search: ReactNode;
   outline: ReactNode;
@@ -96,8 +109,13 @@ export function Columns({
   detail: ReactNode;
   /** The detail is a canvas that fills its pane and moves itself, rather than a page to scroll. */
   detailFills?: boolean;
+  /**
+   * The detail draws its own panes in `PANE_FRAME` where the columns stand
+   * side by side, so the page leaves its frame out around them.
+   */
+  detailFrames?: boolean;
 }) {
-  const wide = useMediaQuery(WIDE, true);
+  const wide = useWideColumns();
   const [columns, setColumns] = useStoredShares(COLUMNS_KEY, DEFAULT_COLUMNS);
   const [hidden, storeHidden] = useLocalStorage<boolean>({
     key: TREE_HIDDEN_KEY,
@@ -217,7 +235,11 @@ export function Columns({
             </ActionIcon>
           </Tooltip>
         </Box>
-        <Box className={classes.pane} data-wide>
+        <Box
+          className={classes.pane}
+          data-wide
+          data-bare={detailFrames || undefined}
+        >
           {detailPane}
         </Box>
       </div>
@@ -245,6 +267,7 @@ export function Columns({
         defaultSize={columns[1] ?? DEFAULT_COLUMNS[1]!}
         min="20rem"
         className={classes.pane}
+        data-bare={detailFrames || undefined}
       >
         {detailPane}
       </Splitter.Pane>

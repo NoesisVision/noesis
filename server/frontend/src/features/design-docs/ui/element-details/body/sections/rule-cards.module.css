@@ -130,6 +130,17 @@
     text-decoration: underline;
   }
 
+  /* Its scenarios are the ones that stand out: filled, as a pressed control. */
+  &[data-active] {
+    background: var(--mantine-color-brand-filled);
+    color: var(--mantine-color-white);
+  }
+
+  /* The dots in the text's colour, not lost in the fill they share. */
+  &[data-active] .dots span {
+    background: currentColor;
+  }
+
   &:focus-visible {
     outline: var(--noesis-focus-ring);
     outline-offset: 2px;

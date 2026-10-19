@@ -246,6 +246,8 @@ function RuleCard({
               href={`#${SCENARIO_COLUMN_ID}`}
               underline="never"
               className={classes.scenarios}
+              // Its scenarios stand out: the same count again lets go of them.
+              data-active={focus?.rule === label || undefined}
               // Straight to the rule's first scenario, not the top of the
               // column; the link alone is for a rule drawn without one.
               onClick={(event) => {
