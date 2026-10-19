@@ -122,8 +122,10 @@ export function ElementDetail({
       {/* Between the name and what it is; opened afresh on every element. */}
       <ElementRelations
         key={`relations:${node.path}`}
-        implemented={implemented}
-        implementers={implementers}
+        relations={[
+          { label: 'Implements', items: implemented },
+          { label: 'Implemented by', items: implementers },
+        ]}
         tree={tree}
       />
       {definition !== undefined && (

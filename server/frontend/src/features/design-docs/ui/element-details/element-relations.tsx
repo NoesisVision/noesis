@@ -20,22 +20,23 @@ interface Related {
 }
 
 /**
- * What a building block implements and what implements it, over its
- * definition, in a box of their own: a label and a count on the left, the
- * types after it as links, in the order of their names. Nothing at all when
- * the block has neither.
+ * The types an element is tied to — what a building block implements and
+ * what implements it, say — in a box of their own: each relation's label and
+ * count on the left, the types after it as links, in the order of their
+ * names. Nothing at all when every relation is empty.
  */
 export function ElementRelations({
-  implemented,
-  implementers,
+  relations,
   tree,
+  flush = false,
 }: {
-  implemented: ChangeListItem[];
-  implementers: ChangeListItem[];
+  relations: { label: string; items: ChangeListItem[] }[];
   /** Where a type finds its row, and so its kind. */
   tree: OutlineTree;
+  /** Set flush with what is around it, rather than inside the panel's gutter. */
+  flush?: boolean;
 }) {
-  if (implemented.length === 0 && implementers.length === 0) return null;
+  if (relations.every(({ items }) => items.length === 0)) return null;
   const relate = (items: ChangeListItem[]): Related[] =>
     [...items]
       .sort((a, b) =>
@@ -46,10 +47,11 @@ export function ElementRelations({
         node: item.path === null ? undefined : tree.byPath.get(item.path),
       }));
   return (
-    <div className={classes.relations}>
+    <div className={classes.relations} data-flush={flush || undefined}>
       <dl className={classes.list}>
-        <Relation label="Implements" related={relate(implemented)} />
-        <Relation label="Implemented by" related={relate(implementers)} />
+        {relations.map(({ label, items }) => (
+          <Relation key={label} label={label} related={relate(items)} />
+        ))}
       </dl>
     </div>
   );

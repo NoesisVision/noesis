@@ -37,3 +37,24 @@
 .scenarios {
   border-top: 1px solid var(--mantine-color-default-border);
 }
+
+/*
+ * The subject's name and the way out of it, stuck to the top of the panel as
+ * it scrolls: drawn over the details' padding, on the panel's own ground.
+ */
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: calc(-1 * var(--mantine-spacing-md))
+    calc(-1 * var(--mantine-spacing-md)) 0;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-md)
+    var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+/* The gray the element tooltip says where an element sits in. */
+.address {
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+}

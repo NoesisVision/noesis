@@ -1,7 +1,10 @@
 import { IconArrowRight, IconScale } from '@tabler/icons-react';
 import { clsx } from 'clsx';
+import { type ReactNode, useId, useState } from 'react';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Anchor } from '#/shared/design-system/anchor.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
+import { Collapse } from '#/shared/design-system/collapse.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -31,6 +34,7 @@ import type { ChangeListItem } from '../../change-list-items.ts';
 import { useDesignDocument } from '../../design-document-context.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ListTooltip } from '../../element-tooltip.tsx';
+import { useGlanceReading } from '../../glance-reading.ts';
 import {
   nameFieldsOf,
   writtenByHuman,
@@ -188,34 +192,40 @@ function RuleCard({
         )}
         {writable === null ? (
           description !== undefined && (
-            <WrittenBy fields={[designed?.description]}>
-              <div className={classes.description}>
-                <MarkdownReading markdown={description} />
-              </div>
-            </WrittenBy>
+            <Folded>
+              <WrittenBy fields={[designed?.description]}>
+                <div className={classes.description}>
+                  <MarkdownReading markdown={description} />
+                </div>
+              </WrittenBy>
+            </Folded>
           )
         ) : (
-          <div
-            className={clsx(
-              classes.description,
-              humanText([designed?.description]),
-            )}
-          >
-            <InlineMarkdown
-              label="Description"
-              human={writtenByHuman([designed?.description])}
-              value={valueOf(rule?.description) ?? ''}
-              onSave={(text) => writable.save({ description: text })}
-            >
-              {(valueOf(rule?.description) ?? '').trim() === '' ? (
-                <Text span size="sm" c="dimmed" fs="italic">
-                  No description
-                </Text>
-              ) : (
-                <MarkdownReading markdown={valueOf(rule?.description) ?? ''} />
+          <Folded>
+            <div
+              className={clsx(
+                classes.description,
+                humanText([designed?.description]),
               )}
-            </InlineMarkdown>
-          </div>
+            >
+              <InlineMarkdown
+                label="Description"
+                human={writtenByHuman([designed?.description])}
+                value={valueOf(rule?.description) ?? ''}
+                onSave={(text) => writable.save({ description: text })}
+              >
+                {(valueOf(rule?.description) ?? '').trim() === '' ? (
+                  <Text span size="sm" c="dimmed" fs="italic">
+                    No description
+                  </Text>
+                ) : (
+                  <MarkdownReading
+                    markdown={valueOf(rule?.description) ?? ''}
+                  />
+                )}
+              </InlineMarkdown>
+            </div>
+          </Folded>
         )}
         {writable === null || needChoices.length === 0 ? (
           needs !== undefined && (
@@ -267,6 +277,35 @@ function RuleCard({
         )}
       </div>
     </li>
+  );
+}
+
+/**
+ * A rule's description, folded behind a link while the rule is read at a
+ * glance, sliding open under it; in the panel, as it is.
+ */
+function Folded({ children }: { children: ReactNode }) {
+  const glance = useGlanceReading();
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  if (!glance) return children;
+  return (
+    // One child of the card's body, so a folded description leaves no gap.
+    <div>
+      <Collapse id={id} expanded={open}>
+        <Box pb={4}>{children}</Box>
+      </Collapse>
+      <Anchor
+        component="button"
+        type="button"
+        fz="xs"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen(!open)}
+      >
+        {open ? 'Hide' : 'Show description'}
+      </Anchor>
+    </div>
   );
 }
 

@@ -27,7 +27,7 @@ export function Legend({
   if (entries.length === 0) return null;
   const Chevron = open ? IconChevronDown : IconChevronUp;
   return (
-    <Panel position="bottom-right" className={classes.legend}>
+    <Panel position="bottom-left" className={classes.legend}>
       <UnstyledButton
         className={classes.legendToggle}
         w="100%"

@@ -9,6 +9,7 @@ import {
   ruleItems,
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
+import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
 import { ElementRelations } from '../src/features/design-docs/ui/element-details/element-relations';
@@ -343,7 +344,13 @@ describe('ElementDetail', () => {
         <ElementNavigationContext.Provider
           value={{ has: () => true, select: () => {} }}
         >
-          <ElementRelations implemented={items} implementers={[]} tree={tree} />
+          <ElementRelations
+            relations={[
+              { label: 'Implements', items },
+              { label: 'Implemented by', items: [] },
+            ]}
+            tree={tree}
+          />
         </ElementNavigationContext.Provider>
       </MantineProvider>,
     );
@@ -548,12 +555,21 @@ describe('ElementDetail', () => {
   it('gives the architecture view the column its rules point at', () => {
     const html = renderToStaticMarkup(
       <MantineProvider>
-        <ElementBody
-          id="building_block|pay.Hold"
-          document={document}
-          modelTree={tree}
-          onSelectElement={() => {}}
-        />
+        {/* The document and the way on are the architecture details' own. */}
+        <DesignDocumentContext.Provider value={document}>
+          <ElementNavigationContext.Provider
+            value={{
+              has: (path: string) => tree.byPath.has(path),
+              select: () => {},
+            }}
+          >
+            <ElementBody
+              id="building_block|pay.Hold"
+              document={document}
+              modelTree={tree}
+            />
+          </ElementNavigationContext.Provider>
+        </DesignDocumentContext.Provider>
       </MantineProvider>,
     );
     expect(html).toContain('href="#element-scenarios"');

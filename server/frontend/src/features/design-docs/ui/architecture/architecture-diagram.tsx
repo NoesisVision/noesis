@@ -1,11 +1,14 @@
 import {
+  Background,
+  BackgroundVariant,
   type Edge,
   MarkerType,
+  Panel,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
@@ -52,6 +55,8 @@ export interface ArchitectureDiagramProps {
   layout: ArchitectureLayout;
   focus: DiagramFocus;
   onSelectElement: (id: string) => void;
+  /** What the selection says, on the canvas beside the cards it outlines; none with nothing in hand. */
+  selection?: ReactNode;
   /** The building block types the hexagons hold, the ones to be left out, and the way to change them. */
   types: TypeRing[];
   hiddenTypes: ReadonlySet<string>;
@@ -69,6 +74,7 @@ export function ArchitectureDiagram({
   layout,
   focus,
   onSelectElement,
+  selection = null,
   types,
   hiddenTypes,
   onHideTypes,
@@ -171,8 +177,8 @@ export function ArchitectureDiagram({
               colorMode={scheme}
               fitView
               fitViewOptions={FIT}
-              // The bottom right corner is the legend's.
-              attributionPosition="bottom-left"
+              // The bottom left corner is the legend's.
+              attributionPosition="bottom-right"
               minZoom={0.2}
               maxZoom={2}
               nodesDraggable={false}
@@ -186,6 +192,23 @@ export function ArchitectureDiagram({
               }}
               onMove={(_, viewport) => setZoom(viewport.zoom)}
             >
+              {selection !== null && (
+                // Its own scroll and clicks: a wheel over it reads on rather than zooms.
+                <Panel
+                  position="top-right"
+                  className={`nowheel nopan ${classes.selection}`}
+                >
+                  <section aria-label="Selection">{selection}</section>
+                </Panel>
+              )}
+              {/* The dot grid the Mermaid diagrams are drawn on, moving with the cards. */}
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={16}
+                size={1}
+                color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
+                bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
+              />
               <Legend entries={legend} picked={picked} onPick={setPicked} />
             </ReactFlow>
           </DiagramReadingContext.Provider>

@@ -39,7 +39,8 @@
   overflow-wrap: anywhere;
 }
 
-.name {
+/* Named with the signature, to win over the button reset a linked name gets. */
+.code .name {
   font-family: inherit;
   font-size: inherit;
   font-weight: 700;
@@ -89,4 +90,20 @@
   padding-left: 38px;
   font-size: 13px;
   color: var(--noesis-secondary-text);
+}
+
+/* Read at a glance, over a card: the signature and its icon a size down. */
+[data-glance] .code {
+  min-height: 20px;
+  padding-top: 1px;
+  font-size: var(--mantine-font-size-xs);
+}
+
+[data-glance] .mark svg {
+  width: 20px;
+  height: 20px;
+}
+
+[data-glance] .definition {
+  padding-left: 28px;
 }

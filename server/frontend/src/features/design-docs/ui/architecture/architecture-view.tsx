@@ -5,7 +5,6 @@ import {
   outlineTree,
 } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
-import { Text } from '#/shared/design-system/text.tsx';
 import {
   architectureTreeOf,
   defaultArchitectureExpansion,
@@ -17,6 +16,7 @@ import {
 import { architectureOf } from '../../design-doc-architecture.ts';
 import type { DesignDocDetail } from '../../design-docs.api.ts';
 import { Columns } from '../columns.tsx';
+import { DesignDocumentContext } from '../element-details/design-document-context.ts';
 import { OutlineSearchBox } from '../outline-search-box.tsx';
 import { Outline } from '../outline.tsx';
 import type { ViewPlace } from '../view-place.ts';
@@ -32,9 +32,11 @@ import { layoutArchitecture } from './layout-architecture.ts';
 
 /*
  * The design read as hexagons: the checks and the needs at the ports as a
- * tree on the left with what the row in hand says under it, the hexagons on
- * the right. A row and a card are one selection — choosing either outlines
- * the cards it concerns and opens the tree to its row.
+ * tree on the left, the hexagons on the right. A row and a card are one
+ * selection — choosing either outlines the cards it concerns, opens the tree
+ * to its row, and reads it in a panel on the canvas, beside those cards.
+ * What an element is shows on hover over its card, as the model's tooltips
+ * say it; the diagram reads with the document at hand for them.
  *
  * Mount it under the document's id, as the other views are.
  */
@@ -123,41 +125,41 @@ export function ArchitectureView({
     [addressed, tree, outline],
   );
   const focus = useMemo(() => focusOf(subject, drawn.nodes), [subject, drawn]);
-
   return (
-    <Columns
-      search={<OutlineSearchBox controller={controller} counts="rows" />}
-      outline={<Outline controller={controller} label="Architecture outline" />}
-      outlineRef={outlineRef}
-      below={
-        subject === null ? (
-          <Text c="dimmed" size="sm" p="md">
-            Choose a check, a need or a card to read it.
-          </Text>
-        ) : (
-          <ArchitectureDetails
-            subject={subject}
+    <DesignDocumentContext.Provider value={doc}>
+      <Columns
+        search={<OutlineSearchBox controller={controller} counts="rows" />}
+        outline={
+          <Outline controller={controller} label="Architecture outline" />
+        }
+        outlineRef={outlineRef}
+        detail={
+          <ArchitectureDiagram
             outline={outline}
-            document={doc}
-            modelTree={modelTree}
-            cards={cards}
+            layout={drawn}
+            focus={focus}
             onSelectElement={selectElement}
-            onClear={() => onSelect('', 'detail')}
+            selection={
+              subject === null ? null : (
+                <ArchitectureDetails
+                  subject={subject}
+                  outline={outline}
+                  document={doc}
+                  modelTree={modelTree}
+                  cards={cards}
+                  onSelectElement={selectElement}
+                  onClear={() => onSelect('', 'detail')}
+                  glance
+                />
+              )
+            }
+            types={types}
+            hiddenTypes={hiddenTypes}
+            onHideTypes={hideTypes}
           />
-        )
-      }
-      detail={
-        <ArchitectureDiagram
-          outline={outline}
-          layout={drawn}
-          focus={focus}
-          onSelectElement={selectElement}
-          types={types}
-          hiddenTypes={hiddenTypes}
-          onHideTypes={hideTypes}
-        />
-      }
-      detailFills
-    />
+        }
+        detailFills
+      />
+    </DesignDocumentContext.Provider>
   );
 }

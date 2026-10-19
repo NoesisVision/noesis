@@ -1,4 +1,6 @@
+/* Measured by its own width: in a narrow pane — the canvas's — the cards close up. */
 .list {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xs);
@@ -156,5 +158,45 @@
     height: 8px;
     border-radius: 50%;
     background: var(--mantine-color-brand-filled);
+  }
+}
+
+/* Read at a glance, over a card: the name a size down. */
+[data-glance] .card .title {
+  font-size: var(--mantine-font-size-sm);
+}
+
+/*
+ * Narrow, as on the canvas: no mark, the body the card's whole width; the
+ * buttons under the name, and the badge after it, or under it, with no gap
+ * of its own before it.
+ */
+@container (max-width: 30rem) {
+  .card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mark {
+    display: none;
+  }
+
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .titleLine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px var(--mantine-spacing-xs);
+
+    & > :last-child {
+      margin-inline-start: 0;
+    }
+  }
+
+  .actions {
+    margin-inline-start: 0;
   }
 }

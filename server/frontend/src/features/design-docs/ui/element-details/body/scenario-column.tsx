@@ -130,7 +130,6 @@ export function ScenarioColumn({
             {/* The buttons sit beside the control, not in it: a button holds no other. */}
             <div className={classes.head}>
               <Accordion.Control>
-                <IconListCheck size={16} className={classes.dim} aria-hidden />
                 <span className={classes.text}>
                   <span className={classes.nameLine}>
                     {/* The name has no writer of its own: marked only where

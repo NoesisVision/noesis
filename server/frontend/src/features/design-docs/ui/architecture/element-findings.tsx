@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo } from 'react';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Code } from '#/shared/design-system/code.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -11,9 +12,9 @@ import {
   placedById,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
-import { nameOf } from '../../element-id.ts';
+import { addressOf, nameOf } from '../../element-id.ts';
+import { ElementRelations } from '../element-details/element-relations.tsx';
 import { DetailSection } from './detail-parts.tsx';
-import { ElementLinks } from './element-links.tsx';
 import type { LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
 
@@ -23,13 +24,14 @@ export function ElementFindings({
   outline,
   document: doc,
   cards,
-  onSelect,
+  modelTree,
 }: {
   id: string;
   outline: ArchitectureOutline;
   document: DesignDocumentInput;
   cards: ReadonlyMap<string, LaidOutNode>;
-  onSelect: (id: string) => void;
+  /** The model's own tree, where each type it speaks in finds its row. */
+  modelTree: OutlineTree;
 }) {
   const checks = outline.checks.filter(
     (check) =>
@@ -66,11 +68,20 @@ export function ElementFindings({
           </Findings>
         </DetailSection>
       )}
-      <ElementLinks
-        title="Speaks in"
-        ids={uses}
-        cards={cards}
-        onSelect={onSelect}
+      {/* As the model reads what a block implements: a box of type links. */}
+      <ElementRelations
+        relations={[
+          {
+            label: 'Speaks in',
+            items: uses.map((use) => ({
+              change: modelTree.byPath.get(use)?.change ?? 'unchanged',
+              label: addressOf(use),
+              path: use,
+            })),
+          },
+        ]}
+        tree={modelTree}
+        flush
       />
       {flows.length > 0 && (
         <DetailSection title="Flow inferred from types">
