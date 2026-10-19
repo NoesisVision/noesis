@@ -92,52 +92,59 @@ export function ElementDetail({
       <ChangeBadge change={node.change} />
     </Group>
   );
+  // What the element is, over its sections: in the middle column with them,
+  // so that the scenarios beside it run the panel's whole height.
+  const lead = (
+    <>
+      <DetailBreadcrumb path={path} onSelect={onSelect} />
+      <header className={classes.header}>
+        <span className={classes.tile}>
+          <KindIcon kind={node.kind} pattern={node.pattern} />
+        </span>
+        <div className={classes.heading}>
+          {/* What it is on the left, what the design does to it on the
+              right; with no kind to name, the badges end the name's line
+              and the tile centres on the name alone. */}
+          {node.patternLabel !== null && (
+            <div className={classes.kind}>
+              <span className={classes.pattern}>{node.patternLabel}</span>
+              {badges}
+            </div>
+          )}
+          <div className={classes.title}>
+            <Title order={2} className={classes.name}>
+              <NodeName node={node} field={designed?.name} />
+            </Title>
+            {node.patternLabel === null && badges}
+          </div>
+        </div>
+      </header>
+      {/* Between the name and what it is; opened afresh on every element. */}
+      <ElementRelations
+        key={`relations:${node.path}`}
+        implemented={implemented}
+        implementers={implementers}
+        tree={tree}
+      />
+      {definition !== undefined && (
+        <ElementDefinition
+          // Another element is another editor: it reads its markdown once.
+          key={node.path}
+          element={elementRefOf(node)}
+          field={definition}
+        />
+      )}
+    </>
+  );
   return (
     <DesignDocumentContext.Provider value={doc}>
       <ElementNavigationContext.Provider value={navigation}>
-        <DetailBreadcrumb path={path} onSelect={onSelect} />
-        <header className={classes.header}>
-          <span className={classes.tile}>
-            <KindIcon kind={node.kind} pattern={node.pattern} />
-          </span>
-          <div className={classes.heading}>
-            {/* What it is on the left, what the design does to it on the
-                right; with no kind to name, the badges end the name's line
-                and the tile centres on the name alone. */}
-            {node.patternLabel !== null && (
-              <div className={classes.kind}>
-                <span className={classes.pattern}>{node.patternLabel}</span>
-                {badges}
-              </div>
-            )}
-            <div className={classes.title}>
-              <Title order={2} className={classes.name}>
-                <NodeName node={node} field={designed?.name} />
-              </Title>
-              {node.patternLabel === null && badges}
-            </div>
-          </div>
-        </header>
-        {/* Between the name and what it is; opened afresh on every element. */}
-        <ElementRelations
-          key={`relations:${node.path}`}
-          implemented={implemented}
-          implementers={implementers}
-          tree={tree}
-        />
-        {definition !== undefined && (
-          <ElementDefinition
-            // Another element is another editor: it reads its markdown once.
-            key={node.path}
-            element={elementRefOf(node)}
-            field={definition}
-          />
-        )}
         <div ref={bodyRef} className={classes.body}>
           {/* Under the key, so every scenario is folded again on another element. */}
           <ScenarioFocusProvider key={node.path} scenarios={scenarios}>
             <ElementColumns
               width={bodyWidth}
+              lead={lead}
               sections={bodySections(node, doc, tree)}
               scenarios={
                 scenarios.length > 0 || scenariosAddable ? (

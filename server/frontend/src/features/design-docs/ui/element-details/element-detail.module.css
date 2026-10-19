@@ -136,11 +136,43 @@ h2.name {
 }
 
 /*
- * The scenarios on a grey of their own, as tall as the pane they are in, and
- * edged on top as the handle edges them on the left.
+ * The scenarios on a grey of their own, as tall as the pane they are in: from
+ * the top of the panel beside the element, or under it in a narrow one.
  */
 .scenarioPane {
-  border-top: 1px solid var(--mantine-color-default-border);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+}
+
+/*
+ * Side by side on a wide page, the element is one pane of the page or two —
+ * its content and its scenarios — each scrolling on its own: the panel gives
+ * them its height and scrolls nothing itself.
+ */
+.body:has(> [data-own-scroll]) {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.frame,
+.frames {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.scroller {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Named with the panes, to win over the frame's own surface. */
+.frames > .scenarioPane {
   background-color: light-dark(
     var(--mantine-color-gray-0),
     var(--mantine-color-dark-8)

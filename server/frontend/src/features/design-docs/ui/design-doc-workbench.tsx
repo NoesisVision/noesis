@@ -97,6 +97,8 @@ export function DesignDocWorkbench({
       }
       outline={<Outline controller={controller} moving={moving} />}
       outlineRef={outlineRef}
+      // An element draws its content and its scenarios as panes of their own.
+      detailFrames={selected !== null}
       detail={
         selected === null ? (
           <Text c="dimmed">Choose an element to read it.</Text>
