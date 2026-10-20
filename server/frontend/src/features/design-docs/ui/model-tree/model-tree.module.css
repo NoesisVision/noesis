@@ -171,6 +171,13 @@
 }
 
 /* Whatever the row has to say about itself, kept together on the right. */
+/* A row's element ticked in or out; the row itself says so to a reader. */
+.tick {
+  flex: none;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
 .trailing {
   display: inline-flex;
   flex: none;
@@ -311,4 +318,20 @@
   outline: 2px dashed var(--mantine-primary-color-filled);
   outline-offset: -2px;
   background: var(--mantine-primary-color-light);
+}
+
+/* A row shown only for what is under it: greyed, opened by a click. */
+.item[data-inactive] > .row {
+  color: var(--mantine-color-dimmed);
+  cursor: default;
+
+  & svg {
+    opacity: 0.6;
+  }
+}
+
+.inactiveNote {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
 }

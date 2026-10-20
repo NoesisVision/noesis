@@ -223,3 +223,46 @@ describe('a tree that moves rows', () => {
     expect(html).not.toContain('draggable');
   });
 });
+
+describe('a tree whose rows put their element in a view or take it out', () => {
+  function Toggling({ on }: { on: ReadonlySet<string> }) {
+    const controller = useModelTree(outlineFixture, {
+      selected: null,
+      onSelect: nothing,
+      query: '',
+      onQuery: nothing,
+      opensAtTop: false,
+    });
+    return (
+      <ModelTree
+        controller={controller}
+        label="Elements found"
+        toggling={{
+          isOn: (node) => (node.kind === 'module' ? null : on.has(node.path)),
+          onToggle: nothing,
+        }}
+      />
+    );
+  }
+  const first = outlineFixture.find(({ kind }) => kind !== 'module')!;
+  const markup = renderToStaticMarkup(
+    <MantineProvider>
+      <Toggling on={new Set([first.path])} />
+    </MantineProvider>,
+  );
+
+  it('checks the rows in the view, a ticked box before their name, and leaves the rest without one', () => {
+    const row = markup
+      .split('<li')
+      .find((chunk) => chunk.includes(`data-path="${first.path}"`))!;
+    expect(row).toContain('aria-checked="true"');
+    expect(row).toMatch(
+      /CheckboxIndicator[^>]*data-checked="true"[^>]*aria-hidden="true"|aria-hidden="true"[^>]*data-checked="true"/,
+    );
+    const module = markup
+      .split('<li')
+      .find((chunk) => chunk.includes('data-kind="module"'))!;
+    expect(module).not.toContain('aria-checked');
+    expect(module.split('</span>')[0]).not.toContain('CheckboxIndicator');
+  });
+});

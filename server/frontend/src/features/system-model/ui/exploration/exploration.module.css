@@ -1,0 +1,578 @@
+/*
+ * The exploration pane: the toolbar, then the canvas filling the rest. Its
+ * colours are the architecture diagram's tokens, so the two canvases read
+ * alike in both schemes.
+ */
+.exploration {
+  min-height: 0;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+.toolbar {
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+/* A leaf element's node: the card fills it. */
+.holder {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * A leaf element: its name over what it is, as a button. Named with its
+ * exploration, to win over the unstyled button's own reset, which loads later.
+ */
+.exploration .card,
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 4px var(--mantine-spacing-xs);
+  border: 1px solid var(--noesis-architecture-edge);
+  border-radius: var(--mantine-radius-md);
+  background: var(--noesis-architecture-card);
+  color: var(--mantine-color-text);
+  line-height: 1.3;
+  text-align: start;
+
+  &[data-kind='behaviour'] {
+    border-style: dashed;
+  }
+}
+
+.exploration .card {
+  /* Its name and what it is at the top, clear of the cross beside them and
+     of the row of buttons under them. */
+  justify-content: flex-start;
+  padding: 8px 32px 34px var(--mantine-spacing-xs);
+
+  &:hover {
+    filter: brightness(0.97);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* An element others are drawn inside: its name at the top, a tint behind them. */
+.container {
+  justify-content: flex-start;
+  padding: 0;
+  border-color: var(--noesis-architecture-module-border);
+  background: rgb(from var(--noesis-architecture-module) r g b / 0.6);
+
+  &[data-kind='building_block'] {
+    border-color: var(--noesis-architecture-core-border);
+    background: rgb(from var(--noesis-architecture-core) r g b / 0.5);
+  }
+}
+
+/* The frame's name is its button; the rest of the frame is a backdrop. */
+.exploration .containerLabel {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+  /* Clear of the two ways off the diagram in the frame's corner. */
+  max-width: calc(100% - 68px);
+  margin: 4px;
+  padding: 2px var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-text);
+  line-height: 1.3;
+  text-align: start;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * The selection, as the architecture marks it: a solid ring round the
+ * element in hand, a dashed one round each element a relation joins to it.
+ */
+.exploration .card[data-state='selected'],
+.container[data-state='selected'] {
+  outline: 3px solid var(--noesis-architecture-selection);
+  outline-offset: 2px;
+}
+
+.exploration .card[data-state='related'],
+.container[data-state='related'] {
+  outline: 2px dashed var(--noesis-architecture-selection);
+  outline-offset: 2px;
+}
+
+.handle {
+  visibility: hidden;
+}
+
+.edge :global(.react-flow__edge-path) {
+  stroke: var(--noesis-architecture-edge);
+  stroke-width: 1.5px;
+}
+
+.edge.uses :global(.react-flow__edge-path) {
+  stroke: var(--mantine-color-brand-filled);
+}
+
+.edge.isPartOf :global(.react-flow__edge-path) {
+  stroke-dasharray: 6 4;
+}
+
+/* The selection's own relations stand out; the rest step back. */
+.edge.highlighted :global(.react-flow__edge-path) {
+  stroke: var(--noesis-architecture-selection);
+  stroke-width: 2.5px;
+}
+
+.edge.faded {
+  opacity: 0.2;
+}
+
+/* The panel the selection is read in, on the canvas. */
+.selection {
+  width: 360px;
+  max-width: calc(100% - 30px);
+  max-height: calc(100% - 30px);
+  overflow-y: auto;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+/* The filter's dropdown: a head, a fieldset per kind of element. */
+.head {
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+}
+
+/* Named with what holds them, to win over the unstyled button's own reset, which loads later. */
+.head .link,
+.row .only {
+  border-radius: var(--mantine-radius-sm);
+  color: var(--mantine-color-anchor);
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    color: var(--mantine-color-dimmed);
+    background: transparent;
+    cursor: default;
+  }
+}
+
+.fieldset {
+  margin: 0;
+  padding: 6px 0 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* The section's own checkbox reads as the group's heading. */
+.section label {
+  color: var(--noesis-secondary-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.row:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Out of the way until the row is pointed at or reached by keyboard; always there without a pointer. */
+@media (hover: hover) {
+  .only {
+    opacity: 0;
+  }
+
+  .row:hover .only,
+  .only:focus-visible {
+    opacity: 1;
+  }
+}
+
+/* An empty canvas, dotted as the diagram's is, behind the way to start. */
+.blank {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+  background-image: radial-gradient(
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4)) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+}
+
+.start {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* Where the picker opens from, at the canvas's foot, plus or no plus. */
+.anchor {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+}
+
+.plus {
+  box-shadow: var(--mantine-shadow-lg);
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, calc(100vw - 32px));
+  height: min(560px, calc(100dvh - 200px));
+  overflow: hidden;
+}
+
+.pickerFoot {
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+}
+
+.drawnCount {
+  white-space: nowrap;
+}
+
+/*
+ * A card's ways to what it reaches, in a row under what it is, and its way
+ * off the diagram in its top right corner: laid over the card, which is a
+ * button of its own. A frame's sit the same way at its top.
+ */
+.holder,
+.container {
+  position: relative;
+}
+
+/*
+ * A card's buttons, each group drawn as one: an outlined strip, a thin rule
+ * between its buttons, so they read as the card's actions together.
+ */
+.reaches,
+.removes {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-body);
+}
+
+/* Named with the exploration, to win over the buttons' own borders. */
+.exploration .reaches > * + *,
+.exploration .removes > * + * {
+  border-left: 1px solid var(--mantine-color-default-border);
+}
+
+.reaches {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+}
+
+.container > .reaches {
+  top: 48px;
+  bottom: auto;
+  left: 10px;
+}
+
+/* A card's or a frame's ways off the diagram, in its top right corner. */
+.removes {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+
+  & > * {
+    border-radius: 0;
+  }
+}
+
+.reaches .reach {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mantine-color-brand-filled);
+
+  &:hover:not(:disabled) {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:disabled {
+    color: var(--noesis-secondary-text);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+/* A card comes onto the diagram growing in, and leaves it shrinking out. */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Two of one fade, so that switching between them starts it again. */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInAgain {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .holder,
+  .container {
+    animation: enter 220ms ease-out;
+  }
+
+  .holder[data-leaving],
+  .container[data-leaving] {
+    animation: leave 200ms ease-in forwards;
+    pointer-events: none;
+  }
+
+  /* The others move to where a placing just landed puts them; at any
+     other time a card goes where it is dragged at once. */
+  .gliding :global(.react-flow__node) {
+    transition: transform 300ms ease;
+  }
+
+  /* Edges are drawn where the cards end up, so they show once the cards are there. */
+  .settled :global(.react-flow__edges),
+  .settled :global(.react-flow__edgelabel-renderer) {
+    animation: fadeIn 200ms ease-out 260ms backwards;
+  }
+
+  .resettled :global(.react-flow__edges),
+  .resettled :global(.react-flow__edgelabel-renderer) {
+    animation: fadeInAgain 200ms ease-out 260ms backwards;
+  }
+}
+
+/* The keys the canvas answers to, in its bottom left corner. */
+.legend {
+  flex: none;
+  width: 320px;
+  margin-top: auto;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: rgb(from var(--mantine-color-body) r g b / 0.92);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.exploration .legendHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-text);
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.legendChevron {
+  transform: rotate(-90deg);
+  transition: transform 120ms ease;
+
+  &[data-open] {
+    transform: none;
+  }
+}
+
+.legendList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 10px 10px;
+}
+
+.legendRow {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: center;
+  gap: 8px;
+
+  & dt,
+  & dd {
+    margin: 0;
+  }
+}
+
+/* A frame in hand is resized by its edges and corners, in the selection's colour. */
+.exploration .resizeLine {
+  border-color: var(--noesis-architecture-selection);
+}
+
+.exploration .resizeHandle {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--mantine-color-body);
+  border-radius: 2px;
+  background: var(--noesis-architecture-selection);
+}
+
+/* A reach's menu: long enough for a module's worth, then it scrolls. */
+.reachMenu {
+  max-height: min(360px, 60dvh);
+  max-width: 320px;
+  overflow-y: auto;
+}
+
+/* A card's name after the icon of its kind, the name giving way first. */
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  & > :first-child {
+    flex: none;
+  }
+}
+
+/* Where a double click asked for an element: a point the menu opens from. */
+.quickSpot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.quickAdd {
+  display: flex;
+  flex-direction: column;
+  width: min(340px, calc(100vw - 32px));
+  height: min(420px, calc(100dvh - 160px));
+  overflow: hidden;
+}
+
+/*
+ * What the diagram lets the reader see, down its left side while it is
+ * open, clear of the shortcuts below it.
+ */
+.visibility {
+  flex: 0 1 auto;
+  width: 260px;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+/* The panel's title and the way to shut it, kept in view as it scrolls. */
+.visibilityHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+/*
+ * The canvas's left side, top to bottom: what is open there, then the
+ * shortcuts at its foot. Only what is in it takes the pointer; the canvas
+ * between them is still the canvas.
+ */
+.side {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 16px;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: auto;
+  }
+}
+
+/* How many a reach would bring, after its word. */
+.reachCount {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}

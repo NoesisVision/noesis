@@ -21,6 +21,8 @@ export interface TreeActions {
   readonly dragOver: (path: string) => boolean;
   readonly drop: (path: string) => void;
   readonly dragEnd: () => void;
+  /** The row's element is put in, or taken out of, what the tree's owner shows. */
+  readonly flip: (path: string) => void;
 }
 
 export interface TreeSnapshot {
@@ -42,6 +44,12 @@ export interface TreeSnapshot {
   readonly canDrag: (path: string) => boolean;
   /** The row a dragged one would land in, if dropped now. */
   readonly dropPath: string | null;
+  /** Whether a row's element is in; null for a row with nothing to put in or take out. */
+  readonly toggledOn: (path: string) => boolean | null;
+  /** Whether a row is shown only to be opened, not picked. */
+  readonly isInactive: (path: string) => boolean;
+  /** What such a row says beside its name. */
+  readonly inactiveNote: string;
 }
 
 export interface TreeStore {
