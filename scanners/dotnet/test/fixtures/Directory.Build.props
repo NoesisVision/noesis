@@ -1,0 +1,15 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>14</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>false</EnableNETAnalyzers>
+    <!-- Fixture code is intentionally full of members that are declared but never used. -->
+    <NoWarn>$(NoWarn);CS0067;CS0169;CS0219;CS0414;CS0649;CS8321;CS0168;CS1998;CS0628;CS8981;CS0162;CS9113;CS0693;CS8632;CS0108;CS0114;CS0618;CS1718;CS0660;CS0661;CS8524</NoWarn>
+  </PropertyGroup>
+
+</Project>
