@@ -6,7 +6,7 @@ This file provides guidance to AI coding agents (Claude Code and others) when wo
 
 A pure bun-workspaces monorepo for **Noesis**: a local service that keeps a knowledge graph as JSON files under `.noesis/` in a user's repository, plus the Claude Code plugin that drives it.
 
-Workspaces: `server/backend` (`@noesis-vision/noesis`, the service), `server/frontend` (SPA, bundled by the backend), `plugins/claude-code` (`@noesis-vision/claude-code-plugin`). `scanners/java` is a standalone Maven tool; `scanners/dotnet` is a stub.
+Workspaces: `server/backend` (`@noesis-vision/noesis`, the service), `server/frontend` (SPA, bundled by the backend), `plugins/claude-code` (`@noesis-vision/claude-code-plugin`). `scanners/java` is a standalone Maven tool; `scanners/dotnet` is a standalone .NET 10 solution (`dotnet test` from that directory; see its README) that scans a C# solution with Roslyn into the common code model.
 
 ## Commands
 

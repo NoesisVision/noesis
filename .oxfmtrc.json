@@ -13,6 +13,7 @@
     "docs/**/prototypes",
     ".agents/",
     "examples/*/",
+    "scanners/dotnet/test/Noesis.Scanner.Tests/golden/",
     "server/frontend/.design-sync/"
   ]
 }

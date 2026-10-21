@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>CSharpBroken</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- A reference the build cannot resolve. -->
+    <Reference Include="Missing.Library">
+      <HintPath>missing/Missing.Library.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
