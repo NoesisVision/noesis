@@ -10,7 +10,6 @@ public static class EdgeOrdering
         ImplementsEdge e => ("IMPLEMENTS", e.From.Value, e.To.Canonical, null),
         OverridesEdge e => ("OVERRIDES", e.From.Value, e.To.Value, null),
         ImplementsMemberEdge e => ("IMPLEMENTS_MEMBER", e.From.Value, e.To.Value + "@" + e.Interface.Canonical + "@" + e.DeclaredOn.Value, null),
-        AnnotatedWithEdge e => ("ANNOTATED_WITH", e.From.Value, e.Annotation.Type.Canonical, null),
         InvokesEdge e => ("INVOKES", e.From.Value, e.To.Value, e.Site.Location),
         AccessesEdge e => ("ACCESSES", e.From.Value, e.To.Value, e.Site.Location),
         UsesTypeEdge e => ("USES_TYPE", e.From.Value, e.To.Canonical, e.Site.Location),

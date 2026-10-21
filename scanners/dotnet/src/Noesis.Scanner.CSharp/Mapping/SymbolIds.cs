@@ -7,7 +7,7 @@ using MethodKind = Microsoft.CodeAnalysis.MethodKind;
 
 namespace Noesis.Scanner.CSharp.Mapping;
 
-/// <summary>Stable ids from Roslyn's canonical names: `csharp:T:Ns.Outer`1+Inner`, `csharp:M:Ns.Type#Name`1(int,!!0)`.</summary>
+/// <summary>Stable ids from Roslyn's canonical names: `T:Ns.Outer`1+Inner`, `M:Ns.Type#Name`1(int,!!0)`.</summary>
 internal sealed class SymbolIds(ScanContext context)
 {
     private readonly ConcurrentDictionary<ISymbol, NodeId> _cache = new(SymbolEqualityComparer.Default);
@@ -18,11 +18,11 @@ internal sealed class SymbolIds(ScanContext context)
 
     /// <summary>Source artifacts by assembly name; external ones add the assembly version, the identity Roslyn knows for every metadata reference.</summary>
     public NodeId Artifact(IAssemblySymbol assembly) =>
-        NodeId.Of(Language.CSharp, NodeKindLetter.Artifact, context.IsSourceAssembly(assembly) ? assembly.Name : assembly.Name + "@" + assembly.Identity.Version);
+        NodeId.Of(NodeKindLetter.Artifact, context.IsSourceAssembly(assembly) ? assembly.Name : assembly.Name + "@" + assembly.Identity.Version);
 
-    public static NodeId ArtifactFromName(string assemblyName) => NodeId.Of(Language.CSharp, NodeKindLetter.Artifact, assemblyName);
+    public static NodeId ArtifactFromName(string assemblyName) => NodeId.Of(NodeKindLetter.Artifact, assemblyName);
 
-    public NodeId Namespace(INamespaceSymbol ns) => NodeId.Of(Language.CSharp, NodeKindLetter.Namespace, NamespacePath(ns));
+    public NodeId Namespace(INamespaceSymbol ns) => NodeId.Of(NodeKindLetter.Namespace, NamespacePath(ns));
 
     public static string NamespacePath(INamespaceSymbol ns) =>
         ns.IsGlobalNamespace ? "" : ns.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", "");
@@ -30,7 +30,7 @@ internal sealed class SymbolIds(ScanContext context)
     public NodeId Type(INamedTypeSymbol type)
     {
         var definition = type.OriginalDefinition;
-        return _cache.GetOrAdd(definition, _ => NodeId.Of(Language.CSharp, NodeKindLetter.Type, TypePath(definition)));
+        return _cache.GetOrAdd(definition, _ => NodeId.Of(NodeKindLetter.Type, TypePath(definition)));
     }
 
     /// <summary>The type's canonical path: namespace, `+`-nested names with their own `` `arity ``; an extension type is its enclosing class.</summary>
@@ -53,10 +53,10 @@ internal sealed class SymbolIds(ScanContext context)
     public NodeId Member(ISymbol symbol) =>
         _cache.GetOrAdd(Declaration(symbol), declaration => declaration switch
         {
-            IMethodSymbol method => NodeId.Of(Language.CSharp, NodeKindLetter.Method, MethodPath(method)),
-            IPropertySymbol property => NodeId.Of(Language.CSharp, NodeKindLetter.Property, OwnerPath(property) + "." + PropertyName(property)),
-            IEventSymbol @event => NodeId.Of(Language.CSharp, NodeKindLetter.Property, OwnerPath(@event) + "." + ExplicitlyImplementedName(@event, @event.ExplicitInterfaceImplementations.FirstOrDefault())),
-            IFieldSymbol field => NodeId.Of(Language.CSharp, NodeKindLetter.Field, OwnerPath(field) + "." + field.Name),
+            IMethodSymbol method => NodeId.Of(NodeKindLetter.Method, MethodPath(method)),
+            IPropertySymbol property => NodeId.Of(NodeKindLetter.Property, OwnerPath(property) + "." + PropertyName(property)),
+            IEventSymbol @event => NodeId.Of(NodeKindLetter.Property, OwnerPath(@event) + "." + ExplicitlyImplementedName(@event, @event.ExplicitInterfaceImplementations.FirstOrDefault())),
+            IFieldSymbol field => NodeId.Of(NodeKindLetter.Field, OwnerPath(field) + "." + field.Name),
             INamedTypeSymbol type => Type(type),
             INamespaceSymbol ns => Namespace(ns),
             _ => throw new ArgumentOutOfRangeException(nameof(symbol), symbol.Kind, "Not a declaration symbol."),

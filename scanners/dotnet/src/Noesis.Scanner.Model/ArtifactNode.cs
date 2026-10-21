@@ -12,4 +12,4 @@ public sealed record ArtifactNode(
     bool Executable,
     IReadOnlyList<ArtifactDependency> Dependencies,
     IReadOnlyList<Annotation> Annotations,
-    LanguageBag Language);
+    LanguageBag LanguageSpecific);

@@ -10,9 +10,9 @@ the C# types live in `scanners/dotnet/src/Noesis.Scanner.Model`.
 ## 1. What a scan produces
 
 One scan covers one solution and writes one directory,
-`code-model/<language>/`. It holds a **manifest** and one **model file per
-artifact**. An artifact is what one build-tool unit produces: a C# project,
-a Maven module, an npm package.
+`code-model/<language>/`, under an output root. It holds a **manifest** and
+one **model file per artifact**. An artifact is what one build-tool unit
+produces: a C# project, a Maven module, an npm package.
 
 ```mermaid
 flowchart LR
@@ -24,9 +24,16 @@ flowchart LR
     M -. lists, in dependency order .-> A2
 ```
 
-The manifest is what a consumer opens first. It names the repository and
-revision, the scan root, every artifact file in dependency order, and the
-diagnostics that belong to the scan as a whole.
+The output is temporary. The scanner writes to
+`.noesis/sessions/scanner/` under the repository root unless `--out` says
+otherwise; the server points `--out` into its own session directory, which
+git ignores and the server removes when the session ends.
+
+The manifest is what a consumer opens first. It names the language, the
+repository and revision, the scan root, every artifact file in dependency
+order, and the diagnostics that belong to the scan as a whole. A model file
+repeats only the schema version and the generator, so it can be read on its
+own.
 
 ```mermaid
 classDiagram
@@ -42,7 +49,6 @@ classDiagram
     class CodeModelFile {
         schemaVersion
         generator
-        language
         artifact : ArtifactNode
         nodes : DeclarationNode[]
         edges : Edge[]
@@ -67,7 +73,7 @@ files.
 
 ## 2. The graph in one picture
 
-The model is a graph. Six node kinds carry the structure; nine edge kinds
+The model is a graph. Six node kinds carry the structure; eight edge kinds
 carry the relations.
 
 ```mermaid
@@ -90,14 +96,18 @@ flowchart TB
     M -- USES_TYPE --> T
 ```
 
+Property and field bodies (accessors, initializers) produce the same
+`INVOKES`, `ACCESSES` and `USES_TYPE` edges as method bodies; the picture
+shows only the method.
+
 Three ideas organise everything:
 
 - **Declarations are complete.** A node carries every fact about its own
   declaration: visibility, modifiers, type parameters, signature, annotations,
   locations. Nothing about a declaration is spread across edges.
-- **Bodies are four facts.** What a method, property or field body does is
-  recorded only as `INVOKES`, `ACCESSES`, `USES_TYPE` and `ANNOTATED_WITH`
-  edges, one per site. Nothing is aggregated or inferred.
+- **Bodies are three facts.** What a method, property or field body does is
+  recorded only as `INVOKES`, `ACCESSES` and `USES_TYPE` edges, one per
+  site. Nothing is aggregated or inferred.
 - **Nothing is guessed.** A site the compiler could not bind produces no
   edge and one diagnostic.
 
@@ -106,17 +116,17 @@ Three ideas organise everything:
 Every node has a `NodeId` string:
 
 ```
-<language>:<kind letter>:<canonical path>
+<kind letter>:<canonical path>
 ```
 
-| Kind      | Letter | Canonical path                                     | C# example                                               |
-| --------- | ------ | -------------------------------------------------- | -------------------------------------------------------- |
-| Artifact  | `A`    | assembly name; external ones add `@` version       | `csharp:A:Sales.Domain`, `csharp:A:NodaTime@3.3.2.0`     |
-| Namespace | `N`    | dotted name, empty for the global namespace        | `csharp:N:Sales.Domain.Orders`                           |
-| Type      | `T`    | namespace `.` type, `+` for nesting, `` ` ``arity  | ``csharp:T:Sales.Domain.Orders.Order+Line`1``            |
-| Method    | `M`    | type `#` name `` ` ``arity `(` parameter types `)` | ``csharp:M:Sales.Domain.Orders.Order#AddLine`1(int,!0)`` |
-| Property  | `R`    | type `.` name; indexers as `this[...]`             | `csharp:R:Sales.Domain.Orders.Order.Total`               |
-| Field     | `F`    | type `.` name                                      | `csharp:F:Sales.Domain.Orders.Order._lines`              |
+| Kind      | Letter | Canonical path                                     | C# example                                        |
+| --------- | ------ | -------------------------------------------------- | ------------------------------------------------- |
+| Artifact  | `A`    | assembly name; external ones add `@` version       | `A:Sales.Domain`, `A:NodaTime@3.3.2.0`            |
+| Namespace | `N`    | dotted name, empty for the global namespace        | `N:Sales.Domain.Orders`                           |
+| Type      | `T`    | namespace `.` type, `+` for nesting, `` ` ``arity  | ``T:Sales.Domain.Orders.Order+Line`1``            |
+| Method    | `M`    | type `#` name `` ` ``arity `(` parameter types `)` | ``M:Sales.Domain.Orders.Order#AddLine`1(int,!0)`` |
+| Property  | `P`    | type `.` name; indexers as `this[...]`             | `P:Sales.Domain.Orders.Order.Total`               |
+| Field     | `F`    | type `.` name                                      | `F:Sales.Domain.Orders.Order._lines`              |
 
 Parameter types inside a method id use the same canonical grammar as type
 references (section 5), so overloads stay distinct and the id never depends
@@ -124,9 +134,10 @@ on parameter names. `!0` is the first type parameter of the type, `!!0` the
 first of the method. Constructors are `#.ctor`, static initialisers
 `#.cctor`, operators `#op_Addition`.
 
-An id is unique **within one artifact file**, not across the scan: two
-projects that both declare namespace `Sales.Domain` each have a
-`csharp:N:Sales.Domain` node. The join key across files is therefore
+An id carries no language: one scan covers one language, and the manifest
+names it. An id is unique **within one artifact file**, not across the scan:
+two projects that both declare namespace `Sales.Domain` each have an
+`N:Sales.Domain` node. The join key across files is therefore
 (artifact, id). An edge or type reference may point at an id its own file
 does not declare; the target is looked up in the referencing file first,
 then in its dependencies in listed order, then in its stubs.
@@ -144,7 +155,7 @@ classDiagram
         locations : SourceSpan[]
         annotations : Annotation[]
         documentation
-        language : LanguageBag
+        languageSpecific : LanguageBag
     }
     class NamespaceNode
     class TypeNode {
@@ -169,7 +180,9 @@ classDiagram
         visibility
         modifiers
         type : TypeRef
+        returnPassing : value | ref
         parameters
+        extensionReceiver
         accessors : get | set | init | add | remove
     }
     class FieldNode {
@@ -177,6 +190,7 @@ classDiagram
         visibility
         modifiers
         type : TypeRef
+        passing : value | ref
         constantValue
     }
     DeclarationNode <|-- NamespaceNode
@@ -198,11 +212,15 @@ Points that surprise a first reader:
   can point at it.
 - **A free function** (TypeScript, PHP) hangs off its namespace, not off a
   synthetic type.
-- **The artifact node** sits outside `nodes`, in `artifact`. It records the
-  name references bind to, the version, the root directory, the target
-  platform (`net10.0`), whether it is executable, and its dependencies.
-  Each dependency is an artifact id plus its kind: `source` for another
-  scanned project, `library` for a package, `platform` for the framework.
+- **The artifact node** sits outside `nodes`, in `artifact`. It records its
+  kind, the name references bind to, the version, the root directory, the
+  target platform (`net10.0`), whether it is executable, its dependencies,
+  its assembly-level annotations and a `languageSpecific` bag. Each
+  dependency is an artifact id plus its kind: `source` for another scanned
+  project, `library` for a package, `platform` for the framework.
+- **Extension members** carry the extended type in `extensionReceiver`:
+  a classic `this` parameter or a C# 14 `extension(...)` block, on methods
+  and properties alike.
 
 A `Signature` is parameters, return type, return passing (`value` or `ref`)
 and return annotations. A `Parameter` adds passing, `variadic`, `optional`,
@@ -283,22 +301,21 @@ Every edge has a `kind` and a `from` node id. What it points at depends on
 the kind: a node id when the target is a declaration, a `TypeRef` when the
 target is a constructed type.
 
-| Edge                | From → to                              | Target  | Meaning                                                                |
-| ------------------- | -------------------------------------- | ------- | ---------------------------------------------------------------------- |
-| `CONTAINS`          | Artifact/Namespace/Type → child        | id      | Declaration nesting, one hop                                           |
-| `EXTENDS`           | Type → Type                            | TypeRef | Declared base class or base interface                                  |
-| `IMPLEMENTS`        | Type → Type                            | TypeRef | Directly declared interface                                            |
-| `OVERRIDES`         | Method/Property → Method/Property      | id      | Directly overridden member                                             |
-| `IMPLEMENTS_MEMBER` | Method/Property → Method/Property      | id      | Interface member this member satisfies, plus the constructed interface |
-| `ANNOTATED_WITH`    | any node → annotation                  | inline  | An attribute with its arguments                                        |
-| `INVOKES`           | Method/Property/Field → Method         | id      | A call or object creation in the body or initializer                   |
-| `ACCESSES`          | Method/Property/Field → Property/Field | id      | A read, write or read-write of a member                                |
-| `USES_TYPE`         | Method/Property/Field → Type           | TypeRef | A creation, cast or type test                                          |
+| Edge                | From → to                              | Target  | Meaning                                                                                                       |
+| ------------------- | -------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `CONTAINS`          | Artifact/Namespace/Type → child        | id      | Declaration nesting, one hop                                                                                  |
+| `EXTENDS`           | Type → Type                            | TypeRef | Declared base class or base interface                                                                         |
+| `IMPLEMENTS`        | Type → Type                            | TypeRef | Directly declared interface                                                                                   |
+| `OVERRIDES`         | Method/Property → Method/Property      | id      | Directly overridden member                                                                                    |
+| `IMPLEMENTS_MEMBER` | Method/Property → Method/Property      | id      | Interface member this member satisfies, plus the constructed interface and the type that declared the mapping |
+| `INVOKES`           | Method/Property/Field → Method         | id      | A call, or an object creation (the target is the constructor)                                                 |
+| `ACCESSES`          | Method/Property/Field → Property/Field | id      | A read, write or read-write of a member                                                                       |
+| `USES_TYPE`         | Method/Property/Field → Type           | TypeRef | A cast, a type test, or a creation that has no constructor                                                    |
 
 The first five describe structure and carry no location. The last three
 are the **body facts**, and each carries a `UsageSite`: the source span,
 whether the site is inside a lambda or local function (`viaClosure`), and a
-language bag.
+`languageSpecific` bag.
 
 ```mermaid
 classDiagram
@@ -307,14 +324,14 @@ classDiagram
         to : NodeId
         typeArguments : TypeRef[]
         invocationKind : call | extension
-        receiver : ExpressionKind
+        receiver : ExpressionKind?
         site : UsageSite
     }
     class AccessesEdge {
         from : NodeId
         to : NodeId
         access : read | write | readWrite
-        receiver : ExpressionKind
+        receiver : ExpressionKind?
         site : UsageSite
     }
     class UsesTypeEdge {
@@ -326,7 +343,7 @@ classDiagram
     class UsageSite {
         location : SourceSpan
         viaClosure
-        language : LanguageBag
+        languageSpecific : LanguageBag
     }
     InvokesEdge --> UsageSite
     AccessesEdge --> UsageSite
@@ -334,11 +351,24 @@ classDiagram
 ```
 
 `receiver` says what the call or access was made _on_: `this`, `base`, a
-`parameter`, a `local`, a `field`, a `property`, a `type` name, a fresh
-`creation`, the `returnValue` of another call. It is what lets a consumer
-tell "calls a repository it holds in a field" from "calls a repository passed
-in". Static dispatch is `receiver: type`; a constructor call is an `INVOKES`
-whose target ends in `#.ctor`. None of this is repeated on the edge.
+`parameter`, a `local`, a `field`, a `property`, a `type` name, a
+`typeParameter` (a static abstract member), a fresh `creation`, the
+`returnValue` of another call, a `literal`, or `other`. It is what lets a
+consumer tell "calls a repository it holds in a field" from "calls a
+repository passed in". Static dispatch is `receiver: type`. A member called
+or accessed without a written receiver, `Save()` inside its own class, is
+`receiver: this`. `receiver` is null only where there is no receiver at all.
+
+Object creation is one fact: `new Order()` is an `INVOKES` of
+`Order#.ctor()` with `receiver: null`, and no `USES_TYPE`. A generic type's
+arguments ride on that edge: `new Dictionary<string, Order>()` invokes
+``Dictionary`2#.ctor()`` with `typeArguments` `[string, Order]`,
+CLR-flattened like a `named` reference. `USES_TYPE` with
+`role: creation` is left for creations that call no constructor: an array
+(`new int[3]`), `new T()` on a type parameter, an anonymous object.
+
+`invocationKind: extension` marks a call to an extension member: `to` is the
+static method that declares it, and `receiver` is the extended value.
 
 One edge per site, never aggregated. Counting is the consumer's job.
 
@@ -376,12 +406,15 @@ artifacts are never stubbed: their ids resolve to that artifact's own file.
 **Annotations.** An `Annotation` is a type reference plus arguments. Every
 argument is named by its parameter, so positional and named spellings read
 the same. Values are a closed set: `literal`, `type`, `enum`, `array`,
-nested `annotation`, or `other`. Annotations appear both on the node and as
-`ANNOTATED_WITH` edges; the edge form is what a query engine traverses.
+nested `annotation`, or `other`. Annotations live only where they are
+declared: in `annotations` of a node, parameter or type parameter, in
+`returnAnnotations` of a signature, or on the artifact. There is no
+annotation edge.
 
-**Language bag.** The shared vocabulary is closed. Anything that only one
-language has goes into a flat, language-prefixed bag of scalars on the node,
-parameter, type parameter or usage site: `csharp.partial`, `csharp.refKind`,
+**Language-specific bag.** The shared vocabulary is closed. Anything that
+only one language has goes into `languageSpecific`, a flat,
+language-prefixed bag of scalars on the artifact, node, parameter, type
+parameter or usage site: `csharp.partial`, `csharp.refKind`,
 `java.throws`, `ts.isAmbient`. Unknown keys are allowed and ignored.
 
 **Locations.** A `SourceSpan` is a file path relative to the repository root
@@ -397,12 +430,13 @@ instead of a guessed edge.
 ## 9. Reading a file
 
 A method node, and the three edges its body produced, look like this in the
-JSON (abbreviated):
+JSON (abbreviated: the node also carries type parameters, annotations,
+documentation, `extensionReceiver`, `bodiless` and `languageSpecific`):
 
 ```json
 {
   "kind": "method",
-  "id": "csharp:M:Sales.Domain.Orders.Order#AddLine(Sales.Domain.Orders.Product,int)",
+  "id": "M:Sales.Domain.Orders.Order#AddLine(Sales.Domain.Orders.Product,int)",
   "name": "AddLine",
   "methodKind": "method",
   "visibility": "public",
@@ -413,7 +447,7 @@ JSON (abbreviated):
         "name": "product",
         "type": {
           "kind": "named",
-          "type": "csharp:T:Sales.Domain.Orders.Product",
+          "type": "T:Sales.Domain.Orders.Product",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -441,14 +475,15 @@ JSON (abbreviated):
 ```
 
 ```json
-{ "kind": "ACCESSES", "from": "csharp:M:...Order#AddLine(...)", "to": "csharp:F:Sales.Domain.Orders.Order._lines", "access": "read", "receiver": "this", "site": { "location": { "...": "..." }, "viaClosure": false, "language": {} } }
-{ "kind": "INVOKES",  "from": "csharp:M:...Order#AddLine(...)", "to": "csharp:M:System.Collections.Generic.List`1#Add(!0)", "typeArguments": [], "invocationKind": "call", "receiver": "field", "site": { "...": "..." } }
-{ "kind": "USES_TYPE", "from": "csharp:M:...Order#AddLine(...)", "to": { "kind": "named", "type": "csharp:T:Sales.Domain.Orders.Order+Line", "typeArguments": [], "unbound": false, "nullable": false }, "role": "creation", "site": { "...": "..." } }
+{ "kind": "ACCESSES", "from": "M:...Order#AddLine(...)", "to": "F:Sales.Domain.Orders.Order._lines", "access": "read", "receiver": "this", "site": { "location": { "...": "..." }, "viaClosure": false, "languageSpecific": {} } }
+{ "kind": "INVOKES",  "from": "M:...Order#AddLine(...)", "to": "M:System.Collections.Generic.List`1#Add(!0)", "typeArguments": [], "invocationKind": "call", "receiver": "field", "site": { "...": "..." } }
+{ "kind": "INVOKES",  "from": "M:...Order#AddLine(...)", "to": "M:Sales.Domain.Orders.Order+Line#.ctor(Sales.Domain.Orders.Product,int)", "typeArguments": [], "invocationKind": "call", "receiver": null, "site": { "...": "..." } }
 ```
 
 Read it as: `AddLine` reads its own `_lines` field, calls `List<T>.Add` on
-that field, and creates an `Order.Line`. The `List<T>` method is not declared
-here, so the file also holds a stub for it, its type and its namespace.
+that field, and creates an `Order.Line` by calling its constructor. The
+`List<T>` method is not declared here, so the file also holds a stub for it,
+its type and its namespace.
 
 ## 10. What the model deliberately leaves out
 

@@ -6,8 +6,8 @@ namespace Noesis.Scanner.CSharp.Mapping;
 /// <summary>Builds <see cref="TypeRef"/>s from Roslyn type symbols; primitives by keyword, generics CLR-flattened.</summary>
 internal sealed class TypeRefs(ScanContext context)
 {
-    private static readonly NodeId TypeOwnerPlaceholder = NodeId.Of(Language.CSharp, NodeKindLetter.Type, "?");
-    private static readonly NodeId MethodOwnerPlaceholder = NodeId.Of(Language.CSharp, NodeKindLetter.Method, "?");
+    private static readonly NodeId TypeOwnerPlaceholder = NodeId.Of(NodeKindLetter.Type, "?");
+    private static readonly NodeId MethodOwnerPlaceholder = NodeId.Of(NodeKindLetter.Method, "?");
 
     public string IdCanonical(ITypeSymbol type) => Of(type, RefContext.Id).Canonical;
 

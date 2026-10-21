@@ -8,4 +8,4 @@ public sealed record Parameter(
     bool Optional,
     string? DefaultValue,
     IReadOnlyList<Annotation> Annotations,
-    LanguageBag Language);
+    LanguageBag LanguageSpecific);

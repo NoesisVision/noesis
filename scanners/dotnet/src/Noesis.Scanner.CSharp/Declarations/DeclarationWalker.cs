@@ -12,7 +12,7 @@ namespace Noesis.Scanner.CSharp.Declarations;
 
 /// <summary>
 /// Walks the assembly's symbol tree into nodes and structural edges: namespaces, types, members, CONTAINS, EXTENDS,
-/// IMPLEMENTS, OVERRIDES, IMPLEMENTS_MEMBER and ANNOTATED_WITH. Bodies are the body walker's job.
+/// IMPLEMENTS, OVERRIDES and IMPLEMENTS_MEMBER. Bodies are the body walker's job.
 /// </summary>
 internal sealed class DeclarationWalker(ScanContext context)
 {
@@ -40,7 +40,7 @@ internal sealed class DeclarationWalker(ScanContext context)
             Locations = context.Locations.SpansOf(ns),
             Annotations = [],
             Documentation = null,
-            Language = LanguageBag.Empty,
+            LanguageSpecific = LanguageBag.Empty,
         });
         foreach (var child in ns.GetNamespaceMembers())
             _edges.Add(new ContainsEdge { From = id, To = WalkNamespace(child) });
@@ -54,16 +54,15 @@ internal sealed class DeclarationWalker(ScanContext context)
         if (!ShouldEmit(type)) return null;
         var id = context.Ids.Type(type);
         var syntaxModifiers = SyntaxModifiers(type);
-        var annotations = context.Annotations.Of(type);
         _nodes.Add(new TypeNode
         {
             Id = id,
             Name = type.Name,
             Origin = IsTopLevelProgram(type) ? Origin.Generated : Origin.Declared,
             Locations = context.Locations.SpansOf(type),
-            Annotations = annotations,
+            Annotations = context.Annotations.Of(type),
             Documentation = Documentation(type),
-            Language = LanguageBag.Of(TypeBag(type, syntaxModifiers)),
+            LanguageSpecific = LanguageBag.Of(TypeBag(type, syntaxModifiers)),
             TypeKind = StubCollector.TypeKindOf(type),
             Visibility = type.IsFileLocal ? Visibility.File : VisibilityOf(type.DeclaredAccessibility),
             Modifiers = TypeModifiers(type, syntaxModifiers),
@@ -72,7 +71,6 @@ internal sealed class DeclarationWalker(ScanContext context)
             DelegateSignature = type.DelegateInvokeMethod is { } invoke ? context.Signatures.SignatureOf(invoke, RefContext.Node) : null,
             AliasOf = null,
         });
-        AddAnnotationEdges(id, annotations);
         AddBaseEdges(type, id);
         WalkMembers(type, id);
         AddInterfaceMemberEdges(type, id);
@@ -123,16 +121,15 @@ internal sealed class DeclarationWalker(ScanContext context)
         var syntaxModifiers = SyntaxModifiers(method);
         var declaredKind = method.ExplicitInterfaceImplementations.FirstOrDefault()?.MethodKind ?? method.MethodKind;
         var receiver = extensionReceiver ?? (method.IsExtensionMethod ? method.Parameters[0].Type : null);
-        var annotations = context.Annotations.Of(method);
         _nodes.Add(new MethodNode
         {
             Id = id,
             Name = SymbolIds.NodeName(method),
             Origin = method.IsImplicitlyDeclared || IsTopLevelEntryPoint(method) ? Origin.Generated : Origin.Declared,
             Locations = method.IsImplicitlyDeclared ? [] : context.Locations.SpansOf(method),
-            Annotations = annotations,
+            Annotations = context.Annotations.Of(method),
             Documentation = Documentation(method),
-            Language = LanguageBag.Of(MethodBag(method, declaredKind, syntaxModifiers, extensionReceiver is not null)),
+            LanguageSpecific = LanguageBag.Of(MethodBag(method, declaredKind, syntaxModifiers, extensionReceiver is not null)),
             MethodKind = MethodKindOf(declaredKind),
             Visibility = VisibilityOf(method.DeclaredAccessibility),
             Modifiers = MethodModifiers(method, syntaxModifiers),
@@ -141,7 +138,6 @@ internal sealed class DeclarationWalker(ScanContext context)
             ExtensionReceiver = receiver is null ? null : context.Types.Of(receiver, refContext),
             Bodiless = method.IsAbstract || method.IsExtern || method.IsPartialDefinition && method.PartialImplementationPart is null,
         });
-        AddAnnotationEdges(id, annotations);
         if (method.OverriddenMethod is { } overridden) AddOverridesEdge(id, overridden);
         return id;
     }
@@ -152,16 +148,15 @@ internal sealed class DeclarationWalker(ScanContext context)
         var id = context.Ids.Member(property);
         var refContext = new RefContext(false, extensionReceiver is null ? null : id);
         var syntaxModifiers = SyntaxModifiers(property);
-        var annotations = context.Annotations.Of(property);
         _nodes.Add(new PropertyNode
         {
             Id = id,
             Name = SymbolIds.NodeName(property),
             Origin = property.IsImplicitlyDeclared ? Origin.Generated : Origin.Declared,
             Locations = property.IsImplicitlyDeclared ? [] : context.Locations.SpansOf(property),
-            Annotations = annotations,
+            Annotations = context.Annotations.Of(property),
             Documentation = Documentation(property),
-            Language = LanguageBag.Of(PropertyBag(property, syntaxModifiers, extensionReceiver is not null)),
+            LanguageSpecific = LanguageBag.Of(PropertyBag(property, syntaxModifiers, extensionReceiver is not null)),
             Visibility = VisibilityOf(property.DeclaredAccessibility),
             Modifiers = MemberModifiers(property.IsStatic, property.IsAbstract, property.IsSealed, property.IsVirtual, property.IsOverride, property.IsExtern, syntaxModifiers),
             Type = context.Types.Of(property.Type, refContext),
@@ -170,7 +165,6 @@ internal sealed class DeclarationWalker(ScanContext context)
             ExtensionReceiver = extensionReceiver is null ? null : context.Types.Of(extensionReceiver, refContext),
             Accessors = AccessorsOf(property),
         });
-        AddAnnotationEdges(id, annotations);
         if (property.OverriddenProperty is { } overridden) AddOverridesEdge(id, overridden);
         return id;
     }
@@ -181,16 +175,15 @@ internal sealed class DeclarationWalker(ScanContext context)
         var id = context.Ids.Member(@event);
         var refContext = new RefContext(false, extensionReceiver is null ? null : id);
         var syntaxModifiers = SyntaxModifiers(@event);
-        var annotations = context.Annotations.Of(@event);
         _nodes.Add(new PropertyNode
         {
             Id = id,
             Name = SymbolIds.NodeName(@event),
             Origin = Origin.Declared,
             Locations = context.Locations.SpansOf(@event),
-            Annotations = annotations,
+            Annotations = context.Annotations.Of(@event),
             Documentation = Documentation(@event),
-            Language = LanguageBag.Of(EventBag(@event, extensionReceiver is not null)),
+            LanguageSpecific = LanguageBag.Of(EventBag(@event, extensionReceiver is not null)),
             Visibility = VisibilityOf(@event.DeclaredAccessibility),
             Modifiers = MemberModifiers(@event.IsStatic, @event.IsAbstract, @event.IsSealed, @event.IsVirtual, @event.IsOverride, @event.IsExtern, syntaxModifiers),
             Type = context.Types.Of(@event.Type, refContext),
@@ -199,7 +192,6 @@ internal sealed class DeclarationWalker(ScanContext context)
             ExtensionReceiver = extensionReceiver is null ? null : context.Types.Of(extensionReceiver, refContext),
             Accessors = [Accessor.Add, Accessor.Remove],
         });
-        AddAnnotationEdges(id, annotations);
         if (@event.OverriddenEvent is { } overridden) AddOverridesEdge(id, overridden);
         return id;
     }
@@ -210,16 +202,15 @@ internal sealed class DeclarationWalker(ScanContext context)
         var id = context.Ids.Member(field);
         var syntaxModifiers = SyntaxModifiers(field);
         var isEnumMember = field.ContainingType.TypeKind == RoslynTypeKind.Enum && field.IsConst;
-        var annotations = context.Annotations.Of(field);
         _nodes.Add(new FieldNode
         {
             Id = id,
             Name = field.Name,
             Origin = Origin.Declared,
             Locations = context.Locations.SpansOf(field),
-            Annotations = annotations,
+            Annotations = context.Annotations.Of(field),
             Documentation = Documentation(field),
-            Language = LanguageBag.Of(FieldBag(field, syntaxModifiers)),
+            LanguageSpecific = LanguageBag.Of(FieldBag(field, syntaxModifiers)),
             FieldKind = isEnumMember ? FieldKind.EnumMember : FieldKind.Field,
             Visibility = VisibilityOf(field.DeclaredAccessibility),
             Modifiers = FieldModifiers(field, syntaxModifiers),
@@ -227,7 +218,6 @@ internal sealed class DeclarationWalker(ScanContext context)
             Passing = field.RefKind == RefKind.None ? Passing.Value : Passing.Ref,
             ConstantValue = ConstantText(field),
         });
-        AddAnnotationEdges(id, annotations);
         return id;
     }
 
@@ -459,12 +449,6 @@ internal sealed class DeclarationWalker(ScanContext context)
         if (member is not (IMethodSymbol { AssociatedSymbol: null } or IPropertySymbol or IEventSymbol)) return false;
         if (member is IMethodSymbol { MethodKind: not (RoslynMethodKind.Ordinary or RoslynMethodKind.UserDefinedOperator or RoslynMethodKind.Conversion) }) return false;
         return !member.IsStatic || member.IsAbstract || member.IsVirtual;
-    }
-
-    private void AddAnnotationEdges(NodeId id, IReadOnlyList<Annotation> annotations)
-    {
-        foreach (var annotation in annotations)
-            _edges.Add(new AnnotatedWithEdge { From = id, Annotation = annotation });
     }
 
     // --- Reading the syntax ------------------------------------------------------------------------------------------

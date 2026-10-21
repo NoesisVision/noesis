@@ -49,7 +49,7 @@ public class MemberTests(FixtureScan scan)
         Assert.Null(scan.Main.Field(Fields + "PublicField").Bag("csharp.required"));
         Assert.Contains(scan.Main.Field(Fields + "ThreadStaticField").Annotations, annotation => annotation.Type.Canonical == "System.ThreadStaticAttribute");
         Assert.Contains(scan.Main.Field(Fields + "FieldWithTargetedAttribute").Annotations, annotation => annotation.Type.Canonical == "System.NonSerializedAttribute");
-        Assert.Contains(scan.Main.AnnotationsOf("csharp:F:" + Fields + "FieldWithAttribute"), annotation => annotation.Type.Canonical == "System.ObsoleteAttribute");
+        Assert.Contains(scan.Main.AnnotationsOf("F:" + Fields + "FieldWithAttribute"), annotation => annotation.Type.Canonical == "System.ObsoleteAttribute");
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class MemberTests(FixtureScan scan)
         Expect.TypeRef("(int,string)", scan.Main.Field(Fields + "NamedTupleField").Type);
         Expect.TypeRef("dynamic", scan.Main.Field(Fields + "DynamicField").Type);
         Expect.TypeRef("delegate*<void>", scan.Main.Field(Fields + "FunctionPointerField").Type);
-        Assert.True(scan.Main.Contains("csharp:T:CSharpSyntax.FieldsAndProperties.FieldDeclarations", "csharp:F:" + Fields + "PublicField"));
+        Assert.True(scan.Main.Contains("T:CSharpSyntax.FieldsAndProperties.FieldDeclarations", "F:" + Fields + "PublicField"));
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class MemberTests(FixtureScan scan)
         Assert.Equal([Accessor.Add, Accessor.Remove], fieldLike.Accessors);
         Expect.TypeRef("System.EventHandler?", fieldLike.Type);
         Expect.Modifiers(scan.Main.Property(Fields + "StaticFieldLikeEvent").Modifiers, Modifier.Static);
-        Assert.False(scan.Main.Has("csharp:F:" + Fields + "FieldLikeEvent"));
+        Assert.False(scan.Main.Has("F:" + Fields + "FieldLikeEvent"));
         Expect.TypeRef("System.Action`1[int]?", scan.Main.Property(Fields + "GenericDelegateEvent").Type);
     }
 
@@ -93,22 +93,22 @@ public class MemberTests(FixtureScan scan)
     [Fact]
     public void FieldInitializersAndConstructorsAreBodies()
     {
-        var initializer = Assert.Single(scan.Main.Invokes("csharp:F:" + Fields + "FieldInitializedFromStaticMethod"));
-        Assert.Equal("csharp:M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#ComputeInitialValue()", initializer.To.Value);
+        var initializer = Assert.Single(scan.Main.Invokes("F:" + Fields + "FieldInitializedFromStaticMethod"));
+        Assert.Equal("M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#ComputeInitialValue()", initializer.To.Value);
         Assert.Equal(ExpressionKind.Type, initializer.Receiver);
 
-        var constructor = scan.Main.Accesses("csharp:M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#.ctor()").ToList();
-        Expect.One(constructor, edge => edge.To.Value == "csharp:F:" + Fields + "ReadonlyField" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.This, "write of ReadonlyField");
-        Expect.One(constructor, edge => edge.To.Value == "csharp:F:" + Fields + "FieldWithInitializer" && edge.Access == AccessKind.Read, "read of FieldWithInitializer");
-        Expect.One(scan.Main.Accesses("csharp:M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#.cctor()"), edge => edge.To.Value == "csharp:F:" + Fields + "StaticFieldInitializedInStaticConstructor" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.Type, "static write");
-        Assert.Empty(scan.Main.Invokes("csharp:F:" + Fields + "DelegateFieldWithMethodGroupInitializer"));
-        Assert.Empty(scan.Main.Accesses("csharp:F:" + Fields + "ConstFieldComputedFromOtherConst"));
+        var constructor = scan.Main.Accesses("M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#.ctor()").ToList();
+        Expect.One(constructor, edge => edge.To.Value == "F:" + Fields + "ReadonlyField" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.This, "write of ReadonlyField");
+        Expect.One(constructor, edge => edge.To.Value == "F:" + Fields + "FieldWithInitializer" && edge.Access == AccessKind.Read, "read of FieldWithInitializer");
+        Expect.One(scan.Main.Accesses("M:CSharpSyntax.FieldsAndProperties.FieldDeclarations#.cctor()"), edge => edge.To.Value == "F:" + Fields + "StaticFieldInitializedInStaticConstructor" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.Type, "static write");
+        Assert.Empty(scan.Main.Invokes("F:" + Fields + "DelegateFieldWithMethodGroupInitializer"));
+        Assert.Empty(scan.Main.Accesses("F:" + Fields + "ConstFieldComputedFromOtherConst"));
 
         const string Closure = "CSharpSyntax.FieldsAndProperties.FieldsWithInitializersReferencingMembers";
-        var closureConstructor = scan.Main.Accesses("csharp:M:" + Closure + "#.ctor()").ToList();
-        Expect.One(closureConstructor, edge => edge.To.Value == "csharp:F:" + Closure + "._second" && edge.Access == AccessKind.Write && !edge.Site.ViaClosure, "direct write");
-        Expect.One(closureConstructor, edge => edge.To.Value == "csharp:F:" + Closure + "._first" && edge.Access == AccessKind.Read && edge.Site.ViaClosure, "read inside the lambda");
-        Expect.One(closureConstructor, edge => edge.To.Value == "csharp:F:" + Closure + "._closure" && edge.Access == AccessKind.Write, "write of the closure field");
+        var closureConstructor = scan.Main.Accesses("M:" + Closure + "#.ctor()").ToList();
+        Expect.One(closureConstructor, edge => edge.To.Value == "F:" + Closure + "._second" && edge.Access == AccessKind.Write && !edge.Site.ViaClosure, "direct write");
+        Expect.One(closureConstructor, edge => edge.To.Value == "F:" + Closure + "._first" && edge.Access == AccessKind.Read && edge.Site.ViaClosure, "read inside the lambda");
+        Expect.One(closureConstructor, edge => edge.To.Value == "F:" + Closure + "._closure" && edge.Access == AccessKind.Write, "write of the closure field");
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class MemberTests(FixtureScan scan)
         var attributed = Assert.Single(scan.Main.Property(Properties + "PropertyWithAttribute").Annotations);
         Assert.Equal("System.ObsoleteAttribute", attributed.Type.Canonical);
         Assert.Empty(scan.Main.Property(Properties + "PropertyWithAttributeOnAccessor").Annotations);
-        Assert.Equal(new[] { "csharp:T:System.NonSerializedAttribute" }, scan.Main.Property(Properties + "PropertyWithAttributeOnBackingField").Bag("csharp.backingFieldAnnotations"));
+        Assert.Equal(new[] { "T:System.NonSerializedAttribute" }, scan.Main.Property(Properties + "PropertyWithAttributeOnBackingField").Bag("csharp.backingFieldAnnotations"));
         Assert.Empty(scan.Main.Property(Properties + "PropertyWithAttributeOnBackingField").Annotations);
         Assert.Contains(scan.Main.Property(Properties + "PropertyWithNullabilityAttribute").Annotations, annotation => annotation.Type.Canonical == "System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute");
         Expect.TypeRef("int*", scan.Main.Property(Properties + "PointerProperty").Type);
@@ -166,21 +166,21 @@ public class MemberTests(FixtureScan scan)
         Assert.Equal(Visibility.Private, scan.Main.Property(Properties + "this[int,bool]").Visibility);
         Assert.Equal([Accessor.Get, Accessor.Init], scan.Main.Property(Properties + "this[System.Index]").Accessors);
         Expect.TypeRef("int[]", scan.Main.Property(Properties + "this[System.Range]").Type);
-        Assert.True(scan.Main.Contains("csharp:T:CSharpSyntax.FieldsAndProperties.PropertyDeclarations", "csharp:R:" + Properties + "this[int]"));
+        Assert.True(scan.Main.Contains("T:CSharpSyntax.FieldsAndProperties.PropertyDeclarations", "P:" + Properties + "this[int]"));
     }
 
     [Fact]
     public void BackingFieldsAreNeverEmittedAndFieldKeywordAccessesAreDropped()
     {
-        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("csharp:F:" + Properties, StringComparison.Ordinal) && node.Name.Contains("k__BackingField"));
-        Assert.Empty(scan.Main.Accesses("csharp:R:" + Properties + "FieldKeywordProperty"));
-        var lazy = Assert.Single(scan.Main.Invokes("csharp:R:" + Properties + "FieldKeywordLazyProperty"));
-        Assert.Equal("csharp:M:CSharpSyntax.FieldsAndProperties.PropertyDeclarations#ComputeLazyValue()", lazy.To.Value);
-        var setter = scan.Main.Accesses("csharp:R:" + Properties + "PropertyWithPrivateBackingAndValidation").ToList();
-        Expect.One(setter, edge => edge.To.Value == "csharp:F:" + Properties + "_backingField" && edge.Access == AccessKind.Write, "write of the backing field");
-        Expect.One(setter, edge => edge.To.Value == "csharp:F:" + Properties + "_backingField" && edge.Access == AccessKind.Read, "read of the backing field");
-        Expect.One(scan.Main.Invokes("csharp:R:" + Properties + "PropertyWithPrivateBackingAndValidation"), edge => edge.To.Value == "csharp:M:System.ArgumentOutOfRangeException#.ctor(string)" && edge.Receiver is null, "exception creation");
-        Expect.One(scan.Main.Accesses("csharp:R:" + Properties + "this[int]"), edge => edge.To.Value == "csharp:F:" + Properties + "_array" && edge.Access == AccessKind.Read, "array read in indexer");
+        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("F:" + Properties, StringComparison.Ordinal) && node.Name.Contains("k__BackingField"));
+        Assert.Empty(scan.Main.Accesses("P:" + Properties + "FieldKeywordProperty"));
+        var lazy = Assert.Single(scan.Main.Invokes("P:" + Properties + "FieldKeywordLazyProperty"));
+        Assert.Equal("M:CSharpSyntax.FieldsAndProperties.PropertyDeclarations#ComputeLazyValue()", lazy.To.Value);
+        var setter = scan.Main.Accesses("P:" + Properties + "PropertyWithPrivateBackingAndValidation").ToList();
+        Expect.One(setter, edge => edge.To.Value == "F:" + Properties + "_backingField" && edge.Access == AccessKind.Write, "write of the backing field");
+        Expect.One(setter, edge => edge.To.Value == "F:" + Properties + "_backingField" && edge.Access == AccessKind.Read, "read of the backing field");
+        Expect.One(scan.Main.Invokes("P:" + Properties + "PropertyWithPrivateBackingAndValidation"), edge => edge.To.Value == "M:System.ArgumentOutOfRangeException#.ctor(string)" && edge.Receiver is null, "exception creation");
+        Expect.One(scan.Main.Accesses("P:" + Properties + "this[int]"), edge => edge.To.Value == "F:" + Properties + "_array" && edge.Access == AccessKind.Read, "array read in indexer");
     }
 
     [Fact]
@@ -192,12 +192,12 @@ public class MemberTests(FixtureScan scan)
         Expect.Modifiers(scan.Main.Property(Modifiers + "VirtualProperty").Modifiers, Modifier.Virtual);
         Expect.Modifiers(scan.Main.Property(Derived + "AbstractProperty").Modifiers, Modifier.Virtual);
         Expect.Modifiers(scan.Main.Property(Derived + "VirtualExpressionBodiedProperty").Modifiers, Modifier.Final);
-        Assert.Equal(["csharp:R:" + Modifiers + "AbstractProperty"], scan.Main.OverridesOf("csharp:R:" + Derived + "AbstractProperty"));
-        Assert.Equal(["csharp:R:" + Modifiers + "this[int]"], scan.Main.OverridesOf("csharp:R:" + Derived + "this[int]"));
+        Assert.Equal(["P:" + Modifiers + "AbstractProperty"], scan.Main.OverridesOf("P:" + Derived + "AbstractProperty"));
+        Assert.Equal(["P:" + Modifiers + "this[int]"], scan.Main.OverridesOf("P:" + Derived + "this[int]"));
         Expect.Modifiers(scan.Main.Property("CSharpSyntax.FieldsAndProperties.PropertyHiding.VirtualProperty").Modifiers, Modifier.Hiding);
-        var viaBase = scan.Main.Accesses("csharp:R:" + Derived + "VirtualProperty").ToList();
-        Expect.One(viaBase, edge => edge.To.Value == "csharp:R:" + Modifiers + "VirtualProperty" && edge.Access == AccessKind.Read && edge.Receiver == ExpressionKind.Base, "base read");
-        Expect.One(viaBase, edge => edge.To.Value == "csharp:R:" + Modifiers + "VirtualProperty" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.Base, "base write");
+        var viaBase = scan.Main.Accesses("P:" + Derived + "VirtualProperty").ToList();
+        Expect.One(viaBase, edge => edge.To.Value == "P:" + Modifiers + "VirtualProperty" && edge.Access == AccessKind.Read && edge.Receiver == ExpressionKind.Base, "base read");
+        Expect.One(viaBase, edge => edge.To.Value == "P:" + Modifiers + "VirtualProperty" && edge.Access == AccessKind.Write && edge.Receiver == ExpressionKind.Base, "base write");
     }
 
     [Fact]
@@ -223,20 +223,20 @@ public class MemberTests(FixtureScan scan)
     public void EventsWithAccessorsOverridesAndPartialParts()
     {
         Assert.Equal([Accessor.Add, Accessor.Remove], scan.Main.Property(Events + "EventWithCustomAccessors").Accessors);
-        Expect.One(scan.Main.Accesses("csharp:R:" + Events + "EventWithCustomAccessors"), edge => edge.To.Value == "csharp:F:" + Events + "_customBacking" && edge.Access == AccessKind.ReadWrite, "compound assignment of the backing delegate");
+        Expect.One(scan.Main.Accesses("P:" + Events + "EventWithCustomAccessors"), edge => edge.To.Value == "F:" + Events + "_customBacking" && edge.Access == AccessKind.ReadWrite, "compound assignment of the backing delegate");
         Expect.Modifiers(scan.Main.Property(Events + "VirtualEvent").Modifiers, Modifier.Virtual);
         Assert.Equal(Visibility.Protected, scan.Main.Property(Events + "ProtectedEvent").Visibility);
         Assert.Contains(scan.Main.Property(Events + "EventWithAttribute").Annotations, annotation => annotation.Type.Canonical == "System.ObsoleteAttribute");
-        Assert.Equal(["csharp:R:" + Events + "VirtualEvent"], scan.Main.OverridesOf("csharp:R:CSharpSyntax.FieldsAndProperties.EventOverrides.VirtualEvent"));
+        Assert.Equal(["P:" + Events + "VirtualEvent"], scan.Main.OverridesOf("P:CSharpSyntax.FieldsAndProperties.EventOverrides.VirtualEvent"));
         var partial = scan.Main.Property("CSharpSyntax.FieldsAndProperties.PartialEvents.PartialEvent");
         Assert.Equal(true, partial.Bag("csharp.partial"));
         Assert.Equal(2, partial.Locations.Count);
-        var raise = scan.Main.Accesses("csharp:M:CSharpSyntax.FieldsAndProperties.EventDeclarations#RaiseAll()").ToList();
-        Expect.One(raise, edge => edge.To.Value == "csharp:R:" + Events + "FieldLikeEvent" && edge.Access == AccessKind.Read && edge.Receiver == ExpressionKind.This, "event read");
-        Expect.One(raise, edge => edge.To.Value == "csharp:R:" + Events + "StaticEvent" && edge.Receiver == ExpressionKind.Type, "static event read");
-        Assert.Empty(scan.Main.Invokes("csharp:M:CSharpSyntax.FieldsAndProperties.EventDeclarations#RaiseAll()"));
+        var raise = scan.Main.Accesses("M:CSharpSyntax.FieldsAndProperties.EventDeclarations#RaiseAll()").ToList();
+        Expect.One(raise, edge => edge.To.Value == "P:" + Events + "FieldLikeEvent" && edge.Access == AccessKind.Read && edge.Receiver == ExpressionKind.This, "event read");
+        Expect.One(raise, edge => edge.To.Value == "P:" + Events + "StaticEvent" && edge.Receiver == ExpressionKind.Type, "static event read");
+        Assert.Empty(scan.Main.Invokes("M:CSharpSyntax.FieldsAndProperties.EventDeclarations#RaiseAll()"));
         var explicitEvent = scan.Main.Property("CSharpSyntax.FieldsAndProperties.ExplicitEventImplementation.CSharpSyntax.FieldsAndProperties.IEventsInInterface.EventInInterface");
         Assert.Equal([Accessor.Add, Accessor.Remove], explicitEvent.Accessors);
-        Expect.Single(scan.Main.ImplementsMembersOf(explicitEvent.Id.Value), edge => edge.To.Value == "csharp:R:CSharpSyntax.FieldsAndProperties.IEventsInInterface.EventInInterface", "event implementation");
+        Expect.Single(scan.Main.ImplementsMembersOf(explicitEvent.Id.Value), edge => edge.To.Value == "P:CSharpSyntax.FieldsAndProperties.IEventsInInterface.EventInInterface", "event implementation");
     }
 }

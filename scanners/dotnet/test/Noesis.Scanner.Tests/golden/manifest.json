@@ -12,11 +12,11 @@
   "root": "scanners/dotnet/test/fixtures/CSharpSyntax.slnx",
   "artifacts": [
     {
-      "id": "csharp:A:CSharpSyntax.OtherProject",
+      "id": "A:CSharpSyntax.OtherProject",
       "file": "code-model/csharp/CSharpSyntax.OtherProject.code-model.json"
     },
     {
-      "id": "csharp:A:CSharpSyntax",
+      "id": "A:CSharpSyntax",
       "file": "code-model/csharp/CSharpSyntax.code-model.json"
     }
   ],

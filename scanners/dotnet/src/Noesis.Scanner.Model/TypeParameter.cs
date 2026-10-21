@@ -6,4 +6,4 @@ public sealed record TypeParameter(
     IReadOnlyList<Annotation> Annotations,
     Variance Variance,
     IReadOnlyList<TypeParameterConstraint> Constraints,
-    LanguageBag Language);
+    LanguageBag LanguageSpecific);

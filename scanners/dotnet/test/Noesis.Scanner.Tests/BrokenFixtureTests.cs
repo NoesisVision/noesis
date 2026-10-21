@@ -31,17 +31,17 @@ public class BrokenFixtureTests
             Assert.Contains(compilerErrors, diagnostic => diagnostic.Location?.File == "scanners/dotnet/test/fixtures-broken/CSharpBroken/SyntaxError.cs");
             Assert.All(compilerErrors, diagnostic => Assert.NotNull(diagnostic.Location));
 
-            var declared = model.Node<TypeNode>("csharp:T:CSharpBroken.UsesMissingType");
+            var declared = model.Node<TypeNode>("T:CSharpBroken.UsesMissingType");
             Assert.Equal(TypeKind.Class, declared.TypeKind);
-            var field = model.Node<FieldNode>("csharp:F:CSharpBroken.UsesMissingType.Field");
+            var field = model.Node<FieldNode>("F:CSharpBroken.UsesMissingType.Field");
             var unresolved = Assert.IsType<UnresolvedTypeRef>(field.Type);
             Assert.Equal("MissingType", unresolved.Text);
-            Assert.True(model.Has("csharp:M:CSharpBroken.UsesMissingType#CallsMissingType()"));
-            Assert.Empty(model.Invokes("csharp:M:CSharpBroken.UsesMissingType#CallsMissingType()"));
+            Assert.True(model.Has("M:CSharpBroken.UsesMissingType#CallsMissingType()"));
+            Assert.Empty(model.Invokes("M:CSharpBroken.UsesMissingType#CallsMissingType()"));
             Assert.Contains(model.Diagnostics, diagnostic => diagnostic.Source == DiagnosticSource.Scanner && diagnostic.Location?.StartLine == 7);
-            Assert.True(model.Has("csharp:T:CSharpBroken.SyntaxErrorClass"));
-            Assert.True(model.Has("csharp:M:CSharpBroken.SyntaxErrorClass#IntactMethod()"));
-            Expect.One(model.Invokes("csharp:M:CSharpBroken.SyntaxErrorClass#IntactMethod()"), edge => edge.To.Value == "csharp:M:System.Console#WriteLine(string)", "call in an intact member of a broken file");
+            Assert.True(model.Has("T:CSharpBroken.SyntaxErrorClass"));
+            Assert.True(model.Has("M:CSharpBroken.SyntaxErrorClass#IntactMethod()"));
+            Expect.One(model.Invokes("M:CSharpBroken.SyntaxErrorClass#IntactMethod()"), edge => edge.To.Value == "M:System.Console#WriteLine(string)", "call in an intact member of a broken file");
             Assert.DoesNotContain(model.Stubs, stub => stub.Name == "MissingType");
         }
         finally

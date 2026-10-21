@@ -31,7 +31,6 @@ internal sealed class ArtifactScanner(Generator generator, string repositoryRoot
 
         var model = CodeModelFile.Sorted(
             generator,
-            Language.CSharp,
             artifact with { Dependencies = DependenciesOf(project, compilation, context, stubs.Stubs) },
             declarations.Nodes,
             declarations.Edges.Concat(bodyEdges).Concat(stubs.Edges),
@@ -77,7 +76,7 @@ internal sealed class ArtifactScanner(Generator generator, string repositoryRoot
             [],
             [],
             LanguageBag.Of(ProjectBag(project)));
-        return CodeModelFile.Sorted(generator, Language.CSharp, artifact, [], [], [], diagnostics);
+        return CodeModelFile.Sorted(generator, artifact, [], [], [], diagnostics);
     }
 
     private ArtifactNode ArtifactOf(Project project, Compilation compilation, ScanContext context)

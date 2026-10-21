@@ -6,7 +6,7 @@ namespace Noesis.Scanner.Tests;
 public class GenericTests(FixtureScan scan)
 {
     private const string Generics = "CSharpSyntax.Generics.";
-    private const string OneParameter = "csharp:T:CSharpSyntax.Generics.GenericClassWithOneParameter`1";
+    private const string OneParameter = "T:CSharpSyntax.Generics.GenericClassWithOneParameter`1";
 
     [Fact]
     public void TypeParametersAreDeclaredOnTheOwnerWithFlattenedOrdinals()
@@ -85,13 +85,13 @@ public class GenericTests(FixtureScan scan)
         Assert.Equal("System.IDisposable", Assert.IsType<TypeConstraint>(Assert.Single(Of("GenericClassWithInterfaceConstraint`1"))).Type.Canonical);
         Assert.IsType<NotNullConstraint>(Assert.Single(Of("GenericClassWithNotNullConstraint`1")));
         Assert.IsType<ValueTypeConstraint>(Assert.Single(Of("GenericClassWithUnmanagedConstraint`1")));
-        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithUnmanagedConstraint`1").TypeParameters[0].Language["csharp.unmanaged"]);
+        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithUnmanagedConstraint`1").TypeParameters[0].LanguageSpecific["csharp.unmanaged"]);
         Assert.Equal(["valueType", "System.Enum"], Of("GenericClassWithEnumConstraint`1").Select(Describe));
         Assert.Equal(["System.Delegate"], Of("GenericClassWithDelegateConstraint`1").Select(Describe));
         Assert.Equal(["referenceType"], Of("GenericClassWithNullableClassConstraint`1").Select(Describe));
-        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithNullableClassConstraint`1").TypeParameters[0].Language["csharp.nullableReferenceConstraint"]);
+        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithNullableClassConstraint`1").TypeParameters[0].LanguageSpecific["csharp.nullableReferenceConstraint"]);
         Assert.Empty(Of("GenericClassWithAllowsRefStructConstraint`1"));
-        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithAllowsRefStructConstraint`1").TypeParameters[0].Language["csharp.allowsRefStruct"]);
+        Assert.Equal(true, scan.Main.Type(Generics + "GenericClassWithAllowsRefStructConstraint`1").TypeParameters[0].LanguageSpecific["csharp.allowsRefStruct"]);
         Assert.Equal(["referenceType", "System.IDisposable", "System.IComparable`1[!0]", "parameterlessConstructor"], Of("GenericClassWithMultipleConstraints`1").Select(Describe));
         var dependent = scan.Main.Type(Generics + "GenericClassWithDependentConstraint`2");
         Assert.Empty(dependent.TypeParameters[0].Constraints);
@@ -100,7 +100,7 @@ public class GenericTests(FixtureScan scan)
         Assert.Equal(0, dependsOn.Ordinal);
         Assert.Equal(["System.Collections.Generic.IEnumerable`1[int]"], Of("GenericClassWithGenericTypeConstraint`1").Select(Describe));
         Assert.Equal(["System.Numerics.INumber`1[!0]"], Of("GenericClassWithStaticAbstractConstraint`1").Select(Describe));
-        Assert.Empty(scan.Main.Type(Generics + "GenericClassWithOneParameter`1").TypeParameters[0].Language);
+        Assert.Empty(scan.Main.Type(Generics + "GenericClassWithOneParameter`1").TypeParameters[0].LanguageSpecific);
     }
 
     private static string Describe(TypeParameterConstraint constraint) => constraint switch
@@ -118,12 +118,12 @@ public class GenericTests(FixtureScan scan)
     public void StaticAbstractMembersThroughAConstraintAreUsedOnTheTypeParameter()
     {
         const string Owner = "CSharpSyntax.Generics.GenericClassWithStaticAbstractConstraint`1";
-        var zero = Assert.Single(scan.Main.Accesses("csharp:R:" + Owner + ".Zero"));
-        Assert.StartsWith("csharp:R:System.Numerics.", zero.To.Value);
+        var zero = Assert.Single(scan.Main.Accesses("P:" + Owner + ".Zero"));
+        Assert.StartsWith("P:System.Numerics.", zero.To.Value);
         Assert.EndsWith(".Zero", zero.To.Value);
         Assert.Equal(ExpressionKind.TypeParameter, zero.Receiver);
         Assert.Equal(AccessKind.Read, zero.Access);
-        Assert.Empty(scan.Main.Invokes("csharp:M:" + Owner + "#Sum(!0,!0)"));
+        Assert.Empty(scan.Main.Invokes("M:" + Owner + "#Sum(!0,!0)"));
     }
 
     [Fact]
@@ -146,11 +146,11 @@ public class GenericTests(FixtureScan scan)
         Assert.True(Assert.Single(scan.Main.Method(Methods + "GenericMethodWithArrayReturn`1(!!0[])").Signature.Parameters).Variadic);
         Expect.TypeRef("(!!0,!!1)", scan.Main.Method(Methods + "GenericMethodWithTupleReturn`2(!!0,!!1)").Signature.ReturnType);
         Assert.Equal(Passing.Ref, scan.Main.Method(Methods + "GenericMethodWithRefReturn`1(!!0[])").Signature.ReturnPassing);
-        Assert.Equal(true, scan.Main.Method(Methods + "GenericMethodWithUnmanagedConstraint`1(System.Span`1[!!0])").TypeParameters[0].Language["csharp.unmanaged"]);
-        Assert.Equal(true, scan.Main.Method(Methods + "GenericMethodWithAllowsRefStruct`1(!!0)").TypeParameters[0].Language["csharp.allowsRefStruct"]);
+        Assert.Equal(true, scan.Main.Method(Methods + "GenericMethodWithUnmanagedConstraint`1(System.Span`1[!!0])").TypeParameters[0].LanguageSpecific["csharp.unmanaged"]);
+        Assert.Equal(true, scan.Main.Method(Methods + "GenericMethodWithAllowsRefStruct`1(!!0)").TypeParameters[0].LanguageSpecific["csharp.allowsRefStruct"]);
         Expect.Modifiers(scan.Main.Method(Methods + "StaticGenericMethod`1(!!0)").Modifiers, Modifier.Static);
         Expect.Modifiers(scan.Main.Method(Methods + "AsyncGenericMethod`1(!!0)").Modifiers, Modifier.Async);
-        Assert.Empty(scan.Main.Invokes("csharp:M:" + Methods + "GenericMethodWithLocalGenericFunction`1(!!0)"));
+        Assert.Empty(scan.Main.Invokes("M:" + Methods + "GenericMethodWithLocalGenericFunction`1(!!0)"));
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public class GenericTests(FixtureScan scan)
         var mixing = scan.Main.Method(Owner + "#MethodMixingClassAndMethodParameters`1(!!0)");
         var tuple = Assert.IsType<TupleTypeRef>(mixing.Signature.ReturnType);
         Assert.Equal("(!0?,!!0)", tuple.Canonical);
-        Assert.Equal("csharp:T:" + Owner, Assert.IsType<TypeParameterRef>(tuple.Elements[0].Type).Owner.Value);
+        Assert.Equal("T:" + Owner, Assert.IsType<TypeParameterRef>(tuple.Elements[0].Type).Owner.Value);
         Assert.Equal(mixing.Id, Assert.IsType<TypeParameterRef>(tuple.Elements[1].Type).Owner);
         var constrained = scan.Main.Method(Owner + "#MethodWithConstraintReferencingClassParameter`1(!!0)");
         Assert.Equal("!0", Assert.IsType<TypeConstraint>(Assert.Single(constrained.TypeParameters[0].Constraints)).Type.Canonical);
@@ -169,27 +169,26 @@ public class GenericTests(FixtureScan scan)
     [Fact]
     public void GenericOverridesAndInterfaceMethods()
     {
-        Assert.Equal(["csharp:M:CSharpSyntax.Generics.GenericVirtualMethods#VirtualGenericMethod`1(!!0)"], scan.Main.OverridesOf("csharp:M:CSharpSyntax.Generics.GenericVirtualMethodsOverridden#VirtualGenericMethod`1(!!0)"));
-        Expect.One(scan.Main.Invokes("csharp:M:CSharpSyntax.Generics.GenericVirtualMethodsOverridden#VirtualGenericMethod`1(!!0)"), edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericVirtualMethods#VirtualGenericMethod`1(!!0)" && edge.Receiver == ExpressionKind.Base && edge.TypeArguments.Single().Canonical == "!!0", "base call with the own parameter as argument");
-        var implementation = Assert.Single(scan.Main.ImplementsMembersOf("csharp:M:CSharpSyntax.Generics.GenericMethodsInInterfaceImplementation#StaticAbstractGenericMethod`1(!!0)"));
-        Assert.Equal("csharp:M:CSharpSyntax.Generics.IGenericMethodsInInterface#StaticAbstractGenericMethod`1(!!0)", implementation.To.Value);
+        Assert.Equal(["M:CSharpSyntax.Generics.GenericVirtualMethods#VirtualGenericMethod`1(!!0)"], scan.Main.OverridesOf("M:CSharpSyntax.Generics.GenericVirtualMethodsOverridden#VirtualGenericMethod`1(!!0)"));
+        Expect.One(scan.Main.Invokes("M:CSharpSyntax.Generics.GenericVirtualMethodsOverridden#VirtualGenericMethod`1(!!0)"), edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericVirtualMethods#VirtualGenericMethod`1(!!0)" && edge.Receiver == ExpressionKind.Base && edge.TypeArguments.Single().Canonical == "!!0", "base call with the own parameter as argument");
+        var implementation = Assert.Single(scan.Main.ImplementsMembersOf("M:CSharpSyntax.Generics.GenericMethodsInInterfaceImplementation#StaticAbstractGenericMethod`1(!!0)"));
+        Assert.Equal("M:CSharpSyntax.Generics.IGenericMethodsInInterface#StaticAbstractGenericMethod`1(!!0)", implementation.To.Value);
     }
 
     [Fact]
     public void GenericInvocationsCarryTheirTypeArguments()
     {
-        const string From = "csharp:M:CSharpSyntax.Generics.GenericMethodInvocations#InvokeWithInferredAndExplicitTypeArguments()";
+        const string From = "M:CSharpSyntax.Generics.GenericMethodInvocations#InvokeWithInferredAndExplicitTypeArguments()";
         var invokes = scan.Main.Invokes(From).ToList();
-        Assert.Equal(2, invokes.Count(edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithOneParameter`1(!!0)" && edge.TypeArguments.Single().Canonical == "int" && edge.Receiver == ExpressionKind.Local));
-        Assert.Equal(2, invokes.Count(edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithTwoParameters`2(!!0,System.Func`2[!!0,!!1])" && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string"));
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithoutUsingParameterInSignature`1()" && edge.TypeArguments.Single().Canonical == "string", "explicit-only type argument");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericMethods#StaticGenericMethod`1(!!0)" && edge.Receiver == ExpressionKind.Type && edge.TypeArguments.Single().Canonical == "int", "static generic call");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericStaticClass`1#Identity(!0)" && edge.Receiver == ExpressionKind.Type && edge.TypeArguments.Count == 0, "method of a constructed generic class: the definition is the target, no method type arguments");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericExtensionMethods#ClassicGenericExtensionMethod`1(!!0)" && edge.InvocationKind == InvocationKind.Extension && edge.Receiver == ExpressionKind.Literal && edge.TypeArguments.Single().Canonical == "int", "classic generic extension inferred from the receiver");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericExtensionMethods#ExtensionMemberSwap`2()" && edge.InvocationKind == InvocationKind.Extension && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string", "extension block member with the block's parameters as type arguments");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericExtensionMethods#ExtensionMemberMap`2(System.Func`2[!!0,!!1])" && edge.InvocationKind == InvocationKind.Extension && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string" && edge.Receiver == ExpressionKind.Creation, "extension block member with block and own type arguments");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Generics.GenericClassWithOneParameter`1+NestedGenericClass`1#.ctor()" && edge.TypeArguments.Count == 0 && edge.Receiver is null, "constructor of a nested constructed type");
-        Expect.One(scan.Main.UsesTypes(From), edge => edge.Role == TypeUseRole.Creation && edge.To.Canonical == "CSharpSyntax.Generics.GenericClassWithOneParameter`1+NestedGenericClass`1[int,string]", "creation of the constructed nested type");
-        Expect.One(scan.Main.Accesses(From), edge => edge.To.Value == "csharp:R:CSharpSyntax.Generics.GenericExtensionMethods.ExtensionMemberIsEmpty" && edge.Receiver == ExpressionKind.Creation, "extension block property on a new list");
+        Assert.Equal(2, invokes.Count(edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithOneParameter`1(!!0)" && edge.TypeArguments.Single().Canonical == "int" && edge.Receiver == ExpressionKind.Local));
+        Assert.Equal(2, invokes.Count(edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithTwoParameters`2(!!0,System.Func`2[!!0,!!1])" && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string"));
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericMethods#GenericMethodWithoutUsingParameterInSignature`1()" && edge.TypeArguments.Single().Canonical == "string", "explicit-only type argument");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericMethods#StaticGenericMethod`1(!!0)" && edge.Receiver == ExpressionKind.Type && edge.TypeArguments.Single().Canonical == "int", "static generic call");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericStaticClass`1#Identity(!0)" && edge.Receiver == ExpressionKind.Type && edge.TypeArguments.Count == 0, "method of a constructed generic class: the definition is the target, no method type arguments");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericExtensionMethods#ClassicGenericExtensionMethod`1(!!0)" && edge.InvocationKind == InvocationKind.Extension && edge.Receiver == ExpressionKind.Literal && edge.TypeArguments.Single().Canonical == "int", "classic generic extension inferred from the receiver");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericExtensionMethods#ExtensionMemberSwap`2()" && edge.InvocationKind == InvocationKind.Extension && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string", "extension block member with the block's parameters as type arguments");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericExtensionMethods#ExtensionMemberMap`2(System.Func`2[!!0,!!1])" && edge.InvocationKind == InvocationKind.Extension && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string" && edge.Receiver == ExpressionKind.Creation, "extension block member with block and own type arguments");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Generics.GenericClassWithOneParameter`1+NestedGenericClass`1#.ctor()" && string.Join(",", edge.TypeArguments.Select(t => t.Canonical)) == "int,string" && edge.Receiver is null, "constructor of a nested constructed type");
+        Expect.One(scan.Main.Accesses(From), edge => edge.To.Value == "P:CSharpSyntax.Generics.GenericExtensionMethods.ExtensionMemberIsEmpty" && edge.Receiver == ExpressionKind.Creation, "extension block property on a new list");
     }
 }

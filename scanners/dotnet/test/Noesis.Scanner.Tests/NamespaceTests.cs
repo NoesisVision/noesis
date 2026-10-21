@@ -11,9 +11,9 @@ public class NamespaceTests(FixtureScan scan)
         var global = scan.Main.Namespace("");
         Assert.Equal("", global.Name);
         Assert.Equal(Origin.Declared, global.Origin);
-        Assert.True(scan.Main.Contains("csharp:A:CSharpSyntax", "csharp:N:"));
-        Assert.True(scan.Main.Contains("csharp:N:", "csharp:N:CSharpSyntax"));
-        Assert.True(scan.Main.Contains("csharp:N:", "csharp:T:Program"));
+        Assert.True(scan.Main.Contains("A:CSharpSyntax", "N:"));
+        Assert.True(scan.Main.Contains("N:", "N:CSharpSyntax"));
+        Assert.True(scan.Main.Contains("N:", "T:Program"));
     }
 
     [Fact]
@@ -22,9 +22,9 @@ public class NamespaceTests(FixtureScan scan)
         foreach (var level in new[] { "CSharpSyntax", "CSharpSyntax.Usings", "CSharpSyntax.Usings.Dotted", "CSharpSyntax.Usings.Dotted.Deeply", "CSharpSyntax.Usings.Dotted.Deeply.Nested" })
             scan.Main.Namespace(level);
         Assert.Equal("Nested", scan.Main.Namespace("CSharpSyntax.Usings.Dotted.Deeply.Nested").Name);
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.Dotted.Deeply", "csharp:N:CSharpSyntax.Usings.Dotted.Deeply.Nested"));
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.Dotted.Deeply.Nested", "csharp:T:CSharpSyntax.Usings.Dotted.Deeply.Nested.ClassInDeeplyNestedNamespace"));
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.Dotted.Deeply.Nested", "csharp:T:CSharpSyntax.Usings.Dotted.Deeply.Nested.Types"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.Dotted.Deeply", "N:CSharpSyntax.Usings.Dotted.Deeply.Nested"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.Dotted.Deeply.Nested", "T:CSharpSyntax.Usings.Dotted.Deeply.Nested.ClassInDeeplyNestedNamespace"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.Dotted.Deeply.Nested", "T:CSharpSyntax.Usings.Dotted.Deeply.Nested.Types"));
     }
 
     [Fact]
@@ -41,21 +41,21 @@ public class NamespaceTests(FixtureScan scan)
     [Fact]
     public void BlockFileScopedAndNestedDeclarationsAllYieldNamespaces()
     {
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.FileScoped", "csharp:T:CSharpSyntax.Usings.FileScoped.ClassInFileScopedNamespace"));
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings", "csharp:T:CSharpSyntax.Usings.UsingDirectiveForms"));
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.NestedBlockNamespace", "csharp:T:CSharpSyntax.Usings.NestedBlockNamespace.ClassInNestedBlockNamespace"));
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Usings.SecondNamespaceInSameFile", "csharp:T:CSharpSyntax.Usings.SecondNamespaceInSameFile.ClassInSecondNamespace"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.FileScoped", "T:CSharpSyntax.Usings.FileScoped.ClassInFileScopedNamespace"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings", "T:CSharpSyntax.Usings.UsingDirectiveForms"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.NestedBlockNamespace", "T:CSharpSyntax.Usings.NestedBlockNamespace.ClassInNestedBlockNamespace"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Usings.SecondNamespaceInSameFile", "T:CSharpSyntax.Usings.SecondNamespaceInSameFile.ClassInSecondNamespace"));
     }
 
     [Fact]
     public void ANamespaceDeclaredInBothProjectsAppearsInEachArtifactWithItsOwnTypes()
     {
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.SharedNamespace", "csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromMainProject"));
-        Assert.False(scan.Main.Has("csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
-        Assert.True(scan.Other.Contains("csharp:N:CSharpSyntax.SharedNamespace", "csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.SharedNamespace", "T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromMainProject"));
+        Assert.False(scan.Main.Has("T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
+        Assert.True(scan.Other.Contains("N:CSharpSyntax.SharedNamespace", "T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
         Expect.TypeRef("CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject",
             scan.Main.Field("CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromMainProject.FromOtherProjectPartOfSameNamespace").Type);
-        Assert.False(scan.Main.HasStub("csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
+        Assert.False(scan.Main.HasStub("T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"));
     }
 
     [Fact]
@@ -64,6 +64,6 @@ public class NamespaceTests(FixtureScan scan)
         var types = scan.Main.Namespace("CSharpSyntax.Types");
         Assert.Empty(types.Annotations);
         Assert.Null(types.Documentation);
-        Assert.Empty(types.Language);
+        Assert.Empty(types.LanguageSpecific);
     }
 }

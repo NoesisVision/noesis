@@ -39,7 +39,7 @@ public class MethodTests(FixtureScan scan)
         Assert.Equal(true, scan.Main.Method(Methods + "UnsafeMethod(int*)").Bag("csharp.unsafe"));
         Assert.Equal(Origin.Declared, plain.Origin);
         Assert.Equal("scanners/dotnet/test/fixtures/CSharpSyntax/Methods/MethodDeclarations.cs", Assert.Single(plain.Locations).File);
-        Assert.True(scan.Main.Contains("csharp:T:CSharpSyntax.Methods.MethodDeclarations", plain.Id.Value));
+        Assert.True(scan.Main.Contains("T:CSharpSyntax.Methods.MethodDeclarations", plain.Id.Value));
     }
 
     [Fact]
@@ -47,13 +47,13 @@ public class MethodTests(FixtureScan scan)
     {
         Assert.Equal(MethodKind.Constructor, scan.Main.Method(Methods + ".ctor()").MethodKind);
         Assert.Equal(".ctor", scan.Main.Method(Methods + ".ctor(int)").Name);
-        Expect.One(scan.Main.Invokes("csharp:M:" + Methods + ".ctor(int,bool)"), edge => edge.To.Value == "csharp:M:" + Methods + ".ctor(int)" && edge.Receiver == ExpressionKind.This && edge.InvocationKind == InvocationKind.Call, "this(...) chaining");
+        Expect.One(scan.Main.Invokes("M:" + Methods + ".ctor(int,bool)"), edge => edge.To.Value == "M:" + Methods + ".ctor(int)" && edge.Receiver == ExpressionKind.This && edge.InvocationKind == InvocationKind.Call, "this(...) chaining");
         var staticConstructor = scan.Main.Method(Methods + ".cctor()");
         Assert.Equal(MethodKind.StaticInitializer, staticConstructor.MethodKind);
         Expect.Modifiers(staticConstructor.Modifiers, Modifier.Static);
         var finalizer = scan.Main.Method(Methods + "Finalize()");
         Assert.Equal(MethodKind.Destructor, finalizer.MethodKind);
-        Expect.One(scan.Main.Accesses(finalizer.Id.Value), edge => edge.To.Value == "csharp:F:CSharpSyntax.Methods.MethodDeclarations._field" && edge.Access == AccessKind.Write, "field write in finalizer");
+        Expect.One(scan.Main.Accesses(finalizer.Id.Value), edge => edge.To.Value == "F:CSharpSyntax.Methods.MethodDeclarations._field" && edge.Access == AccessKind.Write, "field write in finalizer");
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class MethodTests(FixtureScan scan)
         var options = Assert.IsType<EnumAnnotationValue>(Assert.Single(methodImpl.Arguments).Value);
         Assert.Equal("System.Runtime.CompilerServices.MethodImplOptions", options.Type.Canonical);
         Assert.Equal("NoInlining", options.Member);
-        Assert.Contains(scan.Main.AnnotationsOf("csharp:M:" + Methods + "MethodWithAttribute()"), annotation => annotation.Type.Canonical == "System.Runtime.CompilerServices.MethodImplAttribute");
+        Assert.Contains(scan.Main.AnnotationsOf("M:" + Methods + "MethodWithAttribute()"), annotation => annotation.Type.Canonical == "System.Runtime.CompilerServices.MethodImplAttribute");
 
         var withReturnAttribute = scan.Main.Method(Methods + "MethodWithReturnAttribute()");
         Assert.Equal("System.Diagnostics.CodeAnalysis.NotNullAttribute", Assert.Single(withReturnAttribute.Signature.ReturnAnnotations).Type.Canonical);
@@ -186,11 +186,11 @@ public class MethodTests(FixtureScan scan)
         Expect.Modifiers(scan.Main.Method(Derived + "AbstractMethod()").Modifiers, Modifier.Virtual);
         Expect.Modifiers(scan.Main.Method(Derived + "VirtualMethodToSeal()").Modifiers, Modifier.Final);
         Expect.Modifiers(scan.Main.Method(Derived + "NonVirtualMethodToHide()").Modifiers, Modifier.Hiding);
-        Assert.Equal(["csharp:M:" + Base + "AbstractMethod()"], scan.Main.OverridesOf("csharp:M:" + Derived + "AbstractMethod()"));
-        Assert.Equal(["csharp:M:" + Base + "VirtualMethodToSeal()"], scan.Main.OverridesOf("csharp:M:" + Derived + "VirtualMethodToSeal()"));
-        Assert.Empty(scan.Main.OverridesOf("csharp:M:" + Derived + "NonVirtualMethodToHide()"));
-        Expect.One(scan.Main.Invokes("csharp:M:" + Derived + "VirtualMethod()"), edge => edge.To.Value == "csharp:M:" + Base + "VirtualMethod()" && edge.Receiver == ExpressionKind.Base, "base call");
-        Assert.Equal(["csharp:M:" + Base + "AbstractGenericMethod`1(!!0)"], scan.Main.OverridesOf("csharp:M:" + Derived + "AbstractGenericMethod`1(!!0)"));
+        Assert.Equal(["M:" + Base + "AbstractMethod()"], scan.Main.OverridesOf("M:" + Derived + "AbstractMethod()"));
+        Assert.Equal(["M:" + Base + "VirtualMethodToSeal()"], scan.Main.OverridesOf("M:" + Derived + "VirtualMethodToSeal()"));
+        Assert.Empty(scan.Main.OverridesOf("M:" + Derived + "NonVirtualMethodToHide()"));
+        Expect.One(scan.Main.Invokes("M:" + Derived + "VirtualMethod()"), edge => edge.To.Value == "M:" + Base + "VirtualMethod()" && edge.Receiver == ExpressionKind.Base, "base call");
+        Assert.Equal(["M:" + Base + "AbstractGenericMethod`1(!!0)"], scan.Main.OverridesOf("M:" + Derived + "AbstractGenericMethod`1(!!0)"));
     }
 
     [Fact]
@@ -205,8 +205,8 @@ public class MethodTests(FixtureScan scan)
         Assert.Equal(true, scan.Main.Method("CSharpSyntax.Methods.MethodsInStruct#ReadonlyMethod()").Bag("csharp.readonlyMember"));
         Assert.Null(scan.Main.Method("CSharpSyntax.Methods.MethodsInStruct#MutatingMethod()").Bag("csharp.readonlyMember"));
         Expect.Modifiers(scan.Main.Method("CSharpSyntax.Methods.StaticClassMethods#StaticMethodInStaticClass()").Modifiers, Modifier.Static);
-        Expect.One(scan.Main.Invokes("csharp:M:CSharpSyntax.Methods.MethodsInRecord#StaticMethodInRecord()"), edge => edge.To.Value == "csharp:M:CSharpSyntax.Methods.MethodsInRecord#.ctor(int)", "record creation");
-        Expect.One(scan.Main.Accesses("csharp:M:CSharpSyntax.Methods.MethodsInRecord#MethodInRecord()"), edge => edge.To.Value == "csharp:R:CSharpSyntax.Methods.MethodsInRecord.Value" && edge.Receiver == ExpressionKind.This, "positional property read");
+        Expect.One(scan.Main.Invokes("M:CSharpSyntax.Methods.MethodsInRecord#StaticMethodInRecord()"), edge => edge.To.Value == "M:CSharpSyntax.Methods.MethodsInRecord#.ctor(int)", "record creation");
+        Expect.One(scan.Main.Accesses("M:CSharpSyntax.Methods.MethodsInRecord#MethodInRecord()"), edge => edge.To.Value == "P:CSharpSyntax.Methods.MethodsInRecord.Value" && edge.Receiver == ExpressionKind.This, "positional property read");
     }
 
     [Fact]
@@ -224,8 +224,8 @@ public class MethodTests(FixtureScan scan)
         Assert.Equal(2, scan.Main.Method(Partial + "ExtendedPartialMethod(int)").Locations.Count);
         Assert.Equal(2, scan.Main.Method(Partial + ".ctor()").Locations.Count);
         Assert.Equal(2, scan.Main.Method(Partial + "CreateViaPartialStaticMethod()").Locations.Count);
-        Expect.One(scan.Main.Invokes("csharp:M:" + Partial + "CreateViaPartialStaticMethod()"), edge => edge.To.Value == "csharp:M:" + Partial + ".ctor()", "creation in the implementation part");
-        Assert.Equal(2, scan.Main.Nodes.Count(node => node.Id.Value.StartsWith("csharp:M:" + Partial + "Classic", StringComparison.Ordinal)));
+        Expect.One(scan.Main.Invokes("M:" + Partial + "CreateViaPartialStaticMethod()"), edge => edge.To.Value == "M:" + Partial + ".ctor()", "creation in the implementation part");
+        Assert.Equal(2, scan.Main.Nodes.Count(node => node.Id.Value.StartsWith("M:" + Partial + "Classic", StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -268,17 +268,17 @@ public class MethodTests(FixtureScan scan)
     public void LocalFunctionsAndLambdasAreNotNodesAndTheirBodiesAttributeToTheMember()
     {
         const string Owner = "CSharpSyntax.Methods.LocalFunctionsAndLambdas#";
-        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("csharp:M:" + Owner, StringComparison.Ordinal) && node.Name.Contains("LocalFunction") && !node.Name.StartsWith("MethodWith", StringComparison.Ordinal));
-        var withLocals = "csharp:M:" + Owner + "MethodWithLocalFunctions(int)";
+        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("M:" + Owner, StringComparison.Ordinal) && node.Name.Contains("LocalFunction") && !node.Name.StartsWith("MethodWith", StringComparison.Ordinal));
+        var withLocals = "M:" + Owner + "MethodWithLocalFunctions(int)";
         Assert.DoesNotContain(scan.Main.Invokes(withLocals), edge => edge.To.Value.Contains("LocalFunction"));
-        Expect.One(scan.Main.Invokes(withLocals), edge => edge.To.Value.StartsWith("csharp:M:System.Linq.Enumerable#Sum", StringComparison.Ordinal) && edge.InvocationKind == InvocationKind.Extension && edge.Receiver == ExpressionKind.ReturnValue, "Sum over the iterator local function (a call to a local function denotes 'returnValue')");
-        Expect.One(scan.Main.Invokes(withLocals), edge => edge.To.Value == "csharp:M:System.Threading.Tasks.Task#Yield()" && edge.Site.ViaClosure, "Task.Yield inside the async local function");
-        Expect.One(scan.Main.Accesses(withLocals), edge => edge.To.Value == "csharp:F:CSharpSyntax.Methods.LocalFunctionsAndLambdas._field" && edge.Site.ViaClosure, "field read in a local function");
-        Expect.One(scan.Main.Accesses(withLocals), edge => edge.To.Value == "csharp:R:System.Threading.Tasks.Task`1.Result" && !edge.Site.ViaClosure, "Result read outside closures");
+        Expect.One(scan.Main.Invokes(withLocals), edge => edge.To.Value.StartsWith("M:System.Linq.Enumerable#Sum", StringComparison.Ordinal) && edge.InvocationKind == InvocationKind.Extension && edge.Receiver == ExpressionKind.ReturnValue, "Sum over the iterator local function (a call to a local function denotes 'returnValue')");
+        Expect.One(scan.Main.Invokes(withLocals), edge => edge.To.Value == "M:System.Threading.Tasks.Task#Yield()" && edge.Site.ViaClosure, "Task.Yield inside the async local function");
+        Expect.One(scan.Main.Accesses(withLocals), edge => edge.To.Value == "F:CSharpSyntax.Methods.LocalFunctionsAndLambdas._field" && edge.Site.ViaClosure, "field read in a local function");
+        Expect.One(scan.Main.Accesses(withLocals), edge => edge.To.Value == "P:System.Threading.Tasks.Task`1.Result" && !edge.Site.ViaClosure, "Result read outside closures");
 
-        var withLambdas = "csharp:M:" + Owner + "MethodWithLambdas()";
-        Expect.One(scan.Main.Accesses(withLambdas), edge => edge.To.Value == "csharp:F:CSharpSyntax.Methods.LocalFunctionsAndLambdas._field" && edge.Site.ViaClosure, "field captured in a lambda");
-        Expect.One(scan.Main.Invokes(withLambdas), edge => edge.To.Value == "csharp:M:System.Threading.Tasks.Task#Yield()" && edge.Site.ViaClosure, "await inside an async lambda");
+        var withLambdas = "M:" + Owner + "MethodWithLambdas()";
+        Expect.One(scan.Main.Accesses(withLambdas), edge => edge.To.Value == "F:CSharpSyntax.Methods.LocalFunctionsAndLambdas._field" && edge.Site.ViaClosure, "field captured in a lambda");
+        Expect.One(scan.Main.Invokes(withLambdas), edge => edge.To.Value == "M:System.Threading.Tasks.Task#Yield()" && edge.Site.ViaClosure, "await inside an async lambda");
         Assert.DoesNotContain(scan.Main.Invokes(withLambdas), edge => edge.To.Value.EndsWith("#Invoke()", StringComparison.Ordinal) || edge.To.Value.EndsWith("#Invoke(int)", StringComparison.Ordinal));
         Assert.DoesNotContain(scan.Main.Invokes(withLambdas), edge => edge.To.Value.Contains("StaticTarget"));
         Assert.Empty(scan.Main.AnnotationsOf(withLambdas));

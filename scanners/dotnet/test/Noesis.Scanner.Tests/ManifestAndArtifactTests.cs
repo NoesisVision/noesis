@@ -6,8 +6,8 @@ namespace Noesis.Scanner.Tests;
 
 public class ManifestAndArtifactTests(FixtureScan scan)
 {
-    private const string Main = "csharp:A:CSharpSyntax";
-    private const string Other = "csharp:A:CSharpSyntax.OtherProject";
+    private const string Main = "A:CSharpSyntax";
+    private const string Other = "A:CSharpSyntax.OtherProject";
 
     [Fact]
     public void ScanSucceedsAndWritesEveryFileTheManifestLists()
@@ -46,7 +46,6 @@ public class ManifestAndArtifactTests(FixtureScan scan)
         foreach (var model in scan.Result.Models)
         {
             Assert.Equal(1, model.SchemaVersion);
-            Assert.Equal(Language.CSharp, model.Language);
             Assert.DoesNotContain(model.Diagnostics, diagnostic => diagnostic.Source == DiagnosticSource.Compiler);
         }
     }
@@ -62,10 +61,10 @@ public class ManifestAndArtifactTests(FixtureScan scan)
         Assert.Equal("scanners/dotnet/test/fixtures/CSharpSyntax", artifact.RootDirectory);
         Assert.Equal("net10.0", artifact.Target);
         Assert.True(artifact.Executable);
-        Assert.Equal("CSharpSyntax", artifact.Language["csharp.projectName"]);
-        Assert.Equal("scanners/dotnet/test/fixtures/CSharpSyntax/CSharpSyntax.csproj", artifact.Language["csharp.projectFile"]);
-        Assert.Equal("CSharpSyntax", artifact.Language["csharp.rootNamespace"]);
-        Assert.Equal("ConsoleApplication", artifact.Language["csharp.outputKind"]);
+        Assert.Equal("CSharpSyntax", artifact.LanguageSpecific["csharp.projectName"]);
+        Assert.Equal("scanners/dotnet/test/fixtures/CSharpSyntax/CSharpSyntax.csproj", artifact.LanguageSpecific["csharp.projectFile"]);
+        Assert.Equal("CSharpSyntax", artifact.LanguageSpecific["csharp.rootNamespace"]);
+        Assert.Equal("ConsoleApplication", artifact.LanguageSpecific["csharp.outputKind"]);
     }
 
     [Fact]
@@ -73,7 +72,7 @@ public class ManifestAndArtifactTests(FixtureScan scan)
     {
         var artifact = scan.Other.Artifact;
         Assert.False(artifact.Executable);
-        Assert.Equal("DynamicallyLinkedLibrary", artifact.Language["csharp.outputKind"]);
+        Assert.Equal("DynamicallyLinkedLibrary", artifact.LanguageSpecific["csharp.outputKind"]);
         var internalsVisibleTo = Assert.Single(artifact.Annotations, annotation => annotation.Type.Canonical == "System.Runtime.CompilerServices.InternalsVisibleToAttribute");
         var argument = Assert.Single(internalsVisibleTo.Arguments);
         Assert.Equal("assemblyName", argument.Name);
@@ -90,14 +89,14 @@ public class ManifestAndArtifactTests(FixtureScan scan)
         Assert.Equal(ArtifactKind.Source, other.Kind);
         Assert.Null(other.Package);
 
-        var nodaTime = Assert.Single(dependencies, dependency => dependency.Id.Value == "csharp:A:NodaTime@3.3.2.0");
+        var nodaTime = Assert.Single(dependencies, dependency => dependency.Id.Value == "A:NodaTime@3.3.2.0");
         Assert.Equal(ArtifactKind.Library, nodaTime.Kind);
         Assert.Equal(new PackageReference("NodaTime", "3.3.2"), nodaTime.Package);
 
-        var annotations = Assert.Single(dependencies, dependency => dependency.Id.Value.StartsWith("csharp:A:JetBrains.Annotations@", StringComparison.Ordinal));
+        var annotations = Assert.Single(dependencies, dependency => dependency.Id.Value.StartsWith("A:JetBrains.Annotations@", StringComparison.Ordinal));
         Assert.Equal(new PackageReference("JetBrains.Annotations", "2025.2.4"), annotations.Package);
 
-        var runtime = Assert.Single(dependencies, dependency => dependency.Id.Value == "csharp:A:System.Runtime@10.0.0.0");
+        var runtime = Assert.Single(dependencies, dependency => dependency.Id.Value == "A:System.Runtime@10.0.0.0");
         Assert.Equal(ArtifactKind.Platform, runtime.Kind);
         Assert.Null(runtime.Package);
         Assert.Equal(dependencies.OrderBy(dependency => dependency.Id).Select(dependency => dependency.Id), dependencies.Select(dependency => dependency.Id));

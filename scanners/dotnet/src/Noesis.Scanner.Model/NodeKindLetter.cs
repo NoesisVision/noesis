@@ -6,6 +6,6 @@ public enum NodeKindLetter
     Namespace = 'N',
     Type = 'T',
     Method = 'M',
-    Property = 'R',
+    Property = 'P',
     Field = 'F',
 }

@@ -19,8 +19,8 @@ describe('the code model schema', () => {
     const manifest = ScanManifest.parse(await readGolden('manifest.json'));
     expect(manifest.language).toBe('csharp');
     expect(manifest.artifacts.map((artifact) => artifact.id)).toEqual([
-      'csharp:A:CSharpSyntax.OtherProject',
-      'csharp:A:CSharpSyntax',
+      'A:CSharpSyntax.OtherProject',
+      'A:CSharpSyntax',
     ]);
   });
 

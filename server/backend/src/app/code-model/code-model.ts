@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * The common code model every scanner writes: one manifest and one file per
- * artifact under `.noesis/scanner/code-model/<language>/`. Designed in
+ * artifact under `<output root>/code-model/<language>/`. Designed in
  * docs/plans/code-model-and-roslyn-csharp-scanner.md; the .NET scanner keeps a
  * C# copy of these shapes and its golden files are checked against this schema.
  * Objects are strict so a field added on one side fails the other.
@@ -11,8 +11,8 @@ import { z } from 'zod';
 export const Language = z.enum(['csharp', 'java', 'typescript', 'php']);
 export type Language = z.infer<typeof Language>;
 
-/** `<language>:<kind-letter>:<canonical path>`; unique within one artifact file. */
-export const NodeId = z.string().regex(/^[a-z]+:[ANTMRF]:/);
+/** `<kind-letter>:<canonical path>`; unique within one artifact file. */
+export const NodeId = z.string().regex(/^[ANTMPF]:/);
 export type NodeId = z.infer<typeof NodeId>;
 
 const bagValue = z.union([
@@ -94,7 +94,7 @@ export interface Parameter {
   readonly optional: boolean;
   readonly defaultValue: string | null;
   readonly annotations: readonly Annotation[];
-  readonly language: LanguageBag;
+  readonly languageSpecific: LanguageBag;
 }
 
 export interface Annotation {
@@ -262,7 +262,7 @@ export const Parameter: z.ZodType<Parameter> = z.lazy(() =>
     optional: z.boolean(),
     defaultValue: z.string().nullable(),
     annotations: z.array(Annotation),
-    language: LanguageBag,
+    languageSpecific: LanguageBag,
   }),
 );
 
@@ -291,7 +291,7 @@ export const TypeParameter = z.strictObject({
   annotations: z.array(Annotation),
   variance: z.enum(['invariant', 'covariant', 'contravariant']),
   constraints: z.array(TypeParameterConstraint),
-  language: LanguageBag,
+  languageSpecific: LanguageBag,
 });
 export type TypeParameter = z.infer<typeof TypeParameter>;
 
@@ -325,7 +325,7 @@ export const ArtifactNode = z.strictObject({
     }),
   ),
   annotations: z.array(Annotation),
-  language: LanguageBag,
+  languageSpecific: LanguageBag,
 });
 export type ArtifactNode = z.infer<typeof ArtifactNode>;
 
@@ -336,7 +336,7 @@ const nodeBase = {
   locations: z.array(SourceSpan),
   annotations: z.array(Annotation),
   documentation: z.string().nullable(),
-  language: LanguageBag,
+  languageSpecific: LanguageBag,
 };
 
 export const NamespaceNode = z.strictObject({
@@ -425,7 +425,7 @@ export type StubNode = z.infer<typeof StubNode>;
 export const UsageSite = z.strictObject({
   location: SourceSpan,
   viaClosure: z.boolean(),
-  language: LanguageBag,
+  languageSpecific: LanguageBag,
 });
 export type UsageSite = z.infer<typeof UsageSite>;
 
@@ -456,11 +456,6 @@ export const Edge = z.discriminatedUnion('kind', [
     to: NodeId,
     interface: TypeRef,
     declaredOn: NodeId,
-  }),
-  z.strictObject({
-    kind: z.literal('ANNOTATED_WITH'),
-    from: NodeId,
-    annotation: Annotation,
   }),
   z.strictObject({
     kind: z.literal('INVOKES'),
@@ -505,7 +500,6 @@ export type ScanManifest = z.infer<typeof ScanManifest>;
 export const CodeModelFile = z.strictObject({
   schemaVersion: z.literal(1),
   generator,
-  language: Language,
   artifact: ArtifactNode,
   nodes: z.array(DeclarationNode),
   edges: z.array(Edge),

@@ -16,15 +16,15 @@ public static class ModelQueries
         return Assert.IsType<T>(node);
     }
 
-    public static TypeNode Type(this CodeModelFile model, string path) => model.Node<TypeNode>("csharp:T:" + path);
+    public static TypeNode Type(this CodeModelFile model, string path) => model.Node<TypeNode>("T:" + path);
 
-    public static MethodNode Method(this CodeModelFile model, string path) => model.Node<MethodNode>("csharp:M:" + path);
+    public static MethodNode Method(this CodeModelFile model, string path) => model.Node<MethodNode>("M:" + path);
 
-    public static PropertyNode Property(this CodeModelFile model, string path) => model.Node<PropertyNode>("csharp:R:" + path);
+    public static PropertyNode Property(this CodeModelFile model, string path) => model.Node<PropertyNode>("P:" + path);
 
-    public static FieldNode Field(this CodeModelFile model, string path) => model.Node<FieldNode>("csharp:F:" + path);
+    public static FieldNode Field(this CodeModelFile model, string path) => model.Node<FieldNode>("F:" + path);
 
-    public static NamespaceNode Namespace(this CodeModelFile model, string path) => model.Node<NamespaceNode>("csharp:N:" + path);
+    public static NamespaceNode Namespace(this CodeModelFile model, string path) => model.Node<NamespaceNode>("N:" + path);
 
     public static IEnumerable<T> Edges<T>(this CodeModelFile model) where T : Edge => model.Edges.OfType<T>();
 
@@ -53,7 +53,7 @@ public static class ModelQueries
         model.EdgesFrom<ImplementsMemberEdge>(from);
 
     public static IEnumerable<Annotation> AnnotationsOf(this CodeModelFile model, string from) =>
-        model.EdgesFrom<AnnotatedWithEdge>(from).Select(edge => edge.Annotation);
+        model.Find(from)?.Annotations ?? [];
 
     public static StubNode Stub(this CodeModelFile model, string id)
     {
@@ -66,11 +66,11 @@ public static class ModelQueries
 
     public static IEnumerable<string> ModifierNames(this IReadOnlyList<Modifier> modifiers) => modifiers.Select(m => m.ToString());
 
-    public static object? Bag(this DeclarationNode node, string key) => node.Language.TryGetValue(key, out var value) ? value : null;
+    public static object? Bag(this DeclarationNode node, string key) => node.LanguageSpecific.TryGetValue(key, out var value) ? value : null;
 
-    public static object? Bag(this Parameter parameter, string key) => parameter.Language.TryGetValue(key, out var value) ? value : null;
+    public static object? Bag(this Parameter parameter, string key) => parameter.LanguageSpecific.TryGetValue(key, out var value) ? value : null;
 
-    public static object? Bag(this UsageSite site, string key) => site.Language.TryGetValue(key, out var value) ? value : null;
+    public static object? Bag(this UsageSite site, string key) => site.LanguageSpecific.TryGetValue(key, out var value) ? value : null;
 
     public static Parameter Parameter(this MethodNode method, string name) => method.Signature.Parameters.Single(parameter => parameter.Name == name);
 

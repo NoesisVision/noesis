@@ -8,7 +8,6 @@ namespace Noesis.Scanner.Model;
 [JsonDerivedType(typeof(ImplementsEdge), "IMPLEMENTS")]
 [JsonDerivedType(typeof(OverridesEdge), "OVERRIDES")]
 [JsonDerivedType(typeof(ImplementsMemberEdge), "IMPLEMENTS_MEMBER")]
-[JsonDerivedType(typeof(AnnotatedWithEdge), "ANNOTATED_WITH")]
 [JsonDerivedType(typeof(InvokesEdge), "INVOKES")]
 [JsonDerivedType(typeof(AccessesEdge), "ACCESSES")]
 [JsonDerivedType(typeof(UsesTypeEdge), "USES_TYPE")]

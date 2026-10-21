@@ -4,9 +4,8 @@
     "name": "noesis-scan-dotnet",
     "version": "1.0.0"
   },
-  "language": "csharp",
   "artifact": {
-    "id": "csharp:A:CSharpSyntax.OtherProject",
+    "id": "A:CSharpSyntax.OtherProject",
     "kind": "source",
     "name": "CSharpSyntax.OtherProject",
     "version": "1.0.0.0",
@@ -15,837 +14,837 @@
     "executable": false,
     "dependencies": [
       {
-        "id": "csharp:A:Microsoft.CSharp@10.0.0.0",
+        "id": "A:Microsoft.CSharp@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:Microsoft.VisualBasic.Core@15.0.0.0",
+        "id": "A:Microsoft.VisualBasic.Core@15.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:Microsoft.VisualBasic@10.0.0.0",
+        "id": "A:Microsoft.VisualBasic@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:Microsoft.Win32.Primitives@10.0.0.0",
+        "id": "A:Microsoft.Win32.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:Microsoft.Win32.Registry@10.0.0.0",
+        "id": "A:Microsoft.Win32.Registry@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.AppContext@10.0.0.0",
+        "id": "A:System.AppContext@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Buffers@10.0.0.0",
+        "id": "A:System.Buffers@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Collections.Concurrent@10.0.0.0",
+        "id": "A:System.Collections.Concurrent@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Collections.Immutable@10.0.0.0",
+        "id": "A:System.Collections.Immutable@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Collections.NonGeneric@10.0.0.0",
+        "id": "A:System.Collections.NonGeneric@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Collections.Specialized@10.0.0.0",
+        "id": "A:System.Collections.Specialized@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Collections@10.0.0.0",
+        "id": "A:System.Collections@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel.Annotations@10.0.0.0",
+        "id": "A:System.ComponentModel.Annotations@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel.DataAnnotations@4.0.0.0",
+        "id": "A:System.ComponentModel.DataAnnotations@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel.EventBasedAsync@10.0.0.0",
+        "id": "A:System.ComponentModel.EventBasedAsync@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel.Primitives@10.0.0.0",
+        "id": "A:System.ComponentModel.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel.TypeConverter@10.0.0.0",
+        "id": "A:System.ComponentModel.TypeConverter@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ComponentModel@10.0.0.0",
+        "id": "A:System.ComponentModel@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Configuration@4.0.0.0",
+        "id": "A:System.Configuration@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Console@10.0.0.0",
+        "id": "A:System.Console@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Core@4.0.0.0",
+        "id": "A:System.Core@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Data.Common@10.0.0.0",
+        "id": "A:System.Data.Common@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Data.DataSetExtensions@10.0.0.0",
+        "id": "A:System.Data.DataSetExtensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Data@4.0.0.0",
+        "id": "A:System.Data@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.Contracts@10.0.0.0",
+        "id": "A:System.Diagnostics.Contracts@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.Debug@10.0.0.0",
+        "id": "A:System.Diagnostics.Debug@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.DiagnosticSource@10.0.0.0",
+        "id": "A:System.Diagnostics.DiagnosticSource@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.FileVersionInfo@10.0.0.0",
+        "id": "A:System.Diagnostics.FileVersionInfo@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.Process@10.0.0.0",
+        "id": "A:System.Diagnostics.Process@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.StackTrace@10.0.0.0",
+        "id": "A:System.Diagnostics.StackTrace@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.TextWriterTraceListener@10.0.0.0",
+        "id": "A:System.Diagnostics.TextWriterTraceListener@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.Tools@10.0.0.0",
+        "id": "A:System.Diagnostics.Tools@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.TraceSource@10.0.0.0",
+        "id": "A:System.Diagnostics.TraceSource@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Diagnostics.Tracing@10.0.0.0",
+        "id": "A:System.Diagnostics.Tracing@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Drawing.Primitives@10.0.0.0",
+        "id": "A:System.Drawing.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Drawing@4.0.0.0",
+        "id": "A:System.Drawing@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Dynamic.Runtime@10.0.0.0",
+        "id": "A:System.Dynamic.Runtime@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Formats.Asn1@10.0.0.0",
+        "id": "A:System.Formats.Asn1@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Formats.Tar@10.0.0.0",
+        "id": "A:System.Formats.Tar@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Globalization.Calendars@10.0.0.0",
+        "id": "A:System.Globalization.Calendars@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Globalization.Extensions@10.0.0.0",
+        "id": "A:System.Globalization.Extensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Globalization@10.0.0.0",
+        "id": "A:System.Globalization@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Compression.Brotli@10.0.0.0",
+        "id": "A:System.IO.Compression.Brotli@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Compression.FileSystem@4.0.0.0",
+        "id": "A:System.IO.Compression.FileSystem@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Compression.ZipFile@10.0.0.0",
+        "id": "A:System.IO.Compression.ZipFile@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Compression@10.0.0.0",
+        "id": "A:System.IO.Compression@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.FileSystem.AccessControl@10.0.0.0",
+        "id": "A:System.IO.FileSystem.AccessControl@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.FileSystem.DriveInfo@10.0.0.0",
+        "id": "A:System.IO.FileSystem.DriveInfo@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.FileSystem.Primitives@10.0.0.0",
+        "id": "A:System.IO.FileSystem.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.FileSystem.Watcher@10.0.0.0",
+        "id": "A:System.IO.FileSystem.Watcher@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.FileSystem@10.0.0.0",
+        "id": "A:System.IO.FileSystem@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.IsolatedStorage@10.0.0.0",
+        "id": "A:System.IO.IsolatedStorage@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.MemoryMappedFiles@10.0.0.0",
+        "id": "A:System.IO.MemoryMappedFiles@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Pipelines@10.0.0.0",
+        "id": "A:System.IO.Pipelines@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Pipes.AccessControl@10.0.0.0",
+        "id": "A:System.IO.Pipes.AccessControl@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.Pipes@10.0.0.0",
+        "id": "A:System.IO.Pipes@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO.UnmanagedMemoryStream@10.0.0.0",
+        "id": "A:System.IO.UnmanagedMemoryStream@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.IO@10.0.0.0",
+        "id": "A:System.IO@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Linq.AsyncEnumerable@10.0.0.0",
+        "id": "A:System.Linq.AsyncEnumerable@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Linq.Expressions@10.0.0.0",
+        "id": "A:System.Linq.Expressions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Linq.Parallel@10.0.0.0",
+        "id": "A:System.Linq.Parallel@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Linq.Queryable@10.0.0.0",
+        "id": "A:System.Linq.Queryable@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Linq@10.0.0.0",
+        "id": "A:System.Linq@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Memory@10.0.0.0",
+        "id": "A:System.Memory@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Http.Json@10.0.0.0",
+        "id": "A:System.Net.Http.Json@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Http@10.0.0.0",
+        "id": "A:System.Net.Http@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.HttpListener@10.0.0.0",
+        "id": "A:System.Net.HttpListener@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Mail@10.0.0.0",
+        "id": "A:System.Net.Mail@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.NameResolution@10.0.0.0",
+        "id": "A:System.Net.NameResolution@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.NetworkInformation@10.0.0.0",
+        "id": "A:System.Net.NetworkInformation@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Ping@10.0.0.0",
+        "id": "A:System.Net.Ping@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Primitives@10.0.0.0",
+        "id": "A:System.Net.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Quic@10.0.0.0",
+        "id": "A:System.Net.Quic@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Requests@10.0.0.0",
+        "id": "A:System.Net.Requests@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Security@10.0.0.0",
+        "id": "A:System.Net.Security@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.ServerSentEvents@10.0.0.0",
+        "id": "A:System.Net.ServerSentEvents@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.ServicePoint@10.0.0.0",
+        "id": "A:System.Net.ServicePoint@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.Sockets@10.0.0.0",
+        "id": "A:System.Net.Sockets@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.WebClient@10.0.0.0",
+        "id": "A:System.Net.WebClient@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.WebHeaderCollection@10.0.0.0",
+        "id": "A:System.Net.WebHeaderCollection@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.WebProxy@10.0.0.0",
+        "id": "A:System.Net.WebProxy@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.WebSockets.Client@10.0.0.0",
+        "id": "A:System.Net.WebSockets.Client@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net.WebSockets@10.0.0.0",
+        "id": "A:System.Net.WebSockets@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Net@4.0.0.0",
+        "id": "A:System.Net@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Numerics.Vectors@10.0.0.0",
+        "id": "A:System.Numerics.Vectors@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Numerics@4.0.0.0",
+        "id": "A:System.Numerics@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ObjectModel@10.0.0.0",
+        "id": "A:System.ObjectModel@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.DispatchProxy@10.0.0.0",
+        "id": "A:System.Reflection.DispatchProxy@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Emit.ILGeneration@10.0.0.0",
+        "id": "A:System.Reflection.Emit.ILGeneration@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Emit.Lightweight@10.0.0.0",
+        "id": "A:System.Reflection.Emit.Lightweight@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Emit@10.0.0.0",
+        "id": "A:System.Reflection.Emit@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Extensions@10.0.0.0",
+        "id": "A:System.Reflection.Extensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Metadata@10.0.0.0",
+        "id": "A:System.Reflection.Metadata@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.Primitives@10.0.0.0",
+        "id": "A:System.Reflection.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection.TypeExtensions@10.0.0.0",
+        "id": "A:System.Reflection.TypeExtensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Reflection@10.0.0.0",
+        "id": "A:System.Reflection@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Resources.Reader@10.0.0.0",
+        "id": "A:System.Resources.Reader@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Resources.ResourceManager@10.0.0.0",
+        "id": "A:System.Resources.ResourceManager@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Resources.Writer@10.0.0.0",
+        "id": "A:System.Resources.Writer@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.CompilerServices.Unsafe@10.0.0.0",
+        "id": "A:System.Runtime.CompilerServices.Unsafe@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.CompilerServices.VisualC@10.0.0.0",
+        "id": "A:System.Runtime.CompilerServices.VisualC@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Extensions@10.0.0.0",
+        "id": "A:System.Runtime.Extensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Handles@10.0.0.0",
+        "id": "A:System.Runtime.Handles@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.InteropServices.JavaScript@10.0.0.0",
+        "id": "A:System.Runtime.InteropServices.JavaScript@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.InteropServices.RuntimeInformation@10.0.0.0",
+        "id": "A:System.Runtime.InteropServices.RuntimeInformation@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.InteropServices@10.0.0.0",
+        "id": "A:System.Runtime.InteropServices@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Intrinsics@10.0.0.0",
+        "id": "A:System.Runtime.Intrinsics@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Loader@10.0.0.0",
+        "id": "A:System.Runtime.Loader@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Numerics@10.0.0.0",
+        "id": "A:System.Runtime.Numerics@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Serialization.Formatters@8.1.0.0",
+        "id": "A:System.Runtime.Serialization.Formatters@8.1.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Serialization.Json@10.0.0.0",
+        "id": "A:System.Runtime.Serialization.Json@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Serialization.Primitives@10.0.0.0",
+        "id": "A:System.Runtime.Serialization.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Serialization.Xml@10.0.0.0",
+        "id": "A:System.Runtime.Serialization.Xml@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime.Serialization@4.0.0.0",
+        "id": "A:System.Runtime.Serialization@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Runtime@10.0.0.0",
+        "id": "A:System.Runtime@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.AccessControl@10.0.0.0",
+        "id": "A:System.Security.AccessControl@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Claims@10.0.0.0",
+        "id": "A:System.Security.Claims@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.Algorithms@10.0.0.0",
+        "id": "A:System.Security.Cryptography.Algorithms@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.Cng@10.0.0.0",
+        "id": "A:System.Security.Cryptography.Cng@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.Csp@10.0.0.0",
+        "id": "A:System.Security.Cryptography.Csp@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.Encoding@10.0.0.0",
+        "id": "A:System.Security.Cryptography.Encoding@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.OpenSsl@10.0.0.0",
+        "id": "A:System.Security.Cryptography.OpenSsl@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.Primitives@10.0.0.0",
+        "id": "A:System.Security.Cryptography.Primitives@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography.X509Certificates@10.0.0.0",
+        "id": "A:System.Security.Cryptography.X509Certificates@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Cryptography@10.0.0.0",
+        "id": "A:System.Security.Cryptography@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Principal.Windows@10.0.0.0",
+        "id": "A:System.Security.Principal.Windows@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.Principal@10.0.0.0",
+        "id": "A:System.Security.Principal@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security.SecureString@10.0.0.0",
+        "id": "A:System.Security.SecureString@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Security@4.0.0.0",
+        "id": "A:System.Security@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ServiceModel.Web@4.0.0.0",
+        "id": "A:System.ServiceModel.Web@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ServiceProcess@4.0.0.0",
+        "id": "A:System.ServiceProcess@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.Encoding.CodePages@10.0.0.0",
+        "id": "A:System.Text.Encoding.CodePages@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.Encoding.Extensions@10.0.0.0",
+        "id": "A:System.Text.Encoding.Extensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.Encoding@10.0.0.0",
+        "id": "A:System.Text.Encoding@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.Encodings.Web@10.0.0.0",
+        "id": "A:System.Text.Encodings.Web@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.Json@10.0.0.0",
+        "id": "A:System.Text.Json@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Text.RegularExpressions@10.0.0.0",
+        "id": "A:System.Text.RegularExpressions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.AccessControl@10.0.0.0",
+        "id": "A:System.Threading.AccessControl@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Channels@10.0.0.0",
+        "id": "A:System.Threading.Channels@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Overlapped@10.0.0.0",
+        "id": "A:System.Threading.Overlapped@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Tasks.Dataflow@10.0.0.0",
+        "id": "A:System.Threading.Tasks.Dataflow@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Tasks.Extensions@10.0.0.0",
+        "id": "A:System.Threading.Tasks.Extensions@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Tasks.Parallel@10.0.0.0",
+        "id": "A:System.Threading.Tasks.Parallel@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Tasks@10.0.0.0",
+        "id": "A:System.Threading.Tasks@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Thread@10.0.0.0",
+        "id": "A:System.Threading.Thread@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.ThreadPool@10.0.0.0",
+        "id": "A:System.Threading.ThreadPool@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading.Timer@10.0.0.0",
+        "id": "A:System.Threading.Timer@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Threading@10.0.0.0",
+        "id": "A:System.Threading@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Transactions.Local@10.0.0.0",
+        "id": "A:System.Transactions.Local@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Transactions@4.0.0.0",
+        "id": "A:System.Transactions@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.ValueTuple@10.0.0.0",
+        "id": "A:System.ValueTuple@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Web.HttpUtility@10.0.0.0",
+        "id": "A:System.Web.HttpUtility@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Web@4.0.0.0",
+        "id": "A:System.Web@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Windows@4.0.0.0",
+        "id": "A:System.Windows@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.Linq@4.0.0.0",
+        "id": "A:System.Xml.Linq@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.ReaderWriter@10.0.0.0",
+        "id": "A:System.Xml.ReaderWriter@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.Serialization@4.0.0.0",
+        "id": "A:System.Xml.Serialization@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.XDocument@10.0.0.0",
+        "id": "A:System.Xml.XDocument@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.XPath.XDocument@10.0.0.0",
+        "id": "A:System.Xml.XPath.XDocument@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.XPath@10.0.0.0",
+        "id": "A:System.Xml.XPath@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.XmlDocument@10.0.0.0",
+        "id": "A:System.Xml.XmlDocument@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml.XmlSerializer@10.0.0.0",
+        "id": "A:System.Xml.XmlSerializer@10.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System.Xml@4.0.0.0",
+        "id": "A:System.Xml@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:System@4.0.0.0",
+        "id": "A:System@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:WindowsBase@4.0.0.0",
+        "id": "A:WindowsBase@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:mscorlib@4.0.0.0",
+        "id": "A:mscorlib@4.0.0.0",
         "kind": "platform",
         "package": null
       },
       {
-        "id": "csharp:A:netstandard@2.1.0.0",
+        "id": "A:netstandard@2.1.0.0",
         "kind": "platform",
         "package": null
       }
@@ -854,7 +853,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Runtime.CompilerServices.InternalsVisibleToAttribute",
+          "type": "T:System.Runtime.CompilerServices.InternalsVisibleToAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -873,7 +872,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Runtime.Versioning.TargetFrameworkAttribute",
+          "type": "T:System.Runtime.Versioning.TargetFrameworkAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -900,7 +899,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyCompanyAttribute",
+          "type": "T:System.Reflection.AssemblyCompanyAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -919,7 +918,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyConfigurationAttribute",
+          "type": "T:System.Reflection.AssemblyConfigurationAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -938,7 +937,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyFileVersionAttribute",
+          "type": "T:System.Reflection.AssemblyFileVersionAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -957,7 +956,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyInformationalVersionAttribute",
+          "type": "T:System.Reflection.AssemblyInformationalVersionAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -968,7 +967,7 @@
             "positional": true,
             "value": {
               "kind": "literal",
-              "text": "\"1.0.0+1006ded87dbed93f4e9e3db7a744b5f7defe10c4\""
+              "text": "\"1.0.0\""
             }
           }
         ]
@@ -976,7 +975,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyProductAttribute",
+          "type": "T:System.Reflection.AssemblyProductAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -995,7 +994,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyTitleAttribute",
+          "type": "T:System.Reflection.AssemblyTitleAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -1014,7 +1013,7 @@
       {
         "type": {
           "kind": "named",
-          "type": "csharp:T:System.Reflection.AssemblyVersionAttribute",
+          "type": "T:System.Reflection.AssemblyVersionAttribute",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -1031,7 +1030,7 @@
         ]
       }
     ],
-    "language": {
+    "languageSpecific": {
       "csharp.outputKind": "DynamicallyLinkedLibrary",
       "csharp.projectFile": "scanners/dotnet/test/fixtures/CSharpSyntax.OtherProject/CSharpSyntax.OtherProject.csproj",
       "csharp.projectName": "CSharpSyntax.OtherProject",
@@ -1049,14 +1048,14 @@
       ],
       "type": {
         "kind": "named",
-        "type": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject",
+        "type": "T:CSharpSyntax.OtherProject.EnumFromOtherProject",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
       "passing": "value",
       "constantValue": "0",
-      "id": "csharp:F:CSharpSyntax.OtherProject.EnumFromOtherProject.FirstFromOtherProject",
+      "id": "F:CSharpSyntax.OtherProject.EnumFromOtherProject.FirstFromOtherProject",
       "name": "FirstFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1070,7 +1069,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "field",
@@ -1082,14 +1081,14 @@
       ],
       "type": {
         "kind": "named",
-        "type": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject",
+        "type": "T:CSharpSyntax.OtherProject.EnumFromOtherProject",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
       "passing": "value",
       "constantValue": "1",
-      "id": "csharp:F:CSharpSyntax.OtherProject.EnumFromOtherProject.SecondFromOtherProject",
+      "id": "F:CSharpSyntax.OtherProject.EnumFromOtherProject.SecondFromOtherProject",
       "name": "SecondFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1103,7 +1102,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "field",
@@ -1120,7 +1119,7 @@
       },
       "passing": "value",
       "constantValue": "42",
-      "id": "csharp:F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
+      "id": "F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
       "name": "ConstantFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1134,7 +1133,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "field",
@@ -1148,7 +1147,7 @@
       },
       "passing": "value",
       "constantValue": null,
-      "id": "csharp:F:CSharpSyntax.OtherProject.StructFromOtherProject.ValueFromOtherProject",
+      "id": "F:CSharpSyntax.OtherProject.StructFromOtherProject.ValueFromOtherProject",
       "name": "ValueFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1162,7 +1161,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1180,13 +1179,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1206,7 +1205,7 @@
       },
       "extensionReceiver": null,
       "bodiless": true,
-      "id": "csharp:M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#AbstractMethodFromOtherProject()",
+      "id": "M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#AbstractMethodFromOtherProject()",
       "name": "AbstractMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1220,7 +1219,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1234,7 +1233,7 @@
             "name": "positionalType",
             "type": {
               "kind": "named",
-              "type": "csharp:T:System.Type",
+              "type": "T:System.Type",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -1244,7 +1243,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -1255,7 +1254,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.AttributeFromOtherProject#.ctor(System.Type)",
+      "id": "M:CSharpSyntax.OtherProject.AttributeFromOtherProject#.ctor(System.Type)",
       "name": ".ctor",
       "origin": "declared",
       "locations": [
@@ -1269,7 +1268,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.primaryConstructor": true
       }
     },
@@ -1295,13 +1294,13 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           },
           {
             "name": "callback",
             "type": {
               "kind": "named",
-              "type": "csharp:T:System.AsyncCallback",
+              "type": "T:System.AsyncCallback",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -1311,7 +1310,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           },
           {
             "name": "object",
@@ -1325,12 +1324,12 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
           "kind": "named",
-          "type": "csharp:T:System.IAsyncResult",
+          "type": "T:System.IAsyncResult",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -1340,13 +1339,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#BeginInvoke(int,System.AsyncCallback,object)",
+      "id": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#BeginInvoke(int,System.AsyncCallback,object)",
       "name": "BeginInvoke",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1362,7 +1361,7 @@
             "name": "result",
             "type": {
               "kind": "named",
-              "type": "csharp:T:System.IAsyncResult",
+              "type": "T:System.IAsyncResult",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -1372,7 +1371,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -1383,13 +1382,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#EndInvoke(System.IAsyncResult)",
+      "id": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#EndInvoke(System.IAsyncResult)",
       "name": "EndInvoke",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1413,7 +1412,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -1424,13 +1423,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#Invoke(int)",
+      "id": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#Invoke(int)",
       "name": "Invoke",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1448,13 +1447,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.DisposableFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.DisposableFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1472,7 +1471,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()",
+      "id": "M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()",
       "name": "Dispose",
       "origin": "declared",
       "locations": [
@@ -1486,7 +1485,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1504,13 +1503,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.EventArgsFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.EventArgsFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1528,13 +1527,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.ExceptionFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.ExceptionFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1552,13 +1551,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1574,7 +1573,7 @@
             "name": "value",
             "type": {
               "kind": "typeParameter",
-              "owner": "csharp:T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
+              "owner": "T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
               "ordinal": 0,
               "nullable": false
             },
@@ -1583,12 +1582,12 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
           "kind": "typeParameter",
-          "owner": "csharp:T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
+          "owner": "T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
           "ordinal": 0,
           "nullable": false
         },
@@ -1597,7 +1596,7 @@
       },
       "extensionReceiver": null,
       "bodiless": true,
-      "id": "csharp:M:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1#GenericMethodFromOtherProjectInterface(!0)",
+      "id": "M:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1#GenericMethodFromOtherProjectInterface(!0)",
       "name": "GenericMethodFromOtherProjectInterface",
       "origin": "declared",
       "locations": [
@@ -1611,7 +1610,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1631,7 +1630,7 @@
       },
       "extensionReceiver": null,
       "bodiless": true,
-      "id": "csharp:M:CSharpSyntax.OtherProject.IInterfaceFromOtherProject#MethodFromOtherProjectInterface()",
+      "id": "M:CSharpSyntax.OtherProject.IInterfaceFromOtherProject#MethodFromOtherProjectInterface()",
       "name": "MethodFromOtherProjectInterface",
       "origin": "declared",
       "locations": [
@@ -1645,7 +1644,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1663,13 +1662,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1689,7 +1688,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#InternalMethodFromOtherProject()",
+      "id": "M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#InternalMethodFromOtherProject()",
       "name": "InternalMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1703,7 +1702,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1721,13 +1720,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1747,7 +1746,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#StaticMethodFromNestedNamespace()",
+      "id": "M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#StaticMethodFromNestedNamespace()",
       "name": "StaticMethodFromNestedNamespace",
       "origin": "declared",
       "locations": [
@@ -1761,7 +1760,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1779,13 +1778,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1805,7 +1804,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicMethodFromOtherProject()",
+      "id": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicMethodFromOtherProject()",
       "name": "PublicMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1819,7 +1818,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1841,7 +1840,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicStaticMethodFromOtherProject()",
+      "id": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicStaticMethodFromOtherProject()",
       "name": "PublicStaticMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -1855,7 +1854,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1873,13 +1872,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1893,7 +1892,7 @@
             "name": "original",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -1903,7 +1902,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -1914,13 +1913,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(CSharpSyntax.OtherProject.RecordFromOtherProject)",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -1942,7 +1941,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -1953,7 +1952,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(int)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(int)",
       "name": ".ctor",
       "origin": "declared",
       "locations": [
@@ -1967,7 +1966,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.primaryConstructor": true
       }
     },
@@ -1983,7 +1982,7 @@
         "parameters": [],
         "returnType": {
           "kind": "named",
-          "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+          "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -1993,13 +1992,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#<Clone>$()",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#<Clone>$()",
       "name": "<Clone>$",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2021,7 +2020,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {
+            "languageSpecific": {
               "csharp.refKind": "out",
               "csharp.scoped": true
             }
@@ -2035,13 +2034,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Deconstruct(int)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Deconstruct(int)",
       "name": "Deconstruct",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2057,7 +2056,7 @@
             "name": "other",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": true
@@ -2067,7 +2066,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2080,13 +2079,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)",
       "name": "Equals",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2110,7 +2109,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2123,13 +2122,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)",
       "name": "Equals",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2151,13 +2150,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()",
       "name": "GetHashCode",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2173,7 +2172,7 @@
             "name": "builder",
             "type": {
               "kind": "named",
-              "type": "csharp:T:System.Text.StringBuilder",
+              "type": "T:System.Text.StringBuilder",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -2183,7 +2182,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2196,13 +2195,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#PrintMembers(System.Text.StringBuilder)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#PrintMembers(System.Text.StringBuilder)",
       "name": "PrintMembers",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2224,13 +2223,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()",
       "name": "ToString",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2246,7 +2245,7 @@
             "name": "left",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": true
@@ -2256,13 +2255,13 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           },
           {
             "name": "right",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": true
@@ -2272,7 +2271,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2285,13 +2284,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Equality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Equality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
       "name": "op_Equality",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2307,7 +2306,7 @@
             "name": "left",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": true
@@ -2317,13 +2316,13 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           },
           {
             "name": "right",
             "type": {
               "kind": "named",
-              "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+              "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
               "typeArguments": [],
               "unbound": false,
               "nullable": true
@@ -2333,7 +2332,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2346,13 +2345,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Inequality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "id": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Inequality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
       "name": "op_Inequality",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2376,7 +2375,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2393,7 +2392,7 @@
         "nullable": false
       },
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#ClassicExtensionMethodFromOtherProject(string)",
+      "id": "M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#ClassicExtensionMethodFromOtherProject(string)",
       "name": "ClassicExtensionMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2407,7 +2406,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2429,7 +2428,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()",
+      "id": "M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()",
       "name": "StaticMethodFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2443,7 +2442,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2461,13 +2460,13 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.OtherProject.StructFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.OtherProject.StructFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "method",
@@ -2485,17 +2484,17 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "csharp:M:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject#.ctor()",
+      "id": "M:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "namespace",
-      "id": "csharp:N:",
+      "id": "N:",
       "name": "",
       "origin": "declared",
       "locations": [
@@ -2544,11 +2543,11 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "namespace",
-      "id": "csharp:N:CSharpSyntax",
+      "id": "N:CSharpSyntax",
       "name": "CSharpSyntax",
       "origin": "declared",
       "locations": [
@@ -2576,11 +2575,11 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "namespace",
-      "id": "csharp:N:CSharpSyntax.OtherProject",
+      "id": "N:CSharpSyntax.OtherProject",
       "name": "OtherProject",
       "origin": "declared",
       "locations": [
@@ -2601,11 +2600,11 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "namespace",
-      "id": "csharp:N:CSharpSyntax.OtherProject.NestedNamespace",
+      "id": "N:CSharpSyntax.OtherProject.NestedNamespace",
       "name": "NestedNamespace",
       "origin": "declared",
       "locations": [
@@ -2619,11 +2618,11 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "namespace",
-      "id": "csharp:N:CSharpSyntax.SharedNamespace",
+      "id": "N:CSharpSyntax.SharedNamespace",
       "name": "SharedNamespace",
       "origin": "declared",
       "locations": [
@@ -2637,7 +2636,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2645,7 +2644,7 @@
       "modifiers": [],
       "type": {
         "kind": "named",
-        "type": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject",
+        "type": "T:CSharpSyntax.OtherProject.EnumFromOtherProject",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
@@ -2657,7 +2656,7 @@
         "get",
         "set"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.AttributeFromOtherProject.NamedEnumArgument",
+      "id": "P:CSharpSyntax.OtherProject.AttributeFromOtherProject.NamedEnumArgument",
       "name": "NamedEnumArgument",
       "origin": "declared",
       "locations": [
@@ -2671,7 +2670,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2679,7 +2678,7 @@
       "modifiers": [],
       "type": {
         "kind": "named",
-        "type": "csharp:T:System.Type",
+        "type": "T:System.Type",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
@@ -2690,7 +2689,7 @@
       "accessors": [
         "get"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.AttributeFromOtherProject.PositionalType",
+      "id": "P:CSharpSyntax.OtherProject.AttributeFromOtherProject.PositionalType",
       "name": "PositionalType",
       "origin": "declared",
       "locations": [
@@ -2704,7 +2703,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2712,7 +2711,7 @@
       "modifiers": [],
       "type": {
         "kind": "typeParameter",
-        "owner": "csharp:T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
+        "owner": "T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
         "ordinal": 0,
         "nullable": true
       },
@@ -2723,7 +2722,7 @@
         "get",
         "set"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1.ValueFromOtherProject",
+      "id": "P:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1.ValueFromOtherProject",
       "name": "ValueFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2737,7 +2736,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2755,7 +2754,7 @@
         "get",
         "set"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.PublicClassFromOtherProject.PublicPropertyFromOtherProject",
+      "id": "P:CSharpSyntax.OtherProject.PublicClassFromOtherProject.PublicPropertyFromOtherProject",
       "name": "PublicPropertyFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2769,7 +2768,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2779,7 +2778,7 @@
       ],
       "type": {
         "kind": "named",
-        "type": "csharp:T:System.Type",
+        "type": "T:System.Type",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
@@ -2790,13 +2789,13 @@
       "accessors": [
         "get"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.RecordFromOtherProject.EqualityContract",
+      "id": "P:CSharpSyntax.OtherProject.RecordFromOtherProject.EqualityContract",
       "name": "EqualityContract",
       "origin": "generated",
       "locations": [],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "property",
@@ -2814,7 +2813,7 @@
         "get",
         "init"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.RecordFromOtherProject.ValueFromOtherProject",
+      "id": "P:CSharpSyntax.OtherProject.RecordFromOtherProject.ValueFromOtherProject",
       "name": "ValueFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2828,7 +2827,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.positional": true
       }
     },
@@ -2851,7 +2850,7 @@
       "accessors": [
         "get"
       ],
-      "id": "csharp:R:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ExtensionMemberPropertyFromOtherProject",
+      "id": "P:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ExtensionMemberPropertyFromOtherProject",
       "name": "ExtensionMemberPropertyFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2865,7 +2864,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.extensionBlock": true
       }
     },
@@ -2880,7 +2879,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject",
       "name": "AbstractBaseClassFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2894,7 +2893,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -2907,7 +2906,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject",
       "name": "AttributeFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -2923,7 +2922,7 @@
         {
           "type": {
             "kind": "named",
-            "type": "csharp:T:System.AttributeUsageAttribute",
+            "type": "T:System.AttributeUsageAttribute",
             "typeArguments": [],
             "unbound": false,
             "nullable": false
@@ -2936,7 +2935,7 @@
                 "kind": "enum",
                 "type": {
                   "kind": "named",
-                  "type": "csharp:T:System.AttributeTargets",
+                  "type": "T:System.AttributeTargets",
                   "typeArguments": [],
                   "unbound": false,
                   "nullable": false
@@ -2956,7 +2955,7 @@
         }
       ],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.primaryConstructor": true
       }
     },
@@ -2981,7 +2980,7 @@
             "optional": false,
             "defaultValue": null,
             "annotations": [],
-            "language": {}
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -2991,7 +2990,7 @@
         "returnAnnotations": []
       },
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.DelegateFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.DelegateFromOtherProject",
       "name": "DelegateFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3005,7 +3004,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3018,7 +3017,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
       "name": "DisposableFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3032,7 +3031,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3047,7 +3046,7 @@
       },
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.EnumFromOtherProject",
       "name": "EnumFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3061,7 +3060,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3072,7 +3071,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.EventArgsFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.EventArgsFromOtherProject",
       "name": "EventArgsFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3086,7 +3085,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3097,7 +3096,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
       "name": "ExceptionFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3111,7 +3110,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3125,13 +3124,13 @@
           "annotations": [],
           "variance": "invariant",
           "constraints": [],
-          "language": {}
+          "languageSpecific": {}
         }
       ],
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
+      "id": "T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
       "name": "GenericClassFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3145,7 +3144,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3159,13 +3158,13 @@
           "annotations": [],
           "variance": "invariant",
           "constraints": [],
-          "language": {}
+          "languageSpecific": {}
         }
       ],
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
+      "id": "T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
       "name": "IGenericInterfaceFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3179,7 +3178,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3190,7 +3189,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject",
       "name": "IInterfaceFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3204,7 +3203,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3215,7 +3214,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo",
+      "id": "T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo",
       "name": "InternalClassVisibleViaInternalsVisibleTo",
       "origin": "declared",
       "locations": [
@@ -3229,7 +3228,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3240,7 +3239,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject",
       "name": "ClassFromNestedNamespaceOfOtherProject",
       "origin": "declared",
       "locations": [
@@ -3254,7 +3253,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3265,7 +3264,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject",
       "name": "PublicClassFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3279,7 +3278,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3290,7 +3289,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject",
       "name": "NestedClassFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3304,7 +3303,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3317,7 +3316,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
       "name": "RecordFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3331,7 +3330,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {
+      "languageSpecific": {
         "csharp.primaryConstructor": true
       }
     },
@@ -3346,7 +3345,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject",
       "name": "StaticClassFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3360,7 +3359,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3371,7 +3370,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.OtherProject.StructFromOtherProject",
+      "id": "T:CSharpSyntax.OtherProject.StructFromOtherProject",
       "name": "StructFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3385,7 +3384,7 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     },
     {
       "kind": "type",
@@ -3396,7 +3395,7 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject",
+      "id": "T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject",
       "name": "ClassInSharedNamespaceFromOtherProject",
       "origin": "declared",
       "locations": [
@@ -3410,13 +3409,13 @@
       ],
       "annotations": [],
       "documentation": null,
-      "language": {}
+      "languageSpecific": {}
     }
   ],
   "edges": [
     {
       "kind": "ACCESSES",
-      "to": "csharp:F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
+      "to": "F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
       "access": "read",
       "site": {
         "location": {
@@ -3427,573 +3426,535 @@
           "endColumn": 81
         },
         "viaClosure": false,
-        "language": {}
+        "languageSpecific": {}
       },
       "receiver": "type",
-      "from": "csharp:M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()"
+      "from": "M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()"
     },
     {
-      "kind": "ANNOTATED_WITH",
-      "annotation": {
-        "type": {
-          "kind": "named",
-          "type": "csharp:T:System.AttributeUsageAttribute",
-          "typeArguments": [],
-          "unbound": false,
-          "nullable": false
-        },
-        "arguments": [
-          {
-            "name": "validOn",
-            "positional": true,
-            "value": {
-              "kind": "enum",
-              "type": {
-                "kind": "named",
-                "type": "csharp:T:System.AttributeTargets",
-                "typeArguments": [],
-                "unbound": false,
-                "nullable": false
-              },
-              "member": "All"
-            }
-          },
-          {
-            "name": "AllowMultiple",
-            "positional": false,
-            "value": {
-              "kind": "literal",
-              "text": "true"
-            }
-          }
-        ]
-      },
-      "from": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
-    },
-    {
       "kind": "CONTAINS",
-      "to": "csharp:N:",
-      "from": "csharp:A:CSharpSyntax.OtherProject"
+      "to": "N:",
+      "from": "A:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:N:CSharpSyntax",
-      "from": "csharp:N:"
+      "to": "N:CSharpSyntax",
+      "from": "N:"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:N:CSharpSyntax.OtherProject",
-      "from": "csharp:N:CSharpSyntax"
+      "to": "N:CSharpSyntax.OtherProject",
+      "from": "N:CSharpSyntax"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:N:CSharpSyntax.SharedNamespace",
-      "from": "csharp:N:CSharpSyntax"
+      "to": "N:CSharpSyntax.SharedNamespace",
+      "from": "N:CSharpSyntax"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:N:CSharpSyntax.OtherProject.NestedNamespace",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "N:CSharpSyntax.OtherProject.NestedNamespace",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.DelegateFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.DelegateFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.EnumFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.EventArgsFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.EventArgsFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.StructFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject"
+      "to": "T:CSharpSyntax.OtherProject.StructFromOtherProject",
+      "from": "N:CSharpSyntax.OtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject",
-      "from": "csharp:N:CSharpSyntax.OtherProject.NestedNamespace"
+      "to": "T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject",
+      "from": "N:CSharpSyntax.OtherProject.NestedNamespace"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject",
-      "from": "csharp:N:CSharpSyntax.SharedNamespace"
+      "to": "T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject",
+      "from": "N:CSharpSyntax.SharedNamespace"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#AbstractMethodFromOtherProject()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject#AbstractMethodFromOtherProject()",
+      "from": "T:CSharpSyntax.OtherProject.AbstractBaseClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.AttributeFromOtherProject#.ctor(System.Type)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.AttributeFromOtherProject#.ctor(System.Type)",
+      "from": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.AttributeFromOtherProject.NamedEnumArgument",
-      "from": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.AttributeFromOtherProject.NamedEnumArgument",
+      "from": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.AttributeFromOtherProject.PositionalType",
-      "from": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.AttributeFromOtherProject.PositionalType",
+      "from": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#BeginInvoke(int,System.AsyncCallback,object)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#BeginInvoke(int,System.AsyncCallback,object)",
+      "from": "T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#EndInvoke(System.IAsyncResult)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#EndInvoke(System.IAsyncResult)",
+      "from": "T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.DelegateFromOtherProject#Invoke(int)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.DelegateFromOtherProject#Invoke(int)",
+      "from": "T:CSharpSyntax.OtherProject.DelegateFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.DisposableFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.DisposableFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()",
+      "from": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:F:CSharpSyntax.OtherProject.EnumFromOtherProject.FirstFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject"
+      "to": "F:CSharpSyntax.OtherProject.EnumFromOtherProject.FirstFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.EnumFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:F:CSharpSyntax.OtherProject.EnumFromOtherProject.SecondFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.EnumFromOtherProject"
+      "to": "F:CSharpSyntax.OtherProject.EnumFromOtherProject.SecondFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.EnumFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.EventArgsFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.EventArgsFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.EventArgsFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.EventArgsFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.ExceptionFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.ExceptionFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.ExceptionFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.ExceptionFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1"
+      "to": "M:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1.ValueFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1"
+      "to": "P:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1.ValueFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.GenericClassFromOtherProject`1"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1#GenericMethodFromOtherProjectInterface(!0)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1"
+      "to": "M:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1#GenericMethodFromOtherProjectInterface(!0)",
+      "from": "T:CSharpSyntax.OtherProject.IGenericInterfaceFromOtherProject`1"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.IInterfaceFromOtherProject#MethodFromOtherProjectInterface()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.IInterfaceFromOtherProject#MethodFromOtherProjectInterface()",
+      "from": "T:CSharpSyntax.OtherProject.IInterfaceFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo"
+      "to": "M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#InternalMethodFromOtherProject()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo"
+      "to": "M:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo#InternalMethodFromOtherProject()",
+      "from": "T:CSharpSyntax.OtherProject.InternalClassVisibleViaInternalsVisibleTo"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#StaticMethodFromNestedNamespace()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject#StaticMethodFromNestedNamespace()",
+      "from": "T:CSharpSyntax.OtherProject.NestedNamespace.ClassFromNestedNamespaceOfOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicMethodFromOtherProject()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicMethodFromOtherProject()",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicStaticMethodFromOtherProject()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject#PublicStaticMethodFromOtherProject()",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.PublicClassFromOtherProject.PublicPropertyFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.PublicClassFromOtherProject.PublicPropertyFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
+      "to": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.PublicClassFromOtherProject+NestedClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(CSharpSyntax.OtherProject.RecordFromOtherProject)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(int)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#.ctor(int)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#<Clone>$()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#<Clone>$()",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Deconstruct(int)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Deconstruct(int)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#PrintMembers(System.Text.StringBuilder)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#PrintMembers(System.Text.StringBuilder)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Equality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Equality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Inequality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#op_Inequality(CSharpSyntax.OtherProject.RecordFromOtherProject,CSharpSyntax.OtherProject.RecordFromOtherProject)",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.RecordFromOtherProject.EqualityContract",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.RecordFromOtherProject.EqualityContract",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.RecordFromOtherProject.ValueFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.RecordFromOtherProject.ValueFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
+      "to": "F:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ConstantFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#ClassicExtensionMethodFromOtherProject(string)",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#ClassicExtensionMethodFromOtherProject(string)",
+      "from": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.StaticClassFromOtherProject#StaticMethodFromOtherProject()",
+      "from": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:R:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ExtensionMemberPropertyFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
+      "to": "P:CSharpSyntax.OtherProject.StaticClassFromOtherProject.ExtensionMemberPropertyFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.StaticClassFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:F:CSharpSyntax.OtherProject.StructFromOtherProject.ValueFromOtherProject",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StructFromOtherProject"
+      "to": "F:CSharpSyntax.OtherProject.StructFromOtherProject.ValueFromOtherProject",
+      "from": "T:CSharpSyntax.OtherProject.StructFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.OtherProject.StructFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.OtherProject.StructFromOtherProject"
+      "to": "M:CSharpSyntax.OtherProject.StructFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.OtherProject.StructFromOtherProject"
     },
     {
       "kind": "CONTAINS",
-      "to": "csharp:M:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject#.ctor()",
-      "from": "csharp:T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"
+      "to": "M:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject#.ctor()",
+      "from": "T:CSharpSyntax.SharedNamespace.ClassInSharedNamespaceFromOtherProject"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
+      "from": "T:CSharpSyntax.OtherProject.AttributeFromOtherProject"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.EventArgs",
+        "type": "T:System.EventArgs",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:CSharpSyntax.OtherProject.EventArgsFromOtherProject"
+      "from": "T:CSharpSyntax.OtherProject.EventArgsFromOtherProject"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Exception",
+        "type": "T:System.Exception",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:CSharpSyntax.OtherProject.ExceptionFromOtherProject"
+      "from": "T:CSharpSyntax.OtherProject.ExceptionFromOtherProject"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.AttributeUsageAttribute"
+      "from": "T:System.AttributeUsageAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyCompanyAttribute"
+      "from": "T:System.Reflection.AssemblyCompanyAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyConfigurationAttribute"
+      "from": "T:System.Reflection.AssemblyConfigurationAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyFileVersionAttribute"
+      "from": "T:System.Reflection.AssemblyFileVersionAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyInformationalVersionAttribute"
+      "from": "T:System.Reflection.AssemblyInformationalVersionAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyProductAttribute"
+      "from": "T:System.Reflection.AssemblyProductAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyTitleAttribute"
+      "from": "T:System.Reflection.AssemblyTitleAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.AssemblyVersionAttribute"
+      "from": "T:System.Reflection.AssemblyVersionAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Runtime.CompilerServices.InternalsVisibleToAttribute"
+      "from": "T:System.Runtime.CompilerServices.InternalsVisibleToAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Attribute",
+        "type": "T:System.Attribute",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Runtime.Versioning.TargetFrameworkAttribute"
+      "from": "T:System.Runtime.Versioning.TargetFrameworkAttribute"
     },
     {
       "kind": "EXTENDS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Reflection.MemberInfo",
+        "type": "T:System.Reflection.MemberInfo",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Type"
+      "from": "T:System.Type"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.IDisposable",
+        "type": "T:System.IDisposable",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
+      "from": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.IEquatable`1",
+        "type": "T:System.IEquatable`1",
         "typeArguments": [
           {
             "kind": "named",
-            "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+            "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
             "typeArguments": [],
             "unbound": false,
             "nullable": false
@@ -4002,75 +3963,75 @@
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject"
+      "from": "T:CSharpSyntax.OtherProject.RecordFromOtherProject"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Runtime.Serialization.ISerializable",
+        "type": "T:System.Runtime.Serialization.ISerializable",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Exception"
+      "from": "T:System.Exception"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Reflection.ICustomAttributeProvider",
+        "type": "T:System.Reflection.ICustomAttributeProvider",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Reflection.MemberInfo"
+      "from": "T:System.Reflection.MemberInfo"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Runtime.Serialization.ISerializable",
+        "type": "T:System.Runtime.Serialization.ISerializable",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Text.StringBuilder"
+      "from": "T:System.Text.StringBuilder"
     },
     {
       "kind": "IMPLEMENTS",
       "to": {
         "kind": "named",
-        "type": "csharp:T:System.Reflection.IReflect",
+        "type": "T:System.Reflection.IReflect",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "from": "csharp:T:System.Type"
+      "from": "T:System.Type"
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
-      "to": "csharp:M:System.IDisposable#Dispose()",
+      "to": "M:System.IDisposable#Dispose()",
       "interface": {
         "kind": "named",
-        "type": "csharp:T:System.IDisposable",
+        "type": "T:System.IDisposable",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "declaredOn": "csharp:T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
-      "from": "csharp:M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()"
+      "declaredOn": "T:CSharpSyntax.OtherProject.DisposableFromOtherProject",
+      "from": "M:CSharpSyntax.OtherProject.DisposableFromOtherProject#Dispose()"
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
-      "to": "csharp:M:System.IEquatable`1#Equals(!0)",
+      "to": "M:System.IEquatable`1#Equals(!0)",
       "interface": {
         "kind": "named",
-        "type": "csharp:T:System.IEquatable`1",
+        "type": "T:System.IEquatable`1",
         "typeArguments": [
           {
             "kind": "named",
-            "type": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+            "type": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
             "typeArguments": [],
             "unbound": false,
             "nullable": false
@@ -4079,325 +4040,325 @@
         "unbound": false,
         "nullable": false
       },
-      "declaredOn": "csharp:T:CSharpSyntax.OtherProject.RecordFromOtherProject",
-      "from": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)"
+      "declaredOn": "T:CSharpSyntax.OtherProject.RecordFromOtherProject",
+      "from": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(CSharpSyntax.OtherProject.RecordFromOtherProject)"
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
-      "to": "csharp:M:System.Runtime.Serialization.ISerializable#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
+      "to": "M:System.Runtime.Serialization.ISerializable#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
       "interface": {
         "kind": "named",
-        "type": "csharp:T:System.Runtime.Serialization.ISerializable",
+        "type": "T:System.Runtime.Serialization.ISerializable",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
       },
-      "declaredOn": "csharp:T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
-      "from": "csharp:M:System.Exception#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)"
+      "declaredOn": "T:CSharpSyntax.OtherProject.ExceptionFromOtherProject",
+      "from": "M:System.Exception#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)"
     },
     {
       "kind": "OVERRIDES",
-      "to": "csharp:M:System.Object#Equals(object)",
-      "from": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)"
+      "to": "M:System.Object#Equals(object)",
+      "from": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#Equals(object)"
     },
     {
       "kind": "OVERRIDES",
-      "to": "csharp:M:System.Object#GetHashCode()",
-      "from": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()"
+      "to": "M:System.Object#GetHashCode()",
+      "from": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#GetHashCode()"
     },
     {
       "kind": "OVERRIDES",
-      "to": "csharp:M:System.Object#ToString()",
-      "from": "csharp:M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()"
+      "to": "M:System.Object#ToString()",
+      "from": "M:CSharpSyntax.OtherProject.RecordFromOtherProject#ToString()"
     }
   ],
   "stubs": [
     {
-      "id": "csharp:M:System.Exception#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
+      "id": "M:System.Exception#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
       "kind": "method",
       "name": "GetObjectData",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.IDisposable#Dispose()",
+      "id": "M:System.IDisposable#Dispose()",
       "kind": "method",
       "name": "Dispose",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.IEquatable`1#Equals(!0)",
+      "id": "M:System.IEquatable`1#Equals(!0)",
       "kind": "method",
       "name": "Equals",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.Object#Equals(object)",
+      "id": "M:System.Object#Equals(object)",
       "kind": "method",
       "name": "Equals",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.Object#GetHashCode()",
+      "id": "M:System.Object#GetHashCode()",
       "kind": "method",
       "name": "GetHashCode",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.Object#ToString()",
+      "id": "M:System.Object#ToString()",
       "kind": "method",
       "name": "ToString",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:M:System.Runtime.Serialization.ISerializable#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
+      "id": "M:System.Runtime.Serialization.ISerializable#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)",
       "kind": "method",
       "name": "GetObjectData",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System",
+      "id": "N:System",
       "kind": "namespace",
       "name": "System",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Reflection",
+      "id": "N:System.Reflection",
       "kind": "namespace",
       "name": "Reflection",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Runtime",
+      "id": "N:System.Runtime",
       "kind": "namespace",
       "name": "Runtime",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Runtime.CompilerServices",
+      "id": "N:System.Runtime.CompilerServices",
       "kind": "namespace",
       "name": "CompilerServices",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Runtime.Serialization",
+      "id": "N:System.Runtime.Serialization",
       "kind": "namespace",
       "name": "Serialization",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Runtime.Versioning",
+      "id": "N:System.Runtime.Versioning",
       "kind": "namespace",
       "name": "Versioning",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:N:System.Text",
+      "id": "N:System.Text",
       "kind": "namespace",
       "name": "Text",
       "typeKind": null,
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.AsyncCallback",
+      "id": "T:System.AsyncCallback",
       "kind": "type",
       "name": "AsyncCallback",
       "typeKind": "delegate",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Attribute",
+      "id": "T:System.Attribute",
       "kind": "type",
       "name": "Attribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.AttributeTargets",
+      "id": "T:System.AttributeTargets",
       "kind": "type",
       "name": "AttributeTargets",
       "typeKind": "enum",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.AttributeUsageAttribute",
+      "id": "T:System.AttributeUsageAttribute",
       "kind": "type",
       "name": "AttributeUsageAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.EventArgs",
+      "id": "T:System.EventArgs",
       "kind": "type",
       "name": "EventArgs",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Exception",
+      "id": "T:System.Exception",
       "kind": "type",
       "name": "Exception",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.IAsyncResult",
+      "id": "T:System.IAsyncResult",
       "kind": "type",
       "name": "IAsyncResult",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.IDisposable",
+      "id": "T:System.IDisposable",
       "kind": "type",
       "name": "IDisposable",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.IEquatable`1",
+      "id": "T:System.IEquatable`1",
       "kind": "type",
       "name": "IEquatable",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Object",
+      "id": "T:System.Object",
       "kind": "type",
       "name": "Object",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyCompanyAttribute",
+      "id": "T:System.Reflection.AssemblyCompanyAttribute",
       "kind": "type",
       "name": "AssemblyCompanyAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyConfigurationAttribute",
+      "id": "T:System.Reflection.AssemblyConfigurationAttribute",
       "kind": "type",
       "name": "AssemblyConfigurationAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyFileVersionAttribute",
+      "id": "T:System.Reflection.AssemblyFileVersionAttribute",
       "kind": "type",
       "name": "AssemblyFileVersionAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyInformationalVersionAttribute",
+      "id": "T:System.Reflection.AssemblyInformationalVersionAttribute",
       "kind": "type",
       "name": "AssemblyInformationalVersionAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyProductAttribute",
+      "id": "T:System.Reflection.AssemblyProductAttribute",
       "kind": "type",
       "name": "AssemblyProductAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyTitleAttribute",
+      "id": "T:System.Reflection.AssemblyTitleAttribute",
       "kind": "type",
       "name": "AssemblyTitleAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.AssemblyVersionAttribute",
+      "id": "T:System.Reflection.AssemblyVersionAttribute",
       "kind": "type",
       "name": "AssemblyVersionAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.ICustomAttributeProvider",
+      "id": "T:System.Reflection.ICustomAttributeProvider",
       "kind": "type",
       "name": "ICustomAttributeProvider",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.IReflect",
+      "id": "T:System.Reflection.IReflect",
       "kind": "type",
       "name": "IReflect",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Reflection.MemberInfo",
+      "id": "T:System.Reflection.MemberInfo",
       "kind": "type",
       "name": "MemberInfo",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Runtime.CompilerServices.InternalsVisibleToAttribute",
+      "id": "T:System.Runtime.CompilerServices.InternalsVisibleToAttribute",
       "kind": "type",
       "name": "InternalsVisibleToAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Runtime.Serialization.ISerializable",
+      "id": "T:System.Runtime.Serialization.ISerializable",
       "kind": "type",
       "name": "ISerializable",
       "typeKind": "interface",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Runtime.Serialization.SerializationInfo",
+      "id": "T:System.Runtime.Serialization.SerializationInfo",
       "kind": "type",
       "name": "SerializationInfo",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Runtime.Serialization.StreamingContext",
+      "id": "T:System.Runtime.Serialization.StreamingContext",
       "kind": "type",
       "name": "StreamingContext",
       "typeKind": "struct",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Runtime.Versioning.TargetFrameworkAttribute",
+      "id": "T:System.Runtime.Versioning.TargetFrameworkAttribute",
       "kind": "type",
       "name": "TargetFrameworkAttribute",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Text.StringBuilder",
+      "id": "T:System.Text.StringBuilder",
       "kind": "type",
       "name": "StringBuilder",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     },
     {
-      "id": "csharp:T:System.Type",
+      "id": "T:System.Type",
       "kind": "type",
       "name": "Type",
       "typeKind": "class",
-      "artifact": "csharp:A:System.Runtime@10.0.0.0"
+      "artifact": "A:System.Runtime@10.0.0.0"
     }
   ],
   "diagnostics": []

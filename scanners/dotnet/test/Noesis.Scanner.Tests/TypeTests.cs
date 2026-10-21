@@ -23,7 +23,7 @@ public class TypeTests(FixtureScan scan)
         Assert.Null(type.UnderlyingType);
         Assert.Null(type.DelegateSignature);
         Assert.Null(type.AliasOf);
-        Assert.True(scan.Main.Contains("csharp:N:CSharpSyntax.Types", type.Id.Value));
+        Assert.True(scan.Main.Contains("N:CSharpSyntax.Types", type.Id.Value));
     }
 
     [Theory]
@@ -59,8 +59,8 @@ public class TypeTests(FixtureScan scan)
         Assert.Equal(2, partial.Locations.Count);
         Assert.Equal(true, partial.Bag("csharp.partial"));
         Assert.Null(scan.Main.Type(Types + "PublicClass").Bag("csharp.partial"));
-        Assert.True(scan.Main.Has("csharp:M:" + Types + "PartialClass#MethodInFirstPart()"));
-        Assert.True(scan.Main.Has("csharp:M:" + Types + "PartialClass#MethodInSecondPart()"));
+        Assert.True(scan.Main.Has("M:" + Types + "PartialClass#MethodInFirstPart()"));
+        Assert.True(scan.Main.Has("M:" + Types + "PartialClass#MethodInSecondPart()"));
         Assert.Equal(2, scan.Main.Type(Types + "SealedPartialClass").Locations.Count);
     }
 
@@ -91,11 +91,11 @@ public class TypeTests(FixtureScan scan)
     public void FileLocalTypesAreFileVisibleAndHashedInTheirId()
     {
         var fileLocal = scan.Main.Nodes.OfType<TypeNode>().Single(type => type.Name == "FileLocalClass");
-        Assert.Matches(new Regex("^csharp:T:CSharpSyntax\\.Types\\.FileLocalClass@[0-9a-f]{8}$"), fileLocal.Id.Value);
+        Assert.Matches(new Regex("^T:CSharpSyntax\\.Types\\.FileLocalClass@[0-9a-f]{8}$"), fileLocal.Id.Value);
         Assert.Equal(Visibility.File, fileLocal.Visibility);
         Assert.Equal(true, fileLocal.Bag("csharp.isFileLocal"));
-        var creation = Assert.Single(scan.Main.Invokes("csharp:F:" + Types + "ClassUsingFileLocalClass._fileLocalInstance"));
-        Assert.Equal(fileLocal.Id.Value + "#.ctor()", creation.To.Value.Replace("csharp:M:", "csharp:T:"));
+        var creation = Assert.Single(scan.Main.Invokes("F:" + Types + "ClassUsingFileLocalClass._fileLocalInstance"));
+        Assert.Equal(fileLocal.Id.Value + "#.ctor()", creation.To.Value.Replace("M:", "T:"));
         foreach (var name in new[] { "FileLocalStruct", "IFileLocalInterface", "FileLocalEnum", "FileLocalRecord", "FileLocalStaticClass" })
             Assert.Contains(scan.Main.Nodes.OfType<TypeNode>(), type => type.Name == name && type.Visibility == Visibility.File);
     }
@@ -103,7 +103,7 @@ public class TypeTests(FixtureScan scan)
     [Fact]
     public void NestedTypesUsePlusInTheirIdAndAreContainedByTheOuterType()
     {
-        var outer = "csharp:T:" + Types + "OuterClassWithNestedTypes";
+        var outer = "T:" + Types + "OuterClassWithNestedTypes";
         Assert.True(scan.Main.Contains(outer, outer + "+PublicNestedClass"));
         Assert.True(scan.Main.Contains(outer + "+NestedClassWithNestedClass", outer + "+NestedClassWithNestedClass+DoublyNestedClass"));
         Assert.Equal(TypeKind.Struct, scan.Main.Type(Types + "OuterClassWithNestedTypes+NestedStruct").TypeKind);
@@ -120,19 +120,19 @@ public class TypeTests(FixtureScan scan)
     [Fact]
     public void ObjectBaseIsNeverAnEdgeAndStructsEnumsAndDelegatesHaveNoBase()
     {
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "ClassWithExplicitObjectBase"));
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "PublicClass"));
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "PlainStruct"));
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "PlainEnum"));
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "DelegateWithReturnValue"));
-        Assert.Empty(scan.Main.ExtendsOf("csharp:T:" + Types + "PositionalRecord"));
-        Assert.Equal(["System.Attribute"], scan.Main.ExtendsOf("csharp:T:" + Types + "ClassDerivedFromAttribute"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "ClassWithExplicitObjectBase"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "PublicClass"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "PlainStruct"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "PlainEnum"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "DelegateWithReturnValue"));
+        Assert.Empty(scan.Main.ExtendsOf("T:" + Types + "PositionalRecord"));
+        Assert.Equal(["System.Attribute"], scan.Main.ExtendsOf("T:" + Types + "ClassDerivedFromAttribute"));
     }
 
     [Fact]
     public void RecordsSynthesiseGeneratedMembersAndDeclarePositionalProperties()
     {
-        var record = "csharp:T:" + Types + "PositionalRecord";
+        var record = "T:" + Types + "PositionalRecord";
         Assert.Equal(TypeKind.Class, scan.Main.Type(Types + "PositionalRecord").TypeKind);
         foreach (var generated in new[] { "#Equals(CSharpSyntax.Types.PositionalRecord)", "#Equals(object)", "#GetHashCode()", "#ToString()", "#Deconstruct(int,string)", "#<Clone>$()", "#PrintMembers(System.Text.StringBuilder)", "#op_Equality(CSharpSyntax.Types.PositionalRecord,CSharpSyntax.Types.PositionalRecord)", "#.ctor(CSharpSyntax.Types.PositionalRecord)" })
         {
@@ -153,8 +153,8 @@ public class TypeTests(FixtureScan scan)
         Expect.TypeRef("int", first.Type);
         Assert.Equal(3, Assert.Single(first.Locations).StartLine);
         Assert.Equal(["System.Object#Equals(object)", "System.Object#GetHashCode()", "System.Object#ToString()"],
-            scan.Main.Edges<OverridesEdge>().Where(e => e.From.Value.StartsWith(record.Replace("csharp:T:", "csharp:M:") + "#", StringComparison.Ordinal)).Select(e => e.To.Value.Replace("csharp:M:", "")).Order());
-        Assert.True(scan.Main.Contains(record, record.Replace("csharp:T:", "csharp:R:") + ".First"));
+            scan.Main.Edges<OverridesEdge>().Where(e => e.From.Value.StartsWith(record.Replace("T:", "M:") + "#", StringComparison.Ordinal)).Select(e => e.To.Value.Replace("M:", "")).Order());
+        Assert.True(scan.Main.Contains(record, record.Replace("T:", "P:") + ".First"));
         Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.Contains("k__BackingField"));
     }
 
@@ -217,10 +217,10 @@ public class TypeTests(FixtureScan scan)
         Assert.Equal("Ten", scan.Main.Field(Types + "EnumWithExplicitValues.SameAsTen").ConstantValue);
         Assert.Equal("Read | Write", scan.Main.Field(Types + "FlagsEnum.ReadWrite").ConstantValue);
         Assert.Equal("1L << 40", scan.Main.Field(Types + "EnumWithLongUnderlyingType.Big").ConstantValue);
-        Assert.True(scan.Main.Contains("csharp:T:" + Types + "PlainEnum", "csharp:F:" + Types + "PlainEnum.First"));
-        Assert.Contains(scan.Main.AnnotationsOf("csharp:T:" + Types + "FlagsEnum"), annotation => annotation.Type.Canonical == "System.FlagsAttribute");
+        Assert.True(scan.Main.Contains("T:" + Types + "PlainEnum", "F:" + Types + "PlainEnum.First"));
+        Assert.Contains(scan.Main.AnnotationsOf("T:" + Types + "FlagsEnum"), annotation => annotation.Type.Canonical == "System.FlagsAttribute");
         Assert.Contains(scan.Main.Field(Types + "EnumWithAttributedMembers.ObsoleteMember").Annotations, annotation => annotation.Type.Canonical == "System.ObsoleteAttribute");
-        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("csharp:M:" + Types + "PlainEnum#", StringComparison.Ordinal));
+        Assert.DoesNotContain(scan.Main.Nodes, node => node.Id.Value.StartsWith("M:" + Types + "PlainEnum#", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -232,8 +232,8 @@ public class TypeTests(FixtureScan scan)
         Assert.Equal("argument", Assert.Single(withReturn.DelegateSignature.Parameters).Name);
         var invoke = scan.Main.Method(Types + "DelegateWithReturnValue#Invoke(int)");
         Assert.Equal(Origin.Generated, invoke.Origin);
-        Assert.True(scan.Main.Has("csharp:M:" + Types + "DelegateWithReturnValue#BeginInvoke(int,System.AsyncCallback,object)"));
-        Assert.False(scan.Main.Has("csharp:M:" + Types + "DelegateWithReturnValue#.ctor(object,nint)"));
+        Assert.True(scan.Main.Has("M:" + Types + "DelegateWithReturnValue#BeginInvoke(int,System.AsyncCallback,object)"));
+        Assert.False(scan.Main.Has("M:" + Types + "DelegateWithReturnValue#.ctor(object,nint)"));
 
         var generic = scan.Main.Type(Types + "GenericDelegate`2");
         Assert.Equal([Variance.Contravariant, Variance.Covariant], generic.TypeParameters.Select(parameter => parameter.Variance));
@@ -331,10 +331,10 @@ public class TypeTests(FixtureScan scan)
     [Fact]
     public void AnonymousTypesAreStructuralCreationsAndNeverNodes()
     {
-        var creation = Expect.One(scan.Main.UsesTypes("csharp:M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"), edge => edge.Role == TypeUseRole.Creation && edge.To is StructuralTypeRef, "structural creation");
+        var creation = Expect.One(scan.Main.UsesTypes("M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"), edge => edge.Role == TypeUseRole.Creation && edge.To is StructuralTypeRef, "structural creation");
         Assert.Equal("{AnonymousProperty:int,AnonymousNested:{Inner:string}}", creation.To.Canonical);
-        Assert.Empty(scan.Main.Invokes("csharp:M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"));
-        Assert.Empty(scan.Main.Accesses("csharp:M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"));
+        Assert.Empty(scan.Main.Invokes("M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"));
+        Assert.Empty(scan.Main.Accesses("M:" + Types + "AnonymousAndImplicitTypes#CreateAnonymousType()"));
         Assert.DoesNotContain(scan.Main.Nodes, node => node.Name.Contains("<>f__AnonymousType"));
     }
 
@@ -374,19 +374,18 @@ public class TypeTests(FixtureScan scan)
         Assert.Single(main.Locations);
         Assert.DoesNotContain(scan.Main.Nodes, node => node.Name == "LocalFunctionInTopLevelStatements");
         var invokes = scan.Main.Invokes(main.Id.Value).ToList();
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:System.Console#WriteLine(string)" && edge.Receiver == ExpressionKind.Type, "Console.WriteLine call");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Invocations.InvocationForms#.ctor()" && edge.Receiver is null, "InvocationForms creation");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.Invocations.InvocationForms#AllInvocationForms()" && edge.Receiver == ExpressionKind.Local, "AllInvocationForms call");
-        Expect.One(invokes, edge => edge.To.Value == "csharp:M:CSharpSyntax.LocalVariables.LocalVariableForms#AsyncLocalVariableFormsAsync()", "awaited call");
+        Expect.One(invokes, edge => edge.To.Value == "M:System.Console#WriteLine(string)" && edge.Receiver == ExpressionKind.Type, "Console.WriteLine call");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Invocations.InvocationForms#.ctor()" && edge.Receiver is null, "InvocationForms creation");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.Invocations.InvocationForms#AllInvocationForms()" && edge.Receiver == ExpressionKind.Local, "AllInvocationForms call");
+        Expect.One(invokes, edge => edge.To.Value == "M:CSharpSyntax.LocalVariables.LocalVariableForms#AsyncLocalVariableFormsAsync()", "awaited call");
         Assert.All(invokes, edge => Assert.False(edge.Site.ViaClosure));
     }
 
     [Fact]
-    public void AttributesOnTypesAreAnnotationsAndEdges()
+    public void AttributesOnTypesAreAnnotations()
     {
         var type = scan.Main.Type(Types + "ClassWithAttributes");
         Assert.Equal(4, type.Annotations.Count);
-        Assert.Equal(type.Annotations.Select(annotation => annotation.Type.Canonical).Order(), scan.Main.AnnotationsOf(type.Id.Value).Select(annotation => annotation.Type.Canonical).Order());
 
         var obsolete = type.Annotations[0];
         Assert.Equal("System.ObsoleteAttribute", obsolete.Type.Canonical);

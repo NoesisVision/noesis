@@ -73,7 +73,7 @@ public partial class TypeUsageMirrorTests(FixtureScan scan)
 
     private static Dictionary<string, DeclarationNode> MembersOf(CodeModelFile model, string type)
     {
-        var prefixes = new[] { "csharp:M:" + type + "#", "csharp:R:" + type + ".", "csharp:F:" + type + "." };
+        var prefixes = new[] { "M:" + type + "#", "P:" + type + ".", "F:" + type + "." };
         var members = new Dictionary<string, DeclarationNode>();
         foreach (var node in model.Nodes.Where(node => prefixes.Any(prefix => node.Id.Value.StartsWith(prefix, StringComparison.Ordinal))))
             members.TryAdd(node.Name, node);
@@ -90,7 +90,7 @@ public partial class TypeUsageMirrorTests(FixtureScan scan)
         return Regex.Replace(json, "\\s+", " ");
     }
 
-    [GeneratedRegex("\"csharp:[TMRFN]:[^\"]*\"")]
+    [GeneratedRegex("\"[TMPFN]:[^\"]*\"")]
     private static partial Regex IdPattern();
 
     [GeneratedRegex("\"(file|startLine|startColumn|endLine|endColumn)\": [^,}]*")]

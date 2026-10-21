@@ -16,5 +16,5 @@ public abstract record DeclarationNode
     public required IReadOnlyList<SourceSpan> Locations { get; init; }
     public required IReadOnlyList<Annotation> Annotations { get; init; }
     public required string? Documentation { get; init; }
-    public required LanguageBag Language { get; init; }
+    public required LanguageBag LanguageSpecific { get; init; }
 }

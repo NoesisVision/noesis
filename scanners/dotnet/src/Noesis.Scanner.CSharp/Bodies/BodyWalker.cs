@@ -110,11 +110,16 @@ internal sealed class BodyWalker : OperationWalker
         if (operation.Type is { IsAnonymousType: false } type)
         {
             if (operation.Constructor is { } constructor)
-                _edges.Add(new InvokesEdge { From = _from, To = _context.Ids.Member(constructor.OriginalDefinition), TypeArguments = [], Site = Site(operation, false), InvocationKind = InvocationKind.Call, Receiver = null });
-            AddTypeUse(type, TypeUseRole.Creation, operation);
+                _edges.Add(new InvokesEdge { From = _from, To = _context.Ids.Member(constructor.OriginalDefinition), TypeArguments = ConstructedTypeArguments(type), Site = Site(operation, false), InvocationKind = InvocationKind.Call, Receiver = null });
+            else
+                AddTypeUse(type, TypeUseRole.Creation, operation);
         }
         base.VisitObjectCreation(operation);
     }
+
+    /// <summary>The constructor is the definition's; the arguments of the created type, CLR-flattened, go on the edge.</summary>
+    private IReadOnlyList<TypeRef> ConstructedTypeArguments(ITypeSymbol type) =>
+        _context.Types.Of(type, _refContext) is NamedTypeRef named ? named.TypeArguments : [];
 
     // --- USES_TYPE ---------------------------------------------------------------------------------------------------
 

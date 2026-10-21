@@ -4,18 +4,16 @@ namespace Noesis.Scanner.Model;
 public sealed record CodeModelFile(
     int SchemaVersion,
     Generator Generator,
-    Language Language,
     ArtifactNode Artifact,
     IReadOnlyList<DeclarationNode> Nodes,
     IReadOnlyList<Edge> Edges,
     IReadOnlyList<StubNode> Stubs,
     IReadOnlyList<Diagnostic> Diagnostics)
 {
-    public static CodeModelFile Sorted(Generator generator, Language language, ArtifactNode artifact, IEnumerable<DeclarationNode> nodes, IEnumerable<Edge> edges, IEnumerable<StubNode> stubs, IEnumerable<Diagnostic> diagnostics) =>
+    public static CodeModelFile Sorted(Generator generator, ArtifactNode artifact, IEnumerable<DeclarationNode> nodes, IEnumerable<Edge> edges, IEnumerable<StubNode> stubs, IEnumerable<Diagnostic> diagnostics) =>
         new(
             ScanManifest.CurrentSchemaVersion,
             generator,
-            language,
             artifact,
             nodes.OrderBy(node => node.Id).ToArray(),
             edges.Order(Comparer<Edge>.Create(EdgeOrdering.Compare)).ToArray(),
