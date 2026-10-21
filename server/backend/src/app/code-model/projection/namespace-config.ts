@@ -1,16 +1,21 @@
-import { join } from 'node:path';
 import { z } from 'zod';
 
-const CONFIG_FILE = 'noesis-config.json';
+/*
+ * How namespaces map to module paths (section 6 of
+ * docs/plans/code-model-to-system-model.md): `noesis-config.json` at the
+ * repository root names the dotted sequences to drop wherever they occur
+ * (a company prefix) and the patterns whose namespaces are not in the model
+ * at all. The adapter reads the file; this is the rule.
+ */
 
-const NamespaceConfigSchema = z.object({
+export const NamespaceConfigSchema = z.object({
   /** Dotted sequences dropped wherever they occur, e.g. a company prefix. */
   namespacePartsToSkip: z.array(z.string()).default([]),
   /** Patterns whose `*` stands for any number of parts, e.g. `*.Tests.*`. */
   namespacesToExclude: z.array(z.string()).default([]),
 });
+export type NamespaceConfigInput = z.input<typeof NamespaceConfigSchema>;
 
-/** How C# namespaces map to module paths, from `noesis-config.json` at the repository root. */
 export class NamespaceConfig {
   private readonly partsToSkip: string[][];
   private readonly patternsToExclude: string[][];
@@ -27,31 +32,18 @@ export class NamespaceConfig {
       .map((pattern) => pattern.split('.'));
   }
 
-  static of(config: z.input<typeof NamespaceConfigSchema>): NamespaceConfig {
+  static of(config: NamespaceConfigInput = {}): NamespaceConfig {
     return new NamespaceConfig(NamespaceConfigSchema.parse(config));
   }
 
-  /** No file maps every namespace to itself. */
-  static async load(repositoryRoot: string): Promise<NamespaceConfig> {
-    const file = Bun.file(join(repositoryRoot, CONFIG_FILE));
-    if (!(await file.exists())) return NamespaceConfig.of({});
-    const parsed = NamespaceConfigSchema.safeParse(await file.json());
-    if (!parsed.success) {
-      throw new Error(
-        `Invalid ${CONFIG_FILE}:\n${z.prettifyError(parsed.error)}`,
-      );
-    }
-    return new NamespaceConfig(parsed.data);
-  }
-
-  /** The module path `namespace` maps to; null when excluded or nothing is left. */
-  modulePathOf(namespace: string): string | null {
+  /** The module path `namespace` maps to, as segments; null when excluded or nothing is left. */
+  modulePathOf(namespace: string): string[] | null {
     const parts = namespace.split('.');
     if (this.patternsToExclude.some((pattern) => matches(pattern, parts))) {
       return null;
     }
     const kept = this.partsToSkip.reduce(withoutSequence, parts);
-    return kept.length === 0 ? null : kept.join('.');
+    return kept.length === 0 ? null : kept;
   }
 }
 

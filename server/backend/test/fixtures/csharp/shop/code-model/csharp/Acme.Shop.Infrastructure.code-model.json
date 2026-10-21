@@ -1,0 +1,1763 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-csharp",
+    "version": "1.0.0"
+  },
+  "artifact": {
+    "id": "A:Acme.Shop.Infrastructure",
+    "kind": "source",
+    "name": "Acme.Shop.Infrastructure",
+    "version": "1.0.0.0",
+    "rootDirectory": "Shop.Infrastructure",
+    "target": "net10.0",
+    "executable": false,
+    "dependencies": [
+      {
+        "id": "A:Acme.Shop.Domain",
+        "kind": "source",
+        "package": null
+      },
+      {
+        "id": "A:Acme.Shop.Technical",
+        "kind": "source",
+        "package": null
+      },
+      {
+        "id": "A:Microsoft.CSharp@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:Microsoft.VisualBasic.Core@15.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:Microsoft.VisualBasic@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:Microsoft.Win32.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:Microsoft.Win32.Registry@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:NoesisVision.Annotations@0.1.3.0",
+        "kind": "library",
+        "package": {
+          "id": "NoesisVision.Annotations",
+          "version": "0.1.3"
+        }
+      },
+      {
+        "id": "A:System.AppContext@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Buffers@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Collections.Concurrent@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Collections.Immutable@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Collections.NonGeneric@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Collections.Specialized@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Collections@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel.Annotations@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel.DataAnnotations@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel.EventBasedAsync@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel.TypeConverter@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ComponentModel@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Configuration@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Console@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Core@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Data.Common@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Data.DataSetExtensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Data@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.Contracts@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.Debug@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.DiagnosticSource@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.FileVersionInfo@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.Process@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.StackTrace@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.TextWriterTraceListener@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.Tools@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.TraceSource@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Diagnostics.Tracing@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Drawing.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Drawing@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Dynamic.Runtime@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Formats.Asn1@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Formats.Tar@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Globalization.Calendars@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Globalization.Extensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Globalization@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Compression.Brotli@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Compression.FileSystem@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Compression.ZipFile@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Compression@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.FileSystem.AccessControl@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.FileSystem.DriveInfo@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.FileSystem.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.FileSystem.Watcher@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.FileSystem@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.IsolatedStorage@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.MemoryMappedFiles@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Pipelines@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Pipes.AccessControl@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.Pipes@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO.UnmanagedMemoryStream@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.IO@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Linq.AsyncEnumerable@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Linq.Expressions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Linq.Parallel@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Linq.Queryable@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Linq@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Memory@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Http.Json@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Http@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.HttpListener@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Mail@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.NameResolution@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.NetworkInformation@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Ping@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Quic@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Requests@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Security@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.ServerSentEvents@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.ServicePoint@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.Sockets@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.WebClient@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.WebHeaderCollection@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.WebProxy@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.WebSockets.Client@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net.WebSockets@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Net@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Numerics.Vectors@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Numerics@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ObjectModel@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.DispatchProxy@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Emit.ILGeneration@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Emit.Lightweight@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Emit@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Extensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Metadata@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection.TypeExtensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Reflection@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Resources.Reader@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Resources.ResourceManager@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Resources.Writer@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.CompilerServices.Unsafe@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.CompilerServices.VisualC@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Extensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Handles@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.InteropServices.JavaScript@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.InteropServices.RuntimeInformation@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.InteropServices@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Intrinsics@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Loader@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Numerics@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Serialization.Formatters@8.1.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Serialization.Json@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Serialization.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Serialization.Xml@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime.Serialization@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Runtime@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.AccessControl@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Claims@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.Algorithms@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.Cng@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.Csp@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.Encoding@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.OpenSsl@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.Primitives@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography.X509Certificates@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Cryptography@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Principal.Windows@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.Principal@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security.SecureString@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Security@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ServiceModel.Web@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ServiceProcess@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.Encoding.CodePages@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.Encoding.Extensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.Encoding@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.Encodings.Web@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.Json@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Text.RegularExpressions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.AccessControl@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Channels@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Overlapped@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Tasks.Dataflow@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Tasks.Extensions@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Tasks.Parallel@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Tasks@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Thread@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.ThreadPool@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading.Timer@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Threading@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Transactions.Local@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Transactions@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.ValueTuple@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Web.HttpUtility@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Web@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Windows@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.Linq@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.ReaderWriter@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.Serialization@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.XDocument@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.XPath.XDocument@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.XPath@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.XmlDocument@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml.XmlSerializer@10.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System.Xml@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:System@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:WindowsBase@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:mscorlib@4.0.0.0",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:netstandard@2.1.0.0",
+        "kind": "platform",
+        "package": null
+      }
+    ],
+    "annotations": [
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Runtime.Versioning.TargetFrameworkAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "frameworkName",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\".NETCoreApp,Version=v10.0\""
+            }
+          },
+          {
+            "name": "FrameworkDisplayName",
+            "positional": false,
+            "value": {
+              "kind": "literal",
+              "text": "\".NET 10.0\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyCompanyAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "company",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"Acme.Shop.Infrastructure\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyConfigurationAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "configuration",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"Debug\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyFileVersionAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "version",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"1.0.0.0\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyInformationalVersionAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "informationalVersion",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"1.0.0+a2f2679ee8ea280211b7f31faecc90c8af75d3a2\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyProductAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "product",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"Acme.Shop.Infrastructure\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyTitleAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "title",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"Acme.Shop.Infrastructure\""
+            }
+          }
+        ]
+      },
+      {
+        "type": {
+          "kind": "named",
+          "type": "T:System.Reflection.AssemblyVersionAttribute",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "arguments": [
+          {
+            "name": "version",
+            "positional": true,
+            "value": {
+              "kind": "literal",
+              "text": "\"1.0.0.0\""
+            }
+          }
+        ]
+      }
+    ],
+    "languageSpecific": {
+      "csharp.outputKind": "DynamicallyLinkedLibrary",
+      "csharp.projectFile": "Shop.Infrastructure/Shop.Infrastructure.csproj",
+      "csharp.projectName": "Shop.Infrastructure",
+      "csharp.rootNamespace": "Acme.Shop.Infrastructure"
+    }
+  },
+  "nodes": [
+    {
+      "kind": "method",
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false,
+      "id": "M:Acme.Shop.Infrastructure.SqlOrderRepository#.ctor()",
+      "name": ".ctor",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "method",
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "named",
+              "type": "T:Acme.Shop.Orders.OrderId",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:System.Threading.Tasks.Task`1",
+          "typeArguments": [
+            {
+              "kind": "named",
+              "type": "T:Acme.Shop.Orders.Order",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            }
+          ],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false,
+      "id": "M:Acme.Shop.Infrastructure.SqlOrderRepository#GetBy(Acme.Shop.Orders.OrderId)",
+      "name": "GetBy",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 8,
+          "startColumn": 5,
+          "endLine": 8,
+          "endColumn": 79
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "method",
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "order",
+            "type": {
+              "kind": "named",
+              "type": "T:Acme.Shop.Orders.Order",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:System.Threading.Tasks.Task",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false,
+      "id": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)",
+      "name": "Save",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 10,
+          "startColumn": 5,
+          "endLine": 14,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:",
+      "name": "",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 1,
+          "startColumn": 1,
+          "endLine": 16,
+          "endColumn": 1
+        },
+        {
+          "file": "Shop.Infrastructure/obj/Debug/net10.0/.NETCoreApp,Version=v10.0.AssemblyAttributes.cs",
+          "startLine": 2,
+          "startColumn": 1,
+          "endLine": 5,
+          "endColumn": 1
+        },
+        {
+          "file": "Shop.Infrastructure/obj/Debug/net10.0/Shop.Infrastructure.AssemblyInfo.cs",
+          "startLine": 10,
+          "startColumn": 1,
+          "endLine": 23,
+          "endColumn": 1
+        },
+        {
+          "file": "Shop.Infrastructure/obj/Debug/net10.0/Shop.Infrastructure.GlobalUsings.g.cs",
+          "startLine": 2,
+          "startColumn": 1,
+          "endLine": 9,
+          "endColumn": 1
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:Acme",
+      "name": "Acme",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 3,
+          "startColumn": 11,
+          "endLine": 3,
+          "endColumn": 15
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:Acme.Shop",
+      "name": "Shop",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 3,
+          "startColumn": 16,
+          "endLine": 3,
+          "endColumn": 20
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:Acme.Shop.Infrastructure",
+      "name": "Infrastructure",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 3,
+          "startColumn": 21,
+          "endLine": 3,
+          "endColumn": 35
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "type",
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null,
+      "id": "T:Acme.Shop.Infrastructure.SqlOrderRepository",
+      "name": "SqlOrderRepository",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 6,
+          "startColumn": 1,
+          "endLine": 15,
+          "endColumn": 2
+        }
+      ],
+      "annotations": [],
+      "documentation": "No annotation, so no block (decision 3); its calls count for the interface's behaviours (R11.1).",
+      "languageSpecific": {}
+    }
+  ],
+  "edges": [
+    {
+      "kind": "ACCESSES",
+      "to": "P:System.Threading.Tasks.Task.CompletedTask",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 13,
+          "startColumn": 16,
+          "endLine": 13,
+          "endColumn": 34
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "N:",
+      "from": "A:Acme.Shop.Infrastructure"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "N:Acme",
+      "from": "N:"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "N:Acme.Shop",
+      "from": "N:Acme"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "N:Acme.Shop.Infrastructure",
+      "from": "N:Acme.Shop"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "T:Acme.Shop.Infrastructure.SqlOrderRepository",
+      "from": "N:Acme.Shop.Infrastructure"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "M:Acme.Shop.Infrastructure.SqlOrderRepository#.ctor()",
+      "from": "T:Acme.Shop.Infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "M:Acme.Shop.Infrastructure.SqlOrderRepository#GetBy(Acme.Shop.Orders.OrderId)",
+      "from": "T:Acme.Shop.Infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "CONTAINS",
+      "to": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)",
+      "from": "T:Acme.Shop.Infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyCompanyAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyConfigurationAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyFileVersionAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyInformationalVersionAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyProductAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyTitleAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Reflection.AssemblyVersionAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Attribute",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Runtime.Versioning.TargetFrameworkAttribute"
+    },
+    {
+      "kind": "EXTENDS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.Threading.Tasks.Task",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Threading.Tasks.Task`1"
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "to": {
+        "kind": "named",
+        "type": "T:Acme.Shop.Orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:Acme.Shop.Infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.IAsyncResult",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Threading.Tasks.Task"
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "to": {
+        "kind": "named",
+        "type": "T:System.IDisposable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "from": "T:System.Threading.Tasks.Task"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "to": "M:Acme.Shop.Orders.Order+Repository#GetBy(Acme.Shop.Orders.OrderId)",
+      "interface": {
+        "kind": "named",
+        "type": "T:Acme.Shop.Orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:Acme.Shop.Infrastructure.SqlOrderRepository",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#GetBy(Acme.Shop.Orders.OrderId)"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "to": "M:Acme.Shop.Orders.Order+Repository#Save(Acme.Shop.Orders.Order)",
+      "interface": {
+        "kind": "named",
+        "type": "T:Acme.Shop.Orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:Acme.Shop.Infrastructure.SqlOrderRepository",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)"
+    },
+    {
+      "kind": "INVOKES",
+      "to": "M:Acme.Shop.Orders.Order#Create(Acme.Shop.Orders.OrderId)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 8,
+          "startColumn": 61,
+          "endLine": 8,
+          "endColumn": 77
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#GetBy(Acme.Shop.Orders.OrderId)"
+    },
+    {
+      "kind": "INVOKES",
+      "to": "M:System.Threading.Tasks.Task#FromResult`1(!!0)",
+      "typeArguments": [
+        {
+          "kind": "named",
+          "type": "T:Acme.Shop.Orders.Order",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        }
+      ],
+      "site": {
+        "location": {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 8,
+          "startColumn": 45,
+          "endLine": 8,
+          "endColumn": 78
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#GetBy(Acme.Shop.Orders.OrderId)"
+    },
+    {
+      "kind": "INVOKES",
+      "to": "M:Acme.Shop.Orders.Order#Total()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 12,
+          "startColumn": 27,
+          "endLine": 12,
+          "endColumn": 40
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "parameter",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)"
+    },
+    {
+      "kind": "INVOKES",
+      "to": "M:System.Console#WriteLine(object)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "Shop.Infrastructure/SqlOrderRepository.cs",
+          "startLine": 12,
+          "startColumn": 9,
+          "endLine": 12,
+          "endColumn": 41
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type",
+      "from": "M:Acme.Shop.Infrastructure.SqlOrderRepository#Save(Acme.Shop.Orders.Order)"
+    }
+  ],
+  "stubs": [
+    {
+      "id": "M:System.Console#WriteLine(object)",
+      "kind": "method",
+      "name": "WriteLine",
+      "typeKind": null,
+      "artifact": "A:System.Console@10.0.0.0"
+    },
+    {
+      "id": "M:System.Threading.Tasks.Task#FromResult`1(!!0)",
+      "kind": "method",
+      "name": "FromResult",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "N:System",
+      "kind": "namespace",
+      "name": "System",
+      "typeKind": null,
+      "artifact": "A:System.Console@10.0.0.0"
+    },
+    {
+      "id": "N:System.Reflection",
+      "kind": "namespace",
+      "name": "Reflection",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "N:System.Runtime",
+      "kind": "namespace",
+      "name": "Runtime",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "N:System.Runtime.Versioning",
+      "kind": "namespace",
+      "name": "Versioning",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "N:System.Threading",
+      "kind": "namespace",
+      "name": "Threading",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "N:System.Threading.Tasks",
+      "kind": "namespace",
+      "name": "Tasks",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "P:System.Threading.Tasks.Task.CompletedTask",
+      "kind": "property",
+      "name": "CompletedTask",
+      "typeKind": null,
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Attribute",
+      "kind": "type",
+      "name": "Attribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Console",
+      "kind": "type",
+      "name": "Console",
+      "typeKind": "class",
+      "artifact": "A:System.Console@10.0.0.0"
+    },
+    {
+      "id": "T:System.IAsyncResult",
+      "kind": "type",
+      "name": "IAsyncResult",
+      "typeKind": "interface",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.IDisposable",
+      "kind": "type",
+      "name": "IDisposable",
+      "typeKind": "interface",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyCompanyAttribute",
+      "kind": "type",
+      "name": "AssemblyCompanyAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyConfigurationAttribute",
+      "kind": "type",
+      "name": "AssemblyConfigurationAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyFileVersionAttribute",
+      "kind": "type",
+      "name": "AssemblyFileVersionAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyInformationalVersionAttribute",
+      "kind": "type",
+      "name": "AssemblyInformationalVersionAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyProductAttribute",
+      "kind": "type",
+      "name": "AssemblyProductAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyTitleAttribute",
+      "kind": "type",
+      "name": "AssemblyTitleAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Reflection.AssemblyVersionAttribute",
+      "kind": "type",
+      "name": "AssemblyVersionAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Runtime.Versioning.TargetFrameworkAttribute",
+      "kind": "type",
+      "name": "TargetFrameworkAttribute",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Threading.Tasks.Task",
+      "kind": "type",
+      "name": "Task",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    },
+    {
+      "id": "T:System.Threading.Tasks.Task`1",
+      "kind": "type",
+      "name": "Task",
+      "typeKind": "class",
+      "artifact": "A:System.Runtime@10.0.0.0"
+    }
+  ],
+  "diagnostics": []
+}

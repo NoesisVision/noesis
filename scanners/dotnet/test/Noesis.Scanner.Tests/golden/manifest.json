@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-csharp",
+    "version": "1.0.0"
+  },
+  "language": "csharp",
+  "repository": {
+    "name": "noesis",
+    "revision": "0123456789abcdef"
+  },
+  "root": "scanners/dotnet/test/fixtures/CSharpSyntax.slnx",
+  "artifacts": [
+    {
+      "id": "A:CSharpSyntax.OtherProject",
+      "file": "code-model/csharp/CSharpSyntax.OtherProject.code-model.json"
+    },
+    {
+      "id": "A:CSharpSyntax",
+      "file": "code-model/csharp/CSharpSyntax.code-model.json"
+    }
+  ],
+  "diagnostics": []
+}

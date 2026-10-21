@@ -1,0 +1,3 @@
+namespace Noesis.Scanner.Model;
+
+public sealed record LiteralAnnotationValue(string Text) : AnnotationValue;

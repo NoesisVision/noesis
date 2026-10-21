@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CSharpSyntax</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Type usage from another project of the same solution. The extra alias enables `extern alias`. -->
+    <ProjectReference Include="../CSharpSyntax.OtherProject/CSharpSyntax.OtherProject.csproj">
+      <Aliases>global,OtherProjectAlias</Aliases>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Type usage from NuGet packages: attribute types from JetBrains.Annotations, value types, classes,
+         interfaces, enums and operators from NodaTime. -->
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="NodaTime" Version="3.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Global usings declared in the project file instead of in a .cs file. -->
+    <Using Include="System.Text" />
+    <Using Include="System.Math" Static="true" />
+    <Using Include="System.Collections.Generic.List&lt;string&gt;" Alias="StringListAliasFromProjectFile" />
+    <Using Include="System.Text.RegularExpressions" Alias="RegexNamespaceAliasFromProjectFile" />
+    <!-- Removal of one of the SDK's implicit usings. -->
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
+
+</Project>

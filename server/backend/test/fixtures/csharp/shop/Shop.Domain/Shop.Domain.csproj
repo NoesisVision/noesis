@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Acme.Shop.Domain</AssemblyName>
+    <RootNamespace>Acme.Shop</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Shop.Technical/Shop.Technical.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NoesisVision.Annotations" Version="0.1.3" />
+  </ItemGroup>
+</Project>

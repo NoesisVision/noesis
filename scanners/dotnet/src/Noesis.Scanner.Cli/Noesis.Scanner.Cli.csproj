@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Noesis.Scanner.Cli</RootNamespace>
+    <AssemblyName>noesis-scan-csharp</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>noesis-scan-csharp</ToolCommandName>
+    <PackageId>Noesis.Scanner</PackageId>
+    <Version>0.1.0</Version>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Noesis.Scanner.CSharp/Noesis.Scanner.CSharp.csproj" />
+  </ItemGroup>
+
+</Project>
