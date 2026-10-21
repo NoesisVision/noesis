@@ -1,8 +1,7 @@
 # Design: the Java scanner for the common code model
 
-Status: in progress (October 2026). The model, both engines, their golden
-tests, the agreement test and the Maven plugin with its integration test are
-done; the service adapter follows.
+Status: done (October 2026) up to Gradle support and the deferred items of
+section 7.
 
 The .NET scanner (`scanners/dotnet`) reads a C# solution with Roslyn and
 writes the common code model designed in
@@ -297,6 +296,22 @@ mvn -B -q -ntp -Dnoesis.out=<sessions/scanner> -Dnoesis.repositoryRoot=<root> -D
 The plugin must be in the local repository: `mvn -q install -DskipTests` in
 `scanners/java`.
 
+## 5a. The service adapter
+
+`scanner: "java-maven"` in `noesis-config.json` selects
+`JavaMavenSourceCodeScanner` (`server/backend/src/adapters/out/scanners/java-maven/`),
+which shares its two-stage shape with the C# adapter through
+`code-model-scanner.ts`: run the tool into the session directory, read the
+manifest and its files with the zod schema, project with the language's
+vocabulary. It runs Maven with the invocation of section 5 (the repository's
+own `mvnw` when it has one), pins the plugin version it was built with, and
+tells someone without Maven or the plugin what to install. The Java
+vocabulary is `app/code-model/projection/java.vocabulary.ts`; it needed two
+small projection rules the C# one did not: a `behaviour` role may fix the
+behaviour type itself (R9.4, for the argument-less handler annotations) and a
+record component's private field is a property while its accessor is not a
+behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
+
 ## 6. Testing
 
 - **Golden model**: the two fixture modules under `scanners/java/test-fixtures`
@@ -320,6 +335,12 @@ The plugin must be in the local repository: `mvn -q install -DskipTests` in
   an `NS1002`.
 - **Agreement**: `EngineAgreementTest` scans the fixture with both engines
   and asserts equality up to the exclusions `AgreementRules` names (section 4).
+- **Service**: `test/fixtures/java/shop` is a two-module Maven build with the
+  rules of the C# `shop` fixture in Java and its committed `code-model/`;
+  `test/unit/java-maven-scanner.spec.ts` runs the adapter over a fake tool that
+  copies it and pins the projected model, `test/e2e/java-maven-scanner.e2e.spec.ts`
+  installs the plugin and scans the fixture for real, asserting the same
+  model as the committed files project to.
 - **Plugin**: `maven-plugin/src/it/multi-module` is a two-module reactor
   project (b depends on a, a uses Guava) that `maven-invoker-plugin` builds
   with the exact invocation the service makes (`process-classes` plus the

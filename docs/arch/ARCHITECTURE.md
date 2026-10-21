@@ -121,8 +121,9 @@ Both land on the same service layer. Neither bypasses it.
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
   System model page. The repository names its scanner in `noesis-config.json` (`"scanner"`), read
   at every scan: `java` reads the source as text; `csharp` runs the .NET scanner
-  (`scanners/dotnet`, `noesis-scan-csharp` on the PATH) for the code model and projects it onto the
-  system model by the rules in `docs/plans/code-model-to-system-model.md`. `NOESIS_SCANNER=dummy`
+  (`scanners/dotnet`, `noesis-scan-csharp` on the PATH) and `java-maven` the Java scanner's Maven
+  plugin (`scanners/java`, installed once with `mvn install`) for the code model, and both project
+  it onto the system model by the rules in `docs/plans/code-model-to-system-model.md`. `NOESIS_SCANNER=dummy`
   replays the implemented design documents instead. Projecting into the graph waits for the graph.
 
 ## Source of truth

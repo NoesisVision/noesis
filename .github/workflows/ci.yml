@@ -28,7 +28,8 @@ jobs:
               - 'server/**'
               - 'plugins/**'
               - 'package.json'
-              - 'scanners/java/core/src/test/resources/golden/**'
+              # The backend's tests read the Java goldens and its e2e runs the Java scanner.
+              - 'scanners/java/**'
               - 'bun.lock'
               - 'bunfig.toml'
               - '.github/workflows/ci.yml'
@@ -62,6 +63,14 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
+
+      # The Java e2e installs the Maven plugin from scanners/java and scans a fixture with it.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: scanners/java/**/pom.xml
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

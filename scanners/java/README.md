@@ -75,6 +75,10 @@ rewrites `code-model/java/manifest.json`, which lists every module scanned so
 far in reactor order; `pom` modules are skipped. The first module to run
 clears the previous scan's files.
 
+The service runs exactly this invocation when `noesis-config.json` says
+`"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
+so `mvn -q install -DskipTests` here is the one setup step.
+
 The source engine needs Maven to run on a JDK (17 or newer); on a JRE every
 module reports `NS1003`. Annotation processors are not run: members Lombok
 would generate do not exist for the source engine, and calls to them are

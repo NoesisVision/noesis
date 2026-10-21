@@ -5,6 +5,7 @@ import type {
   CodeModelFile,
   DeclarationNode,
   Edge,
+  LanguageBag,
   MethodNode,
   Modifier,
   ScanManifest,
@@ -17,6 +18,7 @@ import type {
 } from '#backend/app/code-model/code-model';
 import { unquote } from '#backend/app/code-model/projection/annotations';
 import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
@@ -25,6 +27,7 @@ import {
   type Projection,
   projectSystemModel,
 } from '#backend/app/code-model/projection/project-system-model';
+import type { AnnotationVocabulary } from '#backend/app/code-model/projection/vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 
 /*
@@ -135,6 +138,12 @@ const scenario = (name: string | null) =>
 const exclude = () => attr('ExcludeFromDocsAttribute');
 const domainModel = () => attr('Domain.DomainModelAttribute');
 
+/** A `vision.noesis.annotations` annotation, which carries no arguments. */
+const javaAnnotation = (short: string): Annotation => ({
+  type: named(`T:vision.noesis.annotations.${short}`),
+  arguments: [],
+});
+
 /* ----------------------------------------------------------- builder */
 
 interface TypeOptions {
@@ -156,6 +165,7 @@ interface ParameterInput {
 }
 
 interface MethodOptions {
+  languageSpecific?: LanguageBag;
   parameters?: ParameterInput[];
   returns?: TypeRef;
   annotations?: Annotation[];
@@ -172,6 +182,7 @@ interface MethodOptions {
 }
 
 interface MemberOptions {
+  languageSpecific?: LanguageBag;
   annotations?: Annotation[];
   visibility?: Visibility;
   modifiers?: Modifier[];
@@ -321,7 +332,7 @@ class ArtifactBuilder {
       locations: [this.location(options.file)],
       annotations: options.annotations ?? [],
       documentation: options.documentation ?? null,
-      languageSpecific: {},
+      languageSpecific: options.languageSpecific ?? {},
       methodKind: options.methodKind ?? 'method',
       visibility: options.visibility ?? 'public',
       modifiers: options.modifiers ?? [],
@@ -409,7 +420,7 @@ class ArtifactBuilder {
       locations: [this.location(options.file, options.line)],
       annotations: options.annotations ?? [],
       documentation: options.documentation ?? null,
-      languageSpecific: {},
+      languageSpecific: options.languageSpecific ?? {},
       fieldKind: options.enumMember ? 'enumMember' : 'field',
       visibility: options.visibility ?? 'public',
       modifiers: options.modifiers ?? [],
@@ -487,12 +498,13 @@ const artifact = (
 function project(
   artifacts: ArtifactBuilder[],
   config: NamespaceConfigInput = {},
+  vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
 ): Projection {
   const files = artifacts.map((a) => a.build());
   const manifest: ScanManifest = {
     schemaVersion: 1,
     generator: { name: 'spec', version: '0' },
-    language: 'csharp',
+    language: vocabulary.language,
     repository: { name: 'spec', revision: 'none' },
     root: '',
     artifacts: files.map((file) => ({
@@ -504,7 +516,7 @@ function project(
   const projection = projectSystemModel({
     manifest,
     files,
-    vocabulary: CSHARP_VOCABULARY,
+    vocabulary,
     config: NamespaceConfig.of(config),
   });
   // Whatever the projection yields must be a system model.
@@ -539,6 +551,10 @@ describe('2. the annotation vocabulary', () => {
     expect<unknown>(unquote('"Say \\"hi\\"\\n"')).toBe('Say "hi"\n');
     expect<unknown>(unquote('@"C:\\x ""quoted"""')).toBe('C:\\x "quoted"');
     expect<unknown>(unquote('"""  raw text  """')).toBe('raw text');
+    // A Java text block spells itself the raw way.
+    expect<unknown>(unquote('"""\n    Placed by the customer.\n    """')).toBe(
+      'Placed by the customer.',
+    );
     expect<unknown>(unquote('null')).toBe(null);
     expect<unknown>(unquote('42')).toBe('42');
   });
@@ -985,6 +1001,40 @@ describe('5. properties', () => {
     expect<unknown>(
       model.buildingBlocks[0]?.properties.map((p) => p.name),
     ).toEqual(['C', 'A', 'B', 'Z']);
+  });
+
+  it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviours", () => {
+    const { model } = project(
+      [
+        artifact('shop')
+          .type('T:com.acme.Money', {
+            modifiers: ['final', 'record'],
+            annotations: [javaAnnotation('ValueObject')],
+          })
+          .field('F:com.acme.Money.amount', prim('long'), {
+            visibility: 'private',
+            modifiers: ['readonly'],
+            languageSpecific: { 'java.isRecordComponent': true },
+          })
+          .field('F:com.acme.Money.cache', prim('long'), {
+            visibility: 'private',
+          })
+          .method('M:com.acme.Money#amount()', {
+            returns: prim('long'),
+            languageSpecific: { 'java.isRecordComponent': true },
+          })
+          .method('M:com.acme.Money#negate()', {
+            returns: named('T:com.acme.Money'),
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    const money = model.buildingBlocks.find((b) => b.name === 'Money');
+    expect<unknown>(money?.properties.map((p) => [p.name, p.type])).toEqual([
+      ['amount', 'primitive|integer'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['negate']);
   });
 
   it('R5.6 describes a property by its doc comment', () => {
@@ -1463,6 +1513,39 @@ describe('9. behaviours', () => {
       ['Place', 'Command'],
       ['Total', 'Query'],
       ['Unspecified', 'Command'],
+    ]);
+  });
+
+  it('R9.4 takes the type a Java handler annotation fixes itself, which carries no argument', () => {
+    const { model } = project(
+      [
+        artifact('shop')
+          .type('T:com.acme.Orders', {
+            annotations: [javaAnnotation('ApplicationService')],
+          })
+          .method('M:com.acme.Orders#place()', {
+            annotations: [javaAnnotation('CommandHandler')],
+          })
+          .method('M:com.acme.Orders#total()', {
+            returns: prim('long'),
+            annotations: [javaAnnotation('QueryHandler')],
+          })
+          .method('M:com.acme.Orders#onPlaced()', {
+            annotations: [javaAnnotation('EventHandler')],
+            visibility: 'namespace',
+          })
+          .method('M:com.acme.Orders#list()', { returns: prim('long') }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(
+      model.behaviours.map((b) => [b.name, b.type, b.visibility.kind]),
+    ).toEqual([
+      ['list', 'Command', 'public'],
+      ['onPlaced', 'Event', 'private'],
+      ['place', 'Command', 'public'],
+      ['total', 'Query', 'public'],
     ]);
   });
 

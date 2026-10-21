@@ -357,8 +357,10 @@ class Projector {
     return properties;
   }
 
+  /** R5.1, and R5.7: a record component is a property although its field is private. */
   private isPropertyCandidate(member: PropertyNode | FieldNode): boolean {
-    if (member.origin === 'generated' || member.visibility !== 'public')
+    if (member.origin === 'generated') return false;
+    if (member.visibility !== 'public' && !isRecordComponent(member))
       return false;
     if (member.modifiers.includes('static')) return false;
     if (this.excluded(member.annotations)) return false;
@@ -411,9 +413,11 @@ class Projector {
     this.reportHomelessBehaviours();
   }
 
+  /** R9.1, and R5.7: a record component's accessor is the property, not a behaviour. */
   private isBehaviourCandidate(method: MethodNode): boolean {
     if (method.methodKind !== 'method' || method.origin === 'generated')
       return false;
+    if (isRecordComponent(method)) return false;
     if (this.excluded(method.annotations)) return false;
     if (hasRole(method.annotations, 'behaviour', this.vocabulary)) return true;
     return (
@@ -549,12 +553,12 @@ class Projector {
     };
   }
 
-  /** R9.4: `TriggeredBy` of a behaviour role, nearest member first; a Command without one. */
+  /** R9.4: `TriggeredBy` of a behaviour role, or the type the role itself fixes, nearest member first; a Command without one. */
   private behaviourTypeOf(
     hierarchy: readonly Located<MethodNode>[],
   ): BehaviourType {
     for (const member of hierarchy) {
-      for (const { annotation } of rolesOf(
+      for (const { annotation, role } of rolesOf(
         member.node.annotations,
         'behaviour',
         this.vocabulary,
@@ -570,6 +574,7 @@ class Projector {
         ) {
           return triggeredBy;
         }
+        if (role.type !== undefined) return role.type;
       }
     }
     return 'Command';
@@ -762,6 +767,11 @@ function moduleIdOf(path: readonly string[]): ModuleId {
     (parent, name) => ModuleId.within(parent, name),
     ModuleId.root(root),
   );
+}
+
+/** The Java scanner marks a record's component field and accessor; the field is the property (R5.7). */
+function isRecordComponent(node: DeclarationNode): boolean {
+  return node.languageSpecific['java.isRecordComponent'] === true;
 }
 
 /** R4.6, R9.10: the node's first location; a node without one has no path. */

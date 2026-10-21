@@ -74,7 +74,10 @@ claude --plugin-dir ../../plugins/claude-code
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
 Each `discounts-*` example names its scanner in `noesis-config.json`
-(`"scanner": "java"` or `"csharp"`), which a scan reads every time. `qdoc-java`
+(`"scanner": "java"`, `"java-maven"` or `"csharp"`), which a scan reads every
+time; `java-maven` runs the Maven plugin from `scanners/java` and needs a JDK,
+Maven and `mvn install` there, `java` reads the sources as text (the Gradle
+example uses it). `qdoc-java`
 sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
 scan, so a scan replays its implemented design documents.
 

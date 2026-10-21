@@ -74,6 +74,7 @@ describe('createScanner', () => {
   /** Scanners that only tell which one was picked. */
   const scanners: RepositoryScanners = {
     java: () => scannerOf(found('java')),
+    'java-maven': () => scannerOf(found('java-maven')),
     csharp: () => scannerOf(found('csharp')),
   };
   const configure = (scanner: string) =>
@@ -92,7 +93,7 @@ describe('createScanner', () => {
     const scanner = createScanner(undefined, deps(), scanners);
 
     await expect(scanner.scan()).rejects.toThrow(
-      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, csharp\./,
+      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, java-maven, csharp\./,
     );
     await configure('cobol');
     await expect(scanner.scan()).rejects.toThrow('Invalid noesis-config.json');

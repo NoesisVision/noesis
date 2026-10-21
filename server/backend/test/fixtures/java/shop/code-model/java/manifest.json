@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-java",
+    "version": "0.1.0-SNAPSHOT"
+  },
+  "language": "java",
+  "repository": {
+    "name": "shop",
+    "revision": "fixture"
+  },
+  "root": "pom.xml",
+  "artifacts": [
+    {
+      "id": "A:shop-domain",
+      "file": "code-model/java/shop-domain.code-model.json"
+    },
+    {
+      "id": "A:shop-infrastructure",
+      "file": "code-model/java/shop-infrastructure.code-model.json"
+    }
+  ],
+  "diagnostics": []
+}

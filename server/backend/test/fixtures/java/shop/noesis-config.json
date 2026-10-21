@@ -1,0 +1,5 @@
+{
+  "scanner": "java-maven",
+  "namespacePartsToSkip": ["com.acme"],
+  "namespacesToExclude": ["*.internal"]
+}

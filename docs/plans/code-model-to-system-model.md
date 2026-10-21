@@ -40,18 +40,34 @@ vocabulary maps annotation ids to the roles below; everything the stage does
 with an annotation goes through a role, so Java's
 `vision.noesis.annotations` is a second table, not a second projection.
 
-| Role            | Meaning                                                                                  | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                                                               |
-| --------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command`, `Query`, `Event`, `DddDomainEvent`, `ReadModel` → value_object (the model has no message types; the Java scanner maps them the same) |
-| `behaviour`     | The method is a behaviour; `name` overrides its name; `TriggeredBy` fixes its type       | `DomainBehavior`, `EntryPoint` (`TriggeredBy`: `Command`, `Query`, `Event`; `Unspecified` says nothing)                                                                                                                                                                                                                                                                                                                                       |
-| `actor`         | Who calls: `name` goes to the behaviour's `visibility.actors`                            | `Actor`                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `description`   | The element's description, Markdown                                                      | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `scenario`      | A scenario of the block or behaviour, by title only (section 9.9)                        | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `exclude`       | The element is not in the system model (section 3)                                       | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ignored         | Read for nothing in this iteration                                                       | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                                                                     |
+| Role            | Meaning                                                                                                             | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name                            | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command`, `Query`, `Event`, `DddDomainEvent`, `ReadModel` → value_object (the model has no message types; the Java scanner maps them the same) |
+| `behaviour`     | The method is a behaviour; `name` overrides its name; `TriggeredBy`, or a type the role itself fixes, sets its type | `DomainBehavior`, `EntryPoint` (`TriggeredBy`: `Command`, `Query`, `Event`; `Unspecified` says nothing)                                                                                                                                                                                                                                                                                                                                       |
+| `actor`         | Who calls: `name` goes to the behaviour's `visibility.actors`                                                       | `Actor`                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `description`   | The element's description, Markdown                                                                                 | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `scenario`      | A scenario of the block or behaviour, by title only (section 9.9)                                                   | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `exclude`       | The element is not in the system model (section 3)                                                                  | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ignored         | Read for nothing in this iteration                                                                                  | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                                                                     |
 
 An argument whose literal is `null` (an attribute's optional parameter left
 out, which Roslyn reports as `null`) counts as absent.
+
+The Java vocabulary (`vision.noesis.annotations`, in
+`java.vocabulary.ts`): `AggregateRoot` → aggregate, `DomainEntity` → entity,
+`ValueObject` and `Identifier` → value_object, `DomainService`,
+`ApplicationService`, `Repository`, `Factory` as named,
+`ExternalIntegration` and `Adapter` → external_integration, the messages
+`Command`, `Query`, `Event` → value_object; `CommandHandler`,
+`QueryHandler` and `EventHandler` are `behaviour` roles that carry no
+argument and fix the type themselves (R9.4). No Java annotation has a
+description, actor, scenario or exclude role yet, and `Module` is a
+package annotation (decision 13). Primitives are the eight keywords and the
+`java.lang` boxes, `String`, `BigDecimal`, `UUID` and the `java.time` types;
+collections are the `java.util` collection interfaces and classes and
+`Stream`; `Map` and its kin are dictionaries; `CompletableFuture`,
+`CompletionStage` and `Future` are looked through, `Optional` marks optional,
+`Void` is nothing.
 
 Besides annotations the vocabulary names, per language:
 
@@ -133,6 +149,11 @@ attribute.
 - **R5.5 Order.** By source location (file, line) of the member, then by
   name; name is the key, so two members cannot share one.
 - **R5.6 `description`**: the member's `documentation`, else null.
+- **R5.7 Record components.** A field the scanner marks
+  `java.isRecordComponent` is a candidate although it is private: a Java
+  record's state is its components, read through accessors the scanner marks
+  the same way, which are therefore not behaviours (R9.1). A C# positional
+  record needs no such rule: its components are public properties.
 
 ## 6. Modules
 
@@ -226,8 +247,8 @@ projects is one module.
 
 - **R9.1 Candidates.** The method nodes a block `CONTAINS` with
   `methodKind: method` (constructors, static initialisers, destructors and
-  operators are not behaviours), `public`, not generated, not excluded, and
-  not a technical member: `Equals`, `GetHashCode`, `GetType`, `ToString`,
+  operators are not behaviours), `public`, not generated, not excluded, not a
+  record component's accessor (R5.7), and not a technical member: `Equals`, `GetHashCode`, `GetType`, `ToString`,
   `Finalize`, `MemberwiseClone`, `Clone`, `Deconstruct`, `PrintMembers`,
   `CompareTo`. Static methods are candidates (`Money.Of`,
   `Order.Factory.NewWith`); interface members are public. A method with a
@@ -242,8 +263,10 @@ projects is one module.
   rule: a design's optional last input becomes an overload without it).
 - **R9.4 Type.** The `TriggeredBy` of the `behaviour` role on the method,
   or on the member it overrides or implements, when it is `Command`, `Query`
-  or `Event`. Without one the behaviour is a `Command`: the type is the
-  annotation's to say (section 12, decision 6), and the model has no
+  or `Event`; else the type the role itself fixes, when the vocabulary gives
+  it one (Java's `@CommandHandler`, `@QueryHandler`, `@EventHandler`, which
+  carry no argument). Without either the behaviour is a `Command`: the type
+  is the annotation's to say (section 12, decision 6), and the model has no
   "unknown". Nothing is read from the return type or the name.
 - **R9.5 Visibility.** `public` with its actors when the node is `public`,
   else `private` (a `behaviour` role on a non-public method). Actors: the

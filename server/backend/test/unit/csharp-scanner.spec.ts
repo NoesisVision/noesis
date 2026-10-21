@@ -8,14 +8,19 @@ import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
  * The C# scanner runs `noesis-scan-csharp` and projects what it wrote. Here
- * the tool is a bun script (test/support/fake-scan-csharp.ts) that copies the
+ * the tool is a bun script (test/support/fake-code-model-tool.ts) that copies the
  * committed code model of the fixture solution under test/fixtures/csharp/shop
  * into `--out`, so the whole chain runs without .NET. The real tool runs in
  * test/e2e/csharp-scanner.e2e.spec.ts.
  */
 
 const FIXTURE = join(import.meta.dir, '..', 'fixtures', 'csharp', 'shop');
-const FAKE_TOOL = join(import.meta.dir, '..', 'support', 'fake-scan-csharp.ts');
+const FAKE_TOOL = join(
+  import.meta.dir,
+  '..',
+  'support',
+  'fake-code-model-tool.ts',
+);
 
 let t: TestNoesis;
 let scanner: CSharpSourceCodeScanner;

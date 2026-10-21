@@ -8,7 +8,7 @@ import {
 const CONFIG_FILE = 'noesis-config.json';
 
 /** The scanners a repository can name; a language may have more than one. */
-export const RepositoryScannerName = z.enum(['java', 'csharp']);
+export const RepositoryScannerName = z.enum(['java', 'java-maven', 'csharp']);
 export type RepositoryScannerName = z.infer<typeof RepositoryScannerName>;
 
 /**
