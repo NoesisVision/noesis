@@ -93,7 +93,11 @@ for signatures. An object creation with a known constructor is only an
 
 Expressed as TypeScript types because the server validates with zod and the
 schema file is the contract every scanner writes against. Scanners in other
-languages mirror it (the .NET scanner has a C# copy with a schema test).
+languages mirror it (the .NET scanner has a C# copy with a schema test). The
+zod schema is `server/backend/src/app/code-model/code-model.ts`; `bun run
+generate` writes it as JSON Schema into `scanners/code-model/`
+(`manifest.schema.json`, `code-model.schema.json`), the readable copy a
+scanner author works from.
 
 ### 3.1 Files
 
@@ -918,6 +922,9 @@ next.
   which of those ids are declared or stubbed.
 - **Schema**: the C# model types round-trip through the TypeScript zod
   schema in `server/backend`, so a field added on one side fails the other.
+  The golden files are also checked against the generated JSON Schema in
+  `scanners/code-model/`, and that the committed schema is the one the zod
+  source generates.
 - **Broken fixtures**: a `csharp-broken` fixture set with a missing
   reference and a syntax error in one file. Asserts: models still written,
   diagnostics present, exit code 0.
