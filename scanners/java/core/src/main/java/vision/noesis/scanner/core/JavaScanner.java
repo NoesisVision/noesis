@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import vision.noesis.scanner.core.bytecode.BytecodeEngine;
 import vision.noesis.scanner.core.source.SourceEngine;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.CodeModelWriter;
@@ -52,6 +53,8 @@ public final class JavaScanner {
         switch (kind) {
             case SOURCE:
                 return new SourceEngine();
+            case BYTECODE:
+                return new BytecodeEngine();
             default:
                 throw new IllegalArgumentException("Engine " + kind.id() + " is not available.");
         }

@@ -1,9 +1,9 @@
 package vision.noesis.fixture.syntax.inheritance;
 
-import java.util.ArrayList;
+import com.google.common.base.Converter;
 import vision.noesis.fixture.syntax.types.InterfaceKinds;
 
-/** Generic interfaces implemented with a concrete argument, and an external generic base class. */
+/** Generic interfaces implemented with a concrete argument, and an external generic base class from a library (the JDK's own classes change between releases). */
 public final class GenericInheritance {
 
     private GenericInheritance() {
@@ -50,12 +50,16 @@ public final class GenericInheritance {
         }
     }
 
-    public static class NamesList extends ArrayList<String> {
-        private static final long serialVersionUID = 1L;
+    /** An external generic base class from a library: its interface slots are filled by inherited members. */
+    public static class LengthConverter extends Converter<String, Integer> {
+        @Override
+        protected Integer doForward(String text) {
+            return text.length();
+        }
 
         @Override
-        public boolean add(String name) {
-            return super.add(name.trim());
+        protected String doBackward(Integer length) {
+            return "x".repeat(length);
         }
     }
 }

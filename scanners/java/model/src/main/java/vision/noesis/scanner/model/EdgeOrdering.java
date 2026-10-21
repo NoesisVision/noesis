@@ -9,8 +9,10 @@ public final class EdgeOrdering {
 
     public record Key(String kind, String from, String to, SourceSpan location) {}
 
+    /** Two accesses of one field at one site (a compound assignment in bytecode) tie on the key; the edge's own text breaks the tie. */
     public static final Comparator<Edge> COMPARATOR = Comparator.comparing(EdgeOrdering::keyOf,
-            Comparator.comparing(Key::kind).thenComparing(Key::from).thenComparing(Key::to).thenComparing(Key::location, SourceSpan.NULLS_FIRST));
+            Comparator.comparing(Key::kind).thenComparing(Key::from).thenComparing(Key::to).thenComparing(Key::location, SourceSpan.NULLS_FIRST))
+            .thenComparing(Edge::toString);
 
     public static Key keyOf(Edge edge) {
         if (edge instanceof Edge.Contains e) return new Key("CONTAINS", e.from().value(), e.to().value(), null);

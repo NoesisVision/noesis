@@ -1,0 +1,2715 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-java",
+    "version": "1.0.0"
+  },
+  "artifact": {
+    "id": "A:java-syntax-other",
+    "kind": "source",
+    "name": "java-syntax-other",
+    "version": "0.1.0-SNAPSHOT",
+    "rootDirectory": "scanners/java/test-fixtures/java-syntax-other",
+    "target": "jdk-17",
+    "executable": false,
+    "dependencies": [
+      {
+        "id": "A:java.base@17",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT",
+        "kind": "library",
+        "package": {
+          "id": "vision.noesis:noesis-annotations",
+          "version": "0.1.0-SNAPSHOT"
+        }
+      }
+    ],
+    "annotations": [],
+    "languageSpecific": {
+      "java.buildFile": "scanners/java/test-fixtures/java-syntax-other/pom.xml",
+      "java.engine": "bytecode",
+      "java.groupId": "vision.noesis.fixtures",
+      "java.packaging": "jar"
+    }
+  },
+  "nodes": [
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.other.OtherClass.value",
+      "name": "value",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "public",
+      "modifiers": [],
+      "type": {
+        "kind": "primitive",
+        "name": "int",
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.other.OtherEnum.ALPHA",
+      "name": "ALPHA",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "enumMember",
+      "visibility": "public",
+      "modifiers": [
+        "static",
+        "readonly"
+      ],
+      "type": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.other.OtherEnum",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.other.OtherEnum.BETA",
+      "name": "BETA",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "enumMember",
+      "visibility": "public",
+      "modifiers": [
+        "static",
+        "readonly"
+      ],
+      "type": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.other.OtherEnum",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.other.OtherRecord.count",
+      "name": "count",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {
+        "java.isRecordComponent": true
+      },
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "readonly"
+      ],
+      "type": {
+        "kind": "primitive",
+        "name": "int",
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.other.OtherRecord.name",
+      "name": "name",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {
+        "java.isRecordComponent": true
+      },
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "readonly"
+      ],
+      "type": {
+        "kind": "named",
+        "type": "T:java.lang.String",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherAnnotation#value()",
+      "name": "value",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherAnnotation.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {
+        "java.defaultValue": "Literal[text=\"\"]"
+      },
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "abstract"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": true
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherClass#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 8,
+          "startColumn": 0,
+          "endLine": 8,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherClass#.ctor(int)",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 11,
+          "startColumn": 0,
+          "endLine": 11,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "value",
+            "type": {
+              "kind": "primitive",
+              "name": "int",
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherClass#create()",
+      "name": "create",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 16,
+          "startColumn": 0,
+          "endLine": 16,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:vision.noesis.fixture.other.OtherClass",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherClass#value()",
+      "name": "value",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 20,
+          "startColumn": 0,
+          "endLine": 20,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherEnum#.cctor()",
+      "name": ".cctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "staticInitializer",
+      "visibility": "private",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherEnum#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "private",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherEnum#valueOf(java.lang.String)",
+      "name": "valueOf",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "name",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.String",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:vision.noesis.fixture.other.OtherEnum",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherEnum#values()",
+      "name": "values",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "array",
+          "element": {
+            "kind": "named",
+            "type": "T:vision.noesis.fixture.other.OtherEnum",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "rank": 1,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherInterface`1#get()",
+      "name": "get",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherInterface.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "abstract"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "typeParameter",
+          "owner": "T:vision.noesis.fixture.other.OtherInterface`1",
+          "ordinal": 0,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": true
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherInterface`1#put(!0)",
+      "name": "put",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherInterface.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "abstract"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "value",
+            "type": {
+              "kind": "typeParameter",
+              "owner": "T:vision.noesis.fixture.other.OtherInterface`1",
+              "ordinal": 0,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": true
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#.ctor(java.lang.String,int)",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "name",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.String",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          },
+          {
+            "name": "count",
+            "type": {
+              "kind": "primitive",
+              "name": "int",
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#count()",
+      "name": "count",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {
+        "java.isRecordComponent": true
+      },
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#equals(java.lang.Object)",
+      "name": "equals",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "final"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "o",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.Object",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "primitive",
+          "name": "boolean",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#hashCode()",
+      "name": "hashCode",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "final"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#name()",
+      "name": "name",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {
+        "java.isRecordComponent": true
+      },
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherRecord#toString()",
+      "name": "toString",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "final"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherUsedType#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 5,
+          "startColumn": 0,
+          "endLine": 5,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherUsedType#.ctor(double)",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 8,
+          "startColumn": 0,
+          "endLine": 8,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "value",
+            "type": {
+              "kind": "primitive",
+              "name": "double",
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.OtherUsedType#get()",
+      "name": "get",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 12,
+          "startColumn": 0,
+          "endLine": 12,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "double",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/nested/NestedNamespaceInOtherModule.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.shared.SharedNamespaceInOtherModule#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/shared/SharedNamespaceInOtherModule.java",
+          "startLine": 4,
+          "startColumn": 0,
+          "endLine": 4,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "namespace",
+      "id": "N:",
+      "name": "",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision",
+      "name": "vision",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision.noesis",
+      "name": "noesis",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision.noesis.fixture",
+      "name": "fixture",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision.noesis.fixture.other",
+      "name": "other",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.Module",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"other\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision.noesis.fixture.other.nested",
+      "name": "nested",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:vision.noesis.fixture.shared",
+      "name": "shared",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherAnnotation",
+      "name": "OtherAnnotation",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherAnnotation.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.annotation.Retention",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "enum",
+                "type": {
+                  "kind": "named",
+                  "type": "T:java.lang.annotation.RetentionPolicy",
+                  "typeArguments": [],
+                  "unbound": false,
+                  "nullable": false
+                },
+                "member": "RUNTIME"
+              }
+            }
+          ]
+        },
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.annotation.Target",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "array",
+                "items": [
+                  {
+                    "kind": "enum",
+                    "type": {
+                      "kind": "named",
+                      "type": "T:java.lang.annotation.ElementType",
+                      "typeArguments": [],
+                      "unbound": false,
+                      "nullable": false
+                    },
+                    "member": "TYPE"
+                  },
+                  {
+                    "kind": "enum",
+                    "type": {
+                      "kind": "named",
+                      "type": "T:java.lang.annotation.ElementType",
+                      "typeArguments": [],
+                      "unbound": false,
+                      "nullable": false
+                    },
+                    "member": "METHOD"
+                  },
+                  {
+                    "kind": "enum",
+                    "type": {
+                      "kind": "named",
+                      "type": "T:java.lang.annotation.ElementType",
+                      "typeArguments": [],
+                      "unbound": false,
+                      "nullable": false
+                    },
+                    "member": "FIELD"
+                  },
+                  {
+                    "kind": "enum",
+                    "type": {
+                      "kind": "named",
+                      "type": "T:java.lang.annotation.ElementType",
+                      "typeArguments": [],
+                      "unbound": false,
+                      "nullable": false
+                    },
+                    "member": "PARAMETER"
+                  },
+                  {
+                    "kind": "enum",
+                    "type": {
+                      "kind": "named",
+                      "type": "T:java.lang.annotation.ElementType",
+                      "typeArguments": [],
+                      "unbound": false,
+                      "nullable": false
+                    },
+                    "member": "TYPE_PARAMETER"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {
+        "java.isAnnotation": true
+      },
+      "typeKind": "interface",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherClass",
+      "name": "OtherClass",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherEnum",
+      "name": "OtherEnum",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "enum",
+      "visibility": "public",
+      "modifiers": [
+        "final"
+      ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherInterface`1",
+      "name": "OtherInterface",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherInterface.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "interface",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [
+        {
+          "name": "T",
+          "ordinal": 0,
+          "annotations": [],
+          "variance": "invariant",
+          "constraints": [],
+          "languageSpecific": {}
+        }
+      ],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherRecord",
+      "name": "OtherRecord",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [
+        "final",
+        "record"
+      ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.OtherUsedType",
+      "name": "OtherUsedType",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule",
+      "name": "NestedNamespaceInOtherModule",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/nested/NestedNamespaceInOtherModule.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.shared.SharedNamespaceInOtherModule",
+      "name": "SharedNamespaceInOtherModule",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/shared/SharedNamespaceInOtherModule.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    }
+  ],
+  "edges": [
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherClass#.ctor(int)",
+      "to": "F:vision.noesis.fixture.other.OtherClass.value",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 12,
+          "startColumn": 0,
+          "endLine": 12,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherClass#value()",
+      "to": "F:vision.noesis.fixture.other.OtherClass.value",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 20,
+          "startColumn": 0,
+          "endLine": 20,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#.cctor()",
+      "to": "F:vision.noesis.fixture.other.OtherEnum.ALPHA",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 4,
+          "startColumn": 0,
+          "endLine": 4,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#.cctor()",
+      "to": "F:vision.noesis.fixture.other.OtherEnum.BETA",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 5,
+          "startColumn": 0,
+          "endLine": 5,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#.ctor(java.lang.String,int)",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.count",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#.ctor(java.lang.String,int)",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.name",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#count()",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.count",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#name()",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.name",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "A:java-syntax-other",
+      "to": "N:"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:",
+      "to": "N:vision"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision",
+      "to": "N:vision.noesis"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis",
+      "to": "N:vision.noesis.fixture"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture",
+      "to": "N:vision.noesis.fixture.other"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture",
+      "to": "N:vision.noesis.fixture.shared"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "N:vision.noesis.fixture.other.nested"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherAnnotation"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherClass"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherEnum"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherInterface`1"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherRecord"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other",
+      "to": "T:vision.noesis.fixture.other.OtherUsedType"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.other.nested",
+      "to": "T:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.shared",
+      "to": "T:vision.noesis.fixture.shared.SharedNamespaceInOtherModule"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherAnnotation",
+      "to": "M:vision.noesis.fixture.other.OtherAnnotation#value()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherClass",
+      "to": "F:vision.noesis.fixture.other.OtherClass.value"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherClass",
+      "to": "M:vision.noesis.fixture.other.OtherClass#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherClass",
+      "to": "M:vision.noesis.fixture.other.OtherClass#.ctor(int)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherClass",
+      "to": "M:vision.noesis.fixture.other.OtherClass#create()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherClass",
+      "to": "M:vision.noesis.fixture.other.OtherClass#value()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "F:vision.noesis.fixture.other.OtherEnum.ALPHA"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "F:vision.noesis.fixture.other.OtherEnum.BETA"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#.cctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#valueOf(java.lang.String)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#values()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherInterface`1",
+      "to": "M:vision.noesis.fixture.other.OtherInterface`1#get()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherInterface`1",
+      "to": "M:vision.noesis.fixture.other.OtherInterface`1#put(!0)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.count"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "F:vision.noesis.fixture.other.OtherRecord.name"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#.ctor(java.lang.String,int)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#count()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#equals(java.lang.Object)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#hashCode()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#name()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": "M:vision.noesis.fixture.other.OtherRecord#toString()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherUsedType",
+      "to": "M:vision.noesis.fixture.other.OtherUsedType#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherUsedType",
+      "to": "M:vision.noesis.fixture.other.OtherUsedType#.ctor(double)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.OtherUsedType",
+      "to": "M:vision.noesis.fixture.other.OtherUsedType#get()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule",
+      "to": "M:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.shared.SharedNamespaceInOtherModule",
+      "to": "M:vision.noesis.fixture.shared.SharedNamespaceInOtherModule#.ctor()"
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.annotation.ElementType",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Enum`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.annotation.ElementType",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.annotation.RetentionPolicy",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Enum`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.annotation.RetentionPolicy",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.invoke.TypeDescriptor",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.reflect.GenericDeclaration",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.AnnotatedElement",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:vision.noesis.fixture.other.OtherAnnotation",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.annotation.Annotation",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:vision.noesis.fixture.other.OtherEnum",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Enum`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:vision.noesis.fixture.other.OtherEnum",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:vision.noesis.fixture.other.OtherRecord",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Record",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.Class`1",
+            "typeArguments": [
+              {
+                "kind": "other",
+                "text": "?"
+              }
+            ],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.AnnotatedElement",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.GenericDeclaration",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.Type",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Enum`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Enum`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "typeParameter",
+            "owner": "T:java.lang.Enum`1",
+            "ordinal": 0,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Enum`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.String",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.String",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.CharSequence",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.String",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.String",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.String",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.String",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.ConstantDesc",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:java.lang.Enum`1#compareTo(!0)",
+      "to": "M:java.lang.Comparable`1#compareTo(!0)",
+      "interface": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:vision.noesis.fixture.other.OtherEnum",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:vision.noesis.fixture.other.OtherEnum"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:java.lang.Enum`1#describeConstable()",
+      "to": "M:java.lang.constant.Constable#describeConstable()",
+      "interface": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:vision.noesis.fixture.other.OtherEnum"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherClass#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 8,
+          "startColumn": 0,
+          "endLine": 8,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherClass#.ctor(int)",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 11,
+          "startColumn": 0,
+          "endLine": 11,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherClass#create()",
+      "to": "M:vision.noesis.fixture.other.OtherClass#.ctor(int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherClass.java",
+          "startLine": 16,
+          "startColumn": 0,
+          "endLine": 16,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#.cctor()",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 4,
+          "startColumn": 0,
+          "endLine": 4,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#.cctor()",
+      "to": "M:vision.noesis.fixture.other.OtherEnum#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 5,
+          "startColumn": 0,
+          "endLine": 5,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#.ctor()",
+      "to": "M:java.lang.Enum`1#.ctor(java.lang.String,int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#valueOf(java.lang.String)",
+      "to": "M:java.lang.Enum`1#valueOf`1(java.lang.Class`1[!!0],java.lang.String)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherEnum#values()",
+      "to": "M:vision.noesis.fixture.other.OtherEnum;#clone()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherEnum.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#.ctor(java.lang.String,int)",
+      "to": "M:java.lang.Record#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherRecord.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherUsedType#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 5,
+          "startColumn": 0,
+          "endLine": 5,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.OtherUsedType#.ctor(double)",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/OtherUsedType.java",
+          "startLine": 8,
+          "startColumn": 0,
+          "endLine": 8,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.other.nested.NestedNamespaceInOtherModule#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/other/nested/NestedNamespaceInOtherModule.java",
+          "startLine": 3,
+          "startColumn": 0,
+          "endLine": 3,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.shared.SharedNamespaceInOtherModule#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax-other/src/main/java/vision/noesis/fixture/shared/SharedNamespaceInOtherModule.java",
+          "startLine": 4,
+          "startColumn": 0,
+          "endLine": 4,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "OVERRIDES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#equals(java.lang.Object)",
+      "to": "M:java.lang.Record#equals(java.lang.Object)"
+    },
+    {
+      "kind": "OVERRIDES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#hashCode()",
+      "to": "M:java.lang.Record#hashCode()"
+    },
+    {
+      "kind": "OVERRIDES",
+      "from": "M:vision.noesis.fixture.other.OtherRecord#toString()",
+      "to": "M:java.lang.Record#toString()"
+    }
+  ],
+  "stubs": [
+    {
+      "id": "M:java.lang.Comparable`1#compareTo(!0)",
+      "kind": "method",
+      "name": "compareTo",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Enum`1#.ctor(java.lang.String,int)",
+      "kind": "method",
+      "name": ".ctor",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Enum`1#compareTo(!0)",
+      "kind": "method",
+      "name": "compareTo",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Enum`1#describeConstable()",
+      "kind": "method",
+      "name": "describeConstable",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Enum`1#valueOf`1(java.lang.Class`1[!!0],java.lang.String)",
+      "kind": "method",
+      "name": "valueOf",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Object#.ctor()",
+      "kind": "method",
+      "name": ".ctor",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Record#.ctor()",
+      "kind": "method",
+      "name": ".ctor",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Record#equals(java.lang.Object)",
+      "kind": "method",
+      "name": "equals",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Record#hashCode()",
+      "kind": "method",
+      "name": "hashCode",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Record#toString()",
+      "kind": "method",
+      "name": "toString",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.constant.Constable#describeConstable()",
+      "kind": "method",
+      "name": "describeConstable",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java",
+      "kind": "namespace",
+      "name": "java",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.io",
+      "kind": "namespace",
+      "name": "io",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang",
+      "kind": "namespace",
+      "name": "lang",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang.annotation",
+      "kind": "namespace",
+      "name": "annotation",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang.constant",
+      "kind": "namespace",
+      "name": "constant",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang.invoke",
+      "kind": "namespace",
+      "name": "invoke",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang.reflect",
+      "kind": "namespace",
+      "name": "reflect",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:vision",
+      "kind": "namespace",
+      "name": "vision",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "N:vision.noesis",
+      "kind": "namespace",
+      "name": "noesis",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "N:vision.noesis.annotations",
+      "kind": "namespace",
+      "name": "annotations",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:java.io.Serializable",
+      "kind": "type",
+      "name": "Serializable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.CharSequence",
+      "kind": "type",
+      "name": "CharSequence",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Class`1",
+      "kind": "type",
+      "name": "Class",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Comparable`1",
+      "kind": "type",
+      "name": "Comparable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Enum`1",
+      "kind": "type",
+      "name": "Enum",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Object",
+      "kind": "type",
+      "name": "Object",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Record",
+      "kind": "type",
+      "name": "Record",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.String",
+      "kind": "type",
+      "name": "String",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.annotation.Annotation",
+      "kind": "type",
+      "name": "Annotation",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.annotation.ElementType",
+      "kind": "type",
+      "name": "ElementType",
+      "typeKind": "enum",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.annotation.Retention",
+      "kind": "type",
+      "name": "Retention",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.annotation.RetentionPolicy",
+      "kind": "type",
+      "name": "RetentionPolicy",
+      "typeKind": "enum",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.annotation.Target",
+      "kind": "type",
+      "name": "Target",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.constant.Constable",
+      "kind": "type",
+      "name": "Constable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.constant.ConstantDesc",
+      "kind": "type",
+      "name": "ConstantDesc",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.invoke.TypeDescriptor",
+      "kind": "type",
+      "name": "TypeDescriptor",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+      "kind": "type",
+      "name": "OfField",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.AnnotatedElement",
+      "kind": "type",
+      "name": "AnnotatedElement",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.GenericDeclaration",
+      "kind": "type",
+      "name": "GenericDeclaration",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.Type",
+      "kind": "type",
+      "name": "Type",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:vision.noesis.annotations.Module",
+      "kind": "type",
+      "name": "Module",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    }
+  ],
+  "diagnostics": []
+}

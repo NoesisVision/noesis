@@ -15,21 +15,25 @@ javac over the sources and is the reference: full symbol resolution, source
 spans, parameter names, Javadoc, and it never fails because code does not
 compile (unbound names become `unresolved` references, unbound call sites
 become diagnostics). The **bytecode** engine reads the compiled classes with
-ArchUnit for projects whose sources need annotation processors; it is not
-written yet.
+ArchUnit for projects whose sources need annotation processors (Lombok); it
+writes the same model with the gaps bytecode has, listed in the design
+document's section 4: line-only locations, no Javadoc, parameter names only
+with `-parameters`, no casts or array creations, compiler-inserted calls
+present, and it binds the JDK of the JVM that runs it. An agreement test
+keeps the two engines equal up to exactly that list.
 
 ## Layout
 
-| Path                                       | What it is                                                                                                                       |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations/`                             | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                           |
-| `model/`                                   | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                   |
-| `core/`                                    | The engines (`source/`, later `bytecode/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index |
-| `maven-plugin/`                            | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                              |
-| `test-fixtures/java-syntax`                | Every Java construct the scanner maps, one file per topic; scanned by the golden tests                                           |
-| `test-fixtures/java-syntax-other`          | The types the syntax fixture reaches across a module boundary                                                                    |
-| `core/src/test/resources/golden/`          | The committed model files per engine                                                                                             |
-| `core/src/test/resources/fixtures-broken/` | A syntax error and a missing import; must still yield a model                                                                    |
+| Path                                       | What it is                                                                                                                     |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `annotations/`                             | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                         |
+| `model/`                                   | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                 |
+| `core/`                                    | The two engines (`source/`, `bytecode/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index |
+| `maven-plugin/`                            | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                            |
+| `test-fixtures/java-syntax`                | Every Java construct the scanner maps, one file per topic; scanned by the golden tests                                         |
+| `test-fixtures/java-syntax-other`          | The types the syntax fixture reaches across a module boundary                                                                  |
+| `core/src/test/resources/golden/`          | The committed model files per engine                                                                                           |
+| `core/src/test/resources/fixtures-broken/` | A syntax error and a missing import; must still yield a model                                                                  |
 
 ## Commands
 

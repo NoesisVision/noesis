@@ -879,37 +879,6 @@
     },
     {
       "kind": "field",
-      "id": "F:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList.serialVersionUID",
-      "name": "serialVersionUID",
-      "origin": "declared",
-      "locations": [
-        {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 54,
-          "startColumn": 9,
-          "endLine": 54,
-          "endColumn": 57
-        }
-      ],
-      "annotations": [],
-      "documentation": null,
-      "languageSpecific": {},
-      "fieldKind": "field",
-      "visibility": "private",
-      "modifiers": [
-        "static",
-        "readonly"
-      ],
-      "type": {
-        "kind": "primitive",
-        "name": "long",
-        "nullable": false
-      },
-      "passing": "value",
-      "constantValue": "1L"
-    },
-    {
-      "kind": "field",
       "id": "F:vision.noesis.fixture.syntax.inheritance.GenericInheritance+ReusableBox`1.content",
       "name": "content",
       "origin": "declared",
@@ -5369,6 +5338,162 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#.ctor()",
+      "name": ".ctor",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doBackward(java.lang.Integer)",
+      "name": "doBackward",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 60,
+          "startColumn": 9,
+          "endLine": 63,
+          "endColumn": 10
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.Override",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "protectedOrNamespace",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "length",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.Integer",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doForward(java.lang.String)",
+      "name": "doForward",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 55,
+          "startColumn": 9,
+          "endLine": 58,
+          "endColumn": 10
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.Override",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "protectedOrNamespace",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "text",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.String",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.Integer",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money#.ctor(long)",
       "name": ".ctor",
       "origin": "declared",
@@ -5470,94 +5595,6 @@
         "returnType": {
           "kind": "primitive",
           "name": "int",
-          "nullable": false
-        },
-        "returnPassing": "value",
-        "returnAnnotations": []
-      },
-      "extensionReceiver": null,
-      "bodiless": false
-    },
-    {
-      "kind": "method",
-      "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#.ctor()",
-      "name": ".ctor",
-      "origin": "generated",
-      "locations": [],
-      "annotations": [],
-      "documentation": null,
-      "languageSpecific": {},
-      "methodKind": "constructor",
-      "visibility": "public",
-      "modifiers": [],
-      "typeParameters": [],
-      "signature": {
-        "parameters": [],
-        "returnType": {
-          "kind": "void"
-        },
-        "returnPassing": "value",
-        "returnAnnotations": []
-      },
-      "extensionReceiver": null,
-      "bodiless": false
-    },
-    {
-      "kind": "method",
-      "id": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "name": "add",
-      "origin": "declared",
-      "locations": [
-        {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 56,
-          "startColumn": 9,
-          "endLine": 59,
-          "endColumn": 10
-        }
-      ],
-      "annotations": [
-        {
-          "type": {
-            "kind": "named",
-            "type": "T:java.lang.Override",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          },
-          "arguments": []
-        }
-      ],
-      "documentation": null,
-      "languageSpecific": {},
-      "methodKind": "method",
-      "visibility": "public",
-      "modifiers": [
-        "virtual"
-      ],
-      "typeParameters": [],
-      "signature": {
-        "parameters": [
-          {
-            "name": "name",
-            "type": {
-              "kind": "named",
-              "type": "T:java.lang.String",
-              "typeArguments": [],
-              "unbound": false,
-              "nullable": false
-            },
-            "passing": "value",
-            "variadic": false,
-            "optional": false,
-            "defaultValue": null,
-            "annotations": [],
-            "languageSpecific": {}
-          }
-        ],
-        "returnType": {
-          "kind": "primitive",
-          "name": "boolean",
           "nullable": false
         },
         "returnPassing": "value",
@@ -14907,17 +14944,44 @@
           "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
           "startLine": 7,
           "startColumn": 1,
-          "endLine": 61,
+          "endLine": 65,
           "endColumn": 2
         }
       ],
       "annotations": [],
-      "documentation": "Generic interfaces implemented with a concrete argument, and an external generic base class.",
+      "documentation": "Generic interfaces implemented with a concrete argument, and an external generic base class from a library (the JDK's own classes change between releases).",
       "languageSpecific": {},
       "typeKind": "class",
       "visibility": "public",
       "modifiers": [
         "final"
+      ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter",
+      "name": "LengthConverter",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 54,
+          "startColumn": 5,
+          "endLine": 64,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": "An external generic base class from a library: its interface slots are filled by inherited members.",
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [
+        "static"
       ],
       "typeParameters": [],
       "underlyingType": null,
@@ -14946,33 +15010,6 @@
       "modifiers": [
         "static",
         "final"
-      ],
-      "typeParameters": [],
-      "underlyingType": null,
-      "delegateSignature": null,
-      "aliasOf": null
-    },
-    {
-      "kind": "type",
-      "id": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList",
-      "name": "NamesList",
-      "origin": "declared",
-      "locations": [
-        {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 53,
-          "startColumn": 5,
-          "endLine": 60,
-          "endColumn": 6
-        }
-      ],
-      "annotations": [],
-      "documentation": null,
-      "languageSpecific": {},
-      "typeKind": "class",
-      "visibility": "public",
-      "modifiers": [
-        "static"
       ],
       "typeParameters": [],
       "underlyingType": null,
@@ -17650,24 +17687,6 @@
     },
     {
       "kind": "ACCESSES",
-      "from": "M:vision.noesis.fixture.syntax.invocations.InvocationForms#typeUses(java.lang.Object)",
-      "to": "F:vision.noesis.fixture.syntax.inheritance.ClassInheritance+Base.class",
-      "access": "read",
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/InvocationForms.java",
-          "startLine": 89,
-          "startColumn": 28,
-          "endLine": 89,
-          "endColumn": 55
-        },
-        "viaClosure": false,
-        "languageSpecific": {}
-      },
-      "receiver": "type"
-    },
-    {
-      "kind": "ACCESSES",
       "from": "M:vision.noesis.fixture.syntax.invocations.InvocationForms+1#run()",
       "to": "F:vision.noesis.fixture.syntax.invocations.InvocationForms.field",
       "access": "readWrite",
@@ -18789,12 +18808,12 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance",
-      "to": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money"
+      "to": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter"
     },
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance",
-      "to": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
+      "to": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money"
     },
     {
       "kind": "CONTAINS",
@@ -18805,6 +18824,21 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance",
       "to": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+StringBox"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter",
+      "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter",
+      "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doBackward(java.lang.Integer)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter",
+      "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doForward(java.lang.String)"
     },
     {
       "kind": "CONTAINS",
@@ -18820,21 +18854,6 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money",
       "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money#compareTo(vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money)"
-    },
-    {
-      "kind": "CONTAINS",
-      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList",
-      "to": "F:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList.serialVersionUID"
-    },
-    {
-      "kind": "CONTAINS",
-      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList",
-      "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#.ctor()"
-    },
-    {
-      "kind": "CONTAINS",
-      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList",
-      "to": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)"
     },
     {
       "kind": "CONTAINS",
@@ -20363,6 +20382,30 @@
     },
     {
       "kind": "EXTENDS",
+      "from": "T:com.google.common.base.Function`2",
+      "to": {
+        "kind": "named",
+        "type": "T:java.util.function.Function`2",
+        "typeArguments": [
+          {
+            "kind": "typeParameter",
+            "owner": "T:com.google.common.base.Function`2",
+            "ordinal": 0,
+            "nullable": false
+          },
+          {
+            "kind": "typeParameter",
+            "owner": "T:com.google.common.base.Function`2",
+            "ordinal": 1,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
       "from": "T:com.google.common.collect.ImmutableCollection`1",
       "to": {
         "kind": "named",
@@ -20648,30 +20691,6 @@
     },
     {
       "kind": "EXTENDS",
-      "from": "T:java.util.function.UnaryOperator`1",
-      "to": {
-        "kind": "named",
-        "type": "T:java.util.function.Function`2",
-        "typeArguments": [
-          {
-            "kind": "typeParameter",
-            "owner": "T:java.util.function.UnaryOperator`1",
-            "ordinal": 0,
-            "nullable": false
-          },
-          {
-            "kind": "typeParameter",
-            "owner": "T:java.util.function.UnaryOperator`1",
-            "ordinal": 0,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      }
-    },
-    {
-      "kind": "EXTENDS",
       "from": "T:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord",
       "to": {
         "kind": "named",
@@ -20749,14 +20768,21 @@
     },
     {
       "kind": "EXTENDS",
-      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList",
+      "from": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter",
       "to": {
         "kind": "named",
-        "type": "T:java.util.ArrayList`1",
+        "type": "T:com.google.common.base.Converter`2",
         "typeArguments": [
           {
             "kind": "named",
             "type": "T:java.lang.String",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
             "typeArguments": [],
             "unbound": false,
             "nullable": false
@@ -21033,6 +21059,30 @@
         "kind": "named",
         "type": "T:java.lang.Record",
         "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:com.google.common.base.Converter`2",
+      "to": {
+        "kind": "named",
+        "type": "T:com.google.common.base.Function`2",
+        "typeArguments": [
+          {
+            "kind": "typeParameter",
+            "owner": "T:com.google.common.base.Converter`2",
+            "ordinal": 0,
+            "nullable": false
+          },
+          {
+            "kind": "typeParameter",
+            "owner": "T:com.google.common.base.Converter`2",
+            "ordinal": 1,
+            "nullable": false
+          }
+        ],
         "unbound": false,
         "nullable": false
       }
@@ -21736,6 +21786,90 @@
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:com.google.common.base.Converter`2#apply(!0)",
+      "to": "M:com.google.common.base.Function`2#apply(!0)",
+      "interface": {
+        "kind": "named",
+        "type": "T:com.google.common.base.Function`2",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.String",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:com.google.common.base.Converter`2#apply(!0)",
+      "to": "M:java.util.function.Function`2#apply(!0)",
+      "interface": {
+        "kind": "named",
+        "type": "T:java.util.function.Function`2",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.String",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:com.google.common.base.Converter`2#equals(java.lang.Object)",
+      "to": "M:com.google.common.base.Function`2#equals(java.lang.Object)",
+      "interface": {
+        "kind": "named",
+        "type": "T:com.google.common.base.Function`2",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.String",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
       "from": "M:java.lang.Enum`1#compareTo(!0)",
       "to": "M:java.lang.Comparable`1#compareTo(!0)",
       "interface": {
@@ -21974,972 +22108,6 @@
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.AbstractCollection`1#containsAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.Collection`1#containsAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.AbstractCollection`1#containsAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.List`1#containsAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#add(int,!0)",
-      "to": "M:java.util.List`1#add(int,!0)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#addAll(int,java.util.Collection`1[<other:? extends !0>])",
-      "to": "M:java.util.List`1#addAll(int,java.util.Collection`1[<other:? extends !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "to": "M:java.util.Collection`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "to": "M:java.util.List`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#clear()",
-      "to": "M:java.util.Collection`1#clear()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#clear()",
-      "to": "M:java.util.List`1#clear()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#contains(java.lang.Object)",
-      "to": "M:java.util.Collection`1#contains(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#contains(java.lang.Object)",
-      "to": "M:java.util.List`1#contains(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#equals(java.lang.Object)",
-      "to": "M:java.util.Collection`1#equals(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#equals(java.lang.Object)",
-      "to": "M:java.util.List`1#equals(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#forEach(java.util.function.Consumer`1[<other:? super !0>])",
-      "to": "M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.lang.Iterable`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#get(int)",
-      "to": "M:java.util.List`1#get(int)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#hashCode()",
-      "to": "M:java.util.Collection`1#hashCode()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#hashCode()",
-      "to": "M:java.util.List`1#hashCode()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#indexOf(java.lang.Object)",
-      "to": "M:java.util.List`1#indexOf(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#isEmpty()",
-      "to": "M:java.util.Collection`1#isEmpty()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#isEmpty()",
-      "to": "M:java.util.List`1#isEmpty()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#iterator()",
-      "to": "M:java.lang.Iterable`1#iterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.lang.Iterable`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#iterator()",
-      "to": "M:java.util.Collection`1#iterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#iterator()",
-      "to": "M:java.util.List`1#iterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#lastIndexOf(java.lang.Object)",
-      "to": "M:java.util.List`1#lastIndexOf(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#listIterator()",
-      "to": "M:java.util.List`1#listIterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#listIterator(int)",
-      "to": "M:java.util.List`1#listIterator(int)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#remove(int)",
-      "to": "M:java.util.List`1#remove(int)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#remove(java.lang.Object)",
-      "to": "M:java.util.Collection`1#remove(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#remove(java.lang.Object)",
-      "to": "M:java.util.List`1#remove(java.lang.Object)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#removeAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.Collection`1#removeAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#removeAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.List`1#removeAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#removeIf(java.util.function.Predicate`1[<other:? super !0>])",
-      "to": "M:java.util.Collection`1#removeIf(java.util.function.Predicate`1[<other:? super !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#replaceAll(java.util.function.UnaryOperator`1[!0])",
-      "to": "M:java.util.List`1#replaceAll(java.util.function.UnaryOperator`1[!0])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#retainAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.Collection`1#retainAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#retainAll(java.util.Collection`1[<other:?>])",
-      "to": "M:java.util.List`1#retainAll(java.util.Collection`1[<other:?>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#set(int,!0)",
-      "to": "M:java.util.List`1#set(int,!0)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#size()",
-      "to": "M:java.util.Collection`1#size()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#size()",
-      "to": "M:java.util.List`1#size()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#sort(java.util.Comparator`1[<other:? super !0>])",
-      "to": "M:java.util.List`1#sort(java.util.Comparator`1[<other:? super !0>])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#spliterator()",
-      "to": "M:java.lang.Iterable`1#spliterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.lang.Iterable`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#spliterator()",
-      "to": "M:java.util.Collection`1#spliterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#spliterator()",
-      "to": "M:java.util.List`1#spliterator()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#subList(int,int)",
-      "to": "M:java.util.List`1#subList(int,int)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#toArray()",
-      "to": "M:java.util.Collection`1#toArray()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#toArray()",
-      "to": "M:java.util.List`1#toArray()",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#toArray`1(!!0[])",
-      "to": "M:java.util.Collection`1#toArray`1(!!0[])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:java.util.ArrayList`1#toArray`1(!!0[])",
-      "to": "M:java.util.List`1#toArray`1(!!0[])",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
       "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money#compareTo(vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money)",
       "to": "M:java.lang.Comparable`1#compareTo(!0)",
       "interface": {
@@ -22958,48 +22126,6 @@
         "nullable": false
       },
       "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "to": "M:java.util.Collection`1#add(!0)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.Collection`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
-    },
-    {
-      "kind": "IMPLEMENTS_MEMBER",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "to": "M:java.util.List`1#add(!0)",
-      "interface": {
-        "kind": "named",
-        "type": "T:java.util.List`1",
-        "typeArguments": [
-          {
-            "kind": "named",
-            "type": "T:java.lang.String",
-            "typeArguments": [],
-            "unbound": false,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      },
-      "declaredOn": "T:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList"
     },
     {
       "kind": "IMPLEMENTS_MEMBER",
@@ -24743,6 +23869,65 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#.ctor()",
+      "to": "M:com.google.common.base.Converter`2#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 54,
+          "startColumn": 19,
+          "endLine": 54,
+          "endColumn": 19
+        },
+        "viaClosure": false,
+        "languageSpecific": {
+          "java.implicitSuperCall": true
+        }
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doBackward(java.lang.Integer)",
+      "to": "M:java.lang.String#repeat(int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 62,
+          "startColumn": 20,
+          "endLine": 62,
+          "endColumn": 38
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "literal"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doForward(java.lang.String)",
+      "to": "M:java.lang.String#length()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
+          "startLine": 57,
+          "startColumn": 20,
+          "endLine": 57,
+          "endColumn": 33
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "parameter"
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+Money#.ctor(long)",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
@@ -24780,65 +23965,6 @@
       },
       "invocationKind": "call",
       "receiver": "type"
-    },
-    {
-      "kind": "INVOKES",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#.ctor()",
-      "to": "M:java.util.ArrayList`1#.ctor()",
-      "typeArguments": [],
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 53,
-          "startColumn": 19,
-          "endLine": 53,
-          "endColumn": 19
-        },
-        "viaClosure": false,
-        "languageSpecific": {
-          "java.implicitSuperCall": true
-        }
-      },
-      "invocationKind": "call",
-      "receiver": "base"
-    },
-    {
-      "kind": "INVOKES",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "to": "M:java.lang.String#trim()",
-      "typeArguments": [],
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 58,
-          "startColumn": 30,
-          "endLine": 58,
-          "endColumn": 41
-        },
-        "viaClosure": false,
-        "languageSpecific": {}
-      },
-      "invocationKind": "call",
-      "receiver": "parameter"
-    },
-    {
-      "kind": "INVOKES",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "to": "M:java.util.ArrayList`1#add(!0)",
-      "typeArguments": [],
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/inheritance/GenericInheritance.java",
-          "startLine": 58,
-          "startColumn": 20,
-          "endLine": 58,
-          "endColumn": 42
-        },
-        "viaClosure": false,
-        "languageSpecific": {}
-      },
-      "invocationKind": "call",
-      "receiver": "base"
     },
     {
       "kind": "INVOKES",
@@ -27618,8 +26744,13 @@
     },
     {
       "kind": "OVERRIDES",
-      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+NamesList#add(java.lang.String)",
-      "to": "M:java.util.ArrayList`1#add(!0)"
+      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doBackward(java.lang.Integer)",
+      "to": "M:com.google.common.base.Converter`2#doBackward(!1)"
+    },
+    {
+      "kind": "OVERRIDES",
+      "from": "M:vision.noesis.fixture.syntax.inheritance.GenericInheritance+LengthConverter#doForward(java.lang.String)",
+      "to": "M:com.google.common.base.Converter`2#doForward(!0)"
     },
     {
       "kind": "OVERRIDES",
@@ -28120,6 +27251,55 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:com.google.common.base.Converter`2#.ctor()",
+      "kind": "method",
+      "name": ".ctor",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Converter`2#apply(!0)",
+      "kind": "method",
+      "name": "apply",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Converter`2#doBackward(!1)",
+      "kind": "method",
+      "name": "doBackward",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Converter`2#doForward(!0)",
+      "kind": "method",
+      "name": "doForward",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Converter`2#equals(java.lang.Object)",
+      "kind": "method",
+      "name": "equals",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Function`2#apply(!0)",
+      "kind": "method",
+      "name": "apply",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "M:com.google.common.base.Function`2#equals(java.lang.Object)",
+      "kind": "method",
+      "name": "equals",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
       "id": "M:com.google.common.collect.ImmutableList`1#builder`1()",
       "kind": "method",
       "name": "builder",
@@ -28260,27 +27440,6 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "forEach",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.lang.Iterable`1#iterator()",
-      "kind": "method",
-      "name": "iterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.lang.Iterable`1#spliterator()",
-      "kind": "method",
-      "name": "spliterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "M:java.lang.Long#compare(long,long)",
       "kind": "method",
       "name": "compare",
@@ -28365,6 +27524,13 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:java.lang.String#repeat(int)",
+      "kind": "method",
+      "name": "repeat",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.lang.String#trim()",
       "kind": "method",
       "name": "trim",
@@ -28393,219 +27559,9 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "M:java.util.AbstractCollection`1#containsAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "containsAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "M:java.util.ArrayList`1#.ctor()",
       "kind": "method",
       "name": ".ctor",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#add(!0)",
-      "kind": "method",
-      "name": "add",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#add(int,!0)",
-      "kind": "method",
-      "name": "add",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#addAll(int,java.util.Collection`1[<other:? extends !0>])",
-      "kind": "method",
-      "name": "addAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "kind": "method",
-      "name": "addAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#clear()",
-      "kind": "method",
-      "name": "clear",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#contains(java.lang.Object)",
-      "kind": "method",
-      "name": "contains",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#equals(java.lang.Object)",
-      "kind": "method",
-      "name": "equals",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#forEach(java.util.function.Consumer`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "forEach",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#get(int)",
-      "kind": "method",
-      "name": "get",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#hashCode()",
-      "kind": "method",
-      "name": "hashCode",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#indexOf(java.lang.Object)",
-      "kind": "method",
-      "name": "indexOf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#isEmpty()",
-      "kind": "method",
-      "name": "isEmpty",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#iterator()",
-      "kind": "method",
-      "name": "iterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#lastIndexOf(java.lang.Object)",
-      "kind": "method",
-      "name": "lastIndexOf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#listIterator()",
-      "kind": "method",
-      "name": "listIterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#listIterator(int)",
-      "kind": "method",
-      "name": "listIterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#remove(int)",
-      "kind": "method",
-      "name": "remove",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#remove(java.lang.Object)",
-      "kind": "method",
-      "name": "remove",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#removeAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "removeAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#removeIf(java.util.function.Predicate`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "removeIf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#replaceAll(java.util.function.UnaryOperator`1[!0])",
-      "kind": "method",
-      "name": "replaceAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#retainAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "retainAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#set(int,!0)",
-      "kind": "method",
-      "name": "set",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#size()",
-      "kind": "method",
-      "name": "size",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#sort(java.util.Comparator`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "sort",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#spliterator()",
-      "kind": "method",
-      "name": "spliterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#subList(int,int)",
-      "kind": "method",
-      "name": "subList",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#toArray()",
-      "kind": "method",
-      "name": "toArray",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.ArrayList`1#toArray`1(!!0[])",
-      "kind": "method",
-      "name": "toArray",
       "typeKind": null,
       "artifact": "A:java.base@17"
     },
@@ -28617,233 +27573,9 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "M:java.util.Collection`1#add(!0)",
-      "kind": "method",
-      "name": "add",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "kind": "method",
-      "name": "addAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#clear()",
-      "kind": "method",
-      "name": "clear",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#contains(java.lang.Object)",
-      "kind": "method",
-      "name": "contains",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#containsAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "containsAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#equals(java.lang.Object)",
-      "kind": "method",
-      "name": "equals",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#hashCode()",
-      "kind": "method",
-      "name": "hashCode",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#isEmpty()",
-      "kind": "method",
-      "name": "isEmpty",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#iterator()",
-      "kind": "method",
-      "name": "iterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#remove(java.lang.Object)",
-      "kind": "method",
-      "name": "remove",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#removeAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "removeAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#removeIf(java.util.function.Predicate`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "removeIf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#retainAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "retainAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#size()",
-      "kind": "method",
-      "name": "size",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#spliterator()",
-      "kind": "method",
-      "name": "spliterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#toArray()",
-      "kind": "method",
-      "name": "toArray",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.Collection`1#toArray`1(!!0[])",
-      "kind": "method",
-      "name": "toArray",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#add(!0)",
-      "kind": "method",
-      "name": "add",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#add(int,!0)",
-      "kind": "method",
-      "name": "add",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#addAll(int,java.util.Collection`1[<other:? extends !0>])",
-      "kind": "method",
-      "name": "addAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#addAll(java.util.Collection`1[<other:? extends !0>])",
-      "kind": "method",
-      "name": "addAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#clear()",
-      "kind": "method",
-      "name": "clear",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#contains(java.lang.Object)",
-      "kind": "method",
-      "name": "contains",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#containsAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "containsAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#equals(java.lang.Object)",
-      "kind": "method",
-      "name": "equals",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#get(int)",
-      "kind": "method",
-      "name": "get",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#hashCode()",
-      "kind": "method",
-      "name": "hashCode",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#indexOf(java.lang.Object)",
-      "kind": "method",
-      "name": "indexOf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "M:java.util.List`1#isEmpty()",
       "kind": "method",
       "name": "isEmpty",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#iterator()",
-      "kind": "method",
-      "name": "iterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#lastIndexOf(java.lang.Object)",
-      "kind": "method",
-      "name": "lastIndexOf",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#listIterator()",
-      "kind": "method",
-      "name": "listIterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#listIterator(int)",
-      "kind": "method",
-      "name": "listIterator",
       "typeKind": null,
       "artifact": "A:java.base@17"
     },
@@ -28862,48 +27594,6 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "M:java.util.List`1#remove(int)",
-      "kind": "method",
-      "name": "remove",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#remove(java.lang.Object)",
-      "kind": "method",
-      "name": "remove",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#removeAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "removeAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#replaceAll(java.util.function.UnaryOperator`1[!0])",
-      "kind": "method",
-      "name": "replaceAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#retainAll(java.util.Collection`1[<other:?>])",
-      "kind": "method",
-      "name": "retainAll",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#set(int,!0)",
-      "kind": "method",
-      "name": "set",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "M:java.util.List`1#size()",
       "kind": "method",
       "name": "size",
@@ -28911,44 +27601,16 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "M:java.util.List`1#sort(java.util.Comparator`1[<other:? super !0>])",
-      "kind": "method",
-      "name": "sort",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#spliterator()",
-      "kind": "method",
-      "name": "spliterator",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#subList(int,int)",
-      "kind": "method",
-      "name": "subList",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#toArray()",
-      "kind": "method",
-      "name": "toArray",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "M:java.util.List`1#toArray`1(!!0[])",
-      "kind": "method",
-      "name": "toArray",
-      "typeKind": null,
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "M:java.util.Map`2#values()",
       "kind": "method",
       "name": "values",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.util.function.Function`2#apply(!0)",
+      "kind": "method",
+      "name": "apply",
       "typeKind": null,
       "artifact": "A:java.base@17"
     },
@@ -28977,6 +27639,13 @@
       "id": "N:com.google.common",
       "kind": "namespace",
       "name": "common",
+      "typeKind": null,
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "N:com.google.common.base",
+      "kind": "namespace",
+      "name": "base",
       "typeKind": null,
       "artifact": "A:com.google.guava:guava@33.5.0-jre"
     },
@@ -29084,6 +27753,20 @@
       "name": "annotations",
       "typeKind": null,
       "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:com.google.common.base.Converter`2",
+      "kind": "type",
+      "name": "Converter",
+      "typeKind": "class",
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "T:com.google.common.base.Function`2",
+      "kind": "type",
+      "name": "Function",
+      "typeKind": "interface",
+      "artifact": "A:com.google.guava:guava@33.5.0-jre"
     },
     {
       "id": "T:com.google.common.collect.ImmutableCollection`1",
@@ -29471,13 +28154,6 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "T:java.util.Comparator`1",
-      "kind": "type",
-      "name": "Comparator",
-      "typeKind": "interface",
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "T:java.util.List`1",
       "kind": "type",
       "name": "List",
@@ -29499,13 +28175,6 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "T:java.util.function.Consumer`1",
-      "kind": "type",
-      "name": "Consumer",
-      "typeKind": "interface",
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "T:java.util.function.Function`2",
       "kind": "type",
       "name": "Function",
@@ -29513,23 +28182,9 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "T:java.util.function.Predicate`1",
-      "kind": "type",
-      "name": "Predicate",
-      "typeKind": "interface",
-      "artifact": "A:java.base@17"
-    },
-    {
       "id": "T:java.util.function.Supplier`1",
       "kind": "type",
       "name": "Supplier",
-      "typeKind": "interface",
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "T:java.util.function.UnaryOperator`1",
-      "kind": "type",
-      "name": "UnaryOperator",
       "typeKind": "interface",
       "artifact": "A:java.base@17"
     },

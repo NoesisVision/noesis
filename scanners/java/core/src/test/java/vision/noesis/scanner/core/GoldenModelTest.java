@@ -26,6 +26,11 @@ class GoldenModelTest {
         return golden(EngineKind.SOURCE, Fixtures.source());
     }
 
+    @TestFactory
+    Stream<DynamicTest> bytecodeEngineMatchesGolden() {
+        return golden(EngineKind.BYTECODE, Fixtures.bytecode());
+    }
+
     static Stream<DynamicTest> golden(EngineKind engine, ScanResult result) {
         Path directory = GOLDEN.resolve(engine.id());
         List<DynamicTest> tests = new ArrayList<>();

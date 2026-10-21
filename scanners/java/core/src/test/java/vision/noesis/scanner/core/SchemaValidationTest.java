@@ -30,6 +30,9 @@ class SchemaValidationTest {
         for (CodeModelFile model : Fixtures.source().models()) {
             assertValid("code-model.schema.json", CodeModelJson.serialize(model));
         }
+        for (CodeModelFile model : Fixtures.bytecode().models()) {
+            assertValid("code-model.schema.json", CodeModelJson.serialize(model));
+        }
     }
 
     @Test

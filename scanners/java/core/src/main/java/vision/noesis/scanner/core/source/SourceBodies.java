@@ -409,8 +409,9 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
         return owner instanceof TypeElement type && !(type.getQualifiedName().contentEquals("Array") && variable.getSimpleName().contentEquals("length"));
     }
 
+    /** {@code this}, {@code super} and the {@code class} of a class literal are not members. */
     private static boolean isThisOrSuper(String name) {
-        return name.equals("this") || name.equals("super");
+        return name.equals("this") || name.equals("super") || name.equals("class");
     }
 
     private void addAccess(VariableElement field, Tree tree, ExpressionKind receiver) {

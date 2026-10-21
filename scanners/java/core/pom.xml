@@ -20,6 +20,14 @@
       <artifactId>noesis-scanner-model</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -29,6 +37,12 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- ArchUnit logs through slf4j; a binding keeps its warnings visible in the tests. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- The fixture modules the golden tests scan; test-scoped so the reactor builds them first. -->

@@ -2,24 +2,16 @@ package vision.noesis.scanner.core.source;
 
 import com.sun.source.tree.CompilationUnitTree;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import vision.noesis.scanner.core.ArtifactInput;
-import vision.noesis.scanner.core.ClasspathEntry;
+import vision.noesis.scanner.core.ArtifactNodes;
 import vision.noesis.scanner.core.Diagnostics;
 import vision.noesis.scanner.core.Engine;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ModelBuilder;
 import vision.noesis.scanner.core.ScanSession;
 import vision.noesis.scanner.core.java.JavaIds;
-import vision.noesis.scanner.model.ArtifactDependency;
-import vision.noesis.scanner.model.ArtifactKind;
 import vision.noesis.scanner.model.ArtifactNode;
 import vision.noesis.scanner.model.CodeModelFile;
-import vision.noesis.scanner.model.LanguageBag;
 import vision.noesis.scanner.model.NodeId;
 
 /**
@@ -33,7 +25,7 @@ public final class SourceEngine implements Engine {
     public CodeModelFile scan(ArtifactInput input, ScanSession session) {
         ModelBuilder builder = new ModelBuilder();
         NodeId artifactId = JavaIds.artifact(input.artifactId());
-        ArtifactNode artifact = artifactOf(input, session, artifactId);
+        ArtifactNode artifact = ArtifactNodes.of(input, session, artifactId, EngineKind.SOURCE);
         try (JavacSession javac = JavacSession.open(input)) {
             if (javac == null) {
                 builder.diagnostic(Diagnostics.error(Diagnostics.NO_COMPILER, "No Java compiler in this JVM; run the scanner on a JDK."));
@@ -63,31 +55,5 @@ public final class SourceEngine implements Engine {
             }
         }
         return text.toString();
-    }
-
-    static ArtifactNode artifactOf(ArtifactInput input, ScanSession session, NodeId id) {
-        Map<String, Object> bag = new LinkedHashMap<>();
-        bag.put("java.groupId", input.groupId());
-        bag.put("java.packaging", input.packaging());
-        if (input.buildFile() != null) bag.put("java.buildFile", session.locations().relativePath(input.buildFile()));
-        bag.put("java.engine", EngineKind.SOURCE.id());
-        if (input.mainClass() != null) bag.put("java.mainClass", input.mainClass());
-        return new ArtifactNode(
-                id,
-                ArtifactKind.SOURCE,
-                input.artifactId(),
-                input.version(),
-                session.locations().relativePath(input.rootDirectory()),
-                "jdk-" + input.release(),
-                input.executable(),
-                dependenciesOf(input),
-                List.of(),
-                LanguageBag.of(bag));
-    }
-
-    static List<ArtifactDependency> dependenciesOf(ArtifactInput input) {
-        TreeMap<NodeId, ArtifactDependency> dependencies = new TreeMap<>();
-        for (ClasspathEntry entry : input.classpath()) dependencies.putIfAbsent(entry.dependency().id(), entry.dependency());
-        return new ArrayList<>(dependencies.values());
     }
 }

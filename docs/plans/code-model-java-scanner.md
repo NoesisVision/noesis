@@ -1,8 +1,8 @@
 # Design: the Java scanner for the common code model
 
-Status: in progress (October 2026). PR 1 (model, source engine, golden
-tests) is done; the bytecode engine, the Maven plugin's integration test and
-the service adapter follow in that order.
+Status: in progress (October 2026). The model, both engines, their golden
+tests and the agreement test are done; the Maven plugin's integration test
+and the service adapter follow.
 
 The .NET scanner (`scanners/dotnet`) reads a C# solution with Roslyn and
 writes the common code model designed in
@@ -222,21 +222,47 @@ filled get-then-put, never with `computeIfAbsent`.
 
 ## 4. The bytecode engine
 
-Not written yet. It imports `target/classes` with ArchUnit, resolves library
-types through the compile classpath, and reads what ArchUnit does not expose
-(parameter names, `ACC_VARARGS`, `ConstantValue`) with a small ASM pass. Its
-output is the same model with these gaps, which the README lists as well:
-line-only locations (types and fields line 0); no Javadoc; parameter names
-only with `-parameters`; receivers `type` or `other`; no casts, array
-creations or switch-label enum reads; compiler-inserted calls (boxing,
-iterators, `close()`) present; `strictfp`, `non-sealed`, positional versus
-named annotation arguments and type-parameter annotations unknown; implicit
-record members and default constructors reported `declared`; `.cctor` also
-for field initializers; `INVOKES.typeArguments` always `[]`.
+```
+target/classes imported with ArchUnit's ClassFileImporter, the compile classpath on the context class loader
+  (ArchUnit resolves referenced classes through it; a class it knows by name only is imported on demand)
+→ an ASM pass over the same class files for what ArchUnit does not expose: parameter names, ACC_VARARGS, ConstantValue
+→ declarations over the scanned classes (synthetic classes and members, bridges and lambda methods skipped)
+→ accesses per code unit: calls, field accesses, instanceof checks, lambda bodies flagged by ArchUnit
+→ external closure → the model, sorted
+```
 
-An agreement test scans the fixture with both engines (compiled with
-`-parameters -g`) and asserts equality after removing exactly those gaps; the
-exclusion list lives beside the test and shrinking it is the roadmap.
+What the class file does not hold, and the model therefore lacks or
+approximates with this engine (the agreement test's exclusion list,
+`AgreementRules`, is the authoritative version):
+
+- Locations are the source file with line 0 for types and fields and the
+  first instruction's line for methods; no Javadoc.
+- Parameter names only with `-parameters`, else `arg<i>` and one `NS1006`.
+- Receivers are `type` for static targets and `other` otherwise; no casts,
+  array creations or switch-label enum reads; compiler-inserted calls
+  (boxing, iterators, `close()`) are present; `INVOKES.typeArguments` is
+  always `[]`; a compound assignment is two accesses.
+- `strictfp`, `non-sealed`, `positional` on annotation arguments,
+  type-parameter annotations and SOURCE-retention annotations are unknown;
+  annotations are ordered by type, not as written.
+- Implicit record members and default constructors are `declared`;
+  `.cctor` exists whenever a static field has an initializer; field
+  initializers attribute to the constructors and `.cctor` they compile into;
+  a class declared in a field initializer has no `java.enclosingMethod`.
+- An enum constructor's name and ordinal and an inner class constructor's
+  outer instance are dropped from ids and signatures; captured locals of a
+  local class's constructor are not.
+- ArchUnit does not read the type arguments of an inner class's enclosing
+  instantiation: `Outer<String>.Inner<Integer>` is ``Inner`1[Integer]``.
+- Bytecode binds the JDK classes of the JVM that runs the scan, where the
+  source engine binds `--release`; members a later JDK added to a base class
+  or interface a scanned type inherits show up only in bytecode.
+- An inherited member may be bound to a different declaring type than javac
+  chooses.
+
+The agreement test (`EngineAgreementTest`) scans the fixture with both
+engines (compiled with `-parameters -g`) and asserts equality after removing
+exactly those gaps. Shrinking the list is the roadmap.
 
 ## 5. The Maven plugin
 

@@ -22,12 +22,18 @@ public final class Fixtures {
     public static final Path MODULE_DIR = Path.of(System.getProperty("basedir", ".")).toAbsolutePath().normalize();
 
     private static ScanResult source;
+    private static ScanResult bytecode;
 
     private Fixtures() {}
 
     public static synchronized ScanResult source() {
         if (source == null) source = new JavaScanner(GENERATOR_VERSION).scan(request(EngineKind.SOURCE));
         return source;
+    }
+
+    public static synchronized ScanResult bytecode() {
+        if (bytecode == null) bytecode = new JavaScanner(GENERATOR_VERSION).scan(request(EngineKind.BYTECODE));
+        return bytecode;
     }
 
     public static ScanRequest request(EngineKind engine) {
