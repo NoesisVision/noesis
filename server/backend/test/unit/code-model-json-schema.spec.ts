@@ -7,10 +7,9 @@ import {
   defaultDestination,
 } from '../../tools/generate-code-model-schema';
 
-const golden = join(
-  import.meta.dir,
-  '../../../../scanners/dotnet/test/Noesis.Scanner.Tests/golden',
-);
+const scanners = join(import.meta.dir, '../../../../scanners');
+const golden = join(scanners, 'dotnet/test/Noesis.Scanner.Tests/golden');
+const javaGolden = join(scanners, 'java/core/src/test/resources/golden/source');
 
 const { version } = JSON.parse(
   await readFile(join(import.meta.dir, '../../package.json'), 'utf8'),
@@ -87,15 +86,27 @@ describe('the code model JSON Schema', () => {
   });
 
   it.each([
-    'CSharpSyntax.code-model.json',
-    'CSharpSyntax.OtherProject.code-model.json',
-  ])('accepts the .NET scanner model %s', async (file) => {
+    join(golden, 'CSharpSyntax.code-model.json'),
+    join(golden, 'CSharpSyntax.OtherProject.code-model.json'),
+    join(javaGolden, 'java-syntax.code-model.json'),
+    join(javaGolden, 'java-syntax-other.code-model.json'),
+  ])('accepts the scanner model %s', async (file) => {
     const schema = z.fromJSONSchema(
       (await committed('code-model.schema.json')) as Parameters<
         typeof z.fromJSONSchema
       >[0],
     );
-    const result = schema.safeParse(await readGolden(file));
+    const result = schema.safeParse(await Bun.file(file).json());
     expect(result.success).toBe(true);
+  });
+
+  it('accepts the Java scanner manifest', async () => {
+    const schema = z.fromJSONSchema(
+      (await committed('manifest.schema.json')) as Parameters<
+        typeof z.fromJSONSchema
+      >[0],
+    );
+    const manifest = await Bun.file(join(javaGolden, 'manifest.json')).json();
+    expect(schema.safeParse(manifest).success).toBe(true);
   });
 });

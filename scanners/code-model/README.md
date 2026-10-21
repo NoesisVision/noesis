@@ -11,8 +11,9 @@ Both files are generated from the zod schema in
 validates with, by `bun run generate` (from the repo root, or
 `server/backend`). Do not edit them by hand: change the zod schema and
 regenerate. CI fails when the committed files are stale, and
-`server/backend/test/unit/code-model-json-schema.spec.ts` checks the .NET
-scanner's golden files against them.
+`server/backend/test/unit/code-model-json-schema.spec.ts` checks the .NET and
+Java scanners' golden files against them; the Java scanner validates its own
+output against them too (`scanners/java/core/.../SchemaValidationTest`).
 
 Every shared shape is a named `$defs` entry (`TypeRef`, `DeclarationNode`,
 `Edge`, …); objects allow no unknown property except the `languageSpecific`

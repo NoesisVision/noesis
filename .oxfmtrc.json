@@ -14,6 +14,8 @@
     ".agents/",
     "examples/*/",
     "scanners/dotnet/test/Noesis.Scanner.Tests/golden/",
+    "scanners/java/core/src/test/resources/golden/",
+    "scanners/code-model/*.schema.json",
     "server/backend/test/fixtures/csharp/shop/code-model/",
     "server/frontend/.design-sync/"
   ]

@@ -28,6 +28,7 @@ jobs:
               - 'server/**'
               - 'plugins/**'
               - 'package.json'
+              - 'scanners/java/core/src/test/resources/golden/**'
               - 'bun.lock'
               - 'bunfig.toml'
               - '.github/workflows/ci.yml'
