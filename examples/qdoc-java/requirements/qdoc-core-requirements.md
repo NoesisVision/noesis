@@ -1,10 +1,10 @@
 # QDoc System: detailed requirements (core variant)
 
 - **Document ID:** QDOC-CORE-REQ
-- **Version:** 0.1, 2026-10-06
+- **Version:** 0.2, 2026-10-21
 - **Status:** draft
 - **Entity specified:** the QDoc System
-- **Size:** 40 use cases, 304 rules
+- **Size:** 42 use cases, 325 rules
 
 ## 1. Introduction
 
@@ -85,10 +85,17 @@ and modelled without the rest of the document.
     |_____________ sent for approval without review _____↑
   ```
 
+  Each return to Draft, reverted or declined, raises the minor number. Each
+  stay in In review is one review round, and each stay in In approval is one
+  approval round; a version keeps each of its rounds.
+
   A QDoc is `active` or `retired`. A QACK is `to sign`, `overdue`, `signed`
   or `closed`. A suggestion is `open`, `accepted` or `discarded`. An
   attachment has the scan status `quarantine`, `released` or `failed`. A
-  review mark has the kind `reviewed` or `do not care`.
+  review mark has the kind `reviewed` or `do not care`. A review round is
+  `open`, or closed with the outcome `reverted` or `sent for approval`. An
+  approval round is `open`, or closed with the outcome `approved` or
+  `declined`.
 
 ## 3. Preparation
 
@@ -254,13 +261,15 @@ together.
   suggestion, the QDoc System shall reject the edit to the content file.
 - When the QDoc System accepts the change to the content file, the QDoc System
   shall add the change history entry to the content file.
-- When the QDoc System accepts the change to the content file that holds
-  sign-offs, the QDoc System shall remove each sign-off of the content file.
+- When the QDoc System accepts the change to the content file, the QDoc System
+  shall give the content file the next file revision.
 - When the QDoc System accepts the change to one content file of the version,
-  the QDoc System shall keep each sign-off of each other file of the version.
-- When the QDoc System removes the sign-offs of the changed content file, the
-  QDoc System shall add to the activity log of the QDoc the activity entry for
-  the property "Review marks and approvals".
+  the QDoc System shall keep the file revision of each other file of the
+  version.
+- When the QDoc System gives the content file the next file revision, the QDoc
+  System shall retain each review mark given on each earlier file revision of
+  the content file in the review round in which the reviewer gave the review
+  mark.
 
 ### N-PREP-07 Remove a file
 
@@ -276,7 +285,8 @@ no longer needs.
 - If the request to remove the file names the only content file of the
   version, the QDoc System shall reject the request to remove the file.
 - When the QDoc System removes the file from the draft version, the QDoc
-  System shall remove each sign-off of the removed file.
+  System shall retain each review mark and each approval of the removed file
+  in the round in which the review mark or the approval was given.
 - When the QDoc System removes the file from the draft version, the QDoc
   System shall keep the file in each other version of the QDoc.
 - When the QDoc System removes the file from the version, the QDoc System
@@ -420,19 +430,22 @@ The authors need to see what changed between two versions of one QDoc.
 
 ## 4. Review
 
-The optional round in which named reviewers read a locked version, comment,
+The optional rounds in which named reviewers read a locked version, comment,
 suggest and acknowledge each file, or set aside a file outside their
 competence, and the owner takes the version back to resolve what they said. A
-review gives no verdict.
+review gives no verdict. A version can pass through several review rounds;
+each keeps its results, and a "reviewed" mark on an unchanged file carries
+over to the next round.
 
 | Use case | ID | Rules |
 | --- | --- | --- |
 | Name the reviewers | N-REVW-01 | 6 |
-| Send a version for review | N-REVW-02 | 9 |
-| Comment and suggest during review | N-REVW-03 | 5 |
-| Mark a file as reviewed or do not care | N-REVW-04 | 11 |
+| Send a version for review | N-REVW-02 | 10 |
+| Comment and suggest during review | N-REVW-03 | 6 |
+| Mark a file as reviewed or do not care | N-REVW-04 | 12 |
 | Learn that the reviews are complete | N-REVW-05 | 4 |
 | Revert a version to draft | N-REVW-06 | 9 |
+| See the results of each review round | N-REVW-07 | 8 |
 
 ### N-REVW-01 Name the reviewers
 
@@ -472,9 +485,13 @@ with the text held still while the reviewers read.
 - When the QDoc System accepts the request to send the version for review, the
   QDoc System shall set the status of the version to In review.
 - When the QDoc System sends the version for review, the QDoc System shall
-  remove the decline record of the version.
-- When the QDoc System sends the version for review, the QDoc System shall
-  keep each review mark held by each file of the version.
+  open the next review round of the version.
+- When the QDoc System opens the review round, the QDoc System shall count
+  each carried-over review mark as the review mark of the reviewer in the
+  review round.
+- When the QDoc System opens the review round, the QDoc System shall leave out
+  of the review round each review mark of the kind do not care given in each
+  earlier review round.
 - When the QDoc System sends the version for review, the QDoc System shall
   notify each reviewer of the version of the review request.
 - When the QDoc System sends the version for review, the QDoc System shall add
@@ -505,6 +522,9 @@ review, proposing new wording where the reviewer sees the need.
   reject the suggestion.
 - While the version is in the status In review, the QDoc System shall keep
   each suggestion on the version in the status open.
+- When the QDoc System accepts [the comment OR the suggestion] on the content
+  file of the version in the status In review, the QDoc System shall record
+  [the comment OR the suggestion] in the open review round of the version.
 
 ### N-REVW-04 Mark a file as reviewed or do not care
 
@@ -517,15 +537,19 @@ reviewer.
 - If the QDoc System receives the review mark while the version is outside the
   status In review, the QDoc System shall reject the review mark.
 - If the reviewer submits the review mark for the file that holds the review
-  mark of the reviewer, the QDoc System shall reject the review mark.
+  mark of the reviewer in the open review round, the QDoc System shall reject
+  the review mark.
 - If the review mark carries the kind outside [reviewed OR do not care], the
   QDoc System shall reject the review mark.
 - If the reviewer submits the review mark of the kind do not care while each
   other file of the version holds the review mark of the kind do not care of
-  the reviewer, the QDoc System shall reject the review mark.
+  the reviewer in the open review round, the QDoc System shall reject the
+  review mark.
 - When the QDoc System accepts the review mark, the QDoc System shall record
   the review mark of the reviewer on the file with the kind of the review
-  mark.
+  mark in the open review round.
+- When the QDoc System accepts the review mark, the QDoc System shall record
+  on the review mark the file revision of the file.
 - The QDoc System shall count each attachment of the version among the files
   that each reviewer marks.
 - When the QDoc System accepts the review mark, the QDoc System shall keep the
@@ -547,12 +571,12 @@ watching each review mark.
 
 - The QDoc System shall count the reviews of the version as complete when each
   reviewer of the version holds one review mark of the kind [reviewed OR do
-  not care] on each file of the version.
+  not care] on each file of the version in the open review round.
 - When the reviews of the version become complete, the QDoc System shall
   notify the owner of the QDoc once per review round.
-- When the QDoc System sends for review the version whose reviews are
-  complete, the QDoc System shall notify the owner of the QDoc of the complete
-  reviews.
+- When the QDoc System opens the review round in which the carried-over review
+  marks make the reviews complete, the QDoc System shall notify the owner of
+  the QDoc of the complete reviews.
 - When the reviews of the version become complete, the QDoc System shall keep
   the version in the status In review.
 
@@ -572,7 +596,7 @@ suggestions of the reviewers.
 - When the QDoc System reverts the version to draft, the QDoc System shall
   raise the minor number of the version by 1.
 - When the QDoc System reverts the version to draft, the QDoc System shall
-  keep each review mark of the version.
+  close the open review round with the outcome reverted.
 - When the QDoc System reverts the version to draft, the QDoc System shall
   keep each open suggestion of the version in the status open.
 - When the QDoc System reverts the version to draft, the QDoc System shall add
@@ -585,19 +609,43 @@ suggestions of the reviewers.
   to the activity log of the QDoc the activity entry for the property "Version
   number".
 
+### N-REVW-07 See the results of each review round
+
+The owners need to see what the reviewers said in each review round of each
+version, also after later review rounds.
+
+- The QDoc System shall number the review rounds of each version upwards from
+  1.
+- When the QDoc System opens the review round, the QDoc System shall record on
+  the review round the version number of the version.
+- The QDoc System shall hold at most one review round per version number.
+- The QDoc System shall retain each closed review round with each review mark,
+  each comment and each suggestion recorded in the review round.
+- The QDoc System shall show the review rounds of the version to each user who
+  opens the version in the workspace.
+- When the QDoc System shows the review round, the QDoc System shall show each
+  review mark of each reviewer on each file in the review round.
+- When the QDoc System shows the review round, the QDoc System shall label each
+  carried-over review mark with the review round in which the reviewer gave
+  the review mark.
+- When the QDoc System shows the closed review round, the QDoc System shall
+  show the outcome of the review round.
+
 ## 5. Approval
 
 The round in which each named approver authorises each file with an electronic
 signature, or declines the version and hands it back. Approved does not mean
-effective.
+effective. A version can pass through several approval rounds; each keeps its
+results, and each round starts with zero approvals.
 
 | Use case | ID | Rules |
 | --- | --- | --- |
 | Name the approvers | N-APPR-01 | 5 |
 | Send a version for approval | N-APPR-02 | 12 |
 | Approve a file | N-APPR-03 | 9 |
-| Count a version as approved | N-APPR-04 | 8 |
-| Decline a version | N-APPR-05 | 12 |
+| Count a version as approved | N-APPR-04 | 9 |
+| Decline a version | N-APPR-05 | 13 |
+| See the results of each approval round | N-APPR-06 | 8 |
 
 ### N-APPR-01 Name the approvers
 
@@ -643,9 +691,10 @@ The owners need to hand each finished version to the approvers of the version.
 - When the QDoc System accepts the request to send the version for approval,
   the QDoc System shall set the status of the version to In approval.
 - When the QDoc System sends the version for approval, the QDoc System shall
-  remove the decline record of the version.
-- When the QDoc System sends the version for approval, the QDoc System shall
-  keep each approval held by each file of the version.
+  open the next approval round of the version with zero approvals.
+- When the QDoc System sends for approval the version in the status In review,
+  the QDoc System shall close the open review round with the outcome sent for
+  approval.
 - When the QDoc System sends the version for approval, the QDoc System shall
   notify each approver of the version of the approval request.
 - When the QDoc System sends the version for approval, the QDoc System shall
@@ -666,7 +715,8 @@ own name.
   outside the status In approval, the QDoc System shall reject the approval of
   the file.
 - If the approver submits the approval of the file that holds the approval of
-  the approver, the QDoc System shall reject the approval of the file.
+  the approver in the open approval round, the QDoc System shall reject the
+  approval of the file.
 - If the approval of the file names the attachment with the scan status
   outside released, the QDoc System shall reject the approval of the file.
 - If the password entered with the approval of the file fails the password
@@ -676,7 +726,7 @@ own name.
   record the electronic signature of the signing user with the meaning
   "Approval of the file in the version".
 - When the QDoc System accepts the approval of the file, the QDoc System shall
-  record the approval of the approver on the file.
+  record the approval of the approver on the file in the open approval round.
 - When the QDoc System accepts the approval of the file, the QDoc System shall
   add to the audit log the audit entry with the action "File approved
   (signed)" for the file of the version.
@@ -690,8 +740,10 @@ The owners need each version to become approved by the approvals alone, with
 no further step.
 
 - While the version is in the status In approval, when each approver of the
-  version holds one approval on each file of the version, the QDoc System
-  shall set the status of the version to Approved.
+  version holds one approval on each file of the version in the open approval
+  round, the QDoc System shall set the status of the version to Approved.
+- When the QDoc System sets the status of the version to Approved, the QDoc
+  System shall close the open approval round with the outcome approved.
 - When the QDoc System sets the status of the version to Approved, the QDoc
   System shall give the version the next major number with the minor number 0.
 - When the QDoc System sets the status of the version to Approved, the QDoc
@@ -732,11 +784,11 @@ saying why.
 - When the QDoc System accepts the decline of the version, the QDoc System
   shall set the status of the version to Draft.
 - When the QDoc System accepts the decline of the version, the QDoc System
-  shall keep the version number of the version unchanged.
+  shall raise the minor number of the version by 1.
 - When the QDoc System accepts the decline of the version, the QDoc System
-  shall attach to the version the decline record of the approver.
+  shall record the decline record of the approver in the open approval round.
 - When the QDoc System accepts the decline of the version, the QDoc System
-  shall keep each approval of each file of the version.
+  shall close the open approval round with the outcome declined.
 - When the QDoc System accepts the decline of the version, the QDoc System
   shall notify the owner of the QDoc of the decline.
 - When the QDoc System accepts the decline of the version, the QDoc System
@@ -745,6 +797,31 @@ saying why.
 - When the QDoc System accepts the decline of the version, the QDoc System
   shall add to the activity log of the QDoc the activity entry for the
   property "Status".
+- When the QDoc System accepts the decline of the version, the QDoc System
+  shall add to the activity log of the QDoc the activity entry for the
+  property "Version number".
+
+### N-APPR-06 See the results of each approval round
+
+The owners need to see what the approvers did in each approval round of each
+version, also after later approval rounds.
+
+- The QDoc System shall number the approval rounds of each version upwards
+  from 1.
+- When the QDoc System opens the approval round, the QDoc System shall record
+  on the approval round the version number of the version.
+- The QDoc System shall hold at most one approval round per version number.
+- The QDoc System shall retain each closed approval round with each approval,
+  each electronic signature and the decline record recorded in the approval
+  round.
+- The QDoc System shall show the approval rounds of the version to each user
+  who opens the version in the workspace.
+- When the QDoc System shows the approval round, the QDoc System shall show
+  each approval of each approver on each file in the approval round.
+- When the QDoc System shows the closed approval round, the QDoc System shall
+  show the outcome of the approval round.
+- When the QDoc System shows the approval round with the outcome declined, the
+  QDoc System shall show the decline record of the approval round.
 
 ## 6. Distribution
 
@@ -1241,7 +1318,9 @@ The name in bold is the only name the statements use.
   settings, its status and its dates.
 - **Version number**: the number of a version, written major.minor. The
   **major number** counts approved versions; the **minor number** counts
-  draft iterations above the last approved one.
+  draft iterations above the last approved one. It is 1 when a draft
+  version opens and rises by 1 at each return to Draft, reverted or
+  declined.
 - **Status of a version**: Draft, In review, In approval, Approved,
   Published, Effective or Archived, as in the lifecycle figure.
 - **First version**: the version opened when a QDoc is created.
@@ -1291,30 +1370,52 @@ The name in bold is the only name the statements use.
 - **Edit**: a change a contributor makes to the text of a content file.
 - **Change to a content file**: an accepted edit, or an accepted suggestion.
 - **Change history entry**: who changed what in a content file, and when.
+- **File revision**: the state of a file after its latest change. Each
+  change to a content file gives the content file the next file revision;
+  an attachment keeps one file revision.
 - **Comment**: a remark on a fragment, with its author and its time. A reply
   to a comment is a comment.
 - **Suggestion**: a proposed new text for a fragment, with its author and
   its time. Its status is open, accepted or discarded. To **resolve** a
   suggestion is to accept or discard it; the **outcome** is accepted or
   discarded.
-- **Review mark**: one reviewer's statement on one file, of the kind
-  reviewed or do not care. An acknowledgement, not a verdict. Each rule that
-  names the review mark holds for both kinds.
+- **Review mark**: one reviewer's statement on one file revision, of the
+  kind reviewed or do not care, given in one review round. An
+  acknowledgement, not a verdict. Each rule that names the review mark holds
+  for both kinds.
 - **Reviewed**: the kind of review mark that says the reviewer checked the
   file.
 - **Do not care**: the kind of review mark that says the file lies outside
   the competence of the reviewer. A reviewer holds at least one review mark
-  of the kind reviewed among the review marks of a version.
-- **Reviews of a version**: the review marks of each reviewer on each file.
-- **Review round**: the time a version spends in the status In review, from
-  sending to reverting or sending for approval.
+  of the kind reviewed among the review marks of a review round.
+- **Carried-over review mark**: a review mark of the kind reviewed, given in
+  an earlier review round of the same version by a user who is still a
+  reviewer of the version, on the file revision the file still has. A review
+  mark of the kind do not care never carries over.
+- **Reviews of a version**: the review marks of each reviewer on each file
+  in the open review round.
+- **Review round**: one stay of a version in the status In review, from
+  sending for review to reverting or sending for approval, with the version
+  number at the start, the review marks, the comments and the suggestions
+  recorded in it, and its outcome: reverted or sent for approval. The
+  **open review round** is the review round of a version in the status In
+  review.
 - **Approval**: one approver's authorisation of one file, bound to an
-  electronic signature.
-- **Sign-off**: a review mark or an approval that a file holds.
-- **Review trail**: the comments, the suggestions, the review marks and the
-  approvals of a version.
+  electronic signature, given in one approval round. It counts only in that
+  approval round.
+- **Approval round**: one stay of a version in the status In approval, from
+  sending for approval to the approval or the decline of the version, with
+  the version number at the start, the approvals and the decline record
+  recorded in it, and its outcome: approved or declined. The **open approval
+  round** is the approval round of a version in the status In approval.
+- **Round**: a review round or an approval round.
+- **Outcome of a round**: how a round closed, as named in the definitions
+  of the review round and the approval round.
+- **Review trail**: the review rounds, the approval rounds, the comments,
+  the suggestions, the review marks and the approvals of a version.
 - **Decline**: an approver's refusal of a version, with a comment.
-- **Decline record**: who declined a version, when, and the comment.
+- **Decline record**: who declined a version, when, and the comment. The
+  declined approval round holds it.
 - **Electronic signature**: the identity of the user plus the password,
   entered again for the action, with the meaning of the action and the
   time. The **signing user** is the user who gives it; the **password

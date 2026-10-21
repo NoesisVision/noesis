@@ -25,10 +25,12 @@ is separate from quality authority.
 3. **Review (optional).** The owner sends the version for review; the content
    is locked. Reviewers comment, suggest, and mark each file as reviewed, or
    as "do not care" when it is outside their competence. They give no verdict.
-   The owner reverts to draft to resolve the suggestions.
-4. **Approve.** The owner sends the version for approval. Each approver
-   approves each file with an electronic signature, or declines with a
-   comment, which hands the version back to the owner.
+   The owner reverts to draft to resolve the suggestions, then sends the
+   version for review again: each send opens a new review round.
+4. **Approve.** The owner sends the version for approval, which opens a new
+   approval round. Each approver approves each file with an electronic
+   signature, or declines with a comment, which hands the version back to the
+   owner.
 5. **Publish.** A quality manager publishes the approved version with an
    effective date. Each recipient gets a QACK.
 6. **Train.** The recipient reads every file, passes the quiz if the version
@@ -52,8 +54,10 @@ Draft → In review → In approval → Approved → Published → Effective →
 | **Content file** | A rich-text file the contributors write; a version has at least one. Carries comments, suggestions and a change history. |
 | **Attachment** | A PDF added to a version; never edited; in quarantine until scanned. |
 | **Comment, suggestion** | A remark on, or a proposed edit to, a fragment of a content file. The owner accepts or discards each suggestion. |
-| **Review mark** | One reviewer's statement on one file: *reviewed* (they checked it) or *do not care* (it is outside their competence). An acknowledgement, not a verdict. |
-| **Approval** | One approver's authorisation of one file, bound to an electronic signature. |
+| **Review round** | One stay of a version in review, from sending to reverting or sending for approval. Holds the review marks, comments and suggestions given in it, and is kept after it closes. |
+| **Review mark** | One reviewer's statement on one file revision in one review round: *reviewed* (they checked it) or *do not care* (it is outside their competence). An acknowledgement, not a verdict. |
+| **Approval round** | One stay of a version in approval, from sending to approval or decline. Holds the approvals and the decline, and is kept after it closes. |
+| **Approval** | One approver's authorisation of one file in one approval round, bound to an electronic signature. |
 | **Electronic signature** | The user's identity plus password, re-entered for the action, with its meaning and time. |
 | **Recipient** | A user or a group named on a QDoc as having to learn its versions. The version is assigned to them. |
 | **Public flag** | Set per version by the owner. A public version, once effective, is readable by every user, not only its recipients. |
@@ -69,7 +73,9 @@ Draft → In review → In approval → Approved → Published → Effective →
 
 - **Creation and versions:** the type (Policy, SOP, Work Instruction) gives
   the ID prefix and the next number. Draft iterations take minor numbers
-  (1.1, 1.2); the approved version takes the next major number (2.0). A QDoc
+  (1.1, 1.2): each return to draft, reverted from review or declined in
+  approval, raises the minor number by one. The approved version takes the
+  next major number (2.0). A QDoc
   has one draft at a time, visible only to its contributors and the quality
   managers. The owner may delete a draft; the effective version stays.
 - **Rich-text editing:** contributors edit one content file at the same time
@@ -78,9 +84,15 @@ Draft → In review → In approval → Approved → Published → Effective →
 - **Comments by status:** in draft the contributors comment; in review the
   owner, the reviewers and the quality managers; in approval nobody. All
   suggestions are accepted or discarded before the version goes for approval.
-- **Stable text:** outside draft nobody edits, adds or removes a file. A file
-  changed after a revert loses its review marks and approvals; the others keep
-  theirs.
+- **Stable text:** outside draft nobody edits, adds or removes a file.
+- **Rounds:** a version can go through several review rounds and several
+  approval rounds. Each round keeps its results, and the authors see the
+  results of every round.
+- **Carry-over:** a new review round counts the "reviewed" marks from earlier
+  rounds on files unchanged since. A file changed after a revert needs a new
+  mark. "Do not care" marks never carry over. Approvals never carry over:
+  each approval round starts with zero approvals, and every approver signs
+  every file again.
 - **Attachments:** PDF only, checked from the content, within a size limit.
   An upload is quarantined and scanned for malware and inappropriate content;
   only a released attachment can be downloaded or approved. A failed one stays
