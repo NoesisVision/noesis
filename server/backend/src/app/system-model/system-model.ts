@@ -173,10 +173,15 @@ export const ScenarioSteps = z
     'The steps in reading order; each kind may repeat or be left out, but there is at least one step. Consecutive steps of one kind read as "And".',
   );
 
+/**
+ * A scenario as a scan found it. Code carries a scenario's title and little
+ * else, so the description and the steps may be missing; a designed scenario
+ * (`DesignedScenario`) has both.
+ */
 export const ScannedScenario = z.strictObject({
   name: ElementName,
-  description: z.string(),
-  steps: ScenarioSteps,
+  description: z.string().nullable().default(null),
+  steps: z.array(ScenarioStep).default([]),
 });
 export type ScannedScenario = z.infer<typeof ScannedScenario>;
 
@@ -220,6 +225,8 @@ export const ScannedBehaviour = z.strictObject({
   visibility: Visibility,
   input: z.array(ScannedParameter).default([]),
   output: z.array(ScannedResult).default([]),
+  /** The behaviours this one calls, directly or through methods that are no behaviour; never itself. */
+  invokes: z.array(BehaviorId).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,

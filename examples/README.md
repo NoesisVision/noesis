@@ -36,6 +36,21 @@ bun run dev:discounts-java      # or dev:discounts-dotnet, dev:qdoc-java
 
 Each is `bun run dev` with `NOESIS_ROOT` set to that example.
 
+Scanning `discounts-dotnet` (the Scan button, or `scan_system_model`) runs the
+`noesis-scan-csharp` tool from the PATH. Install it once from this checkout
+(see [`scanners/dotnet/README.md`](../scanners/dotnet/README.md)):
+
+```sh
+cd scanners/dotnet
+dotnet pack src/Noesis.Scanner.Cli -c Release
+dotnet tool install -g Noesis.Scanner --add-source src/Noesis.Scanner.Cli/bin/Release
+```
+
+Without it a scan fails with `Cannot run noesis-scan-csharp`. The first scan
+restores the example's packages and loads MSBuild, so it takes a while; later
+ones take a few seconds. `discounts-java` needs no tool: its scanner reads the
+sources as text.
+
 Both commands need a terminal on stdin. Without one (a background job, a CI
 step, an agent's shell) the service takes stdin for MCP and quits when it
 closes; give it a pseudo-terminal that stays open:
@@ -58,8 +73,10 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-`qdoc-java` also sets `NOESIS_SCANNER=dummy`, as does `dev:qdoc-java`: it has
-no code to scan, so a scan replays its implemented design documents.
+Each `discounts-*` example names its scanner in `noesis-config.json`
+(`"scanner": "java"` or `"csharp"`), which a scan reads every time. `qdoc-java`
+sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
+scan, so a scan replays its implemented design documents.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.

@@ -1,0 +1,3 @@
+namespace Noesis.Scanner.Model;
+
+public sealed record TupleTypeRef(IReadOnlyList<TupleElement> Elements) : TypeRef;

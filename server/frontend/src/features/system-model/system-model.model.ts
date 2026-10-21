@@ -29,8 +29,10 @@ function scenarios(found: ScannedScenario[]) {
   return added(
     found.map((scenario) => ({
       name: scenario.name,
-      description: field(scenario.description),
-      steps: field(scenario.steps),
+      // Code may name a scenario and say no more: the description and the
+      // steps are then unset, as a designed scenario needs at least one step.
+      description: optional(scenario.description),
+      steps: scenario.steps.length === 0 ? UNSET : field(scenario.steps),
     })),
   );
 }

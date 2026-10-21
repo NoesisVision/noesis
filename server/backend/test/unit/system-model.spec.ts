@@ -419,4 +419,40 @@ describe('A scanned scenario', () => {
         .success,
     ).toBe(false);
   });
+
+  it('may carry a title alone: code annotates a scenario by name, without steps', () => {
+    const parsed = ScannedScenario.parse({ name: 'Placing an order' });
+
+    expect(parsed).toEqual({
+      name: 'Placing an order',
+      description: null,
+      steps: [],
+    });
+  });
+});
+
+describe('A scanned behaviour', () => {
+  it('names the behaviours it invokes, none unless the scan found calls', () => {
+    const parsed = SystemModel.parse(
+      model({
+        behaviours: [
+          behaviour,
+          {
+            ...behaviour,
+            id: `${ORDER}.cancel`.replace('building_block|', 'behavior|'),
+            name: 'cancel',
+            invokes: [PLACE],
+          },
+        ],
+      }),
+    );
+
+    expect(parsed.behaviours[0]?.invokes).toEqual([]);
+    expect<unknown>(parsed.behaviours[1]?.invokes).toEqual([PLACE]);
+    expect(
+      SystemModel.safeParse(
+        model({ behaviours: [{ ...behaviour, invokes: [ORDER] }] }),
+      ).success,
+    ).toBe(false);
+  });
 });

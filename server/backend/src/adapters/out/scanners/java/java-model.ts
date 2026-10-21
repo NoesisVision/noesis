@@ -295,6 +295,7 @@ function toBehaviour(
               optional: returned.optional,
             },
           ],
+    invokes: [],
     rules: [],
     scenarios: [],
     source: { path: block.file.path, line: method.line },

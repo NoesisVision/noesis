@@ -328,6 +328,8 @@ function flattenedBehaviour(
       designed.output,
       at.in('output'),
     ),
+    // The design document carries no calls yet; a scan of the code fills them.
+    invokes: current?.invokes ?? [],
     rules: changedParts(
       current?.rules ?? [],
       designed.rules,

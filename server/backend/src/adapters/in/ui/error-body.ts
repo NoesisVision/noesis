@@ -4,6 +4,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { DesignDocViolation } from '#backend/app/design-docs/design-doc';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
 import { NotFoundError } from '#backend/app/not-found-error';
+import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const log = serverLogger('ui');
@@ -14,6 +15,7 @@ type ErrorBody =
   | { error: 'change_not_found' | 'not_found' }
   | { error: 'payload_too_large'; limit: number }
   | { error: 'invalid_design_doc'; violations: DesignDocViolation[] }
+  | { error: 'scan_failed'; message: string }
   | { error: 'internal' };
 
 const STATUS: Record<ErrorBody['error'], ContentfulStatusCode> = {
@@ -22,6 +24,7 @@ const STATUS: Record<ErrorBody['error'], ContentfulStatusCode> = {
   not_found: 404,
   payload_too_large: 413,
   invalid_design_doc: 422,
+  scan_failed: 500,
   internal: 500,
 };
 
@@ -33,8 +36,8 @@ export function errorAnswer(c: Context, body: ErrorBody): Response {
 /**
  * Every route of the surface fails through here, so none of them catches: a
  * body that is not JSON answers 400, a missing or malformed entity 404, a
- * design document that breaks its rules 422, and anything unforeseen is
- * logged and answers 500.
+ * design document that breaks its rules 422, a scan that failed 500 with the
+ * scanner's reason, and anything unforeseen is logged and answers 500.
  */
 export function answerError(error: Error, c: Context): Response {
   if (error instanceof HTTPException) {
@@ -53,6 +56,10 @@ export function answerError(error: Error, c: Context): Response {
       error: 'invalid_design_doc',
       violations: error.violations,
     });
+  }
+  if (error instanceof ScanFailedError) {
+    log.warn('Scan failed: {message}', { message: error.message });
+    return errorAnswer(c, { error: 'scan_failed', message: error.message });
   }
   log.error('{method} {path} failed unexpectedly: {error}', {
     method: c.req.method,
