@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Acme.Shop.Infrastructure</AssemblyName>
+    <RootNamespace>Acme.Shop.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Shop.Domain/Shop.Domain.csproj" />
+  </ItemGroup>
+</Project>

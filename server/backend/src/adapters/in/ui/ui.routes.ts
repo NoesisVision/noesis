@@ -10,9 +10,17 @@ import {
 } from './documents/documents.routes';
 import { answerError } from './error-body';
 import { createSearchApp, type SearchDeps } from './search/search.routes';
+import {
+  createSystemModelApp,
+  type SystemModelDeps,
+} from './system-model/system-model.routes';
 
 /** Every handler the surface's routes call. */
-export type UiDeps = SearchDeps & ChangesDeps & DesignDocsDeps & DocumentsDeps;
+export type UiDeps = SearchDeps &
+  ChangesDeps &
+  DesignDocsDeps &
+  DocumentsDeps &
+  SystemModelDeps;
 
 export function createUiApp(deps: UiDeps) {
   // Keep the chain unbroken so Hono can infer the route types for the RPC client.
@@ -21,5 +29,6 @@ export function createUiApp(deps: UiDeps) {
     .route('/search', createSearchApp(deps))
     .route('/changes', createChangesApp(deps))
     .route('/changes/:change/design-docs', createDesignDocsApp(deps))
-    .route('/changes/:change/documents', createDocumentsApp(deps));
+    .route('/changes/:change/documents', createDocumentsApp(deps))
+    .route('/system-model', createSystemModelApp(deps));
 }

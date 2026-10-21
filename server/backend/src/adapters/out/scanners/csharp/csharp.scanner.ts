@@ -1,217 +1,183 @@
-import { readdir } from 'node:fs/promises';
-import { basename, join, relative } from 'node:path';
+import { rm } from 'node:fs/promises';
+import { basename, dirname, join } from 'node:path';
 import type { Now } from '#backend/app/clock';
 import {
-  BehaviorId,
-  BuildingBlockId,
-  ElementName,
-  ModuleId,
-} from '#backend/app/element-id';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
-import type {
-  ScannedBehaviour,
-  ScannedBuildingBlock,
-  ScannedDomainModule,
-  SystemModel,
-} from '#backend/app/system-model/system-model';
-import { SystemModelId } from '#backend/app/system-model/system-model-id';
-import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+  type CodeModelFile,
+  CodeModelFile as CodeModelFileSchema,
+  ScanManifest,
+} from '#backend/app/code-model/code-model';
+import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
 import {
-  type CSharpAnnotatedType,
-  type CSharpMethod,
-  type CSharpNamespace,
-  type CSharpSourceFile,
-  parseCSharpSource,
-} from './csharp-source';
-import { NamespaceConfig } from './namespace-config';
+  type ProjectionDiagnostic,
+  projectSystemModel,
+} from '#backend/app/code-model/projection/project-system-model';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import type { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { readJsonFile } from '#backend/platform/files/json-file';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { serverLogger } from '#backend/platform/logging/logging';
+import { loadNoesisConfig } from '../noesis-config';
 
-const SKIPPED_DIRS = new Set(['node_modules', 'bin', 'obj']);
-const FILES_READ_AT_ONCE = 10;
+/** The `dotnet tool`, on the PATH of the machine the server runs on. */
+const DEFAULT_COMMAND = ['noesis-scan-csharp'];
+/** Where the tool writes under `--out`. */
+const MANIFEST = join('code-model', 'csharp', 'manifest.json');
+const OUTPUT_TAIL = 4000;
+
+const log = serverLogger('scanner', 'csharp');
 
 export interface CSharpScannerDeps {
   noesis: NoesisDir;
   now: Now;
-}
-
-/** A source file whose namespace maps to a module. */
-interface ModuleFile extends CSharpSourceFile {
-  path: string;
-  namespace: CSharpNamespace;
-  modulePath: string;
+  /** The first stage's command and leading arguments; `noesis-scan-csharp` unless given. */
+  command?: readonly string[];
 }
 
 /**
- * Reads the `.cs` files under the repository root as text. A namespace is a
- * module, nested by its dots and mapped by `noesis-config.json`; a type marked
- * with a building block attribute is a building block, and each of its public
- * methods a behaviour.
+ * The C# scanner in two stages: `noesis-scan-csharp` (scanners/dotnet) reads
+ * the solution with Roslyn and writes the code model into the session
+ * directory; the projection (app/code-model/projection) turns it into the
+ * system model by the NoesisVision.Annotations vocabulary. Rules in
+ * docs/plans/code-model-to-system-model.md.
  */
 export class CSharpSourceCodeScanner implements SourceCodeScanner {
   private readonly noesis: NoesisDir;
   private readonly now: Now;
+  private readonly command: readonly string[];
 
-  constructor({ noesis, now }: CSharpScannerDeps) {
+  constructor({ noesis, now, command = DEFAULT_COMMAND }: CSharpScannerDeps) {
     this.noesis = noesis;
     this.now = now;
+    this.command = command;
   }
 
   /** Mints the id as the scan starts, so the newest scan has the highest id. */
   async scan(): Promise<SystemModel> {
     const id = SystemModelId.mint();
     const scannedAt = this.now();
-    const config = await NamespaceConfig.load(this.noesis.root);
-    const files = await this.moduleFiles(config);
-    return {
-      id,
-      name: basename(this.noesis.root),
-      scanned_at: scannedAt,
-      ...modelOf(files),
-    };
+    const root = this.noesis.root;
+    const name = basename(root);
+    const outDir = this.noesis.resolve('sessions', 'scanner');
+
+    const { namespaces: config } = await loadNoesisConfig(root);
+    const started = performance.now();
+    const { manifest, files } = await this.runFirstStage(root, name, outDir);
+    const scanned = performance.now();
+    const { model, diagnostics } = projectSystemModel({
+      manifest,
+      files,
+      vocabulary: CSHARP_VOCABULARY,
+      config,
+    });
+    const projected = performance.now();
+    logDiagnostics(diagnostics);
+    log.info(
+      'Scanned {name}: {artifacts} artifacts in {scanMs} ms, projected {blocks} building blocks and {behaviours} behaviours in {projectMs} ms',
+      {
+        name,
+        artifacts: files.length,
+        scanMs: Math.round(scanned - started),
+        blocks: model.buildingBlocks.length,
+        behaviours: model.behaviours.length,
+        projectMs: Math.round(projected - scanned),
+      },
+    );
+    return { id, name, scanned_at: scannedAt, ...model };
   }
 
-  /** In path order, so a scan of the same code gives the same model. */
-  private async moduleFiles(config: NamespaceConfig): Promise<ModuleFile[]> {
-    const paths = (await csFilesUnder(this.noesis.root)).sort();
-    const files: ModuleFile[] = [];
-    for (let i = 0; i < paths.length; i += FILES_READ_AT_ONCE) {
-      const read = await Promise.all(
-        paths.slice(i, i + FILES_READ_AT_ONCE).map(async (path) => ({
-          path: relative(this.noesis.root, path),
-          ...parseCSharpSource(await Bun.file(path).text()),
-        })),
-      );
-      for (const file of read) {
-        if (file.namespace === null) continue;
-        const modulePath = config.modulePathOf(file.namespace.name);
-        if (modulePath === null) continue;
-        files.push({ ...file, namespace: file.namespace, modulePath });
-      }
+  /** Runs the tool into an empty `outDir` and reads what it wrote. */
+  private async runFirstStage(
+    root: string,
+    name: string,
+    outDir: string,
+  ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+    await rm(join(outDir, dirname(MANIFEST)), { recursive: true, force: true });
+    const [executable, ...leading] = this.command;
+    if (executable === undefined) {
+      throw new Error('The C# scanner has no command to run.');
     }
-    return files;
+    const args = [
+      ...leading,
+      root,
+      '--out',
+      outDir,
+      '--repository-root',
+      root,
+      '--repository',
+      name,
+    ];
+    log.debug('Running {executable} {args}', { executable, args });
+    const output = await run(executable, args, root);
+    if (output.exitCode !== 0) {
+      throw new Error(
+        `${executable} failed with exit code ${output.exitCode}:\n${output.text.slice(-OUTPUT_TAIL)}`,
+      );
+    }
+    return readCodeModel(join(outDir, MANIFEST));
   }
 }
 
-/** Hidden directories, `.noesis/` among them, and build output are skipped. */
-async function csFilesUnder(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map(async (entry) => {
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        const skipped =
-          entry.name.startsWith('.') || SKIPPED_DIRS.has(entry.name);
-        return skipped ? [] : csFilesUnder(path);
-      }
-      return entry.isFile() && entry.name.endsWith('.cs') ? [path] : [];
+async function run(
+  executable: string,
+  args: string[],
+  cwd: string,
+): Promise<{ exitCode: number; text: string }> {
+  let process: Bun.Subprocess<'ignore', 'pipe', 'pipe'>;
+  try {
+    process = Bun.spawn([executable, ...args], {
+      cwd,
+      stdin: 'ignore',
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+  } catch (error) {
+    throw new Error(
+      `Cannot run ${executable}: ${String(error)}. Install the .NET scanner (scanners/dotnet, \`dotnet tool install\`) so that it is on the PATH.`,
+    );
+  }
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(process.stdout).text(),
+    new Response(process.stderr).text(),
+    process.exited,
+  ]);
+  return { exitCode, text: `${stdout}${stderr}` };
+}
+
+async function readCodeModel(
+  manifestPath: string,
+): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+  const manifest = (await readJsonFile(manifestPath, ScanManifest)).match(
+    (value) => value,
+    (message) => {
+      throw new Error(
+        `The scanner wrote no readable manifest at ${manifestPath}: ${message}`,
+      );
+    },
+  );
+  const outDir = join(dirname(manifestPath), '..', '..');
+  const files = await Promise.all(
+    manifest.artifacts.map(async ({ file }) => {
+      const path = join(outDir, file);
+      return (await readJsonFile(path, CodeModelFileSchema)).match(
+        (value) => value,
+        (message) => {
+          throw new Error(
+            `The code model file ${path} does not fit the schema: ${message}`,
+          );
+        },
+      );
     }),
   );
-  return nested.flat();
+  return { manifest, files };
 }
 
-/** A second element with an id already taken is left out. */
-function modelOf(
-  files: ModuleFile[],
-): Pick<SystemModel, 'modules' | 'buildingBlocks' | 'behaviours'> {
-  const modules = new Map<string, ScannedDomainModule>();
-  const buildingBlocks = new Map<BuildingBlockId, ScannedBuildingBlock>();
-  const behaviours = new Map<BehaviorId, ScannedBehaviour>();
-
-  for (const file of files) {
-    const moduleId = addModules(modules, file);
-    for (const type of file.types) {
-      const block = buildingBlockOf(type, moduleId, file.path);
-      if (buildingBlocks.has(block.id)) continue;
-      buildingBlocks.set(block.id, block);
-      for (const method of type.methods) {
-        const behaviour = behaviourOf(method, block.id, file.path);
-        if (!behaviours.has(behaviour.id)) {
-          behaviours.set(behaviour.id, behaviour);
-        }
-      }
-    }
+function logDiagnostics(diagnostics: readonly ProjectionDiagnostic[]): void {
+  for (const { level, message, source } of diagnostics) {
+    const where = source === null ? '' : ` ({path}:{line})`;
+    log[level](`${message}${where}`, {
+      path: source?.path,
+      line: source?.line,
+    });
   }
-
-  return {
-    modules: [...modules.values()].sort((a, b) => byCodeUnit(a.id, b.id)),
-    buildingBlocks: [...buildingBlocks.values()],
-    behaviours: [...behaviours.values()],
-  };
-}
-
-/**
- * The file's module and each module it nests in. A module is found at the
- * first file declaring its namespace or one nested in it.
- */
-function addModules(
-  modules: Map<string, ScannedDomainModule>,
-  file: ModuleFile,
-): ModuleId {
-  let id: ModuleId | null = null;
-  for (const name of file.modulePath.split('.')) {
-    id = id === null ? ModuleId.root(name) : ModuleId.within(id, name);
-    if (!modules.has(id)) {
-      modules.set(id, {
-        id,
-        name,
-        description: null,
-        rules: [],
-        source: { path: file.path, line: file.namespace.line },
-      });
-    }
-  }
-  return id!;
-}
-
-function buildingBlockOf(
-  type: CSharpAnnotatedType,
-  moduleId: ModuleId,
-  path: string,
-): ScannedBuildingBlock {
-  const name = nameOf(type.nameOverride, type.name);
-  return {
-    id: BuildingBlockId.within(moduleId, name),
-    name,
-    type: type.buildingBlockType,
-    description: null,
-    implements: [],
-    properties: [],
-    rules: [],
-    scenarios: [],
-    source: { path, line: type.line },
-  };
-}
-
-/** Only public methods are scanned, so every behaviour is public. */
-function behaviourOf(
-  method: CSharpMethod,
-  buildingBlockId: BuildingBlockId,
-  path: string,
-): ScannedBehaviour {
-  const name = nameOf(method.nameOverride, method.name);
-  return {
-    id: BehaviorId.within(buildingBlockId, name),
-    buildingBlockId,
-    name,
-    type: method.returnsResult ? 'Query' : 'Command',
-    description: null,
-    visibility: {
-      kind: 'public',
-      actors: method.actor === null ? [] : [method.actor],
-    },
-    input: [],
-    output: [],
-    rules: [],
-    scenarios: [],
-    source: { path, line: method.line },
-  };
-}
-
-/** An override that is no element name, e.g. one with a dot, gives way to the code's name. */
-function nameOf(override: string | null, codeName: string): ElementName {
-  const parsed = ElementName.safeParse(override);
-  return parsed.success ? parsed.data : ElementName.parse(codeName);
-}
-
-function byCodeUnit(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
 }

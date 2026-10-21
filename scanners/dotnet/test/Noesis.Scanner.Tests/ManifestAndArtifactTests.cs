@@ -24,7 +24,7 @@ public class ManifestAndArtifactTests(FixtureScan scan)
         var manifest = scan.Result.Manifest;
         Assert.Equal(1, manifest.SchemaVersion);
         Assert.Equal(Language.CSharp, manifest.Language);
-        Assert.Equal("noesis-scan-dotnet", manifest.Generator.Name);
+        Assert.Equal("noesis-scan-csharp", manifest.Generator.Name);
         Assert.Equal("noesis", manifest.Repository.Name);
         Assert.Equal("0123456789abcdef", manifest.Repository.Revision);
         Assert.Equal("scanners/dotnet/test/fixtures/CSharpSyntax.slnx", manifest.Root);

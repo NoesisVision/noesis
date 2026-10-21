@@ -1,0 +1,3687 @@
+{
+  "id": "01a15f5c-d82c-74d0-a232-ac1be6a752bc",
+  "name": "discounts-dotnet",
+  "scanned_at": "2026-10-21T16:48:02.604Z",
+  "modules": [
+    {
+      "id": "module|Sales",
+      "name": "Sales",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
+        "line": 3
+      }
+    },
+    {
+      "id": "module|Sales.Clients",
+      "name": "Clients",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
+        "line": 3
+      }
+    },
+    {
+      "id": "module|Sales.Commons",
+      "name": "Commons",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Currency.cs",
+        "line": 3
+      }
+    },
+    {
+      "id": "module|Sales.ExchangeRates",
+      "name": "ExchangeRates",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "module|Sales.Orders",
+      "name": "Orders",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/AllOrderDetails.cs",
+        "line": 4
+      }
+    },
+    {
+      "id": "module|Sales.Orders.PriceChanges",
+      "name": "PriceChanges",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "module|Sales.Pricing",
+      "name": "Pricing",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "module|Sales.Pricing.Discounts",
+      "name": "Discounts",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "module|Sales.Pricing.PriceLists",
+      "name": "PriceLists",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "module|Sales.Pricing.SpecialOffers",
+      "name": "SpecialOffers",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
+        "line": 3
+      }
+    },
+    {
+      "id": "module|Sales.Products",
+      "name": "Products",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
+        "line": 4
+      }
+    },
+    {
+      "id": "module|Sales.SalesChannels",
+      "name": "SalesChannels",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/SalesChannels/SalesChannel.cs",
+        "line": 3
+      }
+    },
+    {
+      "id": "module|Sales.Time",
+      "name": "Time",
+      "description": null,
+      "rules": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Time/Clock.cs",
+        "line": 3
+      }
+    }
+  ],
+  "buildingBlocks": [
+    {
+      "id": "building_block|Sales.Clients.ClientId",
+      "name": "ClientId",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Clients.ClientRepository",
+      "name": "ClientRepository",
+      "type": "repository",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientRepository.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Clients.ClientStatus",
+      "name": "ClientStatus",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientStatus.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Commons.Currency",
+      "name": "Currency",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Currency.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Commons.Money",
+      "name": "Money",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Value",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|Sales.Commons.Percentage",
+      "name": "Percentage",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Fraction",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Percentage.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Commons.TaxId",
+      "name": "TaxId",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "primitive|string",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/TaxId.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.ExchangeRates.ExchangeRate",
+      "name": "ExchangeRate",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Value",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|Sales.ExchangeRates.ExchangeRateProvider",
+      "name": "ExchangeRateProvider",
+      "type": "external_integration",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRateProvider.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.AllOrderDetails",
+      "name": "AllOrderDetails",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ClientId",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "CurrencyCode",
+          "type": "primitive|string",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Items",
+          "type": {
+            "collectionOf": "building_block|Sales.Orders.OrderItemDetails"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/AllOrderDetails.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.InvoicingDetails",
+      "name": "InvoicingDetails",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "TaxId",
+          "type": "primitive|string",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Name",
+          "type": "primitive|string",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/InvoicingDetails.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order",
+      "name": "Order",
+      "type": "aggregate",
+      "description": "*An order is a request for products.* It is placed by a customer and contains a list of products with their amounts. The order is placed when the customer confirms the prices of the products.",
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductAmounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Products.ProductAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order CreatedFromOffer",
+      "name": "Order CreatedFromOffer",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 24
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order Factory",
+      "name": "Order Factory",
+      "type": "factory",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order Placed",
+      "name": "Order Placed",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 77
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "Order PriceAgreement",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Type",
+          "type": "building_block|Sales.Orders.PriceAgreementType",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": true
+        },
+        {
+          "name": "ExpiresOn",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": true
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order PricesConfirmed",
+      "name": "Order PricesConfirmed",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Quotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "AgreementType",
+          "type": "building_block|Sales.Orders.PriceAgreementType",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "AgreementExpiresOn",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": true
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 44
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order ProductAmountAdded",
+      "name": "Order ProductAmountAdded",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 36
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.Order Repository",
+      "name": "Order Repository",
+      "type": "repository",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.OrderItemDetails",
+      "name": "OrderItemDetails",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductId",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Amount",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "AmountUnit",
+          "type": "primitive|string",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Price",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/OrderItemDetails.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.PriceAgreementType",
+      "name": "PriceAgreementType",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceAgreementType.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
+      "name": "AllowAnyPriceChanges",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
+      "name": "AllowPriceChangesIfTotalPriceIsLower",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowPriceChangesIfTotalPriceIsLower.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
+      "name": "PriceChangesPolicies",
+      "type": "factory",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicies.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+      "name": "PriceChangesPolicy",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicy.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.CalculatePrices",
+      "name": "CalculatePrices",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+      "name": "ClientLevelDiscounts",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.OfferModifier",
+        "building_block|Sales.Pricing.QuoteModifier"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "Discount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
+      "name": "DiscountsRepository",
+      "type": "repository",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/DiscountsRepository.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+      "name": "PercentageDiscount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+      "name": "ProductDiscount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductUnit",
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Discount",
+          "type": "building_block|Sales.Pricing.Discounts.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductDiscount.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+      "name": "ProductLevelDiscounts",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.OfferModifier",
+        "building_block|Sales.Pricing.QuoteModifier"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+      "name": "ValueDiscount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.IndividualSalesConditions",
+      "name": "IndividualSalesConditions",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.OfferModifier",
+        "building_block|Sales.Pricing.QuoteModifier"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/IndividualSalesConditions.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Offer",
+      "name": "Offer",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Count",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "TotalPrice",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Quotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "ProductAmounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Products.ProductAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.OfferModifier",
+      "name": "OfferModifier",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifier.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.OfferModifiers",
+      "name": "OfferModifiers",
+      "type": "factory",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifiers.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.OfferRequest",
+      "name": "OfferRequest",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ClientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "SalesChannel",
+          "type": "building_block|Sales.SalesChannels.SalesChannel",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "ProductAmounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Products.ProductAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferRequest.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.PriceLists.BasePrice",
+      "name": "BasePrice",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductUnit",
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.PriceLists.BasePrices",
+      "name": "BasePrices",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+      "name": "PriceListRepository",
+      "type": "repository",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.Quote",
+      "name": "Quote",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.QuoteModifier",
+      "name": "QuoteModifier",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/QuoteModifier.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+      "name": "EverySecondBoxForHalfPrice",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
+      "name": "SpecialOffer",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.OfferModifier"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/SpecialOffer.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+      "name": "ThreeForTwo",
+      "type": "domain_service",
+      "description": null,
+      "implements": [
+        "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+      ],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Products.Amount",
+      "name": "Amount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Unit",
+          "type": "building_block|Sales.Products.AmountUnit",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Value",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Products.AmountUnit",
+      "name": "AmountUnit",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/AmountUnit.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Products.ProductAmount",
+      "name": "ProductAmount",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Amount",
+          "type": "building_block|Sales.Products.Amount",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "ProductId",
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "ProductUnit",
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductAmount.cs",
+        "line": 7
+      }
+    },
+    {
+      "id": "building_block|Sales.Products.ProductId",
+      "name": "ProductId",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.Products.ProductUnit",
+      "name": "ProductUnit",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "ProductId",
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "Unit",
+          "type": "building_block|Sales.Products.AmountUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductUnit.cs",
+        "line": 6
+      }
+    },
+    {
+      "id": "building_block|Sales.SalesChannels.SalesChannel",
+      "name": "SalesChannel",
+      "type": "value_object",
+      "description": null,
+      "implements": [],
+      "properties": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/SalesChannels/SalesChannel.cs",
+        "line": 5
+      }
+    },
+    {
+      "id": "building_block|Sales.Time.Clock",
+      "name": "Clock",
+      "type": "domain_service",
+      "description": null,
+      "implements": [],
+      "properties": [
+        {
+          "name": "Now",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Time/Clock.cs",
+        "line": 5
+      }
+    }
+  ],
+  "behaviours": [
+    {
+      "id": "behavior|Sales.Clients.ClientId.From",
+      "buildingBlockId": "building_block|Sales.Clients.ClientId",
+      "name": "From",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Clients.ClientId.New",
+      "buildingBlockId": "building_block|Sales.Clients.ClientId",
+      "name": "New",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
+      "buildingBlockId": "building_block|Sales.Clients.ClientRepository",
+      "name": "GetStatusFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Clients.ClientStatus",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Clients/ClientRepository.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "behavior|Sales.Commons.Money.Max",
+      "buildingBlockId": "building_block|Sales.Commons.Money",
+      "name": "Max",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "x",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "y",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
+        "line": 39
+      }
+    },
+    {
+      "id": "behavior|Sales.Commons.Money.Of",
+      "buildingBlockId": "building_block|Sales.Commons.Money",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Commons.Money.Zero",
+      "buildingBlockId": "building_block|Sales.Commons.Money",
+      "name": "Zero",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Commons.Percentage.Of",
+      "buildingBlockId": "building_block|Sales.Commons.Percentage",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Percentage",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Commons/Percentage.cs",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
+      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRate",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Commons.Money.Of"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
+        "line": 23
+      }
+    },
+    {
+      "id": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
+      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRate",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "toCurrency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "value",
+          "type": "primitive|decimal",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.ExchangeRates.ExchangeRate",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
+      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRateProvider",
+      "name": "GetFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.ExchangeRates.ExchangeRate",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRateProvider.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order CreatedFromOffer.Apply",
+      "buildingBlockId": "building_block|Sales.Orders.Order CreatedFromOffer",
+      "name": "Apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "order",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 29
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
+      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
+      "name": "ImmediatelyPlacedBasedOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Orders.Order PriceAgreement.Final",
+        "behavior|Sales.Orders.Order PriceAgreement.Non"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
+        "line": 27
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Factory.NewWith",
+      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
+      "name": "NewWith",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "maxTotalCost",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
+      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
+      "name": "NewWithMaxTotalCostFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Orders.Order Factory.NewWith"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
+        "line": 14
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Placed.Apply",
+      "buildingBlockId": "building_block|Sales.Orders.Order Placed",
+      "name": "Apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "order",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 80
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
+      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "CanChangePrice",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 37
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PriceAgreement.Final",
+      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "Final",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order PriceAgreement",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 23
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
+      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "IsValidOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "date",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 45
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PriceAgreement.Non",
+      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "Non",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order PriceAgreement",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 18
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
+      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "Temporary",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "expiresOn",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order PriceAgreement",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
+      "buildingBlockId": "building_block|Sales.Orders.Order PricesConfirmed",
+      "name": "Apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "order",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [
+        "behavior|Sales.Orders.Order PriceAgreement.Final",
+        "behavior|Sales.Orders.Order PriceAgreement.Temporary"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 74
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
+      "buildingBlockId": "building_block|Sales.Orders.Order ProductAmountAdded",
+      "name": "Apply",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "order",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [
+        "behavior|Sales.Orders.Order PriceAgreement.Non"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
+        "line": 41
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Repository.GetBy",
+      "buildingBlockId": "building_block|Sales.Orders.Order Repository",
+      "name": "GetBy",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order Repository.Save",
+      "buildingBlockId": "building_block|Sales.Orders.Order Repository",
+      "name": "Save",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "order",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order.Add",
+      "buildingBlockId": "building_block|Sales.Orders.Order",
+      "name": "Add",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
+        "line": 21
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order.ConfirmPrices",
+      "buildingBlockId": "building_block|Sales.Orders.Order",
+      "name": "ConfirmPrices",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "priceChangesPolicy",
+          "type": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "agreementExpiresOn",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [
+        "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
+        "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
+        "behavior|Sales.Pricing.Quote.For"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
+        "line": 43
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order.HasSameDataAs",
+      "buildingBlockId": "building_block|Sales.Orders.Order",
+      "name": "HasSameDataAs",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "other",
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
+        "line": 118
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order.Place",
+      "buildingBlockId": "building_block|Sales.Orders.Order",
+      "name": "Place",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "now",
+          "type": "primitive|datetime",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [],
+      "invokes": [
+        "behavior|Sales.Orders.Order PriceAgreement.IsValidOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
+        "line": 101
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.Order.RestoreFrom",
+      "buildingBlockId": "building_block|Sales.Orders.Order",
+      "name": "RestoreFrom",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.Order",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
+      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
+      "name": "CanChangePrices",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "oldQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "newQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
+      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
+      "name": "CanChangePrices",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "oldQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "newQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowPriceChangesIfTotalPriceIsLower.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
+      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
+      "name": "ChooseFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Clients.ClientRepository.GetStatusFor"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicies.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
+      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+      "name": "CanChangePrices",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "oldQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "newQuotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicy.cs",
+        "line": 10
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.CalculatePrices.For",
+      "buildingBlockId": "building_block|Sales.Pricing.CalculatePrices",
+      "name": "For",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "salesChannel",
+          "type": "building_block|Sales.SalesChannels.SalesChannel",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "productAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Quote",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
+        "behavior|Sales.Pricing.Offer.FromQuotes",
+        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+        "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+        "behavior|Sales.Pricing.OfferRequest.For",
+        "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
+        "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
+        "behavior|Sales.Pricing.Quote.For"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
+        "line": 18
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Offer.FromQuotes",
+        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
+        "line": 24
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "Percentage",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "building_block|Sales.Commons.Percentage",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "Value",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
+      "name": "GetFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/DiscountsRepository.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "building_block|Sales.Commons.Percentage",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productUnit",
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "discount",
+          "type": "building_block|Sales.Pricing.Discounts.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductDiscount.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Offer.FromQuotes",
+        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "discounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Discounts.ProductDiscount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Commons.Money.Max",
+        "behavior|Sales.Commons.Money.Zero"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.IndividualSalesConditions",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+        "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
+        "behavior|Sales.Pricing.Offer.FromQuotes",
+        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/IndividualSalesConditions.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Offer.Compare",
+      "buildingBlockId": "building_block|Sales.Pricing.Offer",
+      "name": "Compare",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "other",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "accuracy",
+          "type": "building_block|Sales.Commons.Percentage",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
+        "line": 56
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Offer.FromQuotes",
+      "buildingBlockId": "building_block|Sales.Pricing.Offer",
+      "name": "FromQuotes",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "currency",
+          "type": "building_block|Sales.Commons.Currency",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "quotes",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.Quote"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
+        "line": 27
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.OfferModifier",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Offer.FromQuotes",
+        "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
+        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifier.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+      "buildingBlockId": "building_block|Sales.Pricing.OfferModifiers",
+      "name": "ChooseFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offerRequest",
+          "type": "building_block|Sales.Pricing.OfferRequest",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.OfferModifier",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
+        "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
+        "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifiers.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.OfferRequest.For",
+      "buildingBlockId": "building_block|Sales.Pricing.OfferRequest",
+      "name": "For",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "salesChannel",
+          "type": "building_block|Sales.SalesChannels.SalesChannel",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "productAmounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Products.ProductAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.OfferRequest",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferRequest.cs",
+        "line": 17
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrice",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productUnit",
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.PriceLists.BasePrice",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
+      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrices",
+      "name": "GetFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
+        "line": 21
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
+      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrices",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "prices",
+          "type": {
+            "collectionOf": "building_block|Sales.Pricing.PriceLists.BasePrice"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.PriceLists.BasePrices",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
+        "line": 14
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
+      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+      "name": "GetBasePriceFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "productAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
+      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+      "name": "GetBasePricesFor",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "clientId",
+          "type": "building_block|Sales.Clients.ClientId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "productAmounts",
+          "type": {
+            "collectionOf": "building_block|Sales.Products.ProductAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.PriceLists.BasePrices",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
+        "line": 13
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Quote.ChangePrice",
+      "buildingBlockId": "building_block|Sales.Pricing.Quote",
+      "name": "ChangePrice",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "newPrice",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Quote",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
+        "line": 22
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.Quote.For",
+      "buildingBlockId": "building_block|Sales.Pricing.Quote",
+      "name": "For",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productAmount",
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "price",
+          "type": "building_block|Sales.Commons.Money",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Quote",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.QuoteModifier",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "quote",
+          "type": "building_block|Sales.Pricing.Quote",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Quote",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+        "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/QuoteModifier.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
+        "line": 14
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
+      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+      "name": "Or",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "fallbackModifier",
+          "type": "building_block|Sales.Pricing.OfferModifier",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/SpecialOffer.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
+      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+      "name": "ApplyOn",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "offer",
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.Offer",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
+        "line": 14
+      }
+    },
+    {
+      "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
+      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+      "name": "Or",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "fallbackModifier",
+          "type": "building_block|Sales.Pricing.OfferModifier",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
+        "line": 8
+      }
+    },
+    {
+      "id": "behavior|Sales.Products.Amount.Of",
+      "buildingBlockId": "building_block|Sales.Products.Amount",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "unit",
+          "type": "building_block|Sales.Products.AmountUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Products.Amount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
+        "line": 9
+      }
+    },
+    {
+      "id": "behavior|Sales.Products.ProductAmount.Of",
+      "buildingBlockId": "building_block|Sales.Products.ProductAmount",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productId",
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "value",
+          "type": "primitive|integer",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "unit",
+          "type": "building_block|Sales.Products.AmountUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Products.ProductAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [
+        "behavior|Sales.Products.Amount.Of"
+      ],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductAmount.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Products.ProductId.From",
+      "buildingBlockId": "building_block|Sales.Products.ProductId",
+      "name": "From",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "value",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
+        "line": 12
+      }
+    },
+    {
+      "id": "behavior|Sales.Products.ProductId.New",
+      "buildingBlockId": "building_block|Sales.Products.ProductId",
+      "name": "New",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [],
+      "output": [
+        {
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
+        "line": 11
+      }
+    },
+    {
+      "id": "behavior|Sales.Products.ProductUnit.Of",
+      "buildingBlockId": "building_block|Sales.Products.ProductUnit",
+      "name": "Of",
+      "type": "Command",
+      "description": null,
+      "visibility": {
+        "kind": "public",
+        "actors": []
+      },
+      "input": [
+        {
+          "name": "productId",
+          "type": "building_block|Sales.Products.ProductId",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "unit",
+          "type": "building_block|Sales.Products.AmountUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "output": [
+        {
+          "type": "building_block|Sales.Products.ProductUnit",
+          "description": null,
+          "optional": false
+        }
+      ],
+      "invokes": [],
+      "rules": [],
+      "scenarios": [],
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel/Products/ProductUnit.cs",
+        "line": 12
+      }
+    }
+  ]
+}

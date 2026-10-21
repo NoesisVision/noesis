@@ -12,7 +12,7 @@ public class CliRunTests
         var output = Path.Combine(Path.GetTempPath(), "noesis-scanner-tests", Guid.NewGuid().ToString("N"));
         try
         {
-            var dll = Path.Combine(AppContext.BaseDirectory, "noesis-scan-dotnet.dll");
+            var dll = Path.Combine(AppContext.BaseDirectory, "noesis-scan-csharp.dll");
             Assert.True(File.Exists(dll), dll);
             var process = Process.Start(new ProcessStartInfo("dotnet")
             {
@@ -38,7 +38,7 @@ public class CliRunTests
     [Fact]
     public async Task InvalidArgumentsExitWithOne()
     {
-        var dll = Path.Combine(AppContext.BaseDirectory, "noesis-scan-dotnet.dll");
+        var dll = Path.Combine(AppContext.BaseDirectory, "noesis-scan-csharp.dll");
         var process = Process.Start(new ProcessStartInfo("dotnet") { ArgumentList = { dll, "--bogus" }, RedirectStandardError = true, RedirectStandardOutput = true })!;
         await process.WaitForExitAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, process.ExitCode);

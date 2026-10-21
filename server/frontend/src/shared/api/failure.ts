@@ -46,8 +46,11 @@ function apiFailure(error: ApiError): Failure {
     return {
       code: String(error.status),
       title: 'The service failed',
+      // A scan that failed carries the scanner's own reason in `message`.
       description:
-        said ?? 'Noesis could not answer this request. Its log has the reason.',
+        said ??
+        messageIn(error.body) ??
+        'Noesis could not answer this request. Its log has the reason.',
     };
   }
   return {
@@ -61,6 +64,12 @@ function codeOf(body: unknown): string | null {
   if (typeof body !== 'object' || body === null) return null;
   const { error } = body as { error?: unknown };
   return typeof error === 'string' ? error : null;
+}
+
+function messageIn(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const { message } = body as { message?: unknown };
+  return typeof message === 'string' && message.trim() !== '' ? message : null;
 }
 
 function messageOf(error: unknown): string | null {

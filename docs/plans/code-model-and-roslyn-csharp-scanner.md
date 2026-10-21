@@ -749,7 +749,7 @@ built from code that does not compile" next to the affected elements.
 scanners/dotnet/
   src/Noesis.Scanner.Model/    the schema as C# records + JSON writer + canonical ids (language-neutral)
   src/Noesis.Scanner.CSharp/   Roslyn: loading, declaration walk, operation walk, mapping
-  src/Noesis.Scanner.Cli/      `noesis-scan-dotnet` tool: arguments, discovery, orchestration, exit codes
+  src/Noesis.Scanner.Cli/      `noesis-scan-csharp` tool: arguments, discovery, orchestration, exit codes
   test/Noesis.Scanner.Tests/   golden tests on test/fixtures and broken fixtures
   test/fixtures/               the C# syntax fixture solution (CSharpSyntax.slnx)
 ```
@@ -884,7 +884,7 @@ assembly that defines them, not the one that forwards.
 ### 4.6 Command line
 
 ```text
-noesis-scan-dotnet <path>                     directory, solution or project(s)
+noesis-scan-csharp <path>                     directory, solution or project(s)
   --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
   --repository-root <dir>                     directory file paths are relative to (default: current directory)
   --repository <name> --revision <commit>     written into the manifest, supplied by the server

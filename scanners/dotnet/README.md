@@ -1,6 +1,6 @@
 # Noesis .NET scanner
 
-A .NET 10 tool, `noesis-scan-dotnet`, that reads a C# solution with Roslyn and
+A .NET 10 tool, `noesis-scan-csharp`, that reads a C# solution with Roslyn and
 writes the common **code model**: one JSON file per project with every
 namespace, type and member, the edges between them (containment, inheritance,
 overrides, interface member mapping, invocations, member accesses, body-level
@@ -19,10 +19,33 @@ project that cannot load becomes an empty model with the error.
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `src/Noesis.Scanner.Model/`  | The schema as C# records, the canonical string grammar, the JSON codec and the file layout; language-neutral |
 | `src/Noesis.Scanner.CSharp/` | Roslyn: solution loading, the declaration pass, the body pass, the external closure                          |
-| `src/Noesis.Scanner.Cli/`    | The `noesis-scan-dotnet` command: arguments, exit codes                                                      |
+| `src/Noesis.Scanner.Cli/`    | The `noesis-scan-csharp` command: arguments, exit codes                                                      |
 | `test/Noesis.Scanner.Tests/` | xunit tests over the fixture solution, the golden model files under `golden/`, the command line              |
 | `test/fixtures/`             | The C# syntax fixture solution the tests scan (see its README)                                               |
 | `test/fixtures-broken/`      | A project with a syntax error and a missing reference; must still yield a model                              |
+
+## Installing the tool
+
+The service's `csharp` scanner runs `noesis-scan-csharp` from the PATH, so
+the tool is installed once, globally, from a package built here. From this
+directory:
+
+```sh
+dotnet pack src/Noesis.Scanner.Cli -c Release
+dotnet tool install -g Noesis.Scanner --add-source src/Noesis.Scanner.Cli/bin/Release
+noesis-scan-csharp --help
+```
+
+`~/.dotnet/tools` has to be on the PATH of the shell the service starts from
+(the .NET SDK installer adds it). After a change to the scanner, pack again
+and reinstall; the version stays `0.1.0`, so `dotnet tool update` sees
+nothing new:
+
+```sh
+dotnet pack src/Noesis.Scanner.Cli -c Release
+dotnet tool uninstall -g Noesis.Scanner
+dotnet tool install -g Noesis.Scanner --add-source src/Noesis.Scanner.Cli/bin/Release
+```
 
 ## Commands
 
@@ -42,7 +65,7 @@ the tests scan it with `--no-restore`.
 ## Command line
 
 ```text
-noesis-scan-dotnet <path>...                  directory, solution or project(s)
+noesis-scan-csharp <path>...                  directory, solution or project(s)
   --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
   --repository <name> --revision <commit>     written into the manifest, supplied by the server
   --repository-root <dir>                     directory file paths are relative to (default: current directory)

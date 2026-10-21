@@ -10,7 +10,7 @@ namespace Noesis.Scanner.CSharp;
 /// <summary>Scans one solution with Roslyn into the common code model: one manifest, one model file per project.</summary>
 public static class CSharpScanner
 {
-    public static readonly Generator Generator = new("noesis-scan-dotnet", InformationalVersion());
+    public static readonly Generator Generator = new("noesis-scan-csharp", InformationalVersion());
 
     public static async Task<ScanResult> ScanAsync(ScanRequest request, ScanLog log, CancellationToken cancellationToken = default)
     {

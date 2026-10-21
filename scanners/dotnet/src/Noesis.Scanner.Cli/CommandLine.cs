@@ -2,11 +2,11 @@ using Noesis.Scanner.CSharp;
 
 namespace Noesis.Scanner.Cli;
 
-/// <summary>Parses `noesis-scan-dotnet &lt;path&gt;... [options]` into a <see cref="ScanRequest"/>.</summary>
+/// <summary>Parses `noesis-scan-csharp &lt;path&gt;... [options]` into a <see cref="ScanRequest"/>.</summary>
 public static class CommandLine
 {
     public const string Usage = """
-        noesis-scan-dotnet <path>...                  directory, solution or project(s)
+        noesis-scan-csharp <path>...                  directory, solution or project(s)
           --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
           --repository <name> --revision <commit>     written into the manifest
           --repository-root <dir>                     directory file paths are relative to (default: current directory)

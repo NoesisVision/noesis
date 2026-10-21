@@ -3,10 +3,10 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Noesis.Scanner.Cli</RootNamespace>
-    <AssemblyName>noesis-scan-dotnet</AssemblyName>
+    <AssemblyName>noesis-scan-csharp</AssemblyName>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>noesis-scan-dotnet</ToolCommandName>
-    <PackageId>Noesis.Scanner.DotNet</PackageId>
+    <ToolCommandName>noesis-scan-csharp</ToolCommandName>
+    <PackageId>Noesis.Scanner</PackageId>
     <Version>0.1.0</Version>
     <RollForward>Major</RollForward>
   </PropertyGroup>

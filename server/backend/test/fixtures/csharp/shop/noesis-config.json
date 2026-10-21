@@ -1,0 +1,5 @@
+{
+  "scanner": "csharp",
+  "namespacePartsToSkip": ["Acme"],
+  "namespacesToExclude": ["*.Internal"]
+}

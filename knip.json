@@ -15,7 +15,8 @@
       "entry": [".agents/skills/*/scripts/*.ts"]
     },
     "server/backend": {
-      // Type-only tests are checked by tsc and never imported. The design
+      // Type-only tests are checked by tsc and never imported; the fake
+      // .NET scanner is spawned by a spec, never imported. The design
       // document, its element ids and design doc fields, the system model
       // and the code model are exported whole: a type nothing imports yet is
       // still part of the domain model.
@@ -26,7 +27,8 @@
         "src/app/design-docs/design-doc-field.ts",
         "src/app/system-model/system-model.ts",
         "src/app/code-model/code-model.ts",
-        "test/**/*.types.ts"
+        "test/**/*.types.ts",
+        "test/support/fake-scan-csharp.ts"
       ]
     },
     "server/frontend": {
