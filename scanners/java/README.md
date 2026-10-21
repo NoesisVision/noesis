@@ -34,13 +34,14 @@ keeps the two engines equal up to exactly that list.
 | `test-fixtures/java-syntax-other`          | The types the syntax fixture reaches across a module boundary                                                                  |
 | `core/src/test/resources/golden/`          | The committed model files per engine                                                                                           |
 | `core/src/test/resources/fixtures-broken/` | A syntax error and a missing import; must still yield a model                                                                  |
+| `maven-plugin/src/it/multi-module/`        | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                   |
 
 ## Commands
 
 From this directory:
 
 ```sh
-mvn -B verify                                   # build everything, scan the fixtures, run the tests
+mvn -B verify                                   # build everything, scan the fixtures, run the tests and the plugin's integration test
 NOESIS_UPDATE_GOLDEN=1 mvn -B -pl core -am test  # rewrite core/src/test/resources/golden/ after an intended model change
 mvn -q install -DskipTests                       # put the plugin in the local repository, which is how the service runs it
 ```
@@ -59,15 +60,15 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/scan -Dnoesis.repositoryRoot=$PWD -Dnoesis.repo
   process-classes vision.noesis:noesis-scanner-maven-plugin:0.1.0-SNAPSHOT:scan
 ```
 
-| Property                | Default                                                              | Meaning                                                 |
-| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
-| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner`         | output root; files land in `code-model/java/` inside it |
-| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to       |
-| `noesis.repository`     | the root directory's name                                            | written into the manifest                               |
-| `noesis.revision`       | `""`                                                                 | written into the manifest                               |
-| `noesis.engine`         | `source`                                                             | `source` or `bytecode`                                  |
-| `noesis.release`        | `maven.compiler.release`, else `maven.compiler.target`, else the JVM | the Java release the sources are bound against          |
-| `noesis.skip`           | `false`                                                              | skip this module                                        |
+| Property                | Default                                                              | Meaning                                                                                                                   |
+| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner`         | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
+| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
+| `noesis.repository`     | the root directory's name                                            | written into the manifest                                                                                                 |
+| `noesis.revision`       | `""`                                                                 | written into the manifest                                                                                                 |
+| `noesis.engine`         | `source`                                                             | `source` or `bytecode`                                                                                                    |
+| `noesis.release`        | `maven.compiler.release`, else `maven.compiler.target`, else the JVM | the Java release the sources are bound against                                                                            |
+| `noesis.skip`           | `false`                                                              | skip this module                                                                                                          |
 
 Every module writes `code-model/java/<artifactId>.code-model.json` and
 rewrites `code-model/java/manifest.json`, which lists every module scanned so

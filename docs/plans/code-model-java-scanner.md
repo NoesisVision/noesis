@@ -1,8 +1,8 @@
 # Design: the Java scanner for the common code model
 
 Status: in progress (October 2026). The model, both engines, their golden
-tests and the agreement test are done; the Maven plugin's integration test
-and the service adapter follow.
+tests, the agreement test and the Maven plugin with its integration test are
+done; the service adapter follows.
 
 The .NET scanner (`scanners/dotnet`) reads a C# solution with Roslyn and
 writes the common code model designed in
@@ -269,15 +269,15 @@ exactly those gaps. Shrinking the list is the roadmap.
 `noesis:scan`, bound to `process-classes` so the module and the reactor
 siblings it depends on are compiled:
 
-| Property                | Default                                                      | Meaning                                   |
-| ----------------------- | ------------------------------------------------------------ | ----------------------------------------- |
-| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner` | the output root                           |
-| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                          | paths in the model are relative to it     |
-| `noesis.repository`     | the root directory's name                                    | `repository.name` in the manifest         |
-| `noesis.revision`       | `""`                                                         | `repository.revision`                     |
-| `noesis.engine`         | `source`                                                     | `source` or `bytecode`                    |
-| `noesis.release`        | `maven.compiler.release` → `maven.compiler.target` → JVM     | the release the sources are bound against |
-| `noesis.skip`           | `false`                                                      | skip this module                          |
+| Property                | Default                                                      | Meaning                                                                           |
+| ----------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner` | the output root; a relative path is taken from the execution root, not the module |
+| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                          | paths in the model are relative to it; relative paths as for `noesis.out`         |
+| `noesis.repository`     | the root directory's name                                    | `repository.name` in the manifest                                                 |
+| `noesis.revision`       | `""`                                                         | `repository.revision`                                                             |
+| `noesis.engine`         | `source`                                                     | `source` or `bytecode`                                                            |
+| `noesis.release`        | `maven.compiler.release` → `maven.compiler.target` → JVM     | the release the sources are bound against                                         |
+| `noesis.skip`           | `false`                                                      | skip this module                                                                  |
 
 Each module writes `code-model/java/<artifactId>.code-model.json` (`~2` on a
 name clash) and rewrites the manifest listing every module scanned so far in
@@ -318,8 +318,14 @@ The plugin must be in the local repository: `mvn -q install -DskipTests` in
 - **Broken fixture**: a syntax error and a missing import still yield a model
   with the declarations, an `unresolved` reference, the compiler's errors and
   an `NS1002`.
-- **Agreement** (with the bytecode engine) and the plugin's integration test
-  follow.
+- **Agreement**: `EngineAgreementTest` scans the fixture with both engines
+  and asserts equality up to the exclusions `AgreementRules` names (section 4).
+- **Plugin**: `maven-plugin/src/it/multi-module` is a two-module reactor
+  project (b depends on a, a uses Guava) that `maven-invoker-plugin` builds
+  with the exact invocation the service makes (`process-classes` plus the
+  goal's full coordinates); a Groovy script asserts the manifest's reactor
+  order, b's `source` dependency on a, a's library and platform dependencies,
+  the main class, the ids and an invocation across the modules.
 
 ## 7. Deferred
 

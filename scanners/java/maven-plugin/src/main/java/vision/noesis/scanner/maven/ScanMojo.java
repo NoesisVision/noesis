@@ -48,13 +48,13 @@ public class ScanMojo extends AbstractMojo {
     @Parameter(defaultValue = "${plugin}", readonly = true, required = true)
     private PluginDescriptor plugin;
 
-    /** The output root; files land under {@code code-model/java/} inside it. */
+    /** The output root; files land under {@code code-model/java/} inside it. A relative path is taken from the execution root, not the module. */
     @Parameter(property = "noesis.out", defaultValue = "${session.executionRootDirectory}/.noesis/sessions/scanner")
-    private File out;
+    private String out;
 
-    /** The directory file paths in the model are relative to. */
+    /** The directory file paths in the model are relative to; a relative path is taken from the execution root. */
     @Parameter(property = "noesis.repositoryRoot", defaultValue = "${session.executionRootDirectory}")
-    private File repositoryRoot;
+    private String repositoryRoot;
 
     /** The repository name written into the manifest; the root directory's name when not given. */
     @Parameter(property = "noesis.repository")
@@ -78,7 +78,7 @@ public class ScanMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         if ("pom".equals(project.getPackaging())) return;
         ReactorState state = ReactorState.of(session, plugin);
-        Path outputRoot = out.toPath().toAbsolutePath().normalize();
+        Path outputRoot = fromExecutionRoot(out);
         try {
             if (state.start()) clearPreviousScan(outputRoot);
             if (skip) {
@@ -95,7 +95,7 @@ public class ScanMojo extends AbstractMojo {
     private void scanModule(ReactorState state, Path outputRoot) throws IOException {
         ArtifactInput input = ProjectInputs.of(project, session, release);
         Engine scanner = JavaScanner.engineFor(EngineKind.of(engine));
-        ScanSession scanSession = new ScanSession(generator(), repositoryRoot.toPath(), List.of(input), reactorArtifactIds(), reactorOutputDirectories());
+        ScanSession scanSession = new ScanSession(generator(), fromExecutionRoot(repositoryRoot), List.of(input), reactorArtifactIds(), reactorOutputDirectories());
         long started = System.nanoTime();
         CodeModelFile model = scanner.scan(input, scanSession);
         String file = state.fileFor(project, JavaIds.artifact(project.getArtifactId()));
@@ -106,19 +106,25 @@ public class ScanMojo extends AbstractMojo {
     }
 
     private void writeManifest(ReactorState state, Path outputRoot) throws IOException {
-        Locations locations = new Locations(repositoryRoot.toPath());
+        Path root = fromExecutionRoot(repositoryRoot);
+        Locations locations = new Locations(root);
         File topLevel = session.getTopLevelProject().getFile();
-        String root = topLevel == null ? "" : locations.relativePath(topLevel.toPath());
-        String name = repository == null || repository.isBlank() ? repositoryRoot.toPath().toAbsolutePath().normalize().getFileName().toString() : repository;
+        String rootFile = topLevel == null ? "" : locations.relativePath(topLevel.toPath());
+        String name = repository == null || repository.isBlank() ? root.getFileName().toString() : repository;
         ScanManifest manifest = new ScanManifest(
                 ScanManifest.CURRENT_SCHEMA_VERSION,
                 generator(),
                 Language.JAVA,
                 new RepositoryInfo(name, revision == null ? "" : revision),
-                root,
+                rootFile,
                 state.artifacts(),
                 state.diagnostics());
         CodeModelWriter.writeManifest(outputRoot, manifest);
+    }
+
+    /** Maven resolves a {@code File} parameter against the module; a path given once for the whole reactor belongs to the execution root. */
+    private Path fromExecutionRoot(String path) {
+        return Path.of(session.getExecutionRootDirectory()).resolve(path).toAbsolutePath().normalize();
     }
 
     private Generator generator() {
