@@ -9,6 +9,8 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    // Scans the build into the Noesis code model: ./gradlew noesisScan writes .noesis/sessions/scanner/code-model/java/.
+    id 'vision.noesis.scanner' version '0.1.0-SNAPSHOT'
 }
 
 repositories {
@@ -51,4 +53,9 @@ application {
 tasks.named('test') {
     // Use junit platform for unit tests.
     useJUnitPlatform()
+}
+
+noesis {
+    // Lombok generates the builders and accessors; the source engine runs no annotation processors, so the compiled classes are the complete picture.
+    engine = 'bytecode'
 }

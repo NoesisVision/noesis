@@ -136,6 +136,11 @@ jobs:
           cache: maven
           cache-dependency-path: scanners/java/**/pom.xml
 
+      # install, not verify: the Gradle plugin takes the core from the local repository.
       - name: Build and test
-        run: mvn -B --no-transfer-progress verify
+        run: mvn -B --no-transfer-progress install
         working-directory: scanners/java
+
+      - name: Build and test the Gradle plugin
+        run: ./gradlew --no-daemon build
+        working-directory: scanners/java/gradle-plugin
