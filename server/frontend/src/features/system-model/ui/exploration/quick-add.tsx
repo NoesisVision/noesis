@@ -4,14 +4,14 @@ import { Popover } from '#/shared/design-system/popover.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import classes from './exploration.module.css';
 
-/** Where on the canvas the reader double-clicked, in its own pixels. */
+/** Where on the canvas the reader right-clicked, in its own pixels. */
 export interface QuickAddSpot {
   left: number;
   top: number;
 }
 
 /*
- * A light menu where the reader double-clicked an empty part of the canvas:
+ * A light menu where the reader right-clicked an empty part of the canvas:
  * the model's tree under a search box, which takes the focus, and nothing to
  * tick. The element a row stands for, clicked, is put on the diagram there.
  * What is drawn already is left out, or greyed when something under it is

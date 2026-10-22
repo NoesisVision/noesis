@@ -22,7 +22,10 @@ export interface ExplorationPickerProps {
   total: number;
   document: DesignDocumentInput;
   isShown: (id: string) => boolean;
-  onShow: (id: string, shown: boolean) => void;
+  /** A row clicked: the element alone, then with all inside it, then none. */
+  onPick: (id: string) => void;
+  /** Draws every element of the model. */
+  onAddAll: () => void;
   /** Draws nothing again. */
   onClear: () => void;
 }
@@ -40,7 +43,8 @@ export function ExplorationPicker({
   total,
   document,
   isShown,
-  onShow,
+  onPick,
+  onAddAll,
   onClear,
 }: ExplorationPickerProps) {
   const empty = drawn === 0;
@@ -56,7 +60,7 @@ export function ExplorationPicker({
             Nothing drawn yet
           </Title>
           <Text fz="sm" ta="center" c="var(--noesis-secondary-text)">
-            Pick elements from the model, or double-click the canvas to put one
+            Pick elements from the model, or right-click the canvas to put one
             where you click. The relations between them are drawn too.
           </Text>
           <Button
@@ -121,7 +125,7 @@ export function ExplorationPicker({
           <ElementSearch
             document={document}
             isShown={isShown}
-            onShow={onShow}
+            onShow={(id) => onPick(id)}
           />
           <Group
             gap="md"
@@ -131,12 +135,21 @@ export function ExplorationPicker({
             className={classes.pickerFoot}
           >
             <Text fz="xs" c="var(--noesis-secondary-text)" flex={1}>
-              Tick an element to draw it, untick it to take it off.
+              Click once to draw an element, again for all inside it, once more
+              to take them off.
             </Text>
             <Text component="output" fz="sm" className={classes.drawnCount}>
               <b>{drawn}</b>
               {` of ${total} drawn`}
             </Text>
+            <Button
+              size="xs"
+              variant="default"
+              disabled={drawn === total}
+              onClick={onAddAll}
+            >
+              Add all
+            </Button>
             <Button
               size="xs"
               variant="default"

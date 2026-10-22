@@ -1,8 +1,4 @@
-import {
-  IconArrowBackUp,
-  IconArrowForwardUp,
-  IconLayoutDistributeHorizontal,
-} from '@tabler/icons-react';
+import { IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Badge } from '#/shared/design-system/badge.tsx';
@@ -12,6 +8,7 @@ import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Switch } from '#/shared/design-system/switch.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import { IconBroom } from '#/shared/ui/icons/icons.ts';
 import type {
   Containment,
   RelationKind,
@@ -180,9 +177,7 @@ export function ExplorationToolbar({
       <Button
         variant="default"
         size="xs"
-        leftSection={
-          <IconLayoutDistributeHorizontal size={16} stroke={1.6} aria-hidden />
-        }
+        leftSection={<IconBroom size={16} stroke={1.6} aria-hidden />}
         onClick={onAutoPlace}
       >
         Auto-place

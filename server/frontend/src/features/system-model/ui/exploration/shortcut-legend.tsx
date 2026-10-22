@@ -11,7 +11,9 @@ import classes from './exploration.module.css';
 /** Each shortcut: its keys, either of which does it, and what it does. */
 const SHORTCUTS = [
   { keys: ['Space'], does: 'Add to the exploration' },
-  { keys: ['Double-click'], does: 'On the empty canvas, add an element there' },
+  { keys: ['Right-click'], does: 'On the empty canvas, add an element there' },
+  { keys: ['Right-click'], does: 'On a card, its actions' },
+  { keys: ['Double-click'], does: 'Zoom in' },
   { keys: ['Ctrl', '⌘'], does: 'With a click, add a card to the selection' },
   { keys: ['Ctrl A', '⌘ A'], does: 'Select every card in sight' },
   { keys: ['Delete', '⌫'], does: 'Remove the selected cards' },
@@ -19,7 +21,10 @@ const SHORTCUTS = [
   { keys: ['Ctrl ⇧ Z', 'Ctrl Y'], does: 'Redo it' },
   { keys: ['Esc'], does: 'Let go of the cards, or close the picker' },
   { keys: ['↓'], does: 'In the picker, from the filter into the tree' },
-  { keys: ['Space', 'Enter'], does: 'In the picker, tick a row in or out' },
+  {
+    keys: ['Space', 'Enter'],
+    does: 'In the picker, add a row, then all inside it, then take them off',
+  },
 ] as const;
 
 /*
@@ -27,7 +32,8 @@ const SHORTCUTS = [
  * its title, sliding shut, so it need not lie over the cards for good.
  */
 export function ShortcutLegend() {
-  const [open, setOpen] = useState(true);
+  // Folded until asked for, so it lies over nothing at first.
+  const [open, setOpen] = useState(false);
   const list = useId();
   return (
     <Box

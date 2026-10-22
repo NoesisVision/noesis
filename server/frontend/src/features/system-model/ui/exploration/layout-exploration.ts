@@ -43,28 +43,45 @@ export interface PlacedElement {
   height: number;
 }
 
-/** A card's height, whatever its name: its name, what it is, and a row of buttons. */
-export const HEIGHT = 80;
-/** Wide enough for a card's group of buttons: contains, part of, uses, used by. */
+/** A card's height, whatever its name: its name and what it is. */
+export const HEIGHT = 56;
+/** Room along the bottom of a card, or a frame, for the button bringing what it contains. */
+const CONTAINS_ROOM = 34;
+/** A card's height: more when it has elements inside it to bring. */
+export const heightOf = (element: DrawnElement) =>
+  HEIGHT + (element.containsUndrawn ? CONTAINS_ROOM : 0);
+/** Wide enough for a short name beside the card's menu and cross. */
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 300;
-/** About one character of the card's name, with its icon, its padding and the cross beside it. */
+/** About one character of the card's name, with its icon, its padding and the dots and cross beside it. */
 export const widthOf = (name: string) =>
-  Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 86));
+  Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 116));
 
-/** A frame's least width: its name, inset in the frame, and the two ways off the diagram beside it. */
+/** A frame's least width: its name, inset in the frame, and its menu and two ways off the diagram beside it. */
 export const frameWidthOf = (name: string) => widthOf(name) + 56;
 
 /**
  * A frame's least size as ELK reads it. Laying out downwards, ELK takes the
  * pair the other way round — width for height — so it is given so.
  */
-const minimumOf = (width: number, direction: LayoutDirection) =>
-  direction === 'vertical' ? `(${HEIGHT},${width})` : `(${width},${HEIGHT})`;
+const minimumOf = (
+  width: number,
+  height: number,
+  direction: LayoutDirection,
+) =>
+  direction === 'vertical' ? `(${height},${width})` : `(${width},${height})`;
 
 /** Room at the top of a container for its name, and round what it holds. */
-export const PADDING = { top: 80, left: 16, bottom: 16, right: 16 } as const;
-const CONTAINER_PADDING = `[top=${PADDING.top},left=${PADDING.left},bottom=${PADDING.bottom},right=${PADDING.right}]`;
+export const PADDING = { top: 60, left: 16, bottom: 16, right: 16 } as const;
+/** A container's room round what it holds: more at the bottom when it has more to bring. */
+export const paddingOf = (element: DrawnElement) => ({
+  ...PADDING,
+  bottom: PADDING.bottom + (element.containsUndrawn ? CONTAINS_ROOM : 0),
+});
+const elkPaddingOf = (element: DrawnElement) => {
+  const { top, left, bottom, right } = paddingOf(element);
+  return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
+};
 /** The room between two cards side by side. */
 export const SPACING = 32;
 
@@ -123,14 +140,19 @@ export async function layoutExploration(
   const nodeOf = (element: DrawnElement): ElkNode => {
     const inside = children.get(element.id) ?? [];
     return inside.length === 0
-      ? { id: element.id, width: widthOf(element.name), height: HEIGHT }
+      ? {
+          id: element.id,
+          width: widthOf(element.name),
+          height: heightOf(element),
+        }
       : {
           id: element.id,
           layoutOptions: {
             ...optionsOf(algorithm, direction),
-            'elk.padding': CONTAINER_PADDING,
+            'elk.padding': elkPaddingOf(element),
             'elk.nodeSize.minimum': minimumOf(
               frameWidthOf(element.name),
+              heightOf(element),
               direction,
             ),
             'elk.nodeSize.constraints': 'MINIMUM_SIZE',
@@ -169,7 +191,7 @@ export async function layoutExploration(
         x: node.x ?? 0,
         y: node.y ?? 0,
         width: node.width ?? widthOf(element.name),
-        height: node.height ?? HEIGHT,
+        height: node.height ?? heightOf(element),
       });
       walk(node.children);
     }

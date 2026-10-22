@@ -4,8 +4,8 @@ import type {
 } from '../../system-model-exploration.ts';
 import {
   frameWidthOf,
-  HEIGHT,
-  PADDING,
+  heightOf,
+  paddingOf,
   type PlacedElement,
   SPACING,
   widthOf,
@@ -99,18 +99,30 @@ function workspaceOf(
   const kidsOf = (id: string | null) => children.get(id) ?? [];
 
   // What stays keeps its place on the canvas; a container left holding
-  // nothing is a card again.
+  // nothing is a card again. A card is as tall as what it now offers, and a
+  // frame has room at its bottom as it does: they settle once all is known.
   const rects = new Map<string, Rect>();
+  const resized: { id: string; old: Rect }[] = [];
   for (const element of graph.elements) {
     const rect = absoluteOf(element.id);
-    if (rect === null) continue;
-    rects.set(
-      element.id,
-      kidsOf(element.id).length === 0 &&
-        (before.get(element.id)?.holds ?? false)
-        ? { ...rect, width: widthOf(element.name), height: HEIGHT }
-        : rect,
-    );
+    const was = before.get(element.id);
+    if (rect === null || was === undefined) continue;
+    const next =
+      kidsOf(element.id).length === 0
+        ? {
+            ...rect,
+            width: was.holds ? widthOf(element.name) : rect.width,
+            height: heightOf(element),
+          }
+        : {
+            ...rect,
+            height:
+              rect.height +
+              paddingOf(element).bottom -
+              paddingOf(was.element).bottom,
+          };
+    rects.set(element.id, next);
+    if (!same(next, rect)) resized.push({ id: element.id, old: rect });
   }
 
   const placedKids = (id: string | null) =>
@@ -162,24 +174,35 @@ function workspaceOf(
     if (id === null) return true;
     const old = rects.get(id);
     if (old === undefined) return true;
+    const element = byId.get(id);
+    if (element === undefined) return true;
+    const padding = paddingOf(element);
     let next = old;
     for (const { id: kid } of placedKids(id)) {
       const rect = rects.get(kid);
       if (rect === undefined) continue;
       next = union(next, {
-        x: rect.x - PADDING.left,
-        y: rect.y - PADDING.top,
-        width: rect.width + PADDING.left + PADDING.right,
-        height: rect.height + PADDING.top + PADDING.bottom,
+        x: rect.x - padding.left,
+        y: rect.y - padding.top,
+        width: rect.width + padding.left + padding.right,
+        height: rect.height + padding.top + padding.bottom,
       });
     }
-    const name = byId.get(id)?.name;
-    if (name !== undefined && next.width < frameWidthOf(name))
-      next = { ...next, width: frameWidthOf(name) };
+    if (next.width < frameWidthOf(element.name))
+      next = { ...next, width: frameWidthOf(element.name) };
     if (same(next, old)) return true;
     rects.set(id, next);
-    return pushAround(id, old) && fit(byId.get(id)?.parent ?? null);
+    return pushAround(id, old) && fit(element.parent);
   };
+
+  /** What changed size as it stood moves the rest aside; false if it cannot. */
+  const settle = () =>
+    resized.every(
+      ({ id, old }) =>
+        fit(kidsOf(id).length > 0 ? id : null) &&
+        pushAround(id, old) &&
+        fit(byId.get(id)?.parent ?? null),
+    );
 
   /** Every element where it now stands, relative to its container, containers first. */
   const placed = (): PlacedElement[] => {
@@ -212,6 +235,7 @@ function workspaceOf(
     ancestorsOf,
     fit,
     pushAround,
+    settle,
     placed,
   };
 }
@@ -228,8 +252,17 @@ export function placeLocally(
   /** The card the change came from, or the point it was asked for at. */
   anchor: string | CanvasPoint,
 ): PlacedElement[] | null {
-  const { rects, placedKids, descendantsOf, ancestorsOf, fit, placed } =
-    workspaceOf(previous, graph);
+  const {
+    rects,
+    byId,
+    placedKids,
+    descendantsOf,
+    ancestorsOf,
+    fit,
+    settle,
+    placed,
+  } = workspaceOf(previous, graph);
+  if (!settle()) return null;
   const point = typeof anchor === 'string' ? null : anchor;
   const card = typeof anchor === 'string' ? anchor : null;
 
@@ -295,14 +328,15 @@ export function placeLocally(
     if (first !== undefined) {
       // A container round what is already drawn of it.
       const box = others.reduce((all, rect) => union(all, rect), first);
+      const padding = paddingOf(element);
       const rect = {
-        x: box.x - PADDING.left,
-        y: box.y - PADDING.top,
+        x: box.x - padding.left,
+        y: box.y - padding.top,
         width: Math.max(
           frameWidthOf(element.name),
-          box.width + PADDING.left + PADDING.right,
+          box.width + padding.left + padding.right,
         ),
-        height: box.height + PADDING.top + PADDING.bottom,
+        height: box.height + padding.top + padding.bottom,
       };
       const inside = new Set([
         ...descendantsOf(element.id),
@@ -314,23 +348,26 @@ export function placeLocally(
       return fit(parent);
     }
     const width = widthOf(element.name);
+    const height = heightOf(element);
     if (parent !== null) {
       const container = rects.get(parent);
-      if (container === undefined) return false;
+      const holder = byId.get(parent);
+      if (container === undefined || holder === undefined) return false;
+      const padding = paddingOf(holder);
       const siblings = placedKids(parent)
         .filter(({ id }) => id !== element.id)
         .map(({ id }) => rects.get(id)!);
       const room = {
-        x: container.x + PADDING.left,
-        y: container.y + PADDING.top,
-        width: container.width - PADDING.left - PADDING.right,
-        height: container.height - PADDING.top - PADDING.bottom,
+        x: container.x + padding.left,
+        y: container.y + padding.top,
+        width: container.width - padding.left - padding.right,
+        height: container.height - padding.top - padding.bottom,
       };
       rects.set(
         element.id,
         spotFor(
           width,
-          HEIGHT,
+          height,
           siblings,
           siblings,
           siblings.length === 0 ? { x: room.x, y: room.y } : null,
@@ -346,10 +383,10 @@ export function placeLocally(
         element.id,
         spotFor(
           width,
-          HEIGHT,
+          height,
           roots,
           roots,
-          { x: point.x - width / 2, y: point.y - HEIGHT / 2 },
+          { x: point.x - width / 2, y: point.y - height / 2 },
           null,
         ),
       );
@@ -359,7 +396,7 @@ export function placeLocally(
     const from = (top === null ? undefined : rects.get(top)) ?? anchorRect;
     rects.set(
       element.id,
-      spotFor(width, HEIGHT, [from, ...roots], roots, null, null),
+      spotFor(width, height, [from, ...roots], roots, null, null),
     );
     return true;
   };
@@ -389,17 +426,19 @@ export function arrangeWithin(
   id: string,
   inside: readonly PlacedElement[],
 ): PlacedElement[] | null {
-  const { rects, byId, kidsOf, pushAround, fit, placed } = workspaceOf(
+  const { rects, byId, kidsOf, pushAround, fit, settle, placed } = workspaceOf(
     previous,
     graph,
   );
+  if (!settle()) return null;
   const frame = rects.get(id);
   const element = byId.get(id);
   if (frame === undefined || element === undefined) return null;
-  const origin = { x: frame.x + PADDING.left, y: frame.y + PADDING.top };
+  const padding = paddingOf(element);
+  const origin = { x: frame.x + padding.left, y: frame.y + padding.top };
   const at = new Map(inside.map((each) => [each.element.id, each]));
   let right = frame.x + frameWidthOf(element.name);
-  let bottom = frame.y + HEIGHT;
+  let bottom = frame.y + heightOf(element);
   const set = (parent: string, from: { x: number; y: number }) => {
     for (const { id: kid } of kidsOf(parent)) {
       const laid = at.get(kid);
@@ -411,8 +450,8 @@ export function arrangeWithin(
         height: laid.height,
       };
       rects.set(kid, rect);
-      right = Math.max(right, rect.x + rect.width + PADDING.right);
-      bottom = Math.max(bottom, rect.y + rect.height + PADDING.bottom);
+      right = Math.max(right, rect.x + rect.width + padding.right);
+      bottom = Math.max(bottom, rect.y + rect.height + padding.bottom);
       if (!set(kid, rect)) return false;
     }
     return true;

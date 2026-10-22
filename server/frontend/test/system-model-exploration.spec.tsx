@@ -355,7 +355,9 @@ describe('the selection', () => {
     );
     expect(html).toContain('aria-pressed="false"');
     // Its buttons are there whether or not it is in hand.
-    expect(html).toContain('aria-label="Show what Line is part of"');
+    expect(html).toContain('aria-label="More for Line"');
+    // What it can bring is in its menu, not on the card.
+    expect(html).not.toContain('aria-label="Show what Line is part of"');
     expect(html).toContain('aria-label="Remove Line from the view"');
   });
 });
@@ -610,8 +612,8 @@ describe('placing a change from one card', () => {
     const byId = new Map(placed.map((each) => [each.element.id, each]));
     const grown = byId.get('Box')!;
     expect(grown.holds).toBe(true);
-    // Relative to the container, below its name and its buttons.
-    expect(byId.get('Kid')).toMatchObject({ x: 16, y: 80 });
+    // Relative to the container, below its name.
+    expect(byId.get('Kid')).toMatchObject({ x: 16, y: 60 });
     expect(grown.width).toBeGreaterThanOrEqual(150 + 32);
     expect(apart(grown, byId.get('Next')!)).toBe(true);
     // Containers come before what they hold, as React Flow needs.
@@ -627,7 +629,7 @@ describe('placing a change from one card', () => {
     const placed = arrangeWithin(
       [
         at(box, 0, 0, 200, 200, true),
-        at(one, 16, 80),
+        at(one, 16, 60),
         at(two, 16, 140),
         at(next, 232, 0),
       ],
@@ -636,8 +638,8 @@ describe('placing a change from one card', () => {
       [at(one, 0, 0), at(two, 182, 0)],
     )!;
     const byId = new Map(placed.map((each) => [each.element.id, each]));
-    expect(byId.get('One')).toMatchObject({ x: 16, y: 80 });
-    expect(byId.get('Two')).toMatchObject({ x: 198, y: 80 });
+    expect(byId.get('One')).toMatchObject({ x: 16, y: 60 });
+    expect(byId.get('Two')).toMatchObject({ x: 198, y: 60 });
     const frame = byId.get('Box')!;
     expect(frame).toMatchObject({ x: 0, y: 0, width: 16 + 182 + 150 + 16 });
     expect(apart(frame, byId.get('Next')!)).toBe(true);

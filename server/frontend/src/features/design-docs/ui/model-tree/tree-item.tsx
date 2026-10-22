@@ -94,6 +94,9 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
     event.stopPropagation();
     // A row not to be picked opens or shuts instead, to reach what is under it.
     if (inactive) return toggle(node.path);
+    // A row with a tick is clicked to put its element in or out, as the
+    // tick itself is: the whole row is the target.
+    if (on !== null) return flip(node.path);
     select(node.path, 'tree');
   };
 

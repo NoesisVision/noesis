@@ -158,6 +158,8 @@ export function ElementTooltip({
   name,
   shown = shortLabel(name),
   hint,
+  disabled = false,
+  openDelay = 300,
   children,
 }: {
   name: string;
@@ -171,6 +173,10 @@ export function ElementTooltip({
    * a bare word, which nothing else shows can be hovered.
    */
   hint?: boolean;
+  /** Kept shut, as while a menu opened over the child is open. */
+  disabled?: boolean;
+  /** How long the pointer rests on the child before it opens, in ms. */
+  openDelay?: number;
   children: ReactElement<{ className?: string }>;
 }) {
   const doc = useDesignDocument();
@@ -181,8 +187,9 @@ export function ElementTooltip({
   }
   return (
     <CardTooltip
-      openDelay={300}
+      openDelay={openDelay}
       multiline
+      disabled={disabled}
       label={<Details address={address} shape={shape} />}
     >
       {hint

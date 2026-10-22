@@ -124,8 +124,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const sections = useMemo(() => elementSectionsOf(exploration), [exploration]);
   // Nothing is drawn until the reader picks it; a scan since forgets what
   // it no longer finds.
-  // The steps this model's diagram took this session, and the one it was
-  // left at, which it opens at again.
+  // The steps this model's diagram took, kept on this machine, and the one
+  // it was left at, which it opens at again, unplaced.
   const [opened] = useState(() => recallSteps(model.id));
   const opening = opened?.list[opened.at] ?? null;
   const [stored, setChoice] = useState<ElementChoice>(
@@ -150,8 +150,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [drawing, setDrawing] = useState<Drawing>({
     containment: opening?.containment ?? 'nested',
     direction: opening?.direction ?? 'vertical',
-    orthogonal: true,
-    animated: true,
+    // How the edges were drawn when the diagram was left, as it is restored.
+    orthogonal: opened?.edges?.orthogonal ?? true,
+    animated: opened?.edges?.animated ?? true,
   });
   const { containment, direction, orthogonal, animated } = drawing;
   const graph = useMemo(
@@ -213,7 +214,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     };
     const held = steps.current;
     const list = [...held.list.slice(0, held.at + 1), step].slice(-STEPS);
-    steps.current = { list, at: list.length - 1 };
+    steps.current = { ...held, list, at: list.length - 1 };
     setStepAt({ at: list.length - 1, count: list.length });
     rememberSteps(modelId, steps.current);
   }, [placements, edits, modelId]);
@@ -248,6 +249,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [restore, modelId],
   );
+  // How the edges are drawn, kept with the steps, so a reload draws them so.
+  useEffect(() => {
+    steps.current = { ...steps.current, edges: { orthogonal, animated } };
+    rememberSteps(modelId, steps.current);
+  }, [orthogonal, animated, modelId]);
   const undo = useCallback(() => goTo(-1), [goTo]);
   const redo = useCallback(() => goTo(1), [goTo]);
   // Ctrl+Z, or Cmd+Z on a Mac, goes back a step; with Shift, or Ctrl+Y,
@@ -299,7 +305,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const letGo = useCallback(() => setSelection([]), []);
   const readAlone = useCallback((id: string) => setSelection([id]), []);
   const [picking, setPicking] = useState(false);
-  // A double click on the empty canvas: where the menu opens, and where on
+  // A right click on the empty canvas: where the menu opens, and where on
   // the diagram what is picked from it goes.
   const [quick, setQuick] = useState<{
     spot: QuickAddSpot;
@@ -351,10 +357,27 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       }),
     [exploration],
   );
-  // One element ticked in the picker or out, and nothing with it.
-  const onShow = useCallback(
-    (id: string, shown: boolean) => onShowAll([id], shown),
-    [onShowAll],
+  // What the model holds inside each element, all the way down.
+  const insideOf = useMemo(() => {
+    const kids = new Map<string, string[]>();
+    for (const { id, container } of exploration.elements)
+      if (container !== null)
+        kids.set(container, [...(kids.get(container) ?? []), id]);
+    const all = (id: string): string[] =>
+      (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
+    return all;
+  }, [exploration]);
+  // A row of the picker, clicked again and again: the element alone, then
+  // it and all inside it, then none of them.
+  const onPick = useCallback(
+    (id: string) => {
+      const inside = insideOf(id);
+      if (!drawn.has(id)) onShowAll([id], true);
+      else if (inside.some((each) => !drawn.has(each)))
+        onShowAll([id, ...inside], true);
+      else onShowAll([id, ...inside], false);
+    },
+    [insideOf, drawn, onShowAll],
   );
   /**
    * Takes these off the diagram from a card, and all drawn inside them, and
@@ -536,19 +559,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                   letGo();
                   setQuick(null);
                 }}
-                // A double click on the empty canvas asks what to put there,
-                // so it does not zoom in as well.
-                zoomOnDoubleClick={false}
-                onDoubleClick={(event) => {
-                  const { target } = event;
+                // A right click on the empty canvas asks what to put there;
+                // a double click zooms in, as on any canvas.
+                onPaneContextMenu={(event) => {
+                  event.preventDefault();
                   const box = canvas.current?.getBoundingClientRect();
-                  if (
-                    flow === null ||
-                    box === undefined ||
-                    !(target instanceof Element) ||
-                    !target.classList.contains('react-flow__pane')
-                  )
-                    return;
+                  if (flow === null || box === undefined) return;
                   setQuick({
                     spot: {
                       left: event.clientX - box.left,
@@ -603,7 +619,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             total={exploration.elements.length}
             document={document}
             isShown={isShown}
-            onShow={onShow}
+            onPick={onPick}
+            onAddAll={() =>
+              onShowAll(
+                exploration.elements.map(({ id }) => id),
+                true,
+              )
+            }
             onClear={() => setChoice(NOTHING_CHOSEN)}
           />
         )}

@@ -17,20 +17,61 @@ export interface DiagramStep {
   routes: EdgeRoutes;
 }
 
+/** How the edges are drawn: kept with the diagram, but not a step of it. */
+export interface EdgeLook {
+  orthogonal: boolean;
+  animated: boolean;
+}
+
 /** The steps the diagram took, and the one it stands at. */
 export interface DiagramSteps {
   list: DiagramStep[];
   at: number;
+  edges?: EdgeLook;
 }
 
 /*
- * The steps kept for as long as the reader is here, as the choice of what
- * to draw is: the session, not the machine. One model's steps name its
- * elements, so each scanned model keeps its own, and a new scan, with an id
- * of its own, starts afresh.
+ * The steps kept on the machine, as the choice of what to draw is, so the
+ * diagram opens as it was last seen — after a reload, in a new tab, another
+ * day. One model's steps name its elements, so each scanned model keeps its
+ * own, and a new scan, with an id of its own, is placed afresh. Only the
+ * models last drawn keep theirs: scans come often, and the room is shared.
  */
-const keyOf = (modelId: string) =>
-  `noesis.systemModel.exploration.steps.${modelId}`;
+const PREFIX = 'noesis.systemModel.exploration.steps.';
+const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
+/** How many models' diagrams are kept, the latest drawn. */
+const MODELS_KEPT = 5;
+
+/** When each kept diagram was last saved, by its key. */
+function keptDiagrams(): { key: string; savedAt: number }[] {
+  const kept: { key: string; savedAt: number }[] = [];
+  for (let index = 0; index < window.localStorage.length; index++) {
+    const key = window.localStorage.key(index);
+    if (key === null || !key.startsWith(PREFIX)) continue;
+    let savedAt = 0;
+    try {
+      const parsed: unknown = JSON.parse(window.localStorage.getItem(key)!);
+      const at =
+        typeof parsed === 'object' && parsed !== null
+          ? field(parsed, 'savedAt')
+          : null;
+      if (isNumber(at)) savedAt = at;
+    } catch {
+      // Unreadable: the first to go.
+    }
+    kept.push({ key, savedAt });
+  }
+  return kept;
+}
+
+/** Forgets every diagram but this model's and, unless `all`, the latest others. */
+function forgetOthers(modelId: string, all: boolean): void {
+  const others = keptDiagrams()
+    .filter(({ key }) => key !== keyOf(modelId))
+    .sort((a, b) => b.savedAt - a.savedAt);
+  for (const { key } of others.slice(all ? 0 : MODELS_KEPT - 1))
+    window.localStorage.removeItem(key);
+}
 
 interface StoredStep {
   added: string[];
@@ -60,16 +101,35 @@ const storedOf = ({
 });
 
 export function rememberSteps(modelId: string, steps: DiagramSteps): void {
-  // When the session has no room for them all, the oldest go first.
   let { list, at } = steps;
+  let room = false;
   while (list.length > 0) {
     try {
-      window.sessionStorage.setItem(
+      window.localStorage.setItem(
         keyOf(modelId),
-        JSON.stringify({ v: 1, at, list: list.map(storedOf) }),
+        JSON.stringify({
+          v: 1,
+          savedAt: Date.now(),
+          at,
+          list: list.map(storedOf),
+          edges: steps.edges,
+        }),
       );
+      forgetOthers(modelId, false);
       return;
     } catch {
+      // With no room, other models' diagrams go first, then this one's
+      // oldest steps.
+      if (!room) {
+        room = true;
+        try {
+          forgetOthers(modelId, true);
+        } catch {
+          // Storage unavailable: the steps are kept no further.
+          return;
+        }
+        continue;
+      }
       const drop = Math.max(1, Math.floor(list.length / 2));
       list = list.slice(drop);
       at = Math.max(0, at - drop);
@@ -82,6 +142,7 @@ export function recallSteps(modelId: string): DiagramSteps | null {
   if (stored === null) return null;
   return {
     at: stored.at,
+    edges: stored.edges,
     list: stored.list.map((step) => ({
       choice: {
         shown: new Set(),
@@ -138,6 +199,15 @@ const isPoints = (value: unknown): value is { x: number; y: number }[] =>
       isNumber(field(point, 'y')),
   );
 
+function isEdgeLook(value: unknown): value is EdgeLook {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof field(value, 'orthogonal') === 'boolean' &&
+    typeof field(value, 'animated') === 'boolean'
+  );
+}
+
 function isStep(value: unknown): value is StoredStep {
   if (typeof value !== 'object' || value === null) return false;
   const relations = field(value, 'relations');
@@ -167,9 +237,9 @@ function isStep(value: unknown): value is StoredStep {
 /** The one throwing call, kept to itself: unreadable is the same as absent. */
 function readStored(
   modelId: string,
-): { at: number; list: StoredStep[] } | null {
+): { at: number; list: StoredStep[]; edges?: EdgeLook } | null {
   try {
-    const stored = window.sessionStorage.getItem(keyOf(modelId));
+    const stored = window.localStorage.getItem(keyOf(modelId));
     if (stored === null) return null;
     const parsed: unknown = JSON.parse(stored);
     if (typeof parsed !== 'object' || parsed === null) return null;
@@ -178,7 +248,12 @@ function readStored(
     if (field(parsed, 'v') !== 1 || !isNumber(at)) return null;
     if (!Array.isArray(list) || !list.every(isStep) || list.length === 0)
       return null;
-    return { at: Math.min(Math.max(0, at), list.length - 1), list };
+    const edges = field(parsed, 'edges');
+    return {
+      at: Math.min(Math.max(0, at), list.length - 1),
+      list,
+      edges: isEdgeLook(edges) ? edges : undefined,
+    };
   } catch {
     return null;
   }

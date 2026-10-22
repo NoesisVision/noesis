@@ -193,6 +193,8 @@ export function neighboursOf(
 export interface DrawnElement extends ExploredElement {
   /** The shown element it is drawn inside, when containment is nested. */
   parent: string | null;
+  /** Whether it contains elements not drawn, which its card offers to bring. */
+  containsUndrawn: boolean;
 }
 
 export interface DrawnRelation {
@@ -353,10 +355,16 @@ export function graphOf(
           target,
         });
 
+  const undrawnIn = new Set(
+    exploration.elements
+      .filter(({ id, container }) => container !== null && !isShown.has(id))
+      .map(({ container }) => container),
+  );
   return {
     elements: shown.map((element) => ({
       ...element,
       parent: nested ? containerOf(element) : null,
+      containsUndrawn: undrawnIn.has(element.id),
     })),
     relations: drawn,
   };

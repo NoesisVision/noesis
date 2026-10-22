@@ -4,10 +4,9 @@ import {
 } from '../../system-model-exploration.ts';
 
 /*
- * What the reader chose to draw, kept for as long as they are here. The
- * session rather than the machine, as a tree's open rows are: a scan
- * rewrites the model often enough that a choice kept for good would outlive
- * what it names.
+ * What the reader chose to draw, kept on the machine with the diagram, so
+ * a new tab or another day opens on it. A scan since may no longer find
+ * some of it; the view leaves out what it does not find.
  */
 const KEY = 'noesis.systemModel.exploration.elements';
 
@@ -34,7 +33,7 @@ export function rememberChoice({ shown, picks }: ElementChoice): void {
     removed: [...picks.removed],
   };
   try {
-    window.sessionStorage.setItem(KEY, JSON.stringify(stored));
+    window.localStorage.setItem(KEY, JSON.stringify(stored));
   } catch {
     // Storage may be unavailable (private mode, quota); the view still works.
   }
@@ -46,7 +45,7 @@ const isNames = (value: unknown): value is string[] =>
 /** The one throwing call, kept to itself: unreadable is the same as absent. */
 function readStored(): Stored | null {
   try {
-    const stored = window.sessionStorage.getItem(KEY);
+    const stored = window.localStorage.getItem(KEY);
     if (stored === null) return null;
     const parsed: unknown = JSON.parse(stored);
     if (typeof parsed !== 'object' || parsed === null) return null;

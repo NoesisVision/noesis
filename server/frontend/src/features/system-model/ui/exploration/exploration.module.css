@@ -49,10 +49,9 @@
 }
 
 .exploration .card {
-  /* Its name and what it is at the top, clear of the cross beside them and
-     of the row of buttons under them. */
+  /* Its name and what it is at the top, clear of the menu and cross beside them. */
   justify-content: flex-start;
-  padding: 8px 32px 34px var(--mantine-spacing-xs);
+  padding: 8px 62px 8px var(--mantine-spacing-xs);
 
   &:hover {
     filter: brightness(0.97);
@@ -82,8 +81,8 @@
   display: flex;
   flex-direction: column;
   align-self: flex-start;
-  /* Clear of the two ways off the diagram in the frame's corner. */
-  max-width: calc(100% - 68px);
+  /* Clear of the menu and two ways off the diagram in the frame's corner. */
+  max-width: calc(100% - 100px);
   margin: 4px;
   padding: 2px var(--mantine-spacing-xs);
   border-radius: var(--mantine-radius-sm);
@@ -282,9 +281,9 @@
 }
 
 /*
- * A card's ways to what it reaches, in a row under what it is, and its way
- * off the diagram in its top right corner: laid over the card, which is a
- * button of its own. A frame's sit the same way at its top.
+ * A card's actions, in its top right corner and at the middle of its
+ * bottom: laid over the card, which is a button of its own. A frame's sit
+ * the same way.
  */
 .holder,
 .container {
@@ -292,72 +291,33 @@
 }
 
 /*
- * A card's buttons, each group drawn as one: an outlined strip, a thin rule
- * between its buttons, so they read as the card's actions together.
+ * A card's or a frame's actions in its top right corner: its menu, and a
+ * little apart the ways off the diagram, each group drawn as one — an
+ * outlined strip, a thin rule between its buttons.
  */
-.reaches,
-.removes {
+.corner {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 6px;
+}
+
+.strip {
   display: inline-flex;
   align-items: stretch;
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-color-body);
-}
-
-/* Named with the exploration, to win over the buttons' own borders. */
-.exploration .reaches > * + *,
-.exploration .removes > * + * {
-  border-left: 1px solid var(--mantine-color-default-border);
-}
-
-.reaches {
-  position: absolute;
-  bottom: 6px;
-  left: 6px;
-}
-
-.container > .reaches {
-  top: 48px;
-  bottom: auto;
-  left: 10px;
-}
-
-/* A card's or a frame's ways off the diagram, in its top right corner. */
-.removes {
-  position: absolute;
-  top: 4px;
-  right: 4px;
 
   & > * {
     border-radius: 0;
   }
 }
 
-.reaches .reach {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-  height: 22px;
-  padding: 0 5px;
-  border-radius: 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--mantine-color-brand-filled);
-
-  &:hover:not(:disabled) {
-    background: var(--mantine-color-default-hover);
-  }
-
-  &:disabled {
-    color: var(--noesis-secondary-text);
-    cursor: default;
-  }
-
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 1px;
-  }
+/* Named with the exploration, to win over the buttons' own borders. */
+.exploration .strip > * + * {
+  border-left: 1px solid var(--mantine-color-default-border);
 }
 
 /* A card comes onto the diagram growing in, and leaves it shrinking out. */
@@ -572,6 +532,13 @@
 }
 
 /* How many a reach would bring, after its word. */
+/* What it contains, at the middle of its bottom, in the room kept for it. */
+.exploration .contains {
+  position: absolute;
+  bottom: 6px;
+  left: calc(50% - 13px);
+  box-shadow: var(--mantine-shadow-md);
+}
 .reachCount {
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
