@@ -91,6 +91,11 @@ public class GeneratedMemberCallers {
         return all.stream().map(GetterSetter::getName).filter(name -> !name.isEmpty()).collect(Collectors.toList());
     }
 
+    /** A primitive class literal on a line the source engine cannot bind: bytecode reads {@code Integer.TYPE}, a field only bytecode stubs. */
+    public Class<?> primitiveClassOnAnUnboundLine() {
+        return accessors.getName() == null ? int.class : String.class;
+    }
+
     /** A written member on a class without Lombok: bound by every engine. */
     public String plainCalls() {
         Plain plain = new Plain();

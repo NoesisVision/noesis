@@ -2,11 +2,11 @@ package vision.noesis.scanner.core.hybrid;
 
 import vision.noesis.scanner.core.ArtifactInput;
 import vision.noesis.scanner.core.ArtifactNodes;
+import vision.noesis.scanner.core.Diagnostics;
 import vision.noesis.scanner.core.Engine;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ScanSession;
 import vision.noesis.scanner.core.bytecode.BytecodeEngine;
-import vision.noesis.scanner.core.java.JavaIds;
 import vision.noesis.scanner.core.source.SourceEngine;
 import vision.noesis.scanner.model.ArtifactNode;
 import vision.noesis.scanner.model.CodeModelFile;
@@ -26,9 +26,13 @@ public final class HybridEngine implements Engine {
 
     @Override
     public CodeModelFile scan(ArtifactInput input, ScanSession session) {
-        ArtifactNode artifact = ArtifactNodes.of(input, session, JavaIds.artifact(input.artifactId()), EngineKind.HYBRID);
+        ArtifactNode artifact = ArtifactNodes.of(input, session, input.id(), EngineKind.HYBRID);
         CodeModelFile fromSource = source.scan(input, session);
         CodeModelFile fromBytecode = bytecode.scan(input, session);
-        return ModelMerge.merge(fromSource, fromBytecode, artifact, session);
+        try {
+            return ModelMerge.merge(fromSource, fromBytecode, artifact, session);
+        } catch (RuntimeException | StackOverflowError e) {
+            return Diagnostics.notScanned(input, artifact, session, "the merge of the source and bytecode models failed: " + Diagnostics.describe(e));
+        }
     }
 }

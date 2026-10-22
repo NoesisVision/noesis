@@ -70,7 +70,8 @@ import vision.noesis.scanner.model.UsageSite;
  *   <li>Stubs: the source engine's, plus the bytecode engine's for every symbol the added declarations and edges
  *       reference, with their containers and base chains.</li>
  *   <li>Module-level diagnostics of the bytecode engine (classes missing, parameter names missing) are kept.</li>
- *   <li>Without a compiler ({@code NS1003}) the bytecode model is the whole result.</li>
+ *   <li>Without a source model, no compiler ({@code NS1003}) or a source engine that failed on the module
+ *       ({@code NS1001}), the bytecode model is the whole result, with the source engine's diagnostics.</li>
  * </ul>
  */
 final class ModelMerge {
@@ -105,8 +106,11 @@ final class ModelMerge {
         }
     }
 
+    /** Without a source model (no compiler, or the source engine failed on the module) the bytecode model is the whole result. */
     static CodeModelFile merge(CodeModelFile source, CodeModelFile bytecode, ArtifactNode artifact, ScanSession session) {
-        if (source.diagnostics().stream().anyMatch(d -> Diagnostics.NO_COMPILER.equals(d.code()))) return bytecodeOnly(source, bytecode, artifact, session);
+        boolean noSourceModel = source.diagnostics().stream()
+                .anyMatch(d -> Diagnostics.NO_COMPILER.equals(d.code()) || Diagnostics.MODULE_NOT_SCANNED.equals(d.code()));
+        if (noSourceModel) return bytecodeOnly(source, bytecode, artifact, session);
         return new ModelMerge(source, bytecode).merge(artifact, session);
     }
 
@@ -378,9 +382,11 @@ final class ModelMerge {
         }
     }
 
+    /** {@code T:p.T} for {@code M:p.T#m()} and for {@code F:p.T.f}: a field id has no {@code #}, its name follows the last dot. */
     private static NodeId declaringType(NodeId member) {
         String path = member.canonicalPath();
-        return NodeId.of(NodeKindLetter.TYPE, path.substring(0, path.indexOf('#')));
+        int hash = path.indexOf('#');
+        return NodeId.of(NodeKindLetter.TYPE, path.substring(0, hash >= 0 ? hash : path.lastIndexOf('.')));
     }
 
     private static void register(StubRegistry registry, StubNode stub) {

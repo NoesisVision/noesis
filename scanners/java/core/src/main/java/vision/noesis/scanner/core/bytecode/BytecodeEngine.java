@@ -16,7 +16,6 @@ import vision.noesis.scanner.core.Engine;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ModelBuilder;
 import vision.noesis.scanner.core.ScanSession;
-import vision.noesis.scanner.core.java.JavaIds;
 import vision.noesis.scanner.core.java.ReleaseClassFiles;
 import vision.noesis.scanner.model.ArtifactNode;
 import vision.noesis.scanner.model.CodeModelFile;
@@ -32,7 +31,7 @@ public final class BytecodeEngine implements Engine {
     @Override
     public CodeModelFile scan(ArtifactInput input, ScanSession session) {
         ModelBuilder builder = new ModelBuilder();
-        NodeId artifactId = JavaIds.artifact(input.artifactId());
+        NodeId artifactId = input.id();
         ArtifactNode artifact = ArtifactNodes.of(input, session, artifactId, EngineKind.BYTECODE);
         if (!Files.isDirectory(input.outputDirectory())) {
             builder.diagnostic(Diagnostics.error(Diagnostics.CLASSES_MISSING, "No compiled classes at " + input.outputDirectory() + "; build the module first."));
@@ -52,8 +51,8 @@ public final class BytecodeEngine implements Engine {
             if (details.parameterNamesMissing()) {
                 builder.diagnostic(Diagnostics.info(Diagnostics.NO_PARAMETER_NAMES, "Parameter names are not in the class files; compile with -parameters to keep them.", null));
             }
-        } catch (IOException | RuntimeException e) {
-            builder.diagnostic(Diagnostics.error(Diagnostics.MODULE_NOT_SCANNED, "Module " + input.artifactId() + " could not be scanned: " + e));
+        } catch (IOException | RuntimeException | StackOverflowError e) {
+            return Diagnostics.notScanned(input, artifact, session, Diagnostics.describe(e));
         }
         return builder.build(session.generator(), artifact, session);
     }

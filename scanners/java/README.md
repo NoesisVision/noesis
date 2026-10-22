@@ -175,7 +175,7 @@ repository root and its name:
 }
 ```
 
-A project is named by its Gradle project name (`A:app`), a sibling project on
+A project is named by its Gradle project name (`A:app`), or by its path (`A:billing:api`) when another project of the build has the same name; a sibling project on
 the compile classpath is a `source` dependency, a module a `library` by its
 coordinates; the main class comes from the `application` plugin, Spring
 Boot's `springBoot.mainClass` or the jar manifest's `Main-Class`. The task is

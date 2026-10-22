@@ -205,6 +205,16 @@ class HybridEngineTest {
         assertEquals(List.of("compiler.err.does.not.override.abstract"), errors.stream().map(Diagnostic::code).collect(Collectors.toList()), "only the error on the class line stays: " + errors);
     }
 
+    @Test
+    void aFieldOnlyBytecodeReachesIsStubbedWithItsType() {
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        String caller = "M:" + CALLERS + "#primitiveClassOnAnUnboundLine()";
+        assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.Accesses a && a.from().value().equals(caller) && a.to().value().equals("F:java.lang.Integer.TYPE")),
+                "int.class reads Integer.TYPE on the unbound line");
+        assertTrue(hybrid.stubs().stream().anyMatch(s -> s.id().value().equals("F:java.lang.Integer.TYPE")));
+        assertTrue(hybrid.stubs().stream().anyMatch(s -> s.id().value().equals("T:java.lang.Integer")));
+    }
+
     // --- Lombok fixture: stubs ----------------------------------------------------------------------------------------
 
     @Test

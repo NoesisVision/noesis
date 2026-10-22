@@ -11,12 +11,14 @@ assert manifest.generator.name == 'noesis-scan-java'
 assert manifest.repository.name == 'multi-module'
 assert manifest.repository.revision == '0123456789abcdef'
 assert manifest.root == 'pom.xml'
-assert manifest.artifacts*.id == ['A:a', 'A:b'] : "reactor order expected, got ${manifest.artifacts*.id}"
-assert manifest.artifacts*.file == ['code-model/java/a.code-model.json', 'code-model/java/b.code-model.json']
+// Two modules are named a: their ids say their groups, their files are told apart by ~2; b keeps its short id.
+assert manifest.artifacts*.id == ['A:com.example:a', 'A:b', 'A:com.example.extra:a'] : "reactor order expected, got ${manifest.artifacts*.id}"
+assert manifest.artifacts*.file == ['code-model/java/a.code-model.json', 'code-model/java/b.code-model.json', 'code-model/java/a~2.code-model.json']
 assert manifest.diagnostics == []
 
 def a = json.parse(new File(basedir, 'target/noesis/' + manifest.artifacts[0].file))
-assert a.artifact.id == 'A:a'
+assert a.artifact.id == 'A:com.example:a'
+assert a.artifact.name == 'a'
 assert a.artifact.kind == 'source'
 assert a.artifact.rootDirectory == 'a'
 assert a.artifact.target == 'jdk-17'
@@ -36,10 +38,17 @@ assert a.diagnostics.findAll { it.severity == 'error' } == []
 def b = json.parse(new File(basedir, 'target/noesis/' + manifest.artifacts[1].file))
 assert b.artifact.executable
 assert b.artifact.languageSpecific['java.mainClass'] == 'com.example.b.App'
-def onA = b.artifact.dependencies.find { it.id == 'A:a' }
+def onA = b.artifact.dependencies.find { it.id == 'A:com.example:a' }
 assert onA != null && onA.kind == 'source' && onA.package == null : "b depends on a as a source artifact, got ${b.artifact.dependencies}"
 assert b.nodes.any { it.id == 'M:com.example.b.App#main(java.lang.String[])' }
 assert b.edges.any { it.kind == 'INVOKES' && it.to == 'M:com.example.a.Greeting#text()' }
 assert !b.stubs.any { it.id.startsWith('T:com.example.a.') } : "a sibling module is never stubbed"
 assert b.nodes.find { it.id == 'T:com.example.b.App' }.locations[0].file == 'b/src/main/java/com/example/b/App.java'
+
+def extra = json.parse(new File(basedir, 'target/noesis/' + manifest.artifacts[2].file))
+assert extra.artifact.id == 'A:com.example.extra:a'
+assert extra.artifact.name == 'a'
+def extraOnA = extra.artifact.dependencies.find { it.id == 'A:com.example:a' }
+assert extraOnA != null && extraOnA.kind == 'source' : "the extra a depends on com.example:a as a source artifact, got ${extra.artifact.dependencies}"
+assert extra.edges.any { it.kind == 'INVOKES' && it.to == 'M:com.example.a.Greeting#text()' }
 return true

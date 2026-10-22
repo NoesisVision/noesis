@@ -46,7 +46,8 @@ public final class ClasspathIndex {
         if (location == null) return Optional.empty();
         String scheme = location.getScheme();
         if ("jar".equals(scheme)) {
-            String spec = location.getSchemeSpecificPart();
+            // The raw part keeps the percent-encoding a URI needs: a decoded space would not parse again.
+            String spec = location.getRawSchemeSpecificPart();
             int bang = spec.indexOf("!/");
             return dependencyOfPath(Path.of(URI.create(bang < 0 ? spec : spec.substring(0, bang))));
         }

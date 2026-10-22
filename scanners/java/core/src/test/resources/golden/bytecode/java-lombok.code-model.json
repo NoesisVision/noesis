@@ -1109,6 +1109,44 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 101,
+          "startColumn": 0,
+          "endLine": 101,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine()",
+      "name": "primitiveClassOnAnUnboundLine",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
           "startLine": 96,
           "startColumn": 0,
           "endLine": 96,
@@ -1128,8 +1166,13 @@
         "parameters": [],
         "returnType": {
           "kind": "named",
-          "type": "T:java.lang.String",
-          "typeArguments": [],
+          "type": "T:java.lang.Class`1",
+          "typeArguments": [
+            {
+              "kind": "other",
+              "text": "?"
+            }
+          ],
           "unbound": false,
           "nullable": false
         },
@@ -6798,6 +6841,42 @@
     },
     {
       "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine()",
+      "to": "F:java.lang.Integer.TYPE",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 96,
+          "startColumn": 0,
+          "endLine": 96,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 96,
+          "startColumn": 0,
+          "endLine": 96,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int)",
       "to": "F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count",
       "access": "write",
@@ -8370,6 +8449,11 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#valueCalls()"
     },
     {
@@ -8974,6 +9058,39 @@
     },
     {
       "kind": "EXTENDS",
+      "from": "T:java.lang.Integer",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Number",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.invoke.TypeDescriptor",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.lang.reflect.GenericDeclaration",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.AnnotatedElement",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
       "from": "T:java.util.Collection`1",
       "to": {
         "kind": "named",
@@ -9089,6 +9206,137 @@
             "nullable": false
           }
         ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.Class`1",
+            "typeArguments": [
+              {
+                "kind": "other",
+                "text": "?"
+              }
+            ],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.AnnotatedElement",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.GenericDeclaration",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Class`1",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.reflect.Type",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Integer",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Integer",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.Constable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Integer",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.constant.ConstantDesc",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.Number",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
         "unbound": false,
         "nullable": false
       }
@@ -11280,9 +11528,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 101,
           "startColumn": 0,
-          "endLine": 96,
+          "endLine": 101,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11299,9 +11547,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 98,
+          "startLine": 103,
           "startColumn": 0,
-          "endLine": 98,
+          "endLine": 103,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11318,9 +11566,28 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 97,
+          "startLine": 102,
           "startColumn": 0,
-          "endLine": 97,
+          "endLine": 102,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 96,
+          "startColumn": 0,
+          "endLine": 96,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -13131,6 +13398,13 @@
   ],
   "stubs": [
     {
+      "id": "F:java.lang.Integer.TYPE",
+      "kind": "field",
+      "name": "TYPE",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])",
       "kind": "method",
       "name": "forEach",
@@ -13600,6 +13874,20 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "N:java.lang.invoke",
+      "kind": "namespace",
+      "name": "invoke",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang.reflect",
+      "kind": "namespace",
+      "name": "reflect",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "N:java.util",
       "kind": "namespace",
       "name": "util",
@@ -13649,6 +13937,13 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "T:java.lang.Class`1",
+      "kind": "type",
+      "name": "Class",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "T:java.lang.Comparable`1",
       "kind": "type",
       "name": "Comparable",
@@ -13656,10 +13951,24 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "T:java.lang.Integer",
+      "kind": "type",
+      "name": "Integer",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "T:java.lang.Iterable`1",
       "kind": "type",
       "name": "Iterable",
       "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Number",
+      "kind": "type",
+      "name": "Number",
+      "typeKind": "class",
       "artifact": "A:java.base@17"
     },
     {
@@ -13687,6 +13996,41 @@
       "id": "T:java.lang.constant.ConstantDesc",
       "kind": "type",
       "name": "ConstantDesc",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.invoke.TypeDescriptor",
+      "kind": "type",
+      "name": "TypeDescriptor",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.invoke.TypeDescriptor+OfField`1",
+      "kind": "type",
+      "name": "OfField",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.AnnotatedElement",
+      "kind": "type",
+      "name": "AnnotatedElement",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.GenericDeclaration",
+      "kind": "type",
+      "name": "GenericDeclaration",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.reflect.Type",
+      "kind": "type",
+      "name": "Type",
       "typeKind": "interface",
       "artifact": "A:java.base@17"
     },

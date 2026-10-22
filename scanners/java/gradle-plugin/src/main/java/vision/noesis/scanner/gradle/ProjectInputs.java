@@ -75,16 +75,16 @@ final class ProjectInputs {
         File file = artifact.getFile();
         ComponentIdentifier component = artifact.getId().getComponentIdentifier();
         if (component instanceof ProjectComponentIdentifier project && ":".equals(project.getBuild().getBuildPath())) {
-            return new ClasspathElement(file, project.getProjectName(), null, null);
+            return new ClasspathElement(file, project.getProjectPath(), project.getProjectName(), null, null);
         }
         if (component instanceof ModuleComponentIdentifier module) {
             String classifier = classifierOf(file.getName(), module.getModule(), module.getVersion());
             String packageId = module.getGroup() + ":" + module.getModule() + (classifier == null ? "" : ":" + classifier);
-            return new ClasspathElement(file, null, packageId, module.getVersion());
+            return new ClasspathElement(file, null, null, packageId, module.getVersion());
         }
         String name = file.getName();
         int dot = name.lastIndexOf('.');
-        return new ClasspathElement(file, null, dot > 0 ? name.substring(0, dot) : name, FILE_DEPENDENCY_VERSION);
+        return new ClasspathElement(file, null, null, dot > 0 ? name.substring(0, dot) : name, FILE_DEPENDENCY_VERSION);
     }
 
     /** Gradle does not expose the classifier of a resolved artifact; {@code <module>-<version>-<classifier>.jar} is the Maven layout it came in. */

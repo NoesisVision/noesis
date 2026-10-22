@@ -29,10 +29,11 @@ final class ProjectInputs {
     static ArtifactInput of(MavenProject project, MavenSession session, Integer release) {
         Set<String> reactor = new HashSet<>();
         for (MavenProject other : session.getProjects()) reactor.add(other.getGroupId() + ":" + other.getArtifactId());
+        List<String> names = moduleNames(session);
         List<ClasspathEntry> classpath = new ArrayList<>();
         for (Artifact artifact : project.getArtifacts()) {
             if (artifact.getFile() == null || Artifact.SCOPE_TEST.equals(artifact.getScope())) continue;
-            classpath.add(new ClasspathEntry(artifact.getFile().toPath(), dependencyOf(artifact, reactor)));
+            classpath.add(new ClasspathEntry(artifact.getFile().toPath(), dependencyOf(artifact, reactor, names)));
         }
         List<Path> sourceRoots = new ArrayList<>();
         for (String root : project.getCompileSourceRoots()) sourceRoots.add(Path.of(root));
@@ -48,13 +49,28 @@ final class ProjectInputs {
                 release != null ? release : releaseOf(project),
                 encodingOf(project),
                 project.getPackaging(),
-                mainClassOf(project));
+                mainClassOf(project),
+                uniqueName(project.getGroupId(), project.getArtifactId(), names));
+    }
+
+    /** The artifact ids of the reactor's scanned modules (every packaging but {@code pom}), once per module. */
+    static List<String> moduleNames(MavenSession session) {
+        List<String> names = new ArrayList<>();
+        for (MavenProject other : session.getProjects()) {
+            if (!"pom".equals(other.getPackaging())) names.add(other.getArtifactId());
+        }
+        return names;
+    }
+
+    /** The module's artifact id, or {@code groupId:artifactId} when another module of the reactor has the same artifact id. */
+    static String uniqueName(String groupId, String artifactId, List<String> names) {
+        return JavaIds.moduleName(artifactId, groupId + ":" + artifactId, names);
     }
 
     /** A reactor sibling is a source artifact; anything else is a library named by its Maven coordinates. */
-    private static ArtifactDependency dependencyOf(Artifact artifact, Set<String> reactor) {
+    private static ArtifactDependency dependencyOf(Artifact artifact, Set<String> reactor, List<String> names) {
         if (reactor.contains(artifact.getGroupId() + ":" + artifact.getArtifactId())) {
-            return new ArtifactDependency(JavaIds.artifact(artifact.getArtifactId()), ArtifactKind.SOURCE, null);
+            return new ArtifactDependency(JavaIds.artifact(uniqueName(artifact.getGroupId(), artifact.getArtifactId(), names)), ArtifactKind.SOURCE, null);
         }
         String packageId = artifact.getGroupId() + ":" + artifact.getArtifactId() + (artifact.getClassifier() == null || artifact.getClassifier().isEmpty() ? "" : ":" + artifact.getClassifier());
         String version = artifact.getBaseVersion() == null ? artifact.getVersion() : artifact.getBaseVersion();

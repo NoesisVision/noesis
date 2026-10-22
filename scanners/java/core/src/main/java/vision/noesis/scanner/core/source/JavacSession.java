@@ -39,8 +39,10 @@ final class JavacSession implements AutoCloseable {
     private final DocTrees docTrees;
     private final Elements elements;
     private final Types types;
+    private final int release;
 
-    private JavacSession(StandardJavaFileManager fileManager, JavacTask task, DiagnosticCollector<JavaFileObject> diagnostics, List<CompilationUnitTree> units) {
+    private JavacSession(StandardJavaFileManager fileManager, JavacTask task, DiagnosticCollector<JavaFileObject> diagnostics, List<CompilationUnitTree> units, int release) {
+        this.release = release;
         this.fileManager = fileManager;
         this.task = task;
         this.diagnostics = diagnostics;
@@ -61,9 +63,10 @@ final class JavacSession implements AutoCloseable {
         fileManager.setLocationFromPaths(StandardLocation.CLASS_PATH, classpathWithoutOwnClasses(input));
         List<Path> sources = sourceFiles(input.sourceRoots());
         Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjectsFromPaths(sources);
+        int release = supportedRelease(compiler, input.release());
         List<String> options = new ArrayList<>(List.of(
                 "-proc:none",
-                "--release", Integer.toString(input.release()),
+                "--release", Integer.toString(release),
                 "-implicit:none",
                 "-Xmaxerrs", "100000",
                 "-Xmaxwarns", "100000",
@@ -72,7 +75,36 @@ final class JavacSession implements AutoCloseable {
         List<CompilationUnitTree> units = new ArrayList<>();
         task.parse().forEach(units::add);
         task.analyze();
-        return new JavacSession(fileManager, task, diagnostics, units);
+        return new JavacSession(fileManager, task, diagnostics, units, release);
+    }
+
+    /**
+     * The release javac binds against: the requested one when this JDK's javac supports it; else, for a release newer
+     * than the running JDK, the running JDK's own; for one older than javac still supports, the oldest it does. javac
+     * says which it supports only by refusing a task, so each candidate is tried on an empty one.
+     */
+    static int supportedRelease(JavaCompiler compiler, int requested) {
+        if (accepts(compiler, requested)) return requested;
+        int running = Runtime.version().feature();
+        if (requested > running) return running;
+        for (int candidate = requested + 1; candidate < running; candidate++) {
+            if (accepts(compiler, candidate)) return candidate;
+        }
+        return running;
+    }
+
+    private static boolean accepts(JavaCompiler compiler, int release) {
+        try {
+            compiler.getTask(null, null, null, List.of("--release", Integer.toString(release)), null, List.of());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /** The release the sources were bound against; differs from the requested one only when javac does not support that. */
+    int release() {
+        return release;
     }
 
     /** Sources bind to sources: the module's own classes would shadow them with a stale copy. */

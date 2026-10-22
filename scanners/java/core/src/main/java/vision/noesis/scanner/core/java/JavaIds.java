@@ -1,5 +1,7 @@
 package vision.noesis.scanner.core.java;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import vision.noesis.scanner.model.NodeId;
 import vision.noesis.scanner.model.NodeKindLetter;
@@ -18,6 +20,17 @@ public final class JavaIds {
     /** A scanned module: {@code A:<artifactId>}. */
     public static NodeId artifact(String artifactId) {
         return NodeId.of(NodeKindLetter.ARTIFACT, artifactId);
+    }
+
+    /**
+     * The name a module of a build has in its artifact id: its own short name ({@code api}), or its qualified name
+     * ({@code com.acme.billing:api}, a Gradle project's path {@code billing:api}) when another module of the build has
+     * the same short name. Two modules never share an id, and an unambiguous build keeps the short ids.
+     *
+     * @param namesInBuild the short names of every module of the build, repeated as often as they occur
+     */
+    public static String moduleName(String name, String qualifiedName, Collection<String> namesInBuild) {
+        return Collections.frequency(namesInBuild, name) > 1 ? qualifiedName : name;
     }
 
     /** A library on the classpath: {@code A:<groupId>:<artifactId>@<version>}. */

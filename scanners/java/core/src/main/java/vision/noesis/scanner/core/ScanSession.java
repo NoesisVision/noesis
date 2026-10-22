@@ -22,7 +22,7 @@ public final class ScanSession {
 
     public ScanSession(Generator generator, ScanRequest request) {
         this(generator, request.repositoryRoot(), request.artifacts(),
-                request.artifacts().stream().map(ArtifactInput::artifactId).collect(Collectors.toList()),
+                request.artifacts().stream().map(ArtifactInput::uniqueName).collect(Collectors.toList()),
                 request.artifacts().stream().map(ArtifactInput::outputDirectory).collect(Collectors.toList()));
     }
 

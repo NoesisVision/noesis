@@ -92,8 +92,10 @@ public abstract class ScanTask extends DefaultTask {
         Path outputRoot = getOutputRoot().get().getAsFile().toPath().toAbsolutePath().normalize();
         EngineKind engine = EngineKind.of(getEngine().get());
         Integer release = getRelease().getOrNull();
+        List<ModuleInputs> modules = inDependencyOrder(getModules().get());
+        Map<String, String> uniqueNames = ModuleInputs.uniqueNames(modules);
         List<ArtifactInput> artifacts = new ArrayList<>();
-        for (ModuleInputs module : inDependencyOrder(getModules().get())) artifacts.add(module.toArtifactInput(release));
+        for (ModuleInputs module : modules) artifacts.add(module.toArtifactInput(release, uniqueNames));
         String rootFile = getRootFile().get();
         ScanRequest request = new ScanRequest(
                 repositoryRoot,
@@ -120,23 +122,23 @@ public abstract class ScanTask extends DefaultTask {
 
     /** Projects before the projects that depend on them, in project path order otherwise; what Maven's reactor order gives the Maven plugin. */
     static List<ModuleInputs> inDependencyOrder(List<ModuleInputs> modules) {
-        Map<String, ModuleInputs> byName = new LinkedHashMap<>();
+        Map<String, ModuleInputs> byPath = new LinkedHashMap<>();
         List<ModuleInputs> sorted = new ArrayList<>(modules);
         sorted.sort(Comparator.comparing(ModuleInputs::getProjectPath));
-        for (ModuleInputs module : sorted) byName.putIfAbsent(module.getName(), module);
+        for (ModuleInputs module : sorted) byPath.putIfAbsent(module.getProjectPath(), module);
         List<ModuleInputs> order = new ArrayList<>();
         Set<ModuleInputs> visited = new HashSet<>();
-        for (ModuleInputs module : sorted) visit(module, byName, visited, new HashSet<>(), order);
+        for (ModuleInputs module : sorted) visit(module, byPath, visited, new HashSet<>(), order);
         return order;
     }
 
-    private static void visit(ModuleInputs module, Map<String, ModuleInputs> byName, Set<ModuleInputs> visited, Set<ModuleInputs> onPath, List<ModuleInputs> order) {
+    private static void visit(ModuleInputs module, Map<String, ModuleInputs> byPath, Set<ModuleInputs> visited, Set<ModuleInputs> onPath, List<ModuleInputs> order) {
         if (!visited.add(module)) return;
         onPath.add(module);
         for (String dependency : module.projectDependencies()) {
-            ModuleInputs other = byName.get(dependency);
+            ModuleInputs other = byPath.get(dependency);
             // A dependency outside the scanned projects, or a cycle Gradle would have rejected anyway: nothing to order.
-            if (other != null && !onPath.contains(other)) visit(other, byName, visited, onPath, order);
+            if (other != null && !onPath.contains(other)) visit(other, byPath, visited, onPath, order);
         }
         onPath.remove(module);
         order.add(module);

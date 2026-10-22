@@ -9,7 +9,6 @@ import vision.noesis.scanner.core.Engine;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ModelBuilder;
 import vision.noesis.scanner.core.ScanSession;
-import vision.noesis.scanner.core.java.JavaIds;
 import vision.noesis.scanner.model.ArtifactNode;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.NodeId;
@@ -24,12 +23,16 @@ public final class SourceEngine implements Engine {
     @Override
     public CodeModelFile scan(ArtifactInput input, ScanSession session) {
         ModelBuilder builder = new ModelBuilder();
-        NodeId artifactId = JavaIds.artifact(input.artifactId());
+        NodeId artifactId = input.id();
         ArtifactNode artifact = ArtifactNodes.of(input, session, artifactId, EngineKind.SOURCE);
         try (JavacSession javac = JavacSession.open(input)) {
             if (javac == null) {
                 builder.diagnostic(Diagnostics.error(Diagnostics.NO_COMPILER, "No Java compiler in this JVM; run the scanner on a JDK."));
                 return builder.build(session.generator(), artifact, session);
+            }
+            if (javac.release() != input.release()) {
+                builder.diagnostic(Diagnostics.warning(Diagnostics.RELEASE_NOT_SUPPORTED, "Release " + input.release() + " is not supported by the running JDK "
+                        + Runtime.version().feature() + "; the sources are bound against release " + javac.release() + ". Run the build on a JDK of release " + input.release() + " or newer."));
             }
             SourceContext context = new SourceContext(input, session, javac, builder, artifactId);
             SourceDeclarations declarations = new SourceDeclarations(context);
@@ -39,21 +42,9 @@ public final class SourceEngine implements Engine {
             declarations.emitNamespaces(artifactId);
             SourceClosure.collect(context);
             SourceDiagnostics.addAll(context);
-        } catch (IOException | RuntimeException e) {
-            builder.diagnostic(Diagnostics.error(Diagnostics.MODULE_NOT_SCANNED, "Module " + input.artifactId() + " could not be scanned: " + describe(e)));
+        } catch (IOException | RuntimeException | StackOverflowError e) {
+            return Diagnostics.notScanned(input, artifact, session, Diagnostics.describe(e));
         }
         return builder.build(session.generator(), artifact, session);
-    }
-
-    /** The exception and where in the scanner it surfaced, so a report is actionable without a stack trace. */
-    private static String describe(Exception e) {
-        StringBuilder text = new StringBuilder(e.toString());
-        for (StackTraceElement frame : e.getStackTrace()) {
-            if (frame.getClassName().startsWith("vision.noesis.")) {
-                text.append(" at ").append(frame.getClassName()).append('.').append(frame.getMethodName()).append(':').append(frame.getLineNumber());
-                break;
-            }
-        }
-        return text.toString();
     }
 }

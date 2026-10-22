@@ -22,7 +22,6 @@ import vision.noesis.scanner.core.Engine;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.JavaScanner;
 import vision.noesis.scanner.core.ScanSession;
-import vision.noesis.scanner.core.java.JavaIds;
 import vision.noesis.scanner.core.java.Locations;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.CodeModelWriter;
@@ -98,7 +97,7 @@ public class ScanMojo extends AbstractMojo {
         ScanSession scanSession = new ScanSession(generator(), fromExecutionRoot(repositoryRoot), List.of(input), reactorArtifactIds(), reactorOutputDirectories());
         long started = System.nanoTime();
         CodeModelFile model = scanner.scan(input, scanSession);
-        String file = state.fileFor(project, JavaIds.artifact(project.getArtifactId()));
+        String file = state.fileFor(project, input.id());
         CodeModelWriter.writeModel(outputRoot, file, model);
         getLog().info(String.format("%s: %d nodes, %d edges, %d stubs, %d diagnostics in %d ms (%s engine)",
                 project.getArtifactId(), model.nodes().size(), model.edges().size(), model.stubs().size(), model.diagnostics().size(),
@@ -131,10 +130,12 @@ public class ScanMojo extends AbstractMojo {
         return new Generator(JavaScanner.GENERATOR_NAME, plugin.getVersion() == null ? "0.0.0" : plugin.getVersion());
     }
 
+    /** The names of the reactor's modules in their artifact ids, as {@link ProjectInputs} names this module and its siblings. */
     private List<String> reactorArtifactIds() {
+        List<String> names = ProjectInputs.moduleNames(session);
         List<String> ids = new ArrayList<>();
         for (MavenProject other : session.getProjects()) {
-            if (!"pom".equals(other.getPackaging())) ids.add(other.getArtifactId());
+            if (!"pom".equals(other.getPackaging())) ids.add(ProjectInputs.uniqueName(other.getGroupId(), other.getArtifactId(), names));
         }
         return ids;
     }

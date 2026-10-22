@@ -5,7 +5,9 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -27,12 +29,21 @@ public class ModuleInputs implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** One compile classpath element: a sibling project's classes ({@code projectName} set) or a library ({@code packageId} and {@code version} set). */
-    public record ClasspathElement(File file, String projectName, String packageId, String version) implements Serializable {
+    /**
+     * One compile classpath element: a sibling project's classes ({@code projectPath} and {@code projectName} set) or a
+     * library ({@code packageId} and {@code version} set).
+     */
+    public record ClasspathElement(File file, String projectPath, String projectName, String packageId, String version) implements Serializable {
 
-        ArtifactDependency dependency() {
-            if (projectName != null) return new ArtifactDependency(JavaIds.artifact(projectName), ArtifactKind.SOURCE, null);
+        /** @param uniqueNames the name each scanned project has in its artifact id, by project path */
+        ArtifactDependency dependency(Map<String, String> uniqueNames) {
+            if (projectPath != null) return new ArtifactDependency(JavaIds.artifact(uniqueNames.getOrDefault(projectPath, projectName)), ArtifactKind.SOURCE, null);
             return new ArtifactDependency(JavaIds.libraryArtifact(packageId, version), ArtifactKind.LIBRARY, new PackageReference(packageId, version));
+        }
+
+        /** What names the element's artifact, known before the build's other projects are: the project path, or the library's id. */
+        String key() {
+            return projectPath != null ? "project " + projectPath : JavaIds.libraryArtifact(packageId, version).value();
         }
     }
 
@@ -121,7 +132,7 @@ public class ModuleInputs implements Serializable {
     @Input
     public List<String> getClasspathArtifacts() {
         List<String> artifacts = new ArrayList<>(classpath.size());
-        for (ClasspathElement element : classpath) artifacts.add(element.dependency().id().value());
+        for (ClasspathElement element : classpath) artifacts.add(element.key());
         return artifacts;
     }
 
@@ -146,21 +157,37 @@ public class ModuleInputs implements Serializable {
         return mainClass;
     }
 
-    /** The sibling projects on the classpath, by name: they are scanned first. */
+    /** The sibling projects on the classpath, by project path: they are scanned first. */
     List<String> projectDependencies() {
-        List<String> names = new ArrayList<>();
+        List<String> paths = new ArrayList<>();
         for (ClasspathElement element : classpath) {
-            if (element.projectName() != null && !names.contains(element.projectName())) names.add(element.projectName());
+            if (element.projectPath() != null && !paths.contains(element.projectPath())) paths.add(element.projectPath());
         }
-        return names;
+        return paths;
     }
 
-    ArtifactInput toArtifactInput(Integer releaseOverride) {
+    /**
+     * The name each project has in its artifact id: its name, or its path without the leading colon ({@code billing:api})
+     * when another scanned project has the same name.
+     */
+    static Map<String, String> uniqueNames(List<ModuleInputs> modules) {
+        List<String> names = new ArrayList<>();
+        for (ModuleInputs module : modules) names.add(module.name);
+        Map<String, String> unique = new LinkedHashMap<>();
+        for (ModuleInputs module : modules) {
+            String qualified = module.projectPath.startsWith(":") && module.projectPath.length() > 1 ? module.projectPath.substring(1) : module.name;
+            unique.put(module.projectPath, JavaIds.moduleName(module.name, qualified, names));
+        }
+        return unique;
+    }
+
+    ArtifactInput toArtifactInput(Integer releaseOverride, Map<String, String> uniqueNames) {
         List<Path> roots = new ArrayList<>(sourceRoots.size());
         for (File root : sourceRoots) roots.add(root.toPath());
         List<ClasspathEntry> entries = new ArrayList<>(classpath.size());
-        for (ClasspathElement element : classpath) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency()));
+        for (ClasspathElement element : classpath) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames)));
         return new ArtifactInput(group, name, version, rootDirectory.toPath(), buildFile == null ? null : buildFile.toPath(), roots,
-                outputDirectory.toPath(), entries, releaseOverride != null ? releaseOverride : release, Charset.forName(encoding), packaging, mainClass);
+                outputDirectory.toPath(), entries, releaseOverride != null ? releaseOverride : release, Charset.forName(encoding), packaging, mainClass,
+                uniqueNames.getOrDefault(projectPath, name));
     }
 }

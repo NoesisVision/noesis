@@ -221,45 +221,45 @@ None.
 | --- | ---: | ---: | ---: |
 | namespace nodes | 5 | 5 | 5 |
 | type nodes | 12 | 13 | 13 |
-| method nodes | 27 | 101 | 101 |
+| method nodes | 28 | 102 | 102 |
 | field nodes | 19 | 21 | 21 |
-| nodes with a location | 52 | 135 | 134 |
-| nodes located to a line (line > 0) | 52 | 101 | 131 |
-| nodes located to a column (column > 0) | 52 | 0 | 52 |
-| nodes with documentation | 26 | 0 | 26 |
+| nodes with a location | 53 | 136 | 135 |
+| nodes located to a line (line > 0) | 53 | 102 | 132 |
+| nodes located to a column (column > 0) | 53 | 0 | 53 |
+| nodes with documentation | 27 | 0 | 27 |
 | nodes with annotations | 9 | 83 | 91 |
 | annotations on nodes | 21 | 83 | 103 |
 | generated members | 10 | 0 | 87 |
 | methods with parameters named arg<i> | 0 | 22 | 22 |
-| CONTAINS edges | 63 | 140 | 140 |
-| EXTENDS edges | 2 | 6 | 6 |
-| IMPLEMENTS edges | 6 | 6 | 6 |
+| CONTAINS edges | 64 | 141 | 141 |
+| EXTENDS edges | 4 | 9 | 9 |
+| IMPLEMENTS edges | 12 | 16 | 16 |
 | OVERRIDES edges | 0 | 10 | 10 |
 | IMPLEMENTS_MEMBER edges | 4 | 51 | 51 |
-| INVOKES edges | 35 | 143 | 143 |
+| INVOKES edges | 35 | 144 | 144 |
 | INVOKES with type arguments | 2 | 0 | 2 |
 | INVOKES via closure | 0 | 1 | 1 |
 | INVOKES with a column | 35 | 0 | 19 |
-| INVOKES receiver = other | 0 | 106 | 101 |
+| INVOKES receiver = other | 0 | 107 | 102 |
 | INVOKES receiver kinds used | 6 | 4 | 7 |
 | INVOKES to unresolved targets | 0 | 0 | 0 |
-| ACCESSES edges | 9 | 87 | 85 |
+| ACCESSES edges | 10 | 89 | 87 |
 | ACCESSES readWrite | 0 | 0 | 0 |
-| ACCESSES receiver kinds used | 1 | 1 | 2 |
+| ACCESSES receiver kinds used | 1 | 2 | 3 |
 | USES_TYPE edges | 0 | 5 | 5 |
 | USES_TYPE cast | 0 | 0 | 0 |
 | USES_TYPE creation | 0 | 0 | 0 |
 | USES_TYPE typeTest | 0 | 5 | 5 |
-| stubs | 48 | 96 | 109 |
-| diagnostics | 67 | 0 | 1 |
+| stubs | 56 | 107 | 120 |
+| diagnostics | 69 | 0 | 1 |
 
 ### Diagnostics by code
 
 | Code | source | bytecode | hybrid |
 | --- | ---: | ---: | ---: |
-| NS1002 | 39 | 0 | 0 |
+| NS1002 | 40 | 0 | 0 |
 | compiler.err.cant.apply.symbol | 9 | 0 | 0 |
-| compiler.err.cant.resolve.location.args | 17 | 0 | 0 |
+| compiler.err.cant.resolve.location.args | 18 | 0 | 0 |
 | compiler.err.does.not.override.abstract | 1 | 0 | 1 |
 | compiler.err.invalid.mref | 1 | 0 | 0 |
 
@@ -270,10 +270,10 @@ None.
 | Difference | Count | First examples |
 | --- | ---: | --- |
 | field differs: annotations | 10 | `F:vision.noesis.fixture.lombok.GeneratedMembers+Delegating.items (lombok.experimental.Delegate[] \| )`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor() ( \| lombok.Generated[])`<br>`T:vision.noesis.fixture.lombok.GeneratedMembers+Built (lombok.Builder[toBuilder=Literal[text=true]] lombok.Getter[] \| )` |
-| field differs: documentation | 26 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() (true \| false)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() (true \| false)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#closureCalls(java.util.List`1[vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter]) (true \| false)` |
-| field differs: location.column | 57 | `F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (5 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count (9 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name (9 \| 0)` |
+| field differs: documentation | 27 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() (true \| false)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() (true \| false)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#closureCalls(java.util.List`1[vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter]) (true \| false)` |
+| field differs: location.column | 58 | `F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (5 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count (9 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name (9 \| 0)` |
 | field differs: location.file | 9 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() ( \| scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java)`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor() ( \| scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java)`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+FluentAccessors#.ctor() ( \| scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java)` |
-| field differs: location.line | 55 | `F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (19 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count (60 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name (59 \| 0)` |
+| field differs: location.line | 56 | `F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (19 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count (60 \| 0)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name (59 \| 0)` |
 | field differs: modifiers | 3 | `F:vision.noesis.fixture.lombok.GeneratedMembers+ValueHolder.count ( \| READONLY)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+ValueHolder.name ( \| READONLY)`<br>`T:vision.noesis.fixture.lombok.GeneratedMembers+ValueHolder (STATIC \| FINAL,STATIC)` |
 | field differs: origin | 5 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() (generated \| declared)`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor() (generated \| declared)`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+FluentAccessors#.ctor() (generated \| declared)` |
 | field differs: visibility | 2 | `F:vision.noesis.fixture.lombok.GeneratedMembers+ValueHolder.count (namespace \| private)`<br>`F:vision.noesis.fixture.lombok.GeneratedMembers+ValueHolder.name (namespace \| private)` |
@@ -286,7 +286,8 @@ None.
 | --- | ---: | --- |
 | CONTAINS only in bytecode | 82 | `CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int)`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#builder()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#getCount()` |
 | CONTAINS only in source | 5 | `CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Compared -> M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#.ctor()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder -> M:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder#.ctor()` |
-| EXTENDS only in bytecode | 4 | `EXTENDS T:java.util.ListIterator`1 -> java.util.Iterator`1[!0]`<br>`EXTENDS T:java.util.function.UnaryOperator`1 -> java.util.function.Function`2[!0,!0]`<br>`EXTENDS T:java.util.stream.BaseStream`2 -> java.lang.AutoCloseable` |
+| EXTENDS only in bytecode | 5 | `EXTENDS T:java.lang.Integer -> java.lang.Number`<br>`EXTENDS T:java.util.ListIterator`1 -> java.util.Iterator`1[!0]`<br>`EXTENDS T:java.util.function.UnaryOperator`1 -> java.util.function.Function`2[!0,!0]` |
+| IMPLEMENTS only in bytecode | 4 | `IMPLEMENTS T:java.lang.Integer -> java.lang.Comparable`1[java.lang.Integer]`<br>`IMPLEMENTS T:java.lang.Integer -> java.lang.constant.Constable`<br>`IMPLEMENTS T:java.lang.Integer -> java.lang.constant.ConstantDesc` |
 | IMPLEMENTS_MEMBER only in bytecode | 47 | `IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(int,java.lang.String) -> M:java.util.List`1#add(int,!0) \| java.util.List`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating`<br>`IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(java.lang.String) -> M:java.util.Collection`1#add(!0) \| java.util.Collection`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating`<br>`IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(java.lang.String) -> M:java.util.List`1#add(!0) \| java.util.List`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating` |
 | OVERRIDES only in bytecode | 10 | `OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#toString() -> M:java.lang.Object#toString()`<br>`OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#equals(java.lang.Object) -> M:java.lang.Object#equals(java.lang.Object)`<br>`OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#hashCode() -> M:java.lang.Object#hashCode()` |
 
@@ -294,11 +295,11 @@ None.
 
 | Difference | Count | First examples |
 | --- | ---: | --- |
-| ACCESSES only in bytecode | 78 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name` |
-| ACCESSES receiver differs | 9 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)` |
+| ACCESSES only in bytecode | 79 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine() -> F:java.lang.Integer.TYPE`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count` |
+| ACCESSES receiver differs | 10 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors (THIS \| OTHER)` |
 | INVOKES on a different line | 1 | `M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor() -> M:java.lang.Object#.ctor() (68 \| 65)` |
 | INVOKES only in bytecode: external target | 59 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:java.lang.String#length()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()` |
-| INVOKES only in bytecode: scanned target | 66 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()` |
+| INVOKES only in bytecode: scanned target | 67 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()` |
 | INVOKES only in source: external target | 11 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#equals(java.lang.Object)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#hashCode()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#hashCode()` |
 | INVOKES only in source: implicit super() | 5 | `M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder#.ctor() -> M:java.lang.Object#.ctor()` |
 | INVOKES only in source: scanned target | 1 | `F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#.ctor()` |
@@ -311,7 +312,7 @@ None.
 
 | Difference | Count | First examples |
 | --- | ---: | --- |
-| stub only in bytecode | 62 | `M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])`<br>`M:java.lang.Iterable`1#iterator()`<br>`M:java.lang.Iterable`1#spliterator()` |
+| stub only in bytecode | 65 | `F:java.lang.Integer.TYPE`<br>`M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])`<br>`M:java.lang.Iterable`1#iterator()` |
 | stub only in source | 14 | `N:lombok.experimental`<br>`T:lombok.AllArgsConstructor`<br>`T:lombok.Builder` |
 
 ### hybrid versus source
@@ -332,7 +333,8 @@ None.
 | --- | ---: | --- |
 | CONTAINS only in hybrid | 82 | `CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int)`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#builder()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#getCount()` |
 | CONTAINS only in source | 5 | `CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Built -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+Compared -> M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#.ctor()`<br>`CONTAINS T:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder -> M:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder#.ctor()` |
-| EXTENDS only in hybrid | 4 | `EXTENDS T:java.util.ListIterator`1 -> java.util.Iterator`1[!0]`<br>`EXTENDS T:java.util.function.UnaryOperator`1 -> java.util.function.Function`2[!0,!0]`<br>`EXTENDS T:java.util.stream.BaseStream`2 -> java.lang.AutoCloseable` |
+| EXTENDS only in hybrid | 5 | `EXTENDS T:java.lang.Integer -> java.lang.Number`<br>`EXTENDS T:java.util.ListIterator`1 -> java.util.Iterator`1[!0]`<br>`EXTENDS T:java.util.function.UnaryOperator`1 -> java.util.function.Function`2[!0,!0]` |
+| IMPLEMENTS only in hybrid | 4 | `IMPLEMENTS T:java.lang.Integer -> java.lang.Comparable`1[java.lang.Integer]`<br>`IMPLEMENTS T:java.lang.Integer -> java.lang.constant.Constable`<br>`IMPLEMENTS T:java.lang.Integer -> java.lang.constant.ConstantDesc` |
 | IMPLEMENTS_MEMBER only in hybrid | 47 | `IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(int,java.lang.String) -> M:java.util.List`1#add(int,!0) \| java.util.List`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating`<br>`IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(java.lang.String) -> M:java.util.Collection`1#add(!0) \| java.util.Collection`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating`<br>`IMPLEMENTS_MEMBER M:vision.noesis.fixture.lombok.GeneratedMembers+Delegating#add(java.lang.String) -> M:java.util.List`1#add(!0) \| java.util.List`1[java.lang.String] \| on T:vision.noesis.fixture.lombok.GeneratedMembers+Delegating` |
 | OVERRIDES only in hybrid | 10 | `OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#toString() -> M:java.lang.Object#toString()`<br>`OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#equals(java.lang.Object) -> M:java.lang.Object#equals(java.lang.Object)`<br>`OVERRIDES M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#hashCode() -> M:java.lang.Object#hashCode()` |
 
@@ -340,9 +342,9 @@ None.
 
 | Difference | Count | First examples |
 | --- | ---: | --- |
-| ACCESSES only in hybrid | 76 | `M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#getCount() -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count` |
+| ACCESSES only in hybrid | 77 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#primitiveClassOnAnUnboundLine() -> F:java.lang.Integer.TYPE`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.count`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor(java.lang.String,int) -> F:vision.noesis.fixture.lombok.GeneratedMembers+Built.name` |
 | INVOKES only in hybrid: external target | 59 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:java.lang.String#length()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()` |
-| INVOKES only in hybrid: scanned target | 65 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#setCount(int)` |
+| INVOKES only in hybrid: scanned target | 66 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls() -> M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#setCount(int)` |
 | INVOKES only in source: external target | 11 | `M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#equals(java.lang.Object)`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#hashCode()`<br>`M:vision.noesis.fixture.lombok.GeneratedMemberCallers#comparedCalls() -> M:java.lang.Object#hashCode()` |
 | INVOKES only in source: implicit super() | 5 | `M:vision.noesis.fixture.lombok.GeneratedMembers+Built#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder#.ctor() -> M:java.lang.Object#.ctor()` |
 | USES_TYPE only in hybrid: typeTest | 5 | `typeTest M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#canEqual(java.lang.Object) -> vision.noesis.fixture.lombok.GeneratedMembers+Compared`<br>`typeTest M:vision.noesis.fixture.lombok.GeneratedMembers+Compared#equals(java.lang.Object) -> vision.noesis.fixture.lombok.GeneratedMembers+Compared`<br>`typeTest M:vision.noesis.fixture.lombok.GeneratedMembers+DataHolder#canEqual(java.lang.Object) -> vision.noesis.fixture.lombok.GeneratedMembers+DataHolder` |
@@ -351,4 +353,4 @@ None.
 
 | Difference | Count | First examples |
 | --- | ---: | --- |
-| stub only in hybrid | 61 | `M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])`<br>`M:java.lang.Iterable`1#iterator()`<br>`M:java.lang.Iterable`1#spliterator()` |
+| stub only in hybrid | 64 | `F:java.lang.Integer.TYPE`<br>`M:java.lang.Iterable`1#forEach(java.util.function.Consumer`1[<other:? super !0>])`<br>`M:java.lang.Iterable`1#iterator()` |

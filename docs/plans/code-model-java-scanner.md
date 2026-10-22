@@ -72,16 +72,16 @@ which Java fact fills each field. "javac" is the source engine's input,
 
 ### 2.1 Artifact and namespaces
 
-| Model                      | javac / Maven                                                                                                                                                                                                                                                            | ArchUnit                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| `ArtifactNode.id`, `name`  | `A:<artifactId>`, the Maven artifactId                                                                                                                                                                                                                                   | same                                             |
-| `version`, `rootDirectory` | the module's version; its base directory, repository-relative                                                                                                                                                                                                            | same                                             |
-| `target`                   | `jdk-<release>`, the release the sources are bound against (`maven.compiler.release`, else `maven.compiler.target`, else the running JVM)                                                                                                                                | same                                             |
-| `executable`               | a `mainClass` configured on `maven-jar-plugin` or `spring-boot-maven-plugin`, `${property}` references resolved from the project's properties (an unresolved one, the Spring Boot parent's `${start-class}`, is no main class); the class is `java.mainClass` in the bag | same                                             |
-| `dependencies`             | every compile-scope artifact: a reactor sibling is `source` (`A:<artifactId>`, `package: null`), anything else `library` with `package {id, version}`; the platform modules stubs reached are appended, as the .NET scanner appends stub assemblies                      | same                                             |
-| `annotations`              | `[]` (no module-level annotations; `module-info` is deferred)                                                                                                                                                                                                            | `[]`                                             |
-| `languageSpecific`         | `java.groupId`, `java.packaging`, `java.buildFile` (repository-relative pom), `java.engine` (`source`, `bytecode` or `hybrid`), `java.mainClass`                                                                                                                         | same                                             |
-| `NamespaceNode`            | one per dotted level of every package clause, plus the empty root the artifact contains; `locations` are the spans of each prefix of every `package` clause (`package-info.java` included); `annotations` are the `package-info` annotations                             | locations `[]`, annotations from the class files |
+| Model                      | javac / Maven                                                                                                                                                                                                                                                               | ArchUnit                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `ArtifactNode.id`, `name`  | `A:<artifactId>` and the artifactId; when another module of the build has the same artifactId, the id says the group (`A:com.acme.billing:api`; a Gradle project's path, `A:billing:api`) and the name stays short, so two modules never share an id (`JavaIds.moduleName`) | same                                             |
+| `version`, `rootDirectory` | the module's version; its base directory, repository-relative                                                                                                                                                                                                               | same                                             |
+| `target`                   | `jdk-<release>`, the release the sources are bound against (`maven.compiler.release`, else `maven.compiler.target`, else the running JVM)                                                                                                                                   | same                                             |
+| `executable`               | a `mainClass` configured on `maven-jar-plugin` or `spring-boot-maven-plugin`, `${property}` references resolved from the project's properties (an unresolved one, the Spring Boot parent's `${start-class}`, is no main class); the class is `java.mainClass` in the bag    | same                                             |
+| `dependencies`             | every compile-scope artifact: a reactor sibling is `source` (`A:<artifactId>`, `package: null`), anything else `library` with `package {id, version}`; the platform modules stubs reached are appended, as the .NET scanner appends stub assemblies                         | same                                             |
+| `annotations`              | `[]` (no module-level annotations; `module-info` is deferred)                                                                                                                                                                                                               | `[]`                                             |
+| `languageSpecific`         | `java.groupId`, `java.packaging`, `java.buildFile` (repository-relative pom), `java.engine` (`source`, `bytecode` or `hybrid`), `java.mainClass`                                                                                                                            | same                                             |
+| `NamespaceNode`            | one per dotted level of every package clause, plus the empty root the artifact contains; `locations` are the spans of each prefix of every `package` clause (`package-info.java` included); `annotations` are the `package-info` annotations                                | locations `[]`, annotations from the class files |
 
 ### 2.2 Types
 
@@ -204,7 +204,14 @@ not be scanned; the model is empty), `NS1002` (an unbound site), `NS1003`
 (no compiler in this JVM), `NS1004` (an id declared twice), `NS1005` (the
 class directory is missing), `NS1006` (parameter names unavailable), `NS1007`
 (a class not fully imported), `NS1008` (the running JDK has no API signatures
-for the module's release, so the bytecode engine read its own JDK's classes).
+for the module's release, so the bytecode engine read its own JDK's classes),
+`NS1009` (a warning: the running JDK's javac does not support the module's
+release, so the source engine bound the sources against the nearest release it
+does, the running JDK's for a newer one). An engine that fails on a module,
+an exception or a `StackOverflowError` included, writes the artifact and the
+`NS1001` alone, never a partial model, and the scan goes on with the next
+module; the service logs every error and warning a scanner wrote, and counts
+the compiler's per artifact.
 
 ## 3. The source engine
 
@@ -327,8 +334,10 @@ bytecode`; its receiver and type arguments are bytecode's. A source call on
 - Stubs are the source engine's plus the bytecode engine's for every symbol
   the added declarations and edges reference, with containers and base
   chains; the bytecode engine's module-level diagnostics (classes missing,
-  parameter names missing) are kept. Without a compiler (`NS1003`) the
-  bytecode model is the whole result.
+  parameter names missing) are kept. Without a source model, no compiler
+  (`NS1003`) or a source engine that failed on the module (`NS1001`), the
+  bytecode model is the whole result, with the source engine's diagnostics;
+  a merge that fails writes the `NS1001` alone.
 
 On a module without annotation processors the hybrid model is the source
 model byte for byte (`HybridEngineTest`); on `test-fixtures/java-lombok` it

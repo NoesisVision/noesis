@@ -32,9 +32,11 @@ import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -116,10 +118,17 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
     }
 
     private ClassState classState;
-    private boolean rescanningInitializer;
+    /** The instance initializer block being walked as part of a constructor; any other member block is collected. */
+    private BlockTree initializerInConstructor;
+    /**
+     * Classes whose bodies were walked: an instance initializer is walked once per constructor, but a class declared in
+     * it (an anonymous class, a local class, a double-brace initializer) is declared and walked once.
+     */
+    private final Set<ClassTree> walkedClasses = new HashSet<>();
 
     @Override
     public Void visitClass(ClassTree tree, Void unused) {
+        if (!walkedClasses.add(tree)) return null;
         Element element = trees.getElement(getCurrentPath());
         if (!(element instanceof TypeElement type)) return null;
         if (type.getNestingKind() == NestingKind.LOCAL || type.getNestingKind() == NestingKind.ANONYMOUS) {
@@ -130,22 +139,28 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
         Frame savedFrame = frame;
         int savedDepth = closureDepth;
         ClassState savedState = classState;
+        BlockTree savedInitializer = initializerInConstructor;
         closureDepth = 0;
         classState = new ClassState();
+        initializerInConstructor = null;
         for (Tree member : tree.getMembers()) {
             if (member instanceof MethodTree || member instanceof VariableTree || member instanceof BlockTree || member instanceof ClassTree) scan(member, unused);
         }
-        for (Map.Entry<MethodTree, ExecutableElement> constructor : classState.constructors.entrySet()) {
+        ClassState state = classState;
+        for (Map.Entry<MethodTree, ExecutableElement> constructor : state.constructors.entrySet()) {
             if (startsWithThisCall(constructor.getKey())) continue;
             frame = new Frame(c.ids.member(constructor.getValue()), constructor.getValue(), constructor.getKey());
-            rescanningInitializer = true;
-            for (BlockTree block : classState.instanceInitializers) scan(block, unused);
-            rescanningInitializer = false;
+            for (BlockTree block : state.instanceInitializers) {
+                initializerInConstructor = block;
+                scan(block, unused);
+            }
+            initializerInConstructor = null;
         }
-        addImplicitSuperCallsOfTreelessConstructors(type, tree, classState.constructors.values());
+        addImplicitSuperCallsOfTreelessConstructors(type, tree, state.constructors.values());
         frame = savedFrame;
         closureDepth = savedDepth;
         classState = savedState;
+        initializerInConstructor = savedInitializer;
         return null;
     }
 
@@ -186,7 +201,7 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
     /** A static block is the body of {@code .cctor}; an instance block runs in every constructor and is walked once per constructor. */
     @Override
     public Void visitBlock(BlockTree block, Void unused) {
-        if (!isClassMember() || rescanningInitializer) return super.visitBlock(block, unused);
+        if (!isClassMember() || block == initializerInConstructor) return super.visitBlock(block, unused);
         if (!block.isStatic()) {
             classState.instanceInitializers.add(block);
             return null;

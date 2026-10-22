@@ -12,6 +12,7 @@
   <modules>
     <module>a</module>
     <module>b</module>
+    <module>extra</module>
   </modules>
 
   <properties>

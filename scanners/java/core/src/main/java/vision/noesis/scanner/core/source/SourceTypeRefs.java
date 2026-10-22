@@ -1,8 +1,10 @@
 package vision.noesis.scanner.core.source;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -29,6 +31,8 @@ final class SourceTypeRefs {
     private static final NodeId METHOD_OWNER_PLACEHOLDER = NodeId.of(NodeKindLetter.METHOD, "?");
 
     private final SourceContext context;
+    /** The captured variables being written: a self-bounded capture ({@code Enum<capture#1>}) reaches itself through its bound. */
+    private final Set<TypeVariable> capturing = new HashSet<>();
 
     SourceTypeRefs(SourceContext context) {
         this.context = context;
@@ -146,12 +150,17 @@ final class SourceTypeRefs {
      * expression; its number is a hash that changes between runs, so it is written as the wildcard it captures.
      */
     private TypeRef capturedWildcard(TypeVariable variable, boolean forId) {
-        TypeMirror upper = variable.getUpperBound();
-        TypeMirror lower = variable.getLowerBound();
-        if (lower != null && lower.getKind() != TypeKind.NULL && lower.getKind() != TypeKind.NONE) return new TypeRef.Other("? super " + of(lower, forId).canonical());
-        if (upper != null && upper.getKind() == TypeKind.DECLARED && !SourceDeclarations.isObject(upper)) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
-        if (upper != null && upper.getKind() == TypeKind.INTERSECTION) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
-        return new TypeRef.Other("?");
+        if (!capturing.add(variable)) return new TypeRef.Other("?");
+        try {
+            TypeMirror upper = variable.getUpperBound();
+            TypeMirror lower = variable.getLowerBound();
+            if (lower != null && lower.getKind() != TypeKind.NULL && lower.getKind() != TypeKind.NONE) return new TypeRef.Other("? super " + of(lower, forId).canonical());
+            if (upper != null && upper.getKind() == TypeKind.DECLARED && !SourceDeclarations.isObject(upper)) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
+            if (upper != null && upper.getKind() == TypeKind.INTERSECTION) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
+            return new TypeRef.Other("?");
+        } finally {
+            capturing.remove(variable);
+        }
     }
 
     private TypeRef wildcard(WildcardType wildcard, boolean forId) {
