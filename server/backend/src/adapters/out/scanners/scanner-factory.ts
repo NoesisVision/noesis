@@ -20,7 +20,7 @@ import {
 const ScannerOverride = z.literal('dummy').optional();
 
 /** What a repository scanner is built from: the repository's namespace settings included. */
-export interface RepositoryScannerDeps extends DummyScannerDeps {
+interface RepositoryScannerDeps extends DummyScannerDeps {
   namespaces: NamespaceConfig;
 }
 

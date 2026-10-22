@@ -77,7 +77,7 @@ export class NoesisSystemModelsRepository implements SystemModelsRepository {
 }
 
 /** `2026-10-22T09:57:44.851Z` on commit `4b69653a` → `2026-10-22_09-57_4b69653a.json`. */
-export function fileNameOf(model: SystemModel): string {
+function fileNameOf(model: SystemModel): string {
   const scannedAt = new Date(model.scanned_at);
   if (Number.isNaN(scannedAt.getTime())) {
     throw new Error(
