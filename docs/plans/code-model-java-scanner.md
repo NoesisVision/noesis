@@ -198,7 +198,8 @@ English messages and spans. The scanner's own are `NS1001` (a module could
 not be scanned; the model is empty), `NS1002` (an unbound site), `NS1003`
 (no compiler in this JVM), `NS1004` (an id declared twice), `NS1005` (the
 class directory is missing), `NS1006` (parameter names unavailable), `NS1007`
-(a class not fully imported).
+(a class not fully imported), `NS1008` (the running JDK has no API signatures
+for the module's release, so the bytecode engine read its own JDK's classes).
 
 ## 3. The source engine
 
@@ -222,8 +223,10 @@ filled get-then-put, never with `computeIfAbsent`.
 ## 4. The bytecode engine
 
 ```
-target/classes imported with ArchUnit's ClassFileImporter, the compile classpath on the context class loader
-  (ArchUnit resolves referenced classes through it; a class it knows by name only is imported on demand)
+target/classes imported with ArchUnit's ClassFileImporter, a class loader on the context class loader
+  (ArchUnit resolves referenced classes through it; a class it knows by name only is imported on demand):
+  the JDK of the module's release first, read from the running JDK's lib/ct.sym as javac --release does,
+  then the compile classpath; the running JDK's classes only when ct.sym has no such release (NS1008)
 → an ASM pass over the same class files for what ArchUnit does not expose: parameter names, ACC_VARARGS, ConstantValue
 → declarations over the scanned classes (synthetic classes and members, bridges and lambda methods skipped)
 → accesses per code unit: calls, field accesses, instanceof checks, lambda bodies flagged by ArchUnit
@@ -253,9 +256,12 @@ approximates with this engine (the agreement test's exclusion list,
   local class's constructor are not.
 - ArchUnit does not read the type arguments of an inner class's enclosing
   instantiation: `Outer<String>.Inner<Integer>` is ``Inner`1[Integer]``.
-- Bytecode binds the JDK classes of the JVM that runs the scan, where the
-  source engine binds `--release`; members a later JDK added to a base class
-  or interface a scanned type inherits show up only in bytecode.
+- Type variables are resolved by name in the scope the signature was read
+  in (the method's type parameters, then the declaring class's, then the
+  enclosing classes' and methods'), not through ArchUnit's owner: ArchUnit
+  collects the candidates of a nested class and its enclosing classes in a
+  hash set, so for `ImmutableList<E>.Builder<E>` it names either `E`
+  depending on the run.
 - An inherited member may be bound to a different declaring type than javac
   chooses.
 

@@ -68,11 +68,11 @@ final class BytecodeClosure {
         if (type.isAnnotation()) return;
         type.getSuperclass().ifPresent(superclass -> {
             if (BytecodeDeclarations.isObject(superclass)) return;
-            stubs.baseEdge(new Edge.Extends(id, c.types.of(superclass)));
+            stubs.baseEdge(new Edge.Extends(id, c.types.of(superclass, BytecodeTypeRefs.Scope.of(type))));
             pending.add(superclass.toErasure());
         });
         for (JavaType implemented : BytecodeDeclarations.sortedInterfaces(type)) {
-            TypeRef reference = c.types.of(implemented);
+            TypeRef reference = c.types.of(implemented, BytecodeTypeRefs.Scope.of(type));
             stubs.baseEdge(type.isInterface() ? new Edge.Extends(id, reference) : new Edge.Implements(id, reference));
             pending.add(implemented.toErasure());
         }

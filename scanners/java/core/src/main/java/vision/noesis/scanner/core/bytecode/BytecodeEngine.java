@@ -5,7 +5,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +17,7 @@ import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ModelBuilder;
 import vision.noesis.scanner.core.ScanSession;
 import vision.noesis.scanner.core.java.JavaIds;
+import vision.noesis.scanner.core.java.ReleaseClassFiles;
 import vision.noesis.scanner.model.ArtifactNode;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.NodeId;
@@ -38,10 +38,14 @@ public final class BytecodeEngine implements Engine {
             builder.diagnostic(Diagnostics.error(Diagnostics.CLASSES_MISSING, "No compiled classes at " + input.outputDirectory() + "; build the module first."));
             return builder.build(session.generator(), artifact, session);
         }
-        try (URLClassLoader loader = classpathLoader(input)) {
+        try (ReleaseClassFiles release = ReleaseClassFiles.open(input.release()).orElse(null);
+                ScanClassLoader loader = classpathLoader(input, release)) {
+            if (release == null && input.release() != Runtime.version().feature()) {
+                builder.diagnostic(Diagnostics.info(Diagnostics.PLATFORM_FROM_RUNTIME, "The running JDK has no API signatures for release " + input.release() + "; JDK classes are those of JDK " + Runtime.version().feature() + ".", null));
+            }
             ClassFileDetails details = ClassFileDetails.read(input.outputDirectory());
             JavaClasses classes = importWithClasspath(input, loader);
-            BytecodeContext context = new BytecodeContext(input, session, builder, details, artifactId, loader);
+            BytecodeContext context = new BytecodeContext(input, session, builder, details, artifactId, loader, release);
             new BytecodeDeclarations(context).walk(classes);
             new BytecodeAccesses(context).walk(classes);
             BytecodeClosure.collect(context);
@@ -54,15 +58,15 @@ public final class BytecodeEngine implements Engine {
         return builder.build(session.generator(), artifact, session);
     }
 
-    /** The compile classpath over the platform loader, which also reaches the JDK's own classes. */
-    private static URLClassLoader classpathLoader(ArtifactInput input) throws MalformedURLException {
+    /** The release's JDK and the compile classpath; the running JDK's classes only when the release's are unavailable. */
+    private static ScanClassLoader classpathLoader(ArtifactInput input, ReleaseClassFiles release) throws MalformedURLException {
         List<URL> urls = new ArrayList<>();
         for (ClasspathEntry entry : input.classpath()) urls.add(toUrl(entry));
-        return new URLClassLoader(urls.toArray(new URL[0]), ClassLoader.getPlatformClassLoader());
+        return new ScanClassLoader(urls.toArray(new URL[0]), release);
     }
 
     /** ArchUnit resolves referenced classes through the context class loader; the compile classpath is put there for the import. */
-    private static JavaClasses importWithClasspath(ArtifactInput input, URLClassLoader loader) {
+    private static JavaClasses importWithClasspath(ArtifactInput input, ScanClassLoader loader) {
         Thread thread = Thread.currentThread();
         ClassLoader previous = thread.getContextClassLoader();
         try {

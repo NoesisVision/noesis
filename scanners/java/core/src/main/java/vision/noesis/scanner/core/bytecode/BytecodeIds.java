@@ -84,7 +84,7 @@ final class BytecodeIds {
         if (member instanceof JavaField field) return JavaIds.field(typePath(field.getOwner()), field.getName());
         JavaCodeUnit unit = (JavaCodeUnit) member;
         List<String> parameters = new ArrayList<>();
-        for (JavaType parameter : declaredParameterTypes(unit)) parameters.add(context.types.idCanonical(parameter));
+        for (JavaType parameter : declaredParameterTypes(unit)) parameters.add(context.types.idCanonical(parameter, BytecodeTypeRefs.Scope.of(unit)));
         return JavaIds.method(typePath(unit.getOwner()), nodeName(unit), unit.getTypeParameters().size(), parameters);
     }
 
@@ -110,7 +110,7 @@ final class BytecodeIds {
     /** An unresolved call target, from its erased parameter types; the owner is still stubbed. */
     NodeId unresolvedMethod(JavaClass owner, String name, List<JavaClass> rawParameterTypes) {
         List<String> parameters = new ArrayList<>();
-        for (JavaClass parameter : rawParameterTypes) parameters.add(context.types.idCanonical(parameter));
+        for (JavaClass parameter : rawParameterTypes) parameters.add(context.types.idCanonical(parameter, BytecodeTypeRefs.Scope.NONE));
         String spelled = name.equals(JavaConstructor.CONSTRUCTOR_NAME) ? JavaIds.CONSTRUCTOR_NAME : name;
         return JavaIds.method(typePath(owner), spelled, 0, parameters);
     }

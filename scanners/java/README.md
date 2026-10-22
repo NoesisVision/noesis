@@ -19,8 +19,10 @@ ArchUnit for projects whose sources need annotation processors (Lombok); it
 writes the same model with the gaps bytecode has, listed in the design
 document's section 4: line-only locations, no Javadoc, parameter names only
 with `-parameters`, no casts or array creations, compiler-inserted calls
-present, and it binds the JDK of the JVM that runs it. An agreement test
-keeps the two engines equal up to exactly that list.
+present. Both engines bind the JDK API of the module's release (the bytecode
+engine reads it from the running JDK's `lib/ct.sym`, as `javac --release`
+does), so the model does not depend on the JDK that runs the scan. An
+agreement test keeps the two engines equal up to exactly that list.
 
 ## Layout
 

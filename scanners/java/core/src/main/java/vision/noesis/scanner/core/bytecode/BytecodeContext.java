@@ -11,6 +11,7 @@ import java.util.Optional;
 import vision.noesis.scanner.core.ArtifactInput;
 import vision.noesis.scanner.core.ModelBuilder;
 import vision.noesis.scanner.core.ScanSession;
+import vision.noesis.scanner.core.java.ReleaseClassFiles;
 import vision.noesis.scanner.model.ArtifactDependency;
 import vision.noesis.scanner.model.ArtifactKind;
 import vision.noesis.scanner.model.NodeId;
@@ -28,18 +29,21 @@ final class BytecodeContext {
     final BytecodeAnnotations annotations;
     final NodeId artifactId;
     final ClassLoader classpathLoader;
+    /** The JDK of the module's release, or null when the running JDK stands in. */
+    final ReleaseClassFiles release;
 
     private final Map<String, Optional<ArtifactDependency>> dependencyByClass = new HashMap<>();
     private final Map<String, String> sourceFiles = new HashMap<>();
     private final Map<String, JavaClass> resolved = new HashMap<>();
 
-    BytecodeContext(ArtifactInput input, ScanSession session, ModelBuilder builder, ClassFileDetails details, NodeId artifactId, ClassLoader classpathLoader) {
+    BytecodeContext(ArtifactInput input, ScanSession session, ModelBuilder builder, ClassFileDetails details, NodeId artifactId, ClassLoader classpathLoader, ReleaseClassFiles release) {
         this.input = input;
         this.session = session;
         this.builder = builder;
         this.details = details;
         this.artifactId = artifactId;
         this.classpathLoader = classpathLoader;
+        this.release = release;
         this.ids = new BytecodeIds(this);
         this.types = new BytecodeTypeRefs(this);
         this.annotations = new BytecodeAnnotations(this);
@@ -72,6 +76,10 @@ final class BytecodeContext {
         Optional<Source> source = top.getSource();
         if (source.isEmpty()) return Optional.empty();
         URI uri = source.get().getUri();
+        if (release != null) {
+            Optional<String> module = release.moduleOf(uri);
+            if (module.isPresent()) return Optional.of(session.classpath().platform(module.get(), input.release()));
+        }
         if ("jrt".equals(uri.getScheme())) {
             String path = uri.getPath() == null ? "" : uri.getPath();
             int start = path.startsWith("/") ? 1 : 0;

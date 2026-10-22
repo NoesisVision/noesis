@@ -48,7 +48,6 @@ import vision.noesis.scanner.model.TypeUseRole;
  *   <li>{@code INVOKES.typeArguments} and {@code receiver}: bytecode has neither the inference nor the expression.</li>
  *   <li>{@code INVOKES} to external targets: the compiler inserts calls (boxing, iterators, {@code close()}), so bytecode is a superset, and an inherited member may be bound to a different declaring type, so external targets are compared by member name; calls to scanned targets must agree exactly.</li>
  *   <li>{@code java.enclosingMethod}: a class declared in a field initializer has no enclosing method in the class file.</li>
- *   <li>The JDK: the source engine binds against {@code --release}, the bytecode engine against the JVM that runs it; the fixture therefore implements and extends no JDK type whose members changed after release 17.</li>
  *   <li>{@code ACCESSES}: read and write merged (a compound assignment is two accesses in bytecode); accesses to enum constants excluded (a {@code case} label reads none in bytecode).</li>
  *   <li>{@code USES_TYPE}: only {@code typeTest} is in bytecode.</li>
  *   <li>Stubs: the source engine's are a subset of bytecode's, which also stubs the targets of compiler-inserted calls.</li>

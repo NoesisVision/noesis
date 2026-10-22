@@ -20923,7 +20923,7 @@
         "typeArguments": [
           {
             "kind": "typeParameter",
-            "owner": "T:com.google.common.collect.ImmutableList`1",
+            "owner": "T:com.google.common.collect.ImmutableList`1+Builder`1",
             "ordinal": 0,
             "nullable": false
           }
@@ -21150,29 +21150,11 @@
       "from": "T:java.util.List`1",
       "to": {
         "kind": "named",
-        "type": "T:java.util.SequencedCollection`1",
-        "typeArguments": [
-          {
-            "kind": "typeParameter",
-            "owner": "T:java.util.List`1",
-            "ordinal": 0,
-            "nullable": false
-          }
-        ],
-        "unbound": false,
-        "nullable": false
-      }
-    },
-    {
-      "kind": "EXTENDS",
-      "from": "T:java.util.SequencedCollection`1",
-      "to": {
-        "kind": "named",
         "type": "T:java.util.Collection`1",
         "typeArguments": [
           {
             "kind": "typeParameter",
-            "owner": "T:java.util.SequencedCollection`1",
+            "owner": "T:java.util.List`1",
             "ordinal": 0,
             "nullable": false
           }
@@ -28933,13 +28915,6 @@
       "id": "T:java.util.RandomAccess",
       "kind": "type",
       "name": "RandomAccess",
-      "typeKind": "interface",
-      "artifact": "A:java.base@17"
-    },
-    {
-      "id": "T:java.util.SequencedCollection`1",
-      "kind": "type",
-      "name": "SequencedCollection",
       "typeKind": "interface",
       "artifact": "A:java.base@17"
     },

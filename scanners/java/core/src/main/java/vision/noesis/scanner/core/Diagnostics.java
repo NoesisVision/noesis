@@ -15,6 +15,7 @@ public final class Diagnostics {
     public static final String CLASSES_MISSING = "NS1005";
     public static final String NO_PARAMETER_NAMES = "NS1006";
     public static final String NOT_FULLY_IMPORTED = "NS1007";
+    public static final String PLATFORM_FROM_RUNTIME = "NS1008";
 
     private Diagnostics() {}
 

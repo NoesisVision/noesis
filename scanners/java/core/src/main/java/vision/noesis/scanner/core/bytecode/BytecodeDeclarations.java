@@ -180,9 +180,9 @@ final class BytecodeDeclarations {
 
     private void addBaseEdges(JavaClass type, NodeId id) {
         Optional<JavaType> superclass = type.getSuperclass();
-        if (superclass.isPresent() && !isObject(superclass.get())) c.builder.edge(new Edge.Extends(id, c.types.of(superclass.get())));
+        if (superclass.isPresent() && !isObject(superclass.get())) c.builder.edge(new Edge.Extends(id, c.types.of(superclass.get(), BytecodeTypeRefs.Scope.of(type))));
         for (JavaType implemented : sortedInterfaces(type)) {
-            TypeRef reference = c.types.of(implemented);
+            TypeRef reference = c.types.of(implemented, BytecodeTypeRefs.Scope.of(type));
             c.builder.edge(type.isInterface() ? new Edge.Extends(id, reference) : new Edge.Implements(id, reference));
         }
     }
@@ -244,7 +244,7 @@ final class BytecodeDeclarations {
         Map<String, Object> bag = new LinkedHashMap<>();
         if (unit.getThrowsClause().size() > 0) {
             List<String> thrown = new ArrayList<>();
-            for (ThrowsDeclaration<?> declaration : unit.getThrowsClause()) thrown.add(c.types.of(declaration.getType()).canonical());
+            for (ThrowsDeclaration<?> declaration : unit.getThrowsClause()) thrown.add(c.types.of(declaration.getType(), BytecodeTypeRefs.Scope.of(unit)).canonical());
             bag.put("java.throws", thrown);
         }
         if (flags.isSynchronized()) bag.put("java.synchronized", true);
@@ -273,7 +273,7 @@ final class BytecodeDeclarations {
             JavaType type = i - synthetic < types.size() ? types.get(i - synthetic) : parameter.getType();
             parameters.add(new Parameter(
                     name,
-                    c.types.of(type),
+                    c.types.of(type, BytecodeTypeRefs.Scope.of(unit)),
                     Passing.VALUE,
                     details != null && details.varargs() && i == all.size() - 1,
                     false,
@@ -281,7 +281,15 @@ final class BytecodeDeclarations {
                     c.annotations.of(parameter.getAnnotations()),
                     LanguageBag.EMPTY));
         }
-        return new Signature(parameters, c.types.of(unit.getReturnType()), Passing.VALUE, List.of());
+        return new Signature(parameters, c.types.of(unit.getReturnType(), BytecodeTypeRefs.Scope.of(unit)), Passing.VALUE, List.of());
+    }
+
+    /** The scope a type parameter's bounds are read in: its own declaration. */
+    private static BytecodeTypeRefs.Scope scopeOf(JavaTypeVariable<?> variable) {
+        Object owner = variable.getOwner();
+        if (owner instanceof JavaCodeUnit unit) return BytecodeTypeRefs.Scope.of(unit);
+        if (owner instanceof JavaClass type) return BytecodeTypeRefs.Scope.of(type);
+        return BytecodeTypeRefs.Scope.NONE;
     }
 
     private List<TypeParameter> typeParameters(List<? extends JavaTypeVariable<?>> declared, JavaClass owner) {
@@ -292,7 +300,7 @@ final class BytecodeDeclarations {
             List<TypeParameterConstraint> constraints = new ArrayList<>();
             for (JavaType bound : variable.getBounds()) {
                 if (isObject(bound)) continue;
-                constraints.add(new TypeParameterConstraint.TypeConstraint(c.types.of(bound)));
+                constraints.add(new TypeParameterConstraint.TypeConstraint(c.types.of(bound, scopeOf(variable))));
             }
             parameters.add(new TypeParameter(variable.getName(), offset + i, List.of(), Variance.INVARIANT, constraints, LanguageBag.EMPTY));
         }
@@ -319,7 +327,7 @@ final class BytecodeDeclarations {
                 enumConstant ? FieldKind.ENUM_MEMBER : FieldKind.FIELD,
                 JavaModifiers.visibility(flags),
                 JavaModifiers.field(flags),
-                c.types.of(field.getType()),
+                c.types.of(field.getType(), BytecodeTypeRefs.Scope.of(owner)),
                 Passing.VALUE,
                 constant == null ? null : Literals.format(constant)));
         return id;
@@ -429,21 +437,21 @@ final class BytecodeDeclarations {
         supertypes.addAll(sortedInterfaces(type));
         for (JavaType supertype : supertypes) {
             JavaClass erasure = c.fullyImported(supertype.toErasure());
-            TypeRef reference = c.types.of(supertype, false, environment);
+            TypeRef reference = c.types.of(supertype, false, environment, BytecodeTypeRefs.Scope.of(type));
             if (!seen.add(reference.canonical())) continue;
             if (erasure.isInterface()) interfaces.put(erasure, reference);
-            collectInterfaces(erasure, bindingsOf(supertype, erasure, environment), interfaces, seen);
+            collectInterfaces(erasure, bindingsOf(supertype, erasure, environment, type), interfaces, seen);
         }
     }
 
     /** The supertype's type parameters bound to the arguments the subtype passes, resolved in the subtype's own environment. */
-    private Map<String, TypeRef> bindingsOf(JavaType supertype, JavaClass erasure, Map<String, TypeRef> environment) {
+    private Map<String, TypeRef> bindingsOf(JavaType supertype, JavaClass erasure, Map<String, TypeRef> environment, JavaClass subtype) {
         Map<String, TypeRef> bindings = new HashMap<>();
         if (!(supertype instanceof JavaParameterizedType parameterized)) return bindings;
         List<JavaType> arguments = parameterized.getActualTypeArguments();
         List<JavaTypeVariable<JavaClass>> parameters = erasure.getTypeParameters();
         for (int i = 0; i < parameters.size() && i < arguments.size(); i++) {
-            bindings.put(BytecodeTypeRefs.variableKey(parameters.get(i)), c.types.of(arguments.get(i), false, environment));
+            bindings.put(BytecodeTypeRefs.variableKey(parameters.get(i)), c.types.of(arguments.get(i), false, environment, BytecodeTypeRefs.Scope.of(subtype)));
         }
         return bindings;
     }
