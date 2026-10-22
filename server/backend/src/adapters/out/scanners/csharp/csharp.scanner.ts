@@ -17,7 +17,7 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
-import { loadNoesisConfig } from '../noesis-config';
+import { loadRepositorySettings } from '../repository-settings';
 
 /** The `dotnet tool`, on the PATH of the machine the server runs on. */
 const DEFAULT_COMMAND = ['noesis-scan-csharp'];
@@ -60,7 +60,7 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
     const name = basename(root);
     const outDir = this.noesis.resolve('sessions', 'scanner');
 
-    const { namespaces: config } = await loadNoesisConfig(root);
+    const { namespaces: config } = await loadRepositorySettings(this.noesis);
     const started = performance.now();
     const { manifest, files } = await this.runFirstStage(root, name, outDir);
     const scanned = performance.now();

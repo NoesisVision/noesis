@@ -8,7 +8,7 @@ import {
 /**
  * The one scanner the environment may force: `dummy` replays the implemented
  * design documents instead of reading code. Which code scanner reads a
- * repository is the repository's own `noesis-config.json`.
+ * repository is the repository's own `.noesis/settings.json`.
  */
 export const ScannerOverride = z.literal('dummy');
 export type ScannerOverride = z.infer<typeof ScannerOverride>;

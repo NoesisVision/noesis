@@ -7011,7 +7011,7 @@
           ]
         }
       ],
-      "documentation": "Excluded by noesis-config.json (R3.2).",
+      "documentation": "Excluded by .noesis/settings.json (R3.2).",
       "languageSpecific": {}
     },
     {

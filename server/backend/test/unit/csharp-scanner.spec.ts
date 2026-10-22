@@ -32,8 +32,8 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = scannerWith('--source', FIXTURE);
   await cp(
-    join(FIXTURE, 'noesis-config.json'),
-    join(t.root, 'noesis-config.json'),
+    join(FIXTURE, '.noesis', 'settings.json'),
+    t.noesis.resolve('settings.json'),
   );
 });
 
@@ -69,7 +69,7 @@ describe('The C# scanner', () => {
     expect<unknown>(model.name).toBe(basename(t.root));
     expect<unknown>(model.scanned_at).toBe(NOW);
 
-    // Acme is skipped by noesis-config.json, *.Internal excluded; the
+    // Acme is skipped by .noesis/settings.json, *.Internal excluded; the
     // Technical project is [assembly: ExcludeFromDocs]; Infrastructure has no blocks.
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
       // The namespace Acme.Shop is first declared, in node order, in Internal/Hidden.cs.
@@ -326,8 +326,8 @@ describe('The C# scanner', () => {
     );
   });
 
-  it('maps namespaces by noesis-config.json, every namespace to itself without one', async () => {
-    await writeFile(join(t.root, 'noesis-config.json'), '{}');
+  it('maps namespaces by .noesis/settings.json, every namespace to itself without one', async () => {
+    await writeFile(t.noesis.resolve('settings.json'), '{}');
 
     const model = await scanner.scan();
 
@@ -363,14 +363,14 @@ describe('The C# scanner', () => {
     await expect<unknown>(missing.scan()).rejects.toThrow('Cannot run');
   });
 
-  it('fails on a noesis-config.json of the wrong shape', async () => {
+  it('fails on a .noesis/settings.json of the wrong shape', async () => {
     await writeFile(
-      join(t.root, 'noesis-config.json'),
+      t.noesis.resolve('settings.json'),
       JSON.stringify({ namespacePartsToSkip: 'MyCompany' }),
     );
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
-      'Invalid noesis-config.json',
+      /Invalid .*\.noesis\/settings\.json/,
     );
   });
 

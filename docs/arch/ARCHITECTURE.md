@@ -119,7 +119,7 @@ Both land on the same service layer. Neither bypasses it.
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
-  System model page. The repository names its scanner in `noesis-config.json` (`"scanner"`), read
+  System model page. The repository names its scanner in `.noesis/settings.json` (`"scanner"`), read
   at every scan: `java` reads the source as text; `csharp` runs the .NET scanner
   (`scanners/dotnet`, `noesis-scan-csharp` on the PATH) for the code model and projects it onto the
   system model by the rules in `docs/plans/code-model-to-system-model.md`. `NOESIS_SCANNER=dummy`

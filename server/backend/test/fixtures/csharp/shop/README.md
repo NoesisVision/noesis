@@ -6,7 +6,7 @@ there to show one rule of `docs/plans/code-model-to-system-model.md`: the
 nested `Order.Repository`, the `[Event]` record, the `_lines`/`Lines` pair,
 the dictionary property, the overloaded `AddLine`, the chain
 `Handle → LogTotal → Total`, the excluded `Shop.Technical` assembly, the
-`Internal` namespace `noesis-config.json` drops, the unannotated
+`Internal` namespace `.noesis/settings.json` drops, the unannotated
 `SqlOrderRepository` whose calls count for the interface's behaviours.
 
 `code-model/` is the .NET scanner's output over these sources and is

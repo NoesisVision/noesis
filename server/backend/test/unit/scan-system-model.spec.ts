@@ -77,9 +77,9 @@ describe('createScanner', () => {
     csharp: () => scannerOf(found('csharp')),
   };
   const configure = (scanner: string) =>
-    writeFile(join(t.root, 'noesis-config.json'), JSON.stringify({ scanner }));
+    writeFile(t.noesis.resolve('settings.json'), JSON.stringify({ scanner }));
 
-  it('scans with the scanner noesis-config.json names, read at every scan', async () => {
+  it('scans with the scanner .noesis/settings.json names, read at every scan', async () => {
     const scanner = createScanner(undefined, deps(), scanners);
 
     await configure('java');
@@ -92,10 +92,12 @@ describe('createScanner', () => {
     const scanner = createScanner(undefined, deps(), scanners);
 
     await expect(scanner.scan()).rejects.toThrow(
-      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, csharp\./,
+      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java, csharp\./,
     );
     await configure('cobol');
-    await expect(scanner.scan()).rejects.toThrow('Invalid noesis-config.json');
+    await expect(scanner.scan()).rejects.toThrow(
+      /Invalid .*\.noesis\/settings\.json/,
+    );
   });
 
   it('replays design documents with the dummy when the environment forces it', async () => {

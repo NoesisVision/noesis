@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
-import { loadNoesisConfig } from '#backend/adapters/out/scanners/noesis-config';
+import { loadRepositorySettings } from '#backend/adapters/out/scanners/repository-settings';
 import {
   CodeModelFile,
   ScanManifest,
@@ -94,7 +94,7 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
           CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
         ),
       );
-      const { namespaces: config } = await loadNoesisConfig(EXAMPLE);
+      const { namespaces: config } = await loadRepositorySettings(noesis);
       const projectionStart = performance.now();
       const { model: projected } = projectSystemModel({
         manifest,

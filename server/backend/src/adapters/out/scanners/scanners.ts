@@ -5,12 +5,12 @@ import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
 import { JavaSourceCodeScanner } from './java.scanner';
 import {
-  loadNoesisConfig,
+  loadRepositorySettings,
   noScannerConfigured,
   type RepositoryScannerName,
-} from './noesis-config';
+} from './repository-settings';
 
-/** The scanners a repository's `noesis-config.json` can name, by name. */
+/** The scanners a repository's `.noesis/settings.json` can name, by name. */
 export type RepositoryScanners = Record<
   RepositoryScannerName,
   (deps: DummyScannerDeps) => SourceCodeScanner
@@ -22,8 +22,8 @@ const REPOSITORY_SCANNERS: RepositoryScanners = {
 };
 
 /**
- * Scans with the scanner the repository names in `noesis-config.json`, read
- * at every scan so a changed file counts without a restart.
+ * Scans with the scanner the repository names in `.noesis/settings.json`,
+ * read at every scan so a changed file counts without a restart.
  */
 class ConfiguredSourceCodeScanner implements SourceCodeScanner {
   constructor(
@@ -32,9 +32,9 @@ class ConfiguredSourceCodeScanner implements SourceCodeScanner {
   ) {}
 
   async scan(): Promise<SystemModel> {
-    const root = this.deps.noesis.root;
-    const { scanner } = await loadNoesisConfig(root);
-    if (scanner === null) throw noScannerConfigured(root);
+    const { noesis } = this.deps;
+    const { scanner } = await loadRepositorySettings(noesis);
+    if (scanner === null) throw noScannerConfigured(noesis);
     return this.scanners[scanner](this.deps).scan();
   }
 }

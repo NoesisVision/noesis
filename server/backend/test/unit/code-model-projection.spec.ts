@@ -604,7 +604,7 @@ describe('3. scope', () => {
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
-  it('R3.2 drops a namespace noesis-config.json excludes, with everything in it', () => {
+  it('R3.2 drops a namespace .noesis/settings.json excludes, with everything in it', () => {
     const { model, diagnostics } = project(
       [
         artifact('Sales')
@@ -1002,7 +1002,7 @@ describe('5. properties', () => {
 /* ========================================================== 6 modules */
 
 describe('6. modules', () => {
-  it('R6.1 maps a namespace through noesis-config.json: skipped parts wherever they occur', () => {
+  it('R6.1 maps a namespace through .noesis/settings.json: skipped parts wherever they occur', () => {
     const { model } = project(
       [
         artifact('Sales')
