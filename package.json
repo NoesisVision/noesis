@@ -30,7 +30,7 @@
     "eslint-import-resolver-oxc": "^0.15.0",
     "eslint-plugin-boundaries": "^7.2.0",
     "knip": "^6.37.0",
-    "oxfmt": "^0.68.0",
+    "oxfmt": "^0.74.0",
     "oxlint": "^1.83.0",
     "oxlint-tsgolint": "^7.0.2002",
     "playwright-core": "^1.63.0",
