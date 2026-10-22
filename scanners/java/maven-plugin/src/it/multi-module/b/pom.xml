@@ -12,6 +12,10 @@
 
   <artifactId>b</artifactId>
 
+  <properties>
+    <app.main>com.example.b.App</app.main>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
@@ -28,7 +32,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.example.b.App</mainClass>
+              <mainClass>${app.main}</mainClass>
             </manifest>
           </archive>
         </configuration>

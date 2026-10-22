@@ -20,7 +20,8 @@ assert a.artifact.id == 'A:a'
 assert a.artifact.kind == 'source'
 assert a.artifact.rootDirectory == 'a'
 assert a.artifact.target == 'jdk-17'
-assert !a.artifact.executable
+assert !a.artifact.executable : "an unresolved \${start-class} is no main class"
+assert a.artifact.languageSpecific['java.mainClass'] == null
 assert a.artifact.languageSpecific['java.buildFile'] == 'a/pom.xml'
 assert a.artifact.languageSpecific['java.engine'] == 'source'
 def guava = a.artifact.dependencies.find { it.id.startsWith('A:com.google.guava:guava@') }

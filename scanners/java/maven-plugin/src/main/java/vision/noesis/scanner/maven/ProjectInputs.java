@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
@@ -83,12 +85,30 @@ final class ProjectInputs {
         }
     }
 
-    /** The jar plugin's {@code archive/manifest/mainClass} or the Spring Boot plugin's {@code mainClass}; null when none is configured. */
+    /**
+     * The jar plugin's {@code archive/manifest/mainClass} or the Spring Boot plugin's {@code mainClass}, with
+     * {@code ${property}} references resolved from the project's properties; null when none is configured or a
+     * reference is unresolved (the Spring Boot parent's {@code ${start-class}} when the project does not set it).
+     */
     private static String mainClassOf(MavenProject project) {
         String jarMain = configured(project.getPlugin("org.apache.maven.plugins:maven-jar-plugin"), "archive", "manifest", "mainClass");
-        if (jarMain != null) return jarMain;
-        return configured(project.getPlugin("org.springframework.boot:spring-boot-maven-plugin"), "mainClass");
+        String configured = jarMain != null ? jarMain : configured(project.getPlugin("org.springframework.boot:spring-boot-maven-plugin"), "mainClass");
+        return configured == null ? null : interpolated(configured, project);
     }
+
+    private static String interpolated(String value, MavenProject project) {
+        Matcher matcher = PROPERTY_REFERENCE.matcher(value);
+        StringBuilder resolved = new StringBuilder();
+        while (matcher.find()) {
+            String property = project.getProperties().getProperty(matcher.group(1));
+            if (property == null || property.isBlank()) return null;
+            matcher.appendReplacement(resolved, Matcher.quoteReplacement(property.trim()));
+        }
+        matcher.appendTail(resolved);
+        return resolved.toString();
+    }
+
+    private static final Pattern PROPERTY_REFERENCE = Pattern.compile("\\$\\{([^}]+)}");
 
     private static String configured(Plugin plugin, String... path) {
         if (plugin == null || !(plugin.getConfiguration() instanceof Xpp3Dom configuration)) return null;

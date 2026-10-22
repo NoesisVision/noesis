@@ -19,4 +19,21 @@
       <version>@guava.version@</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- What the Spring Boot parent configures for every project: a main class behind a property this project never sets. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>${start-class}</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
