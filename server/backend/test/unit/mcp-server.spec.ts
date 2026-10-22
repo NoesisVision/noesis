@@ -434,8 +434,8 @@ describe('scan_system_model', () => {
 describe('get_newest_system_model', () => {
   const OLDER = '01a0d22d-7f47-76b9-abd4-bd21d66a1d17';
   const NEWER = '01a0d22e-0000-7000-8000-000000000000';
-  const scan = (id: string, name: string) =>
-    SystemModel.parse({ id, name, scanned_at: '2026-09-29T08:00:00.000Z' });
+  const scan = (id: string, name: string, scannedAt: string) =>
+    SystemModel.parse({ id, name, scanned_at: scannedAt });
 
   it('answers null, pointing to the scan, when nothing is scanned yet', async () => {
     const result = await client.callTool({ name: 'get_newest_system_model' });
@@ -447,9 +447,9 @@ describe('get_newest_system_model', () => {
 
   it('answers the model scanned last, whole', async () => {
     const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
-    const newest = scan(NEWER, 'shop');
-    await systemModels.create(newest);
-    await systemModels.create(scan(OLDER, 'billing'));
+    const newest = scan(NEWER, 'shop', '2026-09-29T08:01:00.000Z');
+    await systemModels.save(newest);
+    await systemModels.save(scan(OLDER, 'billing', '2026-09-29T08:00:00.000Z'));
 
     const result = await client.callTool({ name: 'get_newest_system_model' });
 

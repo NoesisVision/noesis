@@ -19,9 +19,7 @@ export function scanSystemModelHandler(
         .catch((error: unknown) => {
           throw new ScanFailedError(error);
         });
-      if (!(await systemModels.create(model))) {
-        throw new Error(`System model ${model.id} is already stored.`);
-      }
+      await systemModels.save(model);
       return model;
     },
   };

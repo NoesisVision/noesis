@@ -66,7 +66,7 @@ the tests scan it with `--no-restore`.
 
 ```text
 noesis-scan-csharp <path>...                  directory, solution or project(s)
-  --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
+  --out <dir>                                 output root (default `<repository-root>/.noesis/tmp/scanner`)
   --repository <name> --revision <commit>     written into the manifest, supplied by the server
   --repository-root <dir>                     directory file paths are relative to (default: current directory)
   --configuration Debug|Release               MSBuild configuration (default Debug)

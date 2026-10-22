@@ -26,12 +26,11 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-const found = (name: string): SystemModel =>
-  SystemModel.parse({
-    id: SystemModelId.mint(),
-    name,
-    scanned_at: '2026-09-29T08:00:00.000Z',
-  });
+const found = (
+  name: string,
+  scannedAt = '2026-09-29T08:00:00.000Z',
+): SystemModel =>
+  SystemModel.parse({ id: SystemModelId.mint(), name, scanned_at: scannedAt });
 
 const scannerOf = (model: SystemModel): SourceCodeScanner => ({
   scan: () => Promise.resolve(model),
@@ -59,7 +58,7 @@ describe('Scanning the system model', () => {
       systemModels,
     ).handle();
     const last = await scanSystemModelHandler(
-      always(scannerOf(found('after'))),
+      always(scannerOf(found('after', '2026-09-29T08:01:00.000Z'))),
       systemModels,
     ).handle();
 

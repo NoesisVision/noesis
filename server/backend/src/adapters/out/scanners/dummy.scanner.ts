@@ -37,6 +37,7 @@ import type {
 } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { headCommit } from './head-commit';
 
 export interface DummyScannerDeps {
   noesis: NoesisDir;
@@ -82,6 +83,7 @@ export class DummySourceCodeScanner implements SourceCodeScanner {
       id,
       name: basename(this.noesis.root),
       scanned_at: scannedAt,
+      commit: await headCommit(this.noesis.root),
       ...model.elements(),
     };
   }

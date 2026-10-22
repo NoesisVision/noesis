@@ -4,7 +4,8 @@
 // budget, so a performance regression in either fails here and the timings
 // are printed for the record.
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { readdir } from 'node:fs/promises';
+import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
 import { loadRepositorySettings } from '#backend/adapters/out/scanners/repository-settings';
@@ -80,22 +81,32 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
         command,
       });
 
-      const started = performance.now();
-      const model = SystemModel.parse(await scanner.scan());
-      const bothStages = performance.now() - started;
-
-      // The projection alone, over what the first stage just wrote.
-      const outDir = noesis.resolve('sessions', 'scanner');
-      const manifest = ScanManifest.parse(
-        await Bun.file(
-          join(outDir, 'code-model', 'csharp', 'manifest.json'),
-        ).json(),
-      );
-      const files = await Promise.all(
-        manifest.artifacts.map(async ({ file }) =>
-          CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
-        ),
-      );
+      // The first stage alone, into a directory of the test's own: the
+      // scanner removes its tmp directory once it has read it.
+      const outDir = await mkdtemp(join(tmpdir(), 'noesis-e2e-csharp-'));
+      let manifest: ScanManifest;
+      let files: CodeModelFile[];
+      let firstStage: number;
+      try {
+        const firstStart = performance.now();
+        await run(
+          [...command, EXAMPLE, '--out', outDir, '--repository-root', EXAMPLE],
+          EXAMPLE,
+        );
+        firstStage = performance.now() - firstStart;
+        manifest = ScanManifest.parse(
+          await Bun.file(
+            join(outDir, 'code-model', 'csharp', 'manifest.json'),
+          ).json(),
+        );
+        files = await Promise.all(
+          manifest.artifacts.map(async ({ file }) =>
+            CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
+          ),
+        );
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
       const projectionStart = performance.now();
       const { model: projected } = projectSystemModel({
         manifest,
@@ -105,10 +116,14 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
       });
       const projection = performance.now() - projectionStart;
 
+      // Both stages through the scanner, which leaves no tmp directory behind.
+      const model = SystemModel.parse(await scanner.scan());
+      expect<unknown>(await readdir(noesis.resolve('tmp'))).toEqual([]);
+
       console.log(
-        `[e2e] discounts-dotnet: both stages ${Math.round(bothStages)} ms, projection alone ${projection.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
+        `[e2e] discounts-dotnet: first stage ${Math.round(firstStage)} ms, projection alone ${projection.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
       );
-      expect<unknown>(bothStages).toBeLessThan(FIRST_STAGE_BUDGET_MS);
+      expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(projection).toBeLessThan(PROJECTION_BUDGET_MS);
       expect<unknown>(projected.buildingBlocks).toEqual(model.buildingBlocks);
 

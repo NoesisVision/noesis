@@ -140,12 +140,11 @@ export type Language = 'csharp' | 'java' | 'typescript' | 'php';
 
 File paths in the manifest are relative to the output root; artifact files
 sit beside the manifest in `code-model/<language>/`. The output root is
-`--out`, by default `<repository-root>/.noesis/sessions/scanner/`; the server
-passes `--out` pointing into its own session directory
-(`.noesis/sessions/<session>/scanner`). An explicit relative `--out` resolves
-against the current directory, the default against `--repository-root`. The
-whole directory is session scratch: gitignored, swept by the server with the
-session, and recreated by the next scan.
+`--out`, by default `<repository-root>/.noesis/tmp/scanner/`; the server
+passes `--out` pointing at a fresh `.noesis/tmp/<uuid>/`. An explicit
+relative `--out` resolves against the current directory, the default against
+`--repository-root`. The whole directory is scratch: gitignored, and removed
+by the server once it has read the model.
 
 ### 3.2 Identity
 
@@ -885,7 +884,7 @@ assembly that defines them, not the one that forwards.
 
 ```text
 noesis-scan-csharp <path>                     directory, solution or project(s)
-  --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
+  --out <dir>                                 output root (default `<repository-root>/.noesis/tmp/scanner`)
   --repository-root <dir>                     directory file paths are relative to (default: current directory)
   --repository <name> --revision <commit>     written into the manifest, supplied by the server
   --configuration Debug|Release               MSBuild configuration (default Debug)

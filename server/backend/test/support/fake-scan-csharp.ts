@@ -1,7 +1,7 @@
 // Stands in for `noesis-scan-csharp` in the C# scanner's unit tests. Its own
 // flags come first, the scanner's follow: `--source <dir>` copies that
 // directory's committed code-model/ into `--out`, `--fail <code>` exits with
-// that code instead. The arguments are recorded beside the output. The real
+// that code instead, `--record <file>` writes the arguments there. The real
 // tool runs in test/e2e/csharp-scanner.e2e.spec.ts.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -18,7 +18,8 @@ if (out === undefined) {
   process.exit(1);
 }
 await mkdir(out, { recursive: true });
-await writeFile(join(out, 'fake-scan-args.json'), JSON.stringify(args));
+const record = after('--record');
+if (record !== undefined) await writeFile(record, JSON.stringify(args));
 
 const exitCode = Number(after('--fail') ?? '0');
 if (exitCode !== 0) {

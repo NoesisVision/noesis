@@ -47,7 +47,7 @@ function idsOf(model: SystemModel): Map<string, { type?: unknown }> {
 
 async function committedModel(): Promise<SystemModel> {
   const [file, ...more] = (await readdir(SYSTEM_MODELS)).filter((name) =>
-    name.endsWith('.system-model.json'),
+    name.endsWith('.json'),
   );
   expect(more).toEqual([]);
   if (file === undefined) throw new Error('No system model in the example');
@@ -97,15 +97,17 @@ describe('The Java scanner on examples/discounts-java', () => {
     for (const { id } of modified) expect(byId.has(id), id).toBe(true);
     for (const { id } of added) expect(byId.has(id), id).toBe(false);
   });
-  it('finds the model committed with the example, scan time and id apart', async () => {
-    const { id, scanned_at, ...committed } = await committedModel();
+  it('finds the model committed with the example, scan time, id and commit apart', async () => {
+    const { id, scanned_at, commit: _, ...committed } = await committedModel();
     expect(id).toMatch(/^[0-9a-f-]{36}$/);
     expect(scanned_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
-    const { id: scannedId, scanned_at: now, ...found } = await scan();
+    const { id: scannedId, scanned_at: now, commit, ...found } = await scan();
 
     expect(SystemModelId.safeParse(scannedId).success).toBe(true);
     expect(now).toBe('2026-09-30T00:00:00.000Z');
+    // The example lives in this repository, so its HEAD is this checkout's.
+    expect<unknown>(commit).toMatch(/^[0-9a-f]{4,40}$/);
     expect(found).toEqual(committed);
     expect<unknown>(found.modules.map((m) => m.id)).toEqual([
       'module|discounts',

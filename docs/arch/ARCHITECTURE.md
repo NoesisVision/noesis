@@ -154,9 +154,12 @@ All knowledge graph files live under `.noesis/` at the repository root:
 
 ```
 <project>/.noesis/
-├── .gitignore                  written by the service on first run; contains `sessions/`
+├── .gitignore                  written by the service on first run; contains `sessions/`, `logs/`, `tmp/`
+├── settings.json               repository settings: which scanner, how namespaces map to modules
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
 │                               one subdirectory per service process, removed when it exits
+├── tmp/<uuid>/                 the service's own scratch, e.g. the C# scanner's code model —
+│                               never versioned; removed once used
 └── graph/
     ├── changes/
     │   ├── <change>.change.json       one change
@@ -164,7 +167,8 @@ All knowledge graph files live under `.noesis/` at the repository root:
     │       ├── <id>.document.json       an imported document — title, date and verbatim content
     │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
     └── system-models/
-        └── <id>.system-model.json     the implemented model, projected from the code by the scanner
+        └── YYYY-MM-DD_HH-MM_<commit>.json   the implemented model, projected from the code by the scanner;
+                                             scan minute in UTC, short commit hash or `uncommitted`
 ```
 
 The split reflects provenance. Documents are **imports** — a faithful record of what was

@@ -7,7 +7,7 @@ public static class CommandLine
 {
     public const string Usage = """
         noesis-scan-csharp <path>...                  directory, solution or project(s)
-          --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
+          --out <dir>                                 output root (default `<repository-root>/.noesis/tmp/scanner`)
           --repository <name> --revision <commit>     written into the manifest
           --repository-root <dir>                     directory file paths are relative to (default: current directory)
           --configuration Debug|Release               MSBuild configuration (default Debug)
@@ -75,7 +75,7 @@ public static class CommandLine
         {
             Inputs = inputs.Select(input => Path.GetFullPath(input, currentDirectory)).ToArray(),
             RepositoryRoot = root,
-            OutputDirectory = output is null ? Path.Combine(root, ".noesis", "sessions", "scanner") : Path.GetFullPath(output, currentDirectory),
+            OutputDirectory = output is null ? Path.Combine(root, ".noesis", "tmp", "scanner") : Path.GetFullPath(output, currentDirectory),
             RepositoryName = repository,
             Revision = revision,
             Configuration = configuration,

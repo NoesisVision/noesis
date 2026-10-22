@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import type { Now } from '#backend/app/clock';
@@ -18,6 +19,7 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
+import { headCommit } from '../head-commit';
 
 /** The `dotnet tool`, on the PATH of the machine the server runs on. */
 const DEFAULT_COMMAND = ['noesis-scan-csharp'];
@@ -38,8 +40,8 @@ export interface CSharpScannerDeps {
 
 /**
  * The C# scanner in two stages: `noesis-scan-csharp` (scanners/dotnet) reads
- * the solution with Roslyn and writes the code model into the session
- * directory; the projection (app/code-model/projection) turns it into the
+ * the solution with Roslyn and writes the code model into a fresh
+ * `.noesis/tmp/<uuid>/`, removed once read; the projection (app/code-model/projection) turns it into the
  * system model by the NoesisVision.Annotations vocabulary. Rules in
  * docs/plans/code-model-to-system-model.md.
  */
@@ -67,10 +69,10 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
     const scannedAt = this.now();
     const root = this.noesis.root;
     const name = basename(root);
-    const outDir = this.noesis.resolve('sessions', 'scanner');
+    const commit = await headCommit(root);
 
     const started = performance.now();
-    const { manifest, files } = await this.runFirstStage(root, name, outDir);
+    const { manifest, files } = await this.runFirstStage(root, name);
     const scanned = performance.now();
     const { model, diagnostics } = projectSystemModel({
       manifest,
@@ -91,16 +93,27 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
         projectMs: Math.round(projected - scanned),
       },
     );
-    return { id, name, scanned_at: scannedAt, ...model };
+    return { id, name, scanned_at: scannedAt, commit, ...model };
   }
 
-  /** Runs the tool into an empty `outDir` and reads what it wrote. */
+  /** Runs the tool into a fresh tmp directory, reads what it wrote and removes it. */
   private async runFirstStage(
+    root: string,
+    name: string,
+  ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+    const outDir = this.noesis.resolve('tmp', randomUUID());
+    try {
+      return await this.runTool(root, name, outDir);
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  }
+
+  private async runTool(
     root: string,
     name: string,
     outDir: string,
   ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
-    await rm(join(outDir, dirname(MANIFEST)), { recursive: true, force: true });
     const [executable, ...leading] = this.command;
     if (executable === undefined) {
       throw new Error('The C# scanner has no command to run.');

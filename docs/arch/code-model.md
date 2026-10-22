@@ -25,9 +25,9 @@ flowchart LR
 ```
 
 The output is temporary. The scanner writes to
-`.noesis/sessions/scanner/` under the repository root unless `--out` says
-otherwise; the server points `--out` into its own session directory, which
-git ignores and the server removes when the session ends.
+`.noesis/tmp/scanner/` under the repository root unless `--out` says
+otherwise; the server points `--out` at a fresh `.noesis/tmp/<uuid>/`, which
+git ignores and the server removes once it has read the model.
 
 The manifest is what a consumer opens first. It names the language, the
 repository and revision, the scan root, every artifact file in dependency

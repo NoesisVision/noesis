@@ -14,7 +14,7 @@ public class CommandLineTests
         var request = parsed.Request!;
         Assert.Equal([Path.Combine(Cwd, "src", "Solution.sln")], request.Inputs);
         Assert.Equal(Cwd, request.RepositoryRoot);
-        Assert.Equal(Path.Combine(Cwd, ".noesis", "sessions", "scanner"), request.OutputDirectory);
+        Assert.Equal(Path.Combine(Cwd, ".noesis", "tmp", "scanner"), request.OutputDirectory);
         Assert.Equal("Debug", request.Configuration);
         Assert.Empty(request.Projects);
         Assert.Empty(request.ExcludeProjects);
@@ -28,7 +28,7 @@ public class CommandLineTests
     public void TheDefaultOutputSitsUnderTheRepositoryRoot()
     {
         var request = CommandLine.Parse(["src/Solution.sln", "--repository-root", ".."], Path.Combine(Cwd, "sub")).Request!;
-        Assert.Equal(Path.Combine(Cwd, ".noesis", "sessions", "scanner"), request.OutputDirectory);
+        Assert.Equal(Path.Combine(Cwd, ".noesis", "tmp", "scanner"), request.OutputDirectory);
     }
 
     [Fact]

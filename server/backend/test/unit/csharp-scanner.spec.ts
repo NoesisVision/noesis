@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { readdir } from 'node:fs/promises';
+import { basename, join } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
 import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import { SystemModel } from '#backend/app/system-model/system-model';
@@ -48,16 +48,17 @@ afterEach(() => t.cleanup());
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
 
 describe('The C# scanner', () => {
-  it('runs the first stage into the session directory, over the repository root, named after it', async () => {
-    await scanner.scan();
+  it('runs the first stage into a fresh .noesis/tmp/<uuid>/, over the repository root, named after it', async () => {
+    const record = join(t.root, 'fake-scan-args.json');
+    await scannerWith(['--source', FIXTURE, '--record', record]).scan();
 
-    const out = t.noesis.resolve('sessions', 'scanner');
-    const args = (await Bun.file(
-      join(out, 'fake-scan-args.json'),
-    ).json()) as string[];
+    const args = (await Bun.file(record).json()) as string[];
+    const out = args[args.indexOf('--out') + 1];
     expect<unknown>(args).toEqual([
       '--source',
       FIXTURE,
+      '--record',
+      record,
       t.root,
       '--out',
       out,
@@ -66,6 +67,9 @@ describe('The C# scanner', () => {
       '--repository',
       basename(t.root),
     ]);
+    expect<unknown>(out).toMatch(
+      new RegExp(`^${t.noesis.resolve('tmp')}/[0-9a-f-]{36}$`),
+    );
   });
 
   it('projects the code model the first stage wrote onto a system model', async () => {
@@ -371,21 +375,13 @@ describe('The C# scanner', () => {
     await expect<unknown>(missing.scan()).rejects.toThrow('Cannot run');
   });
 
-  it('starts from an empty output directory, so a stale model is never read', async () => {
-    const stale = t.noesis.resolve(
-      'sessions',
-      'scanner',
-      'code-model',
-      'csharp',
-    );
-    await mkdir(dirname(join(stale, 'x')), { recursive: true });
-    await writeFile(join(stale, 'Stale.code-model.json'), '{}');
+  it('removes its tmp directory after a scan, whether it succeeds or fails', async () => {
+    await scanner.scan();
+    await expect<unknown>(
+      scannerWith(['--fail', '2']).scan(),
+    ).rejects.toThrow();
+    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow();
 
-    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow(
-      'no readable manifest',
-    );
-    expect<unknown>(
-      await Bun.file(join(stale, 'Stale.code-model.json')).exists(),
-    ).toBe(false);
+    expect<unknown>(await readdir(t.noesis.resolve('tmp'))).toEqual([]);
   });
 });
