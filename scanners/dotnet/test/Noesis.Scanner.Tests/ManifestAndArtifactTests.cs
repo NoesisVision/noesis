@@ -103,8 +103,11 @@ public class ManifestAndArtifactTests(FixtureScan scan)
     }
 
     [Fact]
-    public void OtherArtifactHasNoLibraryDependencies()
+    public void OtherArtifactDependsOnTheAnnotationsLibraryAndThePlatformOnly()
     {
-        Assert.DoesNotContain(scan.Other.Artifact.Dependencies, dependency => dependency.Kind != ArtifactKind.Platform);
+        var dependencies = scan.Other.Artifact.Dependencies;
+        var annotations = Assert.Single(dependencies, dependency => dependency.Kind != ArtifactKind.Platform);
+        Assert.Equal(ArtifactKind.Library, annotations.Kind);
+        Assert.Equal(new PackageReference("NoesisVision.Annotations", "0.1.3"), annotations.Package);
     }
 }

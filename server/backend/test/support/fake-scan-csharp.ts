@@ -1,8 +1,9 @@
 // Stands in for `noesis-scan-csharp` in the C# scanner's unit tests. Its own
-// flags come first, the scanner's follow: `--source <dir>` copies that
-// directory's committed code-model/ into `--out`, `--fail <code>` exits with
-// that code instead, `--record <file>` writes the arguments there. The real
-// tool runs in test/e2e/csharp-scanner.e2e.spec.ts.
+// flags come first, the scanner's follow: `--golden <dir>` copies the .NET
+// scanner's golden model files (manifest and one model per artifact) into
+// `--out`'s code-model/csharp/, `--fail <code>` exits with that code instead,
+// `--record <file>` writes the arguments there. The real tool runs in
+// test/e2e/csharp-scanner.e2e.spec.ts.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -26,10 +27,8 @@ if (exitCode !== 0) {
   console.error('fake-scan-csharp: failing as asked');
   process.exit(exitCode);
 }
-const source = after('--source');
-if (source !== undefined) {
-  await cp(join(source, 'code-model'), join(out, 'code-model'), {
-    recursive: true,
-  });
+const golden = after('--golden');
+if (golden !== undefined) {
+  await cp(golden, join(out, 'code-model', 'csharp'), { recursive: true });
 }
 console.log(`fake-scan-csharp: wrote ${out}`);

@@ -5,18 +5,35 @@ import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/c
 import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import {
+  INVOKES,
+  MODULES,
+  UNREACHED,
+  behaviour as invocation,
+} from '../support/csharp-fixture-expectations';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
  * The C# scanner runs `noesis-scan-csharp` and projects what it wrote. Here
  * the tool is a bun script (test/support/fake-scan-csharp.ts) that copies the
- * committed code model of the fixture solution under test/fixtures/csharp/shop
- * into `--out`, so the whole chain runs without .NET. The real tool runs in
+ * .NET scanner's golden code model of the fixture solution under
+ * scanners/dotnet/test/fixtures into `--out`, so the whole chain runs without
+ * .NET. The real tool runs over the same fixture in
  * test/e2e/csharp-scanner.e2e.spec.ts.
  */
 
-const FIXTURE = join(import.meta.dir, '..', 'fixtures', 'csharp', 'shop');
+const REPOSITORY = join(import.meta.dir, '..', '..', '..', '..');
+const FIXTURE = join(REPOSITORY, 'scanners', 'dotnet', 'test', 'fixtures');
+const GOLDEN = join(
+  REPOSITORY,
+  'scanners',
+  'dotnet',
+  'test',
+  'Noesis.Scanner.Tests',
+  'golden',
+);
 const FAKE_TOOL = join(import.meta.dir, '..', 'support', 'fake-scan-csharp.ts');
+const SOURCES = 'scanners/dotnet/test/fixtures/CSharpSyntax/Projection';
 
 let t: TestNoesis;
 let scanner: CSharpSourceCodeScanner;
@@ -40,23 +57,26 @@ const scannerWith = (
 
 beforeEach(async () => {
   t = await testNoesis();
-  scanner = scannerWith(['--source', FIXTURE]);
+  scanner = scannerWith(['--golden', GOLDEN]);
 });
 
 afterEach(() => t.cleanup());
 
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
+const block = (name: string) => `building_block|Projection.Blocks.${name}`;
+const form = (name: string) =>
+  `behavior|Projection.Behaviours.BehaviourForms.${name}`;
 
 describe('The C# scanner', () => {
   it('runs the first stage into a fresh .noesis/tmp/<uuid>/, over the repository root, named after it', async () => {
     const record = join(t.root, 'fake-scan-args.json');
-    await scannerWith(['--source', FIXTURE, '--record', record]).scan();
+    await scannerWith(['--golden', GOLDEN, '--record', record]).scan();
 
     const args = (await Bun.file(record).json()) as string[];
     const out = args[args.indexOf('--out') + 1];
     expect<unknown>(args).toEqual([
-      '--source',
-      FIXTURE,
+      '--golden',
+      GOLDEN,
       '--record',
       record,
       t.root,
@@ -81,276 +101,294 @@ describe('The C# scanner', () => {
     expect<unknown>(model.name).toBe(basename(t.root));
     expect<unknown>(model.scanned_at).toBe(NOW);
 
-    // Acme is skipped by .noesis/settings.json, *.Internal excluded; the
-    // Technical project is [assembly: ExcludeFromDocs]; Infrastructure has no blocks.
-    expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
-      // The namespace Acme.Shop is first declared, in node order, in Internal/Hidden.cs.
-      ['module|Shop', { path: 'Shop.Domain/Internal/Hidden.cs', line: 3 }],
-      ['module|Shop.Orders', { path: 'Shop.Domain/Orders/Money.cs', line: 3 }],
-      [
-        'module|Shop.Pricing',
-        { path: 'Shop.Domain/Pricing/PricingService.cs', line: 5 },
-      ],
-      [
-        'module|Shop.Products',
-        { path: 'Shop.Domain/Products/ProductId.cs', line: 3 },
-      ],
-    ]);
+    // CSharpSyntax is skipped by .noesis/settings.json, *.ExcludedNamespace
+    // excluded; only namespaces that hold a block become modules.
+    expect<unknown>(ids(model.modules)).toEqual(MODULES);
+    expect<unknown>(
+      model.modules.find((m) => m.id === 'module|Projection.Blocks')?.source,
+    ).toEqual({ path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 7 });
 
-    expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
-      ['building_block|Shop.Orders.BadlyNamed', 'value_object'],
-      ['building_block|Shop.Orders.Money', 'value_object'],
-      ['building_block|Shop.Orders.Order', 'aggregate'],
-      ['building_block|Shop.Orders.Order LineAdded', 'value_object'],
-      ['building_block|Shop.Orders.Order Repository', 'repository'],
-      ['building_block|Shop.Orders.Order line', 'entity'],
-      ['building_block|Shop.Orders.OrderId', 'value_object'],
-      ['building_block|Shop.Orders.OrderStatus', 'value_object'],
-      ['building_block|Shop.Orders.PlaceOrder', 'value_object'],
-      ['building_block|Shop.Orders.PlaceOrderHandler', 'application_service'],
-      ['building_block|Shop.Pricing.IRepository', 'repository'],
-      ['building_block|Shop.Pricing.PricingService', 'domain_service'],
-      ['building_block|Shop.Products.ProductId', 'value_object'],
+    // One block per annotation; nested types get the enclosing type's name
+    // first; a name override that is no element name gives way to the code's
+    // name; neither the delegate, the unannotated types nor the excluded
+    // namespace's block appear.
+    expect<unknown>(
+      model.buildingBlocks
+        .filter((b) => b.id.startsWith('building_block|Projection.Blocks.'))
+        .map((b) => [b.id, b.type]),
+    ).toEqual([
+      [block('AbstractBlock'), 'entity'],
+      [block('AggregateBlock'), 'aggregate'],
+      [block('AggregateBlock NestedEvent'), 'value_object'],
+      [block('AggregateBlock Repository'), 'repository'],
+      [block('ApplicationServiceBlock'), 'application_service'],
+      [block('CommandBlock'), 'value_object'],
+      [block('DomainEventBlock'), 'value_object'],
+      [block('DomainServiceBlock'), 'domain_service'],
+      [block('EntityBlock'), 'entity'],
+      [block('EnumBlock'), 'value_object'],
+      [block('EventBlock'), 'value_object'],
+      [block('ExternalIntegrationBlock'), 'external_integration'],
+      [block('FactoryBlock'), 'factory'],
+      [block('GenericRepositoryBlock'), 'repository'],
+      [block('ImplementsBlocksAndOthers'), 'entity'],
+      [block('NameOverrideIsNoElementName'), 'value_object'],
+      [block('Named nested entity'), 'entity'],
+      [block('QueryBlock'), 'value_object'],
+      [block('ReadModelBlock'), 'value_object'],
+      [block('RecordStructBlock'), 'value_object'],
+      [block('StructBlock'), 'value_object'],
+      [block('ValueObjectBlock'), 'value_object'],
     ]);
+    expect<unknown>(ids(model.buildingBlocks)).toContain(
+      'building_block|OtherProject.Projection.BlockFromOtherProject',
+    );
+    expect<unknown>(ids(model.buildingBlocks)).not.toContain(
+      'building_block|Projection.ExcludedNamespace.ExcludedBlock',
+    );
 
-    const order = model.buildingBlocks.find((b) => b.name === 'Order');
-    expect<unknown>(order).toMatchObject({
-      description: 'An order *placed* by a customer.',
+    const aggregate = model.buildingBlocks.find(
+      (b) => b.id === block('AggregateBlock'),
+    );
+    expect<unknown>(aggregate).toMatchObject({
+      description: 'An aggregate with a *short* description.',
       implements: [],
-      scenarios: [{ name: 'Order is placed', description: null, steps: [] }],
-      source: { path: 'Shop.Domain/Orders/Order.cs', line: 11 },
+      scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
+      source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
     });
     // Public instance members only; the dictionary and the unannotated
-    // IClock have no word in the model; _lines/Lines are one property.
-    expect<unknown>(order?.properties).toEqual([
+    // interface have no word in the model; the excluded property is dropped.
+    expect<unknown>(aggregate?.properties).toEqual([
       {
-        name: 'Lines',
-        type: { collectionOf: 'building_block|Shop.Orders.Order line' },
-        description: "The order's lines.",
+        name: 'Entities',
+        type: { collectionOf: block('EntityBlock') },
+        description: 'A collection, backed by a field of the same name.',
         optional: false,
       },
       {
-        name: 'Discount',
-        type: 'building_block|Shop.Orders.Money',
+        name: 'OptionalValueObject',
+        type: block('ValueObjectBlock'),
         description: null,
         optional: true,
       },
       {
-        name: 'PlacedOn',
+        name: 'OptionalPrimitive',
         type: 'primitive|datetime',
         description: null,
         optional: true,
       },
       {
-        name: 'Status',
-        type: 'building_block|Shop.Orders.OrderStatus',
+        name: 'Enum',
+        type: block('EnumBlock'),
         description: null,
         optional: false,
       },
     ]);
     // Positional record properties are properties too.
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'PlaceOrder')?.properties,
+      model.buildingBlocks.find((b) => b.id === block('CommandBlock'))
+        ?.properties,
     ).toEqual([
+      {
+        name: 'Id',
+        type: block('ValueObjectBlock'),
+        description: null,
+        optional: false,
+      },
       {
         name: 'Note',
         type: 'primitive|string',
         description: null,
         optional: true,
       },
-      {
-        name: 'OrderId',
-        type: 'building_block|Shop.Orders.OrderId',
-        description: null,
-        optional: false,
-      },
     ]);
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderStatus')?.properties,
+      model.buildingBlocks.find((b) => b.id === block('EnumBlock'))?.properties,
     ).toEqual([]);
-
+    // Direct supertypes that are blocks only (R4.4).
     expect<unknown>(
-      model.behaviours.map((b) => [
-        b.id,
-        b.type,
-        b.visibility,
-        b.input.map((i) => i.name),
-        b.output.map((o) => o.type),
-      ]),
+      model.buildingBlocks.find(
+        (b) => b.id === block('ImplementsBlocksAndOthers'),
+      )?.implements,
+    ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
+
+    // Public methods become behaviours: static ones too; not the excluded,
+    // technical, non-public ones nor the operator. Overloads collapse into
+    // one that the widest stands for; Task<T> is unwrapped, Task is void.
+    expect<unknown>(
+      model.behaviours
+        .filter((b) => b.id.startsWith('behavior|Projection.Behaviours.'))
+        .map((b) => [
+          b.id,
+          b.type,
+          b.visibility,
+          b.input.map((i) => [i.name, i.type, i.optional]),
+          b.output.map((o) => [o.type, o.optional]),
+        ]),
     ).toEqual([
       [
-        'behavior|Shop.Orders.Money.Add',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['other'],
-        ['building_block|Shop.Orders.Money'],
-      ],
-      [
-        'behavior|Shop.Orders.Money.Zero',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['currency'],
-        ['building_block|Shop.Orders.Money'],
-      ],
-      [
-        'behavior|Shop.Orders.Order Repository.GetBy',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['id'],
-        ['building_block|Shop.Orders.Order'],
-      ],
-      [
-        'behavior|Shop.Orders.Order Repository.Save',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['order'],
-        [],
-      ],
-      [
-        'behavior|Shop.Orders.Order line.Price',
+        form('ArrayOutput'),
         'Command',
         { kind: 'public', actors: [] },
         [],
-        ['building_block|Shop.Orders.Money'],
+        [[{ collectionOf: block('ValueObjectBlock') }, false]],
       ],
       [
-        'behavior|Shop.Orders.Order.AddLine',
-        'Command',
-        { kind: 'public', actors: ['Customer'] },
-        ['product', 'quantity'],
-        [],
-      ],
-      [
-        'behavior|Shop.Orders.Order.Create',
+        form('CollectionOutput'),
         'Command',
         { kind: 'public', actors: [] },
-        ['id'],
-        ['building_block|Shop.Orders.Order'],
-      ],
-      [
-        'behavior|Shop.Orders.Order.Persist',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['repository'],
         [],
+        [[{ collectionOf: block('ValueObjectBlock') }, false]],
       ],
       [
-        'behavior|Shop.Orders.Order.Place order',
+        form('EntryPointCommand'),
         'Command',
         { kind: 'public', actors: [] },
         [],
         [],
       ],
       [
-        'behavior|Shop.Orders.Order.Total',
+        form('EntryPointQuery'),
         'Query',
         { kind: 'public', actors: [] },
         [],
-        ['building_block|Shop.Orders.Money'],
+        [[block('ValueObjectBlock'), false]],
       ],
       [
-        'behavior|Shop.Orders.PlaceOrderHandler.Handle',
+        form('InputWithoutWord'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [],
+      ],
+      [
+        form('Named behaviour'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [],
+      ],
+      [
+        form('OptionalInputs'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [
+          ['nullable', block('ValueObjectBlock'), true],
+          ['withDefault', 'primitive|integer', true],
+        ],
+        [],
+      ],
+      [
+        form('OptionalOutput'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [[block('ValueObjectBlock'), true]],
+      ],
+      [
+        form('Overloaded'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [
+          ['first', 'primitive|integer', false],
+          ['second', 'primitive|integer', false],
+        ],
+        [],
+      ],
+      [
+        form('StaticFactory'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [['building_block|Projection.Behaviours.BehaviourForms', false]],
+      ],
+      [
+        form('TaskOutputIsVoid'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [],
+      ],
+      [
+        form('TaskOutputUnwrapped'),
+        'Command',
+        { kind: 'public', actors: [] },
+        [],
+        [[block('ValueObjectBlock'), false]],
+      ],
+      [
+        form('WithActor'),
         'Command',
         { kind: 'public', actors: ['Customer'] },
-        ['command'],
-        [],
-      ],
-      [
-        'behavior|Shop.Pricing.IRepository.Get',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['id'],
-        ['building_block|Shop.Orders.Order'],
-      ],
-      [
-        'behavior|Shop.Pricing.PricingService.Discount',
-        'Command',
-        { kind: 'public', actors: [] },
         [],
         [],
-      ],
-      [
-        'behavior|Shop.Pricing.PricingService.History',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['id'],
-        [{ collectionOf: 'building_block|Shop.Orders.Money' }],
-      ],
-      [
-        'behavior|Shop.Pricing.PricingService.Last',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['count'],
-        [{ collectionOf: 'building_block|Shop.Orders.Money' }],
-      ],
-      [
-        'behavior|Shop.Pricing.PricingService.PriceFor',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['order'],
-        ['building_block|Shop.Orders.Money'],
-      ],
-      [
-        'behavior|Shop.Pricing.PricingService.TryPrice',
-        'Command',
-        { kind: 'public', actors: [] },
-        ['order'],
-        ['building_block|Shop.Orders.Money'],
       ],
     ]);
-
-    const behaviour = (name: string) =>
-      model.behaviours.find((b) => b.name === name);
-    expect<unknown>(behaviour('Place order')).toMatchObject({
-      description: 'Places the order.',
-      scenarios: [{ name: 'Placed with lines' }],
-      source: { path: 'Shop.Domain/Orders/Order.cs', line: 47 },
-    });
-
-    // Calls, directly and through methods that are no behaviour: Handle →
-    // LogTotal → Total; the SqlOrderRepository implementation's calls count
-    // for the interface's behaviours.
     expect<unknown>(
-      Object.fromEntries(model.behaviours.map((b) => [b.name, b.invokes])),
+      model.behaviours.find((b) => b.id === form('Named behaviour')),
     ).toMatchObject({
-      Handle: [
-        'behavior|Shop.Orders.Order Repository.GetBy',
-        'behavior|Shop.Orders.Order Repository.Save',
-        'behavior|Shop.Orders.Order.Place order',
-        'behavior|Shop.Orders.Order.Total',
-        'behavior|Shop.Pricing.PricingService.PriceFor',
-      ],
-      Save: ['behavior|Shop.Orders.Order.Total'],
-      GetBy: ['behavior|Shop.Orders.Order.Create'],
-      'Place order': ['behavior|Shop.Orders.Order.Total'],
-      Total: [
-        'behavior|Shop.Orders.Money.Add',
-        'behavior|Shop.Orders.Money.Zero',
-        'behavior|Shop.Orders.Order line.Price',
-      ],
-      Persist: ['behavior|Shop.Orders.Order Repository.Save'],
+      description: 'Named by its annotation.',
+      scenarios: [{ name: 'Behaviour scenario' }],
+      source: { path: `${SOURCES}/Behaviours/BehaviourForms.cs`, line: 23 },
     });
+    // An annotated private method is a private behaviour; an explicit
+    // interface implementation and a member inherited from a non-block base
+    // give the block no behaviour of their own.
+    expect<unknown>(
+      model.behaviours.find(
+        (b) => b.id === invocation('CallChains.Private behaviour'),
+      )?.visibility,
+    ).toEqual({ kind: 'private' });
     expect<unknown>(ids(model.behaviours)).not.toContain(
-      'behavior|Shop.Orders.Order.Debug',
+      invocation('ExplicitBlockImplementor.Contract'),
     );
     expect<unknown>(ids(model.behaviours)).not.toContain(
-      'behavior|Shop.Orders.Order.ToString',
+      invocation('SatisfiedByBaseMember.Provided'),
     );
+  });
+
+  it('derives invokes from the invocation chains of the fixture, by the rules of section 11', async () => {
+    const model = SystemModel.parse(await scanner.scan());
+
+    const invocations = model.behaviours.filter(
+      (b) =>
+        b.id.startsWith('behavior|Projection.Invocations.') &&
+        !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
+    );
+    expect<unknown>(
+      Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+    ).toEqual(INVOKES);
+
+    // The leaves invoke nothing, and some of them nothing reaches.
+    const leaves = model.behaviours.filter((b) =>
+      b.id.startsWith('behavior|Projection.Invocations.Reached.'),
+    );
+    expect<unknown>(leaves.length).toBeGreaterThan(40);
+    expect<unknown>(leaves.every((b) => b.invokes.length === 0)).toBe(true);
+    const reachedByAnyone = new Set<string>(
+      model.behaviours.flatMap((b) => b.invokes),
+    );
+    for (const leaf of UNREACHED) {
+      expect<unknown>(ids(leaves)).toContain(leaf);
+      expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);
+    }
   });
 
   it('maps every namespace to itself without namespace settings', async () => {
     const model = await scannerWith(
-      ['--source', FIXTURE],
+      ['--golden', GOLDEN],
       NamespaceConfig.of({}),
     ).scan();
 
     expect<unknown>(ids(model.modules)).toEqual([
-      'module|Acme',
-      'module|Acme.Shop',
-      'module|Acme.Shop.Internal',
-      'module|Acme.Shop.Orders',
-      'module|Acme.Shop.Pricing',
-      'module|Acme.Shop.Products',
+      'module|CSharpSyntax',
+      'module|CSharpSyntax.OtherProject',
+      'module|CSharpSyntax.OtherProject.Projection',
+      'module|CSharpSyntax.Projection',
+      'module|CSharpSyntax.Projection.Behaviours',
+      'module|CSharpSyntax.Projection.Blocks',
+      'module|CSharpSyntax.Projection.ExcludedNamespace',
+      'module|CSharpSyntax.Projection.Invocations',
     ]);
   });
 

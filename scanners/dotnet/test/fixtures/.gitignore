@@ -3,3 +3,5 @@ obj/
 *.user
 .vs/
 .idea/
+.noesis/*
+!.noesis/settings.json
