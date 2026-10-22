@@ -44,7 +44,7 @@ export interface PlacedElement {
 }
 
 /** A card's height, whatever its name: its name and what it is. */
-export const HEIGHT = 56;
+const HEIGHT = 56;
 /** Room along the bottom of a card, or a frame, for the button bringing what it contains. */
 const CONTAINS_ROOM = 34;
 /** A card's height: more when it has elements inside it to bring. */
@@ -72,7 +72,7 @@ const minimumOf = (
   direction === 'vertical' ? `(${height},${width})` : `(${width},${height})`;
 
 /** Room at the top of a container for its name, and round what it holds. */
-export const PADDING = { top: 60, left: 16, bottom: 16, right: 16 } as const;
+const PADDING = { top: 60, left: 16, bottom: 16, right: 16 } as const;
 /** A container's room round what it holds: more at the bottom when it has more to bring. */
 export const paddingOf = (element: DrawnElement) => ({
   ...PADDING,

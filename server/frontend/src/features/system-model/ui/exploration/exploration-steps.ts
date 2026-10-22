@@ -18,7 +18,7 @@ export interface DiagramStep {
 }
 
 /** How the edges are drawn: kept with the diagram, but not a step of it. */
-export interface EdgeLook {
+interface EdgeLook {
   orthogonal: boolean;
   animated: boolean;
 }
