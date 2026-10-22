@@ -291,9 +291,10 @@ export function placeLocally(
   const place = (element: DrawnElement): boolean => {
     const held = placedKids(element.id).map(({ id }) => rects.get(id)!);
     const parent = element.parent;
-    if (held.length > 0) {
+    const [first, ...others] = held;
+    if (first !== undefined) {
       // A container round what is already drawn of it.
-      const box = held.reduce(union);
+      const box = others.reduce((all, rect) => union(all, rect), first);
       const rect = {
         x: box.x - PADDING.left,
         y: box.y - PADDING.top,
