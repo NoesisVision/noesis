@@ -1,12 +1,13 @@
 // The Java example under examples/discounts-java carries the code before the
-// weather-based discount, a sealed design document of that code, the weather
-// design still to implement, and the system model the Java scanner found in
-// the code. The scanner must keep finding that model: every element the
-// sealed design names by id, what the weather design modifies but not what it
-// adds, and the whole model as committed, so a parser regression fails here
-// and not in a demo.
+// weather-based discount, a sealed design document of that code and the
+// weather design still to implement. The regex Java scanner must keep finding
+// in that code every element the sealed design names by id, what the weather
+// design modifies but not what it adds, and the whole model as the golden
+// file under test/fixtures/java/discounts records it, so a parser regression
+// fails here. The test reads the example and writes nothing; what the example
+// keeps under .noesis/graph/system-models is the demo's and not read here.
 import { describe, expect, it } from 'bun:test';
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
@@ -23,7 +24,11 @@ const WEATHER = join(
   EXAMPLE,
   '.noesis/graph/changes/2026-09-17-weather-based-discount/2026-09-17-weather-based-discount.design-doc.json',
 );
-const SYSTEM_MODELS = join(EXAMPLE, '.noesis/graph/system-models');
+/** What the scanner found in the example's code when the golden was taken; `bun run test` fails when it finds something else. */
+const GOLDEN = resolve(
+  __dirname,
+  '../fixtures/java/discounts/discounts.system-model.json',
+);
 
 // Read only: the scanner reads the checkout and writes nothing.
 async function scan(): Promise<SystemModel> {
@@ -45,15 +50,8 @@ function idsOf(model: SystemModel): Map<string, { type?: unknown }> {
   ]);
 }
 
-async function committedModel(): Promise<SystemModel> {
-  const [file, ...more] = (await readdir(SYSTEM_MODELS)).filter((name) =>
-    name.endsWith('.system-model.json'),
-  );
-  expect(more).toEqual([]);
-  if (file === undefined) throw new Error('No system model in the example');
-  return SystemModel.parse(
-    JSON.parse(await readFile(join(SYSTEM_MODELS, file), 'utf8')),
-  );
+async function goldenModel(): Promise<SystemModel> {
+  return SystemModel.parse(JSON.parse(await readFile(GOLDEN, 'utf8')));
 }
 
 describe('The Java scanner on examples/discounts-java', () => {
@@ -97,8 +95,8 @@ describe('The Java scanner on examples/discounts-java', () => {
     for (const { id } of modified) expect(byId.has(id), id).toBe(true);
     for (const { id } of added) expect(byId.has(id), id).toBe(false);
   });
-  it('finds the model committed with the example, scan time and id apart', async () => {
-    const { id, scanned_at, ...committed } = await committedModel();
+  it('finds the golden model, scan time and id apart', async () => {
+    const { id, scanned_at, ...golden } = await goldenModel();
     expect(id).toMatch(/^[0-9a-f-]{36}$/);
     expect(scanned_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
@@ -106,7 +104,7 @@ describe('The Java scanner on examples/discounts-java', () => {
 
     expect(SystemModelId.safeParse(scannedId).success).toBe(true);
     expect(now).toBe('2026-09-30T00:00:00.000Z');
-    expect(found).toEqual(committed);
+    expect(found).toEqual(golden);
     expect<unknown>(found.modules.map((m) => m.id)).toEqual([
       'module|discounts',
       'module|discounts.calculation',
