@@ -83,6 +83,12 @@ const SYS = {
   object: 'T:System.Object',
 };
 
+const JAVA = {
+  boolean: 'T:java.lang.Boolean',
+  string: 'T:java.lang.String',
+  list: 'T:java.util.List`1',
+};
+
 /* ------------------------------------------------------- annotations */
 
 const ANNOTATIONS = 'T:NoesisVision.Annotations';
@@ -1035,6 +1041,171 @@ describe('5. properties', () => {
       ['amount', 'primitive|integer'],
     ]);
     expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['negate']);
+  });
+
+  /** A Java value object `com.acme.Offer`, to hang private fields and getters on. */
+  const offer = () =>
+    artifact('shop').type('T:com.acme.Offer', {
+      modifiers: ['final'],
+      annotations: [javaAnnotation('ValueObject')],
+    });
+  const privateField: MemberOptions = {
+    visibility: 'private',
+    modifiers: ['readonly'],
+  };
+  const javaProjection = (built: ArtifactBuilder) =>
+    project([built], {}, JAVA_VOCABULARY).model;
+  const propertiesOfOffer = (model: Projection['model']) =>
+    model.buildingBlocks
+      .find((b) => b.name === 'Offer')
+      ?.properties.map((p) => [p.name, p.type]);
+
+  it("R5.8 takes a Java field behind Lombok's generated getter as a property, described by the field, else the getter", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.products', named(JAVA.list, prim('long')), {
+          ...privateField,
+          languageSpecific: { 'java.processorModified': true },
+        })
+        .field('F:com.acme.Offer.total', prim('long'), {
+          ...privateField,
+          documentation: 'What is owed.',
+        })
+        .method('M:com.acme.Offer#getProducts()', {
+          returns: named(JAVA.list, prim('long')),
+          origin: 'generated',
+          documentation: 'The products offered.',
+          languageSpecific: { 'java.engine': 'bytecode' },
+        })
+        .method('M:com.acme.Offer#getTotal()', {
+          returns: prim('long'),
+          origin: 'generated',
+          documentation: 'Ignored: the field has its own.',
+        })
+        .method('M:com.acme.Offer#hashCode()', {
+          returns: prim('int'),
+          origin: 'generated',
+        }),
+    );
+    expect<unknown>(
+      model.buildingBlocks[0]?.properties.map((p) => [p.name, p.description]),
+    ).toEqual([
+      ['products', 'The products offered.'],
+      ['total', 'What is owed.'],
+    ]);
+    expect<unknown>(model.behaviours).toEqual([]);
+  });
+
+  it('R5.8 takes a Java field behind a hand-written getter as a property, and the getter as no behaviour', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .method('M:com.acme.Offer#getTotal()', { returns: prim('long') })
+        .method('M:com.acme.Offer#discount()', { returns: prim('long') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['total', 'primitive|integer'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['discount']);
+  });
+
+  it('R5.8 takes isX() as the getter of a boolean or Boolean field, and only of one', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.paid', prim('boolean'), privateField)
+        .field('F:com.acme.Offer.signed', named(JAVA.boolean), privateField)
+        .field('F:com.acme.Offer.count', prim('int'), privateField)
+        .method('M:com.acme.Offer#isPaid()', { returns: prim('boolean') })
+        .method('M:com.acme.Offer#isSigned()', {
+          returns: named(JAVA.boolean),
+        })
+        .method('M:com.acme.Offer#isCount()', { returns: prim('int') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['paid', 'primitive|boolean'],
+      ['signed', 'primitive|boolean'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['isCount']);
+  });
+
+  it("R5.8 takes Lombok's fluent accessor x() as the getter of x", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .method('M:com.acme.Offer#total()', {
+          returns: prim('long'),
+          origin: 'generated',
+        }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['total', 'primitive|integer'],
+    ]);
+  });
+
+  it("R5.8 takes no getter whose return type is not the field's, nor one that is static, takes parameters or is not public", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .field('F:com.acme.Offer.code', prim('int'), privateField)
+        .field('F:com.acme.Offer.name', named(JAVA.string), privateField)
+        .field('F:com.acme.Offer.note', named(JAVA.string), privateField)
+        .method('M:com.acme.Offer#getTotal()', { returns: named(JAVA.string) })
+        .method('M:com.acme.Offer#getCode()', {
+          returns: prim('int'),
+          modifiers: ['static'],
+        })
+        .method('M:com.acme.Offer#getName(int)', {
+          returns: named(JAVA.string),
+          parameters: [{ name: 'index', type: prim('int') }],
+        })
+        .method('M:com.acme.Offer#getNote()', {
+          returns: named(JAVA.string),
+          visibility: 'namespace',
+        }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getCode',
+      'getName',
+      'getTotal',
+    ]);
+  });
+
+  it('R5.8 takes no static field, constant or excluded field for a property, getter or not', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.instances', prim('long'), {
+          visibility: 'private',
+          modifiers: ['static'],
+        })
+        .field('F:com.acme.Offer.limit', prim('long'), {
+          ...privateField,
+          constantValue: '10',
+        })
+        .method('M:com.acme.Offer#getInstances()', { returns: prim('long') })
+        .method('M:com.acme.Offer#getLimit()', { returns: prim('long') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getInstances',
+      'getLimit',
+    ]);
+  });
+
+  it('R5.8 leaves C# alone: a private field behind a getter method is no property, the method a behaviour', () => {
+    const { model } = project([
+      sales()
+        .field('F:Sales.Orders.Order.total', prim('decimal'), {
+          visibility: 'private',
+        })
+        .method('M:Sales.Orders.Order#getTotal()', { returns: prim('decimal') })
+        .method('M:Sales.Orders.Order#total()', { returns: prim('decimal') }),
+    ]);
+    expect<unknown>(model.buildingBlocks[0]?.properties).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getTotal',
+      'total',
+    ]);
   });
 
   it('R5.6 describes a property by its doc comment', () => {

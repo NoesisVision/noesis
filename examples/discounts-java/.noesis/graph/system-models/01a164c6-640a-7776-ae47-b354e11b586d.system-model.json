@@ -1,7 +1,7 @@
 {
-  "id": "01a1646b-e56e-75de-b777-b6260ce47d2c",
+  "id": "01a164c6-640a-7776-ae47-b354e11b586d",
   "name": "discounts-java",
-  "scanned_at": "2026-10-22T16:22:35.118Z",
+  "scanned_at": "2026-10-22T18:01:25.770Z",
   "modules": [
     {
       "id": "module|discounts",
@@ -51,7 +51,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "userStatus",
+          "type": "building_block|discounts.users.UserStatus",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -79,7 +86,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "appliedDiscount",
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -107,7 +121,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "potentialDiscounts",
+          "type": "building_block|discounts.calculation.PotentialDiscount",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -135,7 +156,20 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "products",
+          "type": "building_block|discounts.calculation.DiscountedProduct",
+          "description": null,
+          "optional": false
+        },
+        {
+          "name": "offerLevelDiscounts",
+          "type": "building_block|discounts.calculation.DiscountAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -149,7 +183,16 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "discountAmounts",
+          "type": {
+            "collectionOf": "building_block|discounts.calculation.DiscountAmount"
+          },
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -179,7 +222,14 @@
       "implements": [
         "building_block|discounts.calculation.Discount"
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "discountToApply",
+          "type": "building_block|discounts.calculation.Discount",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -195,7 +245,14 @@
       "implements": [
         "building_block|discounts.calculation.Discount"
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "fixedDiscountAmount",
+          "type": "building_block|discounts.calculation.DiscountAmount",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -255,7 +312,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "products",
+          "type": "building_block|discounts.offers.Product",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -283,7 +347,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "id",
+          "type": "primitive|uuid",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -297,7 +368,14 @@
       "type": "value_object",
       "description": null,
       "implements": [],
-      "properties": [],
+      "properties": [
+        {
+          "name": "vip",
+          "type": "primitive|boolean",
+          "description": null,
+          "optional": false
+        }
+      ],
       "rules": [],
       "scenarios": [],
       "source": {

@@ -88,6 +88,24 @@ describe('The Java scanner for Maven builds', () => {
     expect<unknown>(args).toContain('-Dnoesis.engine=bytecode');
   });
 
+  it('runs the engine noesis-config.json names when it was given none', async () => {
+    const config = t.noesis.resolve('noesis-config.json');
+    await writeFile(
+      config,
+      JSON.stringify({
+        ...((await Bun.file(config).json()) as object),
+        engine: 'hybrid',
+      }),
+    );
+
+    await scanner.scan();
+
+    const args = (await Bun.file(
+      join(t.noesis.resolve('sessions', 'scanner'), 'fake-scan-args.json'),
+    ).json()) as string[];
+    expect<unknown>(args).toContain('-Dnoesis.engine=hybrid');
+  });
+
   it("prefers the repository's own mvnw when no command is configured", async () => {
     const wrapper = join(t.root, 'mvnw');
     await writeFile(
@@ -153,8 +171,9 @@ describe('The Java scanner for Maven builds', () => {
       implements: [],
       source: { path: `${domain}/orders/Order.java`, line: 14 },
     });
-    // Java has no properties: a class's private fields are none, but a
-    // record's components are (R5.7), the UUID a primitive, OrderId a block.
+    // A class's private fields are no properties unless a getter exposes
+    // them (R5.8), and Order has none; a record's components are (R5.7),
+    // the UUID a primitive, OrderId a block.
     expect<unknown>(order?.properties).toEqual([]);
     expect<unknown>(
       model.buildingBlocks.find((b) => b.name === 'PlaceOrder')?.properties,
@@ -182,10 +201,18 @@ describe('The Java scanner for Maven builds', () => {
         optional: false,
       },
     ]);
-    // A public field is a property too; a record's accessors are not behaviours.
+    // A public field is a property too, and so is a private one behind the
+    // fluent getter product() (R5.8), which is then no behaviour; a record's
+    // accessors are not behaviours.
     expect<unknown>(
       model.buildingBlocks.find((b) => b.name === 'OrderLine')?.properties,
     ).toEqual([
+      {
+        name: 'product',
+        type: 'building_block|shop.products.ProductId',
+        description: null,
+        optional: false,
+      },
       {
         name: 'unitPrice',
         type: 'building_block|shop.orders.Money',
@@ -195,6 +222,9 @@ describe('The Java scanner for Maven builds', () => {
     ]);
     expect<unknown>(ids(model.behaviours)).not.toContain(
       'behavior|shop.orders.Money.amount',
+    );
+    expect<unknown>(ids(model.behaviours)).not.toContain(
+      'behavior|shop.orders.OrderLine.product',
     );
 
     expect<unknown>(
@@ -251,12 +281,6 @@ describe('The Java scanner for Maven builds', () => {
         'Command',
         [],
         ['building_block|shop.orders.Money'],
-      ],
-      [
-        'behavior|shop.orders.OrderLine.product',
-        'Command',
-        [],
-        ['building_block|shop.products.ProductId'],
       ],
       [
         'behavior|shop.orders.PlaceOrderHandler.handle',

@@ -99,7 +99,8 @@ attribute.
   types or overriding members, and it hides nothing else: an excluded type's
   methods still take part in the invocation walk (section 11).
 - **R3.4 Generated members** (`origin: generated`) are never behaviours or
-  properties.
+  properties. A generated getter can still make the field it reads a
+  property (R5.8).
 - **R3.5 Stubs** are never elements: an external type has no annotations the
   stage could read. A stub takes part only in type resolution (section 7).
 
@@ -135,9 +136,10 @@ attribute.
 ## 5. Properties of a building block
 
 - **R5.1 Candidates.** The property and field nodes the block `CONTAINS`
-  that are `public`, not static, not generated and not excluded. Not a
-  candidate: an event (accessors `add`/`remove`), an indexer (`parameters`
-  not empty), an enum member, a constant (`constantValue` not null).
+  that are `public` (or, in Java, exposed by a getter, R5.8), not static,
+  not generated and not excluded. Not a candidate: an event (accessors
+  `add`/`remove`), an indexer (`parameters` not empty), an enum member, a
+  constant (`constantValue` not null).
 - **R5.2 One name, one property.** A field and a property whose names match
   after stripping leading underscores and case (`_total` and `Total`) are
   one property; the property node wins.
@@ -148,12 +150,27 @@ attribute.
   `Nullable<T>`; false otherwise.
 - **R5.5 Order.** By source location (file, line) of the member, then by
   name; name is the key, so two members cannot share one.
-- **R5.6 `description`**: the member's `documentation`, else null.
+- **R5.6 `description`**: the member's `documentation`, else that of the
+  getter that exposes it (R5.8), else null.
 - **R5.7 Record components.** A field the scanner marks
   `java.isRecordComponent` is a candidate although it is private: a Java
   record's state is its components, read through accessors the scanner marks
   the same way, which are therefore not behaviours (R9.1). A C# positional
   record needs no such rule: its components are public properties.
+- **R5.8 Fields behind getters.** In Java (the manifest's language) a field
+  that is not public is a candidate when the block's type declares a getter
+  for it: a method that is `public`, not static, takes no parameters, and
+  is named `getX` for the field `x`, `isX` when the field is a `boolean` or
+  `Boolean`, or `x` itself (Lombok's fluent accessors, and a hand-written
+  `isActive()` for the field `isActive`). The getter returns exactly the
+  field's type, nullability aside, so `String getTotal()` exposes no
+  `long total`; it may be declared or generated (Lombok's `@Value`,
+  `@Data`, `@Getter`), and the field must otherwise be a candidate: an
+  instance field, no constant, not generated, not excluded. A getter that
+  makes its field a property is not a behaviour (R9.1), unless a
+  `behaviour` role says it is. Getters are looked up on the type itself,
+  not inherited, and only by these names; a C# getter method exposes
+  nothing, since C# state is already a public property.
 
 ## 6. Modules
 
@@ -248,11 +265,13 @@ projects is one module.
 - **R9.1 Candidates.** The method nodes a block `CONTAINS` with
   `methodKind: method` (constructors, static initialisers, destructors and
   operators are not behaviours), `public`, not generated, not excluded, not a
-  record component's accessor (R5.7), and not a technical member: `Equals`, `GetHashCode`, `GetType`, `ToString`,
-  `Finalize`, `MemberwiseClone`, `Clone`, `Deconstruct`, `PrintMembers`,
-  `CompareTo`. Static methods are candidates (`Money.Of`,
-  `Order.Factory.NewWith`); interface members are public. A method with a
-  `behaviour` role is a candidate whatever its visibility and name.
+  record component's accessor (R5.7) or a getter that makes its field a
+  property (R5.8), and not a technical member: `Equals`, `GetHashCode`,
+  `GetType`, `ToString`, `Finalize`, `MemberwiseClone`, `Clone`,
+  `Deconstruct`, `PrintMembers`, `CompareTo`. Static methods are
+  candidates (`Money.Of`, `Order.Factory.NewWith`); interface members are
+  public. A method with a `behaviour` role is a candidate whatever its
+  visibility and name.
 - **R9.2 Name.** The `name` of a `behaviour` role on the method, else on
   the member it `OVERRIDES` or `IMPLEMENTS_MEMBER`, nearest first (so the
   interface's `[DomainBehavior("Place order")]` names the implementation's
@@ -349,7 +368,8 @@ BehaviorId[]` (default empty), filled by section 11. The design document's
 3. **No annotation inheritance.** Every block is annotated itself. The old
    scanner's walk over base types and interfaces is not implemented.
 4. **Public methods only** are behaviours.
-5. **Public members only** are properties.
+5. **Public members only** are properties, and in Java the fields a getter
+   exposes (R5.8), since Java state sits behind getters, often Lombok's.
 6. **The behaviour type comes from the annotation** (`EntryPoint`,
    `TriggeredBy`), never from the return type or the name. A behaviour
    without one is a `Command`, the one default this design takes on its own;

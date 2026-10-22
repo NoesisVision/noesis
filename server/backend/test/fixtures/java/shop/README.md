@@ -4,7 +4,8 @@ A small annotated Maven build the Java scanner's unit tests project onto the
 system model (`test/unit/java-maven-scanner.spec.ts`). Every type and member
 is there to show one rule of `docs/plans/code-model-to-system-model.md` in
 Java: the nested `Order.Repository`, the `@Event` record, record components
-as properties (R5.7) beside a public field, the `Map` field no word in the
+as properties (R5.7) beside a public field, `OrderLine`'s private `product`
+behind its fluent getter (R5.8), the `Map` field no word in the
 model has, the overloaded `addLine`, `@QueryHandler` fixing a type (R9.4),
 the chain `handle → logTotal → total`, the `internal` package
 `noesis-config.json` drops, the unannotated `SqlOrderRepository` whose calls
