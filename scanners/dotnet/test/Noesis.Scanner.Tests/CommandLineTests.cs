@@ -20,6 +20,7 @@ public class CommandLineTests
         Assert.Empty(request.ExcludeProjects);
         Assert.Null(request.TargetFramework);
         Assert.False(request.NoRestore);
+        Assert.Null(request.CacheDirectory);
         Assert.Equal(Verbosity.Normal, parsed.Verbosity);
         Assert.False(parsed.ShowHelp);
     }
@@ -37,7 +38,7 @@ public class CommandLineTests
         var parsed = CommandLine.Parse(
         [
             "a.csproj", "b.csproj", "--out", "out", "--repository", "noesis", "--revision", "abc", "--repository-root", "..",
-            "--configuration", "Release", "--projects", "Sales.*,Billing", "--exclude-projects", "*.Tests", "--tfm", "net8.0", "--no-restore", "--verbosity", "detailed",
+            "--configuration", "Release", "--projects", "Sales.*,Billing", "--exclude-projects", "*.Tests", "--tfm", "net8.0", "--no-restore", "--cache", ".noesis/cache/scanner/csharp", "--verbosity", "detailed",
         ], Cwd);
         var request = parsed.Request!;
         Assert.Equal(2, request.Inputs.Count);
@@ -50,6 +51,7 @@ public class CommandLineTests
         Assert.Equal(["*.Tests"], request.ExcludeProjects);
         Assert.Equal("net8.0", request.TargetFramework);
         Assert.True(request.NoRestore);
+        Assert.Equal(Path.Combine(Cwd, ".noesis", "cache", "scanner", "csharp"), request.CacheDirectory);
         Assert.Equal(Verbosity.Detailed, parsed.Verbosity);
     }
 

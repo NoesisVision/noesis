@@ -124,7 +124,9 @@ Both land on the same service layer. Neither bypasses it.
   (`"scanner"`). `java` reads the source as text; `csharp` runs the .NET scanner
   (`scanners/dotnet`, `noesis-scan-csharp` on the PATH) for the code model and projects it onto the
   system model by the rules in `docs/plans/code-model-to-system-model.md`; the dummy replays the
-  implemented design documents. Projecting into the graph waits for the graph.
+  implemented design documents. The C# tool keeps a cache of model files under
+  `.noesis/cache/scanner/csharp/` and compiles only the projects whose inputs changed
+  (`scanners/dotnet/README.md`). Projecting into the graph waits for the graph.
 
 ## Source of truth
 

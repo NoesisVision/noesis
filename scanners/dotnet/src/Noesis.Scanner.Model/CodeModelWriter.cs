@@ -9,7 +9,10 @@ public static class CodeModelWriter
 
     /// <summary>Path of an artifact's model file relative to the output root, with forward slashes, as the manifest lists it.</summary>
     public static string ArtifactFile(Language language, string artifactName) =>
-        $"code-model/{language.Identifier()}/{SafeFileName(artifactName)}.code-model.json";
+        $"code-model/{language.Identifier()}/{ArtifactFileStem(artifactName)}.code-model.json";
+
+    /// <summary>The artifact's name as a file name: invalid characters replaced; the cache names its directories the same way.</summary>
+    public static string ArtifactFileStem(string artifactName) => SafeFileName(artifactName);
 
     public static string ManifestFile(Language language) => $"code-model/{language.Identifier()}/{ManifestFileName}";
 

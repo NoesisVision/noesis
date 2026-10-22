@@ -35,7 +35,10 @@ const PROJECTION_BUDGET_MS = 2_000;
 
 let command: string[];
 
-async function run(cmd: string[], cwd: string): Promise<string> {
+async function run(
+  cmd: string[],
+  cwd: string,
+): Promise<{ out: string; err: string }> {
   const process = Bun.spawn(cmd, { cwd, stdout: 'pipe', stderr: 'pipe' });
   const [out, err, code] = await Promise.all([
     new Response(process.stdout).text(),
@@ -44,7 +47,7 @@ async function run(cmd: string[], cwd: string): Promise<string> {
   ]);
   if (code !== 0)
     throw new Error(`${cmd.join(' ')} failed (${code}):\n${out}${err}`);
-  return out;
+  return { out, err };
 }
 
 beforeAll(async () => {
@@ -104,6 +107,31 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
             CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
           ),
         );
+
+        // The cache: the first run with --cache fills it, the second reuses
+        // every model and writes the same files.
+        const cacheDir = join(outDir, 'cache');
+        const cached = [
+          ...command,
+          EXAMPLE,
+          '--out',
+          outDir,
+          '--repository-root',
+          EXAMPLE,
+          '--cache',
+          cacheDir,
+        ];
+        const filled = await run(cached, EXAMPLE);
+        expect<unknown>(filled.err).toContain('Cache: 0 of 3 model(s) reused');
+        const reused = await run(cached, EXAMPLE);
+        expect<unknown>(reused.err).toContain('Cache: 3 of 3 model(s) reused');
+        for (const { file } of manifest.artifacts) {
+          expect<unknown>(
+            CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
+          ).toEqual(
+            files[manifest.artifacts.findIndex((a) => a.file === file)],
+          );
+        }
       } finally {
         await rm(outDir, { recursive: true, force: true });
       }

@@ -66,6 +66,8 @@ describe('The C# scanner', () => {
       t.root,
       '--repository',
       basename(t.root),
+      '--cache',
+      t.noesis.resolve('cache', 'scanner', 'csharp'),
     ]);
     expect<unknown>(out).toMatch(
       new RegExp(`^${t.noesis.resolve('tmp')}/[0-9a-f-]{36}$`),

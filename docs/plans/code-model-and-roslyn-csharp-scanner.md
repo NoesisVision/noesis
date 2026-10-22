@@ -1052,6 +1052,11 @@ declaration reached as a source symbol, as a metadata symbol from a cached
 
 ### 8.6 Incremental scanning
 
+_Implemented in a narrower form: only the model file is cached, in a ring
+of three per project under `.noesis/cache/scanner/csharp/`, keyed as below
+but with length and mtime in place of the MVID of a metadata reference
+(`scanners/dotnet/src/Noesis.Scanner.CSharp/Caching/`)._
+
 Per project, `.noesis/cache/scanner/dotnet/<project>/` holds the evaluated
 project, the metadata-only `ref.dll` and the last model file, keyed by a
 hash over the evaluation hash, every source and generated file, the MVID of
@@ -1074,6 +1079,34 @@ which reference path each project took. Expected profile once built:
 | Compilation + binding | full, per project; references as `ref.dll`     | none                    | one project                      |
 | Body pass             | parallel per tree                              | none                    | one project                      |
 | Writing               | all projects                                   | copy from cache         | one project                      |
+
+**What the implemented cache leaves open**, in order of value for a
+developer scanning often from AI coding agents on one machine:
+
+1. **Public-surface invalidation**, item 8.5(3). Agents mostly edit bodies,
+   not APIs; with the transitive key a body edit in a core project rescans
+   every dependent. A metadata-only `ref.dll` hash as the dependency input
+   makes the typical edit cost one project.
+2. **No-change short-circuit in the server.** Agents rescan with nothing
+   touched. Hash relative path, length and mtime of every file outside
+   `.noesis/`, `bin/` and `obj/`; when equal to the last scan's and the tool
+   and settings are the same, skip the tool and rebuild the system model
+   from the cached entries. Sub-second instead of the MSBuild floor, which
+   was 2.7 s on `examples/discounts-dotnet` when measured on 2026-10-22
+   (full cold scan 9.3 s, warm 6.0 s, with every project cached 2.4 s).
+3. **A cache shared between worktrees**:
+   `~/.cache/noesis/scanner/<hash of git common dir>/`, where
+   `git rev-parse --git-common-dir` is the same for every worktree of one
+   clone, so a new worktree starts warm. In-repo stays the fallback without
+   git. One path change in `csharp.scanner.ts`.
+4. The evaluation cache, item 8.5(2).
+5. A cache for the Java scanner.
+6. Not planned: a git policy deciding which scan may write (content-keyed
+   entries make it moot: a visit to old code rescans only the projects that
+   differ there), one slot set per branch or per commit, a `main` slot set,
+   an unbounded content-addressed store with its own garbage collection.
+   Each solves a many-branches-on-one-machine problem this persona does not
+   have.
 
 ### 8.7 Smaller items
 

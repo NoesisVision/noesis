@@ -25,6 +25,8 @@ import { headCommit } from '../head-commit';
 const DEFAULT_COMMAND = ['noesis-scan-csharp'];
 /** Where the tool writes under `--out`. */
 const MANIFEST = join('code-model', 'csharp', 'manifest.json');
+/** Under `.noesis/`: the tool's model cache, a ring per project; scanners/dotnet/README.md. */
+const CACHE_DIR = ['cache', 'scanner', 'csharp'] as const;
 const OUTPUT_TAIL = 4000;
 
 const log = serverLogger('scanner', 'csharp');
@@ -41,9 +43,11 @@ export interface CSharpScannerDeps {
 /**
  * The C# scanner in two stages: `noesis-scan-csharp` (scanners/dotnet) reads
  * the solution with Roslyn and writes the code model into a fresh
- * `.noesis/tmp/<uuid>/`, removed once read; the projection (app/code-model/projection) turns it into the
- * system model by the NoesisVision.Annotations vocabulary. Rules in
- * docs/plans/code-model-to-system-model.md.
+ * `.noesis/tmp/<uuid>/`, removed once read, reusing the cached model of every
+ * project whose inputs did not change (`.noesis/cache/scanner/csharp/`); the
+ * projection (app/code-model/projection) turns it into the system model by the
+ * NoesisVision.Annotations vocabulary. Rules in
+ * docs/plans/code-model-to-system-model.md; the cache in scanners/dotnet/README.md.
  */
 export class CSharpSourceCodeScanner implements SourceCodeScanner {
   private readonly noesis: NoesisDir;
@@ -127,6 +131,8 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
       root,
       '--repository',
       name,
+      '--cache',
+      this.noesis.resolve(...CACHE_DIR),
     ];
     log.debug('Running {executable} {args}', { executable, args });
     const output = await run(executable, args, root);

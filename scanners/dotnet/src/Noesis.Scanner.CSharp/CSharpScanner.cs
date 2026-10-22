@@ -1,4 +1,5 @@
 using System.Reflection;
+using Noesis.Scanner.CSharp.Caching;
 using Noesis.Scanner.CSharp.Loading;
 using Noesis.Scanner.Model;
 using Diagnostic = Noesis.Scanner.Model.Diagnostic;
@@ -15,8 +16,11 @@ public static class CSharpScanner
     public static async Task<ScanResult> ScanAsync(ScanRequest request, ScanLog log, CancellationToken cancellationToken = default)
     {
         var manifestDiagnostics = new List<Diagnostic>();
+        var artifacts = new List<ManifestArtifact>();
         var models = new List<CodeModelFile>();
+        var cached = new List<NodeId>();
         var loaded = 0;
+        var cache = new ModelCache(request.CacheDirectory, log);
         try
         {
             using var solution = await new SolutionLoader(request, log).LoadAsync(cancellationToken);
@@ -24,14 +28,20 @@ public static class CSharpScanner
             if (solution.Projects.Count == 0)
                 manifestDiagnostics.Add(ScannerError($"No C# project found under {string.Join(", ", request.Inputs)}."));
             var sourceAssemblies = solution.Projects.Select(project => project.AssemblyName).ToHashSet(StringComparer.Ordinal);
-            var scanner = new ArtifactScanner(Generator, request.RepositoryRoot, sourceAssemblies, log);
+            var keys = new CacheKeys(request, sourceAssemblies, solution.ProblemsOf);
+            var scanner = new ArtifactScanner(Generator, request.RepositoryRoot, sourceAssemblies, cache, keys, log);
+            var stems = new FileStems();
             foreach (var project in solution.Projects)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var (model, wasLoaded) = await scanner.ScanAsync(project, solution.ProblemsOf(project), cancellationToken);
-                models.Add(model);
-                if (wasLoaded) loaded++;
+                var stem = stems.Next(project.AssemblyName);
+                var scan = await scanner.ScanAsync(project, stem, solution.ProblemsOf(project), cancellationToken);
+                artifacts.Add(new ManifestArtifact(scan.Model.Artifact.Id, CodeModelWriter.ArtifactFile(Language.CSharp, stem)));
+                models.Add(scan.Model);
+                if (scan.Loaded) loaded++;
+                if (scan.Cached) cached.Add(scan.Model.Artifact.Id);
             }
+            if (cache.Enabled && request.Projects.Count == 0 && request.ExcludeProjects.Count == 0) cache.Sweep(stems.Used);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -45,11 +55,12 @@ public static class CSharpScanner
             Language.CSharp,
             new RepositoryInfo(request.RepositoryName, request.Revision),
             Root(request),
-            ArtifactFiles(models),
+            artifacts,
             manifestDiagnostics);
         await CodeModelWriter.WriteAsync(request.OutputDirectory, manifest, models, cancellationToken);
+        if (cache.Enabled) log.Info($"Cache: {cached.Count} of {models.Count} model(s) reused from {request.CacheDirectory}");
         var exitCode = loaded > 0 ? ScanExitCode.Success : ScanExitCode.NothingLoaded;
-        return new ScanResult(manifest, models, request.OutputDirectory, exitCode);
+        return new ScanResult(manifest, models, request.OutputDirectory, exitCode, cached);
     }
 
     private static Diagnostic ScannerError(string message) =>
@@ -66,19 +77,20 @@ public static class CSharpScanner
         return string.Join(";", relative);
     }
 
-    /// <summary>One file per model, named after the assembly; a second assembly of the same name gets `~2`.</summary>
-    private static IReadOnlyList<ManifestArtifact> ArtifactFiles(IReadOnlyList<CodeModelFile> models)
+    /// <summary>One file per model, named after the assembly; a second assembly of the same name gets `~2`. The cache directories carry the same names.</summary>
+    private sealed class FileStems
     {
-        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var files = new List<ManifestArtifact>();
-        foreach (var model in models)
+        private readonly HashSet<string> _used = new(StringComparer.OrdinalIgnoreCase);
+
+        public IReadOnlySet<string> Used => _used;
+
+        public string Next(string assemblyName)
         {
-            var name = model.Artifact.Name;
+            var name = CodeModelWriter.ArtifactFileStem(assemblyName);
             var candidate = name;
-            for (var i = 2; !used.Add(candidate); i++) candidate = $"{name}~{i}";
-            files.Add(new ManifestArtifact(model.Artifact.Id, CodeModelWriter.ArtifactFile(Language.CSharp, candidate)));
+            for (var i = 2; !_used.Add(candidate); i++) candidate = $"{name}~{i}";
+            return candidate;
         }
-        return files;
     }
 
     private static string InformationalVersion()
