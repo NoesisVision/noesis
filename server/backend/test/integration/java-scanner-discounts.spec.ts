@@ -5,8 +5,14 @@
 // sealed design names by id, what the weather design modifies but not what it
 // adds, and the whole model as committed, so a parser regression fails here
 // and not in a demo.
+//
+// The code is scanned where it lies; the documents and the model it is held
+// to are copies kept with this spec (test/fixtures/discounts-java), so
+// working on the example's design documents, or scanning it again from the
+// UI, leaves the spec alone. Refresh the copies on purpose when it should
+// follow them.
 import { describe, expect, it } from 'bun:test';
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
@@ -15,15 +21,10 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const EXAMPLE = resolve(__dirname, '../../../../examples/discounts-java');
-const AS_BUILT = join(
-  EXAMPLE,
-  '.noesis/graph/changes/2026-09-16-discounts-as-built/2026-09-16-discounts-as-built.design-doc.json',
-);
-const WEATHER = join(
-  EXAMPLE,
-  '.noesis/graph/changes/2026-09-17-weather-based-discount/2026-09-17-weather-based-discount.design-doc.json',
-);
-const SYSTEM_MODELS = join(EXAMPLE, '.noesis/graph/system-models');
+const FIXTURES = resolve(__dirname, '../fixtures/discounts-java');
+const AS_BUILT = join(FIXTURES, 'as-built.design-doc.json');
+const WEATHER = join(FIXTURES, 'weather-based-discount.design-doc.json');
+const COMMITTED_MODEL = join(FIXTURES, 'system-model.json');
 
 // Read only: the scanner reads the checkout and writes nothing.
 async function scan(): Promise<SystemModel> {
@@ -46,14 +47,7 @@ function idsOf(model: SystemModel): Map<string, { type?: unknown }> {
 }
 
 async function committedModel(): Promise<SystemModel> {
-  const [file, ...more] = (await readdir(SYSTEM_MODELS)).filter((name) =>
-    name.endsWith('.system-model.json'),
-  );
-  expect(more).toEqual([]);
-  if (file === undefined) throw new Error('No system model in the example');
-  return SystemModel.parse(
-    JSON.parse(await readFile(join(SYSTEM_MODELS, file), 'utf8')),
-  );
+  return SystemModel.parse(JSON.parse(await readFile(COMMITTED_MODEL, 'utf8')));
 }
 
 describe('The Java scanner on examples/discounts-java', () => {
