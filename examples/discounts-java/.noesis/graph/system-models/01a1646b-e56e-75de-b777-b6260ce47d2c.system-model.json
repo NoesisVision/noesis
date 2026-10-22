@@ -1,7 +1,7 @@
 {
-  "id": "01a1633e-2f44-7634-9a45-cbcc6a2b4d56",
+  "id": "01a1646b-e56e-75de-b777-b6260ce47d2c",
   "name": "discounts-java",
-  "scanned_at": "2026-10-22T10:53:02.148Z",
+  "scanned_at": "2026-10-22T16:22:35.118Z",
   "modules": [
     {
       "id": "module|discounts",
@@ -9,8 +9,8 @@
       "description": null,
       "rules": [],
       "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts",
-        "line": null
+        "path": "app/src/main/java/com/itlibrium/discounts/App.java",
+        "line": 4
       }
     },
     {
@@ -19,8 +19,8 @@
       "description": null,
       "rules": [],
       "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation",
-        "line": null
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
+        "line": 1
       }
     },
     {
@@ -29,8 +29,8 @@
       "description": null,
       "rules": [],
       "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/offers",
-        "line": null
+        "path": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java",
+        "line": 1
       }
     },
     {
@@ -39,8 +39,8 @@
       "description": null,
       "rules": [],
       "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/users",
-        "line": null
+        "path": "app/src/main/java/com/itlibrium/discounts/users/UserId.java",
+        "line": 1
       }
     }
   ],
@@ -56,7 +56,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
-        "line": null
+        "line": 9
       }
     },
     {
@@ -70,7 +70,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": null
+        "line": 7
       }
     },
     {
@@ -84,7 +84,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java",
-        "line": null
+        "line": 7
       }
     },
     {
@@ -98,7 +98,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
-        "line": null
+        "line": 10
       }
     },
     {
@@ -112,7 +112,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
-        "line": null
+        "line": 8
       }
     },
     {
@@ -126,7 +126,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
-        "line": null
+        "line": 11
       }
     },
     {
@@ -140,7 +140,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
-        "line": null
+        "line": 9
       }
     },
     {
@@ -154,7 +154,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
-        "line": null
+        "line": 10
       }
     },
     {
@@ -168,7 +168,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
-        "line": null
+        "line": 7
       }
     },
     {
@@ -184,7 +184,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": null
+        "line": 35
       }
     },
     {
@@ -200,7 +200,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": null
+        "line": 23
       }
     },
     {
@@ -214,7 +214,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": null
+        "line": 7
       }
     },
     {
@@ -230,7 +230,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": null
+        "line": 13
       }
     },
     {
@@ -246,7 +246,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": null
+        "line": 12
       }
     },
     {
@@ -260,7 +260,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java",
-        "line": null
+        "line": 8
       }
     },
     {
@@ -274,7 +274,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers/Product.java",
-        "line": null
+        "line": 5
       }
     },
     {
@@ -288,7 +288,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserId.java",
-        "line": null
+        "line": 9
       }
     },
     {
@@ -302,7 +302,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatus.java",
-        "line": null
+        "line": 7
       }
     },
     {
@@ -316,57 +316,11 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
-        "line": null
+        "line": 6
       }
     }
   ],
   "behaviours": [
-    {
-      "id": "behavior|discounts.calculation.Conditions.builder",
-      "buildingBlockId": "building_block|discounts.calculation.Conditions",
-      "name": "builder",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
-        "line": 11
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.Conditions.getUserStatus",
-      "buildingBlockId": "building_block|discounts.calculation.Conditions",
-      "name": "getUserStatus",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.users.UserStatus",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
-        "line": 13
-      }
-    },
     {
       "id": "behavior|discounts.calculation.Discount.apply",
       "buildingBlockId": "building_block|discounts.calculation.Discount",
@@ -379,7 +333,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "discountedOffer",
           "type": "building_block|discounts.calculation.DiscountedOffer",
           "description": null,
           "optional": false
@@ -388,36 +342,6 @@
       "output": [
         {
           "type": "building_block|discounts.calculation.DiscountedOffer",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [
-        "behavior|discounts.calculation.DiscountAmount.getAppliedDiscount",
-        "behavior|discounts.calculation.DiscountedOffer.getOfferLevelDiscounts",
-        "behavior|discounts.calculation.DiscountedOffer.getProducts"
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": null
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.DiscountAmount.getAppliedDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountAmount",
-      "name": "getAppliedDiscount",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.Discount",
           "description": null,
           "optional": false
         }
@@ -426,8 +350,8 @@
       "rules": [],
       "scenarios": [],
       "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java",
-        "line": 11
+        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
+        "line": 9
       }
     },
     {
@@ -442,13 +366,13 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "offer",
           "type": "building_block|discounts.offers.Offer",
           "description": null,
           "optional": false
         },
         {
-          "name": "arg1",
+          "name": "user",
           "type": "building_block|discounts.users.UserId",
           "description": null,
           "optional": false
@@ -462,123 +386,15 @@
         }
       ],
       "invokes": [
-        "behavior|discounts.calculation.Conditions.builder",
         "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
         "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
-        "behavior|discounts.offers.Offer.getProducts",
         "behavior|discounts.users.UserStatusProvider.getFor"
       ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
-        "line": 18
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.DiscountConfig.getPotentialDiscounts",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountConfig",
-      "name": "getPotentialDiscounts",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.PotentialDiscount",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
-        "line": 11
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.DiscountedOffer.getOfferLevelDiscounts",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
-      "name": "getOfferLevelDiscounts",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.DiscountAmount",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
-        "line": 14
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.DiscountedOffer.getProducts",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
-      "name": "getProducts",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.DiscountedProduct",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
-        "line": 13
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.DiscountedProduct.getDiscountAmounts",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedProduct",
-      "name": "getDiscountAmounts",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": {
-            "collectionOf": "building_block|discounts.calculation.DiscountAmount"
-          },
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
-        "line": 13
+        "line": 16
       }
     },
     {
@@ -604,7 +420,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
-        "line": 11
+        "line": 10
       }
     },
     {
@@ -619,7 +435,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "previous",
           "type": "building_block|discounts.calculation.DiscountedOffer",
           "description": null,
           "optional": false
@@ -633,61 +449,13 @@
         }
       ],
       "invokes": [
-        "behavior|discounts.calculation.Discount.apply",
-        "behavior|discounts.calculation.DiscountAmount.getAppliedDiscount",
-        "behavior|discounts.calculation.DiscountedOffer.getOfferLevelDiscounts"
+        "behavior|discounts.calculation.Discount.apply"
       ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 45
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.getDiscountToApply",
-      "buildingBlockId": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-      "name": "getDiscountToApply",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.Discount",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 39
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.getDiscountTypeWhichIsExclusive",
-      "buildingBlockId": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-      "name": "getDiscountTypeWhichIsExclusive",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 40
+        "line": 43
       }
     },
     {
@@ -702,7 +470,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "previous",
           "type": "building_block|discounts.calculation.DiscountedOffer",
           "description": null,
           "optional": false
@@ -711,35 +479,6 @@
       "output": [
         {
           "type": "building_block|discounts.calculation.DiscountedOffer",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [
-        "behavior|discounts.calculation.DiscountedOffer.getOfferLevelDiscounts",
-        "behavior|discounts.calculation.DiscountedOffer.getProducts"
-      ],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 31
-      }
-    },
-    {
-      "id": "behavior|discounts.calculation.FixedDiscount.getFixedDiscountAmount",
-      "buildingBlockId": "building_block|discounts.calculation.FixedDiscount",
-      "name": "getFixedDiscountAmount",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.calculation.DiscountAmount",
           "description": null,
           "optional": false
         }
@@ -749,7 +488,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 27
+        "line": 29
       }
     },
     {
@@ -775,7 +514,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": null
+        "line": 10
       }
     },
     {
@@ -790,7 +529,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "conditions",
           "type": "building_block|discounts.calculation.Conditions",
           "description": null,
           "optional": false
@@ -803,15 +542,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|discounts.calculation.Conditions.getUserStatus",
-        "behavior|discounts.users.UserStatus.isVip"
-      ],
+      "invokes": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": null
+        "line": 9
       }
     },
     {
@@ -837,7 +573,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": 23
+        "line": 22
       }
     },
     {
@@ -852,7 +588,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "conditions",
           "type": "building_block|discounts.calculation.Conditions",
           "description": null,
           "optional": false
@@ -865,15 +601,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|discounts.calculation.Conditions.getUserStatus",
-        "behavior|discounts.users.UserStatus.isVip"
-      ],
+      "invokes": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
-        "line": 19
+        "line": 18
       }
     },
     {
@@ -888,7 +621,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "previous",
           "type": "building_block|discounts.calculation.DiscountedOffer",
           "description": null,
           "optional": false
@@ -901,93 +634,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|discounts.calculation.DiscountedOffer.getOfferLevelDiscounts",
-        "behavior|discounts.calculation.DiscountedOffer.getProducts"
-      ],
+      "invokes": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
-        "line": 17
-      }
-    },
-    {
-      "id": "behavior|discounts.offers.Offer.getProducts",
-      "buildingBlockId": "building_block|discounts.offers.Offer",
-      "name": "getProducts",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "building_block|discounts.offers.Product",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java",
-        "line": 11
-      }
-    },
-    {
-      "id": "behavior|discounts.users.UserId.getId",
-      "buildingBlockId": "building_block|discounts.users.UserId",
-      "name": "getId",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "primitive|uuid",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/users/UserId.java",
-        "line": 12
-      }
-    },
-    {
-      "id": "behavior|discounts.users.UserStatus.isVip",
-      "buildingBlockId": "building_block|discounts.users.UserStatus",
-      "name": "isVip",
-      "type": "Command",
-      "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
-      "input": [],
-      "output": [
-        {
-          "type": "primitive|boolean",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "invokes": [],
-      "rules": [],
-      "scenarios": [],
-      "source": {
-        "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatus.java",
-        "line": 10
+        "line": 15
       }
     },
     {
@@ -1002,7 +654,7 @@
       },
       "input": [
         {
-          "name": "arg0",
+          "name": "userId",
           "type": "building_block|discounts.users.UserId",
           "description": null,
           "optional": false
@@ -1020,7 +672,7 @@
       "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
-        "line": 10
+        "line": 9
       }
     }
   ]

@@ -395,9 +395,11 @@ while the sources, the classpath and the settings are unchanged, and is not
 cacheable because the model holds absolute paths. The functional test runs
 the task through Gradle TestKit on `src/test/resources/multi-project`, the
 Gradle twin of the Maven integration test's reactor, and asserts the same
-facts. `examples/discounts-java` applies the plugin with the bytecode engine,
-its sources being Lombok's, and its `noesis-config.json` runs it through the
-`code-model` scanner (section 5a).
+facts. `examples/discounts-java` applies the plugin with the hybrid engine
+(section 4a), its sources being Lombok's, and its `noesis-config.json` runs it
+through the `code-model` scanner (section 5a); its shipped system model has
+the source lines of every building block and, Lombok's accessors being
+`generated`, only the written methods as behaviours.
 
 ## 5a. The service adapter
 
