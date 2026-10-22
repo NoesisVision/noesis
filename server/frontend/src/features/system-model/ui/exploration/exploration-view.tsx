@@ -153,7 +153,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [veiled, setVeiled] = useState<ReadonlySet<string>>(() => new Set());
   const [seeing, setSeeing] = useState(false);
   const [relations, setRelations] = useState<ReadonlySet<RelationKind>>(
-    () => opening?.relations ?? new Set(['contains', 'uses']),
+    () => opening?.relations ?? new Set(['contains', 'uses', 'invokes']),
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
@@ -420,9 +420,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         shown: boolean,
         from: string,
         thenArrange = false,
+        at?: CanvasPoint,
       ) => {
         if (!shown) return remove(ids, from);
-        placeBeside(from, thenArrange ? [from] : []);
+        placeBeside(at ?? from, thenArrange ? [from] : []);
         onShowAll(ids, shown);
       },
       onArrange: (id: string) => void arrange(id),
@@ -881,8 +882,8 @@ function usePlacement(
     },
     [landNodes],
   );
-  // How many times the reader resized a frame by hand, or moved a card
-  // where nothing else needed to follow it.
+  // How many times the reader moved a card where nothing else needed to
+  // follow it.
   const [edits, setEdits] = useState(0);
 
   /*
@@ -1098,8 +1099,7 @@ function usePlacement(
     return () => cancelAnimationFrame(frame);
   }, [placed, flow]);
 
-  // A card moved off its place, or a frame resized, leaves the routes made
-  // for it behind. A card being dragged keeps its place until let go of:
+  // A card moved off its place leaves the routes made for it behind. A card being dragged keeps its place until let go of:
   // only its outline moves.
   const onNodesChange = useCallback(
     (all: NodeChange<ExplorationNode>[]) => {
@@ -1109,21 +1109,8 @@ function usePlacement(
         (change) => !(change.type === 'position' && change.id === dragged),
       );
       if (changes.length === 0) return;
-      if (
-        changes.some(
-          (change) =>
-            change.type === 'position' ||
-            (change.type === 'dimensions' && change.resizing === true),
-        )
-      )
+      if (changes.some((change) => change.type === 'position'))
         setRoutes(NO_ROUTES);
-      // A frame let go of after resizing is a step of its own.
-      if (
-        changes.some(
-          (change) => change.type === 'dimensions' && change.resizing === false,
-        )
-      )
-        setEdits((count) => count + 1);
       onNodesMoved(changes);
     },
     [onNodesMoved],
@@ -1215,7 +1202,7 @@ function descendantsOf(nodes: ExplorationNode[], id: string): string[] {
     .flatMap(({ id: kid }) => [kid, ...descendantsOf(nodes, kid)]);
 }
 
-/** Each card where the reader sees it now, dragged or resized or not. */
+/** Each card where the reader sees it now, dragged or not. */
 const standingOf = (nodes: ExplorationNode[]): PlacedElement[] =>
   nodes
     .filter(({ data }) => !data.leaving)
@@ -1245,6 +1232,7 @@ function nodeOf(
 
 const RELATION_CLASS = {
   uses: `${classes.edge} ${classes.uses}`,
+  invokes: `${classes.edge} ${classes.invokes}`,
 } as const;
 
 const ARROW = {
@@ -1288,9 +1276,9 @@ function edgeOf(
       color:
         highlight === 'highlighted'
           ? 'var(--noesis-architecture-selection)'
-          : relation.kind === 'uses'
-            ? 'var(--mantine-color-brand-filled)'
-            : 'var(--noesis-architecture-edge)',
+          : relation.kind === 'invokes'
+            ? 'var(--mantine-color-grape-filled)'
+            : 'var(--mantine-color-brand-filled)',
     },
   };
 }

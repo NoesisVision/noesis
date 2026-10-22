@@ -43,13 +43,11 @@ export interface PlacedElement {
   height: number;
 }
 
-/** A card's height, whatever its name: its name and what it is. */
-const HEIGHT = 56;
-/** Room along the bottom of a card, or a frame, for the button bringing what it contains. */
-const CONTAINS_ROOM = 34;
-/** A card's height: more when it has elements inside it to bring. */
-export const heightOf = (element: DrawnElement) =>
-  HEIGHT + (element.containsUndrawn ? CONTAINS_ROOM : 0);
+/**
+ * A card's height, whatever its name: its name and what it is. The way to
+ * what it contains sits on its border, so it needs no room of its own.
+ */
+export const HEIGHT = 56;
 /** Wide enough for a short name beside the card's menu and cross. */
 const MIN_WIDTH = 180;
 const MAX_WIDTH = 300;
@@ -71,17 +69,13 @@ const minimumOf = (
 ) =>
   direction === 'vertical' ? `(${height},${width})` : `(${width},${height})`;
 
-/** Room at the top of a container for its name, and round what it holds. */
-const PADDING = { top: 60, left: 16, bottom: 16, right: 16 } as const;
-/** A container's room round what it holds: more at the bottom when it has more to bring. */
-export const paddingOf = (element: DrawnElement) => ({
-  ...PADDING,
-  bottom: PADDING.bottom + (element.containsUndrawn ? CONTAINS_ROOM : 0),
-});
-const elkPaddingOf = (element: DrawnElement) => {
-  const { top, left, bottom, right } = paddingOf(element);
-  return `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
-};
+/**
+ * Room at the top of a container for its name, and round what it holds;
+ * at the bottom enough that the plus on a card's border there and the one
+ * on the container's own stand apart.
+ */
+export const PADDING = { top: 60, left: 16, bottom: 40, right: 16 } as const;
+const CONTAINER_PADDING = `[top=${PADDING.top},left=${PADDING.left},bottom=${PADDING.bottom},right=${PADDING.right}]`;
 /** The room between two cards side by side. */
 export const SPACING = 32;
 
@@ -143,16 +137,16 @@ export async function layoutExploration(
       ? {
           id: element.id,
           width: widthOf(element.name),
-          height: heightOf(element),
+          height: HEIGHT,
         }
       : {
           id: element.id,
           layoutOptions: {
             ...optionsOf(algorithm, direction),
-            'elk.padding': elkPaddingOf(element),
+            'elk.padding': CONTAINER_PADDING,
             'elk.nodeSize.minimum': minimumOf(
               frameWidthOf(element.name),
-              heightOf(element),
+              HEIGHT,
               direction,
             ),
             'elk.nodeSize.constraints': 'MINIMUM_SIZE',
@@ -191,7 +185,7 @@ export async function layoutExploration(
         x: node.x ?? 0,
         y: node.y ?? 0,
         width: node.width ?? widthOf(element.name),
-        height: node.height ?? heightOf(element),
+        height: node.height ?? HEIGHT,
       });
       walk(node.children);
     }

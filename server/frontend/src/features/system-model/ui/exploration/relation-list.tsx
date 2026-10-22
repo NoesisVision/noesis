@@ -35,7 +35,7 @@ export function RelationList({
         Relations
       </Text>
       <Stack gap={0} py={6}>
-        {RELATIONS.map(({ kind, label, implemented }) => (
+        {RELATIONS.map(({ kind, label }) => (
           <Checkbox
             key={kind}
             px="sm"
@@ -43,9 +43,7 @@ export function RelationList({
             size="xs"
             className={classes.row}
             label={label}
-            description={implemented ? undefined : 'Not implemented'}
-            disabled={!implemented}
-            checked={implemented && shown.has(kind)}
+            checked={shown.has(kind)}
             onChange={(event) => {
               const next = new Set(shown);
               if (event.currentTarget.checked) next.add(kind);

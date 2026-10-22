@@ -1,4 +1,6 @@
 import {
+  IconArrowBarToLeft,
+  IconArrowBarToRight,
   IconArrowLeft,
   IconArrowRight,
   IconCaretDown,
@@ -11,9 +13,8 @@ import {
   Handle,
   type Node,
   type NodeProps,
-  NodeResizer,
   Position,
-  useStore,
+  useReactFlow,
 } from '@xyflow/react';
 import { type MouseEvent, useState } from 'react';
 import { KindIcon } from '#/features/design-docs/element-reader.ts';
@@ -32,13 +33,8 @@ import {
   REACHES,
 } from '../../system-model-exploration.ts';
 import { useCardActions, useSelectionState } from './exploration-reading.ts';
-import {
-  frameWidthOf,
-  heightOf,
-  type LayoutDirection,
-  paddingOf,
-  type PlacedElement,
-} from './layout-exploration.ts';
+import type { LayoutDirection, PlacedElement } from './layout-exploration.ts';
+import type { CanvasPoint } from './place-locally.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -68,6 +64,8 @@ const REACH_ICON = {
   isPartOf: IconCornerLeftUp,
   uses: IconArrowRight,
   usedBy: IconArrowLeft,
+  invokes: IconArrowBarToRight,
+  invokedBy: IconArrowBarToLeft,
 } as const satisfies Record<Reach, unknown>;
 
 /** What the round button says it brings, of how many. */
@@ -89,19 +87,24 @@ function useMissing(id: string) {
 const TIDY_UP = 'Tidy up inside';
 
 /*
- * At the middle of the bottom of the card, or the frame: what it contains
- * that is not drawn yet, as a small round button like the one that adds to
- * the diagram, opening a menu of them: all at once first, then each by name
- * and kind. Only where the card was given room for it. What it contains,
- * once on the diagram inside it, is arranged there.
+ * On the middle of the bottom border of the card, or the frame, in its
+ * colours, so it plainly belongs to that box: what it contains that is not
+ * drawn yet, as a small round plus. It opens a menu of them: all at once
+ * first, then each by name and
+ * kind. What it contains, once on the diagram inside it, is arranged there.
  */
-function Contains({ element }: { element: DrawnElement }) {
+function Contains({
+  element,
+  holds,
+}: {
+  element: DrawnElement;
+  holds: boolean;
+}) {
   const { id, name } = element;
   const contains = useMissing(id)?.find(({ each }) => each === 'contains');
-  // Held here, so the button can say so: the tooltip between the menu and
-  // its button keeps the menu's own word on it from reaching the button.
+  // Held here, so the button can say so: the menu's own word on it.
   const [open, setOpen] = useState(false);
-  if (!element.containsUndrawn || contains === undefined) return null;
+  if (contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
   return (
@@ -115,18 +118,16 @@ function Contains({ element }: { element: DrawnElement }) {
       clickOutsideEvents={['pointerdown']}
     >
       <Menu.Target>
-        <ActionIcon
-          size={26}
-          radius="xl"
-          variant="light"
+        <UnstyledButton
           className={`nodrag nopan ${classes.contains}`}
+          data-frame={holds || undefined}
+          data-kind={element.kind}
           aria-label={label}
-          data-tip={label}
           aria-haspopup="menu"
           aria-expanded={open}
         >
-          <IconPlus size={16} stroke={2} aria-hidden />
-        </ActionIcon>
+          <IconPlus size={12} stroke={2.4} aria-hidden />
+        </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown
         className={`nowheel ${classes.reachMenu}`}
@@ -140,9 +141,14 @@ function Contains({ element }: { element: DrawnElement }) {
 }
 
 /** Puts others on the diagram beside the card; what it contains, arranged inside it. */
-function useAdd(id: string, reach: Reach) {
+function useAdd(id: string, reach: Reach, at: CanvasPoint | null = null) {
   const { onShow } = useCardActions();
-  return (ids: string[]) => onShow(ids, true, id, reach === 'contains');
+  // Asked for at a point in a frame, what it contains goes round that point,
+  // and the frame is left as it is laid out.
+  return (ids: string[]) =>
+    at !== null && reach === 'contains'
+      ? onShow(ids, true, id, false, at)
+      : onShow(ids, true, id, reach === 'contains');
 }
 
 /** What a reach's menu offers: all of them at once, then each by name and kind. */
@@ -150,13 +156,16 @@ function ReachItems({
   id,
   reach,
   missing,
+  at = null,
 }: {
   id: string;
   reach: Reach;
   missing: string[];
+  /** Where on the canvas they were asked for, if anywhere. */
+  at?: CanvasPoint | null;
 }) {
   const { elements } = useCardActions();
-  const add = useAdd(id, reach);
+  const add = useAdd(id, reach, at);
   return (
     <>
       <Menu.Item
@@ -215,6 +224,8 @@ const REACH_ACTION = {
   isPartOf: 'Add its parent',
   uses: 'Add what it uses',
   usedBy: 'Add what uses it',
+  invokes: 'Add what it calls',
+  invokedBy: 'Add what calls it',
 } as const satisfies Record<Reach, string>;
 
 /*
@@ -226,10 +237,13 @@ function NodeMenuDropdown({
   id,
   name,
   holds,
+  at = null,
 }: {
   id: string;
   name: string;
   holds: boolean;
+  /** Where on the canvas a frame was right-clicked, for what it contains to go. */
+  at?: CanvasPoint | null;
 }) {
   const { onArrange } = useCardActions();
   const missing = useMissing(id) ?? [];
@@ -252,7 +266,7 @@ function NodeMenuDropdown({
         <Menu.Item disabled>Nothing more to add</Menu.Item>
       )}
       {missing.map(({ each, missing: them }) => (
-        <NodeMenuEntry key={each} id={id} reach={each} missing={them} />
+        <NodeMenuEntry key={each} id={id} reach={each} missing={them} at={at} />
       ))}
     </Menu.Dropdown>
   );
@@ -262,12 +276,14 @@ function NodeMenuEntry({
   id,
   reach,
   missing,
+  at,
 }: {
   id: string;
   reach: Reach;
   missing: string[];
+  at: CanvasPoint | null;
 }) {
-  const add = useAdd(id, reach);
+  const add = useAdd(id, reach, at);
   const Icon = REACH_ICON[reach];
   const icon = <Icon size={14} stroke={1.8} aria-hidden />;
   if (reach === 'isPartOf' && missing.length === 1)
@@ -285,7 +301,7 @@ function NodeMenuEntry({
         </Menu.Sub.Item>
       </Menu.Sub.Target>
       <Menu.Sub.Dropdown className={`nowheel ${classes.reachMenu}`}>
-        <ReachItems id={id} reach={reach} missing={missing} />
+        <ReachItems id={id} reach={reach} missing={missing} at={at} />
       </Menu.Sub.Dropdown>
     </Menu.Sub>
   );
@@ -331,50 +347,6 @@ function NodeMenuButton({
   );
 }
 
-/**
- * The least a frame may be resized to: round what it holds, as dragged,
- * and wide enough for its name beside the cross.
- */
-function useFrameMinimum(element: DrawnElement) {
-  const { id, name } = element;
-  const reach = useStore((state) => {
-    let right = 0;
-    let bottom = 0;
-    for (const node of state.nodes)
-      if (node.parentId === id) {
-        right = Math.max(right, node.position.x + (node.width ?? 0));
-        bottom = Math.max(bottom, node.position.y + (node.height ?? 0));
-      }
-    return `${right} ${bottom}`;
-  });
-  const [right = 0, bottom = 0] = reach.split(' ').map(Number);
-  const padding = paddingOf(element);
-  return {
-    minWidth: Math.max(frameWidthOf(name), right + padding.right),
-    minHeight: Math.max(heightOf(element), bottom + padding.bottom),
-  };
-}
-
-/** Handles round a frame in hand, to make it larger or smaller. */
-function FrameResizer({
-  element,
-  shown,
-}: {
-  element: DrawnElement;
-  shown: boolean;
-}) {
-  const { minWidth, minHeight } = useFrameMinimum(element);
-  return (
-    <NodeResizer
-      isVisible={shown}
-      minWidth={minWidth}
-      minHeight={minHeight}
-      lineClassName={classes.resizeLine}
-      handleClassName={classes.resizeHandle}
-    />
-  );
-}
-
 /*
  * In the top right corner: the card's own menu, and apart from it the way
  * off the diagram — a card's one cross; a frame's two, the cross taking
@@ -401,8 +373,9 @@ function Remove({
         {holds && (
           <ActionIcon
             variant="subtle"
-            color="red"
+            color="gray"
             size="sm"
+            className={classes.remove}
             aria-label={`Remove ${name} and what it holds from the view`}
             data-tip="Remove group"
             onClick={() => onShow([id], false, id)}
@@ -412,8 +385,9 @@ function Remove({
         )}
         <ActionIcon
           variant="subtle"
-          color="red"
+          color="gray"
           size="sm"
+          className={classes.remove}
           aria-label={
             holds
               ? `Remove only ${name}, keeping what it holds`
@@ -437,6 +411,9 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
   const { state, onSelect } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
+  // Where a frame was right-clicked, on the canvas.
+  const [at, setAt] = useState<CanvasPoint | null>(null);
+  const { screenToFlowPosition } = useReactFlow();
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]
@@ -475,6 +452,13 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
     <Menu opened={menu} onChange={setMenu} {...NODE_MENU}>
       <Menu.ContextMenu>
         <Box
+          onContextMenu={(event: MouseEvent) =>
+            setAt(
+              holds
+                ? screenToFlowPosition({ x: event.clientX, y: event.clientY })
+                : null,
+            )
+          }
           className={holds ? classes.container : classes.holder}
           data-kind={element.kind}
           data-state={holds ? state : undefined}
@@ -487,15 +471,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
             className={classes.handle}
           />
           {button}
-          {/* Over the card, beside its button rather than in it: one button
-          cannot hold another. */}
-          {holds && (
-            <FrameResizer
-              element={element}
-              shown={state === 'selected' && !data.leaving}
-            />
-          )}
-          <Contains element={element} />
+          <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
           <Handle
             type="source"
@@ -505,7 +481,12 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           />
         </Box>
       </Menu.ContextMenu>
-      <NodeMenuDropdown id={element.id} name={element.name} holds={holds} />
+      <NodeMenuDropdown
+        id={element.id}
+        name={element.name}
+        holds={holds}
+        at={at}
+      />
     </Menu>
   );
 }

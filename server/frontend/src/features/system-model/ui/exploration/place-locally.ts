@@ -4,8 +4,8 @@ import type {
 } from '../../system-model-exploration.ts';
 import {
   frameWidthOf,
-  heightOf,
-  paddingOf,
+  HEIGHT,
+  PADDING,
   type PlacedElement,
   SPACING,
   widthOf,
@@ -99,8 +99,7 @@ function workspaceOf(
   const kidsOf = (id: string | null) => children.get(id) ?? [];
 
   // What stays keeps its place on the canvas; a container left holding
-  // nothing is a card again. A card is as tall as what it now offers, and a
-  // frame has room at its bottom as it does: they settle once all is known.
+  // nothing is a card again, settled once all is known.
   const rects = new Map<string, Rect>();
   const resized: { id: string; old: Rect }[] = [];
   for (const element of graph.elements) {
@@ -108,19 +107,9 @@ function workspaceOf(
     const was = before.get(element.id);
     if (rect === null || was === undefined) continue;
     const next =
-      kidsOf(element.id).length === 0
-        ? {
-            ...rect,
-            width: was.holds ? widthOf(element.name) : rect.width,
-            height: heightOf(element),
-          }
-        : {
-            ...rect,
-            height:
-              rect.height +
-              paddingOf(element).bottom -
-              paddingOf(was.element).bottom,
-          };
+      kidsOf(element.id).length === 0 && was.holds
+        ? { ...rect, width: widthOf(element.name), height: HEIGHT }
+        : rect;
     rects.set(element.id, next);
     if (!same(next, rect)) resized.push({ id: element.id, old: rect });
   }
@@ -214,7 +203,7 @@ function workspaceOf(
     if (old === undefined) return true;
     const element = byId.get(id);
     if (element === undefined) return true;
-    const padding = paddingOf(element);
+    const padding = PADDING;
     let next = old;
     for (const { id: kid } of placedKids(id)) {
       const rect = rects.get(kid);
@@ -236,8 +225,10 @@ function workspaceOf(
   /**
    * Fits `id` to what it holds, larger or smaller — never past its least
    * size — then its container to it, and so on up; what a container grows
-   * into is pushed aside. A frame left holding nothing is a card already,
-   * so its container is fitted instead.
+   * into is pushed aside. Its top left corner stays where it is, so it
+   * shrinks from the right and the bottom, and grows up or left only for a
+   * card that now stands beyond that corner. A frame left holding nothing
+   * is a card already, so its container is fitted instead.
    */
   const refit = (id: string | null): boolean => {
     if (id === null) return true;
@@ -249,18 +240,17 @@ function workspaceOf(
     );
     if (first === undefined) return refit(element.parent);
     const box = others.reduce((all, rect) => union(all, rect), first);
-    const padding = paddingOf(element);
+    const padding = PADDING;
+    const x = Math.min(old.x, box.x - padding.left);
+    const y = Math.min(old.y, box.y - padding.top);
     const next = {
-      x: box.x - padding.left,
-      y: box.y - padding.top,
+      x,
+      y,
       width: Math.max(
         frameWidthOf(element.name),
-        box.width + padding.left + padding.right,
+        box.x + box.width + padding.right - x,
       ),
-      height: Math.max(
-        heightOf(element),
-        box.height + padding.top + padding.bottom,
-      ),
+      height: Math.max(HEIGHT, box.y + box.height + padding.bottom - y),
     };
     if (same(next, old)) return true;
     rects.set(id, next);
@@ -286,7 +276,24 @@ function workspaceOf(
         fit(kidsOf(id).length > 0 ? id : null) &&
         pushAround(id, old) &&
         fit(byId.get(id)?.parent ?? null),
-    ) && [...leftBehind].every((id) => refit(id));
+    ) && [...leftBehind].every((id) => lift(id) && refit(id));
+
+  /**
+   * What a container still holds raised together to the top of its room,
+   * keeping how it stands among itself, so a gap left at the top by what
+   * went closes and the container shrinks from its bottom.
+   */
+  const lift = (id: string): boolean => {
+    const frame = rects.get(id);
+    const element = byId.get(id);
+    if (frame === undefined || element === undefined) return true;
+    const held = placedKids(id);
+    const top = Math.min(...held.map(({ id: kid }) => rects.get(kid)!.y));
+    const gap = top - (frame.y + PADDING.top);
+    if (held.length > 0 && gap > 0)
+      for (const { id: kid } of held) move(kid, 0, -gap);
+    return true;
+  };
 
   /** Every element where it now stands, relative to its container, containers first. */
   const placed = (): PlacedElement[] => {
@@ -419,7 +426,7 @@ export function placeLocally(
     if (first !== undefined) {
       // A container round what is already drawn of it.
       const box = others.reduce((all, rect) => union(all, rect), first);
-      const padding = paddingOf(element);
+      const padding = PADDING;
       const rect = {
         x: box.x - padding.left,
         y: box.y - padding.top,
@@ -439,12 +446,12 @@ export function placeLocally(
       return fit(parent);
     }
     const width = widthOf(element.name);
-    const height = heightOf(element);
+    const height = HEIGHT;
     if (parent !== null) {
       const container = rects.get(parent);
       const holder = byId.get(parent);
       if (container === undefined || holder === undefined) return false;
-      const padding = paddingOf(holder);
+      const padding = PADDING;
       const siblings = placedKids(parent)
         .filter(({ id }) => id !== element.id)
         .map(({ id }) => rects.get(id)!);
@@ -461,7 +468,16 @@ export function placeLocally(
           height,
           siblings,
           siblings,
-          siblings.length === 0 ? { x: room.x, y: room.y } : null,
+          // Asked for at a point inside the container: centred on it, kept
+          // inside the room; else, with nothing beside it, at its corner.
+          point !== null
+            ? {
+                x: Math.max(room.x, point.x - width / 2),
+                y: Math.max(room.y, point.y - height / 2),
+              }
+            : siblings.length === 0
+              ? { x: room.x, y: room.y }
+              : null,
           room,
         ),
       );
@@ -525,11 +541,11 @@ export function arrangeWithin(
   const frame = rects.get(id);
   const element = byId.get(id);
   if (frame === undefined || element === undefined) return null;
-  const padding = paddingOf(element);
+  const padding = PADDING;
   const origin = { x: frame.x + padding.left, y: frame.y + padding.top };
   const at = new Map(inside.map((each) => [each.element.id, each]));
   let right = frame.x + frameWidthOf(element.name);
-  let bottom = frame.y + heightOf(element);
+  let bottom = frame.y + HEIGHT;
   const set = (parent: string, from: { x: number; y: number }) => {
     for (const { id: kid } of kidsOf(parent)) {
       const laid = at.get(kid);

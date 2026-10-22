@@ -3,6 +3,7 @@ import type {
   ExploredElement,
   Neighbours,
 } from '../../system-model-exploration.ts';
+import type { CanvasPoint } from './place-locally.ts';
 
 /*
  * What a card shows of the selection, and what it can put on the diagram.
@@ -31,6 +32,8 @@ export interface ExplorationReading {
     shown: boolean,
     from: string,
     arrange?: boolean,
+    /** Where on the canvas they were asked for, to stand round, if anywhere. */
+    at?: CanvasPoint,
   ) => void;
   /** Places what a container holds anew, inside it, the rest left standing. */
   onArrange: (id: string) => void;

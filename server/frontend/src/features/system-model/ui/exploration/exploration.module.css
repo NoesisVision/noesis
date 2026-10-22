@@ -129,6 +129,11 @@
   stroke: var(--mantine-color-brand-filled);
 }
 
+/* A call, apart from a use by its colour as well as its word. */
+.edge.invokes :global(.react-flow__edge-path) {
+  stroke: var(--mantine-color-grape-filled);
+}
+
 /* The selection's own relations stand out; the rest step back. */
 .edge.highlighted :global(.react-flow__edge-path) {
   stroke: var(--noesis-architecture-selection);
@@ -288,8 +293,7 @@
 
 /*
  * A card's or a frame's actions in its top right corner: its menu, and a
- * little apart the ways off the diagram, each group drawn as one — an
- * outlined strip, a thin rule between its buttons.
+ * little apart the ways off the diagram, each a quiet round button.
  */
 .corner {
   position: absolute;
@@ -301,19 +305,20 @@
 
 .strip {
   display: inline-flex;
-  align-items: stretch;
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-sm);
-  background: var(--mantine-color-body);
-
-  & > * {
-    border-radius: 0;
-  }
+  align-items: center;
+  gap: 2px;
 }
 
-/* Named with the exploration, to win over the buttons' own borders. */
-.exploration .strip > * + * {
-  border-left: 1px solid var(--mantine-color-default-border);
+/* Round and see-through, a light ground only under the pointer; named with
+   the exploration, to win over the buttons' own shape. */
+.exploration .strip > * {
+  border-radius: 50%;
+}
+
+/* The ways off the diagram, as quiet as the menu until the pointer is on one. */
+.exploration .strip > .remove:hover {
+  background: var(--mantine-color-red-light);
+  color: var(--mantine-color-red-filled);
 }
 
 /* A card comes onto the diagram growing in, and leaves it shrinking out. */
@@ -437,19 +442,6 @@
   }
 }
 
-/* A frame in hand is resized by its edges and corners, in the selection's colour. */
-.exploration .resizeLine {
-  border-color: var(--noesis-architecture-selection);
-}
-
-.exploration .resizeHandle {
-  width: 9px;
-  height: 9px;
-  border: 1px solid var(--mantine-color-body);
-  border-radius: 2px;
-  background: var(--noesis-architecture-selection);
-}
-
 /* A reach's menu: long enough for a module's worth, then it scrolls. */
 .reachMenu {
   max-height: min(360px, 60dvh);
@@ -533,12 +525,51 @@
 
 /* How many a reach would bring, after its word. */
 /* What it contains, at the middle of its bottom, in the room kept for it. */
+/* On the middle of the bottom border, in the box's own colours: a round plus. */
 .exploration .contains {
   position: absolute;
-  bottom: 6px;
-  left: calc(50% - 13px);
-  box-shadow: var(--mantine-shadow-md);
+  bottom: -12px;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--noesis-architecture-edge);
+  border-radius: 50%;
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-gray-7);
+  transform: translateX(-50%);
+
+  &[data-frame] {
+    border-color: var(--noesis-architecture-module-border);
+    background: light-dark(
+      var(--mantine-color-brand-0),
+      var(--mantine-color-dark-6)
+    );
+    color: var(--mantine-color-brand-7);
+  }
+
+  &[data-frame][data-kind='building_block'] {
+    border-color: var(--noesis-architecture-core-border);
+  }
+
+  &:hover,
+  &:focus-visible,
+  &[aria-expanded='true'] {
+    border-color: var(--mantine-color-brand-5);
+    color: var(--mantine-color-brand-7);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
 }
+
 .reachCount {
   font-variant-numeric: tabular-nums;
   opacity: 0.8;

@@ -104,6 +104,7 @@ const model = {
         },
       ],
       output: [],
+      invokes: [],
       rules: [],
       scenarios: [],
       source,
@@ -164,6 +165,45 @@ describe('the exploration of a system model', () => {
     expect(graph.relations).toEqual([]);
   });
 
+  it('draws a call between behaviours as an edge, and reads it from both sides', () => {
+    // The order's place calls a check on its line, as a scanner records it.
+    const check = {
+      ...model.behaviours[0]!,
+      id: 'behavior|shop.orders.Line.check',
+      buildingBlockId: 'building_block|shop.orders.Line',
+      name: 'check',
+      input: [],
+    };
+    const calling = explorationOf({
+      ...model,
+      behaviours: [
+        { ...model.behaviours[0]!, invokes: [check.id] },
+        { ...check, invokes: [] },
+      ],
+    } as unknown as SystemModel);
+    expect(calling.invokes).toEqual([
+      ['behavior|shop.orders.Order.place', 'behavior|shop.orders.Line.check'],
+    ]);
+    const graph = graphOf(calling, {
+      hidden: new Set(),
+      relations: new Set(['invokes']),
+    });
+    expect(
+      graph.relations
+        .filter(({ kind }) => kind === 'invokes')
+        .map(({ id }) => id),
+    ).toEqual([
+      'invokes:behavior|shop.orders.Order.place->behavior|shop.orders.Line.check',
+    ]);
+    const neighbours = neighboursOf(calling);
+    expect(neighbours.get('behavior|shop.orders.Order.place')!.invokes).toEqual(
+      ['behavior|shop.orders.Line.check'],
+    );
+    expect(
+      neighbours.get('behavior|shop.orders.Line.check')!.invokedBy,
+    ).toEqual(['behavior|shop.orders.Order.place']);
+  });
+
   it('groups what may be hidden by kind of element', () => {
     expect(elementSectionsOf(exploration)).toEqual([
       { title: 'Modules', groups: [{ group: 'module', count: 2 }] },
@@ -179,10 +219,13 @@ describe('the exploration of a system model', () => {
   });
 });
 
-it('lays out every relation and every kind in the visibility panel, the one the scan holds nothing for switched off', () => {
-  expect(
-    RELATIONS.filter(({ implemented }) => !implemented).map(({ kind }) => kind),
-  ).toEqual(['invokes']);
+it('lays out every relation and every kind in the visibility panel', () => {
+  expect(RELATIONS.map(({ kind }) => kind)).toEqual([
+    'contains',
+    'isPartOf',
+    'uses',
+    'invokes',
+  ]);
   const html = renderToStaticMarkup(
     <MantineProvider>
       <VisibilityPanel
@@ -199,7 +242,7 @@ it('lays out every relation and every kind in the visibility panel, the one the 
   expect(html).toContain('aria-label="Close the visibility panel"');
   for (const label of ['Contains', 'Is part of', 'Uses', 'Invokes'])
     expect(html).toContain(`>${label}<`);
-  expect(html).toContain('Not implemented');
+  expect(html).not.toContain('Not implemented');
   expect(html).toContain('Value Object');
   expect(html).toContain('Module');
 });
@@ -521,14 +564,14 @@ describe('placing a change from one card', () => {
     pattern: null,
     container: parent,
     parent,
-    containsUndrawn: false,
   });
   const at = (
     each: ReturnType<typeof element>,
     x: number,
     y: number,
     width = 150,
-    height = 52,
+    // As tall as a card is drawn.
+    height = 56,
     holds = false,
   ) => ({ element: each, holds, x, y, width, height });
   const graphOf = (...elements: ReturnType<typeof element>[]) => ({
@@ -655,12 +698,12 @@ describe('placing a change from one card', () => {
     )!;
     const byId = new Map(placed.map((each) => [each.element.id, each]));
     const frame = byId.get('Box')!;
-    // Round both cards, from the one left at 144 down to the one let go of
-    // at 200, which stands where it was dropped; a card is 56 high.
-    expect(frame).toMatchObject({ x: 0, y: 144 - 60 });
-    expect(byId.get('Kid')).toMatchObject({ x: 260, y: 200 - (144 - 60) });
+    // Its corner where it was, down to the one let go of at 200, which
+    // stands where it was dropped; a card is 56 high.
+    expect(frame).toMatchObject({ x: 0, y: 0 });
+    expect(byId.get('Kid')).toMatchObject({ x: 260, y: 200 });
     expect(frame.width).toBe(260 + 150 + 16);
-    expect(frame.height).toBe(60 + (200 + 56 - 144) + 16);
+    expect(frame.height).toBe(200 + 56 + 40);
     // What the frame then reaches is pushed aside.
     expect(apart(frame, byId.get('Next')!)).toBe(true);
   });
@@ -725,7 +768,7 @@ describe('placing a change from one card', () => {
     // A frame with its room full, the reader adding three more from it.
     const placed = placeLocally(
       [
-        at(box, 100, 100, 16 + 150 + 32 + 150 + 16, 60 + 56 + 16, true),
+        at(box, 100, 100, 16 + 150 + 32 + 150 + 16, 60 + 56 + 40, true),
         at(one, 16, 60, 150, 56),
         at(two, 16 + 150 + 32, 60, 150, 56),
       ],
@@ -740,6 +783,21 @@ describe('placing a change from one card', () => {
       expect(card.x).toBeGreaterThanOrEqual(16);
       expect(card.y).toBeGreaterThanOrEqual(60);
     }
+  });
+
+  it('puts what a frame contains where the frame was right-clicked', () => {
+    const box = element('Box');
+    const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+    const placed = placeLocally(
+      [at(box, 100, 100, 600, 400, true), at(one, 16, 60)],
+      graphOf(box, one, two),
+      { x: 100 + 400, y: 100 + 300 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    // Centred on the click — a new card 180 wide, 56 high — in the frame,
+    // which keeps its place and size.
+    expect(byId.get('Two')).toMatchObject({ x: 400 - 90, y: 300 - 28 });
+    expect(byId.get('Box')).toMatchObject({ x: 100, y: 100, width: 600 });
   });
 
   describe('dropped in another module', () => {
@@ -804,8 +862,9 @@ describe('placing a change from one card', () => {
         placed.find(({ element }) => element.id === 'A.kid')!.element.parent,
       ).toBe('A');
       expect(inside(b, card)).toBe(false);
-      // Nothing had to make way.
-      expect(b).toMatchObject({ x: 400, y: 0 });
+      // Its own module, fitted round it, stands clear of the other.
+      const a = placed.find(({ element }) => element.id === 'A')!;
+      expect(apart(a, b)).toBe(true);
     });
 
     it('lands beside it with no side free, the modules round it pushed aside', () => {
@@ -851,8 +910,27 @@ describe('placing a change from one card', () => {
     const frame = new Map(placed.map((each) => [each.element.id, each])).get(
       'Box',
     )!;
-    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 16 });
+    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 40 });
     expect(frame.width).toBeLessThan(600);
+  });
+
+  it('raises what is left when a card at the top of a frame is taken off', () => {
+    const box = element('Box');
+    const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+    const placed = placeLocally(
+      [at(box, 100, 100, 400, 300, true), at(one, 16, 60), at(two, 16, 200)],
+      graphOf(box, two),
+      'One',
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    // Its corner where it was; what is left raised to the top of it, so it
+    // shrinks from its bottom.
+    expect(byId.get('Box')).toMatchObject({
+      x: 100,
+      y: 100,
+      height: 60 + 56 + 40,
+    });
+    expect(byId.get('Two')).toMatchObject({ x: 16, y: 60 });
   });
 
   it('shrinks a frame to what is left in it when a card is taken off', () => {
@@ -866,7 +944,7 @@ describe('placing a change from one card', () => {
     const frame = new Map(placed.map((each) => [each.element.id, each])).get(
       'Box',
     )!;
-    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 16 });
+    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 40 });
   });
 
   it('grows the frame up and left when a card is dropped there', () => {
