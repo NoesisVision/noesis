@@ -41,8 +41,8 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = scannerWith('--source', FIXTURE);
   await cp(
-    join(FIXTURE, 'noesis-config.json'),
-    join(t.root, 'noesis-config.json'),
+    join(FIXTURE, '.noesis', 'noesis-config.json'),
+    t.noesis.resolve('noesis-config.json'),
   );
 });
 
@@ -339,7 +339,7 @@ describe('The Java scanner for Maven builds', () => {
   });
 
   it('maps packages by noesis-config.json, every package to itself without one', async () => {
-    await writeFile(join(t.root, 'noesis-config.json'), '{}');
+    await writeFile(t.noesis.resolve('noesis-config.json'), '{}');
 
     const model = await scanner.scan();
 

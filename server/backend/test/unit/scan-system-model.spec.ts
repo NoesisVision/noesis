@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
 import {
   createScanner,
@@ -79,7 +78,10 @@ describe('createScanner', () => {
     'code-model': () => scannerOf(found('code-model')),
   };
   const configure = (scanner: string) =>
-    writeFile(join(t.root, 'noesis-config.json'), JSON.stringify({ scanner }));
+    writeFile(
+      t.noesis.resolve('noesis-config.json'),
+      JSON.stringify({ scanner }),
+    );
 
   it('scans with the scanner noesis-config.json names, read at every scan', async () => {
     const scanner = createScanner(undefined, deps(), scanners);

@@ -28,7 +28,7 @@ let scanner: ConfiguredCodeModelScanner;
 
 const configure = (config: Record<string, unknown>) =>
   writeFile(
-    join(t.root, 'noesis-config.json'),
+    t.noesis.resolve('noesis-config.json'),
     JSON.stringify({ scanner: 'code-model', ...config }),
   );
 

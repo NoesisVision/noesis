@@ -89,7 +89,7 @@ rewrites `code-model/java/manifest.json`, which lists every module scanned so
 far in reactor order; `pom` modules are skipped. The first module to run
 clears the previous scan's files.
 
-The service runs exactly this invocation when `noesis-config.json` says
+The service runs exactly this invocation when `.noesis/noesis-config.json` says
 `"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
 so `mvn -q install -DskipTests` here is the one setup step. Any other
 invocation that writes the same files, this plugin with other flags or the
@@ -147,7 +147,7 @@ sets a scan up without touching the build:
 | `noesis.engine`         | `source`                                                               | `source` or `bytecode`                                                                |
 | `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
 
-The service runs the task when `noesis-config.json` says so; `{out}`,
+The service runs the task when `.noesis/noesis-config.json` says so; `{out}`,
 `{root}` and `{name}` are filled in with the session directory, the
 repository root and its name:
 

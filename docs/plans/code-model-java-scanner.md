@@ -335,7 +335,7 @@ its sources being Lombok's, and its `noesis-config.json` runs it through the
 
 ## 5a. The service adapter
 
-`scanner: "java-maven"` in `noesis-config.json` selects
+`scanner: "java-maven"` in `.noesis/noesis-config.json` selects
 `JavaMavenSourceCodeScanner` (`server/backend/src/adapters/out/scanners/java-maven/`),
 which shares its two-stage shape with the C# adapter through
 `code-model-scanner.ts`: run a command line into the session directory, find

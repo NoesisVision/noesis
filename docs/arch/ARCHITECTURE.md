@@ -119,7 +119,7 @@ Both land on the same service layer. Neither bypasses it.
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
-  System model page. The repository names its scanner in `noesis-config.json` (`"scanner"`), read
+  System model page. The repository names its scanner in `.noesis/noesis-config.json` (`"scanner"`), read
   at every scan: `java` reads the source as text; `code-model` runs the command line of the file's
   `codeModel` block (a Gradle build's `noesisScan` task, say) and projects the code model it wrote
   onto the system model by the vocabulary of the language the manifest names, with the rules in

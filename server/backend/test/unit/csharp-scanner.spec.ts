@@ -37,8 +37,8 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = scannerWith('--source', FIXTURE);
   await cp(
-    join(FIXTURE, 'noesis-config.json'),
-    join(t.root, 'noesis-config.json'),
+    join(FIXTURE, '.noesis', 'noesis-config.json'),
+    t.noesis.resolve('noesis-config.json'),
   );
 });
 
@@ -332,7 +332,7 @@ describe('The C# scanner', () => {
   });
 
   it('maps namespaces by noesis-config.json, every namespace to itself without one', async () => {
-    await writeFile(join(t.root, 'noesis-config.json'), '{}');
+    await writeFile(t.noesis.resolve('noesis-config.json'), '{}');
 
     const model = await scanner.scan();
 
@@ -370,7 +370,7 @@ describe('The C# scanner', () => {
 
   it('fails on a noesis-config.json of the wrong shape', async () => {
     await writeFile(
-      join(t.root, 'noesis-config.json'),
+      t.noesis.resolve('noesis-config.json'),
       JSON.stringify({ namespacePartsToSkip: 'MyCompany' }),
     );
 
