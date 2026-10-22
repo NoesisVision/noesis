@@ -485,7 +485,8 @@ describe('the way into the picker', () => {
           total={exploration.elements.length}
           document={designOf(model)}
           isShown={() => false}
-          onShow={() => {}}
+          onPick={() => {}}
+          onAddAll={() => {}}
           onClear={() => {}}
         />
       </MantineProvider>,
@@ -528,6 +529,7 @@ describe('placing a change from one card', () => {
     pattern: null,
     container: parent,
     parent,
+    containsUndrawn: false,
   });
   const at = (
     each: ReturnType<typeof element>,

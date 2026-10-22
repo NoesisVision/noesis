@@ -301,7 +301,7 @@ const NODE_MENU = {
   withinPortal: true,
   position: 'bottom-start',
   // The canvas stops a mouse press from reaching the page; a pointer's does.
-  clickOutsideEvents: ['pointerdown'],
+  clickOutsideEvents: ['pointerdown'] as string[],
 } as const;
 
 /** The card's dots, in its corner beside the way off: its own menu. */
