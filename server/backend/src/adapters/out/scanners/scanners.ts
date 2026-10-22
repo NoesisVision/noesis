@@ -1,6 +1,5 @@
 import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import type { SystemModel } from '#backend/app/system-model/system-model';
-import type { ScannerOverride } from '#backend/platform/config/config';
 import { ConfiguredCodeModelScanner } from './configured-code-model.scanner';
 import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
@@ -23,6 +22,7 @@ const REPOSITORY_SCANNERS: RepositoryScanners = {
   'java-maven': (deps) => new JavaMavenSourceCodeScanner(deps),
   csharp: (deps) => new CSharpSourceCodeScanner(deps),
   'code-model': (deps) => new ConfiguredCodeModelScanner(deps),
+  dummy: (deps) => new DummySourceCodeScanner(deps),
 };
 
 /**
@@ -44,17 +44,14 @@ class ConfiguredSourceCodeScanner implements SourceCodeScanner {
 }
 
 /**
- * The scanner the scan handler gets: the one the repository configures,
- * unless `override` asks for the dummy, which replays the implemented design
- * documents instead of reading code. `deps` is what the dummy replays from;
- * the language scanners take the repository root and the clock from it.
+ * The scanner the scan handler gets: the one the repository configures, and
+ * nothing else; the environment names no scanner. `deps` is what the dummy
+ * replays from; the language scanners take the repository root and the clock
+ * from it.
  */
 export function createScanner(
-  override: ScannerOverride | undefined,
   deps: DummyScannerDeps,
   scanners: RepositoryScanners = REPOSITORY_SCANNERS,
 ): SourceCodeScanner {
-  return override === 'dummy'
-    ? new DummySourceCodeScanner(deps)
-    : new ConfiguredSourceCodeScanner(deps, scanners);
+  return new ConfiguredSourceCodeScanner(deps, scanners);
 }

@@ -15,13 +15,16 @@ function noesisConfigPath(repositoryRoot: string): string {
 
 /**
  * The scanners a repository can name: `code-model` runs the command line of
- * its `codeModel` block, the others are built-in presets of it.
+ * its `codeModel` block, `java`, `java-maven` and `csharp` are built-in
+ * presets of it, and `dummy` reads no code: it replays the implemented
+ * design documents, for a repository that has no code to scan yet.
  */
 export const RepositoryScannerName = z.enum([
   'java',
   'java-maven',
   'csharp',
   'code-model',
+  'dummy',
 ]);
 export type RepositoryScannerName = z.infer<typeof RepositoryScannerName>;
 

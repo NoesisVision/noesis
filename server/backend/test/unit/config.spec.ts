@@ -26,23 +26,12 @@ describe('server configuration', () => {
     expect(parseServerConfig({ PORT: 'many' }).ok).toBe(false);
   });
 
-  it('scans by the repository configuration unless NOESIS_SCANNER=dummy forces the dummy', () => {
-    expect(parseServerConfig({})).toMatchObject({
-      config: { scanner: undefined },
-    });
-    expect(parseServerConfig({ NOESIS_SCANNER: 'dummy' })).toMatchObject({
-      config: { scanner: 'dummy' },
-    });
-  });
+  it('reads no scanner from the environment: the repository names its own in noesis-config.json', () => {
+    const result = parseServerConfig({ NOESIS_SCANNER: 'dummy' });
 
-  it('rejects a scanner in the environment: the repository names its own', () => {
-    for (const name of ['java', 'csharp', 'cobol']) {
-      const result = parseServerConfig({ NOESIS_SCANNER: name });
-
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.message).toContain('NOESIS_SCANNER');
-    }
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect('scanner' in result.config).toBe(false);
   });
 
   it('rejects an empty root rather than silently ignoring it', () => {

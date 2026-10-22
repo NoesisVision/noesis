@@ -23,17 +23,15 @@ import { updateDocumentInChangeHandler } from '#backend/app/information-sources/
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type { ScannerOverride } from '#backend/platform/config/config';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /**
  * Wires the file repositories under `.noesis/`, and the scanner the
- * repository configures (or the dummy, when `scanner` forces it), to the
- * handlers that use them.
+ * repository configures in its `noesis-config.json`, to the handlers that use
+ * them.
  */
 export function createServices(
   noesis: NoesisDir,
-  scanner: ScannerOverride | undefined,
   today: Today = localToday,
   now: Now = utcNow,
 ) {
@@ -89,7 +87,7 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      createScanner(scanner, { noesis, changes, designDocs, now }),
+      createScanner({ noesis, changes, designDocs, now }),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

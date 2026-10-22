@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { writeFile } from 'node:fs/promises';
-import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
+import { rm, writeFile } from 'node:fs/promises';
+import { basename } from 'node:path';
 import {
   createScanner,
   type RepositoryScanners,
@@ -76,6 +76,7 @@ describe('createScanner', () => {
     'java-maven': () => scannerOf(found('java-maven')),
     csharp: () => scannerOf(found('csharp')),
     'code-model': () => scannerOf(found('code-model')),
+    dummy: () => scannerOf(found('dummy')),
   };
   const configure = (scanner: string) =>
     writeFile(
@@ -84,30 +85,34 @@ describe('createScanner', () => {
     );
 
   it('scans with the scanner noesis-config.json names, read at every scan', async () => {
-    const scanner = createScanner(undefined, deps(), scanners);
+    const scanner = createScanner(deps(), scanners);
 
     await configure('java');
     expect((await scanner.scan()).name).toBe('java');
     await configure('csharp');
     expect((await scanner.scan()).name).toBe('csharp');
+    await configure('dummy');
+    expect((await scanner.scan()).name).toBe('dummy');
   });
 
   it('refuses to scan a repository that names no scanner', async () => {
-    const scanner = createScanner(undefined, deps(), scanners);
+    const scanner = createScanner(deps(), scanners);
+    await rm(t.noesis.resolve('noesis-config.json'));
 
     await expect(scanner.scan()).rejects.toThrow(
-      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, java-maven, csharp, code-model\./,
+      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, java-maven, csharp, code-model, dummy\./,
     );
     await configure('cobol');
     await expect(scanner.scan()).rejects.toThrow('Invalid noesis-config.json');
   });
 
-  it('replays design documents with the dummy when the environment forces it', async () => {
-    await configure('java');
+  it('replays design documents when noesis-config.json names the dummy', async () => {
+    await configure('dummy');
 
-    expect(createScanner('dummy', deps(), scanners)).toBeInstanceOf(
-      DummySourceCodeScanner,
-    );
+    const model = await createScanner(deps()).scan();
+
+    expect(model.modules).toEqual([]);
+    expect(model.name).toBe(basename(t.root));
   });
 });
 

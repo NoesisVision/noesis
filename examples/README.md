@@ -77,10 +77,11 @@ Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 Each `discounts-*` example names its scanner in `.noesis/noesis-config.json`, which a
 scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
 says `"code-model"` with the `./gradlew noesisScan` command line to run in its
-`codeModel` block (`"java-maven"` would run the Maven plugin, `"java"` reads
-the sources as text). `qdoc-java`
-sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
-scan, so a scan replays its implemented design documents.
+`codeModel` block, `qdoc-java` says `"java-maven"`, which runs the Maven
+plugin through its `mvnw` (`"java"` reads the sources as text; `"dummy"`
+reads no code and replays the implemented design documents, for a repository
+without code). `qdoc-java` has no domain code yet, so its scan finds an empty
+model. Nothing but that file picks the scanner; no environment variable does.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.
@@ -99,8 +100,15 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
   `./gradlew publishToMavenLocal` in `scanners/java/gradle-plugin` first, then
   `./gradlew build` in the example. `./gradlew noesisScan` there scans the
   example into the code model under `.noesis/sessions/scanner/code-model/java/`
-  with the bytecode engine (its sources use Lombok); a scan from the service
+  with the hybrid engine (its sources use Lombok); a scan from the service
   runs the same command through its `.noesis/noesis-config.json`.
+- `qdoc-java` is a Spring Boot Maven project that depends on
+  `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT` and declares the
+  `noesis-scanner-maven-plugin`, both from the local repository: run
+  `mvn install` in `scanners/java` first, then `./mvnw process-classes noesis:scan`
+  in the example writes the code model under
+  `.noesis/sessions/scanner/code-model/java/`; a scan from the service runs the
+  plugin the same way through its `.noesis/noesis-config.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet
   feed in its `nuget.config`; `dotnet build MyCompany.ECommerce.sln` builds it
   (net8.0). It is a library and its tests, nothing runs.

@@ -125,9 +125,9 @@ Both land on the same service layer. Neither bypasses it.
   onto the system model by the vocabulary of the language the manifest names, with the rules in
   `docs/plans/code-model-to-system-model.md`; `csharp` (the .NET scanner, `noesis-scan-csharp` on
   the PATH) and `java-maven` (the Java scanner's Maven plugin, installed once with `mvn install`)
-  are fixed command lines of the same kind. A new tool is a new config file, not a new adapter.
-  `NOESIS_SCANNER=dummy` replays the implemented design documents instead. Projecting into the
-  graph waits for the graph.
+  are fixed command lines of the same kind; `dummy` reads no code and replays the implemented
+  design documents instead. A new tool is a new config file, not a new adapter, and no
+  environment variable picks the scanner. Projecting into the graph waits for the graph.
 
 ## Source of truth
 
