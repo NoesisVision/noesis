@@ -1,4 +1,4 @@
-import { createScanner } from '#backend/adapters/out/scanners/scanners';
+import { ScannerFactory } from '#backend/adapters/out/scanners/scanner-factory';
 import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
@@ -23,17 +23,16 @@ import { updateDocumentInChangeHandler } from '#backend/app/information-sources/
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type { ScannerOverride } from '#backend/platform/config/config';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /**
- * Wires the file repositories under `.noesis/`, and the scanner the
- * repository configures (or the dummy, when `scanner` forces it), to the
- * handlers that use them.
+ * Wires the file repositories under `.noesis/` and the scanner factory to the
+ * handlers that use them. `env` is where the factory looks for
+ * `NOESIS_SCANNER`.
  */
 export function createServices(
   noesis: NoesisDir,
-  scanner: ScannerOverride | undefined,
+  env: NodeJS.ProcessEnv = process.env,
   today: Today = localToday,
   now: Now = utcNow,
 ) {
@@ -89,7 +88,7 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      createScanner(scanner, { noesis, changes, designDocs, now }),
+      new ScannerFactory({ noesis, changes, designDocs, now }, env),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

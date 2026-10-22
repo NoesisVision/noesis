@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
+import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
@@ -20,21 +21,26 @@ const FAKE_TOOL = join(import.meta.dir, '..', 'support', 'fake-scan-csharp.ts');
 let t: TestNoesis;
 let scanner: CSharpSourceCodeScanner;
 
+/** The fixture's own namespace settings. */
+const FIXTURE_NAMESPACES = NamespaceConfig.of(
+  await Bun.file(join(FIXTURE, '.noesis', 'settings.json')).json(),
+);
+
 /** A scanner whose first stage is the fake tool with `flags` of its own. */
-const scannerWith = (...flags: string[]) =>
+const scannerWith = (
+  flags: string[],
+  namespaces: NamespaceConfig = FIXTURE_NAMESPACES,
+) =>
   new CSharpSourceCodeScanner({
     noesis: t.noesis,
     now: () => NOW,
+    namespaces,
     command: ['bun', FAKE_TOOL, ...flags],
   });
 
 beforeEach(async () => {
   t = await testNoesis();
-  scanner = scannerWith('--source', FIXTURE);
-  await cp(
-    join(FIXTURE, '.noesis', 'settings.json'),
-    t.noesis.resolve('settings.json'),
-  );
+  scanner = scannerWith(['--source', FIXTURE]);
 });
 
 afterEach(() => t.cleanup());
@@ -326,10 +332,11 @@ describe('The C# scanner', () => {
     );
   });
 
-  it('maps namespaces by .noesis/settings.json, every namespace to itself without one', async () => {
-    await writeFile(t.noesis.resolve('settings.json'), '{}');
-
-    const model = await scanner.scan();
+  it('maps every namespace to itself without namespace settings', async () => {
+    const model = await scannerWith(
+      ['--source', FIXTURE],
+      NamespaceConfig.of({}),
+    ).scan();
 
     expect<unknown>(ids(model.modules)).toEqual([
       'module|Acme',
@@ -342,13 +349,13 @@ describe('The C# scanner', () => {
   });
 
   it('fails with the tool output when the first stage exits with an error', async () => {
-    await expect<unknown>(scannerWith('--fail', '2').scan()).rejects.toThrow(
+    await expect<unknown>(scannerWith(['--fail', '2']).scan()).rejects.toThrow(
       /exit code 2[\s\S]*failing as asked/,
     );
   });
 
   it('fails when the first stage wrote no manifest', async () => {
-    await expect<unknown>(scannerWith().scan()).rejects.toThrow(
+    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow(
       'no readable manifest',
     );
   });
@@ -357,21 +364,11 @@ describe('The C# scanner', () => {
     const missing = new CSharpSourceCodeScanner({
       noesis: t.noesis,
       now: () => NOW,
+      namespaces: FIXTURE_NAMESPACES,
       command: ['noesis-scan-csharp-that-does-not-exist'],
     });
 
     await expect<unknown>(missing.scan()).rejects.toThrow('Cannot run');
-  });
-
-  it('fails on a .noesis/settings.json of the wrong shape', async () => {
-    await writeFile(
-      t.noesis.resolve('settings.json'),
-      JSON.stringify({ namespacePartsToSkip: 'MyCompany' }),
-    );
-
-    await expect<unknown>(scanner.scan()).rejects.toThrow(
-      /Invalid .*\.noesis\/settings\.json/,
-    );
   });
 
   it('starts from an empty output directory, so a stale model is never read', async () => {
@@ -384,7 +381,7 @@ describe('The C# scanner', () => {
     await mkdir(dirname(join(stale, 'x')), { recursive: true });
     await writeFile(join(stale, 'Stale.code-model.json'), '{}');
 
-    await expect<unknown>(scannerWith().scan()).rejects.toThrow(
+    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow(
       'no readable manifest',
     );
     expect<unknown>(

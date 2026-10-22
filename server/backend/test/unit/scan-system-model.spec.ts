@@ -1,15 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
 import {
-  createScanner,
   type RepositoryScanners,
-} from '#backend/adapters/out/scanners/scanners';
+  ScannerFactory,
+} from '#backend/adapters/out/scanners/scanner-factory';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import type {
+  SourceCodeScanner,
+  SourceCodeScannerFactory,
+} from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
@@ -35,10 +37,15 @@ const scannerOf = (model: SystemModel): SourceCodeScanner => ({
   scan: () => Promise.resolve(model),
 });
 
+/** A factory that always picks `scanner`. */
+const always = (scanner: SourceCodeScanner): SourceCodeScannerFactory => ({
+  create: () => Promise.resolve(scanner),
+});
+
 describe('Scanning the system model', () => {
   it('stores what the scanner finds and answers with it', async () => {
     const shop = found('shop');
-    const scan = scanSystemModelHandler(scannerOf(shop), systemModels);
+    const scan = scanSystemModelHandler(always(scannerOf(shop)), systemModels);
 
     const model = await scan.handle();
 
@@ -48,11 +55,11 @@ describe('Scanning the system model', () => {
 
   it('keeps every scan, the last one newest', async () => {
     await scanSystemModelHandler(
-      scannerOf(found('before')),
+      always(scannerOf(found('before'))),
       systemModels,
     ).handle();
     const last = await scanSystemModelHandler(
-      scannerOf(found('after')),
+      always(scannerOf(found('after'))),
       systemModels,
     ).handle();
 
@@ -64,7 +71,7 @@ describe('Scanning the system model', () => {
   });
 });
 
-describe('createScanner', () => {
+describe('ScannerFactory', () => {
   const deps = () => ({
     noesis: t.noesis,
     changes: t.changesRepository,
@@ -76,45 +83,79 @@ describe('createScanner', () => {
     java: () => scannerOf(found('java')),
     csharp: () => scannerOf(found('csharp')),
   };
-  const configure = (scanner: string) =>
-    writeFile(t.noesis.resolve('settings.json'), JSON.stringify({ scanner }));
+  const factory = (env: NodeJS.ProcessEnv = {}) =>
+    new ScannerFactory(deps(), env, scanners);
+  const configure = (settings: unknown) =>
+    writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
+  const scanWith = async (scanners: SourceCodeScannerFactory) =>
+    (await scanners.create()).scan();
 
-  it('scans with the scanner .noesis/settings.json names, read at every scan', async () => {
-    const scanner = createScanner(undefined, deps(), scanners);
+  it('picks the scanner .noesis/settings.json names, read at every scan', async () => {
+    const scanners = factory();
 
-    await configure('java');
-    expect((await scanner.scan()).name).toBe('java');
-    await configure('csharp');
-    expect((await scanner.scan()).name).toBe('csharp');
+    await configure({ scanner: 'java' });
+    expect((await scanWith(scanners)).name).toBe('java');
+    await configure({ scanner: 'csharp' });
+    expect((await scanWith(scanners)).name).toBe('csharp');
   });
 
-  it('refuses to scan a repository that names no scanner', async () => {
-    const scanner = createScanner(undefined, deps(), scanners);
+  it('hands the repository scanner the namespace settings', async () => {
+    let namespaces: unknown;
+    const spying = new ScannerFactory(
+      deps(),
+      {},
+      {
+        ...scanners,
+        csharp: (built) => {
+          namespaces = built.namespaces.modulePathOf('Acme.Shop.Orders');
+          return scannerOf(found('csharp'));
+        },
+      },
+    );
+    await configure({ scanner: 'csharp', namespacePartsToSkip: ['Acme'] });
 
-    await expect(scanner.scan()).rejects.toThrow(
+    await spying.create();
+
+    expect(namespaces).toEqual(['Shop', 'Orders']);
+  });
+
+  it('refuses a repository that names no scanner, or names one wrongly', async () => {
+    await expect(factory().create()).rejects.toThrow(
       /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java, csharp\./,
     );
-    await configure('cobol');
-    await expect(scanner.scan()).rejects.toThrow(
+    await configure({ scanner: 'cobol' });
+    await expect(factory().create()).rejects.toThrow(
+      /Invalid .*\.noesis\/settings\.json/,
+    );
+    await configure({ scanner: 'csharp', namespacePartsToSkip: 'Acme' });
+    await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
     );
   });
 
-  it('replays design documents with the dummy when the environment forces it', async () => {
-    await configure('java');
+  it('picks the dummy when NOESIS_SCANNER=dummy, whatever the repository names', async () => {
+    await configure({ scanner: 'java' });
 
-    expect(createScanner('dummy', deps(), scanners)).toBeInstanceOf(
+    expect(await factory({ NOESIS_SCANNER: 'dummy' }).create()).toBeInstanceOf(
       DummySourceCodeScanner,
     );
+  });
+
+  it('rejects any other NOESIS_SCANNER: the repository names its own scanner', async () => {
+    for (const name of ['java', 'csharp', 'cobol']) {
+      await expect(factory({ NOESIS_SCANNER: name }).create()).rejects.toThrow(
+        'NOESIS_SCANNER',
+      );
+    }
   });
 });
 
 describe('a scan that fails', () => {
   it("fails as a ScanFailedError carrying the scanner's reason", async () => {
     const scan = scanSystemModelHandler(
-      {
+      always({
         scan: () => Promise.reject(new Error('noesis-scan-csharp: not found')),
-      },
+      }),
       systemModels,
     );
 
@@ -123,5 +164,14 @@ describe('a scan that fails', () => {
     expect(failure).toBeInstanceOf(ScanFailedError);
     expect((failure as Error).message).toBe('noesis-scan-csharp: not found');
     expect(await systemModels.list()).toEqual([]);
+  });
+
+  it('fails as a ScanFailedError when no scanner can be picked', async () => {
+    const scan = scanSystemModelHandler(
+      { create: () => Promise.reject(new Error('names no scanner')) },
+      systemModels,
+    );
+
+    await expect(scan.handle()).rejects.toBeInstanceOf(ScanFailedError);
   });
 });

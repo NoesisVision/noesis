@@ -25,11 +25,16 @@ export interface RepositorySettings {
   readonly namespaces: NamespaceConfig;
 }
 
+/** Where the settings live: `.noesis/settings.json`. */
+export function repositorySettingsPath(noesis: NoesisDir): string {
+  return noesis.resolve(SETTINGS_FILE);
+}
+
 /** Reads the file; no file names no scanner and maps every namespace to itself. */
 export async function loadRepositorySettings(
   noesis: NoesisDir,
 ): Promise<RepositorySettings> {
-  const file = Bun.file(noesis.resolve(SETTINGS_FILE));
+  const file = Bun.file(repositorySettingsPath(noesis));
   if (!(await file.exists())) {
     return { scanner: null, namespaces: NamespaceConfig.of({}) };
   }
@@ -42,11 +47,4 @@ export async function loadRepositorySettings(
     scanner: scanner ?? null,
     namespaces: NamespaceConfig.of(namespaces),
   };
-}
-
-/** What a scan needs when the repository names no scanner. */
-export function noScannerConfigured(noesis: NoesisDir): Error {
-  return new Error(
-    `${noesis.resolve(SETTINGS_FILE)} names no scanner. Set "scanner" to one of: ${RepositoryScannerName.options.join(', ')}.`,
-  );
 }

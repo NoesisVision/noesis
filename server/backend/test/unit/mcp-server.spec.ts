@@ -360,7 +360,9 @@ describe('scan_system_model', () => {
       noesis: noesis.noesis,
       sessionFiles: files,
       scanSystemModel: scanSystemModelHandler(
-        { scan: () => Promise.resolve(found) },
+        {
+          create: () => Promise.resolve({ scan: () => Promise.resolve(found) }),
+        },
         systemModels,
       ),
     });

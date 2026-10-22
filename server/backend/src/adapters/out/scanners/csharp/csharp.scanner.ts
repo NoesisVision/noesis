@@ -7,6 +7,7 @@ import {
   ScanManifest,
 } from '#backend/app/code-model/code-model';
 import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
+import type { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import {
   type ProjectionDiagnostic,
   projectSystemModel,
@@ -17,7 +18,6 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
-import { loadRepositorySettings } from '../repository-settings';
 
 /** The `dotnet tool`, on the PATH of the machine the server runs on. */
 const DEFAULT_COMMAND = ['noesis-scan-csharp'];
@@ -30,6 +30,8 @@ const log = serverLogger('scanner', 'csharp');
 export interface CSharpScannerDeps {
   noesis: NoesisDir;
   now: Now;
+  /** How namespaces map to modules, from the repository's settings. */
+  namespaces: NamespaceConfig;
   /** The first stage's command and leading arguments; `noesis-scan-csharp` unless given. */
   command?: readonly string[];
 }
@@ -44,11 +46,18 @@ export interface CSharpScannerDeps {
 export class CSharpSourceCodeScanner implements SourceCodeScanner {
   private readonly noesis: NoesisDir;
   private readonly now: Now;
+  private readonly namespaces: NamespaceConfig;
   private readonly command: readonly string[];
 
-  constructor({ noesis, now, command = DEFAULT_COMMAND }: CSharpScannerDeps) {
+  constructor({
+    noesis,
+    now,
+    namespaces,
+    command = DEFAULT_COMMAND,
+  }: CSharpScannerDeps) {
     this.noesis = noesis;
     this.now = now;
+    this.namespaces = namespaces;
     this.command = command;
   }
 
@@ -60,7 +69,6 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
     const name = basename(root);
     const outDir = this.noesis.resolve('sessions', 'scanner');
 
-    const { namespaces: config } = await loadRepositorySettings(this.noesis);
     const started = performance.now();
     const { manifest, files } = await this.runFirstStage(root, name, outDir);
     const scanned = performance.now();
@@ -68,7 +76,7 @@ export class CSharpSourceCodeScanner implements SourceCodeScanner {
       manifest,
       files,
       vocabulary: CSHARP_VOCABULARY,
-      config,
+      config: this.namespaces,
     });
     const projected = performance.now();
     logDiagnostics(diagnostics);

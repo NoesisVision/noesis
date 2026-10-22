@@ -72,9 +72,11 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
     'scans the solution with noesis-scan-csharp and projects the system model within budget',
     async () => {
       const noesis = new NoesisDir(EXAMPLE);
+      const { namespaces: config } = await loadRepositorySettings(noesis);
       const scanner = new CSharpSourceCodeScanner({
         noesis,
         now: () => new Date().toISOString(),
+        namespaces: config,
         command,
       });
 
@@ -94,7 +96,6 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
           CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
         ),
       );
-      const { namespaces: config } = await loadRepositorySettings(noesis);
       const projectionStart = performance.now();
       const { model: projected } = projectSystemModel({
         manifest,
