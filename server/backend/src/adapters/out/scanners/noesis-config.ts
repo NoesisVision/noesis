@@ -22,6 +22,7 @@ function noesisConfigPath(repositoryRoot: string): string {
 export const RepositoryScannerName = z.enum([
   'java',
   'java-maven',
+  'java-gradle',
   'csharp',
   'code-model',
   'dummy',
@@ -46,9 +47,19 @@ type CodeModelToolConfig = z.infer<typeof CodeModelToolConfig>;
  * `.noesis/noesis-config.json`: which scanner reads the repository, how, and
  * how its namespaces map to modules.
  */
+/**
+ * Which engine of the Java scanner the `java-maven` and `java-gradle`
+ * presets run: `source` (javac over the sources), `bytecode` (the compiled
+ * classes) or `hybrid` (the sources, plus what an annotation processor such
+ * as Lombok generated, from the classes).
+ */
+export const JavaScannerEngine = z.enum(['source', 'bytecode', 'hybrid']);
+export type JavaScannerEngine = z.infer<typeof JavaScannerEngine>;
+
 const NoesisConfigSchema = NamespaceConfigSchema.extend({
   scanner: RepositoryScannerName.optional(),
   codeModel: CodeModelToolConfig.optional(),
+  engine: JavaScannerEngine.optional(),
 });
 
 export interface NoesisConfig {
@@ -56,6 +67,8 @@ export interface NoesisConfig {
   readonly scanner: RepositoryScannerName | null;
   /** Null when the file has no `codeModel` block. */
   readonly codeModel: CodeModelToolConfig | null;
+  /** Null when the file names none; the Java presets then run the source engine. */
+  readonly engine: JavaScannerEngine | null;
   readonly namespaces: NamespaceConfig;
 }
 
@@ -75,6 +88,7 @@ export async function loadNoesisConfig(
     return {
       scanner: null,
       codeModel: null,
+      engine: null,
       namespaces: NamespaceConfig.of({}),
     };
   }
@@ -84,10 +98,20 @@ export async function loadNoesisConfig(
       `Invalid ${CONFIG_FILE}:\n${z.prettifyError(parsed.error)}`,
     );
   }
-  const { scanner, codeModel, ...namespaces } = parsed.data;
+  const { scanner, codeModel, engine, ...namespaces } = parsed.data;
+  if (
+    engine !== undefined &&
+    scanner !== 'java-maven' &&
+    scanner !== 'java-gradle'
+  ) {
+    throw new Error(
+      `${CONFIG_FILE} sets "engine", which only the java-maven and java-gradle scanners read; with "code-model" put -Dnoesis.engine or -Pnoesis.engine in the command.`,
+    );
+  }
   return {
     scanner: scanner ?? null,
     codeModel: codeModel ?? null,
+    engine: engine ?? null,
     namespaces: NamespaceConfig.of(namespaces),
   };
 }

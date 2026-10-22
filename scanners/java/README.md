@@ -98,7 +98,8 @@ clears the previous scan's files.
 
 The service runs exactly this invocation when `.noesis/noesis-config.json` says
 `"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
-so `mvn -q install -DskipTests` here is the one setup step. Any other
+so `mvn -q install -DskipTests` here is the one setup step; `"engine":
+"hybrid"` (or `bytecode`) in the same file picks the engine. Any other
 invocation that writes the same files, this plugin with other flags or the
 Gradle plugin below, goes in the file's `codeModel` block under
 `"scanner": "code-model"`.
@@ -112,7 +113,10 @@ from the compiled classes and keeps everything else from the sources.
 ## Running the Gradle plugin
 
 The plugin id is `vision.noesis.scanner`, published to the local repository
-by `./gradlew publishToMavenLocal` in `gradle-plugin/`. A build applies it
+by `./gradlew publishToMavenLocal` in `gradle-plugin/`. The service needs no
+change to a build: `"scanner": "java-gradle"` in `.noesis/noesis-config.json`
+applies the plugin through an init script and runs `noesisScan`, with the
+`"engine"` the file names. To run it by hand, a build applies it
 once, in the root build file or in any project's (the task is registered on
 the root project either way), with `mavenLocal()` among the plugin
 repositories of its settings file:

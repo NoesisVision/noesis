@@ -124,8 +124,9 @@ Both land on the same service layer. Neither bypasses it.
   `codeModel` block (a Gradle build's `noesisScan` task, say) and projects the code model it wrote
   onto the system model by the vocabulary of the language the manifest names, with the rules in
   `docs/plans/code-model-to-system-model.md`; `csharp` (the .NET scanner, `noesis-scan-csharp` on
-  the PATH) and `java-maven` (the Java scanner's Maven plugin, installed once with `mvn install`)
-  are fixed command lines of the same kind; `dummy` reads no code and replays the implemented
+  the PATH), `java-maven` (the Java scanner's Maven plugin, installed once with `mvn install`) and
+  `java-gradle` (its Gradle plugin, applied through an init script the service writes) are fixed
+  command lines of the same kind, the Java ones running the engine the file's `"engine"` names; `dummy` reads no code and replays the implemented
   design documents instead. A new tool is a new config file, not a new adapter, and no
   environment variable picks the scanner. Projecting into the graph waits for the graph.
 

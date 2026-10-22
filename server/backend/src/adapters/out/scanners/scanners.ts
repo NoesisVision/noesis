@@ -3,6 +3,7 @@ import type { SystemModel } from '#backend/app/system-model/system-model';
 import { ConfiguredCodeModelScanner } from './configured-code-model.scanner';
 import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
+import { JavaGradleSourceCodeScanner } from './java-gradle/java-gradle.scanner';
 import { JavaMavenSourceCodeScanner } from './java-maven/java-maven.scanner';
 import { JavaSourceCodeScanner } from './java.scanner';
 import {
@@ -20,6 +21,7 @@ export type RepositoryScanners = Record<
 const REPOSITORY_SCANNERS: RepositoryScanners = {
   java: (deps) => new JavaSourceCodeScanner(deps),
   'java-maven': (deps) => new JavaMavenSourceCodeScanner(deps),
+  'java-gradle': (deps) => new JavaGradleSourceCodeScanner(deps),
   csharp: (deps) => new CSharpSourceCodeScanner(deps),
   'code-model': (deps) => new ConfiguredCodeModelScanner(deps),
   dummy: (deps) => new DummySourceCodeScanner(deps),

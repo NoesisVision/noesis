@@ -74,6 +74,7 @@ describe('createScanner', () => {
   const scanners: RepositoryScanners = {
     java: () => scannerOf(found('java')),
     'java-maven': () => scannerOf(found('java-maven')),
+    'java-gradle': () => scannerOf(found('java-gradle')),
     csharp: () => scannerOf(found('csharp')),
     'code-model': () => scannerOf(found('code-model')),
     dummy: () => scannerOf(found('dummy')),
@@ -100,7 +101,7 @@ describe('createScanner', () => {
     await rm(t.noesis.resolve('noesis-config.json'));
 
     await expect(scanner.scan()).rejects.toThrow(
-      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, java-maven, csharp, code-model, dummy\./,
+      /noesis-config\.json names no scanner\. Set "scanner" to one of: java, java-maven, java-gradle, csharp, code-model, dummy\./,
     );
     await configure('cobol');
     await expect(scanner.scan()).rejects.toThrow('Invalid noesis-config.json');

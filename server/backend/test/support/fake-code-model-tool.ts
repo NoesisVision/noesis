@@ -1,7 +1,8 @@
 // Stands in for a code model tool (`noesis-scan-csharp`, `mvn … noesis:scan`)
 // in the scanner adapters' unit tests. Its own flags come first, the
 // adapter's follow: `--source <dir>` copies that directory's committed
-// code-model/ into the output directory (`--out <dir>` or `-Dnoesis.out=<dir>`),
+// code-model/ into the output directory (`--out <dir>`, Maven's `-Dnoesis.out=<dir>` or
+// Gradle's `-Pnoesis.out=<dir>`),
 // `--fail <code>` exits with that code instead. The arguments are recorded
 // beside the output. The real tools run in test/e2e.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
@@ -16,7 +17,7 @@ const after = (flag: string): string | undefined => {
 const out =
   after('--out') ??
   args
-    .find((arg) => arg.startsWith('-Dnoesis.out='))
+    .find((arg) => /^-[DP]noesis\.out=/.test(arg))
     ?.slice('-Dnoesis.out='.length);
 if (out === undefined) {
   console.error('fake-code-model-tool: no output directory');
