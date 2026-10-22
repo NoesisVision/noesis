@@ -160,6 +160,7 @@ export function ElementTooltip({
   hint,
   disabled = false,
   openDelay = 300,
+  opened,
   children,
 }: {
   name: string;
@@ -177,6 +178,8 @@ export function ElementTooltip({
   disabled?: boolean;
   /** How long the pointer rests on the child before it opens, in ms. */
   openDelay?: number;
+  /** Shown, or not, by whoever holds it, rather than by hovering the child. */
+  opened?: boolean;
   children: ReactElement<{ className?: string }>;
 }) {
   const doc = useDesignDocument();
@@ -190,6 +193,7 @@ export function ElementTooltip({
       openDelay={openDelay}
       multiline
       disabled={disabled}
+      opened={opened}
       label={<Details address={address} shape={shape} />}
     >
       {hint

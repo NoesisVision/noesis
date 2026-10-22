@@ -561,3 +561,21 @@
   pointer-events: none;
   z-index: 1000;
 }
+
+/* While a card is dragged, the animated edges' dashes hold still: the
+   dragged card alone moves. */
+.dragging :global(.react-flow__edge.animated path) {
+  animation-play-state: paused;
+}
+
+/* Over another module, which a card may not go into: let go of there, it
+   lands just outside it. */
+.outline[data-refused] {
+  border-color: var(--mantine-color-red-filled);
+  background: rgb(from var(--mantine-color-red-filled) r g b / 0.1);
+}
+
+/* A card dragged as it is goes over every other, whichever frame it is in. */
+.exploration :global(.react-flow__node.dragging) {
+  z-index: 2000 !important;
+}

@@ -16,15 +16,11 @@ import {
   useStore,
 } from '@xyflow/react';
 import { type MouseEvent, useState } from 'react';
-import {
-  ElementTooltip,
-  KindIcon,
-} from '#/features/design-docs/element-reader.ts';
+import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { IconBroom, IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
@@ -35,11 +31,7 @@ import {
   type Reach,
   REACHES,
 } from '../../system-model-exploration.ts';
-import {
-  useCardActions,
-  useDragging,
-  useSelectionState,
-} from './exploration-reading.ts';
+import { useCardActions, useSelectionState } from './exploration-reading.ts';
 import {
   frameWidthOf,
   heightOf,
@@ -54,6 +46,8 @@ import classes from './exploration.module.css';
  * is, or — when others are drawn inside it — a frame with both at its top.
  * The card, or the frame's name, is a button that selects the element, and
  * hovered or focused says what the element is, as the model's tooltips do.
+ * Its tooltips are the canvas's one (see `CanvasTooltips`), each button
+ * naming its own in `data-tip`, so a card holds none of its own.
  * Edges come in where the layout's flow does and leave the other side.
  * Inside, it always shows its own menu and the way off the diagram, in its
  * corner — a frame's way to tidy up what it holds is in that menu; and at
@@ -107,7 +101,6 @@ function Contains({ element }: { element: DrawnElement }) {
   // Held here, so the button can say so: the tooltip between the menu and
   // its button keeps the menu's own word on it from reaching the button.
   const [open, setOpen] = useState(false);
-  const dragging = useDragging();
   if (!element.containsUndrawn || contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
@@ -122,20 +115,18 @@ function Contains({ element }: { element: DrawnElement }) {
       clickOutsideEvents={['pointerdown']}
     >
       <Menu.Target>
-        {/* Its tooltip only while its menu is shut, so the two never overlap. */}
-        <Tooltip label={label} disabled={open || dragging}>
-          <ActionIcon
-            size={26}
-            radius="xl"
-            variant="light"
-            className={`nodrag nopan ${classes.contains}`}
-            aria-label={label}
-            aria-haspopup="menu"
-            aria-expanded={open}
-          >
-            <IconPlus size={16} stroke={2} aria-hidden />
-          </ActionIcon>
-        </Tooltip>
+        <ActionIcon
+          size={26}
+          radius="xl"
+          variant="light"
+          className={`nodrag nopan ${classes.contains}`}
+          aria-label={label}
+          data-tip={label}
+          aria-haspopup="menu"
+          aria-expanded={open}
+        >
+          <IconPlus size={16} stroke={2} aria-hidden />
+        </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown
         className={`nowheel ${classes.reachMenu}`}
@@ -320,25 +311,20 @@ function NodeMenuButton({
   holds: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const dragging = useDragging();
   return (
     <Menu opened={open} onChange={setOpen} {...NODE_MENU}>
       <Menu.Target>
-        <Tooltip
-          label="All actions · also on right-click"
-          disabled={open || dragging}
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="sm"
+          aria-label={`More for ${name}`}
+          data-tip="All actions · also on right-click"
+          aria-haspopup="menu"
+          aria-expanded={open}
         >
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="sm"
-            aria-label={`More for ${name}`}
-            aria-haspopup="menu"
-            aria-expanded={open}
-          >
-            <IconDots size={14} stroke={1.8} aria-hidden />
-          </ActionIcon>
-        </Tooltip>
+          <IconDots size={14} stroke={1.8} aria-hidden />
+        </ActionIcon>
       </Menu.Target>
       <NodeMenuDropdown id={id} name={name} holds={holds} />
     </Menu>
@@ -405,7 +391,6 @@ function Remove({
   holds: boolean;
 }) {
   const { onShow, onRemoveAlone } = useCardActions();
-  const dragging = useDragging();
   return (
     <div className={`nodrag nopan ${classes.corner}`}>
       {/* Apart from the ways off, so a click meant for it never takes one. */}
@@ -414,38 +399,31 @@ function Remove({
       </div>
       <div className={classes.strip}>
         {holds && (
-          <Tooltip label="Remove group" disabled={dragging}>
-            <ActionIcon
-              variant="subtle"
-              color="red"
-              size="sm"
-              aria-label={`Remove ${name} and what it holds from the view`}
-              onClick={() => onShow([id], false, id)}
-            >
-              <IconFrameX size={14} stroke={1.8} aria-hidden />
-            </ActionIcon>
-          </Tooltip>
-        )}
-        <Tooltip
-          label={holds ? 'Remove only this' : 'Remove from the view'}
-          disabled={dragging}
-        >
           <ActionIcon
             variant="subtle"
             color="red"
             size="sm"
-            aria-label={
-              holds
-                ? `Remove only ${name}, keeping what it holds`
-                : `Remove ${name} from the view`
-            }
-            onClick={() =>
-              holds ? onRemoveAlone(id) : onShow([id], false, id)
-            }
+            aria-label={`Remove ${name} and what it holds from the view`}
+            data-tip="Remove group"
+            onClick={() => onShow([id], false, id)}
           >
-            <IconX size={14} stroke={1.8} aria-hidden />
+            <IconFrameX size={14} stroke={1.8} aria-hidden />
           </ActionIcon>
-        </Tooltip>
+        )}
+        <ActionIcon
+          variant="subtle"
+          color="red"
+          size="sm"
+          aria-label={
+            holds
+              ? `Remove only ${name}, keeping what it holds`
+              : `Remove ${name} from the view`
+          }
+          data-tip={holds ? 'Remove only this' : 'Remove from the view'}
+          onClick={() => (holds ? onRemoveAlone(id) : onShow([id], false, id))}
+        >
+          <IconX size={14} stroke={1.8} aria-hidden />
+        </ActionIcon>
       </div>
     </div>
   );
@@ -459,7 +437,6 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
   const { state, onSelect } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
-  const dragging = useDragging();
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]
@@ -485,6 +462,8 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
       data-state={holds ? undefined : state}
       aria-pressed={state === 'selected'}
       aria-label={withState(`${element.name}, ${kindWordOf(element)}`, state)}
+      // What the element is, said by the canvas's one tooltip on hover.
+      data-element-tip={addressOf(element.id)}
       // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out.
       onClick={(event) => onSelect(element.id, event.ctrlKey || event.metaKey)}
     >
@@ -507,15 +486,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
             isConnectable={false}
             className={classes.handle}
           />
-          {/* Shut while the card's own menu is open, so it never covers it. */}
-          {/* Slower than elsewhere: a pointer crosses cards on its way about the canvas. */}
-          <ElementTooltip
-            name={addressOf(element.id)}
-            disabled={menu || dragging}
-            openDelay={600}
-          >
-            {button}
-          </ElementTooltip>
+          {button}
           {/* Over the card, beside its button rather than in it: one button
           cannot hold another. */}
           {holds && (

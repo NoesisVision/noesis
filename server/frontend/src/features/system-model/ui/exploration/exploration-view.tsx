@@ -50,12 +50,12 @@ import {
   removalOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
+import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { recallChoice, rememberChoice } from './exploration-memory.ts';
 import { ExplorationPicker } from './exploration-picker.tsx';
 import {
   type ExplorationReading,
-  DraggingContext,
   ExplorationReadingContext,
 } from './exploration-reading.ts';
 import {
@@ -75,7 +75,10 @@ import {
 } from './layout-exploration.ts';
 import {
   arrangeWithin,
+  type CanvasRect,
+  landsIn,
   movedTo,
+  refusingFrames,
   type CanvasPoint,
   placeLocally,
 } from './place-locally.ts';
@@ -114,7 +117,7 @@ const LEAVING_MS = 200;
 /** How long the cards take to glide to where a new placing puts them. */
 const GLIDE_MS = 320;
 /** The most cards, a group's with all inside it, dragged as they are rather than as an outline. */
-const LIVE_DRAG = 5;
+const LIVE_DRAG = 10;
 /** The one layout the reader is offered: the only one that routes edges. */
 const ALGORITHM = 'layered';
 
@@ -499,8 +502,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [graph, routes, orthogonal, animated, selection, related],
   );
 
-  return (
-    <Stack gap={0} flex={1} className={classes.exploration}>
+  /*
+   * What lies round the canvas is made once for what it shows, so a card
+   * dragged, which draws the view again on each move, draws none of it.
+   */
+  const toolbar = useMemo(
+    () => (
       <ExplorationToolbar
         canUndo={stepAt.at > 0}
         canRedo={stepAt.at < stepAt.count - 1}
@@ -521,6 +528,108 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           onFit={() => void flow?.fitView(FIT)}
         />
       </ExplorationToolbar>
+    ),
+    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom, flow],
+  );
+  const selectionPanel = useMemo(
+    () =>
+      inHand === null ? null : (
+        // Its own scroll and clicks: a wheel over it reads on rather than zooms.
+        <Panel
+          position="top-right"
+          className={`nowheel nopan ${classes.selection}`}
+        >
+          <section aria-label="Selection">
+            <ElementPanel
+              key={inHand.id}
+              id={inHand.id}
+              document={document}
+              eyebrow={kindWordOf(inHand)}
+              title={inHand.name}
+              onSelectElement={readAlone}
+            />
+          </section>
+        </Panel>
+      ),
+    [inHand, document, readAlone],
+  );
+  const addAll = useCallback(
+    () =>
+      onShowAll(
+        exploration.elements.map(({ id }) => id),
+        true,
+      ),
+    [onShowAll, exploration],
+  );
+  const clear = useCallback(() => setChoice(NOTHING_CHOSEN), []);
+  const picker = useMemo(
+    () => (
+      <ExplorationPicker
+        opened={picking}
+        onOpened={setPicking}
+        drawn={graph.elements.length}
+        total={exploration.elements.length}
+        document={document}
+        isShown={isShown}
+        onPick={onPick}
+        onAddAll={addAll}
+        onClear={clear}
+      />
+    ),
+    [picking, graph, exploration, document, isShown, onPick, addAll, clear],
+  );
+  const closeVisibility = useCallback(() => setSeeing(false), []);
+  const side = useMemo(
+    () => (
+      <>
+        {seeing && (
+          <VisibilityPanel
+            relations={relations}
+            onRelations={setRelations}
+            sections={sections}
+            veiled={veiled}
+            onVeil={setVeiled}
+            onClose={closeVisibility}
+          />
+        )}
+        {pickable && failure === null && <ShortcutLegend />}
+      </>
+    ),
+    [seeing, relations, sections, veiled, closeVisibility, pickable, failure],
+  );
+  const closeQuick = useCallback(() => setQuick(null), []);
+  const quickAdd = useMemo(
+    () => (
+      <QuickAdd
+        spot={quick?.spot ?? null}
+        document={document}
+        isDrawn={isShown}
+        onClose={closeQuick}
+        onPick={(id) => {
+          const at = quick?.at;
+          setQuick(null);
+          // One drawn already is shown, not drawn twice.
+          if (drawn.has(id)) return readAlone(id);
+          if (at !== undefined) placeBeside(at);
+          onShowAll([id], true);
+        }}
+      />
+    ),
+    [
+      quick,
+      document,
+      isShown,
+      closeQuick,
+      drawn,
+      readAlone,
+      placeBeside,
+      onShowAll,
+    ],
+  );
+
+  return (
+    <Stack gap={0} flex={1} className={classes.exploration}>
+      {toolbar}
       <Box
         ref={canvas}
         component="section"
@@ -542,149 +651,92 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         ) : (
           <DesignDocumentContext.Provider value={document}>
             <ExplorationReadingContext.Provider value={reading}>
-              <DraggingContext.Provider value={dragging}>
-                <ReactFlow
-                  nodes={visibleNodes}
-                  edges={edges}
-                  nodeTypes={NODE_TYPES}
-                  edgeTypes={EDGE_TYPES}
-                  onNodesChange={onNodesChange}
-                  onNodeDragStart={onNodeDragStart}
-                  onNodeDrag={onNodeDrag}
-                  onNodeDragStop={onNodeDragStop}
-                  colorMode={scheme}
-                  fitView
-                  fitViewOptions={FIT}
-                  attributionPosition="bottom-right"
-                  minZoom={0.1}
-                  maxZoom={2}
-                  nodesConnectable={false}
-                  nodesFocusable={false}
-                  edgesFocusable={false}
-                  elementsSelectable={false}
-                  onInit={(instance) => {
-                    setFlow(instance);
-                    setZoom(instance.getZoom());
-                  }}
-                  onMove={(_, viewport) => setZoom(viewport.zoom)}
-                  onPaneClick={() => {
-                    letGo();
-                    setQuick(null);
-                  }}
-                  // A right click on the empty canvas asks what to put there;
-                  // a double click zooms in, as on any canvas.
-                  onPaneContextMenu={(event) => {
-                    event.preventDefault();
-                    const box = canvas.current?.getBoundingClientRect();
-                    if (flow === null || box === undefined) return;
-                    setQuick({
-                      spot: {
-                        left: event.clientX - box.left,
-                        top: event.clientY - box.top,
-                      },
-                      at: flow.screenToFlowPosition({
-                        x: event.clientX,
-                        y: event.clientY,
-                      }),
-                    });
-                  }}
-                  // Changed on each placement, so the edges fade in anew once
-                  // the cards have moved to where it puts them.
-                  className={`${
-                    placements % 2 === 0 ? classes.settled : classes.resettled
-                  } ${gliding ? classes.gliding : ''}`}
-                >
-                  {inHand !== null && (
-                    // Its own scroll and clicks: a wheel over it reads on rather than zooms.
-                    <Panel
-                      position="top-right"
-                      className={`nowheel nopan ${classes.selection}`}
-                    >
-                      <section aria-label="Selection">
-                        <ElementPanel
-                          key={inHand.id}
-                          id={inHand.id}
-                          document={document}
-                          eyebrow={kindWordOf(inHand)}
-                          title={inHand.name}
-                          onSelectElement={readAlone}
-                        />
-                      </section>
-                    </Panel>
-                  )}
-                  {dragged !== null && (
-                    <ViewportPortal>
-                      <div
-                        ref={outline}
-                        aria-hidden
-                        className={classes.outline}
-                        style={{
-                          width: dragged.width,
-                          height: dragged.height,
-                          transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
-                        }}
-                      />
-                    </ViewportPortal>
-                  )}
-                  <Background
-                    variant={BackgroundVariant.Dots}
-                    gap={16}
-                    size={1}
-                    color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
-                    bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-                  />
-                </ReactFlow>
-              </DraggingContext.Provider>
+              <ReactFlow
+                nodes={visibleNodes}
+                edges={edges}
+                nodeTypes={NODE_TYPES}
+                edgeTypes={EDGE_TYPES}
+                onNodesChange={onNodesChange}
+                onNodeDragStart={onNodeDragStart}
+                onNodeDrag={onNodeDrag}
+                onNodeDragStop={onNodeDragStop}
+                colorMode={scheme}
+                fitView
+                fitViewOptions={FIT}
+                attributionPosition="bottom-right"
+                minZoom={0.1}
+                maxZoom={2}
+                nodesConnectable={false}
+                nodesFocusable={false}
+                edgesFocusable={false}
+                elementsSelectable={false}
+                onInit={(instance) => {
+                  setFlow(instance);
+                  setZoom(instance.getZoom());
+                }}
+                onMove={(_, viewport) => setZoom(viewport.zoom)}
+                onPaneClick={() => {
+                  letGo();
+                  setQuick(null);
+                }}
+                // A right click on the empty canvas asks what to put there;
+                // a double click zooms in, as on any canvas.
+                onPaneContextMenu={(event) => {
+                  event.preventDefault();
+                  const box = canvas.current?.getBoundingClientRect();
+                  if (flow === null || box === undefined) return;
+                  setQuick({
+                    spot: {
+                      left: event.clientX - box.left,
+                      top: event.clientY - box.top,
+                    },
+                    at: flow.screenToFlowPosition({
+                      x: event.clientX,
+                      y: event.clientY,
+                    }),
+                  });
+                }}
+                // Changed on each placement, so the edges fade in anew once
+                // the cards have moved to where it puts them.
+                // While a card is dragged, the edges' dashes hold still.
+                className={`${
+                  placements % 2 === 0 ? classes.settled : classes.resettled
+                } ${gliding ? classes.gliding : ''} ${
+                  dragging ? classes.dragging : ''
+                }`}
+              >
+                {selectionPanel}
+                {dragged !== null && (
+                  <ViewportPortal>
+                    <div
+                      ref={outline}
+                      aria-hidden
+                      className={classes.outline}
+                      style={{
+                        width: dragged.width,
+                        height: dragged.height,
+                        transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
+                      }}
+                    />
+                  </ViewportPortal>
+                )}
+                <Background
+                  variant={BackgroundVariant.Dots}
+                  gap={16}
+                  size={1}
+                  color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
+                  bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
+                />
+              </ReactFlow>
+              <CanvasTooltips within={canvas} dragging={dragging} />
             </ExplorationReadingContext.Provider>
           </DesignDocumentContext.Provider>
         )}
-        {failure === null && exploration.elements.length > 0 && (
-          <ExplorationPicker
-            opened={picking}
-            onOpened={setPicking}
-            drawn={graph.elements.length}
-            total={exploration.elements.length}
-            document={document}
-            isShown={isShown}
-            onPick={onPick}
-            onAddAll={() =>
-              onShowAll(
-                exploration.elements.map(({ id }) => id),
-                true,
-              )
-            }
-            onClear={() => setChoice(NOTHING_CHOSEN)}
-          />
-        )}
+        {failure === null && exploration.elements.length > 0 && picker}
         {/* Down the canvas's left side: the visibility panel at the top,
             taking what room the shortcuts below it leave. */}
-        <Box className={classes.side}>
-          {seeing && (
-            <VisibilityPanel
-              relations={relations}
-              onRelations={setRelations}
-              sections={sections}
-              veiled={veiled}
-              onVeil={setVeiled}
-              onClose={() => setSeeing(false)}
-            />
-          )}
-          {pickable && failure === null && <ShortcutLegend />}
-        </Box>
-        <QuickAdd
-          spot={quick?.spot ?? null}
-          document={document}
-          isDrawn={isShown}
-          onClose={() => setQuick(null)}
-          onPick={(id) => {
-            const at = quick?.at;
-            setQuick(null);
-            // One drawn already is shown, not drawn twice.
-            if (drawn.has(id)) return readAlone(id);
-            if (at !== undefined) placeBeside(at);
-            onShowAll([id], true);
-          }}
-        />
+        <Box className={classes.side}>{side}</Box>
+        {quickAdd}
         {placing && nodes.length === 0 && failure === null && (
           <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
             Placing the elements…
@@ -775,7 +827,14 @@ function usePlacement(
         const leaving = shown
           .filter(({ id }) => !kept.has(id))
           .map((node) => ({ ...node, data: { ...node.data, leaving: true } }));
-        return [...next, ...leaving];
+        // A card that stands as it stood stays the same node, so React Flow
+        // draws only those that moved.
+        const before = new Map(shown.map((node) => [node.id, node]));
+        const landed = next.map((node) => {
+          const was = before.get(node.id);
+          return was !== undefined && standsAsBefore(was, node) ? was : node;
+        });
+        return [...landed, ...leaving];
       });
       clearTimeout(timers.current.gone);
       timers.current.gone = setTimeout(
@@ -844,6 +903,9 @@ function usePlacement(
     start: CanvasPoint;
     /** Moved as it is dragged, with no outline. */
     live: boolean;
+    /** The modules it may not land in, for its outline to say so. */
+    refusing: readonly CanvasRect[];
+    size: { width: number; height: number };
   } | null>(null);
   const onNodeDragStart = useCallback<OnNodeDrag<ExplorationNode>>(
     (_, node) => {
@@ -855,7 +917,23 @@ function usePlacement(
       setDragging(true);
       const ids = new Set([node.id, ...descendantsOf(shown, node.id)]);
       const live = ids.size <= LIVE_DRAG;
-      holding.current = { id: node.id, origin, start: node.position, live };
+      const drawn = latest.current.placed?.graph;
+      // Gathered once: the frames do not move while a card is dragged.
+      const refusing =
+        drawn === undefined
+          ? []
+          : refusingFrames(standingOf(shown), drawn, node.id);
+      holding.current = {
+        id: node.id,
+        origin,
+        start: node.position,
+        live,
+        refusing,
+        size: {
+          width: node.measured?.width ?? node.width ?? 0,
+          height: node.measured?.height ?? node.height ?? 0,
+        },
+      };
       if (live) return;
       setHeld({
         id: node.id,
@@ -869,10 +947,16 @@ function usePlacement(
   );
   const onNodeDrag = useCallback<OnNodeDrag<ExplorationNode>>((_, node) => {
     const now = holding.current;
-    if (now === null || now.live || outline.current === null) return;
+    const shown = outline.current;
+    if (now === null || now.live || shown === null) return;
     const x = now.origin.x + node.position.x;
     const y = now.origin.y + node.position.y;
-    outline.current.style.transform = `translate(${x}px, ${y}px)`;
+    shown.style.transform = `translate(${x}px, ${y}px)`;
+    // Over another module the outline says it will not go in: marked on
+    // the page directly, so nothing is drawn again.
+    const refused = landsIn(now.refusing, { x, y, ...now.size });
+    if (refused !== (shown.dataset.refused !== undefined))
+      shown.toggleAttribute('data-refused', refused);
   }, []);
   const onNodeDragStop = useCallback<OnNodeDrag<ExplorationNode>>(
     (_, node) => {
@@ -1045,6 +1129,7 @@ function usePlacement(
     [onNodesMoved],
   );
 
+  const autoPlace = useCallback(() => setAsked((count) => count + 1), []);
   const placing =
     placed === null ||
     placed.graph !== graph ||
@@ -1058,7 +1143,7 @@ function usePlacement(
     onNodesChange,
     placing,
     failure,
-    autoPlace: () => setAsked((count) => count + 1),
+    autoPlace,
     placeBeside,
     arrange,
     gliding,
@@ -1097,6 +1182,18 @@ interface HeldCard {
   height: number;
   at: CanvasPoint;
 }
+
+/** Whether a node lands where, and as, it already stood. */
+const standsAsBefore = (was: ExplorationNode, node: ExplorationNode) =>
+  was.data.leaving !== true &&
+  was.position.x === node.position.x &&
+  was.position.y === node.position.y &&
+  was.width === node.width &&
+  was.height === node.height &&
+  was.parentId === node.parentId &&
+  was.data.direction === node.data.direction &&
+  was.data.placed.holds === node.data.placed.holds &&
+  was.data.placed.element === node.data.placed.element;
 
 /** Where a card stands on the canvas, through each container round it. */
 function absoluteOf(nodes: ExplorationNode[], id: string): CanvasPoint {

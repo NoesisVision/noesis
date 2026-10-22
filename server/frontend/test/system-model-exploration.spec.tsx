@@ -665,6 +665,180 @@ describe('placing a change from one card', () => {
     expect(apart(frame, byId.get('Next')!)).toBe(true);
   });
 
+  it('moves what a dropped card lies on off it, each the way it lies, and on', () => {
+    // As in the Orders module: a factory let go of over the invoicing
+    // details, down to its left, and the repository, up to its right.
+    const orders = element('Orders');
+    const invoicing = element('Invoicing', 'Orders');
+    const factory = element('Factory', 'Orders');
+    const made = element('Made', 'Factory');
+    const repository = element('Repository', 'Orders');
+    const saved = element('Saved', 'Repository');
+    const beyond = element('Beyond', 'Orders');
+    const placed = movedTo(
+      [
+        at(orders, 0, 0, 1200, 600, true),
+        at(invoicing, 90, 385, 283, 56),
+        at(factory, 20, 60, 395, 341, true),
+        at(made, 16, 60, 300, 56),
+        at(repository, 595, 72, 352, 250, true),
+        at(saved, 16, 60, 216, 56),
+        // Just right of the repository: in its way once it moves.
+        at(beyond, 960, 72, 150, 56),
+      ],
+      graphOf(orders, invoicing, factory, made, repository, saved, beyond),
+      'Factory',
+      { x: 290, y: 97 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    // On the canvas: the Orders frame is fitted round them again too.
+    const frame = byId.get('Orders')!;
+    const on = (id: string) => {
+      const one = byId.get(id)!;
+      return { ...one, x: frame.x + one.x, y: frame.y + one.y };
+    };
+    // The one let go of stays where it was let go of.
+    expect(on('Factory')).toMatchObject({ x: 290, y: 97 });
+    // The invoicing details go left, the repository right, neither up or down.
+    expect(on('Invoicing').x).toBeLessThan(90);
+    expect(on('Invoicing').y).toBe(385);
+    expect(on('Repository').x).toBeGreaterThan(595);
+    expect(on('Repository').y).toBe(72);
+    // And what the repository then reached went on before it.
+    expect(on('Beyond').x).toBeGreaterThan(960);
+    for (const [a, b] of [
+      ['Factory', 'Invoicing'],
+      ['Factory', 'Repository'],
+      ['Repository', 'Beyond'],
+    ] as const)
+      expect(apart(on(a), on(b))).toBe(true);
+  });
+
+  it('grows a frame right and down for what is added in it, its corner kept', () => {
+    const box = element('Box');
+    const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+    const added = [
+      element('Three', 'Box'),
+      element('Four', 'Box'),
+      element('Five', 'Box'),
+    ];
+    // A frame with its room full, the reader adding three more from it.
+    const placed = placeLocally(
+      [
+        at(box, 100, 100, 16 + 150 + 32 + 150 + 16, 60 + 56 + 16, true),
+        at(one, 16, 60, 150, 56),
+        at(two, 16 + 150 + 32, 60, 150, 56),
+      ],
+      graphOf(box, one, two, ...added),
+      'Box',
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    expect(byId.get('Box')).toMatchObject({ x: 100, y: 100 });
+    for (const { id } of added) {
+      const card = byId.get(id)!;
+      // Inside its room: right of its left padding, below its name.
+      expect(card.x).toBeGreaterThanOrEqual(16);
+      expect(card.y).toBeGreaterThanOrEqual(60);
+    }
+  });
+
+  describe('dropped in another module', () => {
+    // A frame drawn round one card, standing where it is put.
+    const frameAt = (
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+    ) => {
+      const frame = element(name);
+      const kid = element(`${name}.kid`, name);
+      return {
+        elements: [frame, kid],
+        placed: [at(frame, x, y, w, h, true), at(kid, 16, 60, 150, 56)],
+      };
+    };
+    const absolute = (
+      placed: readonly {
+        element: { id: string; parent: string | null };
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }[],
+      id: string,
+    ): { x: number; y: number; width: number; height: number } => {
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      const one = byId.get(id)!;
+      const parent = one.element.parent;
+      if (parent === null) return one;
+      const round = absolute(placed, parent);
+      return { ...one, x: one.x + round.x, y: one.y + round.y };
+    };
+    const inside = (
+      frame: { x: number; y: number; width: number; height: number },
+      card: { x: number; y: number; width: number; height: number },
+    ) => {
+      const x = card.x + card.width / 2;
+      const y = card.y + card.height / 2;
+      return (
+        x >= frame.x &&
+        x <= frame.x + frame.width &&
+        y >= frame.y &&
+        y <= frame.y + frame.height
+      );
+    };
+
+    it('lands just outside it, at its own level, where there is room', () => {
+      const home = frameAt('A', 0, 0, 236, 140);
+      const other = frameAt('B', 400, 0, 300, 200);
+      const placed = movedTo(
+        [...home.placed, ...other.placed],
+        graphOf(...home.elements, ...other.elements),
+        'A.kid',
+        { x: 450, y: 60 },
+      )!;
+      const card = absolute(placed, 'A.kid');
+      const b = placed.find(({ element }) => element.id === 'B')!;
+      expect(
+        placed.find(({ element }) => element.id === 'A.kid')!.element.parent,
+      ).toBe('A');
+      expect(inside(b, card)).toBe(false);
+      // Nothing had to make way.
+      expect(b).toMatchObject({ x: 400, y: 0 });
+    });
+
+    it('lands beside it with no side free, the modules round it pushed aside', () => {
+      const home = frameAt('A', 0, 0, 236, 140);
+      const target = frameAt('B', 500, 0, 300, 200);
+      const round = [
+        frameAt('C', 500, -400, 300, 300),
+        frameAt('D', 500, 300, 300, 300),
+        frameAt('E', 850, 0, 300, 200),
+        frameAt('F', 250, 0, 200, 200),
+      ];
+      const previous = [home, target, ...round].flatMap(({ placed }) => placed);
+      const placed = movedTo(
+        previous,
+        graphOf(
+          ...[home, target, ...round].flatMap(({ elements }) => elements),
+        ),
+        'A.kid',
+        { x: 550, y: 60 },
+      )!;
+      const card = absolute(placed, 'A.kid');
+      const b = placed.find(({ element }) => element.id === 'B')!;
+      expect(inside(b, card)).toBe(false);
+      const moved = round.filter(({ placed: [frame] }) => {
+        const now = placed.find(
+          ({ element }) => element.id === frame!.element.id,
+        )!;
+        return now.x !== frame!.x || now.y !== frame!.y;
+      });
+      expect(moved.length).toBeGreaterThan(0);
+    });
+  });
+
   it('shrinks a frame to what it holds once a card in it is moved back', () => {
     const box = element('Box');
     const kid = element('Kid', 'Box');

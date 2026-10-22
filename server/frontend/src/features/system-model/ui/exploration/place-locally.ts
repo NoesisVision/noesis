@@ -143,6 +143,44 @@ function workspaceOf(
     }
   };
 
+  /**
+   * Makes way round a card let go of: each card beside it that it now
+   * lies on moves off it, the way it mostly lies from it — sideways if
+   * further across than up or down, else up or down — and whatever that
+   * one then lies on makes way for it in turn. `kept`, the card let go of,
+   * never moves.
+   */
+  const shove = (id: string, kept: string): boolean => {
+    const self = rects.get(id);
+    if (self === undefined) return true;
+    const parent = byId.get(id)?.parent ?? null;
+    for (const { id: other } of placedKids(parent)) {
+      if (other === id || other === kept) continue;
+      const rect = rects.get(other);
+      if (rect === undefined || !overlaps(self, rect)) continue;
+      if (++pushes > PUSHES) return false;
+      const from = centreOf(self);
+      const to = centreOf(rect);
+      const [dx, dy] =
+        Math.abs(to.x - from.x) >= Math.abs(to.y - from.y)
+          ? [
+              to.x >= from.x
+                ? self.x + self.width + SPACING - rect.x
+                : self.x - SPACING - (rect.x + rect.width),
+              0,
+            ]
+          : [
+              0,
+              to.y >= from.y
+                ? self.y + self.height + SPACING - rect.y
+                : self.y - SPACING - (rect.y + rect.height),
+            ];
+      move(other, dx, dy);
+      if (!shove(other, kept)) return false;
+    }
+    return true;
+  };
+
   /** Moves aside whatever stands beside `id` and now lies under it. */
   const pushAround = (id: string, old: Rect): boolean => {
     const grown = rects.get(id);
@@ -283,6 +321,7 @@ function workspaceOf(
     fit,
     refit,
     pushAround,
+    shove,
     settle,
     placed,
   };
@@ -347,8 +386,12 @@ export function placeLocally(
         at(rect.x, rect.y - SPACING - height),
       ]),
     ];
-    const free = candidates.filter((spot) =>
-      standing.every((rect) => !overlaps(spot, rect)),
+    // Inside a container, never above or left of its room: the container
+    // grows right and down to hold it, its top left corner where it was.
+    const free = candidates.filter(
+      (spot) =>
+        (room === null || (spot.x >= room.x && spot.y >= room.y)) &&
+        standing.every((rect) => !overlaps(spot, rect)),
     );
     // Inside the room it has first, then nearest the card it came from.
     const outside = (spot: Rect) =>
@@ -364,7 +407,7 @@ export function placeLocally(
       // Past everything there is, which nothing can stand on.
       at(
         Math.max(...standing.map((rect) => rect.x + rect.width), 0) + SPACING,
-        anchorRect.y,
+        room?.y ?? anchorRect.y,
       )
     );
   };
@@ -509,12 +552,58 @@ export function arrangeWithin(
   return pushAround(id, frame) && fit(element.parent) ? placed() : null;
 }
 
+/** A card's place on the canvas, for the frames it may not land in. */
+export type CanvasRect = Rect;
+
+/** Whether a point falls inside a rect. */
+const encloses = (rect: Rect, { x, y }: CanvasPoint) =>
+  x >= rect.x &&
+  x <= rect.x + rect.width &&
+  y >= rect.y &&
+  y <= rect.y + rect.height;
+
+/*
+ * The frames a card may not land in, where they stand on the canvas: those
+ * drawn round others that are neither round it nor inside it. A card stays
+ * at its own level, so it never goes into another module.
+ */
+function refusing(
+  workspace: ReturnType<typeof workspaceOf>,
+  graph: ExplorationGraph,
+  id: string,
+): Rect[] {
+  const { rects, placedKids, descendantsOf, ancestorsOf } = workspace;
+  const own = new Set([id, ...descendantsOf(id), ...ancestorsOf(id)]);
+  return graph.elements
+    .filter(({ id: other }) => !own.has(other) && placedKids(other).length > 0)
+    .flatMap(({ id: other }) => {
+      const rect = rects.get(other);
+      return rect === undefined ? [] : [rect];
+    });
+}
+
+/** The frames this card may not land in, to tell while it is dragged. */
+export function refusingFrames(
+  previous: readonly PlacedElement[],
+  graph: ExplorationGraph,
+  id: string,
+): CanvasRect[] {
+  return refusing(workspaceOf(previous, graph), graph, id);
+}
+
+/** Whether a card standing there lands in one of these frames: its centre is inside. */
+export const landsIn = (frames: readonly CanvasRect[], rect: CanvasRect) =>
+  frames.some((frame) => encloses(frame, centreOf(rect)));
+
 /**
  * A card dropped where the reader let go of it, `to` on the canvas, with
  * all it holds: it stays inside its container wherever it lands, and the
  * container is fitted round what it holds again — grown, pushing aside
- * whatever it then reaches, or shrunk. The rest stays put; null if the
- * pushing will not settle.
+ * whatever it then reaches, or shrunk. Let go of inside another module, it
+ * stays at its own level, just outside that module: at the free side
+ * nearest where it was let go of, or, with none free, the nearest side.
+ * Whatever beside it it then lies on moves off it, and so on. The rest
+ * stays put; null if the pushing will not settle.
  */
 export function movedTo(
   previous: readonly PlacedElement[],
@@ -522,13 +611,36 @@ export function movedTo(
   id: string,
   to: CanvasPoint,
 ): PlacedElement[] | null {
-  const { rects, byId, move, refit, settle, placed } = workspaceOf(
-    previous,
-    graph,
-  );
+  const workspace = workspaceOf(previous, graph);
+  const { rects, byId, move, refit, shove, settle, placed } = workspace;
   if (!settle()) return null;
   const from = rects.get(id);
   if (from === undefined) return null;
-  move(id, to.x - from.x, to.y - from.y);
+  const frames = refusing(workspace, graph, id);
+  const dropped = { ...from, ...to };
+  // The outermost module it was let go of in: outside that, it is back at
+  // its own level.
+  const into = frames
+    .filter((frame) => encloses(frame, centreOf(dropped)))
+    .sort((a, b) => b.width * b.height - a.width * a.height)[0];
+  let at: Rect = dropped;
+  if (into !== undefined) {
+    const sides = [
+      { ...dropped, x: into.x - SPACING - dropped.width },
+      { ...dropped, x: into.x + into.width + SPACING },
+      { ...dropped, y: into.y - SPACING - dropped.height },
+      { ...dropped, y: into.y + into.height + SPACING },
+    ];
+    const distance = (rect: Rect) =>
+      Math.hypot(rect.x - dropped.x, rect.y - dropped.y);
+    const byNearness = sides.sort((a, b) => distance(a) - distance(b));
+    const free = byNearness.find((side) =>
+      frames.every((frame) => !overlaps(side, frame)),
+    );
+    at = free ?? byNearness[0]!;
+  }
+  move(id, at.x - from.x, at.y - from.y);
+  // What it then lies on makes way, and what that lies on in turn.
+  if (!shove(id, id)) return null;
   return refit(byId.get(id)?.parent ?? null) ? placed() : null;
 }

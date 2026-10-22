@@ -67,13 +67,3 @@ export function useSelectionState(id: string) {
       : undefined;
   return { state, onSelect };
 }
-
-/*
- * Whether a card is being dragged, apart from the rest so a drag starting
- * or ending redraws the cards' tooltips alone. While it is, none opens: the
- * pointer only passes over the cards.
- */
-export const DraggingContext = createContext(false);
-
-/** Whether a card is being dragged, so tooltips stay shut. */
-export const useDragging = () => useContext(DraggingContext);
