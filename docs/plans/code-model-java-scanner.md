@@ -1,7 +1,7 @@
 # Design: the Java scanner for the common code model
 
-Status: done (October 2026) up to Gradle support and the deferred items of
-section 7.
+Status: done (October 2026), the Gradle plugin of section 5b included, up to
+the deferred items of section 7.
 
 The .NET scanner (`scanners/dotnet`) reads a C# solution with Roslyn and
 writes the common code model designed in
@@ -28,7 +28,9 @@ model document stays the contract.
 2. **Maven first.** The scanner ships as a Maven plugin (`noesis:scan`),
    which gets a module's source roots, compile classpath and output directory
    from the build it runs in; that is what Roslyn's `MSBuildWorkspace` gives
-   the .NET scanner. Gradle comes later with the same engines.
+   the .NET scanner. A Gradle plugin (section 5b) wraps the same engines; the
+   service runs it through the command line a repository configures (section
+   5a).
 3. **The service gets a second Java scanner.** The regex-based TypeScript
    scanner stays as `scanner: "java"`; the code-model path is
    `scanner: "java-maven"`, an adapter beside `csharp` that runs Maven, reads
@@ -302,16 +304,69 @@ mvn -B -q -ntp -Dnoesis.out=<sessions/scanner> -Dnoesis.repositoryRoot=<root> -D
 The plugin must be in the local repository: `mvn -q install -DskipTests` in
 `scanners/java`.
 
+## 5b. The Gradle plugin
+
+`scanners/java/gradle-plugin` is a Gradle build of its own (the Gradle API is
+not on Maven Central) that takes `core` from the local repository and
+publishes the `vision.noesis.scanner` plugin there. Applied to any project of
+a build, it registers one `noesisScan` task on the root project, so a build
+has one scan whichever project applies it; the task depends on `classes` of
+every project with the `java` plugin and hands them all to
+`JavaScanner.scan(ScanRequest)` in one go, in dependency order (a project
+before the projects whose compile classpath has it), so the manifest is
+written once and complete, where the Maven plugin rewrites it per module. A
+project's inputs are read off the configured project: the main source set's
+source roots and classes directory, the resolved `compileClasspath` with each
+element's component (a project of this build is a `source` dependency, a
+module a `library` by its coordinates, a plain file a library named after
+itself), the compile task's `release` else `targetCompatibility`, the
+encoding, `war` or `jar`, and the main class from the `application` plugin,
+`springBoot.mainClass` or the jar manifest. The settings are those of section
+5 in a `noesis { }` block, each overridden by the Gradle property of the same
+name (`-Pnoesis.engine=bytecode`); `noesis.skip` has no Gradle counterpart,
+the task simply is not run. The task declares its inputs, so it is up to date
+while the sources, the classpath and the settings are unchanged, and is not
+cacheable because the model holds absolute paths. The functional test runs
+the task through Gradle TestKit on `src/test/resources/multi-project`, the
+Gradle twin of the Maven integration test's reactor, and asserts the same
+facts. `examples/discounts-java` applies the plugin with the bytecode engine,
+its sources being Lombok's, and its `noesis-config.json` runs it through the
+`code-model` scanner (section 5a).
+
 ## 5a. The service adapter
 
 `scanner: "java-maven"` in `noesis-config.json` selects
 `JavaMavenSourceCodeScanner` (`server/backend/src/adapters/out/scanners/java-maven/`),
 which shares its two-stage shape with the C# adapter through
-`code-model-scanner.ts`: run the tool into the session directory, read the
-manifest and its files with the zod schema, project with the language's
-vocabulary. It runs Maven with the invocation of section 5 (the repository's
-own `mvnw` when it has one), pins the plugin version it was built with, and
-tells someone without Maven or the plugin what to install. The Java
+`code-model-scanner.ts`: run a command line into the session directory, find
+the one `code-model/<language>/manifest.json` it wrote, read it and its files
+with the zod schema, project with the vocabulary of the language the manifest
+names. It runs Maven with the invocation of section 5 (the repository's own
+`mvnw` when it has one), pins the plugin version it was built with, and tells
+someone without Maven or the plugin what to install. `scanner: "code-model"`
+is the same adapter with the command line taken from the file's `codeModel`
+block (`{out}`, `{root}` and `{name}` filled in), which is how a Gradle build
+is scanned:
+
+```json
+{
+  "scanner": "code-model",
+  "codeModel": {
+    "command": [
+      "./gradlew",
+      "-q",
+      "noesisScan",
+      "-Pnoesis.out={out}",
+      "-Pnoesis.repositoryRoot={root}",
+      "-Pnoesis.repository={name}"
+    ]
+  }
+}
+```
+
+Both plugins write the same files, so the service needs no Gradle adapter; a
+build tool the plugins do not cover yet is a new `command`, not a change to
+the service. The Java
 vocabulary is `app/code-model/projection/java.vocabulary.ts`; it needed two
 small projection rules the C# one did not: a `behaviour` role may fix the
 behaviour type itself (R9.4, for the argument-less handler annotations) and a
@@ -356,7 +411,8 @@ behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
 
 ## 7. Deferred
 
-Gradle; a `wildcard` type reference kind; `@Nullable` → `nullable`; the
+Running the Gradle plugin on a build that does not apply it (an init script
+the `codeModel` command passes); a `wildcard` type reference kind; `@Nullable` → `nullable`; the
 `hiding` modifier; `module-info`; `typeLiteral` (`X.class`) and
 `REFERENCES_METHOD`; parameter names without `-parameters`; running
 annotation processors (Lombok); library models; a `noesis.processors`

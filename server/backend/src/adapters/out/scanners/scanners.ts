@@ -1,6 +1,7 @@
 import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import type { SystemModel } from '#backend/app/system-model/system-model';
 import type { ScannerOverride } from '#backend/platform/config/config';
+import { ConfiguredCodeModelScanner } from './configured-code-model.scanner';
 import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
 import { JavaMavenSourceCodeScanner } from './java-maven/java-maven.scanner';
@@ -21,6 +22,7 @@ const REPOSITORY_SCANNERS: RepositoryScanners = {
   java: (deps) => new JavaSourceCodeScanner(deps),
   'java-maven': (deps) => new JavaMavenSourceCodeScanner(deps),
   csharp: (deps) => new CSharpSourceCodeScanner(deps),
+  'code-model': (deps) => new ConfiguredCodeModelScanner(deps),
 };
 
 /**

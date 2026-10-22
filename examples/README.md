@@ -48,8 +48,9 @@ dotnet tool install -g Noesis.Scanner --add-source src/Noesis.Scanner.Cli/bin/Re
 
 Without it a scan fails with `Cannot run noesis-scan-csharp`. The first scan
 restores the example's packages and loads MSBuild, so it takes a while; later
-ones take a few seconds. `discounts-java` needs no tool: its scanner reads the
-sources as text.
+ones take a few seconds. Scanning `discounts-java` runs `./gradlew noesisScan`
+in the example, which needs the `vision.noesis.scanner` Gradle plugin in the
+local Maven repository (see below) and a JDK.
 
 Both commands need a terminal on stdin. Without one (a background job, a CI
 step, an agent's shell) the service takes stdin for MCP and quits when it
@@ -73,11 +74,11 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-Each `discounts-*` example names its scanner in `noesis-config.json`
-(`"scanner": "java"`, `"java-maven"` or `"csharp"`), which a scan reads every
-time; `java-maven` runs the Maven plugin from `scanners/java` and needs a JDK,
-Maven and `mvn install` there, `java` reads the sources as text (the Gradle
-example uses it). `qdoc-java`
+Each `discounts-*` example names its scanner in `noesis-config.json`, which a
+scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
+says `"code-model"` with the `./gradlew noesisScan` command line to run in its
+`codeModel` block (`"java-maven"` would run the Maven plugin, `"java"` reads
+the sources as text). `qdoc-java`
 sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
 scan, so a scan replays its implemented design documents.
 
@@ -93,8 +94,13 @@ its build files, its scanner config (`noesis-config.json`) and the
 nothing else: no CI, build scripts, IDE settings or notes from the runs.
 
 - `discounts-java` depends on `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT`
-  from `mavenLocal()`: run `mvn install` in `scanners/java` first, then
-  `./gradlew build` in the example.
+  and applies the `vision.noesis.scanner` Gradle plugin, both from
+  `mavenLocal()`: run `mvn install` in `scanners/java` and
+  `./gradlew publishToMavenLocal` in `scanners/java/gradle-plugin` first, then
+  `./gradlew build` in the example. `./gradlew noesisScan` there scans the
+  example into the code model under `.noesis/sessions/scanner/code-model/java/`
+  with the bytecode engine (its sources use Lombok); a scan from the service
+  runs the same command through its `noesis-config.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet
   feed in its `nuget.config`; `dotnet build MyCompany.ECommerce.sln` builds it
   (net8.0). It is a library and its tests, nothing runs.

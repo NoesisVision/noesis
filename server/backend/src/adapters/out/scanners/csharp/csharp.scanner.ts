@@ -1,4 +1,3 @@
-import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
 import {
   CodeModelScanner,
   type CodeModelScannerDeps,
@@ -15,16 +14,20 @@ export type CSharpScannerDeps = CodeModelScannerDeps;
  * system model by the NoesisVision.Annotations vocabulary.
  */
 export class CSharpSourceCodeScanner extends CodeModelScanner {
+  private readonly command: readonly string[];
+
   constructor({ noesis, now, command = DEFAULT_COMMAND }: CSharpScannerDeps) {
-    super(noesis, now, command, 'csharp', CSHARP_VOCABULARY);
+    super(noesis, now, 'csharp');
+    this.command = command;
   }
 
-  protected override firstStageArgs(
+  protected override async firstStage(
     root: string,
     name: string,
     outDir: string,
-  ): readonly string[] {
+  ): Promise<readonly string[]> {
     return [
+      ...this.command,
       root,
       '--out',
       outDir,

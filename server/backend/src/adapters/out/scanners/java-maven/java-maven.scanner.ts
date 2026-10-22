@@ -1,6 +1,5 @@
 import { access, constants } from 'node:fs/promises';
 import { join } from 'node:path';
-import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
 import {
   CodeModelScanner,
   type CodeModelScannerDeps,
@@ -28,7 +27,7 @@ export interface JavaMavenScannerDeps extends CodeModelScannerDeps {
  */
 export class JavaMavenSourceCodeScanner extends CodeModelScanner {
   private readonly engine: JavaScannerEngine;
-  private readonly configuredCommand: boolean;
+  private readonly command: readonly string[] | undefined;
 
   constructor({
     noesis,
@@ -36,31 +35,30 @@ export class JavaMavenSourceCodeScanner extends CodeModelScanner {
     command,
     engine = 'source',
   }: JavaMavenScannerDeps) {
-    super(noesis, now, command ?? DEFAULT_COMMAND, 'java', JAVA_VOCABULARY);
+    super(noesis, now, 'java-maven');
     this.engine = engine;
-    this.configuredCommand = command !== undefined;
+    this.command = command;
   }
 
-  /** The repository's Maven wrapper when it has one and no command was configured. */
-  protected override async commandFor(
-    root: string,
-  ): Promise<readonly string[]> {
-    if (this.configuredCommand) return this.command;
+  /** The configured command, else the repository's Maven wrapper when it has one, else `mvn`. */
+  private async commandFor(root: string): Promise<readonly string[]> {
+    if (this.command !== undefined) return this.command;
     const wrapper = join(root, WRAPPER);
     try {
       await access(wrapper, constants.X_OK);
       return [wrapper];
     } catch {
-      return this.command;
+      return DEFAULT_COMMAND;
     }
   }
 
-  protected override firstStageArgs(
+  protected override async firstStage(
     root: string,
     name: string,
     outDir: string,
-  ): readonly string[] {
+  ): Promise<readonly string[]> {
     return [
+      ...(await this.commandFor(root)),
       '-B',
       '-q',
       '-ntp',

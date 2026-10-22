@@ -1,4 +1,4 @@
-import { rm } from 'node:fs/promises';
+import { readdir, rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import type { Now } from '#backend/app/clock';
 import {
@@ -7,6 +7,8 @@ import {
   type Language,
   ScanManifest,
 } from '#backend/app/code-model/code-model';
+import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
 import {
   type ProjectionDiagnostic,
   projectSystemModel,
@@ -21,20 +23,30 @@ import { serverLogger } from '#backend/platform/logging/logging';
 import { loadNoesisConfig } from './noesis-config';
 
 const OUTPUT_TAIL = 4000;
+const CODE_MODEL_DIR = 'code-model';
+const MANIFEST_FILE = 'manifest.json';
+
+/** The languages the projection has a vocabulary for; chosen by the manifest's `language`. */
+const VOCABULARIES: Partial<Record<Language, AnnotationVocabulary>> = {
+  csharp: CSHARP_VOCABULARY,
+  java: JAVA_VOCABULARY,
+};
 
 export interface CodeModelScannerDeps {
   noesis: NoesisDir;
   now: Now;
-  /** The first stage's command and leading arguments; the language's default tool unless given. */
+  /** The first stage's command and leading arguments; the preset's default tool unless given. */
   command?: readonly string[];
 }
 
 /**
- * A scanner in two stages: a language's own tool writes the common code model
- * into the session directory, and the projection (app/code-model/projection)
- * turns it into the system model by that language's annotation vocabulary.
- * Rules in docs/plans/code-model-to-system-model.md. A subclass says which
- * tool to run and how, and what to tell someone who does not have it.
+ * A scanner in two stages: a tool of the repository's language writes the
+ * common code model into the session directory, and the projection
+ * (app/code-model/projection) turns it into the system model by the
+ * vocabulary of the language the manifest names. Rules in
+ * docs/plans/code-model-to-system-model.md. A subclass says only which
+ * command line to run, and what to tell someone who cannot run it; every
+ * tool that writes the model is scanned the same way.
  */
 export abstract class CodeModelScanner implements SourceCodeScanner {
   private readonly log;
@@ -42,27 +54,20 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
   protected constructor(
     protected readonly noesis: NoesisDir,
     protected readonly now: Now,
-    protected readonly command: readonly string[],
-    private readonly language: Language,
-    private readonly vocabulary: AnnotationVocabulary,
+    name: string,
   ) {
-    this.log = serverLogger('scanner', language);
+    this.log = serverLogger('scanner', name);
   }
 
-  /** The arguments after the command's own: what the tool needs to scan `root` into `outDir` as `name`. */
-  protected abstract firstStageArgs(
+  /** The whole command line that scans `root` into `outDir` as `name`, run from `root`. */
+  protected abstract firstStage(
     root: string,
     name: string,
     outDir: string,
-  ): readonly string[];
+  ): Promise<readonly string[]>;
 
   /** What to do when the tool cannot be started. */
   protected abstract installHint(): string;
-
-  /** The command for this repository; the configured one unless the repository ships its own wrapper. */
-  protected async commandFor(_root: string): Promise<readonly string[]> {
-    return this.command;
-  }
 
   /** Mints the id as the scan starts, so the newest scan has the highest id. */
   async scan(): Promise<SystemModel> {
@@ -79,16 +84,17 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
     const { model, diagnostics } = projectSystemModel({
       manifest,
       files,
-      vocabulary: this.vocabulary,
+      vocabulary: vocabularyOf(manifest.language),
       config,
     });
     const projected = performance.now();
     this.logDiagnostics(diagnostics);
     this.log.info(
-      'Scanned {name}: {artifacts} artifacts in {scanMs} ms, projected {blocks} building blocks and {behaviours} behaviours in {projectMs} ms',
+      'Scanned {name}: {artifacts} {language} artifacts in {scanMs} ms, projected {blocks} building blocks and {behaviours} behaviours in {projectMs} ms',
       {
         name,
         artifacts: files.length,
+        language: manifest.language,
         scanMs: Math.round(scanned - started),
         blocks: model.buildingBlocks.length,
         behaviours: model.behaviours.length,
@@ -98,23 +104,18 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
     return { id, name, scanned_at: scannedAt, ...model };
   }
 
-  private manifestFile(): string {
-    return join('code-model', this.language, 'manifest.json');
-  }
-
   /** Runs the tool into an empty `outDir` and reads what it wrote. */
   private async runFirstStage(
     root: string,
     name: string,
     outDir: string,
   ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
-    const manifest = this.manifestFile();
-    await rm(join(outDir, dirname(manifest)), { recursive: true, force: true });
-    const [executable, ...leading] = await this.commandFor(root);
+    const codeModelDir = join(outDir, CODE_MODEL_DIR);
+    await rm(codeModelDir, { recursive: true, force: true });
+    const [executable, ...args] = await this.firstStage(root, name, outDir);
     if (executable === undefined) {
-      throw new Error(`The ${this.language} scanner has no command to run.`);
+      throw new Error('The code model scanner has no command to run.');
     }
-    const args = [...leading, ...this.firstStageArgs(root, name, outDir)];
     this.log.debug('Running {executable} {args}', { executable, args });
     const output = await this.run(executable, args, root);
     if (output.exitCode !== 0) {
@@ -122,7 +123,7 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
         `${executable} failed with exit code ${output.exitCode}:\n${output.text.slice(-OUTPUT_TAIL)}`,
       );
     }
-    return readCodeModel(join(outDir, manifest));
+    return readCodeModel(await manifestIn(codeModelDir, executable));
   }
 
   private async run(
@@ -160,6 +161,57 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
       });
     }
   }
+}
+
+/** Fills `{out}`, `{root}` and `{name}` in a configured command line. */
+export function fillCommand(
+  command: readonly string[],
+  values: { out: string; root: string; name: string },
+): string[] {
+  return command.map((argument) =>
+    argument
+      .replaceAll('{out}', values.out)
+      .replaceAll('{root}', values.root)
+      .replaceAll('{name}', values.name),
+  );
+}
+
+function vocabularyOf(language: Language): AnnotationVocabulary {
+  const vocabulary = VOCABULARIES[language];
+  if (vocabulary === undefined) {
+    throw new Error(
+      `The projection has no annotation vocabulary for ${language} yet; the code model was read but cannot be projected.`,
+    );
+  }
+  return vocabulary;
+}
+
+/** The one `code-model/<language>/manifest.json` the tool wrote; the language is the tool's to say. */
+async function manifestIn(
+  codeModelDir: string,
+  executable: string,
+): Promise<string> {
+  let languages: string[];
+  try {
+    languages = (await readdir(codeModelDir, { withFileTypes: true }))
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+  } catch {
+    languages = [];
+  }
+  const manifests: string[] = [];
+  for (const language of languages) {
+    const manifest = join(codeModelDir, language, MANIFEST_FILE);
+    if (await Bun.file(manifest).exists()) manifests.push(manifest);
+  }
+  if (manifests.length > 1) {
+    throw new Error(
+      `${executable} wrote more than one code model under ${codeModelDir} (${languages.join(', ')}); one scan projects one.`,
+    );
+  }
+  // One expected manifest path keeps the error readable when nothing was written.
+  return manifests[0] ?? join(codeModelDir, '<language>', MANIFEST_FILE);
 }
 
 async function readCodeModel(
