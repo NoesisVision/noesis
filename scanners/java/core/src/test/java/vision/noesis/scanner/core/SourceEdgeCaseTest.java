@@ -10,11 +10,18 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.io.TempDir;
+import vision.noesis.scanner.core.java.JavaIds;
+import vision.noesis.scanner.model.ArtifactDependency;
+import vision.noesis.scanner.model.ArtifactKind;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.Diagnostic;
 import vision.noesis.scanner.model.DiagnosticSeverity;
 import vision.noesis.scanner.model.Edge;
+import vision.noesis.scanner.model.PackageReference;
+import vision.noesis.scanner.model.TypeUseRole;
 
 /**
  * Code shapes that once crashed the source engine or walked a body under the wrong member, each scanned as a module of
@@ -126,12 +133,103 @@ class SourceEdgeCaseTest {
                 model.diagnostics().toString());
     }
 
+    // --- Patterns (Java 21): a type pattern, a record pattern and its nested patterns are type tests --------------------
+
+    private static final String SHAPES = """
+            package p;
+            sealed interface Shape permits Circle, Square, Box {}
+            record Circle(double r) implements Shape {}
+            record Square(double side) implements Shape {}
+            record Box(Shape content) implements Shape {}
+            """;
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_21)
+    void typePatternsOfASwitchAreTypeTests() throws IOException {
+        CodeModelFile model = scan(21, SHAPES + """
+                class C {
+                    double area(Shape s) {
+                        return switch (s) {
+                            case Circle c -> c.r();
+                            case Square q -> q.side();
+                            case Box b -> 0;
+                        };
+                    }
+                }
+                """);
+
+        assertScanned(model);
+        assertEquals(List.of("p.Box", "p.Circle", "p.Square"), typeTests(model, "M:p.C#area(p.Shape)"));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_21)
+    void aRecordPatternTestsItsRecordAndItsNestedTypePatternsButNotVarOrPrimitives() throws IOException {
+        CodeModelFile model = scan(21, SHAPES + """
+                class C {
+                    double size(Object o) {
+                        if (o instanceof Circle(double r)) return r;
+                        if (o instanceof Box(Circle c)) return c.r();
+                        return switch (o) {
+                            case Square(var side) when side > 0 -> side;
+                            default -> 0;
+                        };
+                    }
+                }
+                """);
+
+        assertScanned(model);
+        assertEquals(List.of("p.Box", "p.Circle", "p.Circle", "p.Square"), typeTests(model, "M:p.C#size(java.lang.Object)"));
+    }
+
+    @Test
+    @EnabledForJreRange(min = JRE.JAVA_21)
+    void aPlainInstanceofPatternIsOneTypeTest() throws IOException {
+        CodeModelFile model = scan(21, """
+                package p;
+                class C {
+                    int f(Object o) { return o instanceof String s ? s.length() : 0; }
+                }
+                """);
+
+        assertEquals(List.of("java.lang.String"), typeTests(model, "M:p.C#f(java.lang.Object)"));
+    }
+
+    // --- Modules ------------------------------------------------------------------------------------------------------
+
+    @Test
+    void aModuleInfoDoesNotCutTheSourcesOffTheirClasspath() throws IOException {
+        Files.createDirectories(root.resolve("src"));
+        Files.writeString(root.resolve("src/module-info.java"), "module edge { requires com.google.common; }", StandardCharsets.UTF_8);
+        ArtifactDependency guava = new ArtifactDependency(JavaIds.libraryArtifact("com.google.guava:guava", "1"), ArtifactKind.LIBRARY, new PackageReference("com.google.guava:guava", "1"));
+        CodeModelFile model = scan(17, List.of(new ClasspathEntry(Path.of(System.getProperty("noesis.classpath.guava")), guava)), """
+                package p;
+                import com.google.common.base.Strings;
+                public class C {
+                    String f(String s) { return Strings.nullToEmpty(s); }
+                }
+                """);
+
+        assertScanned(model);
+        assertTrue(invokes(model, "M:p.C#f(java.lang.String)").stream().anyMatch(call -> call.to().value().equals("M:com.google.common.base.Strings#nullToEmpty(java.lang.String)")),
+                model.diagnostics().toString());
+    }
+
+    private static List<String> typeTests(CodeModelFile model, String from) {
+        return model.edges().stream().filter(Edge.UsesType.class::isInstance).map(Edge.UsesType.class::cast)
+                .filter(use -> use.from().value().equals(from) && use.role() == TypeUseRole.TYPE_TEST).map(use -> use.to().canonical()).sorted().toList();
+    }
+
     private CodeModelFile scan(int release, String source) throws IOException {
+        return scan(release, List.of(), source);
+    }
+
+    private CodeModelFile scan(int release, List<ClasspathEntry> classpath, String source) throws IOException {
         Path sources = root.resolve("src");
         Path file = sources.resolve("p/C.java");
         Files.createDirectories(file.getParent());
         Files.writeString(file, source, StandardCharsets.UTF_8);
-        ArtifactInput input = new ArtifactInput("p", "edge", "1", root, null, List.of(sources), root.resolve("classes"), List.of(), release,
+        ArtifactInput input = new ArtifactInput("p", "edge", "1", root, null, List.of(sources), root.resolve("classes"), classpath, release,
                 StandardCharsets.UTF_8, "jar", null);
         ScanRequest request = new ScanRequest(root, "edge", "", "", root.resolve("out"), EngineKind.SOURCE, List.of(input));
         return JavaScanner.engineFor(EngineKind.SOURCE).scan(input, new ScanSession(new JavaScanner(Fixtures.GENERATOR_VERSION).generator(), request));

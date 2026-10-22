@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import vision.noesis.scanner.core.Diagnostics;
 import vision.noesis.scanner.core.EngineKind;
 import vision.noesis.scanner.core.ModelBuilder;
@@ -48,6 +50,8 @@ import vision.noesis.scanner.model.UsageSite;
  * sources cannot show.
  *
  * <ul>
+ *   <li>Before the merge, {@link MergeInputs} gives a source method that names a processor-generated type the id
+ *       bytecode has for it, and moves bytecode's field initializer edges from the constructors to the fields.</li>
  *   <li>A declaration only the class files have (a member or type an annotation processor generated) is added with
  *       {@code origin = generated} and {@code java.engine = bytecode}; a {@code .cctor} of a type the source engine
  *       declared is not, since the source engine attributes static initializers to the fields. An implicit member the
@@ -60,13 +64,15 @@ import vision.noesis.scanner.model.UsageSite;
  *       from bytecode, as do the edges onto an added declaration from a source one. A base the source engine left
  *       {@code unresolved} is replaced by the bytecode engine's bases of that kind.</li>
  *   <li>Body edges from an added declaration come from bytecode. Body edges from a source declaration come from
- *       bytecode only where they target an added declaration or sit on a line the source engine reported an
- *       {@code NS1002} for (a call it could not bind, and the calls chained after it); their site is marked
- *       {@code java.engine = bytecode}, their receiver and type arguments are bytecode's. A source call on that line
+ *       bytecode only where they target an added declaration or sit within the lines of an expression the source
+ *       engine reported an {@code NS1002} for (a call it could not bind, and every call chained after it, on whatever
+ *       line); within such an expression bytecode's sites are counted against the source engine's of the same caller
+ *       and target, since the two put a continued line's sites on different lines. A taken site is marked
+ *       {@code java.engine = bytecode}; its receiver and type arguments are bytecode's. A source call on that line
  *       to a member of the same name and arity that the class file does not make (javac bound {@code equals} to
- *       {@code Object}'s, not knowing the generated override) is replaced. The diagnostics of a line that gained an
- *       edge this way, or whose statement's first line did (javac attributes a continued-line {@code new} to it), the
- *       {@code NS1002} and the compiler's errors, are dropped.</li>
+ *       {@code Object}'s, not knowing the generated override) is replaced. An {@code NS1002} whose lines gained an
+ *       edge, or whose statement's first line did within the same declaration (javac attributes a continued-line
+ *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge.</li>
  *   <li>Stubs: the source engine's, plus the bytecode engine's for every symbol the added declarations and edges
  *       reference, with their containers and base chains.</li>
  *   <li>Module-level diagnostics of the bytecode engine (classes missing, parameter names missing) are kept.</li>
@@ -91,8 +97,22 @@ final class ModelMerge {
     private final Map<NodeId, DeclarationNode> added = new LinkedHashMap<>();
     private final List<Edge> addedEdges = new ArrayList<>();
     private final Map<NodeId, StubNode> addedStubs = new LinkedHashMap<>();
-    private final Set<String> unboundSites = new HashSet<>();
-    private final Set<String> boundSites = new HashSet<>();
+    /** The source engine's {@code NS1002} spans: expressions it could not bind, a call chained over several lines included. */
+    private final List<Region> unboundRegions = new ArrayList<>();
+    /** The file and line of every body edge taken from bytecode onto a source declaration. */
+    private final Map<String, TreeSet<Integer>> addedLines = new HashMap<>();
+
+    /** The lines of an expression the source engine could not bind. */
+    private record Region(String file, int start, int end) {
+
+        static Region of(SourceSpan span) {
+            return new Region(span.file(), span.startLine(), Math.max(span.startLine(), span.endLine()));
+        }
+
+        boolean holds(SourceSpan at) {
+            return at != null && at.file().equals(file) && start <= at.startLine() && at.startLine() <= end;
+        }
+    }
 
     private ModelMerge(CodeModelFile source, CodeModelFile bytecode) {
         this.source = source;
@@ -102,7 +122,7 @@ final class ModelMerge {
         for (StubNode stub : source.stubs()) sourceStubs.put(stub.id(), stub);
         for (StubNode stub : bytecode.stubs()) bytecodeStubs.put(stub.id(), stub);
         for (Diagnostic diagnostic : source.diagnostics()) {
-            if (Diagnostics.UNBOUND_SITE.equals(diagnostic.code()) && diagnostic.location() != null) unboundSites.add(key(diagnostic.location()));
+            if (Diagnostics.UNBOUND_SITE.equals(diagnostic.code()) && diagnostic.location() != null) unboundRegions.add(Region.of(diagnostic.location()));
         }
     }
 
@@ -111,7 +131,9 @@ final class ModelMerge {
         boolean noSourceModel = source.diagnostics().stream()
                 .anyMatch(d -> Diagnostics.NO_COMPILER.equals(d.code()) || Diagnostics.MODULE_NOT_SCANNED.equals(d.code()));
         if (noSourceModel) return bytecodeOnly(source, bytecode, artifact, session);
-        return new ModelMerge(source, bytecode).merge(artifact, session);
+        CodeModelFile repairedSource = MergeInputs.repairUnresolved(source, bytecode);
+        CodeModelFile attributedBytecode = MergeInputs.attributeFieldInitializers(bytecode, repairedSource);
+        return new ModelMerge(repairedSource, attributedBytecode).merge(artifact, session);
     }
 
     private CodeModelFile merge(ArtifactNode artifact, ScanSession session) {
@@ -246,10 +268,14 @@ final class ModelMerge {
 
     private void addBodies() {
         Set<String> sourceSites = new HashSet<>();
+        Map<String, Integer> sourceInRegion = new HashMap<>();
         for (Edge edge : source.edges()) {
             String site = siteKey(edge);
             if (site != null) sourceSites.add(site);
+            Region region = widestRegionOf(siteOf(edge));
+            if (region != null) sourceInRegion.merge(regionKey(region, edge), 1, Integer::sum);
         }
+        Map<String, Integer> takenInRegion = new HashMap<>();
         Set<String> rebound = new HashSet<>();
         Set<String> bytecodeSites = new HashSet<>();
         for (Edge edge : bytecode.edges()) {
@@ -269,16 +295,38 @@ final class ModelMerge {
             if (edge instanceof Edge.Invokes e) ontoAdded = added.containsKey(e.to());
             else if (edge instanceof Edge.Accesses e) ontoAdded = added.containsKey(e.to());
             else ontoAdded = ((Edge.UsesType) edge).to() instanceof TypeRef.Named named && added.containsKey(named.type());
-            if (!ontoAdded && !unboundSites.contains(key(site.location()))) continue;
-            if (sourceSites.contains(siteKey(edge))) continue;
+            Region region = widestRegionOf(site);
+            if (!ontoAdded && region == null) continue;
+            if (region != null) {
+                // Counted per unbound expression, not per line: javac and the source engine put a continued line's sites on different lines.
+                String counted = regionKey(region, edge);
+                if (takenInRegion.merge(counted, 1, Integer::sum) <= sourceInRegion.getOrDefault(counted, 0)) continue;
+            } else if (sourceSites.contains(siteKey(edge))) {
+                continue;
+            }
             addedEdges.add(marked(edge));
-            boundSites.add(key(site.location()));
+            addedLines.computeIfAbsent(site.location().file(), k -> new TreeSet<>()).add(site.location().startLine());
             if (ontoAdded && edge instanceof Edge.Invokes call) rebound.add(call.from() + " " + key(site.location()) + " " + nameAndArity(call.to()));
         }
         for (Edge edge : source.edges()) {
             if (!(edge instanceof Edge.Invokes call) || added.containsKey(call.to()) || bytecodeSites.contains(siteKey(edge))) continue;
             if (rebound.contains(call.from() + " " + key(call.site().location()) + " " + nameAndArity(call.to()))) droppedSourceEdges.add(edge);
         }
+    }
+
+    /** The widest unbound expression holding the site, so the sites of one chain are counted together. */
+    private Region widestRegionOf(UsageSite site) {
+        if (site == null) return null;
+        Region widest = null;
+        for (Region region : unboundRegions) {
+            if (region.holds(site.location()) && (widest == null || region.end() - region.start() > widest.end() - widest.start())) widest = region;
+        }
+        return widest;
+    }
+
+    private static String regionKey(Region region, Edge edge) {
+        String site = siteKey(edge);
+        return region + " " + site.substring(0, site.lastIndexOf(' '));
     }
 
     /** {@code equals/1} for {@code M:java.lang.Object#equals(java.lang.Object)}: what a call javac bound to a supertype's member shares with the generated override. */
@@ -382,11 +430,8 @@ final class ModelMerge {
         }
     }
 
-    /** {@code T:p.T} for {@code M:p.T#m()} and for {@code F:p.T.f}: a field id has no {@code #}, its name follows the last dot. */
     private static NodeId declaringType(NodeId member) {
-        String path = member.canonicalPath();
-        int hash = path.indexOf('#');
-        return NodeId.of(NodeKindLetter.TYPE, path.substring(0, hash >= 0 ? hash : path.lastIndexOf('.')));
+        return MergeInputs.declaringType(member);
     }
 
     private static void register(StubRegistry registry, StubNode stub) {
@@ -478,17 +523,24 @@ final class ModelMerge {
     // --- Diagnostics -------------------------------------------------------------------------------------------------
 
     /**
-     * A diagnostic is resolved when its line gained a bytecode edge, or when the statement it sits in did: javac
-     * attributes a {@code new} or a field read on a continued line to the statement's first line, so the nearest line
-     * at or above the diagnostic that has a site at all stands for its statement.
+     * The source engine's diagnostics, less those the bytecode edges answered: an {@code NS1002} whose lines gained an
+     * edge, or whose statement did (javac puts a {@code new} on a continued line on the statement's first line: the
+     * nearest line above with a site, within the same declaration), and a compiler error at the same position as such an
+     * {@code NS1002} or on lines that gained an edge. The bytecode engine's module-level diagnostics are added.
      */
     private List<Diagnostic> diagnostics() {
         Map<String, TreeSet<Integer>> siteLines = new HashMap<>();
         for (Edge edge : source.edges()) addSiteLine(siteLines, siteOf(edge));
         for (Edge edge : addedEdges) addSiteLine(siteLines, siteOf(edge));
+        Set<String> resolvedPositions = new HashSet<>();
+        for (Diagnostic diagnostic : source.diagnostics()) {
+            if (Diagnostics.UNBOUND_SITE.equals(diagnostic.code()) && unboundResolved(diagnostic.location(), siteLines)) resolvedPositions.add(position(diagnostic.location()));
+        }
         List<Diagnostic> diagnostics = new ArrayList<>();
         for (Diagnostic diagnostic : source.diagnostics()) {
-            if (!resolved(diagnostic.location(), siteLines)) diagnostics.add(diagnostic);
+            SourceSpan location = diagnostic.location();
+            boolean resolved = location != null && (resolvedPositions.contains(position(location)) || gainedEdge(location) || namesAddedType(diagnostic));
+            if (!resolved) diagnostics.add(diagnostic);
         }
         for (Diagnostic diagnostic : bytecode.diagnostics()) {
             if (diagnostic.location() == null && !diagnostics.contains(diagnostic)) diagnostics.add(diagnostic);
@@ -496,11 +548,57 @@ final class ModelMerge {
         return diagnostics;
     }
 
-    private boolean resolved(SourceSpan location, Map<String, TreeSet<Integer>> siteLines) {
+    private boolean unboundResolved(SourceSpan location, Map<String, TreeSet<Integer>> siteLines) {
         if (location == null) return false;
-        if (boundSites.contains(key(location))) return true;
-        Integer statementLine = siteLines.getOrDefault(location.file(), new TreeSet<>()).floor(location.startLine());
-        return statementLine != null && boundSites.contains(location.file() + ":" + statementLine);
+        if (gainedEdge(location)) return true;
+        SourceSpan declaration = innermostDeclarationHolding(location);
+        Integer statementLine = siteLines.getOrDefault(location.file(), new TreeSet<>()).lower(location.startLine());
+        if (statementLine == null || declaration == null || statementLine < declaration.startLine()) return false;
+        return addedLines.getOrDefault(location.file(), new TreeSet<>()).contains(statementLine);
+    }
+
+    /** True when a bytecode edge was taken on one of the span's lines. */
+    private boolean gainedEdge(SourceSpan location) {
+        Integer line = addedLines.getOrDefault(location.file(), new TreeSet<>()).ceiling(location.startLine());
+        return line != null && line <= Math.max(location.startLine(), location.endLine());
+    }
+
+    private SourceSpan innermostDeclarationHolding(SourceSpan location) {
+        SourceSpan innermost = null;
+        for (DeclarationNode node : source.nodes()) {
+            if (!(node instanceof MethodNode) && !(node instanceof FieldNode)) continue;
+            for (SourceSpan span : node.locations()) {
+                if (!span.file().equals(location.file()) || span.startLine() > location.startLine() || span.endLine() < location.startLine()) continue;
+                if (innermost == null || span.endLine() - span.startLine() < innermost.endLine() - innermost.startLine()) innermost = span;
+            }
+        }
+        return innermost;
+    }
+
+    private static final Pattern MISSING_CLASS = Pattern.compile("symbol: +class (\\S+)");
+    private static final Pattern MISSING_CLASS_OWNER = Pattern.compile("location: +(?:class|interface) (\\S+)");
+
+    /**
+     * javac's "cannot find symbol: class X" for a class the merge added from bytecode: the class a processor generates
+     * ({@code Built.BuiltBuilder} on a parameter or field) exists. The messages are javac's English ones; the location
+     * class, when javac names one, must enclose it.
+     */
+    private boolean namesAddedType(Diagnostic diagnostic) {
+        if (!diagnostic.code().startsWith("compiler.err.cant.resolve")) return false;
+        Matcher symbol = MISSING_CLASS.matcher(diagnostic.message());
+        if (!symbol.find()) return false;
+        Matcher owner = MISSING_CLASS_OWNER.matcher(diagnostic.message());
+        String name = owner.find() ? owner.group(1) + "." + symbol.group(1) : symbol.group(1);
+        for (NodeId id : added.keySet()) {
+            if (id.kind() != NodeKindLetter.TYPE) continue;
+            String dotted = id.canonicalPath().replace('+', '.').replaceAll("`\\d+", "");
+            if (dotted.equals(name) || dotted.endsWith("." + name)) return true;
+        }
+        return false;
+    }
+
+    private static String position(SourceSpan location) {
+        return location.file() + ":" + location.startLine() + ":" + location.startColumn();
     }
 
     private static void addSiteLine(Map<String, TreeSet<Integer>> siteLines, UsageSite site) {

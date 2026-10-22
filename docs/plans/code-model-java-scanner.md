@@ -165,19 +165,19 @@ body), instance initializer blocks to every constructor that does not start
 with `this(...)`, lambdas to the enclosing member with `viaClosure: true`, and
 the members of local and anonymous classes to themselves.
 
-| Site                                    | Edge                                                                                                                                                                                                                          |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `x.m()`, `m()`, `T.m()`, `super.m()`    | `INVOKES` to the method declaration, `invocationKind: call`, the receiver classified (section 2.8); `typeArguments` as written, or recovered from the instantiated method type where a type variable binds plainly, else `[]` |
-| `arr.clone()`                           | `INVOKES` to `M:java.lang.Object#clone()`: an array type declares nothing, and its `clone()` overrides `Object`'s (javac binds it to a member of its synthetic `Array` class, the class file to the array type itself)        |
-| `new T(...)`, `this(...)`, `super(...)` | `INVOKES` to `#.ctor`; `typeArguments` are the created type's flattened arguments; receiver `null`, `this` or `base`                                                                                                          |
-| the implicit `super()`                  | `INVOKES` to the superclass's no-argument constructor (`Enum(String, int)` for an enum), `receiver: base`, `java.implicitSuperCall: true`, located at the constructor's start (decision 7)                                    |
-| `new T() { ... }`                       | `INVOKES` to the anonymous class's constructor, which is a generated node of the anonymous type                                                                                                                               |
-| a field read or write                   | `ACCESSES` with `read`, `write` (assignment target) or `readWrite` (compound assignment, `++`, `--`); no edge for a read of a compile-time constant, which javac folds; `arr.length` is no member                             |
-| `(T) x`                                 | `USES_TYPE cast`                                                                                                                                                                                                              |
-| `x instanceof T`, `x instanceof T t`    | `USES_TYPE typeTest`                                                                                                                                                                                                          |
-| `new T[n]`, `new T[] {...}`             | `USES_TYPE creation` with the array reference                                                                                                                                                                                 |
-| `X.class`, `Foo::bar`                   | nothing (`typeLiteral` and `REFERENCES_METHOD` are deferred, as in the model document's section 8); a method reference's receiver is walked                                                                                   |
-| a site javac could not bind             | no edge and one `NS1002` diagnostic with the text                                                                                                                                                                             |
+| Site                                                                                                                                                                         | Edge                                                                                                                                                                                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `x.m()`, `m()`, `T.m()`, `super.m()`                                                                                                                                         | `INVOKES` to the method declaration, `invocationKind: call`, the receiver classified (section 2.8); `typeArguments` as written, or recovered from the instantiated method type where a type variable binds plainly, else `[]` |
+| `arr.clone()`                                                                                                                                                                | `INVOKES` to `M:java.lang.Object#clone()`: an array type declares nothing, and its `clone()` overrides `Object`'s (javac binds it to a member of its synthetic `Array` class, the class file to the array type itself)        |
+| `new T(...)`, `this(...)`, `super(...)`                                                                                                                                      | `INVOKES` to `#.ctor`; `typeArguments` are the created type's flattened arguments; receiver `null`, `this` or `base`                                                                                                          |
+| the implicit `super()`                                                                                                                                                       | `INVOKES` to the superclass's no-argument constructor (`Enum(String, int)` for an enum), `receiver: base`, `java.implicitSuperCall: true`, located at the constructor's start (decision 7)                                    |
+| `new T() { ... }`                                                                                                                                                            | `INVOKES` to the anonymous class's constructor, which is a generated node of the anonymous type                                                                                                                               |
+| a field read or write                                                                                                                                                        | `ACCESSES` with `read`, `write` (assignment target) or `readWrite` (compound assignment, `++`, `--`); no edge for a read of a compile-time constant, which javac folds; `arr.length` is no member                             |
+| `(T) x`                                                                                                                                                                      | `USES_TYPE cast`                                                                                                                                                                                                              |
+| `x instanceof T`, `x instanceof T t`, a type pattern in a `case` label, a record pattern and each type pattern nested in it (`case Box(Circle c)`; not `var` or a primitive) | `USES_TYPE typeTest`                                                                                                                                                                                                          |
+| `new T[n]`, `new T[] {...}`                                                                                                                                                  | `USES_TYPE creation` with the array reference                                                                                                                                                                                 |
+| `X.class`, `Foo::bar`                                                                                                                                                        | nothing (`typeLiteral` and `REFERENCES_METHOD` are deferred, as in the model document's section 8); a method reference's receiver is walked                                                                                   |
+| a site javac could not bind                                                                                                                                                  | no edge and one `NS1002` diagnostic with the text                                                                                                                                                                             |
 
 ### 2.8 Receivers
 
@@ -216,7 +216,7 @@ the compiler's per artifact.
 ## 3. The source engine
 
 ```
-sources under the compile source roots
+sources under the compile source roots, but module-info.java (it would make the sources a named module, which cannot read the classpath)
 → javac: -proc:none --release <release> -implicit:none -classpath <compile classpath minus the module's own classes>
   parse() + analyze()
 → declaration pass: every top-level class of every unit, through javax.lang.model, trees for spans and Javadoc
@@ -319,17 +319,30 @@ produced, for the price of both scans and a compiled module.
   the class file adds and a visibility it changes (`@Value` makes the class
   final and the fields private) are taken from bytecode and the node is
   marked `java.processorModified: true`.
+- Before the merge (`MergeInputs`), a source method whose signature names a
+  type only the processor declares (`void accept(ImmutableX x)`, a Lombok
+  builder class), which has an `<unresolved:...>` id in the source model,
+  takes the id bytecode has for it, with every edge to and from it; types the
+  source engine left unresolved on a field, a return or a parameter take
+  bytecode's. And a constructor's or `.cctor`'s bytecode edges on the lines of
+  a field of its type become the field's, as the source engine attributes a
+  field initializer (taken from one constructor, since every constructor holds
+  a copy; the store into the field itself is no access).
 - A body edge from a source declaration is taken from bytecode only where it
-  targets an added declaration or sits on a line the source engine reported
-  an `NS1002` for: the call it could not bind and the calls chained after it
-  (`holder.getName().length()`). Such a site is marked `java.engine:
-bytecode`; its receiver and type arguments are bytecode's. A source call on
-  that line to a member of the same name and arity the class file does not
-  make (javac bound `equals` to `Object`'s, not knowing the generated
-  override) is replaced by the bytecode call. The diagnostics of a line that
-  gained an edge this way, or whose statement's first line did (javac
-  attributes a continued-line `new` to it), the `NS1002` and the compiler's
-  errors, are dropped; a base the source engine left `unresolved` is
+  targets an added declaration or sits within the lines of an expression the
+  source engine reported an `NS1002` for: the call it could not bind and every
+  call chained after it, on whatever line (`holder.getName()` then `.stream()`
+  on the next line). Within such an expression bytecode's sites are counted
+  against the source engine's of the same caller and target, since the two put
+  a continued line's sites on different lines. Such a site is marked
+  `java.engine: bytecode`; its receiver and type arguments are bytecode's. A
+  source call on that line to a member of the same name and arity the class
+  file does not make (javac bound `equals` to `Object`'s, not knowing the
+  generated override) is replaced by the bytecode call. An `NS1002` whose
+  lines gained an edge, or whose statement's first line did within the same
+  declaration (javac attributes a continued-line `new` to it), is dropped, as
+  is a compiler error at its position, on lines that gained an edge, or naming
+  a class the merge added; a base the source engine left `unresolved` is
   replaced by bytecode's.
 - Stubs are the source engine's plus the bytecode engine's for every symbol
   the added declarations and edges reference, with containers and base
@@ -422,8 +435,16 @@ names. It runs Maven with the invocation of section 5 (the repository's own
 `mvnw` when it has one), pins the plugin version it was built with, and tells
 someone without Maven or the plugin what to install. `scanner: "code-model"`
 is the same adapter with the command line taken from the file's `codeModel`
-block (`{out}`, `{root}` and `{name}` filled in), which is how a Gradle build
-is scanned:
+block (`{out}`, `{root}` and `{name}` filled in). `scanner: "java-gradle"`
+(`java-gradle/`) scans a Gradle build without a change to its files: it writes
+an init script into the session directory that applies the
+`vision.noesis.scanner` plugin from the local Maven repository once every
+project is configured, unless the build applies it itself (two class loaders
+would register the task twice), and runs `noesisScan` with the repository's
+`gradlew`, else `gradle`. Both Java presets run the engine the file's
+`"engine"` names (`source`, `bytecode` or `hybrid`; `source` when it names
+none), which no other scanner accepts. A Gradle build can also give its
+command line in full:
 
 ```json
 {
@@ -441,9 +462,9 @@ is scanned:
 }
 ```
 
-Both plugins write the same files, so the service needs no Gradle adapter; a
-build tool the plugins do not cover yet is a new `command`, not a change to
-the service. The Java
+Both plugins write the same files, so the two presets differ only in the
+command line; a build tool the plugins do not cover yet is a new `command`,
+not a change to the service. The Java
 vocabulary is `app/code-model/projection/java.vocabulary.ts`; it needed two
 small projection rules the C# one did not: a `behaviour` role may fix the
 behaviour type itself (R9.4, for the argument-less handler annotations) and a
@@ -508,7 +529,8 @@ behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
 
 Running the Gradle plugin on a build that does not apply it (an init script
 the `codeModel` command passes); a `wildcard` type reference kind; `@Nullable` → `nullable`; the
-`hiding` modifier; `module-info`; `typeLiteral` (`X.class`) and
+`hiding` modifier; `module-info` as a node (its file is left out of the
+compilation, section 3); `typeLiteral` (`X.class`) and
 `REFERENCES_METHOD`; parameter names without `-parameters`; running
 annotation processors (Lombok) in the source engine, which would give the
 sites the hybrid engine takes from bytecode their receivers and type

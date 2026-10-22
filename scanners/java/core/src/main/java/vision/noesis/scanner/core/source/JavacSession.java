@@ -122,7 +122,9 @@ final class JavacSession implements AutoCloseable {
         for (Path root : roots) {
             if (!Files.isDirectory(root)) continue;
             try (Stream<Path> walk = Files.walk(root)) {
-                walk.filter(path -> path.toString().endsWith(".java") && Files.isRegularFile(path)).forEach(files::add);
+                // module-info.java would make the sources a named module, which cannot read the classpath's unnamed one.
+                walk.filter(path -> path.toString().endsWith(".java") && !path.getFileName().toString().equals("module-info.java") && Files.isRegularFile(path))
+                        .forEach(files::add);
             }
         }
         files.sort(null);

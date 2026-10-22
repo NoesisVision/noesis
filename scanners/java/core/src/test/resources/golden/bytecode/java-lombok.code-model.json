@@ -38,6 +38,39 @@
   "nodes": [
     {
       "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.DEFAULT",
+      "name": "DEFAULT",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "static",
+        "readonly"
+      ],
+      "type": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.lombok.GeneratedMembers+Built",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
       "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
       "name": "accessors",
       "origin": "declared",
@@ -61,6 +94,66 @@
       "type": {
         "kind": "named",
         "type": "T:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount",
+      "name": "initialCount",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "readonly"
+      ],
+      "type": {
+        "kind": "primitive",
+        "name": "int",
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending",
+      "name": "pending",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
@@ -704,6 +797,40 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "name": ".cctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "staticInitializer",
+      "visibility": "private",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
       "name": ".ctor",
       "origin": "declared",
@@ -742,9 +869,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 23,
+          "startLine": 32,
           "startColumn": 0,
-          "endLine": 23,
+          "endLine": 32,
           "endColumn": 0
         }
       ],
@@ -778,9 +905,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 44,
+          "startLine": 53,
           "startColumn": 0,
-          "endLine": 44,
+          "endLine": 53,
           "endColumn": 0
         }
       ],
@@ -810,15 +937,53 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "name": "callDescribeBuilder",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 123,
+          "startColumn": 0,
+          "endLine": 123,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#closureCalls(java.util.List`1[vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter])",
       "name": "closureCalls",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         }
       ],
@@ -887,9 +1052,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 77,
+          "startLine": 86,
           "startColumn": 0,
-          "endLine": 77,
+          "endLine": 86,
           "endColumn": 0
         }
       ],
@@ -923,9 +1088,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 50,
+          "startLine": 59,
           "startColumn": 0,
-          "endLine": 50,
+          "endLine": 59,
           "endColumn": 0
         }
       ],
@@ -959,9 +1124,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 30,
+          "startLine": 39,
           "startColumn": 0,
-          "endLine": 30,
+          "endLine": 39,
           "endColumn": 0
         }
       ],
@@ -997,9 +1162,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 84,
+          "startLine": 93,
           "startColumn": 0,
-          "endLine": 84,
+          "endLine": 93,
           "endColumn": 0
         }
       ],
@@ -1027,15 +1192,70 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder)",
+      "name": "describeBuilder",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 118,
+          "startColumn": 0,
+          "endLine": 118,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "builder",
+            "type": {
+              "kind": "named",
+              "type": "T:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#fluentCalls()",
       "name": "fluentCalls",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 71,
+          "startLine": 80,
           "startColumn": 0,
-          "endLine": 71,
+          "endLine": 80,
           "endColumn": 0
         }
       ],
@@ -1065,15 +1285,51 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "name": "multiLineChain",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 110,
+          "startColumn": 0,
+          "endLine": 110,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "long",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineConstructorCall()",
       "name": "multiLineConstructorCall",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 58,
+          "startLine": 67,
           "startColumn": 0,
-          "endLine": 58,
+          "endLine": 67,
           "endColumn": 0
         }
       ],
@@ -1109,9 +1365,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 101,
+          "startLine": 128,
           "startColumn": 0,
-          "endLine": 101,
+          "endLine": 128,
           "endColumn": 0
         }
       ],
@@ -1147,9 +1403,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 105,
           "startColumn": 0,
-          "endLine": 96,
+          "endLine": 105,
           "endColumn": 0
         }
       ],
@@ -1190,9 +1446,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 38,
+          "startLine": 47,
           "startColumn": 0,
-          "endLine": 38,
+          "endLine": 47,
           "endColumn": 0
         }
       ],
@@ -1228,9 +1484,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 66,
+          "startLine": 75,
           "startColumn": 0,
-          "endLine": 66,
+          "endLine": 75,
           "endColumn": 0
         }
       ],
@@ -6751,6 +7007,24 @@
   "edges": [
     {
       "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.DEFAULT",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
       "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
       "access": "write",
@@ -6769,45 +7043,9 @@
     },
     {
       "kind": "ACCESSES",
-      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
-      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
-      "access": "read",
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 23,
-          "startColumn": 0,
-          "endLine": 23,
-          "endColumn": 0
-        },
-        "viaClosure": false,
-        "languageSpecific": {}
-      },
-      "receiver": "other"
-    },
-    {
-      "kind": "ACCESSES",
-      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
-      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
-      "access": "read",
-      "site": {
-        "location": {
-          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 24,
-          "startColumn": 0,
-          "endLine": 24,
-          "endColumn": 0
-        },
-        "viaClosure": false,
-        "languageSpecific": {}
-      },
-      "receiver": "other"
-    },
-    {
-      "kind": "ACCESSES",
-      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
-      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
-      "access": "read",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount",
+      "access": "write",
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
@@ -6823,15 +7061,123 @@
     },
     {
       "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 28,
+          "startColumn": 0,
+          "endLine": 28,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
       "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
       "access": "read",
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 25,
+          "startLine": 32,
           "startColumn": 0,
-          "endLine": 25,
+          "endLine": 32,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 33,
+          "startColumn": 0,
+          "endLine": 33,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 34,
+          "startColumn": 0,
+          "endLine": 34,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 34,
+          "startColumn": 0,
+          "endLine": 34,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 123,
+          "startColumn": 0,
+          "endLine": 123,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 110,
+          "startColumn": 0,
+          "endLine": 110,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -6847,9 +7193,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 105,
           "startColumn": 0,
-          "endLine": 96,
+          "endLine": 105,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -6865,9 +7211,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 105,
           "startColumn": 0,
-          "endLine": 96,
+          "endLine": 105,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -8389,7 +8735,27 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.DEFAULT"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()"
     },
     {
       "kind": "CONTAINS",
@@ -8405,6 +8771,11 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()"
     },
     {
       "kind": "CONTAINS",
@@ -8434,7 +8805,17 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#fluentCalls()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()"
     },
     {
       "kind": "CONTAINS",
@@ -9174,6 +9555,32 @@
         "kind": "named",
         "type": "T:java.lang.AutoCloseable",
         "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.util.stream.IntStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.util.stream.BaseStream`2",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.Integer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          {
+            "kind": "named",
+            "type": "T:java.util.stream.IntStream",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
         "unbound": false,
         "nullable": false
       }
@@ -10496,6 +10903,82 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built#builder()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#count(int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.cctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#name(java.lang.String)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 0,
+          "endLine": 22,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
@@ -10512,6 +10995,25 @@
       },
       "invocationKind": "call",
       "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built#builder()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 28,
+          "startColumn": 0,
+          "endLine": 28,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
     },
     {
       "kind": "INVOKES",
@@ -10534,8 +11036,8 @@
     },
     {
       "kind": "INVOKES",
-      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
-      "to": "M:java.lang.String#length()",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#.ctor()",
       "typeArguments": [],
       "site": {
         "location": {
@@ -10549,11 +11051,11 @@
         "languageSpecific": {}
       },
       "invocationKind": "call",
-      "receiver": "other"
+      "receiver": null
     },
     {
       "kind": "INVOKES",
-      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()",
       "typeArguments": [],
       "site": {
@@ -10573,14 +11075,52 @@
     {
       "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "to": "M:java.lang.String#length()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 34,
+          "startColumn": 0,
+          "endLine": 34,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getCount()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 34,
+          "startColumn": 0,
+          "endLine": 34,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#accessorCalls()",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()",
       "typeArguments": [],
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 25,
+          "startLine": 34,
           "startColumn": 0,
-          "endLine": 25,
+          "endLine": 34,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10597,9 +11137,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 24,
+          "startLine": 33,
           "startColumn": 0,
-          "endLine": 24,
+          "endLine": 33,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10616,9 +11156,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 23,
+          "startLine": 32,
           "startColumn": 0,
-          "endLine": 23,
+          "endLine": 32,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10635,9 +11175,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 44,
+          "startLine": 53,
           "startColumn": 0,
-          "endLine": 44,
+          "endLine": 53,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10654,9 +11194,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 45,
+          "startLine": 54,
           "startColumn": 0,
-          "endLine": 45,
+          "endLine": 54,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10673,9 +11213,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 44,
+          "startLine": 53,
           "startColumn": 0,
-          "endLine": 44,
+          "endLine": 53,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10692,9 +11232,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 45,
+          "startLine": 54,
           "startColumn": 0,
-          "endLine": 45,
+          "endLine": 54,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10711,9 +11251,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 44,
+          "startLine": 53,
           "startColumn": 0,
-          "endLine": 44,
+          "endLine": 53,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10730,9 +11270,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 45,
+          "startLine": 54,
           "startColumn": 0,
-          "endLine": 45,
+          "endLine": 54,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10749,9 +11289,28 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 44,
+          "startLine": 53,
           "startColumn": 0,
-          "endLine": 44,
+          "endLine": 53,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 123,
+          "startColumn": 0,
+          "endLine": 123,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10768,9 +11327,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": true,
@@ -10787,9 +11346,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10806,9 +11365,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10825,9 +11384,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10844,9 +11403,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10863,9 +11422,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 0,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10882,9 +11441,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10901,9 +11460,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 77,
+          "startLine": 86,
           "startColumn": 0,
-          "endLine": 77,
+          "endLine": 86,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10920,9 +11479,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 78,
+          "startLine": 87,
           "startColumn": 0,
-          "endLine": 78,
+          "endLine": 87,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10939,9 +11498,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10958,9 +11517,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10977,9 +11536,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -10996,9 +11555,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11015,9 +11574,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 0,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11034,9 +11593,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 50,
+          "startLine": 59,
           "startColumn": 0,
-          "endLine": 50,
+          "endLine": 59,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11053,9 +11612,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 51,
+          "startLine": 60,
           "startColumn": 0,
-          "endLine": 51,
+          "endLine": 60,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11072,9 +11631,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 52,
+          "startLine": 61,
           "startColumn": 0,
-          "endLine": 52,
+          "endLine": 61,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11091,9 +11650,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 53,
+          "startLine": 62,
           "startColumn": 0,
-          "endLine": 53,
+          "endLine": 62,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11110,9 +11669,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 53,
+          "startLine": 62,
           "startColumn": 0,
-          "endLine": 53,
+          "endLine": 62,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11129,9 +11688,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 53,
+          "startLine": 62,
           "startColumn": 0,
-          "endLine": 53,
+          "endLine": 62,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11148,9 +11707,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 30,
+          "startLine": 39,
           "startColumn": 0,
-          "endLine": 30,
+          "endLine": 39,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11167,9 +11726,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 32,
+          "startLine": 41,
           "startColumn": 0,
-          "endLine": 32,
+          "endLine": 41,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11186,9 +11745,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 32,
+          "startLine": 41,
           "startColumn": 0,
-          "endLine": 32,
+          "endLine": 41,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11205,9 +11764,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 0,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11224,9 +11783,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 0,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11243,9 +11802,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 0,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11262,9 +11821,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 31,
+          "startLine": 40,
           "startColumn": 0,
-          "endLine": 31,
+          "endLine": 40,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11281,9 +11840,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 0,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11300,9 +11859,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 0,
-          "endLine": 86,
+          "endLine": 95,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11319,9 +11878,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 84,
+          "startLine": 93,
           "startColumn": 0,
-          "endLine": 84,
+          "endLine": 93,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11338,9 +11897,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 84,
+          "startLine": 93,
           "startColumn": 0,
-          "endLine": 84,
+          "endLine": 93,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11357,9 +11916,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 85,
+          "startLine": 94,
           "startColumn": 0,
-          "endLine": 85,
+          "endLine": 94,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11376,9 +11935,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 0,
-          "endLine": 86,
+          "endLine": 95,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11395,9 +11954,47 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 0,
-          "endLine": 86,
+          "endLine": 95,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder)",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built#getName()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 118,
+          "startColumn": 0,
+          "endLine": 118,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder)",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+Built+BuiltBuilder#build()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 118,
+          "startColumn": 0,
+          "endLine": 118,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11414,9 +12011,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 71,
+          "startLine": 80,
           "startColumn": 0,
-          "endLine": 71,
+          "endLine": 80,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11433,9 +12030,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 72,
+          "startLine": 81,
           "startColumn": 0,
-          "endLine": 72,
+          "endLine": 81,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11452,9 +12049,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 71,
+          "startLine": 80,
           "startColumn": 0,
-          "endLine": 71,
+          "endLine": 80,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11471,9 +12068,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 72,
+          "startLine": 81,
           "startColumn": 0,
-          "endLine": 72,
+          "endLine": 81,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11490,9 +12087,85 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 71,
+          "startLine": 80,
           "startColumn": 0,
-          "endLine": 71,
+          "endLine": 80,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "M:java.lang.String#chars()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 111,
+          "startColumn": 0,
+          "endLine": 111,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "M:java.util.stream.IntStream#count()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 113,
+          "startColumn": 0,
+          "endLine": 113,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "M:java.util.stream.IntStream#filter(java.util.function.IntPredicate)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 112,
+          "startColumn": 0,
+          "endLine": 112,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#getName()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 110,
+          "startColumn": 0,
+          "endLine": 110,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11509,9 +12182,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 58,
+          "startLine": 67,
           "startColumn": 0,
-          "endLine": 58,
+          "endLine": 67,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11528,9 +12201,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 101,
+          "startLine": 128,
           "startColumn": 0,
-          "endLine": 101,
+          "endLine": 128,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11547,9 +12220,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 103,
+          "startLine": 130,
           "startColumn": 0,
-          "endLine": 103,
+          "endLine": 130,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11566,9 +12239,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 102,
+          "startLine": 129,
           "startColumn": 0,
-          "endLine": 102,
+          "endLine": 129,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11585,9 +12258,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 105,
           "startColumn": 0,
-          "endLine": 96,
+          "endLine": 105,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11604,9 +12277,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 38,
+          "startLine": 47,
           "startColumn": 0,
-          "endLine": 38,
+          "endLine": 47,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11623,9 +12296,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 39,
+          "startLine": 48,
           "startColumn": 0,
-          "endLine": 39,
+          "endLine": 48,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11642,9 +12315,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 39,
+          "startLine": 48,
           "startColumn": 0,
-          "endLine": 39,
+          "endLine": 48,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11661,9 +12334,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 66,
+          "startLine": 75,
           "startColumn": 0,
-          "endLine": 66,
+          "endLine": 75,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11680,9 +12353,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 66,
+          "startLine": 75,
           "startColumn": 0,
-          "endLine": 66,
+          "endLine": 75,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -11699,9 +12372,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 66,
+          "startLine": 75,
           "startColumn": 0,
-          "endLine": 66,
+          "endLine": 75,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -13454,6 +14127,13 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:java.lang.String#chars()",
+      "kind": "method",
+      "name": "chars",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.lang.String#equals(java.lang.Object)",
       "kind": "method",
       "name": "equals",
@@ -13825,6 +14505,20 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:java.util.stream.IntStream#count()",
+      "kind": "method",
+      "name": "count",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.util.stream.IntStream#filter(java.util.function.IntPredicate)",
+      "kind": "method",
+      "name": "filter",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.util.stream.Stream`1#collect`2(java.util.stream.Collector`3[<other:? super !0>,!!1,!!0])",
       "kind": "method",
       "name": "collect",
@@ -14098,6 +14792,13 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "T:java.util.function.IntPredicate",
+      "kind": "type",
+      "name": "IntPredicate",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "T:java.util.function.Predicate`1",
       "kind": "type",
       "name": "Predicate",
@@ -14130,6 +14831,13 @@
       "kind": "type",
       "name": "Collectors",
       "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.util.stream.IntStream",
+      "kind": "type",
+      "name": "IntStream",
+      "typeKind": "interface",
       "artifact": "A:java.base@17"
     },
     {

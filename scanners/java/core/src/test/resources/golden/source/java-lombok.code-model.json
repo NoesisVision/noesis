@@ -38,6 +38,39 @@
   "nodes": [
     {
       "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.DEFAULT",
+      "name": "DEFAULT",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 22,
+          "startColumn": 5,
+          "endLine": 22,
+          "endColumn": 91
+        }
+      ],
+      "annotations": [],
+      "documentation": "A static field built by a generated builder: bytecode runs it in the static initializer, the source engine's field holds it.",
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "static",
+        "readonly"
+      ],
+      "type": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.lombok.GeneratedMembers+Built",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
       "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
       "name": "accessors",
       "origin": "declared",
@@ -64,6 +97,63 @@
         "typeArguments": [],
         "unbound": false,
         "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount",
+      "name": "initialCount",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 25,
+          "startColumn": 5,
+          "endLine": 25,
+          "endColumn": 68
+        }
+      ],
+      "annotations": [],
+      "documentation": "An instance field initialized through a generated getter: bytecode runs it in every constructor.",
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [
+        "readonly"
+      ],
+      "type": {
+        "kind": "primitive",
+        "name": "int",
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending",
+      "name": "pending",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 28,
+          "startColumn": 5,
+          "endLine": 28,
+          "endColumn": 58
+        }
+      ],
+      "annotations": [],
+      "documentation": "A field of a type only the processor declares: the source engine cannot resolve it.",
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "unresolved",
+        "text": "vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder"
       },
       "passing": "value",
       "constantValue": null
@@ -661,9 +751,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 22,
+          "startLine": 31,
           "startColumn": 5,
-          "endLine": 26,
+          "endLine": 35,
           "endColumn": 6
         }
       ],
@@ -697,9 +787,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 43,
+          "startLine": 52,
           "startColumn": 5,
-          "endLine": 46,
+          "endLine": 55,
           "endColumn": 6
         }
       ],
@@ -729,15 +819,53 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "name": "callDescribeBuilder",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 122,
+          "startColumn": 5,
+          "endLine": 124,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": "A call to that method.",
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#closureCalls(java.util.List`1[vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter])",
       "name": "closureCalls",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 90,
+          "startLine": 99,
           "startColumn": 5,
-          "endLine": 92,
+          "endLine": 101,
           "endColumn": 6
         }
       ],
@@ -806,9 +934,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 76,
+          "startLine": 85,
           "startColumn": 5,
-          "endLine": 80,
+          "endLine": 89,
           "endColumn": 6
         }
       ],
@@ -842,9 +970,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 49,
+          "startLine": 58,
           "startColumn": 5,
-          "endLine": 54,
+          "endLine": 63,
           "endColumn": 6
         }
       ],
@@ -878,9 +1006,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 29,
+          "startLine": 38,
           "startColumn": 5,
-          "endLine": 34,
+          "endLine": 43,
           "endColumn": 6
         }
       ],
@@ -916,9 +1044,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 83,
+          "startLine": 92,
           "startColumn": 5,
-          "endLine": 87,
+          "endLine": 96,
           "endColumn": 6
         }
       ],
@@ -946,15 +1074,67 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(<unresolved:vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder>)",
+      "name": "describeBuilder",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 117,
+          "startColumn": 5,
+          "endLine": 119,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": "A parameter of a type only the processor declares: the source engine's id for the method cannot name it.",
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "builder",
+            "type": {
+              "kind": "unresolved",
+              "text": "vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder"
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.lang.String",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#fluentCalls()",
       "name": "fluentCalls",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 70,
+          "startLine": 79,
           "startColumn": 5,
-          "endLine": 73,
+          "endLine": 82,
           "endColumn": 6
         }
       ],
@@ -984,15 +1164,51 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "name": "multiLineChain",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 109,
+          "startColumn": 5,
+          "endLine": 114,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": "Calls chained after a generated getter, one per line: bytecode puts each on its own line, the source engine all on the first.",
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "long",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineConstructorCall()",
       "name": "multiLineConstructorCall",
       "origin": "declared",
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 57,
+          "startLine": 66,
           "startColumn": 5,
-          "endLine": 62,
+          "endLine": 71,
           "endColumn": 6
         }
       ],
@@ -1028,9 +1244,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 100,
+          "startLine": 127,
           "startColumn": 5,
-          "endLine": 104,
+          "endLine": 131,
           "endColumn": 6
         }
       ],
@@ -1066,9 +1282,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 95,
+          "startLine": 104,
           "startColumn": 5,
-          "endLine": 97,
+          "endLine": 106,
           "endColumn": 6
         }
       ],
@@ -1109,9 +1325,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 37,
+          "startLine": 46,
           "startColumn": 5,
-          "endLine": 40,
+          "endLine": 49,
           "endColumn": 6
         }
       ],
@@ -1147,9 +1363,9 @@
       "locations": [
         {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 65,
+          "startLine": 74,
           "startColumn": 5,
-          "endLine": 67,
+          "endLine": 76,
           "endColumn": 6
         }
       ],
@@ -1757,7 +1973,7 @@
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
           "startLine": 17,
           "startColumn": 1,
-          "endLine": 105,
+          "endLine": 132,
           "endColumn": 2
         }
       ],
@@ -2350,9 +2566,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 23,
+          "startLine": 32,
           "startColumn": 9,
-          "endLine": 23,
+          "endLine": 32,
           "endColumn": 18
         },
         "viaClosure": false,
@@ -2368,9 +2584,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 24,
+          "startLine": 33,
           "startColumn": 9,
-          "endLine": 24,
+          "endLine": 33,
           "endColumn": 18
         },
         "viaClosure": false,
@@ -2386,9 +2602,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 25,
+          "startLine": 34,
           "startColumn": 16,
-          "endLine": 25,
+          "endLine": 34,
           "endColumn": 25
         },
         "viaClosure": false,
@@ -2404,10 +2620,46 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 25,
+          "startLine": 34,
           "startColumn": 47,
-          "endLine": 25,
+          "endLine": 34,
           "endColumn": 56
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 123,
+          "startColumn": 32,
+          "endLine": 123,
+          "endColumn": 39
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 110,
+          "startColumn": 16,
+          "endLine": 110,
+          "endColumn": 25
         },
         "viaClosure": false,
         "languageSpecific": {}
@@ -2422,9 +2674,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 96,
+          "startLine": 105,
           "startColumn": 16,
-          "endLine": 96,
+          "endLine": 105,
           "endColumn": 25
         },
         "viaClosure": false,
@@ -2560,7 +2812,22 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.DEFAULT"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.accessors"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.pending"
     },
     {
       "kind": "CONTAINS",
@@ -2576,6 +2843,11 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#builderCalls()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()"
     },
     {
       "kind": "CONTAINS",
@@ -2605,7 +2877,17 @@
     {
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(<unresolved:vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder>)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
       "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#fluentCalls()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.lombok.GeneratedMemberCallers",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#multiLineChain()"
     },
     {
       "kind": "CONTAINS",
@@ -3166,6 +3448,25 @@
     },
     {
       "kind": "INVOKES",
+      "from": "F:vision.noesis.fixture.lombok.GeneratedMemberCallers.initialCount",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 25,
+          "startColumn": 38,
+          "endLine": 25,
+          "endColumn": 56
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#.ctor()",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
@@ -3187,15 +3488,34 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#callDescribeBuilder()",
+      "to": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#describeBuilder(<unresolved:vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder>)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+          "startLine": 123,
+          "startColumn": 16,
+          "endLine": 123,
+          "endColumn": 40
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "this"
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.lombok.GeneratedMemberCallers#closureCalls(java.util.List`1[vision.noesis.fixture.lombok.GeneratedMembers+GetterSetter])",
       "to": "M:java.util.Collection`1#stream()",
       "typeArguments": [],
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 16,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 28
         },
         "viaClosure": false,
@@ -3220,9 +3540,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 91,
+          "startLine": 100,
           "startColumn": 96,
-          "endLine": 91,
+          "endLine": 100,
           "endColumn": 115
         },
         "viaClosure": false,
@@ -3239,9 +3559,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 16,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 36
         },
         "viaClosure": false,
@@ -3258,9 +3578,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 40,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 56
         },
         "viaClosure": false,
@@ -3277,9 +3597,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 60,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 77
         },
         "viaClosure": false,
@@ -3296,9 +3616,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 81,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 97
         },
         "viaClosure": false,
@@ -3315,9 +3635,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 105,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 122
         },
         "viaClosure": false,
@@ -3334,9 +3654,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 79,
+          "startLine": 88,
           "startColumn": 81,
-          "endLine": 79,
+          "endLine": 88,
           "endColumn": 123
         },
         "viaClosure": false,
@@ -3353,9 +3673,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 50,
+          "startLine": 59,
           "startColumn": 28,
-          "endLine": 50,
+          "endLine": 59,
           "endColumn": 45
         },
         "viaClosure": false,
@@ -3372,9 +3692,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 32,
+          "startLine": 41,
           "startColumn": 24,
-          "endLine": 32,
+          "endLine": 41,
           "endColumn": 61
         },
         "viaClosure": false,
@@ -3391,9 +3711,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 36,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 53
         },
         "viaClosure": false,
@@ -3410,9 +3730,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 33,
+          "startLine": 42,
           "startColumn": 16,
-          "endLine": 33,
+          "endLine": 42,
           "endColumn": 33
         },
         "viaClosure": false,
@@ -3429,9 +3749,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 36,
-          "endLine": 86,
+          "endLine": 95,
           "endColumn": 62
         },
         "viaClosure": false,
@@ -3448,9 +3768,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 85,
+          "startLine": 94,
           "startColumn": 9,
-          "endLine": 85,
+          "endLine": 94,
           "endColumn": 28
         },
         "viaClosure": false,
@@ -3467,9 +3787,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 36,
-          "endLine": 86,
+          "endLine": 95,
           "endColumn": 53
         },
         "viaClosure": false,
@@ -3494,9 +3814,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 84,
+          "startLine": 93,
           "startColumn": 48,
-          "endLine": 84,
+          "endLine": 93,
           "endColumn": 65
         },
         "viaClosure": false,
@@ -3513,9 +3833,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 86,
+          "startLine": 95,
           "startColumn": 16,
-          "endLine": 86,
+          "endLine": 95,
           "endColumn": 33
         },
         "viaClosure": false,
@@ -3532,9 +3852,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 84,
+          "startLine": 93,
           "startColumn": 33,
-          "endLine": 84,
+          "endLine": 93,
           "endColumn": 66
         },
         "viaClosure": false,
@@ -3551,9 +3871,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 71,
+          "startLine": 80,
           "startColumn": 34,
-          "endLine": 71,
+          "endLine": 80,
           "endColumn": 55
         },
         "viaClosure": false,
@@ -3570,9 +3890,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 101,
+          "startLine": 128,
           "startColumn": 23,
-          "endLine": 101,
+          "endLine": 128,
           "endColumn": 34
         },
         "viaClosure": false,
@@ -3589,9 +3909,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 103,
+          "startLine": 130,
           "startColumn": 16,
-          "endLine": 103,
+          "endLine": 130,
           "endColumn": 31
         },
         "viaClosure": false,
@@ -3608,9 +3928,9 @@
       "site": {
         "location": {
           "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-          "startLine": 102,
+          "startLine": 129,
           "startColumn": 9,
-          "endLine": 102,
+          "endLine": 129,
           "endColumn": 30
         },
         "viaClosure": false,
@@ -4249,12 +4569,142 @@
     {
       "severity": "error",
       "code": "compiler.err.cant.resolve.location.args",
+      "message": "cannot find symbol\n  symbol:   method builder()\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.Built",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 22,
+        "startColumn": 42,
+        "endLine": 22,
+        "endColumn": 55
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'Built.builder()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 22,
+        "startColumn": 42,
+        "endLine": 22,
+        "endColumn": 57
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'Built.builder().name(\"default\")'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 22,
+        "startColumn": 42,
+        "endLine": 22,
+        "endColumn": 73
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'Built.builder().name(\"default\").count(0)'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 22,
+        "startColumn": 42,
+        "endLine": 22,
+        "endColumn": 82
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'Built.builder().name(\"default\").count(0).build()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 22,
+        "startColumn": 42,
+        "endLine": 22,
+        "endColumn": 90
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location.args",
+      "message": "cannot find symbol\n  symbol:   method getCount()\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 25,
+        "startColumn": 38,
+        "endLine": 25,
+        "endColumn": 65
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'new GetterSetter().getCount()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 25,
+        "startColumn": 38,
+        "endLine": 25,
+        "endColumn": 67
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location",
+      "message": "cannot find symbol\n  symbol:   class BuiltBuilder\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.Built",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 28,
+        "startColumn": 13,
+        "endLine": 28,
+        "endColumn": 31
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location.args",
+      "message": "cannot find symbol\n  symbol:   method builder()\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.Built",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 28,
+        "startColumn": 42,
+        "endLine": 28,
+        "endColumn": 55
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'Built.builder()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 28,
+        "startColumn": 42,
+        "endLine": 28,
+        "endColumn": 57
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location.args",
       "message": "cannot find symbol\n  symbol:   method setName(java.lang.String)\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 23,
+        "startLine": 32,
         "startColumn": 9,
-        "endLine": 23,
+        "endLine": 32,
         "endColumn": 26
       },
       "source": "compiler"
@@ -4265,9 +4715,9 @@
       "message": "Could not bind 'accessors.setName(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 23,
+        "startLine": 32,
         "startColumn": 9,
-        "endLine": 23,
+        "endLine": 32,
         "endColumn": 34
       },
       "source": "scanner"
@@ -4278,9 +4728,9 @@
       "message": "cannot find symbol\n  symbol:   method setCount(int)\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 24,
+        "startLine": 33,
         "startColumn": 9,
-        "endLine": 24,
+        "endLine": 33,
         "endColumn": 27
       },
       "source": "compiler"
@@ -4291,9 +4741,9 @@
       "message": "Could not bind 'accessors.setCount(1)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 24,
+        "startLine": 33,
         "startColumn": 9,
-        "endLine": 24,
+        "endLine": 33,
         "endColumn": 30
       },
       "source": "scanner"
@@ -4304,9 +4754,9 @@
       "message": "cannot find symbol\n  symbol:   method getName()\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 25,
+        "startLine": 34,
         "startColumn": 16,
-        "endLine": 25,
+        "endLine": 34,
         "endColumn": 33
       },
       "source": "compiler"
@@ -4317,9 +4767,9 @@
       "message": "Could not bind 'accessors.getName()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 25,
+        "startLine": 34,
         "startColumn": 16,
-        "endLine": 25,
+        "endLine": 34,
         "endColumn": 35
       },
       "source": "scanner"
@@ -4330,9 +4780,9 @@
       "message": "Could not bind 'accessors.getName().length()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 25,
+        "startLine": 34,
         "startColumn": 16,
-        "endLine": 25,
+        "endLine": 34,
         "endColumn": 44
       },
       "source": "scanner"
@@ -4343,9 +4793,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 25,
+        "startLine": 34,
         "startColumn": 47,
-        "endLine": 25,
+        "endLine": 34,
         "endColumn": 65
       },
       "source": "compiler"
@@ -4356,9 +4806,9 @@
       "message": "Could not bind 'accessors.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 25,
+        "startLine": 34,
         "startColumn": 47,
-        "endLine": 25,
+        "endLine": 34,
         "endColumn": 67
       },
       "source": "scanner"
@@ -4369,9 +4819,9 @@
       "message": "Could not bind 'new DataHolder(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 30,
+        "startLine": 39,
         "startColumn": 29,
-        "endLine": 30,
+        "endLine": 39,
         "endColumn": 51
       },
       "source": "scanner"
@@ -4382,9 +4832,9 @@
       "message": "constructor DataHolder in class vision.noesis.fixture.lombok.GeneratedMembers.DataHolder cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 30,
+        "startLine": 39,
         "startColumn": 29,
-        "endLine": 30,
+        "endLine": 39,
         "endColumn": 51
       },
       "source": "compiler"
@@ -4395,9 +4845,9 @@
       "message": "cannot find symbol\n  symbol:   method setCount(int)\n  location: variable holder of type vision.noesis.fixture.lombok.GeneratedMembers.DataHolder",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 31,
+        "startLine": 40,
         "startColumn": 9,
-        "endLine": 31,
+        "endLine": 40,
         "endColumn": 24
       },
       "source": "compiler"
@@ -4408,9 +4858,9 @@
       "message": "Could not bind 'holder.setCount(2)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 31,
+        "startLine": 40,
         "startColumn": 9,
-        "endLine": 31,
+        "endLine": 40,
         "endColumn": 27
       },
       "source": "scanner"
@@ -4421,9 +4871,9 @@
       "message": "Could not bind 'new DataHolder(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 32,
+        "startLine": 41,
         "startColumn": 38,
-        "endLine": 32,
+        "endLine": 41,
         "endColumn": 60
       },
       "source": "scanner"
@@ -4434,9 +4884,9 @@
       "message": "constructor DataHolder in class vision.noesis.fixture.lombok.GeneratedMembers.DataHolder cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 32,
+        "startLine": 41,
         "startColumn": 38,
-        "endLine": 32,
+        "endLine": 41,
         "endColumn": 60
       },
       "source": "compiler"
@@ -4447,9 +4897,9 @@
       "message": "cannot find symbol\n  symbol:   method getName()\n  location: variable holder of type vision.noesis.fixture.lombok.GeneratedMembers.DataHolder",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 33,
+        "startLine": 42,
         "startColumn": 63,
-        "endLine": 33,
+        "endLine": 42,
         "endColumn": 77
       },
       "source": "compiler"
@@ -4460,9 +4910,9 @@
       "message": "Could not bind 'holder.getName()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 33,
+        "startLine": 42,
         "startColumn": 63,
-        "endLine": 33,
+        "endLine": 42,
         "endColumn": 79
       },
       "source": "scanner"
@@ -4473,9 +4923,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable holder of type vision.noesis.fixture.lombok.GeneratedMembers.DataHolder",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 33,
+        "startLine": 42,
         "startColumn": 82,
-        "endLine": 33,
+        "endLine": 42,
         "endColumn": 97
       },
       "source": "compiler"
@@ -4486,9 +4936,9 @@
       "message": "Could not bind 'holder.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 33,
+        "startLine": 42,
         "startColumn": 82,
-        "endLine": 33,
+        "endLine": 42,
         "endColumn": 99
       },
       "source": "scanner"
@@ -4499,9 +4949,9 @@
       "message": "Could not bind 'new ValueHolder(\"name\", 3)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 38,
+        "startLine": 47,
         "startColumn": 29,
-        "endLine": 38,
+        "endLine": 47,
         "endColumn": 55
       },
       "source": "scanner"
@@ -4512,9 +4962,9 @@
       "message": "constructor ValueHolder in class vision.noesis.fixture.lombok.GeneratedMembers.ValueHolder cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 38,
+        "startLine": 47,
         "startColumn": 29,
-        "endLine": 38,
+        "endLine": 47,
         "endColumn": 55
       },
       "source": "compiler"
@@ -4525,9 +4975,9 @@
       "message": "cannot find symbol\n  symbol:   method getName()\n  location: variable value of type vision.noesis.fixture.lombok.GeneratedMembers.ValueHolder",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 39,
+        "startLine": 48,
         "startColumn": 16,
-        "endLine": 39,
+        "endLine": 48,
         "endColumn": 29
       },
       "source": "compiler"
@@ -4538,9 +4988,9 @@
       "message": "Could not bind 'value.getName()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 39,
+        "startLine": 48,
         "startColumn": 16,
-        "endLine": 39,
+        "endLine": 48,
         "endColumn": 31
       },
       "source": "scanner"
@@ -4551,9 +5001,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable value of type vision.noesis.fixture.lombok.GeneratedMembers.ValueHolder",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 39,
+        "startLine": 48,
         "startColumn": 34,
-        "endLine": 39,
+        "endLine": 48,
         "endColumn": 48
       },
       "source": "compiler"
@@ -4564,9 +5014,9 @@
       "message": "Could not bind 'value.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 39,
+        "startLine": 48,
         "startColumn": 34,
-        "endLine": 39,
+        "endLine": 48,
         "endColumn": 50
       },
       "source": "scanner"
@@ -4577,9 +5027,9 @@
       "message": "cannot find symbol\n  symbol:   method builder()\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.Built",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 44,
+        "startLine": 53,
         "startColumn": 23,
-        "endLine": 44,
+        "endLine": 53,
         "endColumn": 36
       },
       "source": "compiler"
@@ -4590,9 +5040,9 @@
       "message": "Could not bind 'Built.builder()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 44,
+        "startLine": 53,
         "startColumn": 23,
-        "endLine": 44,
+        "endLine": 53,
         "endColumn": 38
       },
       "source": "scanner"
@@ -4603,9 +5053,9 @@
       "message": "Could not bind 'Built.builder().name(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 44,
+        "startLine": 53,
         "startColumn": 23,
-        "endLine": 44,
+        "endLine": 53,
         "endColumn": 51
       },
       "source": "scanner"
@@ -4616,9 +5066,9 @@
       "message": "Could not bind 'Built.builder().name(\"name\").count(4)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 44,
+        "startLine": 53,
         "startColumn": 23,
-        "endLine": 44,
+        "endLine": 53,
         "endColumn": 60
       },
       "source": "scanner"
@@ -4629,9 +5079,9 @@
       "message": "Could not bind 'Built.builder().name(\"name\").count(4).build()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 44,
+        "startLine": 53,
         "startColumn": 23,
-        "endLine": 44,
+        "endLine": 53,
         "endColumn": 68
       },
       "source": "scanner"
@@ -4642,9 +5092,9 @@
       "message": "cannot find symbol\n  symbol:   method toBuilder()\n  location: variable built of type vision.noesis.fixture.lombok.GeneratedMembers.Built",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 45,
+        "startLine": 54,
         "startColumn": 16,
-        "endLine": 45,
+        "endLine": 54,
         "endColumn": 31
       },
       "source": "compiler"
@@ -4655,9 +5105,9 @@
       "message": "Could not bind 'built.toBuilder()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 45,
+        "startLine": 54,
         "startColumn": 16,
-        "endLine": 45,
+        "endLine": 54,
         "endColumn": 33
       },
       "source": "scanner"
@@ -4668,9 +5118,9 @@
       "message": "Could not bind 'built.toBuilder().count(5)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 45,
+        "startLine": 54,
         "startColumn": 16,
-        "endLine": 45,
+        "endLine": 54,
         "endColumn": 42
       },
       "source": "scanner"
@@ -4681,9 +5131,9 @@
       "message": "Could not bind 'built.toBuilder().count(5).build()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 45,
+        "startLine": 54,
         "startColumn": 16,
-        "endLine": 45,
+        "endLine": 54,
         "endColumn": 50
       },
       "source": "scanner"
@@ -4694,9 +5144,9 @@
       "message": "Could not bind 'new Constructed(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 51,
+        "startLine": 60,
         "startColumn": 32,
-        "endLine": 51,
+        "endLine": 60,
         "endColumn": 55
       },
       "source": "scanner"
@@ -4707,9 +5157,9 @@
       "message": "constructor Constructed in class vision.noesis.fixture.lombok.GeneratedMembers.Constructed cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 51,
+        "startLine": 60,
         "startColumn": 32,
-        "endLine": 51,
+        "endLine": 60,
         "endColumn": 55
       },
       "source": "compiler"
@@ -4720,9 +5170,9 @@
       "message": "Could not bind 'new Constructed(\"name\", 6)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 52,
+        "startLine": 61,
         "startColumn": 27,
-        "endLine": 52,
+        "endLine": 61,
         "endColumn": 53
       },
       "source": "scanner"
@@ -4733,9 +5183,9 @@
       "message": "constructor Constructed in class vision.noesis.fixture.lombok.GeneratedMembers.Constructed cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 52,
+        "startLine": 61,
         "startColumn": 27,
-        "endLine": 52,
+        "endLine": 61,
         "endColumn": 53
       },
       "source": "compiler"
@@ -4746,9 +5196,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable none of type vision.noesis.fixture.lombok.GeneratedMembers.Constructed",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 16,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 29
       },
       "source": "compiler"
@@ -4759,9 +5209,9 @@
       "message": "Could not bind 'none.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 16,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 31
       },
       "source": "scanner"
@@ -4772,9 +5222,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable required of type vision.noesis.fixture.lombok.GeneratedMembers.Constructed",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 34,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 51
       },
       "source": "compiler"
@@ -4785,9 +5235,9 @@
       "message": "Could not bind 'required.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 34,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 53
       },
       "source": "scanner"
@@ -4798,9 +5248,9 @@
       "message": "cannot find symbol\n  symbol:   method getCount()\n  location: variable all of type vision.noesis.fixture.lombok.GeneratedMembers.Constructed",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 56,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 68
       },
       "source": "compiler"
@@ -4811,9 +5261,9 @@
       "message": "Could not bind 'all.getCount()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 53,
+        "startLine": 62,
         "startColumn": 56,
-        "endLine": 53,
+        "endLine": 62,
         "endColumn": 70
       },
       "source": "scanner"
@@ -4824,9 +5274,9 @@
       "message": "Could not bind 'new Constructed(                         \"name\", 12)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 59,
+        "startLine": 68,
         "startColumn": 17,
-        "endLine": 60,
+        "endLine": 69,
         "endColumn": 36
       },
       "source": "scanner"
@@ -4837,9 +5287,9 @@
       "message": "constructor Constructed in class vision.noesis.fixture.lombok.GeneratedMembers.Constructed cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 59,
+        "startLine": 68,
         "startColumn": 17,
-        "endLine": 60,
+        "endLine": 69,
         "endColumn": 36
       },
       "source": "compiler"
@@ -4850,9 +5300,9 @@
       "message": "Could not bind 'new Withers(\"name\", 7)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 66,
+        "startLine": 75,
         "startColumn": 16,
-        "endLine": 66,
+        "endLine": 75,
         "endColumn": 38
       },
       "source": "scanner"
@@ -4863,9 +5313,9 @@
       "message": "constructor Withers in class vision.noesis.fixture.lombok.GeneratedMembers.Withers cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 66,
+        "startLine": 75,
         "startColumn": 16,
-        "endLine": 66,
+        "endLine": 75,
         "endColumn": 38
       },
       "source": "compiler"
@@ -4876,9 +5326,9 @@
       "message": "Could not bind 'new Withers(\"name\", 7).withName(\"other\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 66,
+        "startLine": 75,
         "startColumn": 16,
-        "endLine": 66,
+        "endLine": 75,
         "endColumn": 56
       },
       "source": "scanner"
@@ -4889,9 +5339,9 @@
       "message": "Could not bind 'new Withers(\"name\", 7).withName(\"other\").withCount(8)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 66,
+        "startLine": 75,
         "startColumn": 16,
-        "endLine": 66,
+        "endLine": 75,
         "endColumn": 69
       },
       "source": "scanner"
@@ -4902,9 +5352,9 @@
       "message": "cannot find symbol\n  symbol:   method name(java.lang.String)\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.FluentAccessors",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 71,
+        "startLine": 80,
         "startColumn": 34,
-        "endLine": 71,
+        "endLine": 80,
         "endColumn": 60
       },
       "source": "compiler"
@@ -4915,9 +5365,9 @@
       "message": "Could not bind 'new FluentAccessors().name(\"name\")'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 71,
+        "startLine": 80,
         "startColumn": 34,
-        "endLine": 71,
+        "endLine": 80,
         "endColumn": 68
       },
       "source": "scanner"
@@ -4928,9 +5378,9 @@
       "message": "Could not bind 'new FluentAccessors().name(\"name\").count(9)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 71,
+        "startLine": 80,
         "startColumn": 34,
-        "endLine": 71,
+        "endLine": 80,
         "endColumn": 77
       },
       "source": "scanner"
@@ -4941,9 +5391,9 @@
       "message": "cannot find symbol\n  symbol:   method name()\n  location: variable fluent of type vision.noesis.fixture.lombok.GeneratedMembers.FluentAccessors",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 72,
+        "startLine": 81,
         "startColumn": 16,
-        "endLine": 72,
+        "endLine": 81,
         "endColumn": 27
       },
       "source": "compiler"
@@ -4954,9 +5404,9 @@
       "message": "Could not bind 'fluent.name()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 72,
+        "startLine": 81,
         "startColumn": 16,
-        "endLine": 72,
+        "endLine": 81,
         "endColumn": 29
       },
       "source": "scanner"
@@ -4967,9 +5417,9 @@
       "message": "cannot find symbol\n  symbol:   method count()\n  location: variable fluent of type vision.noesis.fixture.lombok.GeneratedMembers.FluentAccessors",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 72,
+        "startLine": 81,
         "startColumn": 32,
-        "endLine": 72,
+        "endLine": 81,
         "endColumn": 44
       },
       "source": "compiler"
@@ -4980,9 +5430,9 @@
       "message": "Could not bind 'fluent.count()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 72,
+        "startLine": 81,
         "startColumn": 32,
-        "endLine": 72,
+        "endLine": 81,
         "endColumn": 46
       },
       "source": "scanner"
@@ -4993,9 +5443,9 @@
       "message": "Could not bind 'new Compared(\"name\", 10)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 77,
+        "startLine": 86,
         "startColumn": 26,
-        "endLine": 77,
+        "endLine": 86,
         "endColumn": 50
       },
       "source": "scanner"
@@ -5006,9 +5456,9 @@
       "message": "constructor Compared in class vision.noesis.fixture.lombok.GeneratedMembers.Compared cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 77,
+        "startLine": 86,
         "startColumn": 26,
-        "endLine": 77,
+        "endLine": 86,
         "endColumn": 50
       },
       "source": "compiler"
@@ -5019,9 +5469,9 @@
       "message": "Could not bind 'new Compared(\"name\", 11)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 78,
+        "startLine": 87,
         "startColumn": 27,
-        "endLine": 78,
+        "endLine": 87,
         "endColumn": 51
       },
       "source": "scanner"
@@ -5032,9 +5482,9 @@
       "message": "constructor Compared in class vision.noesis.fixture.lombok.GeneratedMembers.Compared cannot be applied to given types;\n  required: no arguments\n  found:    java.lang.String,int\n  reason: actual and formal argument lists differ in length",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 78,
+        "startLine": 87,
         "startColumn": 27,
-        "endLine": 78,
+        "endLine": 87,
         "endColumn": 51
       },
       "source": "compiler"
@@ -5045,9 +5495,9 @@
       "message": "Could not bind 'all.stream().map(GetterSetter::getName)'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 91,
+        "startLine": 100,
         "startColumn": 16,
-        "endLine": 91,
+        "endLine": 100,
         "endColumn": 55
       },
       "source": "scanner"
@@ -5058,9 +5508,9 @@
       "message": "Could not bind 'all.stream().map(GetterSetter::getName).filter(name -> !name.isEmpty())'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 91,
+        "startLine": 100,
         "startColumn": 16,
-        "endLine": 91,
+        "endLine": 100,
         "endColumn": 87
       },
       "source": "scanner"
@@ -5071,9 +5521,9 @@
       "message": "Could not bind 'all.stream().map(GetterSetter::getName).filter(name -> !name.isEmpty()).collect(Collectors.toList())'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 91,
+        "startLine": 100,
         "startColumn": 16,
-        "endLine": 91,
+        "endLine": 100,
         "endColumn": 116
       },
       "source": "scanner"
@@ -5084,9 +5534,9 @@
       "message": "invalid method reference\n  cannot find symbol\n    symbol:   method getName()\n    location: class vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 91,
+        "startLine": 100,
         "startColumn": 33,
-        "endLine": 91,
+        "endLine": 100,
         "endColumn": 54
       },
       "source": "compiler"
@@ -5097,9 +5547,9 @@
       "message": "Could not bind 'name.isEmpty()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 91,
+        "startLine": 100,
         "startColumn": 72,
-        "endLine": 91,
+        "endLine": 100,
         "endColumn": 86
       },
       "source": "scanner"
@@ -5110,9 +5560,9 @@
       "message": "cannot find symbol\n  symbol:   method getName()\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 96,
+        "startLine": 105,
         "startColumn": 16,
-        "endLine": 96,
+        "endLine": 105,
         "endColumn": 33
       },
       "source": "compiler"
@@ -5123,10 +5573,114 @@
       "message": "Could not bind 'accessors.getName()'.",
       "location": {
         "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
-        "startLine": 96,
+        "startLine": 105,
         "startColumn": 16,
-        "endLine": 96,
+        "endLine": 105,
         "endColumn": 35
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location.args",
+      "message": "cannot find symbol\n  symbol:   method getName()\n  location: variable accessors of type vision.noesis.fixture.lombok.GeneratedMembers.GetterSetter",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 110,
+        "startColumn": 16,
+        "endLine": 110,
+        "endColumn": 33
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'accessors.getName()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 110,
+        "startColumn": 16,
+        "endLine": 110,
+        "endColumn": 35
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'accessors.getName()                 .chars()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 110,
+        "startColumn": 16,
+        "endLine": 111,
+        "endColumn": 25
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'accessors.getName()                 .chars()                 .filter(Character::isLetter)'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 110,
+        "startColumn": 16,
+        "endLine": 112,
+        "endColumn": 45
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'accessors.getName()                 .chars()                 .filter(Character::isLetter)                 .count()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 110,
+        "startColumn": 16,
+        "endLine": 113,
+        "endColumn": 25
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "error",
+      "code": "compiler.err.cant.resolve.location",
+      "message": "cannot find symbol\n  symbol:   class BuiltBuilder\n  location: class vision.noesis.fixture.lombok.GeneratedMembers.Built",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 117,
+        "startColumn": 35,
+        "endLine": 117,
+        "endColumn": 53
+      },
+      "source": "compiler"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'builder.build()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 118,
+        "startColumn": 16,
+        "endLine": 118,
+        "endColumn": 31
+      },
+      "source": "scanner"
+    },
+    {
+      "severity": "info",
+      "code": "NS1002",
+      "message": "Could not bind 'builder.build().getName()'.",
+      "location": {
+        "file": "scanners/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMemberCallers.java",
+        "startLine": 118,
+        "startColumn": 16,
+        "endLine": 118,
+        "endColumn": 41
       },
       "source": "scanner"
     },

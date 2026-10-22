@@ -18,6 +18,15 @@ public class GeneratedMemberCallers {
 
     private final GetterSetter accessors = new GetterSetter();
 
+    /** A static field built by a generated builder: bytecode runs it in the static initializer, the source engine's field holds it. */
+    private static final Built DEFAULT = Built.builder().name("default").count(0).build();
+
+    /** An instance field initialized through a generated getter: bytecode runs it in every constructor. */
+    private final int initialCount = new GetterSetter().getCount();
+
+    /** A field of a type only the processor declares: the source engine cannot resolve it. */
+    private Built.BuiltBuilder pending = Built.builder();
+
     /** A getter, a setter, and a call chained after a getter: the chained call is unbound too in the source engine. */
     public int accessorCalls() {
         accessors.setName("name");
@@ -94,6 +103,24 @@ public class GeneratedMemberCallers {
     /** A primitive class literal on a line the source engine cannot bind: bytecode reads {@code Integer.TYPE}, a field only bytecode stubs. */
     public Class<?> primitiveClassOnAnUnboundLine() {
         return accessors.getName() == null ? int.class : String.class;
+    }
+
+    /** Calls chained after a generated getter, one per line: bytecode puts each on its own line, the source engine all on the first. */
+    public long multiLineChain() {
+        return accessors.getName()
+                .chars()
+                .filter(Character::isLetter)
+                .count();
+    }
+
+    /** A parameter of a type only the processor declares: the source engine's id for the method cannot name it. */
+    public String describeBuilder(Built.BuiltBuilder builder) {
+        return builder.build().getName();
+    }
+
+    /** A call to that method. */
+    public String callDescribeBuilder() {
+        return describeBuilder(pending);
     }
 
     /** A written member on a class without Lombok: bound by every engine. */

@@ -398,7 +398,42 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
         Tree type = tree.getType();
         if (type == null && tree.getPattern() instanceof BindingPatternTree binding) type = binding.getVariable().getType();
         if (type != null) addTypeUse(trees.getTypeMirror(new TreePath(getCurrentPath(), type)), TypeUseRole.TYPE_TEST, tree);
-        return scan(tree.getExpression(), unused);
+        scan(tree.getExpression(), unused);
+        // A record pattern tests its record type and its nested patterns' types; a plain binding is the test above.
+        if (type == null) scan(tree.getPattern(), unused);
+        return null;
+    }
+
+    /**
+     * A type pattern in a {@code case} label or nested in a record pattern tests its type; {@code var} and a primitive
+     * pattern test nothing. The binding of a plain {@code instanceof} is counted by {@link #visitInstanceOf}.
+     */
+    @Override
+    public Void visitBindingPattern(BindingPatternTree tree, Void unused) {
+        VariableTree variable = tree.getVariable();
+        if (variable.getType() == null || isVar(variable)) return null;
+        TypeMirror type = trees.getTypeMirror(new TreePath(new TreePath(getCurrentPath(), variable), variable.getType()));
+        if (type != null && (type.getKind() == TypeKind.DECLARED || type.getKind() == TypeKind.ARRAY)) addTypeUse(type, TypeUseRole.TYPE_TEST, tree);
+        return null;
+    }
+
+    /** {@code var x} in a pattern: javac fills in the type tree, at the position of {@code var}. */
+    private boolean isVar(VariableTree variable) {
+        long start = trees.getSourcePositions().getStartPosition(unit, variable.getType());
+        if (start < 0 || !sourceText.startsWith("var", (int) start)) return false;
+        return start + 3 >= sourceText.length() || !Character.isJavaIdentifierPart(sourceText.charAt((int) start + 3));
+    }
+
+    /**
+     * A record pattern ({@code case Circle(var r)}, {@code o instanceof Box(Circle c)}) tests its record type. Its tree is
+     * JDK 21 API, which the scanner's release-17 build cannot name, so it is told by its kind.
+     */
+    @Override
+    public Void scan(Tree tree, Void unused) {
+        if (tree != null && "DECONSTRUCTION_PATTERN".equals(tree.getKind().name())) {
+            addTypeUse(trees.getTypeMirror(new TreePath(getCurrentPath(), tree)), TypeUseRole.TYPE_TEST, tree);
+        }
+        return super.scan(tree, unused);
     }
 
     @Override

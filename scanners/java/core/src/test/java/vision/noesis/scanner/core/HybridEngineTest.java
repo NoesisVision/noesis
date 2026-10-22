@@ -148,7 +148,7 @@ class HybridEngineTest {
         assertEquals(1, calls.size());
         Edge.Invokes call = calls.get(0);
         assertEquals("bytecode", call.site().languageSpecific().get("java.engine"));
-        assertEquals(25, call.site().location().startLine());
+        assertEquals(34, call.site().location().startLine());
         assertEquals(0, call.site().location().startColumn());
         assertEquals(ExpressionKind.OTHER, call.receiver());
     }
@@ -203,6 +203,54 @@ class HybridEngineTest {
         assertTrue(hybrid.isEmpty(), () -> hybrid.size() + " unbound sites left: " + hybrid);
         List<Diagnostic> errors = Models.lombok(EngineKind.HYBRID).diagnostics().stream().filter(d -> d.code().startsWith("compiler.err")).collect(Collectors.toList());
         assertEquals(List.of("compiler.err.does.not.override.abstract"), errors.stream().map(Diagnostic::code).collect(Collectors.toList()), "only the error on the class line stays: " + errors);
+    }
+
+    @Test
+    void everyCallOfAChainAfterAGeneratedGetterIsTakenWhateverLineItIsOn() {
+        String caller = "M:" + CALLERS + "#multiLineChain()";
+        for (String target : List.of("M:java.lang.String#chars()", "M:java.util.stream.IntStream#filter(java.util.function.IntPredicate)", "M:java.util.stream.IntStream#count()")) {
+            assertTrue(Models.invokesTo(Models.lombok(EngineKind.SOURCE), caller, target).isEmpty(), target + " unbound in source");
+            assertEquals(1, Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, target).size(), target);
+        }
+    }
+
+    @Test
+    void aStaticFieldBuiltByAGeneratedBuilderHoldsItsCalls() {
+        String field = "F:" + CALLERS + ".DEFAULT";
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        assertEquals(1, Models.invokesTo(hybrid, field, "M:" + MEMBERS + "+Built#builder()").size());
+        assertEquals(1, Models.invokesTo(hybrid, field, "M:" + MEMBERS + "+Built+BuiltBuilder#build()").size());
+        assertTrue(hybrid.nodes().stream().noneMatch(n -> n.id().value().equals("M:" + CALLERS + "#.cctor()")), "no static initializer of a source type is added");
+    }
+
+    @Test
+    void anInstanceFieldInitializerBelongsToTheFieldOnceNotToTheConstructor() {
+        String field = "F:" + CALLERS + ".initialCount";
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        assertEquals(1, Models.invokesTo(hybrid, field, "M:" + MEMBERS + "+GetterSetter#getCount()").size());
+        assertEquals(1, Models.invokesTo(hybrid, field, "M:" + MEMBERS + "+GetterSetter#.ctor()").size(), "the source engine's creation, not a second one from bytecode");
+        String constructor = "M:" + CALLERS + "#.ctor()";
+        assertTrue(Models.invokesTo(hybrid, constructor, "M:" + MEMBERS + "+GetterSetter#getCount()").isEmpty());
+        assertTrue(hybrid.edges().stream().noneMatch(e -> e instanceof Edge.Accesses a && a.from().value().equals(constructor) && a.to().value().equals(field)),
+                "the initializer's store into its own field is no access");
+    }
+
+    @Test
+    void aMemberThatNamesAGeneratedTypeHasBytecodesIdAndKeepsItsSourceFacts() {
+        String unresolved = "M:" + CALLERS + "#describeBuilder(<unresolved:vision.noesis.fixture.lombok.GeneratedMembers.Built.BuiltBuilder>)";
+        String id = "M:" + CALLERS + "#describeBuilder(" + MEMBERS + "+Built+BuiltBuilder)";
+        assertTrue(Models.has(Models.lombok(EngineKind.SOURCE), unresolved));
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        assertFalse(Models.has(hybrid, unresolved));
+        MethodNode method = Models.node(hybrid, MethodNode.class, id);
+        assertEquals(Origin.DECLARED, method.origin());
+        assertTrue(method.documentation() != null && !method.documentation().isEmpty(), "source Javadoc kept");
+        assertEquals(MEMBERS + "+Built+BuiltBuilder", method.signature().parameters().get(0).type().canonical());
+        assertEquals("builder", method.signature().parameters().get(0).name());
+        assertEquals(1, Models.invokesTo(hybrid, "M:" + CALLERS + "#callDescribeBuilder()", id).size(), "the call follows the id");
+        assertEquals(1, Models.invokesTo(hybrid, id, "M:" + MEMBERS + "+Built+BuiltBuilder#build()").size());
+        vision.noesis.scanner.model.FieldNode pending = Models.node(hybrid, vision.noesis.scanner.model.FieldNode.class, "F:" + CALLERS + ".pending");
+        assertEquals(MEMBERS + "+Built+BuiltBuilder", pending.type().canonical());
     }
 
     @Test
