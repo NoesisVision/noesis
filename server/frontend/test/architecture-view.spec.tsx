@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
 import { architectureOf } from '../src/features/design-docs/design-doc-architecture';
@@ -10,6 +10,19 @@ import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surf
 import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
+
+// The editor that reads markdown arrives on its own and draws its text only
+// in a browser: here a description reads as its markdown, so where it lands
+// can be asserted. Declared here, not only where other files declare it, so
+// this file reads the same alone as in the whole suite.
+void mock.module(
+  '../src/features/design-docs/ui/element-details/markdown-reading.tsx',
+  () => ({
+    MarkdownReading: ({ markdown }: { markdown: string }) => (
+      <span data-markdown>{markdown}</span>
+    ),
+  }),
+);
 
 const document = DesignDocument.parse(qdocArchitectureFixture);
 const detail = { document, outline: outlineOf(document) } as never;
