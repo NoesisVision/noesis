@@ -63,7 +63,7 @@ public class ScanMojo extends AbstractMojo {
     @Parameter(property = "noesis.revision", defaultValue = "")
     private String revision;
 
-    /** {@code source} (javac over the sources) or {@code bytecode} (ArchUnit over the compiled classes). */
+    /** {@code source} (javac over the sources), {@code bytecode} (ArchUnit over the compiled classes) or {@code hybrid} (the source model plus what only the classes hold). */
     @Parameter(property = "noesis.engine", defaultValue = "source")
     private String engine;
 

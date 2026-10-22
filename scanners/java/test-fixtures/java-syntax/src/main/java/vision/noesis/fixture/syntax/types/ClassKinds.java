@@ -1,5 +1,14 @@
 package vision.noesis.fixture.syntax.types;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import vision.noesis.fixture.syntax.annotations.OwnAnnotation;
+
 /** Every kind of class declaration and nesting. */
 public final class ClassKinds {
 
@@ -50,6 +59,14 @@ public final class ClassKinds {
             public static class Deeper {
             }
         }
+
+        @FunctionalInterface
+        public interface NestedFunction {
+            void invoke();
+        }
+
+        public static class GenericNestedClass<T> {
+        }
     }
 
     public sealed interface Shape permits Circle, Square, Polygon {
@@ -88,5 +105,95 @@ public final class ClassKinds {
 
     @SuppressWarnings("strictfp")
     public static strictfp class StrictClass {
+    }
+
+    public static class ClassWithExplicitObjectBase extends Object {
+    }
+
+    public static final class StaticClass {
+        private StaticClass() {
+        }
+
+        public static void staticMethodInStaticClass() {
+        }
+    }
+
+    public static class ClassUsingFileLocalClass {
+        private final Object fileLocalInstance = new FileLocalClass();
+        private final Object fileLocalInterfaceInstance = new FileLocalInterface() { };
+        private final Object fileLocalEnumInstance = FileLocalEnum.MEMBER;
+        private final Object fileLocalRecordInstance = new FileLocalRecord(1);
+        private final Object viaFileLocalFactory = FileLocalStaticClass.createRecord();
+    }
+
+    public interface InterfaceWithNestedTypes {
+        class ClassNestedInInterface {
+        }
+
+        enum EnumNestedInInterface {
+            MEMBER
+        }
+    }
+
+    @Repeatable(CustomAnnotationWithUsage.Container.class)
+    @Inherited
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface CustomAnnotationWithUsage {
+        String value();
+
+        int namedArgument() default 0;
+
+        @Inherited
+        @Documented
+        @Retention(RetentionPolicy.RUNTIME)
+        @Target(ElementType.TYPE)
+        @interface Container {
+            CustomAnnotationWithUsage[] value();
+        }
+    }
+
+    @Deprecated(since = "1", forRemoval = true)
+    @CustomAnnotationWithUsage(value = "first", namedArgument = 1)
+    @CustomAnnotationWithUsage("second")
+    @OwnAnnotation(priority = 2)
+    public static class ClassWithAttributes {
+    }
+}
+
+/** A package-private top-level class in another class's file: the closest mirror of a file-local type. */
+class FileLocalClass {
+}
+
+/** A package-private top-level interface in another class's file. */
+interface FileLocalInterface {
+}
+
+/** A package-private top-level enum in another class's file. */
+enum FileLocalEnum {
+    MEMBER
+}
+
+/** A package-private top-level record in another class's file. */
+record FileLocalRecord(int value) {
+}
+
+/** A package-private utility class creating the file-local types. */
+final class FileLocalStaticClass {
+
+    private FileLocalStaticClass() {
+    }
+
+    static FileLocalEnum createEnum() {
+        return FileLocalEnum.MEMBER;
+    }
+
+    static FileLocalRecord createRecord() {
+        return new FileLocalRecord(1);
+    }
+
+    static FileLocalInterface createInterface() {
+        return null;
     }
 }

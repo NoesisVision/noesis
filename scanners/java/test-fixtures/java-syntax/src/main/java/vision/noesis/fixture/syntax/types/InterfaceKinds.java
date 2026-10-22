@@ -55,4 +55,60 @@ public final class InterfaceKinds {
 
         long required();
     }
+
+    public interface Lookup<K, V> {
+        V lookup(K key);
+    }
+
+    public interface InterfaceWithGenericMethod {
+        <T> T genericMethodInInterface(T value);
+    }
+
+    public interface Producer<T> {
+        T produce();
+    }
+
+    public interface ConsumerLike<T> {
+        void consume(T item);
+    }
+
+    public interface InterfaceWithStaticMembers {
+        int CONSTANT_IN_INTERFACE = 1;
+
+        Object INSTANCE = new Object();
+
+        static int staticMethodInInterface() {
+            return CONSTANT_IN_INTERFACE;
+        }
+    }
+
+    public interface InterfaceWithAccessibilityOnDefaultMembers {
+        default void publicMethodCallingPrivate() {
+            privateHelperMethod();
+            privateStaticHelperMethod();
+        }
+
+        private void privateHelperMethod() {
+        }
+
+        private static void privateStaticHelperMethod() {
+        }
+
+        public abstract void explicitlyAbstractMethod();
+    }
+
+    public interface InterfaceWithDefaultMethod {
+        default void methodWithDefaultBody() {
+        }
+
+        default int propertyWithDefaultGetter() {
+            return 1;
+        }
+    }
+
+    public interface InterfaceWithNestedInterface {
+        interface NestedInterfaceInInterface {
+            void nestedMethod();
+        }
+    }
 }

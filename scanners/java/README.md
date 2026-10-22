@@ -20,26 +20,33 @@ ArchUnit for projects whose sources need annotation processors (Lombok); it
 writes the same model with the gaps bytecode has, listed in the design
 document's section 4: line-only locations, no Javadoc, parameter names only
 with `-parameters`, no casts or array creations, compiler-inserted calls
-present. Both engines bind the JDK API of the module's release (the bytecode
-engine reads it from the running JDK's `lib/ct.sym`, as `javac --release`
-does), so the model does not depend on the JDK that runs the scan. An
-agreement test keeps the two engines equal up to exactly that list.
+present. The **hybrid** engine runs both and merges them by id (section 4a):
+the source model whole, plus the members a processor generated and the calls
+to them from the class files, each marked `java.engine: bytecode`. Every
+engine binds the JDK API of the module's release (the bytecode engine reads
+it from the running JDK's `lib/ct.sym`, as `javac --release` does), so the
+model does not depend on the JDK that runs the scan. An agreement test keeps
+the source and the bytecode engine equal up to exactly that list, a
+committed report counts every difference from the source engine by category
+for every engine, and the `*FactsTest` classes pin the facts the .NET
+scanner's tests pin, against every engine that holds them.
 
 ## Layout
 
-| Path                                              | What it is                                                                                                                     |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `annotations/`                                    | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                         |
-| `model/`                                          | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                 |
-| `core/`                                           | The two engines (`source/`, `bytecode/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index |
-| `maven-plugin/`                                   | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                            |
-| `gradle-plugin/`                                  | The `vision.noesis.scanner` Gradle plugin: a `noesisScan` task that scans every Java project of a Gradle build; its own build  |
-| `test-fixtures/java-syntax`                       | Every Java construct the scanner maps, one file per topic; scanned by the golden tests                                         |
-| `test-fixtures/java-syntax-other`                 | The types the syntax fixture reaches across a module boundary                                                                  |
-| `core/src/test/resources/golden/`                 | The committed model files per engine                                                                                           |
-| `core/src/test/resources/fixtures-broken/`        | A syntax error and a missing import; must still yield a model                                                                  |
-| `maven-plugin/src/it/multi-module/`               | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                   |
-| `gradle-plugin/src/test/resources/multi-project/` | The same two modules as a Gradle build, scanned by the Gradle plugin's functional test                                         |
+| Path                                              | What it is                                                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations/`                                    | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                      |
+| `model/`                                          | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                              |
+| `core/`                                           | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index       |
+| `maven-plugin/`                                   | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                                         |
+| `gradle-plugin/`                                  | The `vision.noesis.scanner` Gradle plugin: a `noesisScan` task that scans every Java project of a Gradle build; its own build               |
+| `test-fixtures/java-syntax`                       | Every Java construct the scanner maps, one file per topic, mirroring the .NET scanner's `CSharpSyntax` fixture; scanned by the golden tests |
+| `test-fixtures/java-syntax-other`                 | The types the syntax fixture reaches across a module boundary                                                                               |
+| `test-fixtures/java-lombok`                       | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                        |
+| `core/src/test/resources/golden/`                 | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine             |
+| `core/src/test/resources/fixtures-broken/`        | A syntax error and a missing import; must still yield a model                                                                               |
+| `maven-plugin/src/it/multi-module/`               | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                                |
+| `gradle-plugin/src/test/resources/multi-project/` | The same two modules as a Gradle build, scanned by the Gradle plugin's functional test                                                      |
 
 ## Commands
 
@@ -80,7 +87,7 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/scan -Dnoesis.repositoryRoot=$PWD -Dnoesis.repo
 | `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
 | `noesis.repository`     | the root directory's name                                            | written into the manifest                                                                                                 |
 | `noesis.revision`       | `""`                                                                 | written into the manifest                                                                                                 |
-| `noesis.engine`         | `source`                                                             | `source` or `bytecode`                                                                                                    |
+| `noesis.engine`         | `source`                                                             | `source`, `bytecode` or `hybrid`                                                                                          |
 | `noesis.release`        | `maven.compiler.release`, else `maven.compiler.target`, else the JVM | the Java release the sources are bound against                                                                            |
 | `noesis.skip`           | `false`                                                              | skip this module                                                                                                          |
 
@@ -99,7 +106,8 @@ Gradle plugin below, goes in the file's `codeModel` block under
 The source engine needs Maven to run on a JDK (17 or newer); on a JRE every
 module reports `NS1003`. Annotation processors are not run: members Lombok
 would generate do not exist for the source engine, and calls to them are
-`NS1002` diagnostics.
+`NS1002` diagnostics; `-Dnoesis.engine=hybrid` takes those members and calls
+from the compiled classes and keeps everything else from the sources.
 
 ## Running the Gradle plugin
 
@@ -124,7 +132,7 @@ plugins {
 }
 
 noesis {
-    engine = 'bytecode'   // for a build whose sources need annotation processors (Lombok)
+    engine = 'hybrid'   // for a build whose sources need annotation processors (Lombok); 'bytecode' reads the classes alone
 }
 ```
 
@@ -144,7 +152,7 @@ sets a scan up without touching the build:
 | `noesis.repositoryRoot` | the root project's directory                                           | directory file paths in the model are relative to                                     |
 | `noesis.repository`     | the repository root's directory name                                   | written into the manifest                                                             |
 | `noesis.revision`       | `""`                                                                   | written into the manifest                                                             |
-| `noesis.engine`         | `source`                                                               | `source` or `bytecode`                                                                |
+| `noesis.engine`         | `source`                                                               | `source`, `bytecode` or `hybrid`                                                      |
 | `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
 
 The service runs the task when `.noesis/noesis-config.json` says so; `{out}`,

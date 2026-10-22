@@ -136,7 +136,7 @@ final class SourceDeclarations {
                     Origin.DECLARED,
                     locations,
                     pkg == null ? List.of() : c.annotations.of(pkg),
-                    null,
+                    pkg == null ? null : Javadoc.of(c, c.javac.trees().getPath(pkg)),
                     LanguageBag.EMPTY));
         }
         c.builder.edge(new Edge.Contains(artifactId, vision.noesis.scanner.core.java.JavaIds.namespace("")));
@@ -193,6 +193,7 @@ final class SourceDeclarations {
     private Map<String, Object> typeBag(TypeElement type, MemberFlags flags, NodeId enclosingMethod) {
         Map<String, Object> bag = new LinkedHashMap<>();
         if (type.getKind() == ElementKind.ANNOTATION_TYPE) bag.put("java.isAnnotation", true);
+        if (flags.isStrictfp()) bag.put("java.strictfp", true);
         if (flags.isSealed()) {
             List<String> permits = new ArrayList<>();
             for (TypeMirror permitted : type.getPermittedSubclasses()) permits.add(c.types.of(permitted).canonical());
@@ -282,7 +283,7 @@ final class SourceDeclarations {
             bag.put("java.isRecordComponent", true);
         }
         if (owner.getKind() == ElementKind.ANNOTATION_TYPE && method.getDefaultValue() != null) {
-            bag.put("java.defaultValue", c.annotations.valueOf(method.getDefaultValue()).toString());
+            bag.put("java.defaultValue", vision.noesis.scanner.core.java.AnnotationValues.text(c.annotations.valueOf(method.getDefaultValue())));
         }
         return bag;
     }
@@ -302,7 +303,7 @@ final class SourceDeclarations {
                     c.annotations.of(parameter),
                     LanguageBag.EMPTY));
         }
-        return new Signature(parameters, c.types.of(method.getReturnType()), Passing.VALUE, List.of());
+        return new Signature(parameters, c.types.of(method.getReturnType()), Passing.VALUE, c.annotations.ofType(method.getReturnType()));
     }
 
     List<TypeParameter> typeParameters(List<? extends TypeParameterElement> declared) {

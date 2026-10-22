@@ -1,7 +1,12 @@
 package vision.noesis.fixture.syntax.members;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
+import vision.noesis.fixture.syntax.types.InterfaceKinds.AnnotationWithDefaults;
 
 /** Methods: every modifier, overloads, varargs, throws, initializer blocks. */
 public class MethodDeclarations {
@@ -96,5 +101,39 @@ public class MethodDeclarations {
         public CustomException(String message) {
             super(message);
         }
+    }
+
+    @AnnotationWithDefaults(kind = ElementType.METHOD, required = 1L)
+    @Deprecated(since = "1", forRemoval = true)
+    public void methodWithAttribute() {
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE_USE)
+    public @interface TypeUseAnnotation {
+    }
+
+    public @TypeUseAnnotation String methodWithReturnAttribute() {
+        return "";
+    }
+
+    @Override
+    public String toString() {
+        return "MethodDeclarations(" + instanceCounter + ")";
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof MethodDeclarations that && that.instanceCounter == instanceCounter;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(instanceCounter);
+    }
+
+    @Override
+    protected void finalize() {
+        instanceCounter = 0;
     }
 }

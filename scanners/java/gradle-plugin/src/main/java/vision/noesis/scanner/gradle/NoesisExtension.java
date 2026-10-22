@@ -21,7 +21,7 @@ public abstract class NoesisExtension {
 
     public abstract Property<String> getRevision();
 
-    /** {@code source} (javac over the sources) or {@code bytecode} (ArchUnit over the compiled classes). */
+    /** {@code source} (javac over the sources), {@code bytecode} (ArchUnit over the compiled classes) or {@code hybrid} (the source model plus what only the classes hold). */
     public abstract Property<String> getEngine();
 
     /** The Java release the sources are written for; the compile task's {@code release}, else {@code targetCompatibility}, when not set. */

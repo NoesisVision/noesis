@@ -10,4 +10,8 @@ import java.lang.annotation.Target;
 public @interface OtherAnnotation {
 
     String value() default "";
+
+    Class<?> type() default Object.class;
+
+    OtherEnum kind() default OtherEnum.ALPHA;
 }

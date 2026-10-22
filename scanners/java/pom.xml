@@ -17,6 +17,7 @@
     <module>model</module>
     <module>test-fixtures/java-syntax-other</module>
     <module>test-fixtures/java-syntax</module>
+    <module>test-fixtures/java-lombok</module>
     <module>core</module>
     <module>maven-plugin</module>
   </modules>
@@ -31,6 +32,7 @@
     <jackson.version>2.22.3</jackson.version>
     <json-schema-validator.version>1.5.9</json-schema-validator.version>
     <junit.version>6.1.3</junit.version>
+    <lombok.version>1.18.48</lombok.version>
     <maven-plugin-api.version>3.10.0</maven-plugin-api.version>
     <maven-plugin-tools.version>3.16.0</maven-plugin-tools.version>
     <slf4j.version>2.0.20</slf4j.version>
@@ -63,6 +65,11 @@
         <artifactId>json-schema-validator</artifactId>
         <version>${json-schema-validator.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>

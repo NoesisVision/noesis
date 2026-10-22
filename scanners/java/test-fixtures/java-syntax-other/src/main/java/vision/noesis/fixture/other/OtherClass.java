@@ -19,4 +19,12 @@ public class OtherClass {
     public int value() {
         return value;
     }
+
+    /** A nested class of the other module, reached by its qualified name. */
+    public static class Nested {
+
+        public int nestedValue() {
+            return 2;
+        }
+    }
 }

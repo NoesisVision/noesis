@@ -59,7 +59,9 @@ model document stays the contract.
 8. **No annotation processors.** The source engine runs javac with
    `-proc:none`, as the .NET scanner runs no analyzers. Members a processor
    would generate do not exist; calls to them become `NS1002` diagnostics.
-   Such projects use the bytecode engine until a `noesis.processors` switch
+   Such projects use the bytecode engine, or the _hybrid_ engine (section
+   4a), which keeps the source model and takes the generated members and the
+   calls to them from the class files, until a `noesis.processors` switch
    exists.
 
 ## 2. How Java maps onto the model
@@ -166,6 +168,7 @@ the members of local and anonymous classes to themselves.
 | Site                                    | Edge                                                                                                                                                                                                                          |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `x.m()`, `m()`, `T.m()`, `super.m()`    | `INVOKES` to the method declaration, `invocationKind: call`, the receiver classified (section 2.8); `typeArguments` as written, or recovered from the instantiated method type where a type variable binds plainly, else `[]` |
+| `arr.clone()`                           | `INVOKES` to `M:java.lang.Object#clone()`: an array type declares nothing, and its `clone()` overrides `Object`'s (javac binds it to a member of its synthetic `Array` class, the class file to the array type itself)        |
 | `new T(...)`, `this(...)`, `super(...)` | `INVOKES` to `#.ctor`; `typeArguments` are the created type's flattened arguments; receiver `null`, `this` or `base`                                                                                                          |
 | the implicit `super()`                  | `INVOKES` to the superclass's no-argument constructor (`Enum(String, int)` for an enum), `receiver: base`, `java.implicitSuperCall: true`, located at the constructor's start (decision 7)                                    |
 | `new T() { ... }`                       | `INVOKES` to the anonymous class's constructor, which is a generated node of the anonymous type                                                                                                                               |
@@ -244,8 +247,13 @@ approximates with this engine (the agreement test's exclusion list,
 - Parameter names only with `-parameters`, else `arg<i>` and one `NS1006`.
 - Receivers are `type` for static targets and `other` otherwise; no casts,
   array creations or switch-label enum reads; compiler-inserted calls
-  (boxing, iterators, `close()`) are present; `INVOKES.typeArguments` is
-  always `[]`; a compound assignment is two accesses.
+  (boxing, iterators, `close()`, `Integer.TYPE` for `int.class`) are
+  present; `INVOKES.typeArguments` is always `[]`; a compound assignment is
+  two accesses; a `finally` body is present once per exit path.
+- Lines of body edges are javac's line table: a `new` or a field read on a
+  continued line of a statement is attributed to the statement's line, the
+  calls of a chain to their own lines, where the source engine locates the
+  whole expression.
 - `strictfp`, `non-sealed`, `positional` on annotation arguments,
   type-parameter annotations and SOURCE-retention annotations are unknown;
   annotations are ordered by type, not as written.
@@ -253,9 +261,17 @@ approximates with this engine (the agreement test's exclusion list,
   `.cctor` exists whenever a static field has an initializer; field
   initializers attribute to the constructors and `.cctor` they compile into;
   a class declared in a field initializer has no `java.enclosingMethod`.
-- An enum constructor's name and ordinal and an inner class constructor's
-  outer instance are dropped from ids and signatures; captured locals of a
-  local class's constructor are not.
+- The compiler's constructor parameters are dropped from ids and
+  signatures: the locals a local or anonymous class captures and an enum
+  constructor's name and ordinal by the `MethodParameters` attribute's
+  `synthetic` flag, an inner class constructor's outer instance by its
+  position (`mandated` also marks parameters the source spells, such as a
+  compact constructor's). Without the attribute (compiled without
+  `-parameters` before JDK 21) only the leading ones are told, by position.
+- A nested or local enum, interface, record or annotation is `static`
+  whether or not ArchUnit reads the flag (JLS 8.5.1, 14.3); a type variable
+  bound on another type variable (`D extends B`) is read as `!0`/`!!0`, not
+  dropped as `Object`.
 - ArchUnit does not read the type arguments of an inner class's enclosing
   instantiation: `Outer<String>.Inner<Integer>` is ``Inner`1[Integer]``.
 - Type variables are resolved by name in the scope the signature was read
@@ -269,7 +285,57 @@ approximates with this engine (the agreement test's exclusion list,
 
 The agreement test (`EngineAgreementTest`) scans the fixture with both
 engines (compiled with `-parameters -g`) and asserts equality after removing
-exactly those gaps. Shrinking the list is the roadmap.
+exactly those gaps; `EngineComparisonReportTest` writes the unfiltered
+difference, counted by category beside what each engine holds, to the
+committed `core/src/test/resources/golden/engine-comparison.md`, so the size
+of every gap is reviewed with the diff. Shrinking the list is the roadmap.
+
+## 4a. The hybrid engine
+
+`noesis.engine=hybrid` runs both engines over the module and merges the two
+models by id (`core/hybrid/ModelMerge`): the source model is kept whole, and
+the bytecode model contributes only what the sources cannot show. The result
+is the source engine's fidelity (receivers, type arguments, casts, Javadoc,
+columns, generated-versus-declared) plus what an annotation processor
+produced, for the price of both scans and a compiled module.
+
+- A declaration only the class files have, a member or type Lombok or
+  another processor generated, is added with `origin: generated` and
+  `java.engine: bytecode` in its bag, with its containment, bases,
+  overrides, interface member mapping and body edges from bytecode. A
+  `.cctor` of a type the source engine declared is not added (the source
+  engine attributes static initializers to the fields).
+- An implicit member the source engine assumed but the class files lack,
+  the default constructor of a class Lombok gave constructors, is dropped
+  with its edges.
+- A declaration in both models keeps the source engine's facts; modifiers
+  the class file adds and a visibility it changes (`@Value` makes the class
+  final and the fields private) are taken from bytecode and the node is
+  marked `java.processorModified: true`.
+- A body edge from a source declaration is taken from bytecode only where it
+  targets an added declaration or sits on a line the source engine reported
+  an `NS1002` for: the call it could not bind and the calls chained after it
+  (`holder.getName().length()`). Such a site is marked `java.engine:
+bytecode`; its receiver and type arguments are bytecode's. A source call on
+  that line to a member of the same name and arity the class file does not
+  make (javac bound `equals` to `Object`'s, not knowing the generated
+  override) is replaced by the bytecode call. The diagnostics of a line that
+  gained an edge this way, or whose statement's first line did (javac
+  attributes a continued-line `new` to it), the `NS1002` and the compiler's
+  errors, are dropped; a base the source engine left `unresolved` is
+  replaced by bytecode's.
+- Stubs are the source engine's plus the bytecode engine's for every symbol
+  the added declarations and edges reference, with containers and base
+  chains; the bytecode engine's module-level diagnostics (classes missing,
+  parameter names missing) are kept. Without a compiler (`NS1003`) the
+  bytecode model is the whole result.
+
+On a module without annotation processors the hybrid model is the source
+model byte for byte (`HybridEngineTest`); on `test-fixtures/java-lombok` it
+holds every generated member and every call to one, and `engine-comparison.md`
+counts what each engine wrote for it beside the syntax fixture. What stays
+bytecode's on the added sites is bytecode's gaps: the receiver is `other`,
+type arguments are absent, the location is a line.
 
 ## 5. The Maven plugin
 
@@ -378,8 +444,9 @@ behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
 - **Golden model**: the two fixture modules under `scanners/java/test-fixtures`
   (`java-syntax`, one file per topic, and `java-syntax-other`, the types it
   reaches across a module boundary) scanned to a checked-in model file per
-  module plus the manifest, under `core/src/test/resources/golden/<engine>/`.
-  `NOESIS_UPDATE_GOLDEN=1 mvn test` rewrites them. The three
+  module plus the manifest, under `core/src/test/resources/golden/<engine>/`;
+  `java-lombok`, scanned as a request of its own, has a model file per engine
+  there too. `NOESIS_UPDATE_GOLDEN=1 mvn test` rewrites them. The three
   `typeusage/*TypeUsage` classes use a type from the own module, the other
   module and a library in the same positions, so they differ only in the ids
   referenced and in which of those are declared or stubbed.
@@ -394,8 +461,25 @@ behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
 - **Broken fixture**: a syntax error and a missing import still yield a model
   with the declarations, an `unresolved` reference, the compiler's errors and
   an `NS1002`.
-- **Agreement**: `EngineAgreementTest` scans the fixture with both engines
-  and asserts equality up to the exclusions `AgreementRules` names (section 4).
+- **Agreement**: `EngineAgreementTest` scans the syntax fixture with the
+  source and the bytecode engine and asserts equality up to the exclusions
+  `AgreementRules` names (section 4); `EngineComparisonReportTest` keeps the
+  unfiltered, counted difference of every engine from the source engine, over
+  the syntax fixture and the Lombok fixture, in `golden/engine-comparison.md`.
+- **Hybrid**: `HybridEngineTest` asserts that the hybrid model of the syntax
+  fixture is the source model, and on the Lombok fixture that the generated
+  members, their edges, the calls to them, the dropped default constructors,
+  the processor-added modifiers, the rebound `equals` calls, the stub closure
+  and the dropped diagnostics are what section 4a says.
+- **Facts per engine**: the `*FactsTest` classes (types, members,
+  inheritance, interfaces, generics, invocations, bodies, namespaces, the
+  other module, the manifest) mirror the .NET scanner's test classes over
+  the mirrored fixtures; a fact every engine holds runs as a
+  `@ParameterizedTest` over `EngineKind` (the hybrid engine takes the
+  source engine's branch), a fact in section 4's list runs on the source
+  engine alone. `TypeUsageMirrorTest` checks that the three
+  `typeusage` classes declare the same members, as the .NET
+  `TypeUsageMirrorTests` does.
 - **Service**: `test/fixtures/java/shop` is a two-module Maven build with the
   rules of the C# `shop` fixture in Java and its committed `code-model/`;
   `test/unit/java-maven-scanner.spec.ts` runs the adapter over a fake tool that
@@ -415,5 +499,8 @@ Running the Gradle plugin on a build that does not apply it (an init script
 the `codeModel` command passes); a `wildcard` type reference kind; `@Nullable` → `nullable`; the
 `hiding` modifier; `module-info`; `typeLiteral` (`X.class`) and
 `REFERENCES_METHOD`; parameter names without `-parameters`; running
-annotation processors (Lombok); library models; a `noesis.processors`
-switch.
+annotation processors (Lombok) in the source engine, which would give the
+sites the hybrid engine takes from bytecode their receivers and type
+arguments; library models; a `noesis.processors` switch; the receiver of a
+site the source engine could not bind, which the source engine knows and
+could hand the merge.

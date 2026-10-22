@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.CodeModelJson;
 
 /**
@@ -29,6 +30,18 @@ class GoldenModelTest {
     @TestFactory
     Stream<DynamicTest> bytecodeEngineMatchesGolden() {
         return golden(EngineKind.BYTECODE, Fixtures.bytecode());
+    }
+
+    /** The hybrid engine's model of the syntax fixture is the source engine's, byte for byte ({@link HybridEngineTest}); only the Lombok fixture has a golden of its own per engine. */
+    @TestFactory
+    Stream<DynamicTest> lombokFixtureMatchesGoldenPerEngine() {
+        List<DynamicTest> tests = new ArrayList<>();
+        for (EngineKind engine : EngineKind.values()) {
+            CodeModelFile model = Fixtures.lombok(engine).model("java-lombok");
+            Path golden = GOLDEN.resolve(engine.id()).resolve("java-lombok.code-model.json");
+            tests.add(DynamicTest.dynamicTest(engine.id() + "/java-lombok.code-model.json", () -> compare(golden, CodeModelJson.serialize(model))));
+        }
+        return tests.stream();
     }
 
     static Stream<DynamicTest> golden(EngineKind engine, ScanResult result) {

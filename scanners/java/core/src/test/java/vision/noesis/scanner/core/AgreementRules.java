@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import vision.noesis.scanner.model.AccessKind;
 import vision.noesis.scanner.model.Annotation;
 import vision.noesis.scanner.model.CanonicalString;
 import vision.noesis.scanner.model.NamespaceNode;
@@ -45,10 +46,12 @@ import vision.noesis.scanner.model.TypeUseRole;
  *   <li>Parameter names: compared because the fixture is compiled with {@code -parameters}.</li>
  *   <li>{@code .cctor}: bytecode has one whenever a static field has an initializer; compared only when the source engine emitted it.</li>
  *   <li>Body edges from constructors, fields and generated methods: field initializers are compiled into constructors and {@code .cctor}, the implicit {@code super()} flag is source-only, and an implicit record accessor has a body only in bytecode; only edges from declared methods are compared.</li>
+ *   <li>Repeated sites: a {@code finally} body is compiled once per exit path, so bytecode may hold more copies of a site than the source; a site the source has not at all is a difference.</li>
+ *   <li>Lines of body edges: javac gives a continued line of an expression no line entry of its own unless it starts a call, so a {@code new} or a field read on a second line is attributed to the statement's line and the calls of a chain to their own lines, where the source engine locates the whole expression; sites are compared as multisets per caller, target and closure flag, without lines.</li>
  *   <li>{@code INVOKES.typeArguments} and {@code receiver}: bytecode has neither the inference nor the expression.</li>
- *   <li>{@code INVOKES} to external targets: the compiler inserts calls (boxing, iterators, {@code close()}), so bytecode is a superset, and an inherited member may be bound to a different declaring type, so external targets are compared by member name; calls to scanned targets must agree exactly.</li>
+ *   <li>{@code INVOKES} to external targets: the compiler inserts calls (boxing, iterators, {@code close()}), so bytecode is a superset, and an inherited member may be bound to a different declaring type, so external targets are compared by member name; calls to scanned targets must agree exactly, except the calls javac inserts for a statement: {@code close()} of a try-with-resources resource and {@code iterator()}, {@code hasNext()}, {@code next()} of an enhanced for.</li>
  *   <li>{@code java.enclosingMethod}: a class declared in a field initializer has no enclosing method in the class file.</li>
- *   <li>{@code ACCESSES}: read and write merged (a compound assignment is two accesses in bytecode); accesses to enum constants excluded (a {@code case} label reads none in bytecode).</li>
+ *   <li>{@code ACCESSES}: read and write merged, a source {@code readWrite} counted as the two accesses bytecode has; accesses to enum constants excluded (a {@code case} label reads none in bytecode); accesses to external fields are a superset in bytecode ({@code int.class} reads {@code Integer.TYPE}).</li>
  *   <li>{@code USES_TYPE}: only {@code typeTest} is in bytecode.</li>
  *   <li>Stubs: the source engine's are a subset of bytecode's, which also stubs the targets of compiler-inserted calls.</li>
  *   <li>Diagnostics: not compared.</li>
@@ -215,58 +218,89 @@ final class AgreementRules {
 
     // --- Body edges --------------------------------------------------------------------------------------------------
 
+    /** Calls javac inserts for a statement, to targets the scan may own: a resource's {@code close()}, an iterable's iteration. */
+    private static final Set<String> COMPILER_INSERTED = Set.of("close()", "iterator()", "hasNext()", "next()");
+
     private void compareBodies(String artifact, CodeModelFile source, CodeModelFile bytecode, Map<NodeId, DeclarationNode> sourceNodes) {
         Set<NodeId> methods = sourceNodes.values().stream()
                 .filter(node -> node instanceof MethodNode m && m.methodKind() == MethodKind.METHOD && m.origin() == Origin.DECLARED)
                 .map(DeclarationNode::id).collect(Collectors.toSet());
-        Set<String> sourceCalls = calls(source, methods);
-        Set<String> bytecodeCalls = calls(bytecode, methods);
-        for (String call : sourceCalls) if (!bytecodeCalls.contains(call)) differences.add(artifact + ": INVOKES only in source: " + call);
-        for (String call : bytecodeCalls) {
-            if (!sourceCalls.contains(call) && isScannedTarget(call)) differences.add(artifact + ": INVOKES to a scanned target only in bytecode: " + call);
+        Map<String, Long> sourceCalls = calls(source, methods);
+        Map<String, Long> bytecodeCalls = calls(bytecode, methods);
+        for (Map.Entry<String, Long> call : sourceCalls.entrySet()) {
+            long other = bytecodeCalls.getOrDefault(call.getKey(), 0L);
+            if (other < call.getValue()) differences.add(artifact + ": INVOKES only in source: " + call.getKey() + times(call.getValue(), other));
         }
-        Set<String> sourceAccesses = accesses(source, methods);
-        Set<String> bytecodeAccesses = accesses(bytecode, methods);
-        for (String access : sourceAccesses) if (!bytecodeAccesses.contains(access)) differences.add(artifact + ": ACCESSES only in source: " + access);
-        for (String access : bytecodeAccesses) if (!sourceAccesses.contains(access)) differences.add(artifact + ": ACCESSES only in bytecode: " + access);
-        Set<String> sourceTests = typeTests(source, methods);
-        Set<String> bytecodeTests = typeTests(bytecode, methods);
-        for (String test : sourceTests) if (!bytecodeTests.contains(test)) differences.add(artifact + ": typeTest only in source: " + test);
-        for (String test : bytecodeTests) if (!sourceTests.contains(test)) differences.add(artifact + ": typeTest only in bytecode: " + test);
+        for (Map.Entry<String, Long> call : bytecodeCalls.entrySet()) {
+            long other = sourceCalls.getOrDefault(call.getKey(), 0L);
+            if (other == 0 && isScannedTarget(call.getKey()) && !isCompilerInserted(call.getKey())) {
+                differences.add(artifact + ": INVOKES to a scanned target only in bytecode: " + call.getKey() + times(other, call.getValue()));
+            }
+        }
+        Map<String, Long> sourceAccesses = accesses(source, methods);
+        Map<String, Long> bytecodeAccesses = accesses(bytecode, methods);
+        for (Map.Entry<String, Long> access : sourceAccesses.entrySet()) {
+            long other = bytecodeAccesses.getOrDefault(access.getKey(), 0L);
+            if (other < access.getValue()) differences.add(artifact + ": ACCESSES only in source: " + access.getKey() + times(access.getValue(), other));
+        }
+        for (Map.Entry<String, Long> access : bytecodeAccesses.entrySet()) {
+            long other = sourceAccesses.getOrDefault(access.getKey(), 0L);
+            if (other == 0 && isScannedTarget(access.getKey())) differences.add(artifact + ": ACCESSES only in bytecode: " + access.getKey() + times(other, access.getValue()));
+        }
+        Map<String, Long> sourceTests = typeTests(source, methods);
+        Map<String, Long> bytecodeTests = typeTests(bytecode, methods);
+        for (Map.Entry<String, Long> test : sourceTests.entrySet()) {
+            if (!test.getValue().equals(bytecodeTests.get(test.getKey()))) differences.add(artifact + ": typeTest differs: " + test.getKey() + " source×" + test.getValue() + " bytecode×" + bytecodeTests.getOrDefault(test.getKey(), 0L));
+        }
+        for (String test : bytecodeTests.keySet()) {
+            if (!sourceTests.containsKey(test)) differences.add(artifact + ": typeTest only in bytecode: " + test);
+        }
     }
 
-    private boolean isScannedTarget(String call) {
-        return !call.contains(" -> #");
+    private static String times(long source, long bytecode) {
+        return source + bytecode == 1 ? "" : " (source×" + source + " vs bytecode×" + bytecode + ")";
     }
 
-    /** Calls to scanned targets by id; calls to external targets by member name, because javac and the class file may bind an inherited member to different declaring types. */
-    private Set<String> calls(CodeModelFile model, Set<NodeId> from) {
-        Set<String> calls = new TreeSet<>();
+    private boolean isScannedTarget(String key) {
+        return !key.contains(" -> #");
+    }
+
+    private static boolean isCompilerInserted(String key) {
+        String target = key.substring(key.indexOf(" -> ") + 4);
+        if (target.contains(" ")) target = target.substring(0, target.indexOf(' '));
+        return COMPILER_INSERTED.contains(target.substring(target.indexOf('#') + 1));
+    }
+
+    /** Calls per caller and target, counted; scanned targets by id, external ones by member name, because javac and the class file may bind an inherited member to different declaring types. */
+    private Map<String, Long> calls(CodeModelFile model, Set<NodeId> from) {
+        Map<String, Long> calls = new TreeMap<>();
         for (Edge edge : model.edges()) {
             if (edge instanceof Edge.Invokes e && from.contains(e.from())) {
                 String typePath = e.to().canonicalPath().substring(0, e.to().canonicalPath().indexOf('#'));
                 String target = scannedTypePaths.contains(typePath) ? e.to().value() : "#" + e.to().canonicalPath().substring(e.to().canonicalPath().indexOf('#') + 1, e.to().canonicalPath().indexOf('('));
-                calls.add(e.from() + " -> " + target + " @" + e.site().location().startLine() + (e.site().viaClosure() ? " (closure)" : ""));
+                calls.merge(e.from() + " -> " + target + (e.site().viaClosure() ? " (closure)" : ""), 1L, Long::sum);
             }
         }
         return calls;
     }
 
-    private Set<String> accesses(CodeModelFile model, Set<NodeId> from) {
-        Set<String> accesses = new TreeSet<>();
+    private Map<String, Long> accesses(CodeModelFile model, Set<NodeId> from) {
+        Map<String, Long> accesses = new TreeMap<>();
         for (Edge edge : model.edges()) {
             if (edge instanceof Edge.Accesses e && from.contains(e.from()) && !enumConstants.contains(e.to())) {
-                accesses.add(e.from() + " -> " + e.to() + " @" + e.site().location().startLine());
+                String typePath = e.to().canonicalPath().substring(0, e.to().canonicalPath().lastIndexOf('.'));
+                String target = scannedTypePaths.contains(typePath) ? e.to().value() : "#" + e.to().canonicalPath();
+                accesses.merge(e.from() + " -> " + target, e.access() == AccessKind.READ_WRITE ? 2L : 1L, Long::sum);
             }
         }
         return accesses;
     }
 
-    private static Set<String> typeTests(CodeModelFile model, Set<NodeId> from) {
-        Set<String> tests = new TreeSet<>();
+    private static Map<String, Long> typeTests(CodeModelFile model, Set<NodeId> from) {
+        Map<String, Long> tests = new TreeMap<>();
         for (Edge edge : model.edges()) {
             if (edge instanceof Edge.UsesType e && e.role() == TypeUseRole.TYPE_TEST && from.contains(e.from())) {
-                tests.add(e.from() + " -> " + canonical(e.to()) + " @" + e.site().location().startLine());
+                tests.merge(e.from() + " -> " + canonical(e.to()), 1L, Long::sum);
             }
         }
         return tests;

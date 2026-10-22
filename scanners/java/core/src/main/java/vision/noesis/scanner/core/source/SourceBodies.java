@@ -49,6 +49,7 @@ import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
 import vision.noesis.scanner.core.Diagnostics;
 import vision.noesis.scanner.model.AccessKind;
@@ -258,9 +259,21 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
         if (method.getKind() == ElementKind.CONSTRUCTOR) {
             addConstructorCall(tree, method, select);
         } else {
-            c.builder.edge(new Edge.Invokes(frame.from, c.ids.member(method), typeArgumentsOf(tree, method), site(tree, null), InvocationKind.CALL, receiverOf(select, method)));
+            ExecutableElement target = arrayMemberTarget(method);
+            c.builder.edge(new Edge.Invokes(frame.from, c.ids.member(target), typeArgumentsOf(tree, method), site(tree, null), InvocationKind.CALL, receiverOf(select, method)));
         }
         return super.visitMethodInvocation(tree, unused);
+    }
+
+    /** An array's {@code clone()} is javac's member of its synthetic {@code Array} class; the model binds it to the {@code Object} method it overrides. */
+    private ExecutableElement arrayMemberTarget(ExecutableElement method) {
+        if (!(method.getEnclosingElement() instanceof TypeElement owner) || !owner.getQualifiedName().contentEquals("Array") || owner.getEnclosingElement() instanceof TypeElement) return method;
+        TypeElement object = c.javac.elements().getTypeElement("java.lang.Object");
+        if (object == null) return method;
+        for (ExecutableElement candidate : ElementFilter.methodsIn(object.getEnclosedElements())) {
+            if (candidate.getSimpleName().contentEquals(method.getSimpleName()) && candidate.getParameters().size() == method.getParameters().size()) return candidate;
+        }
+        return method;
     }
 
     /** {@code this(...)}, {@code super(...)}, or the {@code super()} javac inserted, which the source does not spell. */
@@ -310,11 +323,12 @@ final class SourceBodies extends TreePathScanner<Void, Void> {
     private static void bind(TypeMirror declared, TypeMirror actual, ExecutableElement method, Map<TypeParameterElement, TypeMirror> bindings) {
         if (declared.getKind() == TypeKind.TYPEVAR) {
             Element parameter = ((TypeVariable) declared).asElement();
-            if (parameter instanceof TypeParameterElement typeParameter && method.equals(typeParameter.getGenericElement()) && actual.getKind() != TypeKind.TYPEVAR) {
-                bindings.putIfAbsent(typeParameter, actual);
-            } else if (parameter instanceof TypeParameterElement typeParameter && method.equals(typeParameter.getGenericElement())) {
-                bindings.putIfAbsent(typeParameter, actual);
-            }
+            if (parameter instanceof TypeParameterElement typeParameter && method.equals(typeParameter.getGenericElement())) bindings.putIfAbsent(typeParameter, actual);
+        } else if (declared.getKind() == TypeKind.WILDCARD && actual.getKind() == TypeKind.WILDCARD) {
+            WildcardType declaredWildcard = (WildcardType) declared;
+            WildcardType actualWildcard = (WildcardType) actual;
+            if (declaredWildcard.getExtendsBound() != null && actualWildcard.getExtendsBound() != null) bind(declaredWildcard.getExtendsBound(), actualWildcard.getExtendsBound(), method, bindings);
+            if (declaredWildcard.getSuperBound() != null && actualWildcard.getSuperBound() != null) bind(declaredWildcard.getSuperBound(), actualWildcard.getSuperBound(), method, bindings);
         } else if (declared.getKind() == TypeKind.DECLARED && actual.getKind() == TypeKind.DECLARED) {
             List<? extends TypeMirror> declaredArguments = ((DeclaredType) declared).getTypeArguments();
             List<? extends TypeMirror> actualArguments = ((DeclaredType) actual).getTypeArguments();

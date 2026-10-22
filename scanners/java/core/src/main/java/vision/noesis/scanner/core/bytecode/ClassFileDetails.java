@@ -18,8 +18,21 @@ import org.objectweb.asm.Opcodes;
 /** What ArchUnit does not expose and the class files hold: parameter names, the varargs flag, field constant values. */
 final class ClassFileDetails {
 
-    /** @param parameterNames null when the class file was compiled without {@code -parameters}. */
-    record MethodDetails(List<String> parameterNames, boolean varargs) {}
+    /**
+     * @param parameterNames null when the class file has no {@code MethodParameters} attribute ({@code -parameters} not given)
+     * @param parameterFlags the attribute's access flags per descriptor parameter, null without the attribute
+     */
+    record MethodDetails(List<String> parameterNames, List<Integer> parameterFlags, boolean varargs) {
+
+        /**
+         * A parameter the source does not spell: the locals a local or anonymous class captures and an enum constructor's
+         * name and ordinal. An inner class's outer instance is {@code mandated} instead, as are the parameters of
+         * {@code valueOf(String)} and of a compact constructor, which the source does declare, so it is told by position.
+         */
+        boolean isSynthetic(int index) {
+            return parameterFlags != null && (parameterFlags.get(index) & Opcodes.ACC_SYNTHETIC) != 0;
+        }
+    }
 
     private final Map<String, MethodDetails> methods = new HashMap<>();
     private final Map<String, Object> constants = new HashMap<>();
@@ -72,18 +85,21 @@ final class ClassFileDetails {
                 boolean synthetic = (access & (Opcodes.ACC_SYNTHETIC | Opcodes.ACC_BRIDGE)) != 0;
                 int parameterCount = org.objectweb.asm.Type.getArgumentTypes(descriptor).length;
                 List<String> names = new ArrayList<>();
+                List<Integer> flags = new ArrayList<>();
                 String key = className + "#" + name + descriptor;
                 return new MethodVisitor(Opcodes.ASM9) {
                     @Override
                     public void visitParameter(String parameterName, int parameterAccess) {
-                        names.add(parameterName);
+                        names.add(parameterName == null ? "" : parameterName);
+                        flags.add(parameterAccess);
                     }
 
                     @Override
                     public void visitEnd() {
-                        boolean named = names.size() == parameterCount && parameterCount > 0;
+                        boolean present = names.size() == parameterCount && parameterCount > 0;
+                        boolean named = present && names.stream().noneMatch(String::isEmpty);
                         if (parameterCount > 0 && !named && !synthetic && !name.equals("<clinit>")) parameterNamesMissing = true;
-                        methods.put(key, new MethodDetails(named ? List.copyOf(names) : null, varargs));
+                        methods.put(key, new MethodDetails(named ? List.copyOf(names) : null, present ? List.copyOf(flags) : null, varargs));
                     }
                 };
             }

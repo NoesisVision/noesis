@@ -58,6 +58,18 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>vision.noesis.fixtures</groupId>
+      <artifactId>java-lombok</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- On the Lombok fixture's scan classpath only, so its annotations resolve; the engines run no processor. -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -85,6 +97,8 @@
             <noesis.classpath.annotations>${vision.noesis:noesis-annotations:jar}</noesis.classpath.annotations>
             <noesis.classpath.guava>${com.google.guava:guava:jar}</noesis.classpath.guava>
             <noesis.classpath.other>${vision.noesis.fixtures:java-syntax-other:jar}</noesis.classpath.other>
+            <noesis.classpath.lombok>${org.projectlombok:lombok:jar}</noesis.classpath.lombok>
+            <noesis.version.lombok>${lombok.version}</noesis.version.lombok>
             <noesis.version.guava>${guava.version}</noesis.version.guava>
           </systemPropertyVariables>
         </configuration>

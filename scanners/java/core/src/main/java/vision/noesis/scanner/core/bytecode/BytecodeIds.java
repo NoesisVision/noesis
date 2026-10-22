@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import java.util.ArrayList;
@@ -84,27 +85,60 @@ final class BytecodeIds {
         if (member instanceof JavaField field) return JavaIds.field(typePath(field.getOwner()), field.getName());
         JavaCodeUnit unit = (JavaCodeUnit) member;
         List<String> parameters = new ArrayList<>();
-        for (JavaType parameter : declaredParameterTypes(unit)) parameters.add(context.types.idCanonical(parameter, BytecodeTypeRefs.Scope.of(unit)));
+        for (DeclaredParameter parameter : declaredParameters(unit)) parameters.add(context.types.idCanonical(parameter.type(), BytecodeTypeRefs.Scope.of(unit)));
         return JavaIds.method(typePath(unit.getOwner()), nodeName(unit), unit.getTypeParameters().size(), parameters);
     }
 
+    /** A parameter the source declares: its index among the descriptor's parameters, its (generic) type and ArchUnit's view of it. */
+    record DeclaredParameter(int rawIndex, JavaType type, JavaParameter parameter) {}
+
     /**
-     * The parameters the source declares: an enum constructor's name and ordinal and an inner class constructor's outer
-     * instance are the compiler's, and javac's generic signature already leaves them out.
+     * The parameters the source declares, without the compiler's: an inner class constructor's outer instance, the
+     * locals a local or anonymous class captures, an enum constructor's name and ordinal. The {@code MethodParameters}
+     * attribute flags them; without it, the leading ones are told by position. javac's generic signature, when there
+     * is one, already leaves them out.
      */
-    static int syntheticLeadingParameters(JavaCodeUnit unit) {
-        if (!(unit instanceof JavaConstructor)) return 0;
-        JavaClass owner = unit.getOwner();
-        List<JavaClass> raw = unit.getRawParameterTypes();
-        if (owner.isEnum()) return raw.size() >= 2 ? 2 : 0;
-        if (BytecodeTypeRefs.isInner(owner) && !raw.isEmpty() && owner.getEnclosingClass().map(outer -> outer.equals(raw.get(0))).orElse(false)) return 1;
-        return 0;
+    List<DeclaredParameter> declaredParameters(JavaCodeUnit unit) {
+        List<JavaParameter> all = unit.getParameters();
+        List<JavaType> types = unit.getParameterTypes();
+        int raw = unit.getRawParameterTypes().size();
+        List<Integer> declared = declaredIndexes(unit, raw);
+        List<DeclaredParameter> parameters = new ArrayList<>();
+        if (all.size() == raw) {
+            for (int index : declared) parameters.add(new DeclaredParameter(index, types.get(index), all.get(index)));
+        } else {
+            for (int j = 0; j < all.size(); j++) {
+                int index = declared.size() == all.size() ? declared.get(j) : raw - all.size() + j;
+                parameters.add(new DeclaredParameter(index, types.get(j), all.get(j)));
+            }
+        }
+        return parameters;
     }
 
-    static List<JavaType> declaredParameterTypes(JavaCodeUnit unit) {
-        List<JavaType> types = unit.getParameterTypes();
-        int synthetic = syntheticLeadingParameters(unit);
-        return types.size() == unit.getRawParameterTypes().size() ? types.subList(synthetic, types.size()) : types;
+    private List<Integer> declaredIndexes(JavaCodeUnit unit, int raw) {
+        ClassFileDetails.MethodDetails details = context.details.method(unit.getOwner().getName(), unit.getName(), unit.getDescriptor());
+        List<Integer> indexes = new ArrayList<>();
+        boolean flagged = details != null && details.parameterFlags() != null && details.parameterFlags().size() == raw;
+        int leading = flagged ? (takesOuterInstance(unit) ? 1 : 0) : syntheticLeadingParameters(unit);
+        for (int i = 0; i < raw; i++) {
+            if (i >= leading && !(flagged && details.isSynthetic(i))) indexes.add(i);
+        }
+        return indexes;
+    }
+
+    /** The compiler's leading constructor parameters told by position, for class files without {@code MethodParameters}. */
+    static int syntheticLeadingParameters(JavaCodeUnit unit) {
+        if (!(unit instanceof JavaConstructor)) return 0;
+        if (unit.getOwner().isEnum()) return unit.getRawParameterTypes().size() >= 2 ? 2 : 0;
+        return takesOuterInstance(unit) ? 1 : 0;
+    }
+
+    /** An inner class's constructor takes the enclosing instance first. */
+    private static boolean takesOuterInstance(JavaCodeUnit unit) {
+        if (!(unit instanceof JavaConstructor)) return false;
+        JavaClass owner = unit.getOwner();
+        List<JavaClass> raw = unit.getRawParameterTypes();
+        return BytecodeTypeRefs.isInner(owner) && !raw.isEmpty() && owner.getEnclosingClass().map(outer -> outer.equals(raw.get(0))).orElse(false);
     }
 
     /** An unresolved call target, from its erased parameter types; the owner is still stubbed. */

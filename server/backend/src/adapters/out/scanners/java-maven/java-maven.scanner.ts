@@ -12,7 +12,7 @@ const WRAPPER = 'mvnw';
 export const JAVA_SCANNER_PLUGIN_VERSION = '0.1.0-SNAPSHOT';
 const SCAN_GOAL = `vision.noesis:noesis-scanner-maven-plugin:${JAVA_SCANNER_PLUGIN_VERSION}:scan`;
 
-export type JavaScannerEngine = 'source' | 'bytecode';
+export type JavaScannerEngine = 'source' | 'bytecode' | 'hybrid';
 
 export interface JavaMavenScannerDeps extends CodeModelScannerDeps {
   /** `source` (javac over the sources) unless given; `bytecode` for projects whose sources need annotation processors. */

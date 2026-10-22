@@ -2,13 +2,15 @@ package vision.noesis.scanner.core;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import vision.noesis.scanner.core.java.JavaIds;
 import vision.noesis.scanner.model.ArtifactDependency;
 import vision.noesis.scanner.model.ArtifactKind;
 import vision.noesis.scanner.model.PackageReference;
 
-/** The fixture modules under {@code test-fixtures/}, scanned once per engine the way the Maven plugin would hand them over. */
+/** The fixture modules under {@code test-fixtures/}, scanned once per engine the way the Maven plugin would hand them over: the syntax fixture as one request, the Lombok fixture as another. */
 public final class Fixtures {
 
     public static final String REPOSITORY_NAME = "noesis";
@@ -21,19 +23,47 @@ public final class Fixtures {
     public static final Path SCHEMAS = Path.of(System.getProperty("noesis.schemaDir", "../../code-model")).toAbsolutePath().normalize();
     public static final Path MODULE_DIR = Path.of(System.getProperty("basedir", ".")).toAbsolutePath().normalize();
 
-    private static ScanResult source;
-    private static ScanResult bytecode;
+    private static final Map<EngineKind, ScanResult> syntax = new EnumMap<>(EngineKind.class);
+    private static final Map<EngineKind, ScanResult> lombok = new EnumMap<>(EngineKind.class);
+    private static final Map<EngineKind, Long> syntaxMillis = new EnumMap<>(EngineKind.class);
+    private static final Map<EngineKind, Long> lombokMillis = new EnumMap<>(EngineKind.class);
 
     private Fixtures() {}
 
-    public static synchronized ScanResult source() {
-        if (source == null) source = new JavaScanner(GENERATOR_VERSION).scan(request(EngineKind.SOURCE));
-        return source;
+    public static ScanResult source() {
+        return scan(EngineKind.SOURCE);
     }
 
-    public static synchronized ScanResult bytecode() {
-        if (bytecode == null) bytecode = new JavaScanner(GENERATOR_VERSION).scan(request(EngineKind.BYTECODE));
-        return bytecode;
+    public static ScanResult bytecode() {
+        return scan(EngineKind.BYTECODE);
+    }
+
+    /** The syntax fixture (both modules) scanned with the engine, once per engine. */
+    public static synchronized ScanResult scan(EngineKind engine) {
+        return syntax.computeIfAbsent(engine, kind -> timed(kind, syntaxMillis, request(kind)));
+    }
+
+    /** The Lombok fixture scanned with the engine, once per engine: its own request, so the syntax fixture's manifest stays what it is. */
+    public static synchronized ScanResult lombok(EngineKind engine) {
+        return lombok.computeIfAbsent(engine, kind -> timed(kind, lombokMillis, lombokRequest(kind)));
+    }
+
+    /** Wall-clock time of the first scan of the syntax fixture with the engine, for the comparison report. */
+    public static synchronized long scanMillis(EngineKind engine) {
+        scan(engine);
+        return syntaxMillis.get(engine);
+    }
+
+    public static synchronized long lombokMillis(EngineKind engine) {
+        lombok(engine);
+        return lombokMillis.get(engine);
+    }
+
+    private static ScanResult timed(EngineKind engine, Map<EngineKind, Long> millis, ScanRequest request) {
+        long started = System.nanoTime();
+        ScanResult result = new JavaScanner(GENERATOR_VERSION).scan(request);
+        millis.put(engine, (System.nanoTime() - started) / 1_000_000);
+        return result;
     }
 
     public static ScanRequest request(EngineKind engine) {
@@ -47,6 +77,12 @@ public final class Fixtures {
         ArtifactInput otherModule = module("java-syntax-other", List.of(annotations), null);
         ArtifactInput syntaxModule = module("java-syntax", List.of(other, annotations, guava), MAIN_CLASS);
         return new ScanRequest(REPOSITORY_ROOT, REPOSITORY_NAME, REVISION, "scanners/java/test-fixtures", output, engine, List.of(otherModule, syntaxModule));
+    }
+
+    public static ScanRequest lombokRequest(EngineKind engine) {
+        ClasspathEntry lombok = library("noesis.classpath.lombok", "org.projectlombok:lombok", System.getProperty("noesis.version.lombok"));
+        ArtifactInput lombokModule = module("java-lombok", List.of(lombok), null);
+        return new ScanRequest(REPOSITORY_ROOT, REPOSITORY_NAME, REVISION, "scanners/java/test-fixtures", MODULE_DIR.resolve("target/fixture-scan/lombok").resolve(engine.id()), engine, List.of(lombokModule));
     }
 
     private static ArtifactInput module(String artifactId, List<ClasspathEntry> classpath, String mainClass) {

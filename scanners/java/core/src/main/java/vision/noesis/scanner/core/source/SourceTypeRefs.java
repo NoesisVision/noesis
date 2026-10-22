@@ -132,13 +132,26 @@ final class SourceTypeRefs {
     private TypeRef typeParameter(TypeVariable variable, boolean forId) {
         Element element = variable.asElement();
         if (!(element instanceof TypeParameterElement parameter) || parameter.getGenericElement() == null) {
-            return new TypeRef.Other(variable.toString());
+            return capturedWildcard(variable, forId);
         }
         Element generic = parameter.getGenericElement();
         boolean methodLevel = generic instanceof ExecutableElement;
-        if (!(generic instanceof TypeElement) && !methodLevel) return new TypeRef.Other(variable.toString());
+        if (!(generic instanceof TypeElement) && !methodLevel) return capturedWildcard(variable, forId);
         NodeId owner = forId ? (methodLevel ? METHOD_OWNER_PLACEHOLDER : TYPE_OWNER_PLACEHOLDER) : context.ids.member(generic);
         return new TypeRef.TypeParameterRef(owner, ordinal(parameter), false);
+    }
+
+    /**
+     * A captured type variable ({@code capture#17 of ? extends T}) is javac's stand-in for a wildcard inside one
+     * expression; its number is a hash that changes between runs, so it is written as the wildcard it captures.
+     */
+    private TypeRef capturedWildcard(TypeVariable variable, boolean forId) {
+        TypeMirror upper = variable.getUpperBound();
+        TypeMirror lower = variable.getLowerBound();
+        if (lower != null && lower.getKind() != TypeKind.NULL && lower.getKind() != TypeKind.NONE) return new TypeRef.Other("? super " + of(lower, forId).canonical());
+        if (upper != null && upper.getKind() == TypeKind.DECLARED && !SourceDeclarations.isObject(upper)) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
+        if (upper != null && upper.getKind() == TypeKind.INTERSECTION) return new TypeRef.Other("? extends " + of(upper, forId).canonical());
+        return new TypeRef.Other("?");
     }
 
     private TypeRef wildcard(WildcardType wildcard, boolean forId) {

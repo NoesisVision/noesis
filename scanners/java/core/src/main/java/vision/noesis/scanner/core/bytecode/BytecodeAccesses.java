@@ -33,12 +33,14 @@ import vision.noesis.scanner.model.UsageSite;
 final class BytecodeAccesses {
 
     private final BytecodeContext c;
+    private JavaClass object;
 
     BytecodeAccesses(BytecodeContext context) {
         this.c = context;
     }
 
     void walk(JavaClasses classes) {
+        object = objectClass(classes);
         for (JavaClass type : classes) {
             if (!c.isScanned(type) || type.getModifiers().contains(JavaModifier.SYNTHETIC)) continue;
             List<JavaCodeUnit> units = new ArrayList<>(type.getCodeUnits());
@@ -53,7 +55,7 @@ final class BytecodeAccesses {
 
     private void walk(JavaCodeUnit unit, NodeId from, JavaClass type) {
         for (JavaMethodCall call : unit.getMethodCallsFromSelf()) {
-            Optional<JavaMethod> target = call.getTarget().resolveMember();
+            Optional<JavaMethod> target = call.getTargetOwner().isArray() ? arrayMemberTarget(call) : call.getTarget().resolveMember();
             if (target.isPresent() && BytecodeDeclarations.isSynthetic(target.get())) continue;
             NodeId to = target.map(c.ids::member).orElseGet(() -> unresolved(call.getTarget()));
             boolean isStatic = target.map(method -> method.getModifiers().contains(JavaModifier.STATIC)).orElse(false);
@@ -79,6 +81,25 @@ final class BytecodeAccesses {
             c.builder.edge(new Edge.UsesType(from, c.types.of(check.getType()), vision.noesis.scanner.model.TypeUseRole.TYPE_TEST,
                     new UsageSite(location, check.isDeclaredInLambda(), LanguageBag.EMPTY)));
         }
+    }
+
+    /** {@code java.lang.Object} as ArchUnit knows it: the top of any scanned class's superclass chain, with its members imported. */
+    private JavaClass objectClass(JavaClasses classes) {
+        for (JavaClass type : classes) {
+            if (type.isInterface()) continue;
+            JavaClass current = type;
+            while (current.getRawSuperclass().isPresent()) current = current.getRawSuperclass().get();
+            if (current.getName().equals("java.lang.Object")) return c.fullyImported(current);
+        }
+        return null;
+    }
+
+    /** An array's {@code clone()} is called on the array type, which declares nothing; the model binds it to the {@code Object} method it overrides. */
+    private Optional<JavaMethod> arrayMemberTarget(JavaMethodCall call) {
+        if (object == null) return Optional.empty();
+        return object.getMethods().stream()
+                .filter(method -> method.getName().equals(call.getTarget().getName()) && method.getRawParameterTypes().size() == call.getTarget().getRawParameterTypes().size())
+                .findFirst();
     }
 
     /** {@code this(...)} targets the own class, {@code super(...)} the superclass; {@code new} has no receiver. */

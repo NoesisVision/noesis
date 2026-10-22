@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import vision.noesis.scanner.core.bytecode.BytecodeEngine;
+import vision.noesis.scanner.core.hybrid.HybridEngine;
 import vision.noesis.scanner.core.source.SourceEngine;
 import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.CodeModelWriter;
@@ -53,6 +54,7 @@ public final class JavaScanner {
         return switch (kind) {
             case SOURCE -> new SourceEngine();
             case BYTECODE -> new BytecodeEngine();
+            case HYBRID -> new HybridEngine();
         };
     }
 

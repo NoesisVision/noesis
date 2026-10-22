@@ -27,11 +27,9 @@ class SchemaValidationTest {
 
     @Test
     void modelFilesFitTheSchema() throws IOException {
-        for (CodeModelFile model : Fixtures.source().models()) {
-            assertValid("code-model.schema.json", CodeModelJson.serialize(model));
-        }
-        for (CodeModelFile model : Fixtures.bytecode().models()) {
-            assertValid("code-model.schema.json", CodeModelJson.serialize(model));
+        for (EngineKind engine : EngineKind.values()) {
+            for (CodeModelFile model : Fixtures.scan(engine).models()) assertValid("code-model.schema.json", CodeModelJson.serialize(model));
+            for (CodeModelFile model : Fixtures.lombok(engine).models()) assertValid("code-model.schema.json", CodeModelJson.serialize(model));
         }
     }
 

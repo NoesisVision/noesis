@@ -44,6 +44,13 @@ final class SourceAnnotations {
         return annotations;
     }
 
+    /** The type annotations on a type mirror (a {@code TYPE_USE} annotation on a return type); no tree, so every argument counts as positional. */
+    List<Annotation> ofType(javax.lang.model.type.TypeMirror type) {
+        List<Annotation> annotations = new ArrayList<>();
+        for (AnnotationMirror mirror : type.getAnnotationMirrors()) annotations.add(of(mirror, null, null));
+        return annotations;
+    }
+
     Annotation of(AnnotationMirror mirror, AnnotationTree tree, CompilationUnitTree unit) {
         Set<String> written = namedInSource(tree, unit);
         List<AnnotationArgument> arguments = new ArrayList<>();

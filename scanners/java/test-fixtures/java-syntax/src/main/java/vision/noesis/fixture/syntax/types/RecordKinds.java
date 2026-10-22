@@ -41,4 +41,61 @@ public final class RecordKinds {
         public void put(String value) {
         }
     }
+
+    public record RecordWithBodyOnly() {
+        public static final RecordWithBodyOnly INSTANCE = new RecordWithBodyOnly();
+
+        public int initOnlyProperty() {
+            return 1;
+        }
+    }
+
+    public record RecordWithPositionalAndBodyMembers(int positional, int nonPositional) {
+        public RecordWithPositionalAndBodyMembers(int positional) {
+            this(positional, 0);
+        }
+
+        public int computed() {
+            return positional + nonPositional;
+        }
+    }
+
+    public record RecordWithExplicitToString(int value) {
+        @Override
+        public String toString() {
+            return "RecordWithExplicitToString(" + value + ")";
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof RecordWithExplicitToString that && that.value == value;
+        }
+
+        @Override
+        public int hashCode() {
+            return Integer.hashCode(value);
+        }
+    }
+
+    public record GenericRecordWithTwoParameters<TFirst, TSecond>(TFirst first, TSecond second) {}
+
+    record InternalRecord() {}
+
+    public sealed interface SealedRecordBase permits RecordImplementingSealedInterface {
+        int value();
+    }
+
+    public record RecordImplementingSealedInterface(int value) implements SealedRecordBase {}
+
+    public record RecordWithExplicitCanonicalConstructor(int value) {
+        public RecordWithExplicitCanonicalConstructor(int value) {
+            this.value = Math.max(value, 0);
+        }
+    }
+
+    public record RecordWithVarargsComponent(int... values) {}
+
+    public record RecordWithNestedRecord(int outerValue) {
+        public record NestedRecordInRecord(int innerValue) {}
+    }
 }

@@ -10,7 +10,6 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaPackage;
-import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -111,7 +110,7 @@ final class BytecodeDeclarations {
 
     private NodeId emitType(JavaClass type) {
         NodeId id = c.ids.type(type);
-        MemberFlags flags = flagsOf(type.getModifiers(), type.isTopLevelClass());
+        MemberFlags flags = flagsOf(type.getModifiers(), type.isTopLevelClass(), isImplicitlyStatic(type));
         TypeKind kind = typeKindOf(type);
         boolean local = type.isLocalClass() || type.isAnonymousClass();
         c.builder.node(new TypeNode(
@@ -252,33 +251,26 @@ final class BytecodeDeclarations {
             if (owner.isRecord() && !flags.isStatic() && method.getRawParameterTypes().isEmpty() && componentNames.contains(method.getName())) {
                 bag.put("java.isRecordComponent", true);
             }
-            if (owner.isAnnotation()) method.getDefaultValue().ifPresent(value -> bag.put("java.defaultValue", c.annotations.valueOf(value).toString()));
+            if (owner.isAnnotation()) method.getDefaultValue().ifPresent(value -> bag.put("java.defaultValue", vision.noesis.scanner.core.java.AnnotationValues.text(c.annotations.valueOf(value))));
         }
         return bag;
     }
 
     private Signature signature(JavaCodeUnit unit, JavaClass owner) {
         ClassFileDetails.MethodDetails details = c.details.method(owner.getName(), unit.getName(), unit.getDescriptor());
-        List<JavaParameter> all = unit.getParameters();
-        int rawCount = unit.getRawParameterTypes().size();
-        // The class file names every descriptor parameter; the generic signature, when present, already leaves the synthetic ones out.
-        int synthetic = all.size() == rawCount ? BytecodeIds.syntheticLeadingParameters(unit) : 0;
-        int nameOffset = all.size() == rawCount ? 0 : rawCount - all.size();
-        List<JavaType> types = BytecodeIds.declaredParameterTypes(unit);
+        List<BytecodeIds.DeclaredParameter> declared = c.ids.declaredParameters(unit);
         List<Parameter> parameters = new ArrayList<>();
-        for (int i = synthetic; i < all.size(); i++) {
-            JavaParameter parameter = all.get(i);
-            int nameIndex = i + nameOffset;
-            String name = details != null && details.parameterNames() != null && nameIndex < details.parameterNames().size() ? details.parameterNames().get(nameIndex) : "arg" + (i - synthetic);
-            JavaType type = i - synthetic < types.size() ? types.get(i - synthetic) : parameter.getType();
+        for (int i = 0; i < declared.size(); i++) {
+            BytecodeIds.DeclaredParameter parameter = declared.get(i);
+            String name = details != null && details.parameterNames() != null ? details.parameterNames().get(parameter.rawIndex()) : "arg" + i;
             parameters.add(new Parameter(
                     name,
-                    c.types.of(type, BytecodeTypeRefs.Scope.of(unit)),
+                    c.types.of(parameter.type(), BytecodeTypeRefs.Scope.of(unit)),
                     Passing.VALUE,
-                    details != null && details.varargs() && i == all.size() - 1,
+                    details != null && details.varargs() && i == declared.size() - 1,
                     false,
                     null,
-                    c.annotations.of(parameter.getAnnotations()),
+                    c.annotations.of(parameter.parameter().getAnnotations()),
                     LanguageBag.EMPTY));
         }
         return new Signature(parameters, c.types.of(unit.getReturnType(), BytecodeTypeRefs.Scope.of(unit)), Passing.VALUE, List.of());
@@ -299,7 +291,7 @@ final class BytecodeDeclarations {
             JavaTypeVariable<?> variable = declared.get(i);
             List<TypeParameterConstraint> constraints = new ArrayList<>();
             for (JavaType bound : variable.getBounds()) {
-                if (isObject(bound)) continue;
+                if (bound instanceof JavaClass bare && bare.getName().equals("java.lang.Object")) continue;
                 constraints.add(new TypeParameterConstraint.TypeConstraint(c.types.of(bound, scopeOf(variable))));
             }
             parameters.add(new TypeParameter(variable.getName(), offset + i, List.of(), Variance.INVARIANT, constraints, LanguageBag.EMPTY));
@@ -492,16 +484,21 @@ final class BytecodeDeclarations {
     // --- Reading the class files -------------------------------------------------------------------------------------
 
     static MemberFlags flagsOf(Set<JavaModifier> modifiers) {
-        return flagsOf(modifiers, false);
+        return flagsOf(modifiers, false, false);
+    }
+
+    /** A nested or local enum, interface, record or annotation is static whether or not the class file says so (JLS 8.5.1, 14.3). */
+    private static boolean isImplicitlyStatic(JavaClass type) {
+        return !type.isTopLevelClass() && !type.isAnonymousClass() && (type.isEnum() || type.isInterface() || type.isRecord() || type.isAnnotation());
     }
 
     /** A top-level class is never static, whatever ArchUnit reads off its access flags. */
-    static MemberFlags flagsOf(Set<JavaModifier> modifiers, boolean topLevel) {
+    static MemberFlags flagsOf(Set<JavaModifier> modifiers, boolean topLevel, boolean implicitlyStatic) {
         return MemberFlags.builder()
                 .isPublic(modifiers.contains(JavaModifier.PUBLIC))
                 .isProtected(modifiers.contains(JavaModifier.PROTECTED))
                 .isPrivate(modifiers.contains(JavaModifier.PRIVATE))
-                .isStatic(modifiers.contains(JavaModifier.STATIC) && !topLevel)
+                .isStatic((modifiers.contains(JavaModifier.STATIC) || implicitlyStatic) && !topLevel)
                 .isAbstract(modifiers.contains(JavaModifier.ABSTRACT))
                 .isFinal(modifiers.contains(JavaModifier.FINAL))
                 .isNative(modifiers.contains(JavaModifier.NATIVE))

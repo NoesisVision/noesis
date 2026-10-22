@@ -1,7 +1,12 @@
 package vision.noesis.fixture.syntax.members;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import vision.noesis.fixture.syntax.types.EnumKinds.PlainEnum;
 
 /** Fields: every constant kind, modifiers, arrays, initializers that call. */
 public class FieldDeclarations {
@@ -34,5 +39,68 @@ public class FieldDeclarations {
 
     public List<String> lines() {
         return lines;
+    }
+
+    public int publicField;
+    private int privateField;
+    public static int staticField;
+    public static volatile boolean staticVolatileField;
+    public static final PlainEnum ENUM_FIELD = PlainEnum.FIRST;
+    public static final ThreadLocal<Integer> THREAD_STATIC_FIELD = ThreadLocal.withInitial(() -> 0);
+    public final int readonlyField;
+    public int fieldWithInitializer = 1;
+    public int fieldInitializedFromOtherFieldViaConstructor;
+    public int firstDeclarator, secondDeclarator = 2, thirdDeclarator;
+    public Integer nullableValueField;
+    public Runnable delegateField;
+    public Function<Integer, Integer> delegateFieldWithLambdaInitializer = value -> value;
+    public Function<Integer, Integer> delegateFieldWithMethodReferenceInitializer = FieldDeclarations::computeInitialValue;
+    public Object boxedField = 1;
+
+    public FieldDeclarations() {
+        readonlyField = 2;
+        fieldInitializedFromOtherFieldViaConstructor = fieldWithInitializer;
+    }
+
+    private static int computeInitialValue(int value) {
+        return value;
+    }
+
+    public static final class FieldsInStaticClass {
+        public static int staticFieldInStaticClass;
+        public static final Object STATIC_READONLY_OBJECT_FIELD = new Object();
+        public static final int CONST_FIELD_IN_STATIC_CLASS = 1;
+
+        private FieldsInStaticClass() {
+        }
+    }
+
+    public interface FieldsInInterface {
+        int CONST_FIELD_IN_INTERFACE = 1;
+
+        Object STATIC_FIELD_IN_INTERFACE = new Object();
+    }
+
+    public static class FieldsWithGenericTypes<T> {
+        public T genericField;
+        public List<T> genericCollectionField = new ArrayList<>();
+        public Map<String, List<T>> nestedGenericField = new HashMap<>();
+        public T[] genericArrayField;
+    }
+
+    public static class FieldsWithInitializersReferencingMembers {
+        private final int first;
+        private final int second;
+        private final Supplier<Integer> closure;
+
+        public FieldsWithInitializersReferencingMembers() {
+            first = 1;
+            second = first + 1;
+            closure = () -> first + second;
+        }
+
+        public int viaClosure() {
+            return closure.get();
+        }
     }
 }
