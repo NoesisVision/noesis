@@ -4,6 +4,7 @@ import type { Now } from '#backend/app/clock';
 import {
   type CodeModelFile,
   CodeModelFile as CodeModelFileSchema,
+  type Diagnostic,
   type Language,
   ScanManifest,
 } from '#backend/app/code-model/code-model';
@@ -81,6 +82,10 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
     const started = performance.now();
     const { manifest, files } = await this.runFirstStage(root, name, outDir);
     const scanned = performance.now();
+    // The message is a property, not the template: javac's messages may hold braces.
+    for (const { level, message } of scannerDiagnostics(manifest, files)) {
+      this.log[level]('{message}', { message });
+    }
     const { model, diagnostics } = projectSystemModel({
       manifest,
       files,
@@ -161,6 +166,59 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
       });
     }
   }
+}
+
+/** What the service logs of the diagnostics the tool wrote. */
+export interface ScannerDiagnosticLine {
+  level: 'error' | 'warning';
+  message: string;
+}
+
+/**
+ * The tool's own errors and warnings, one line each: a module it could not
+ * scan, a JDK it could not bind against. A module still gets a file then,
+ * so without these lines it would only be missing from the system model.
+ * The compiler's are many and repeat what the build says, so each artifact
+ * gets one line counting them, with the first error. Info is left out.
+ */
+export function scannerDiagnostics(
+  manifest: ScanManifest,
+  files: readonly CodeModelFile[],
+): ScannerDiagnosticLine[] {
+  const lines: ScannerDiagnosticLine[] = [];
+  for (const diagnostic of manifest.diagnostics) {
+    const level = levelOf(diagnostic);
+    if (level !== null) lines.push({ level, message: describe(diagnostic) });
+  }
+  for (const file of files) {
+    const name = file.artifact.name;
+    const compiler: Diagnostic[] = [];
+    for (const diagnostic of file.diagnostics) {
+      const level = levelOf(diagnostic);
+      if (level === null) continue;
+      if (diagnostic.source === 'compiler') compiler.push(diagnostic);
+      else lines.push({ level, message: `${name}: ${describe(diagnostic)}` });
+    }
+    const errors = compiler.filter(({ severity }) => severity === 'error');
+    if (compiler.length > 0) {
+      const first = errors[0] ?? compiler[0]!;
+      lines.push({
+        level: errors.length > 0 ? 'error' : 'warning',
+        message: `${name}: the compiler reported ${errors.length} errors and ${compiler.length - errors.length} warnings; first: ${describe(first)}`,
+      });
+    }
+  }
+  return lines;
+}
+
+function levelOf({ severity }: Diagnostic): 'error' | 'warning' | null {
+  return severity === 'info' ? null : severity;
+}
+
+function describe({ code, message, location }: Diagnostic): string {
+  const where =
+    location === null ? '' : ` (${location.file}:${location.startLine})`;
+  return `${code} ${message}${where}`;
 }
 
 /** Fills `{out}`, `{root}` and `{name}` in a configured command line. */
