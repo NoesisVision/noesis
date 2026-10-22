@@ -9,27 +9,17 @@ import { Switch } from '#/shared/design-system/switch.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { IconBroom } from '#/shared/ui/icons/icons.ts';
-import type {
-  Containment,
-  RelationKind,
-} from '../../system-model-exploration.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 import classes from './exploration.module.css';
 
 /** How the exploration is drawn, as the reader set it. */
 export interface Drawing {
-  containment: Containment;
   direction: LayoutDirection;
   /** Edges at right angles rather than in curves. */
   orthogonal: boolean;
   /** Edges as dashes running towards their target. */
   animated: boolean;
 }
-
-const CONTAINMENT = [
-  { value: 'nested', label: 'Nested' },
-  { value: 'edges', label: 'Edges' },
-] satisfies { value: Containment; label: string }[];
 
 const DIRECTIONS = [
   { value: 'vertical', label: 'Vertical' },
@@ -56,11 +46,10 @@ function Labelled({ label, children }: { label: string; children: ReactNode }) {
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
- * opens: how containment shows, which way the layout runs, how the edges
+ * opens: which way the layout runs, how the edges
  * run, and how close.
  */
 export function ExplorationToolbar({
-  relations,
   canUndo,
   canRedo,
   onUndo,
@@ -73,7 +62,6 @@ export function ExplorationToolbar({
   onAutoPlace,
   children,
 }: {
-  relations: ReadonlySet<RelationKind>;
   /** Whether there is a step to go back to, or forward to again. */
   canUndo: boolean;
   canRedo: boolean;
@@ -90,8 +78,6 @@ export function ExplorationToolbar({
   /** The zoom controls, last in the row. */
   children: ReactNode;
 }) {
-  const showsContainment =
-    relations.has('contains') || relations.has('isPartOf');
   const set = (change: Partial<Drawing>) =>
     onDrawing({ ...drawing, ...change });
   return (
@@ -137,18 +123,6 @@ export function ExplorationToolbar({
           </Badge>
         )}
       </Button>
-      <Labelled label="Contains as">
-        <SegmentedControl
-          size="xs"
-          aria-label="Contains as"
-          data={CONTAINMENT}
-          value={drawing.containment}
-          disabled={!showsContainment}
-          onChange={(value) =>
-            set({ containment: value === 'edges' ? 'edges' : 'nested' })
-          }
-        />
-      </Labelled>
       <Labelled label="Direction">
         <SegmentedControl
           size="xs"

@@ -1,5 +1,4 @@
 import {
-  type Containment,
   type ElementChoice,
   RELATIONS,
   type RelationKind,
@@ -11,7 +10,6 @@ import type { EdgeRoutes, LayoutDirection } from './layout-exploration.ts';
 export interface DiagramStep {
   choice: ElementChoice;
   relations: ReadonlySet<RelationKind>;
-  containment: Containment;
   direction: LayoutDirection;
   nodes: ExplorationNode[];
   routes: EdgeRoutes;
@@ -77,7 +75,6 @@ interface StoredStep {
   added: string[];
   removed: string[];
   relations: RelationKind[];
-  containment: Containment;
   direction: LayoutDirection;
   nodes: ExplorationNode[];
   routes: [string, { x: number; y: number }[]][];
@@ -86,7 +83,6 @@ interface StoredStep {
 const storedOf = ({
   choice,
   relations,
-  containment,
   direction,
   nodes,
   routes,
@@ -94,7 +90,6 @@ const storedOf = ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
   relations: [...relations],
-  containment,
   direction,
   nodes,
   routes: [...routes],
@@ -149,7 +144,6 @@ export function recallSteps(modelId: string): DiagramSteps | null {
         picks: { added: new Set(step.added), removed: new Set(step.removed) },
       },
       relations: new Set(step.relations),
-      containment: step.containment,
       direction: step.direction,
       nodes: step.nodes,
       routes: new Map(step.routes),
@@ -213,14 +207,12 @@ function isStep(value: unknown): value is StoredStep {
   const relations = field(value, 'relations');
   const nodes = field(value, 'nodes');
   const routes = field(value, 'routes');
-  const containment = field(value, 'containment');
   const direction = field(value, 'direction');
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
-    (containment === 'nested' || containment === 'edges') &&
     (direction === 'vertical' || direction === 'horizontal') &&
     Array.isArray(nodes) &&
     nodes.every(isNode) &&

@@ -129,10 +129,6 @@
   stroke: var(--mantine-color-brand-filled);
 }
 
-.edge.isPartOf :global(.react-flow__edge-path) {
-  stroke-dasharray: 6 4;
-}
-
 /* The selection's own relations stand out; the rest step back. */
 .edge.highlighted :global(.react-flow__edge-path) {
   stroke: var(--noesis-architecture-selection);
@@ -360,10 +356,14 @@
     pointer-events: none;
   }
 
-  /* The others move to where a placing just landed puts them; at any
-     other time a card goes where it is dragged at once. */
+  /* The others move to where a placing just landed puts them, and a frame
+     grows or shrinks to its new size; at any other time a card goes where
+     it is dragged at once. */
   .gliding :global(.react-flow__node) {
-    transition: transform 300ms ease;
+    transition:
+      transform 300ms ease,
+      width 300ms ease,
+      height 300ms ease;
   }
 
   /* Edges are drawn where the cards end up, so they show once the cards are there. */
@@ -542,4 +542,22 @@
 .reachCount {
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
+}
+
+/* A card being dragged: greyed where it stands, its outline following the pointer. */
+.exploration :global(.react-flow__node).held {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.outline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  border: 2px dashed var(--mantine-color-brand-filled);
+  border-radius: var(--mantine-radius-md);
+  background: rgb(from var(--mantine-color-brand-filled) r g b / 0.08);
+  pointer-events: none;
+  z-index: 1000;
 }

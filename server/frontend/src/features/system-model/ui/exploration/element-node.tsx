@@ -35,7 +35,11 @@ import {
   type Reach,
   REACHES,
 } from '../../system-model-exploration.ts';
-import { useCardActions, useSelectionState } from './exploration-reading.ts';
+import {
+  useCardActions,
+  useDragging,
+  useSelectionState,
+} from './exploration-reading.ts';
 import {
   frameWidthOf,
   heightOf,
@@ -103,6 +107,7 @@ function Contains({ element }: { element: DrawnElement }) {
   // Held here, so the button can say so: the tooltip between the menu and
   // its button keeps the menu's own word on it from reaching the button.
   const [open, setOpen] = useState(false);
+  const dragging = useDragging();
   if (!element.containsUndrawn || contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
@@ -118,7 +123,7 @@ function Contains({ element }: { element: DrawnElement }) {
     >
       <Menu.Target>
         {/* Its tooltip only while its menu is shut, so the two never overlap. */}
-        <Tooltip label={label} disabled={open}>
+        <Tooltip label={label} disabled={open || dragging}>
           <ActionIcon
             size={26}
             radius="xl"
@@ -315,10 +320,14 @@ function NodeMenuButton({
   holds: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const dragging = useDragging();
   return (
     <Menu opened={open} onChange={setOpen} {...NODE_MENU}>
       <Menu.Target>
-        <Tooltip label="All actions · also on right-click" disabled={open}>
+        <Tooltip
+          label="All actions · also on right-click"
+          disabled={open || dragging}
+        >
           <ActionIcon
             variant="subtle"
             color="gray"
@@ -396,6 +405,7 @@ function Remove({
   holds: boolean;
 }) {
   const { onShow, onRemoveAlone } = useCardActions();
+  const dragging = useDragging();
   return (
     <div className={`nodrag nopan ${classes.corner}`}>
       {/* Apart from the ways off, so a click meant for it never takes one. */}
@@ -404,7 +414,7 @@ function Remove({
       </div>
       <div className={classes.strip}>
         {holds && (
-          <Tooltip label="Remove group">
+          <Tooltip label="Remove group" disabled={dragging}>
             <ActionIcon
               variant="subtle"
               color="red"
@@ -416,7 +426,10 @@ function Remove({
             </ActionIcon>
           </Tooltip>
         )}
-        <Tooltip label={holds ? 'Remove only this' : 'Remove from the view'}>
+        <Tooltip
+          label={holds ? 'Remove only this' : 'Remove from the view'}
+          disabled={dragging}
+        >
           <ActionIcon
             variant="subtle"
             color="red"
@@ -446,6 +459,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
   const { state, onSelect } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
+  const dragging = useDragging();
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]
@@ -497,7 +511,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           {/* Slower than elsewhere: a pointer crosses cards on its way about the canvas. */}
           <ElementTooltip
             name={addressOf(element.id)}
-            disabled={menu}
+            disabled={menu || dragging}
             openDelay={600}
           >
             {button}

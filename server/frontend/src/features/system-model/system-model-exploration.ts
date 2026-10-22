@@ -48,17 +48,15 @@ export const RELATIONS: readonly {
   { kind: 'invokes', label: 'Invokes', implemented: false },
 ];
 
-/** The word an edge of each drawn relation carries. */
+/**
+ * The word an edge of each drawn relation carries. Containment is drawn as
+ * cards inside cards, never as an edge, so only use is.
+ */
 export const RELATION_WORD = {
-  contains: 'contains',
-  isPartOf: 'is part of',
   uses: 'uses',
 } as const satisfies Partial<Record<RelationKind, string>>;
 
 type DrawnRelationKind = keyof typeof RELATION_WORD;
-
-/** Containment drawn as a block inside its container, or as an edge between them. */
-export type Containment = 'nested' | 'edges';
 
 const parentPath = (path: string) =>
   path.includes('.') ? path.slice(0, path.lastIndexOf('.')) : '';
@@ -191,7 +189,7 @@ export function neighboursOf(
 }
 
 export interface DrawnElement extends ExploredElement {
-  /** The shown element it is drawn inside, when containment is nested. */
+  /** The shown element it is drawn inside, when containment is drawn. */
   parent: string | null;
   /** Whether it contains elements not drawn, which its card offers to bring. */
   containsUndrawn: boolean;
@@ -300,12 +298,10 @@ export function graphOf(
   {
     hidden,
     relations,
-    containment,
     picks = NO_PICKS,
   }: {
     hidden: ReadonlySet<string>;
     relations: ReadonlySet<RelationKind>;
-    containment: Containment;
     picks?: ElementPicks;
   },
 ): ExplorationGraph {
@@ -322,29 +318,10 @@ export function graphOf(
       id = byId.get(id)?.container ?? null;
     return id;
   };
-  const contains = relations.has('contains');
-  const isPartOf = relations.has('isPartOf');
-  const nested = containment === 'nested' && (contains || isPartOf);
+  // Containment, either way round, is drawn as cards inside their container.
+  const nested = relations.has('contains') || relations.has('isPartOf');
 
   const drawn: DrawnRelation[] = [];
-  for (const element of shown) {
-    const container = containerOf(element);
-    if (container === null || nested) continue;
-    if (contains)
-      drawn.push({
-        id: `contains:${container}->${element.id}`,
-        kind: 'contains',
-        source: container,
-        target: element.id,
-      });
-    if (isPartOf)
-      drawn.push({
-        id: `isPartOf:${element.id}->${container}`,
-        kind: 'isPartOf',
-        source: element.id,
-        target: container,
-      });
-  }
   if (relations.has('uses'))
     for (const [source, target] of exploration.uses)
       if (isShown.has(source) && isShown.has(target))
@@ -418,8 +395,8 @@ export function relatedToAll(graph: ExplorationGraph, ids: readonly string[]) {
 
 /**
  * What taking these off the diagram takes off with them: each, and all that
- * is drawn inside it. Drawn as edges, containment holds nothing inside, so
- * only what was named goes.
+ * is drawn inside it. With containment not drawn, nothing is inside, so only
+ * what was named goes.
  */
 export function removalOf(
   graph: ExplorationGraph,
@@ -434,24 +411,4 @@ export function removalOf(
   };
   for (const id of ids) take(id);
   return [...gone];
-}
-
-/**
- * The containers left holding a gap when these go: the one each removed
- * group was drawn in, unless that goes too. A card leaves its container as
- * it was; a group taken out of one has it arranged again.
- */
-export function rearrangedBy(
-  graph: ExplorationGraph,
-  ids: readonly string[],
-): string[] {
-  const gone = new Set(removalOf(graph, ids));
-  const byId = new Map(graph.elements.map((each) => [each.id, each]));
-  const holders = new Set<string>();
-  for (const id of ids) {
-    const parent = byId.get(id)?.parent ?? null;
-    const holds = graph.elements.some((each) => each.parent === id);
-    if (holds && parent !== null && !gone.has(parent)) holders.add(parent);
-  }
-  return [...holders];
 }

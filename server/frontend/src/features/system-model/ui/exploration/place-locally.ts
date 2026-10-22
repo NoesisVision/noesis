@@ -15,7 +15,7 @@ import {
  * The diagram changed from one card, placed without moving the rest: what
  * stays keeps where it stands, what is gone is only gone, and what comes is
  * set beside that card where nothing else stands — inside its container
- * when containment is nested, the container growing to hold it and pushing
+ * when it has one drawn, the container growing to hold it and pushing
  * aside whatever it then reaches. A container a card brings round others
  * already drawn is drawn round them; if it would then lie over anything
  * else, there is no placing it here, and the caller places everything anew.
@@ -195,6 +195,52 @@ function workspaceOf(
     return pushAround(id, old) && fit(element.parent);
   };
 
+  /**
+   * Fits `id` to what it holds, larger or smaller — never past its least
+   * size — then its container to it, and so on up; what a container grows
+   * into is pushed aside. A frame left holding nothing is a card already,
+   * so its container is fitted instead.
+   */
+  const refit = (id: string | null): boolean => {
+    if (id === null) return true;
+    const old = rects.get(id);
+    const element = byId.get(id);
+    if (old === undefined || element === undefined) return true;
+    const [first, ...others] = placedKids(id).map(({ id: kid }) =>
+      rects.get(kid)!,
+    );
+    if (first === undefined) return refit(element.parent);
+    const box = others.reduce((all, rect) => union(all, rect), first);
+    const padding = paddingOf(element);
+    const next = {
+      x: box.x - padding.left,
+      y: box.y - padding.top,
+      width: Math.max(
+        frameWidthOf(element.name),
+        box.width + padding.left + padding.right,
+      ),
+      height: Math.max(
+        heightOf(element),
+        box.height + padding.top + padding.bottom,
+      ),
+    };
+    if (same(next, old)) return true;
+    rects.set(id, next);
+    return pushAround(id, old) && refit(element.parent);
+  };
+
+  // The containers something drawn inside them has left — taken off, or
+  // its container taken off round it — fitted to what they still hold.
+  const now = new Map(graph.elements.map(({ id, parent }) => [id, parent]));
+  const leftBehind = new Set<string>();
+  for (const { element } of previous)
+    if (
+      element.parent !== null &&
+      rects.has(element.parent) &&
+      now.get(element.id) !== element.parent
+    )
+      leftBehind.add(element.parent);
+
   /** What changed size as it stood moves the rest aside; false if it cannot. */
   const settle = () =>
     resized.every(
@@ -202,7 +248,7 @@ function workspaceOf(
         fit(kidsOf(id).length > 0 ? id : null) &&
         pushAround(id, old) &&
         fit(byId.get(id)?.parent ?? null),
-    );
+    ) && [...leftBehind].every((id) => refit(id));
 
   /** Every element where it now stands, relative to its container, containers first. */
   const placed = (): PlacedElement[] => {
@@ -233,7 +279,9 @@ function workspaceOf(
     placedKids,
     descendantsOf,
     ancestorsOf,
+    move,
     fit,
+    refit,
     pushAround,
     settle,
     placed,
@@ -459,4 +507,28 @@ export function arrangeWithin(
   if (!set(id, origin)) return null;
   rects.set(id, { ...frame, width: right - frame.x, height: bottom - frame.y });
   return pushAround(id, frame) && fit(element.parent) ? placed() : null;
+}
+
+/**
+ * A card dropped where the reader let go of it, `to` on the canvas, with
+ * all it holds: it stays inside its container wherever it lands, and the
+ * container is fitted round what it holds again — grown, pushing aside
+ * whatever it then reaches, or shrunk. The rest stays put; null if the
+ * pushing will not settle.
+ */
+export function movedTo(
+  previous: readonly PlacedElement[],
+  graph: ExplorationGraph,
+  id: string,
+  to: CanvasPoint,
+): PlacedElement[] | null {
+  const { rects, byId, move, refit, settle, placed } = workspaceOf(
+    previous,
+    graph,
+  );
+  if (!settle()) return null;
+  const from = rects.get(id);
+  if (from === undefined) return null;
+  move(id, to.x - from.x, to.y - from.y);
+  return refit(byId.get(id)?.parent ?? null) ? placed() : null;
 }

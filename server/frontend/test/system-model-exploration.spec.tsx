@@ -19,7 +19,6 @@ import {
   picked,
   RELATIONS,
   type RelationKind,
-  rearrangedBy,
   relatedTo,
   removalOf,
 } from '../src/features/system-model/system-model-exploration';
@@ -30,6 +29,7 @@ import { ExplorationReadingContext } from '../src/features/system-model/ui/explo
 import { layoutExploration } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
   arrangeWithin,
+  movedTo,
   placeLocally,
 } from '../src/features/system-model/ui/exploration/place-locally';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
@@ -112,15 +112,10 @@ const model = {
 } as unknown as SystemModel;
 
 const exploration = explorationOf(model);
-const draw = (
-  relations: RelationKind[],
-  containment: 'nested' | 'edges',
-  hidden: string[] = [],
-) =>
+const draw = (relations: RelationKind[], hidden: string[] = []) =>
   graphOf(exploration, {
     hidden: new Set(hidden),
     relations: new Set(relations),
-    containment,
   });
 
 describe('the exploration of a system model', () => {
@@ -144,7 +139,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('nests elements in their nearest shown container', () => {
-    const graph = draw(['contains', 'uses'], 'nested', ['module']);
+    const graph = draw(['contains', 'uses'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['building_block|shop.orders.Order', null],
       ['building_block|shop.orders.Line', null],
@@ -153,21 +148,19 @@ describe('the exploration of a system model', () => {
     expect(graph.relations.map(({ kind }) => kind)).toEqual(['uses', 'uses']);
   });
 
-  it('draws containment as edges both ways, one per relation asked for', () => {
-    const graph = draw(['contains', 'isPartOf'], 'edges', [
-      'aggregate',
-      'value_object',
-      'Command',
-    ]);
-    expect(graph.elements.every(({ parent }) => parent === null)).toBe(true);
-    expect(graph.relations.map(({ id }) => id)).toEqual([
-      'contains:module|shop->module|shop.orders',
-      'isPartOf:module|shop.orders->module|shop',
-    ]);
+  it('draws containment either way round as nesting, never as an edge', () => {
+    for (const relation of ['contains', 'isPartOf'] as const) {
+      const graph = draw([relation], ['aggregate', 'value_object', 'Command']);
+      expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
+        ['module|shop', null],
+        ['module|shop.orders', 'module|shop'],
+      ]);
+      expect(graph.relations).toEqual([]);
+    }
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
-    const graph = draw(['uses'], 'edges', ['value_object']);
+    const graph = draw(['uses'], ['value_object']);
     expect(graph.relations).toEqual([]);
   });
 
@@ -222,7 +215,7 @@ describe('placing the exploration', () => {
     if (stubbed) Object.assign(globalThis, { document: {} });
     try {
       return await layoutExploration(
-        draw(['contains', 'uses'], 'nested'),
+        draw(['contains', 'uses']),
         algorithm,
         direction,
       );
@@ -279,7 +272,7 @@ describe('placing the exploration', () => {
 
 describe('the selection', () => {
   it('joins an element to what its drawn relations and its nesting join it to', () => {
-    const graph = draw(['contains', 'uses'], 'nested');
+    const graph = draw(['contains', 'uses']);
     const { relations, elements } = relatedTo(
       graph,
       'building_block|shop.orders.Order',
@@ -303,7 +296,7 @@ describe('the selection', () => {
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {
-    const graph = draw(['uses'], 'edges');
+    const graph = draw(['uses']);
     const line = graph.elements.find(
       ({ id }) => id === 'building_block|shop.orders.Line',
     )!;
@@ -421,7 +414,6 @@ describe('elements put in or taken out one by one', () => {
     const graph = graphOf(exploration, {
       hidden: new Set(['value_object']),
       relations: new Set(['contains', 'uses']),
-      containment: 'nested',
       picks,
     });
     const ids = graph.elements.map(({ id }) => id);
@@ -646,6 +638,78 @@ describe('placing a change from one card', () => {
     expect(frame).toMatchObject({ x: 0, y: 0, width: 16 + 182 + 150 + 16 });
     expect(apart(frame, byId.get('Next')!)).toBe(true);
   });
+  it('drops a card out of its frame still in it, the frame grown round what it holds', () => {
+    const box = element('Box');
+    const next = element('Next');
+    const [kid, other] = [element('Kid', 'Box'), element('Other', 'Box')];
+    const placed = movedTo(
+      [
+        at(box, 0, 0, 200, 140, true),
+        at(kid, 16, 60),
+        at(other, 16, 60 + 52 + 32),
+        at(next, 232, 0),
+      ],
+      graphOf(box, next, kid, other),
+      'Kid',
+      { x: 260, y: 200 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    const frame = byId.get('Box')!;
+    // Round both cards, from the one left at 144 down to the one let go of
+    // at 200, which stands where it was dropped; a card is 56 high.
+    expect(frame).toMatchObject({ x: 0, y: 144 - 60 });
+    expect(byId.get('Kid')).toMatchObject({ x: 260, y: 200 - (144 - 60) });
+    expect(frame.width).toBe(260 + 150 + 16);
+    expect(frame.height).toBe(60 + (200 + 56 - 144) + 16);
+    // What the frame then reaches is pushed aside.
+    expect(apart(frame, byId.get('Next')!)).toBe(true);
+  });
+
+  it('shrinks a frame to what it holds once a card in it is moved back', () => {
+    const box = element('Box');
+    const kid = element('Kid', 'Box');
+    const placed = movedTo(
+      [at(box, 0, 0, 600, 400, true), at(kid, 300, 200)],
+      graphOf(box, kid),
+      'Kid',
+      { x: 16, y: 60 },
+    )!;
+    const frame = new Map(placed.map((each) => [each.element.id, each])).get(
+      'Box',
+    )!;
+    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 16 });
+    expect(frame.width).toBeLessThan(600);
+  });
+
+  it('shrinks a frame to what is left in it when a card is taken off', () => {
+    const box = element('Box');
+    const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+    const placed = placeLocally(
+      [at(box, 0, 0, 400, 300, true), at(one, 16, 60), at(two, 16, 200)],
+      graphOf(box, one),
+      'Two',
+    )!;
+    const frame = new Map(placed.map((each) => [each.element.id, each])).get(
+      'Box',
+    )!;
+    expect(frame).toMatchObject({ x: 0, y: 0, height: 60 + 56 + 16 });
+  });
+
+  it('grows the frame up and left when a card is dropped there', () => {
+    const box = element('Box');
+    const kid = element('Kid', 'Box');
+    const placed = movedTo(
+      [at(box, 100, 100, 200, 140, true), at(kid, 16, 60)],
+      graphOf(box, kid),
+      'Kid',
+      { x: 20, y: 40 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    const frame = byId.get('Box')!;
+    // The frame starts its padding before the card, which keeps its place.
+    expect(frame).toMatchObject({ x: 20 - 16, y: 40 - 60 });
+    expect(byId.get('Kid')).toMatchObject({ x: 16, y: 60 });
+  });
 });
 
 describe('what goes when an element is taken off', () => {
@@ -653,48 +717,19 @@ describe('what goes when an element is taken off', () => {
     const nested = graphOf(exploration, {
       hidden: new Set(),
       relations: new Set(['contains']),
-      containment: 'nested',
     });
     const gone = removalOf(nested, ['module|shop.orders']);
     expect(gone).toContain('module|shop.orders');
     expect(gone).toContain('building_block|shop.orders.Order');
   });
 
-  it('takes only what was named when containment is drawn as edges', () => {
+  it('takes only what was named when containment is not drawn', () => {
     const flat = graphOf(exploration, {
       hidden: new Set(),
-      relations: new Set(['contains']),
-      containment: 'edges',
+      relations: new Set(['uses']),
     });
     expect(removalOf(flat, ['module|shop.orders'])).toEqual([
       'module|shop.orders',
     ]);
-  });
-});
-
-describe('what is arranged again when a group goes', () => {
-  const nested = graphOf(exploration, {
-    hidden: new Set(),
-    relations: new Set(['contains']),
-    containment: 'nested',
-  });
-
-  it('arranges the container a group leaves', () => {
-    // Order holds its behaviour, and is drawn inside the orders module.
-    expect(rearrangedBy(nested, ['building_block|shop.orders.Order'])).toEqual([
-      'module|shop.orders',
-    ]);
-  });
-
-  it('leaves a container as it was when only a card goes, or it goes too', () => {
-    expect(rearrangedBy(nested, ['building_block|shop.orders.Line'])).toEqual(
-      [],
-    );
-    expect(
-      rearrangedBy(nested, [
-        'building_block|shop.orders.Order',
-        'module|shop.orders',
-      ]),
-    ).toEqual(['module|shop']);
   });
 });
