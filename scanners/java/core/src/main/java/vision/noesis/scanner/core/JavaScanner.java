@@ -50,14 +50,10 @@ public final class JavaScanner {
     }
 
     public static Engine engineFor(EngineKind kind) {
-        switch (kind) {
-            case SOURCE:
-                return new SourceEngine();
-            case BYTECODE:
-                return new BytecodeEngine();
-            default:
-                throw new IllegalArgumentException("Engine " + kind.id() + " is not available.");
-        }
+        return switch (kind) {
+            case SOURCE -> new SourceEngine();
+            case BYTECODE -> new BytecodeEngine();
+        };
     }
 
     public ScanManifest manifest(ScanRequest request, List<CodeModelFile> models, List<Diagnostic> diagnostics) {
