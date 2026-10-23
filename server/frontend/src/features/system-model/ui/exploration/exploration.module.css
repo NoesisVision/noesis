@@ -505,11 +505,9 @@
   gap: 2px;
 }
 
-/* Quiet and softly squared, as the app's icon buttons are, a light ground
-   only under the pointer; named with the exploration, to win over the
-   buttons' own shape. */
+/* Quiet, as the app's icon buttons are, a light ground only under the
+   pointer; named with the exploration, to win over the buttons' own look. */
 .exploration .strip > * {
-  border-radius: 8px;
   color: var(--mantine-color-gray-6);
 
   &:hover {

@@ -61,7 +61,6 @@ export function OutlineSearchBox({
                 variant="subtle"
                 color="gray"
                 size={26}
-                radius={8}
                 aria-label="Clear the search"
                 onClick={() => ask('')}
               >
@@ -73,7 +72,6 @@ export function OutlineSearchBox({
                 variant="subtle"
                 color="gray"
                 size={26}
-                radius={8}
                 aria-label="Expand everything"
                 onClick={expandAll}
               >
@@ -85,7 +83,6 @@ export function OutlineSearchBox({
                 variant="subtle"
                 color="gray"
                 size={26}
-                radius={8}
                 aria-label="Collapse everything"
                 onClick={collapseAll}
               >
@@ -125,7 +122,6 @@ export function OutlineSearchBox({
                 variant="subtle"
                 color="gray"
                 size={26}
-                radius={8}
                 ml="auto"
                 aria-label="Hide the tree"
                 aria-keyshortcuts="Meta+Backslash Control+Backslash"

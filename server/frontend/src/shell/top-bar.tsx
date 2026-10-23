@@ -98,7 +98,6 @@ function FullscreenTool() {
         variant="subtle"
         color="gray"
         size={34}
-        radius="md"
         aria-label={label}
         onClick={toggle}
       >
@@ -121,7 +120,6 @@ function DevToolsTool() {
             variant="subtle"
             color="gray"
             size={34}
-            radius="md"
             aria-label={entry.label}
             onClick={dialog.open}
           >
@@ -154,7 +152,6 @@ function SettingsTool() {
           variant="subtle"
           color="gray"
           size={34}
-          radius="md"
           aria-label="App settings"
           title="App settings"
         >

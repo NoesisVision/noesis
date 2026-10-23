@@ -637,7 +637,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             <ActionIcon
               variant="default"
               size={44}
-              radius={12}
               className={classes.selectionIcon}
               aria-label={`Show the details of ${inHand.name}`}
               aria-expanded={false}

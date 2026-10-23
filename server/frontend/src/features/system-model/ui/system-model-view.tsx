@@ -49,7 +49,7 @@ export function SystemModelView() {
   const scan = useScanSystemModel();
   const { view, onView } = useView();
   const scanButton = (
-    <Button radius="xl" loading={scan.isPending} onClick={() => scan.mutate()}>
+    <Button loading={scan.isPending} onClick={() => scan.mutate()}>
       Scan
     </Button>
   );
@@ -116,7 +116,7 @@ function ScanDetails({ model }: { model: SystemModel }) {
   );
   return (
     <Tooltip label={details} position="bottom">
-      <ActionIcon variant="subtle" color="gray" size={34} radius="md">
+      <ActionIcon variant="subtle" color="gray" size={34}>
         <IconInfoCircle size={18} stroke={1.7} aria-hidden />
         <VisuallyHidden>{details}</VisuallyHidden>
       </ActionIcon>

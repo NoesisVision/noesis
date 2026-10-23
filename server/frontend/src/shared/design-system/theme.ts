@@ -1,5 +1,8 @@
 import {
+  ActionIcon,
+  Button,
   Card,
+  CloseButton,
   Combobox,
   createTheme,
   type CSSVariablesResolver,
@@ -36,6 +39,11 @@ export const theme = createTheme({
   headings: { fontWeight: '600' },
   defaultRadius: 'sm',
   components: {
+    // Every button and icon button alike: rounded a step more than the
+    // default, between the inputs' corners and the 12px dropdown rows.
+    Button: Button.extend({ defaultProps: { radius: 'md' } }),
+    ActionIcon: ActionIcon.extend({ defaultProps: { radius: 'md' } }),
+    CloseButton: CloseButton.extend({ defaultProps: { radius: 'md' } }),
     Modal: Modal.extend({
       // Mantine fixes a modal's frame with a top and a width but no left
       // edge. In the body that edge is the screen's; portalled into the
