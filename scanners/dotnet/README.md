@@ -4,9 +4,8 @@ A .NET 10 tool, `noesis-scan-csharp`, that reads a C# solution with Roslyn and
 writes the common **code model**: one JSON file per project with every
 namespace, type and member, the edges between them (containment, inheritance,
 overrides, interface member mapping, invocations, member accesses, body-level
-type uses) and stubs for the external symbols it reached. The model, its ids
-and the mapping rules are designed in
-[`docs/plans/code-model-and-roslyn-csharp-scanner.md`](../../docs/plans/code-model-and-roslyn-csharp-scanner.md)
+type uses) and stubs for the external symbols it reached. The model and its
+ids are described in [`docs/arch/code-model.md`](../../docs/arch/code-model.md)
 and its JSON Schema is generated into [`../code-model/`](../code-model/);
 this README is about building and running the scanner.
 
@@ -101,8 +100,9 @@ only step that may touch the network.
 
 ## How it maps
 
-The design document is the reference; the points below are where the
-implementation pins down something the design leaves open or words differently:
+[`docs/arch/code-model.md`](../../docs/arch/code-model.md) describes the model;
+the points below are how the C# scanner fills it where the model leaves a
+choice:
 
 - **Locations** of types and members are the whole declaration (every part of
   a partial); a positional record property points at its parameter, a primary
@@ -119,7 +119,7 @@ implementation pins down something the design leaves open or words differently:
   Calls through the block member or through Roslyn's synthesised
   implementation method both target the hoisted id.
 - **Delegate invocations** (`d()`, `d.Invoke()`) and user-defined operator
-  calls produce no `INVOKES` in this iteration (section 8 of the design); the
+  calls produce no `INVOKES` yet; the
   delegate value itself is still an `ACCESSES`.
 - **`IMPLEMENTS_MEMBER`** follows Roslyn's `FindImplementationForInterfaceMember`:
   when a base class member fills the slot, `from` is that base member even if

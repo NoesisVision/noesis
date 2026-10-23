@@ -1,7 +1,7 @@
 # Design: C# type name resolution without a compiler
 
 > **Status: superseded.** The scanner uses Roslyn, see
-> [`code-model-and-roslyn-csharp-scanner.md`](code-model-and-roslyn-csharp-scanner.md).
+> [`scanners/dotnet`](../../scanners/dotnet/README.md).
 > This document remains the inventory of everything that influences type
 > resolution in C# and the design of the Roslyn-based test oracle.
 

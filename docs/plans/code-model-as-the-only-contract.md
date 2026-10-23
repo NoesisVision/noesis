@@ -3,8 +3,8 @@
 Status: proposed (October 2026).
 
 Today a scan has two contracts. The first is the **code model**: the files a
-scanner writes (`scanners/code-model/`, designed in
-[`code-model-and-roslyn-csharp-scanner.md`](code-model-and-roslyn-csharp-scanner.md)).
+scanner writes (`scanners/code-model/`, described in
+[`docs/arch/code-model.md`](../arch/code-model.md)).
 The second is an **annotation vocabulary** per language, in the service
 (`server/backend/src/app/code-model/projection/{java,csharp}.vocabulary.ts`),
 plus a few rules of the projection that read one language's facts

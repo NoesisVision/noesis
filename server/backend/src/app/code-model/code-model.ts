@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 /**
  * The common code model every scanner writes: one manifest and one file per
- * artifact under `<output root>/code-model/<language>/`. Designed in
- * docs/plans/code-model-and-roslyn-csharp-scanner.md; the .NET scanner keeps a
+ * artifact under `<output root>/code-model/<language>/`. Described in
+ * docs/arch/code-model.md; the .NET scanner keeps a
  * C# copy of these shapes and its golden files are checked against this schema.
  * Objects are strict so a field added on one side fails the other.
  *

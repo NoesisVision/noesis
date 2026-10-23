@@ -2,10 +2,10 @@
 
 A scanner reads one solution and writes a _code model_: a graph of what the
 code declares and what each body does, in a vocabulary shared by every
-language. This page walks that model top down. The full design, with every
-field and every C# mapping rule, is in
-[`docs/plans/code-model-and-roslyn-csharp-scanner.md`](../plans/code-model-and-roslyn-csharp-scanner.md);
-the C# types live in `scanners/dotnet/src/Noesis.Scanner.Model`.
+language. This page walks that model top down. The contract is the zod schema
+in `server/backend/src/app/code-model/code-model.ts`, generated as JSON Schema
+into `scanners/code-model/`; the scanners keep their own copies in
+`scanners/dotnet/src/Noesis.Scanner.Model` and `scanners/java/model`.
 
 ## 1. What a scan produces
 
@@ -490,5 +490,4 @@ its type and its namespace.
 No call counts, no transitive closures, no inferred relations, no inherited
 members copied down, no local variables, no control flow. Everything here is
 one hop and one site, and the consumer composes the rest. Candidate edges
-for unbound sites and argument-level facts are designed but deferred; see
-section 8 of the design document.
+for unbound sites and argument-level facts are deferred.

@@ -2,7 +2,7 @@
 
 The second stage of the scanner. The first stage (one per language, the
 Roslyn scanner for C#) writes the **code model**: declarations, edges and
-stubs, see [`code-model-and-roslyn-csharp-scanner.md`](code-model-and-roslyn-csharp-scanner.md).
+stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
 in `.noesis/graph/system-models/`: modules, building blocks and behaviours,
 see `server/backend/src/app/system-model/system-model.ts`. It runs in the
