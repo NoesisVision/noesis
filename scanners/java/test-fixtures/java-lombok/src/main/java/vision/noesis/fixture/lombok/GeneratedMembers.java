@@ -1,6 +1,11 @@
 package vision.noesis.fixture.lombok;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -105,11 +110,30 @@ public final class GeneratedMembers {
     /** Every method of {@code List<String>} delegated to the field: generated implementations of the interface's members, which javac alone cannot see the class implements. */
     public static class Delegating implements List<String> {
 
-        @Delegate
+        @Delegate(excludes = DefaultMethodsWithParameters.class)
         private final List<String> items;
 
         public Delegating(List<String> items) {
             this.items = items;
+        }
+
+        /**
+         * The interface's default methods that take parameters, left out of the delegation. Lombok copies the
+         * parameter names javac reads: the JDK's own class files name them on JDK 17, while the stripped signatures
+         * {@code --release 17} reads on a later JDK do not, so the generated members would differ by the JDK that
+         * compiled the fixture.
+         */
+        private interface DefaultMethodsWithParameters {
+
+            void forEach(Consumer<? super String> action);
+
+            boolean removeIf(Predicate<? super String> filter);
+
+            void replaceAll(UnaryOperator<String> operator);
+
+            void sort(Comparator<? super String> c);
+
+            <T> T[] toArray(IntFunction<T[]> generator);
         }
     }
 
