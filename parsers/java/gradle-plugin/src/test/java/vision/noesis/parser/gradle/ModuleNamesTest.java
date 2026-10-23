@@ -61,6 +61,6 @@ class ModuleNamesTest {
                         dependency.substring(dependency.lastIndexOf(':') + 1), null, null))
                 .toList();
         return new ModuleInputs(path, "com.acme", name, "1.0", new File(ROOT, path.replace(':', '/')), null, List.of(),
-                new File(ROOT, path.replace(':', '/') + "/build/classes/java/main"), classpath, 17, "UTF-8", "jar", null);
+                new File(ROOT, path.replace(':', '/') + "/build/classes/java/main"), new File(ROOT, path.replace(':', '/') + "/build"), classpath, 17, "UTF-8", "jar", null);
     }
 }

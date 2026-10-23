@@ -23,7 +23,8 @@ import vision.noesis.parser.model.PackageReference;
 
 /**
  * What the engines need about one Gradle project, snapshotted off the configured project so the task holds no project at
- * execution time and Gradle can tell when a rerun is due: the sources and the classpath are file inputs, the rest values.
+ * execution time and Gradle can tell when a rerun is due: the sources, the classes and the classpath are file inputs, the
+ * rest values.
  */
 public class ModuleInputs implements Serializable {
 
@@ -55,6 +56,7 @@ public class ModuleInputs implements Serializable {
     private final File buildFile;
     private final List<File> sourceRoots;
     private final File outputDirectory;
+    private final File buildDirectory;
     private final List<ClasspathElement> classpath;
     private final int release;
     private final String encoding;
@@ -62,7 +64,8 @@ public class ModuleInputs implements Serializable {
     private final String mainClass;
 
     public ModuleInputs(String projectPath, String group, String name, String version, File rootDirectory, File buildFile, List<File> sourceRoots,
-                        File outputDirectory, List<ClasspathElement> classpath, int release, String encoding, String packaging, String mainClass) {
+                        File outputDirectory, File buildDirectory, List<ClasspathElement> classpath, int release, String encoding, String packaging,
+                        String mainClass) {
         this.projectPath = projectPath;
         this.group = group;
         this.name = name;
@@ -71,6 +74,7 @@ public class ModuleInputs implements Serializable {
         this.buildFile = buildFile;
         this.sourceRoots = List.copyOf(sourceRoots);
         this.outputDirectory = outputDirectory;
+        this.buildDirectory = buildDirectory;
         this.classpath = List.copyOf(classpath);
         this.release = release;
         this.encoding = encoding;
@@ -79,7 +83,7 @@ public class ModuleInputs implements Serializable {
     }
 
     ModuleInputs withClasspath(List<ClasspathElement> classpath) {
-        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, classpath, release, encoding, packaging, mainClass);
+        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, buildDirectory, classpath, release, encoding, packaging, mainClass);
     }
 
     @Input
@@ -124,9 +128,21 @@ public class ModuleInputs implements Serializable {
         return sourceRoots;
     }
 
+    /**
+     * The compiled classes, whose contents are inputs: the bytecode and hybrid engines read them, so a recompile with
+     * other options ({@code -parameters}) changes the model. A directory not compiled yet is an input that is missing,
+     * not an error.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    /** The build directory, under which a source root holds generated sources. */
     @Input
-    public String getOutputDirectory() {
-        return outputDirectory.getAbsolutePath();
+    public String getBuildDirectory() {
+        return buildDirectory.getAbsolutePath();
     }
 
     @Classpath
@@ -198,6 +214,6 @@ public class ModuleInputs implements Serializable {
         for (ClasspathElement element : classpath) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames)));
         return new ArtifactInput(group, name, version, rootDirectory.toPath(), buildFile == null ? null : buildFile.toPath(), roots,
                 outputDirectory.toPath(), entries, releaseOverride != null ? releaseOverride : release, Charset.forName(encoding), packaging, mainClass,
-                uniqueNames.getOrDefault(projectPath, name));
+                uniqueNames.getOrDefault(projectPath, name), buildDirectory.toPath());
     }
 }

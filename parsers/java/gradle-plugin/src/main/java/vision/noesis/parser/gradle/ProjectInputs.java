@@ -44,10 +44,10 @@ final class ProjectInputs {
         return project.provider(() -> read(project)).zip(artifacts, ProjectInputs::withClasspath);
     }
 
+    /** In resolution order, the order the compile task sees: with a class in two jars, the first one wins, as it does for javac. */
     private static ModuleInputs withClasspath(ModuleInputs module, Set<ResolvedArtifactResult> resolved) {
         List<ClasspathElement> classpath = new ArrayList<>();
         for (ResolvedArtifactResult artifact : resolved) classpath.add(elementOf(artifact));
-        classpath.sort((a, b) -> a.file().getPath().compareTo(b.file().getPath()));
         return module.withClasspath(classpath);
     }
 
@@ -69,6 +69,7 @@ final class ProjectInputs {
                 project.getBuildFile().isFile() ? project.getBuildFile() : null,
                 sourceRoots,
                 main.getJava().getClassesDirectory().get().getAsFile(),
+                project.getLayout().getBuildDirectory().get().getAsFile(),
                 List.of(),
                 releaseOf(java, compile),
                 encodingOf(compile),

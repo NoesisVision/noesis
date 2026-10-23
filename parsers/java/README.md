@@ -82,15 +82,21 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/parse -Dnoesis.repositoryRoot=$PWD -Dnoesis.rep
   process-classes vision.noesis:noesis-parser-maven-plugin:0.1.0-SNAPSHOT:parse
 ```
 
-| Property                | Default                                                              | Meaning                                                                                                                   |
-| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `noesis.out`            | `${session.executionRootDirectory}/.noesis/tmp/parser`               | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
-| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
-| `noesis.repository`     | the root directory's name                                            | written into the manifest                                                                                                 |
-| `noesis.revision`       | `""`                                                                 | written into the manifest                                                                                                 |
-| `noesis.engine`         | `source`                                                             | `source`, `bytecode` or `hybrid`                                                                                          |
-| `noesis.release`        | `maven.compiler.release`, else `maven.compiler.target`, else the JVM | the Java release the sources are bound against                                                                            |
-| `noesis.skip`           | `false`                                                              | skip this module                                                                                                          |
+| Property                | Default                                                                             | Meaning                                                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/tmp/parser`                              | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
+| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                                 | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
+| `noesis.repository`     | the root directory's name                                                           | written into the manifest                                                                                                 |
+| `noesis.revision`       | `""`                                                                                | written into the manifest                                                                                                 |
+| `noesis.engine`         | `source`                                                                            | `source`, `bytecode` or `hybrid`                                                                                          |
+| `noesis.release`        | the compiler plugin's `release`, else its `target`, else its `source`, else the JVM | the Java release the sources are bound against                                                                            |
+| `noesis.skip`           | `false`                                                                             | skip this module                                                                                                          |
+
+Each of the compiler plugin's `release`, `target` and `source` is read as
+the compiler plugin reads it: the `default-compile` execution's
+`<configuration>`, else the plugin's, else the `maven.compiler.*` property,
+from the command line before the POM. A `release` set anywhere wins over a
+`target`, as it does for the compiler.
 
 Every module writes `code-model/java/<artifactId>.code-model.json` and
 rewrites `code-model/java/manifest.json`, which lists every module parsed so
@@ -228,6 +234,7 @@ A project is named by its Gradle project name (`A:app`), or by its path (`A:bill
 the compile classpath is a `source` dependency, a module a `library` by its
 coordinates; the main class comes from the `application` plugin, Spring
 Boot's `springBoot.mainClass` or the jar manifest's `Main-Class`. The task is
-up to date while the sources, the classpath and the settings are unchanged.
+up to date while the sources, the compiled classes, the classpath and the
+settings are unchanged.
 The Gradle daemon must run on a JDK, as Maven must; the engines run inside
 it.

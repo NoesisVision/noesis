@@ -515,7 +515,7 @@ final class SourceDeclarations {
     private Origin originOf(CompilationUnitTree unit) {
         if (unit == null) return Origin.DECLARED;
         Path file = Path.of(unit.getSourceFile().toUri()).toAbsolutePath().normalize();
-        Path buildDirectory = c.input.outputDirectory().toAbsolutePath().normalize().getParent();
+        Path buildDirectory = c.input.buildDirectory() == null ? null : c.input.buildDirectory().toAbsolutePath().normalize();
         return buildDirectory != null && file.startsWith(buildDirectory) ? Origin.GENERATED : Origin.DECLARED;
     }
 

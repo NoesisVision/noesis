@@ -64,7 +64,7 @@ public class ParseMojo extends AbstractMojo {
     @Parameter(property = "noesis.engine", defaultValue = "source")
     private String engine;
 
-    /** The Java release the sources are written for; {@code maven.compiler.release} or {@code maven.compiler.target} when not given. */
+    /** The Java release the sources are written for; the compiler plugin's {@code release}, {@code target} or {@code source} when not given. */
     @Parameter(property = "noesis.release")
     private Integer release;
 
@@ -74,7 +74,7 @@ public class ParseMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if ("pom".equals(project.getPackaging())) return;
-        ReactorState state = ReactorState.of(session, plugin);
+        ReactorState state = ReactorState.of(session);
         Path outputRoot = fromExecutionRoot(out);
         try {
             if (skip) {

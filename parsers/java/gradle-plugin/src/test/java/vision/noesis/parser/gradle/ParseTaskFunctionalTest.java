@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -103,6 +104,28 @@ class ParseTaskFunctionalTest {
         assertFalse(result.getOutput().contains("deprecated"), "no deprecation warnings expected:\n" + result.getOutput());
         BuildResult rerun = runner().build();
         assertEquals(TaskOutcome.UP_TO_DATE, rerun.task(":noesisParse").getOutcome());
+    }
+
+    @Test
+    void recompilingAProjectWithOtherOptionsRerunsTheParse(@TempDir Path dir) throws IOException {
+        copy(Path.of(System.getProperty("noesis.fixturesDir"), "multi-project"), dir);
+        assertEquals(TaskOutcome.SUCCESS, runner(dir, "-Pnoesis.engine=bytecode").build().task(":noesisParse").getOutcome());
+        assertEquals("arg0", mainParameter(dir));
+        Files.writeString(dir.resolve("b/build.gradle"), "\ntasks.withType(JavaCompile).configureEach { options.compilerArgs << '-parameters' }\n",
+                StandardOpenOption.APPEND);
+
+        BuildResult rerun = runner(dir, "-Pnoesis.engine=bytecode").build();
+
+        assertEquals(TaskOutcome.SUCCESS, rerun.task(":b:compileJava").getOutcome());
+        assertEquals(TaskOutcome.SUCCESS, rerun.task(":noesisParse").getOutcome(), "the classes changed, so the model is out of date");
+        assertEquals("args", mainParameter(dir));
+    }
+
+    private static String mainParameter(Path dir) throws IOException {
+        JsonNode b = JSON.readTree(dir.resolve("build/noesis/code-model/java/b.code-model.json").toFile());
+        JsonNode main = find(b.get("nodes"), n -> n.get("id").asText().equals("M:com.example.b.App#main(java.lang.String[])"));
+        assertNotNull(main, "main expected in " + texts(b.get("nodes"), "id"));
+        return main.at("/signature/parameters/0/name").asText();
     }
 
     @Test

@@ -3,15 +3,17 @@ package vision.noesis.parser.maven;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.WeakHashMap;
 import java.util.function.BiFunction;
+import org.apache.maven.execution.MavenExecutionRequest;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import vision.noesis.parser.model.CodeModelWriter;
 import vision.noesis.parser.model.Diagnostic;
@@ -20,13 +22,19 @@ import vision.noesis.parser.model.ManifestArtifact;
 import vision.noesis.parser.model.ParseManifest;
 
 /**
- * What the modules of one reactor build share through the plugin context of the top-level project: the files written so
- * far in reactor order, so the manifest is complete after the last module and partial after a stopped build. Under
- * {@code -T} modules finish in parallel, so the manifest is written under the same lock that records them.
+ * What the modules of one reactor build share: the files written so far in reactor order, so the manifest is complete
+ * after the last module and partial after a stopped build. Under {@code -T} modules finish in parallel, so the manifest
+ * is written under the same lock that records them.
  */
 final class ReactorState {
 
-    private static final String KEY = ReactorState.class.getName();
+    /**
+     * By the build's request, which every module's session shares (older Maven clones the session per module). Not the
+     * top-level project's plugin context: {@link MavenSession#getPluginContext} creates it without a lock, so two
+     * modules starting together under {@code -T} could each get a context, and a state, of their own. Weak, so a
+     * long-lived JVM (mvnd) lets a finished build's state go.
+     */
+    private static final Map<MavenExecutionRequest, ReactorState> BY_BUILD = Collections.synchronizedMap(new WeakHashMap<>());
 
     private final List<MavenProject> order;
     private final Map<Integer, ManifestArtifact> written = new TreeMap<>();
@@ -37,12 +45,8 @@ final class ReactorState {
         this.order = order;
     }
 
-    @SuppressWarnings("unchecked")
-    static ReactorState of(MavenSession session, PluginDescriptor plugin) {
-        Map<String, Object> context = session.getPluginContext(plugin, session.getTopLevelProject());
-        synchronized (context) {
-            return (ReactorState) context.computeIfAbsent(KEY, key -> new ReactorState(session.getProjects()));
-        }
+    static ReactorState of(MavenSession session) {
+        return BY_BUILD.computeIfAbsent(session.getRequest(), request -> new ReactorState(session.getProjects()));
     }
 
     /** Reserves the file name for a module's model, {@code ~2} when another module of the same name came first. */

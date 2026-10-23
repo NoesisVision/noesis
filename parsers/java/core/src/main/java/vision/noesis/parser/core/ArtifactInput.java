@@ -20,6 +20,9 @@ import vision.noesis.parser.model.NodeId;
  * @param mainClass       the configured main class, null when the artifact is not executable
  * @param uniqueName      the module's name in its artifact id: {@code artifactId}, qualified when another module of the
  *                        same build has that artifact id too ({@link JavaIds#moduleName})
+ * @param buildDirectory  the build's working directory ({@code target}, {@code build}); a source under it was generated
+ *                        by the build. The parent of {@code outputDirectory} when not given, which is Maven's layout but
+ *                        not Gradle's ({@code build/classes/java/main})
  */
 public record ArtifactInput(
         String groupId,
@@ -34,16 +37,25 @@ public record ArtifactInput(
         Charset encoding,
         String packaging,
         String mainClass,
-        String uniqueName) {
+        String uniqueName,
+        Path buildDirectory) {
 
     public ArtifactInput {
         if (uniqueName == null) uniqueName = artifactId;
+        if (buildDirectory == null && outputDirectory != null) buildDirectory = outputDirectory.toAbsolutePath().normalize().getParent();
+    }
+
+    /** A module whose build directory is the parent of its output directory, as in Maven's layout. */
+    public ArtifactInput(String groupId, String artifactId, String version, Path rootDirectory, Path buildFile, List<Path> sourceRoots,
+                         Path outputDirectory, List<ClasspathEntry> classpath, int release, Charset encoding, String packaging, String mainClass,
+                         String uniqueName) {
+        this(groupId, artifactId, version, rootDirectory, buildFile, sourceRoots, outputDirectory, classpath, release, encoding, packaging, mainClass, uniqueName, null);
     }
 
     /** A module whose artifact id no other module of its build shares. */
     public ArtifactInput(String groupId, String artifactId, String version, Path rootDirectory, Path buildFile, List<Path> sourceRoots,
                          Path outputDirectory, List<ClasspathEntry> classpath, int release, Charset encoding, String packaging, String mainClass) {
-        this(groupId, artifactId, version, rootDirectory, buildFile, sourceRoots, outputDirectory, classpath, release, encoding, packaging, mainClass, artifactId);
+        this(groupId, artifactId, version, rootDirectory, buildFile, sourceRoots, outputDirectory, classpath, release, encoding, packaging, mainClass, artifactId, null);
     }
 
     public boolean executable() {
