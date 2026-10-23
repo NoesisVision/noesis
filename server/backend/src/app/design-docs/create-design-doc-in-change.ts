@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
@@ -16,6 +15,7 @@ import {
 } from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
+import type { DesignDocsRepository } from './design-docs.repository';
 import { assertDesignDocFollowsRules } from './invalid-design-doc-error';
 
 /** A new design document for the change. `designDoc` is the working file: the server mints its id. */
@@ -31,7 +31,7 @@ export type CreateDesignDocInChangeHandler = Handler<
 >;
 
 export function createDesignDocInChangeHandler(
-  designDocs: ChangeOwnedRepository<DesignDocument>,
+  designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
   today: Today,

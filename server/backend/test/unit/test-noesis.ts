@@ -2,18 +2,16 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
-import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
+import { DesignDocsFileRepository } from '#backend/adapters/out/store/design-docs.repository';
+import { DocumentsFileRepository } from '#backend/adapters/out/store/documents.repository';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
   DesignDocument,
   type DesignDocumentInput,
 } from '#backend/app/design-docs/design-doc';
-import {
-  type Document,
-  DocumentSchema,
-} from '#backend/app/information-sources/document';
+import { DocumentSchema } from '#backend/app/information-sources/document';
 import { createServices, type Services } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -28,8 +26,8 @@ export interface TestNoesis extends Services {
   root: string;
   noesis: NoesisDir;
   changesRepository: ChangesFileRepository;
-  designDocsRepository: ChangeOwnedFileRepository<DesignDocument>;
-  documentsRepository: ChangeOwnedFileRepository<Document>;
+  designDocsRepository: DesignDocsFileRepository;
+  documentsRepository: DocumentsFileRepository;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
   /** Writes a change with placeholder data, bypassing the handlers. */
@@ -55,16 +53,8 @@ export async function testNoesis(): Promise<TestNoesis> {
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
   const changesRepository = new ChangesFileRepository(noesis);
-  const designDocsRepository = new ChangeOwnedFileRepository(
-    noesis,
-    DesignDocument,
-    'design-doc',
-  );
-  const documentsRepository = new ChangeOwnedFileRepository(
-    noesis,
-    DocumentSchema,
-    'document',
-  );
+  const designDocsRepository = new DesignDocsFileRepository(noesis);
+  const documentsRepository = new DocumentsFileRepository(noesis);
   return {
     ...createServices(noesis, TODAY, () => NOW),
     root,
