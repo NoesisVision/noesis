@@ -88,8 +88,8 @@ final class SourceDeclarations {
 
     // --- Namespaces --------------------------------------------------------------------------------------------------
 
-    void walkUnit(CompilationUnitTree unit) {
-        NodeId namespaceId = namespaceOf(unit);
+    /** The unit's types and their members, in the namespace {@link #namespaceOf} declared for the unit. */
+    void walkTypes(CompilationUnitTree unit, NodeId namespaceId) {
         for (Tree declaration : unit.getTypeDecls()) {
             if (!(declaration instanceof ClassTree)) continue;
             TreePath path = new TreePath(new TreePath(unit), declaration);
@@ -101,8 +101,11 @@ final class SourceDeclarations {
         }
     }
 
-    /** Every level the package clause names gets a node and the span of its prefix. */
-    private NodeId namespaceOf(CompilationUnitTree unit) {
+    /**
+     * Every level the package clause names gets a node and the span of its prefix. Separate from {@link #walkTypes}, so
+     * a unit whose types fail still leaves the namespace other units of the package share.
+     */
+    NodeId namespaceOf(CompilationUnitTree unit) {
         ExpressionTree packageName = unit.getPackageName();
         String dotted = packageName == null ? "" : packageName.toString();
         NodeId id = ensureNamespace(dotted);

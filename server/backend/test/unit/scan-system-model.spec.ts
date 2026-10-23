@@ -72,8 +72,6 @@ describe('Scanning the system model', () => {
 describe('ScannerFactory', () => {
   /** Scanners that only tell which one was picked. */
   const scanners: ScannerBuilders = {
-    'java-maven': () => scannerOf(found('java-maven')),
-    'java-gradle': () => scannerOf(found('java-gradle')),
     csharp: () => scannerOf(found('csharp')),
     'code-model': () => scannerOf(found('code-model')),
   };
@@ -87,12 +85,8 @@ describe('ScannerFactory', () => {
   it('picks the scanner .noesis/settings.json names, read at every scan', async () => {
     const scanners = factory();
 
-    await configure({ scanner: 'java-gradle' });
-    expect((await scanWith(scanners)).name).toBe('java-gradle');
     await configure({ scanner: 'csharp' });
     expect((await scanWith(scanners)).name).toBe('csharp');
-    await configure({ scanner: 'java-maven', engine: 'hybrid' });
-    expect((await scanWith(scanners)).name).toBe('java-maven');
     await configure({ scanner: 'code-model', codeModel: { command: ['x'] } });
     expect((await scanWith(scanners)).name).toBe('code-model');
   });
@@ -115,7 +109,7 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no scanner, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java-maven, java-gradle, csharp, code-model\./,
+      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: csharp, code-model\./,
     );
     for (const scanner of ['java', 'dummy', 'cobol']) {
       await configure({ scanner });
@@ -127,6 +121,23 @@ describe('ScannerFactory', () => {
     await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
     );
+  });
+
+  it('refuses a file written for the Java presets the service no longer has, saying how to move', async () => {
+    for (const settings of [
+      { scanner: 'java-maven' },
+      { scanner: 'java-gradle' },
+      {
+        scanner: 'code-model',
+        codeModel: { command: ['x'] },
+        engine: 'hybrid',
+      },
+    ]) {
+      await configure(settings);
+      await expect(factory().create()).rejects.toThrow(
+        /(no longer has|no scanner reads any more)[\s\S]*"scanner": "code-model"/,
+      );
+    }
   });
 });
 

@@ -1,10 +1,10 @@
-// The Java scanner end to end: the real `noesis:scan` Maven plugin (built and
-// installed from scanners/java) over the shop fixture, then the projection.
-// Needs a JDK and Maven. The model must equal the projection of the committed
+// The Java scanner end to end: the shop fixture declares the `noesis:scan`
+// Maven plugin (built and installed from scanners/java), and its
+// .noesis/settings.json runs it through the code-model scanner, then the
+// projection. Needs a JDK and Maven. The model must equal the projection of the committed
 // code model, which keeps the fixture's committed files honest.
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { join, resolve } from 'node:path';
-import { JavaMavenSourceCodeScanner } from '#backend/adapters/out/scanners/java-maven/java-maven.scanner';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import {
   CodeModelFile,
@@ -13,6 +13,7 @@ import {
 import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
 import { projectSystemModel } from '#backend/app/code-model/projection/project-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
+import { scannerBuilders } from '#backend/boot/scanners';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
@@ -52,17 +53,16 @@ beforeAll(async () => {
 
 describe('test/fixtures/java/shop through the Java scanner (e2e)', () => {
   it(
-    'scans the build with the noesis:scan plugin and projects the system model within budget',
+    'scans the build with its own settings and projects the system model within budget',
     async () => {
       const noesis = new NoesisDir(FIXTURE);
-      const { namespaces: config } = await new ScannerSettingsFileRepository(
+      const settings = await new ScannerSettingsFileRepository(
         noesis,
       ).repositorySettings();
-      const scanner = new JavaMavenSourceCodeScanner({
-        noesis,
-        now: () => new Date().toISOString(),
-        namespaces: config,
-      });
+      const config = settings.namespaces;
+      const scanner = scannerBuilders(noesis, () => new Date().toISOString())[
+        'code-model'
+      ](settings);
 
       const started = performance.now();
       const model = SystemModel.parse(await scanner.scan());

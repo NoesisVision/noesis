@@ -75,10 +75,10 @@ claude --plugin-dir ../../plugins/claude-code
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
 Each `discounts-*` example names its scanner in `.noesis/settings.json`, which a
-scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
-says `"code-model"` with the `./gradlew noesisScan` command line to run in its
-`codeModel` block, `qdoc-java` says `"java-maven"`, which runs the Maven
-plugin through its `mvnw`. `qdoc-java` has no domain code yet, so its scan finds an empty
+scan reads every time: `discounts-dotnet` says `"csharp"`; `discounts-java`
+and `qdoc-java` say `"code-model"`, with the command line that runs the
+Noesis plugin their build declares in the `codeModel` block: `./gradlew
+noesisScan` for one, `./mvnw … process-classes noesis:scan` for the other. `qdoc-java` has no domain code yet, so its scan finds an empty
 model. Nothing but that file picks the scanner; no environment variable does.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,

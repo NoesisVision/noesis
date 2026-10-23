@@ -123,12 +123,11 @@ Both land on the same service layer. Neither bypasses it.
   `.noesis/settings.json` (`"scanner"`), read through `ScannerSettingsRepository`. `code-model`
   runs the command line of the file's `codeModel` block (a Gradle build's `noesisScan` task, say)
   and projects the code model it wrote onto the system model by the vocabulary of the language the
-  manifest names, with the rules in `docs/plans/code-model-to-system-model.md`; `csharp` (the .NET
-  scanner, `noesis-scan-csharp` on the PATH), `java-maven` (the Java scanner's Maven plugin,
-  installed once with `mvn install`) and `java-gradle` (its Gradle plugin, applied through an init
-  script the service writes) are fixed command lines of the same kind, the Java ones running the
-  engine the file's `"engine"` names. A new tool is a new
-  settings file, not a new adapter. The C# tool keeps a cache of model files under
+  manifest names, with the rules in `docs/plans/code-model-to-system-model.md`. A Java repository
+  scans this way: its build declares the Noesis Maven or Gradle plugin, with the engine in the
+  plugin's configuration, and the command runs it. `csharp` (the .NET scanner,
+  `noesis-scan-csharp` on the PATH) is a fixed command line of the same kind. The service knows
+  no build tool; a new tool is a new settings file, not a new adapter. The C# tool keeps a cache of model files under
   `.noesis/cache/scanner/csharp/` and compiles only the projects whose inputs changed
   (`scanners/dotnet/README.md`). Projecting into the graph waits for the graph.
 

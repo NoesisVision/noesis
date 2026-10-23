@@ -1,7 +1,7 @@
 # Java projection fixture
 
 A small annotated Maven build the Java scanner's unit tests project onto the
-system model (`test/unit/java-maven-scanner.spec.ts`). Every type and member
+system model (`test/unit/java-scanner.spec.ts`). Every type and member
 is there to show one rule of `docs/plans/code-model-to-system-model.md` in
 Java: the nested `Order.Repository`, the `@Event` record, record components
 as properties (R5.7) beside a public field, `OrderLine`'s private `product`
@@ -19,5 +19,5 @@ the sources (from this directory, with the plugin installed once by
 ```sh
 rm -rf code-model
 mvn -B -q -ntp -Dnoesis.out=. -Dnoesis.repository=shop -Dnoesis.revision=fixture \
-  process-classes vision.noesis:noesis-scanner-maven-plugin:0.1.0-SNAPSHOT:scan
+  process-classes noesis:scan
 ```

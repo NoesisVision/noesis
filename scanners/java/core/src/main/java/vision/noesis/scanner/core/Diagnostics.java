@@ -19,6 +19,7 @@ public final class Diagnostics {
     public static final String NOT_FULLY_IMPORTED = "NS1007";
     public static final String PLATFORM_FROM_RUNTIME = "NS1008";
     public static final String RELEASE_NOT_SUPPORTED = "NS1009";
+    public static final String FILE_NOT_SCANNED = "NS1010";
 
     private Diagnostics() {}
 
@@ -28,6 +29,14 @@ public final class Diagnostics {
 
     public static Diagnostic warning(String code, String message) {
         return new Diagnostic(DiagnosticSeverity.WARNING, code, message, null, DiagnosticSource.SCANNER);
+    }
+
+    public static Diagnostic error(String code, String message, SourceSpan location) {
+        return new Diagnostic(DiagnosticSeverity.ERROR, code, message, location, DiagnosticSource.SCANNER);
+    }
+
+    public static Diagnostic warning(String code, String message, SourceSpan location) {
+        return new Diagnostic(DiagnosticSeverity.WARNING, code, message, location, DiagnosticSource.SCANNER);
     }
 
     public static Diagnostic info(String code, String message, SourceSpan location) {

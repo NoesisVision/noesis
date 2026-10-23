@@ -33,20 +33,22 @@ scanner's tests pin, against every engine that holds them.
 
 ## Layout
 
-| Path                                              | What it is                                                                                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations/`                                    | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                      |
-| `model/`                                          | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                              |
-| `core/`                                           | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index       |
-| `maven-plugin/`                                   | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                                         |
-| `gradle-plugin/`                                  | The `vision.noesis.scanner` Gradle plugin: a `noesisScan` task that scans every Java project of a Gradle build; its own build               |
-| `test-fixtures/java-syntax`                       | Every Java construct the scanner maps, one file per topic, mirroring the .NET scanner's `CSharpSyntax` fixture; scanned by the golden tests |
-| `test-fixtures/java-syntax-other`                 | The types the syntax fixture reaches across a module boundary                                                                               |
-| `test-fixtures/java-lombok`                       | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                        |
-| `core/src/test/resources/golden/`                 | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine             |
-| `core/src/test/resources/fixtures-broken/`        | A syntax error and a missing import; must still yield a model                                                                               |
-| `maven-plugin/src/it/multi-module/`               | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                                |
-| `gradle-plugin/src/test/resources/multi-project/` | The same two modules as a Gradle build, scanned by the Gradle plugin's functional test                                                      |
+| Path                                               | What it is                                                                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations/`                                     | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                      |
+| `model/`                                           | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                              |
+| `core/`                                            | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index       |
+| `maven-plugin/`                                    | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                                         |
+| `gradle-plugin/`                                   | The `vision.noesis.scanner` Gradle plugin: a `noesisScan` task that scans every Java project of a Gradle build; its own build               |
+| `test-fixtures/java-syntax`                        | Every Java construct the scanner maps, one file per topic, mirroring the .NET scanner's `CSharpSyntax` fixture; scanned by the golden tests |
+| `test-fixtures/java-syntax-other`                  | The types the syntax fixture reaches across a module boundary                                                                               |
+| `test-fixtures/java-lombok`                        | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                        |
+| `core/src/test/resources/golden/`                  | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine             |
+| `core/src/test/resources/fixtures-broken/`         | A syntax error and a missing import; must still yield a model                                                                               |
+| `maven-plugin/src/it/multi-module/`                | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                                |
+| `maven-plugin/src/it/broken-reactor/`              | A reactor whose first module does not compile, scanned with `-Dmaven.compiler.failOnError=false`: both modules get a model                  |
+| `gradle-plugin/src/test/resources/multi-project/`  | The same two modules as a Gradle build, scanned by the Gradle plugin's functional test                                                      |
+| `gradle-plugin/src/test/resources/broken-project/` | A project that does not compile, scanned past its compile error by `noesisScan`                                                             |
 
 ## Commands
 
@@ -97,13 +99,54 @@ far in reactor order; `pom` modules are skipped. Nothing is deleted: a
 reader reads only the files the manifest lists, and the service scans into a
 fresh directory that it removes once it has read the model.
 
-The service runs exactly this invocation when `.noesis/settings.json` says
-`"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
-so `mvn -q install -DskipTests` here is the one setup step; `"engine":
-"hybrid"` (or `bytecode`) in the same file picks the engine. Any other
-invocation that writes the same files, this plugin with other flags or the
-Gradle plugin below, goes in the file's `codeModel` block under
-`"scanner": "code-model"`.
+### Scanning from the service
+
+A repository declares the plugin in its POM, with the settings it needs in
+the plugin's `<configuration>`, so the build pins the version and the engine:
+
+```xml
+<plugin>
+  <groupId>vision.noesis</groupId>
+  <artifactId>noesis-scanner-maven-plugin</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <configuration>
+    <engine>hybrid</engine>
+  </configuration>
+</plugin>
+```
+
+Declared there, the goal has the short name `noesis:scan`. The repository's
+`.noesis/settings.json` gives the service the command that runs it, under
+`"scanner": "code-model"`; the service fills in `{out}` with a fresh
+directory and `{name}` with the repository's name:
+
+```json
+{
+  "scanner": "code-model",
+  "codeModel": {
+    "command": [
+      "./mvnw",
+      "-B",
+      "-q",
+      "-ntp",
+      "-Dnoesis.out={out}",
+      "-Dnoesis.repository={name}",
+      "-Dmaven.compiler.failOnError=false",
+      "process-classes",
+      "noesis:scan"
+    ]
+  }
+}
+```
+
+`-Dmaven.compiler.failOnError=false` belongs to the compiler plugin, so it
+goes on the command line, not into the Noesis plugin's configuration. With
+it a compile error does not stop the scan: the module is scanned from its
+sources, with the compiler's errors in its model. A module whose compile
+failed has no classes, so the modules that depend on it bind its types as
+unresolved. Any other failure of the build fails the scan. Until the plugin
+is published, `mvn -q install -DskipTests` here puts it in the local
+repository, where the build finds it.
 
 The source engine needs Maven to run on a JDK (17 or newer); on a JRE every
 module reports `NS1003`. Annotation processors are not run: members Lombok
@@ -114,10 +157,7 @@ from the compiled classes and keeps everything else from the sources.
 ## Running the Gradle plugin
 
 The plugin id is `vision.noesis.scanner`, published to the local repository
-by `./gradlew publishToMavenLocal` in `gradle-plugin/`. The service needs no
-change to a build: `"scanner": "java-gradle"` in `.noesis/settings.json`
-applies the plugin through an init script and runs `noesisScan`, with the
-`"engine"` the file names. To run it by hand, a build applies it
+by `./gradlew publishToMavenLocal` in `gradle-plugin/`. A build applies it
 once, in the root build file or in any project's (the task is registered on
 the root project either way), with `mavenLocal()` among the plugin
 repositories of its settings file:
@@ -160,8 +200,13 @@ sets a scan up without touching the build:
 | `noesis.engine`         | `source`                                                               | `source`, `bytecode` or `hybrid`                                                      |
 | `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
 
-The service runs the task when `.noesis/settings.json` says so; `{out}`,
-`{root}` and `{name}` are filled in with the session directory, the
+A build that asks for `noesisScan` compiles past compile errors: no
+`JavaCompile` task fails, and each project is scanned from its sources with
+the compiler's errors in its model. Any other build (`./gradlew build`, or
+`classes` alone) compiles as the build says.
+
+The service runs the task through the repository's `.noesis/settings.json`;
+`{out}`, `{root}` and `{name}` are filled in with the session directory, the
 repository root and its name:
 
 ```json

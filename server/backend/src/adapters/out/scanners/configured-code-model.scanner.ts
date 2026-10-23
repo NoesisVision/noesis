@@ -15,8 +15,9 @@ export interface ConfiguredCodeModelScannerDeps extends Omit<
  * `.noesis/settings.json` gives in its `codeModel` block (a Gradle build's
  * `noesisScan` task, a Maven invocation, any tool that writes the code model)
  * and projects what it wrote. A new tool is a new settings file, not a new
- * adapter; the presets (`java-maven`, `java-gradle`, `csharp`) are fixed
- * command lines of the same shape.
+ * adapter; the `csharp` preset is a fixed command line of the same shape.
+ * A Java repository declares the Noesis Maven or Gradle plugin in its build
+ * and gives the command that runs it here.
  */
 export class ConfiguredCodeModelScanner extends CodeModelScanner {
   private readonly codeModel: CodeModelToolSettings | null;

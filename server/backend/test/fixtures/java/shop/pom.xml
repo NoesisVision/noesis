@@ -40,5 +40,13 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <!-- What a repository adds to scan with Noesis; .noesis/settings.json runs it as noesis:scan. -->
+      <plugin>
+        <groupId>vision.noesis</groupId>
+        <artifactId>noesis-scanner-maven-plugin</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+      </plugin>
+    </plugins>
   </build>
 </project>
