@@ -439,8 +439,15 @@ function useViewingFromFrame() {
 }
 
 /** What a card is to the selection, for a reader who cannot see its border. */
-const withState = (label: string, state: 'selected' | 'related' | undefined) =>
-  state === 'related' ? `${label}, related to the selection` : label;
+const withState = (
+  label: string,
+  state: 'selected' | 'related' | 'path' | undefined,
+) =>
+  state === 'related'
+    ? `${label}, related to the selection`
+    : state === 'path'
+      ? `${label}, holds the selection`
+      : label;
 
 export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;

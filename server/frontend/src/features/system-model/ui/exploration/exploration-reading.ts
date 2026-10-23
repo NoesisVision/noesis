@@ -16,6 +16,8 @@ export interface ExplorationReading {
   selected: ReadonlySet<string>;
   /** The elements a relation drawn from or to the selection joins it to. */
   related: ReadonlySet<string>;
+  /** The frames the selection is drawn inside, out to the outermost: the way to it. */
+  path: ReadonlySet<string>;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Whether each element is drawn, and whom the model joins it to. */
@@ -44,6 +46,7 @@ export interface ExplorationReading {
 export const ExplorationReadingContext = createContext<ExplorationReading>({
   selected: new Set(),
   related: new Set(),
+  path: new Set(),
   onSelect: () => {},
   drawn: new Set(),
   neighbours: new Map(),
@@ -60,13 +63,38 @@ export function useCardActions() {
   return { drawn, neighbours, elements, onShow, onArrange, onRemoveAlone };
 }
 
-/** Where a card stands to the selection: in hand, joined to it, or neither. */
+/**
+ * Where a card stands to the selection: in hand, joined to it, a frame on
+ * the way to it, or none of these.
+ */
 export function useSelectionState(id: string) {
-  const { selected, related, onSelect } = useContext(ExplorationReadingContext);
+  const { selected, related, path, onSelect } = useContext(
+    ExplorationReadingContext,
+  );
+  // A frame the selection is drawn in reads as the way to it, though what
+  // holds an element is also a relation of it.
   const state = selected.has(id)
     ? ('selected' as const)
-    : related.has(id)
-      ? ('related' as const)
-      : undefined;
+    : path.has(id)
+      ? ('path' as const)
+      : related.has(id)
+        ? ('related' as const)
+        : undefined;
   return { state, onSelect };
+}
+
+/** The frames each element in `ids` is drawn inside, out to the outermost. */
+export function pathTo(
+  ids: ReadonlySet<string>,
+  elements: ReadonlyMap<string, ExploredElement>,
+): ReadonlySet<string> {
+  const path = new Set<string>();
+  for (const id of ids) {
+    let parent = elements.get(id)?.container ?? null;
+    while (parent !== null && !path.has(parent)) {
+      path.add(parent);
+      parent = elements.get(parent)?.container ?? null;
+    }
+  }
+  return path;
 }

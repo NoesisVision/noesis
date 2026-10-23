@@ -25,7 +25,10 @@ import {
 import { designOf } from '../src/features/system-model/system-model.model';
 import { ElementNode } from '../src/features/system-model/ui/exploration/element-node';
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
-import { ExplorationReadingContext } from '../src/features/system-model/ui/exploration/exploration-reading';
+import {
+  ExplorationReadingContext,
+  pathTo,
+} from '../src/features/system-model/ui/exploration/exploration-reading';
 import { layoutExploration } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
   arrangeWithin,
@@ -402,6 +405,7 @@ describe('the selection', () => {
               value={{
                 selected: new Set(['building_block|shop.orders.Order']),
                 related: new Set([line.id]),
+                path: new Set(),
                 onSelect: () => {},
                 drawn: new Set([line.id]),
                 neighbours: neighboursOf(exploration),
@@ -1030,5 +1034,25 @@ describe('what goes when an element is taken off', () => {
     expect(removalOf(flat, ['module|shop.orders'])).toEqual([
       'module|shop.orders',
     ]);
+  });
+});
+
+describe('pathTo', () => {
+  it('names every frame the selection is drawn inside, out to the outermost', () => {
+    const elements = new Map(
+      [
+        { id: 'module|a', container: null },
+        { id: 'module|a.b', container: 'module|a' },
+        { id: 'building_block|a.b.C', container: 'module|a.b' },
+        { id: 'module|z', container: null },
+      ].map((each) => [
+        each.id,
+        { ...each, kind: 'module', name: each.id, pattern: null } as const,
+      ]),
+    );
+    expect(
+      [...pathTo(new Set(['building_block|a.b.C']), elements)].sort(),
+    ).toEqual(['module|a', 'module|a.b']);
+    expect(pathTo(new Set(['module|z']), elements).size).toBe(0);
   });
 });

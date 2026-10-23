@@ -58,6 +58,7 @@ import { ExplorationPicker } from './exploration-picker.tsx';
 import {
   type ExplorationReading,
   ExplorationReadingContext,
+  pathTo,
 } from './exploration-reading.ts';
 import {
   type DiagramStep,
@@ -410,6 +411,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     () => ({
       selected: inHandSet,
       related: related.elements,
+      path: pathTo(inHandSet, elementsById),
       onSelect: select,
       drawn,
       neighbours,
@@ -1263,14 +1265,15 @@ function edgeOf(
     style: { '--relation-color': EDGE_COLOR[relation.kind] } as CSSProperties,
     // The selection's relations are drawn over the rest.
     zIndex: highlight === 'highlighted' ? 1 : 0,
-    labelStyle: { fontSize: 11, fill: 'var(--noesis-secondary-text)' },
-    labelBgStyle: { fill: 'var(--mantine-color-body)' },
-    labelBgPadding: [4, 2],
+    // A small pill on the line, its word in the relation's colour
+    // (exploration.module.css draws the rest).
+    labelBgPadding: [7, 3],
+    labelBgBorderRadius: 8,
     markerEnd: {
       ...ARROW,
       color:
         highlight === 'highlighted'
-          ? 'var(--noesis-architecture-selection)'
+          ? 'var(--mantine-color-brand-6)'
           : EDGE_COLOR[relation.kind],
     },
   };
