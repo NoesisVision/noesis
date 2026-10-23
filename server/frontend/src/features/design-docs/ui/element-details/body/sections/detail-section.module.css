@@ -7,18 +7,36 @@
  * layout is the group's props; its colour stays here, for `.muted` to quieten.
  */
 .title {
-  font-size: 13px;
+  font-size: var(--mantine-font-size-sm);
   font-weight: 600;
-  color: var(--noesis-secondary-text);
+  color: var(--mantine-color-text);
 }
 
 .icon {
   display: inline-flex;
+  color: var(--mantine-color-gray-6);
 
   & svg {
     width: 16px;
     height: 16px;
   }
+}
+
+/* How many the section holds, in a quiet bubble after its name. */
+.count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--noesis-secondary-text);
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
 }
 
 /* What is said about the element, under a rule and a shade quieter. */

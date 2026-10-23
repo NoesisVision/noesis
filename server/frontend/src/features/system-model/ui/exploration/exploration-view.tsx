@@ -1,7 +1,10 @@
+import { IconListDetails } from '@tabler/icons-react';
+import '@xyflow/react/dist/base.css';
 import {
   Background,
   BackgroundVariant,
   MarkerType,
+  type FitViewOptions,
   type NodeChange,
   type OnNodeDrag,
   Panel,
@@ -10,7 +13,6 @@ import {
   useNodesState,
   ViewportPortal,
 } from '@xyflow/react';
-import '@xyflow/react/dist/base.css';
 import {
   type CSSProperties,
   useCallback,
@@ -24,11 +26,13 @@ import {
   DesignDocumentContext,
   ElementPanel,
 } from '#/features/design-docs/element-reader.ts';
+import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -58,6 +62,7 @@ import { ExplorationPicker } from './exploration-picker.tsx';
 import {
   type ExplorationReading,
   ExplorationReadingContext,
+  pathTo,
 } from './exploration-reading.ts';
 import {
   type DiagramStep,
@@ -102,6 +107,18 @@ import classes from './exploration.module.css';
 const NODE_TYPES = { element: ElementNode };
 const EDGE_TYPES = { relation: RelationEdgeView };
 const FIT = { padding: 0.08 };
+/** What the panel a card in hand is read in covers of the canvas, from its right: 360px, 16px in, and a gap. */
+const PANEL_ROOM = 420;
+/**
+ * Brought into view, what a card has just added and the card it came from:
+ * gently, no closer than the cards' own size, and — when one was added,
+ * read in the panel on the right — clear of that panel.
+ */
+const focusOn = (alone: boolean): FitViewOptions => ({
+  padding: alone ? { x: '64px', y: '64px', right: `${PANEL_ROOM}px` } : '64px',
+  maxZoom: 1,
+  duration: 400,
+});
 /** How many steps the diagram keeps to go back through. */
 const STEPS = 100;
 
@@ -314,6 +331,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     );
   }, []);
   const letGo = useCallback(() => setSelection([]), []);
+  // The panel a lone card is read in, minimized: it shrinks into its corner,
+  // where a button opens it again. Kept so as the hand changes.
+  const [folded, setFolded] = useState(false);
   const readAlone = useCallback((id: string) => setSelection([id]), []);
   const [picking, setPicking] = useState(false);
   // A right click on the empty canvas: where the menu opens, and where on
@@ -378,17 +398,65 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
     return all;
   }, [exploration]);
+  // What was just added — from a card's menu, the picker or the canvas's own
+  // menu — with the card it came from, if any: in hand at once, and, once the
+  // cards have landed and settled where they go, brought into view — unless
+  // all are in sight already, the panel not over a lone one.
+  const focusAfter = useRef<{
+    ids: readonly string[];
+    from: string | null;
+  } | null>(null);
+  const bringIn = useCallback(
+    (ids: readonly string[], from: string | null = null) => {
+      const added = ids.filter((id) => !drawn.has(id));
+      if (added.length === 0) return;
+      focusAfter.current = { ids: added, from };
+      setSelection(added);
+    },
+    [drawn],
+  );
+  useEffect(() => {
+    const focus = focusAfter.current;
+    if (focus === null || gliding || flow === null) return;
+    const ids =
+      focus.from === null ? [...focus.ids] : [focus.from, ...focus.ids];
+    const landed = new Set(nodes.map(({ id }) => id));
+    if (!ids.every((id) => landed.has(id))) return;
+    focusAfter.current = null;
+    const alone = focus.ids.length === 1;
+    const box = canvas.current?.getBoundingClientRect();
+    const bounds = flow.getNodesBounds(ids);
+    const start = flow.flowToScreenPosition(bounds);
+    const end = flow.flowToScreenPosition({
+      x: bounds.x + bounds.width,
+      y: bounds.y + bounds.height,
+    });
+    const inSight =
+      box !== undefined &&
+      start.x >= box.left &&
+      start.y >= box.top &&
+      end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
+      end.y <= box.bottom;
+    if (inSight) return;
+    void flow.fitView({
+      ...focusOn(alone),
+      nodes: ids.map((id) => ({ id })),
+    });
+  }, [gliding, nodes, flow]);
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
   const onPick = useCallback(
     (id: string) => {
       const inside = insideOf(id);
-      if (!drawn.has(id)) onShowAll([id], true);
-      else if (inside.some((each) => !drawn.has(each)))
+      if (!drawn.has(id)) {
+        onShowAll([id], true);
+        bringIn([id]);
+      } else if (inside.some((each) => !drawn.has(each))) {
         onShowAll([id, ...inside], true);
-      else onShowAll([id, ...inside], false);
+        bringIn(inside, id);
+      } else onShowAll([id, ...inside], false);
     },
-    [insideOf, drawn, onShowAll],
+    [insideOf, drawn, onShowAll, bringIn],
   );
   /**
    * Takes these off the diagram from a card, and all drawn inside them, and
@@ -410,7 +478,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     () => ({
       selected: inHandSet,
       related: related.elements,
+      path: pathTo(inHandSet, elementsById),
       onSelect: select,
+      onLetGo: () => {
+        letGo();
+        setQuick(null);
+      },
       drawn,
       neighbours,
       elements: elementsById,
@@ -424,6 +497,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         if (!shown) return remove(ids, from);
         placeBeside(at ?? from, thenArrange ? [from] : []);
         onShowAll(ids, shown);
+        bringIn(ids, from);
       },
       onArrange: (id: string) => void arrange(id),
       onRemoveAlone: (id: string) => remove([id], id, true),
@@ -432,12 +506,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       inHandSet,
       related,
       select,
+      letGo,
       drawn,
       neighbours,
       elementsById,
       remove,
       placeBeside,
       onShowAll,
+      bringIn,
       arrange,
     ],
   );
@@ -520,6 +596,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onAutoPlace={autoPlace}
       >
         <ZoomControls
+          quiet
           zoom={zoom}
           disabled={flow === null}
           onZoomOut={() => void flow?.zoomOut()}
@@ -533,12 +610,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const selectionPanel = useMemo(
     () =>
       inHand === null ? null : (
-        // Its own scroll and clicks: a wheel over it reads on rather than zooms.
+        // The panel and, in its corner, the button it shrinks into: both
+        // always there, so each grows or shrinks into the other.
         <Panel
           position="top-right"
-          className={`nowheel nopan ${classes.selection}`}
+          className={`nowheel nopan ${classes.selectionDock}`}
+          data-folded={folded || undefined}
         >
-          <section aria-label="Selection">
+          {/* Its own scroll and clicks: a wheel over it reads on rather than zooms. */}
+          <section
+            aria-label="Selection"
+            className={classes.selection}
+            inert={folded}
+          >
             <ElementPanel
               key={inHand.id}
               id={inHand.id}
@@ -546,20 +630,31 @@ export function ExplorationView({ model }: { model: SystemModel }) {
               eyebrow={kindWordOf(inHand)}
               title={inHand.name}
               onSelectElement={readAlone}
+              onMinimize={() => setFolded(true)}
             />
           </section>
+          <Tooltip label={`Show the details of ${inHand.name}`} position="left">
+            <ActionIcon
+              variant="default"
+              size={44}
+              className={classes.selectionIcon}
+              aria-label={`Show the details of ${inHand.name}`}
+              aria-expanded={false}
+              inert={!folded}
+              onClick={() => setFolded(false)}
+            >
+              <IconListDetails size={20} stroke={1.7} aria-hidden />
+            </ActionIcon>
+          </Tooltip>
         </Panel>
       ),
-    [inHand, document, readAlone],
+    [inHand, document, readAlone, folded],
   );
-  const addAll = useCallback(
-    () =>
-      onShowAll(
-        exploration.elements.map(({ id }) => id),
-        true,
-      ),
-    [onShowAll, exploration],
-  );
+  const addAll = useCallback(() => {
+    const all = exploration.elements.map(({ id }) => id);
+    onShowAll(all, true);
+    bringIn(all);
+  }, [onShowAll, bringIn, exploration]);
   const clear = useCallback(() => setChoice(NOTHING_CHOSEN), []);
   const picker = useMemo(
     () => (
@@ -611,6 +706,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           if (drawn.has(id)) return readAlone(id);
           if (at !== undefined) placeBeside(at);
           onShowAll([id], true);
+          bringIn([id]);
         }}
       />
     ),
@@ -623,6 +719,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       readAlone,
       placeBeside,
       onShowAll,
+      bringIn,
     ],
   );
 
@@ -721,9 +818,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 )}
                 <Background
                   variant={BackgroundVariant.Dots}
-                  gap={16}
+                  gap={20}
                   size={1}
-                  color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
+                  color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
                   bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
                 />
               </ReactFlow>
@@ -977,10 +1074,31 @@ function usePlacement(
     [land, direction, setNodes],
   );
 
+  // What was last placed, known at once rather than on the next render: run
+  // again with nothing changed — as React runs it twice on mounting in
+  // development — the effect leaves the cards where they stand, so a
+  // diagram opened where it was left is not placed anew over it.
+  const settled = useRef<{
+    graph: ExplorationGraph;
+    algorithm: LayoutAlgorithm;
+    direction: LayoutDirection;
+    asked: number;
+  } | null>(null);
   useEffect(() => {
+    const was = settled.current;
+    if (
+      was !== null &&
+      was.graph === graph &&
+      was.algorithm === algorithm &&
+      was.direction === direction &&
+      was.asked === asked
+    )
+      return;
     let current = true;
-    const done = (local: boolean) =>
+    const done = (local: boolean) => {
+      settled.current = { graph, algorithm, direction, asked };
       setPlaced({ graph, algorithm, direction, asked, local });
+    };
 
     // A step gone back to stands as it stood.
     const back = restoring.current;
@@ -1262,14 +1380,15 @@ function edgeOf(
     style: { '--relation-color': EDGE_COLOR[relation.kind] } as CSSProperties,
     // The selection's relations are drawn over the rest.
     zIndex: highlight === 'highlighted' ? 1 : 0,
-    labelStyle: { fontSize: 11, fill: 'var(--noesis-secondary-text)' },
-    labelBgStyle: { fill: 'var(--mantine-color-body)' },
-    labelBgPadding: [4, 2],
+    // A small pill on the line, its word in the relation's colour
+    // (exploration.module.css draws the rest).
+    labelBgPadding: [7, 3],
+    labelBgBorderRadius: 8,
     markerEnd: {
       ...ARROW,
       color:
         highlight === 'highlighted'
-          ? 'var(--noesis-architecture-selection)'
+          ? 'var(--mantine-color-brand-6)'
           : EDGE_COLOR[relation.kind],
     },
   };

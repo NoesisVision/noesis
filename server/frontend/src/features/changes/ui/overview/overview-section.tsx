@@ -1,45 +1,52 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
-import { Grid } from '#/shared/design-system/grid.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
-
-interface OverviewSectionItem {
-  id: string;
-  /**
-   * The card itself, built by the caller: only it knows which route the item
-   * opens, and a route is checked against the tree where it is written.
-   */
-  card: ReactNode;
-}
+import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
+import classes from './overview.module.css';
 
 interface OverviewSectionProps {
   title: string;
-  items: OverviewSectionItem[];
-  /** Shown in place of the cards: loading, a failure, or nothing there yet. */
-  empty?: ReactNode;
-  mt?: number;
+  /** The icon of the kind the section lists. */
+  icon: IconComponent;
+  /** How many it holds; none until the list is in. */
+  count: number | undefined;
+  /** Shown in place of the tiles: loading, or nothing there yet. */
+  empty: ReactNode;
+  /** The tiles, each built by the caller: only it knows the route it opens. */
+  children: ReactNode;
 }
 
+/** A part of a change's overview: its kind by name and count, then its tiles. */
 export function OverviewSection({
   title,
-  mt,
-  items,
-  empty = 'No items',
+  icon: Icon,
+  count,
+  empty,
+  children,
 }: OverviewSectionProps) {
+  const tiles = Children.toArray(children);
   return (
-    <Box mt={mt}>
-      <Title order={2} size="h3" mb={8}>
-        {title}
-      </Title>
-      <Grid>
-        {items.map((item) => (
-          <Grid.Col key={item.id} span={{ base: 12, md: 6 }}>
-            {item.card}
-          </Grid.Col>
-        ))}
-        {!items.length && <Text>{empty}</Text>}
-      </Grid>
+    <Box component="section" className={classes.section}>
+      <Group gap="sm" wrap="nowrap">
+        <Icon size={18} stroke={1.6} aria-hidden />
+        <Title order={2} className={classes.sectionTitle}>
+          {title}
+        </Title>
+        {count !== undefined && (
+          <Text span size="sm" c="dimmed">
+            {count}
+          </Text>
+        )}
+      </Group>
+      {tiles.length > 0 ? (
+        <Box className={classes.tiles}>{tiles}</Box>
+      ) : (
+        <Text c="dimmed" size="sm">
+          {empty}
+        </Text>
+      )}
     </Box>
   );
 }

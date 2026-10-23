@@ -1,4 +1,4 @@
-import { IconX } from '@tabler/icons-react';
+import { IconArrowsDiagonalMinimize2, IconX } from '@tabler/icons-react';
 import { type ReactNode, useMemo } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -21,6 +21,8 @@ export interface DetailsPanelProps {
   onClear?: () => void;
   /** Read at a glance, over its card: smaller type, descriptions folded. */
   glance?: boolean;
+  /** Shrinks the panel out of the way; without it there is no such button. */
+  onMinimize?: () => void;
   eyebrow: string;
   title: string;
   address?: string;
@@ -41,6 +43,7 @@ export function DetailsPanel({
   onSelectElement,
   onClear,
   glance = false,
+  onMinimize,
   eyebrow,
   title,
   address,
@@ -82,6 +85,21 @@ export function DetailsPanel({
                   {title}
                 </Title>
               </Stack>
+              {onMinimize !== undefined && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label="Minimize the details"
+                  title="Minimize the details"
+                  onClick={onMinimize}
+                >
+                  <IconArrowsDiagonalMinimize2
+                    size={18}
+                    stroke={1.6}
+                    aria-hidden
+                  />
+                </ActionIcon>
+              )}
               {onClear !== undefined && (
                 <ActionIcon
                   variant="subtle"

@@ -81,6 +81,7 @@ export function RelationEdgeView({
   labelStyle,
   labelBgStyle,
   labelBgPadding,
+  labelBgBorderRadius,
   markerEnd,
   style,
 }: EdgeProps<RelationEdge>) {
@@ -108,6 +109,7 @@ export function RelationEdgeView({
       labelStyle={labelStyle}
       labelBgStyle={labelBgStyle}
       labelBgPadding={labelBgPadding}
+      labelBgBorderRadius={labelBgBorderRadius}
       markerEnd={markerEnd}
       style={style}
       path={path}

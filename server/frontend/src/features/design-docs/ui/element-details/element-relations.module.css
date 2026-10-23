@@ -1,13 +1,16 @@
 /*
- * The relations in a box of their own, inside the panel's gutter. Measured by
+ * The relations on a grey of their own, inside the panel's gutter. Measured by
  * its own width: in a narrow panel the labels go over their types.
  */
 .relations {
   container-type: inline-size;
-  margin: var(--mantine-spacing-md) var(--mantine-spacing-lg) 0;
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
+  margin: 16px 28px 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
 }
 
 .relations[data-flush] {

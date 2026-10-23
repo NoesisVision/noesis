@@ -1,3 +1,4 @@
+import { basename } from 'node:path';
 import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
@@ -49,6 +50,8 @@ export function createServices(
   );
   const systemModels = new SystemModelsFileRepository(noesis);
   return {
+    // Named as the scanners name the model they find: by the folder.
+    projectName: basename(noesis.root),
     createChange: createChangeHandler(changes, today),
     updateChange: updateChangeHandler(changes),
     deleteChange: deleteChangeHandler(changes),

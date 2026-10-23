@@ -7,7 +7,8 @@
   padding: var(--mantine-spacing-md);
   list-style: none;
   border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
+  /* Rounded as every card is. */
+  border-radius: 18px;
   background: radial-gradient(
       circle,
       light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)) 1px,

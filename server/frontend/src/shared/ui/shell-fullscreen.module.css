@@ -1,0 +1,25 @@
+/* Pinned to the corner of the screen the content now fills, over it. */
+.exit.exit {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  color: var(--mantine-color-text);
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 4px 12px rgba(16, 24, 40, 0.12),
+    0 0 0 1px var(--noesis-rail-border);
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}

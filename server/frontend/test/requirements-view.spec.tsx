@@ -10,7 +10,10 @@ import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
 import { outlineOf } from '../src/features/design-docs/design-doc-outline';
 import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { RequirementsView } from '../src/features/design-docs/ui/requirements/requirements-view';
-import { Details } from '../src/features/design-docs/ui/requirements/rule-details';
+import {
+  Location,
+  RuleBody,
+} from '../src/features/design-docs/ui/requirements/rule-entry';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { requirementsFixture } from './fixtures/design-doc-requirements.fixture';
 
@@ -129,15 +132,15 @@ describe('RequirementsView', () => {
     expect(rule).toContain('support refunds 120');
   });
 
-  it('starts every rule with its details collapsed behind a real button', () => {
+  it('places every rule under its name, with nothing to open first', () => {
     const rule = ruleNamed('Refund never exceeds paid amount');
-    const button = /<button[^>]*>/.exec(rule)?.[0] ?? '';
-    expect(button).toContain('aria-expanded="false"');
-    const controls = /aria-controls="([^"]+)"/.exec(button)?.[1];
-    expect(rule).toMatch(new RegExp(`<dl[^>]* id="${controls}" hidden=""`));
-    // Collapsed, the line still places the rule.
-    expect(rule).toContain('Business · refunds › Refund');
-    expect(rule).toContain('Support never pays out more than came in.');
+    const text = rule.replace(/<[^>]+>/g, '');
+    // Its kind, its module and its element, in one line under its name.
+    expect(text).toContain('Business · refunds › Refund');
+    expect(text).toContain('Support never pays out more than came in.');
+    // Nothing folded away behind a toggle.
+    expect(rule).not.toContain('aria-expanded="false"');
+    expect(rule).not.toMatch(/hidden=""/);
   });
 
   it('shows of a modified rule what it changes, its needs left to the document', () => {
@@ -177,37 +180,52 @@ describe('RequirementsView', () => {
     );
   });
 
-  it('names the module in a rule’s details and marks a changed rationale, needs left out', () => {
+  it('names the module where a rule lives and marks a changed rationale, needs left out', () => {
+    const traced: Parameters<typeof Location>[0]['traced'] = {
+      name: 'A rule',
+      element: {
+        id: 'building_block|a.B',
+        name: 'B',
+        kind: 'building_block',
+      },
+      module: { id: 'module|a', name: 'a' },
+      change: 'modified',
+      rule: {
+        name: 'A rule',
+        rationale: { value: 'Because.', author: 'agent' },
+      },
+      trace: [],
+    };
     const html = renderToStaticMarkup(
       <MantineProvider>
-        <Details
-          traced={{
-            name: 'A rule',
-            element: {
-              id: 'building_block|a.B',
-              name: 'B',
-              kind: 'building_block',
-            },
-            module: { id: 'module|a', name: 'a' },
-            change: 'modified',
-            rule: {
-              name: 'A rule',
-              rationale: { value: 'Because.', author: 'agent' },
-            },
-            trace: [],
-          }}
+        <Location traced={traced} element="B" />
+        <RuleBody rule={traced.rule} />
+      </MantineProvider>,
+    );
+    expect(html.replace(/<[^>]+>/g, '')).toContain('a › B');
+    expect(html).toContain('>changed<');
+    expect(html).toMatch(/<dt[^>]*>Rationale<\/dt><dd[^>]*>Because\.<\/dd>/);
+    expect(html).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
+  });
+
+  it('reads a rule written in parts part by part, its algorithm as steps', () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <RuleBody
           rule={{
             name: 'A rule',
-            rationale: { value: 'Because.', author: 'agent' },
+            description: {
+              value:
+                'Trigger: a refund is asked. Algorithm: 1. Sum what was paid. 2. Refuse the excess.',
+              author: 'agent',
+            },
           }}
-          element="B"
         />
       </MantineProvider>,
     );
-    expect(html).toContain('>changed<');
-    expect(html).toMatch(/<dt[^>]*>Module<\/dt><dd[^>]*>a<\/dd>/);
-    expect(html).toMatch(/<dt[^>]*>Rationale<\/dt><dd[^>]*>Because\.<\/dd>/);
-    expect(html).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
+    expect(html).toMatch(/<dt[^>]*>Trigger<\/dt>/);
+    expect(html).toMatch(/<dt[^>]*>Algorithm<\/dt>/);
+    expect(html.match(/<li/g)).toHaveLength(2);
   });
 
   it('puts the needs and their rules in a tree beside the document', () => {

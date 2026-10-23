@@ -2,8 +2,8 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg) 0;
+  gap: 14px;
+  padding: 20px 28px 0;
 }
 
 .tile {
@@ -11,9 +11,9 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   /* As the page heading's tile: the page's colour, from page-tone.css. */
   background: var(--noesis-tone-light);
 
@@ -38,12 +38,13 @@
   gap: var(--mantine-spacing-xs);
 }
 
+/* What kind of element, in the page's colour. */
 .pattern {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--mantine-color-dimmed);
+  color: var(--noesis-tone-light-color);
 }
 
 /*
@@ -66,7 +67,7 @@ h2.name {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  column-gap: var(--mantine-spacing-xs);
+  column-gap: 10px;
   min-width: 0;
 }
 
@@ -81,11 +82,10 @@ h2.name {
 .sections {
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-xl);
+  gap: 30px;
   min-width: 0;
   /* Room past the last section, so it can be scrolled clear of the pane's edge. */
-  padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg)
-    calc(var(--mantine-spacing-xl) * 3);
+  padding: 24px 28px calc(var(--mantine-spacing-xl) * 3);
 }
 
 .aside {
@@ -94,12 +94,10 @@ h2.name {
 }
 
 /*
- * The handle between the sections and the scenarios is the line that used to
- * part them: one pixel of the border colour, with Mantine's grip on it.
+ * Between the sections and the scenarios, the app's own handle: a gap with
+ * a slim grip in it (`theme.module.css`).
  */
 .split {
-  --splitter-handle-color: var(--mantine-color-default-border);
-
   /* The rest of the panel's height at least, so the handle always spans it. */
   flex: 1 0 auto;
   align-items: stretch;
@@ -109,20 +107,19 @@ h2.name {
  * The grip at the middle of what the panel shows of the handle, not of the
  * whole handle, which runs as tall as the longer column: sticky at both edges
  * of the panel's scroll area, so it keeps to the middle of the visible panel
- * as the reader scrolls. Half its 3.75rem height off each. Named with the
+ * as the reader scrolls. Half its 36px height off each. Named with the
  * splitter, to win over Mantine's own `position: absolute`.
  */
 .split .splitHandle {
-  /* The grip is in the flow once sticky; it must not widen the line. */
+  /* The grip is in the flow once sticky; it must not widen the gap. */
   min-width: 0;
 }
 
 .split .splitThumb {
-  /* Its own 12px wide, centred over the 1px line as Mantine draws it. */
   flex: none;
   position: sticky;
-  top: calc(50% - 1.875rem);
-  bottom: calc(50% - 1.875rem);
+  top: calc(50% - 18px);
+  bottom: calc(50% - 18px);
 }
 
 /*
@@ -200,13 +197,13 @@ h2.name {
  * named with the definition, to win over the editor's own type.
  */
 .definition {
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg) 0;
+  padding: 12px 28px 0;
   color: var(--noesis-secondary-text);
 
   & p,
   & li {
-    font-size: var(--mantine-font-size-sm);
-    line-height: 1.55;
+    font-size: 15px;
+    line-height: 1.65;
     color: var(--noesis-secondary-text);
   }
 }

@@ -1,9 +1,19 @@
 import {
-  type CSSVariablesResolver,
+  ActionIcon,
+  Button,
+  Card,
+  CloseButton,
+  Combobox,
   createTheme,
+  type CSSVariablesResolver,
   localStorageColorSchemeManager,
+  Menu,
   Modal,
+  Popover,
+  SegmentedControl,
+  Splitter,
 } from '@mantine/core';
+import classes from './theme.module.css';
 
 /** The noesis.vision palette. */
 export const theme = createTheme({
@@ -29,6 +39,11 @@ export const theme = createTheme({
   headings: { fontWeight: '600' },
   defaultRadius: 'sm',
   components: {
+    // Every button and icon button alike: rounded a step more than the
+    // default, between the inputs' corners and the 12px dropdown rows.
+    Button: Button.extend({ defaultProps: { radius: 'md' } }),
+    ActionIcon: ActionIcon.extend({ defaultProps: { radius: 'md' } }),
+    CloseButton: CloseButton.extend({ defaultProps: { radius: 'md' } }),
     Modal: Modal.extend({
       // Mantine fixes a modal's frame with a top and a width but no left
       // edge. In the body that edge is the screen's; portalled into the
@@ -36,6 +51,33 @@ export const theme = createTheme({
       // padding ends, so the frame starts in from the left and runs off the
       // right. Pinned to the screen's edge, it sits where it does in the body.
       styles: { inner: { left: 0 } },
+    }),
+    SegmentedControl: SegmentedControl.extend({
+      classNames: {
+        root: classes.segmentedRoot,
+        indicator: classes.segmentedIndicator,
+        label: classes.segmentedLabel,
+      },
+    }),
+    Card: Card.extend({ classNames: { root: classes.card } }),
+    // Every dropdown alike: well rounded, its rows rounded inside it to
+    // match, 6px in (18 - 6 = 12).
+    Menu: Menu.extend({
+      defaultProps: { radius: 18 },
+      classNames: { dropdown: classes.dropdown, item: classes.dropdownRow },
+    }),
+    Combobox: Combobox.extend({
+      defaultProps: { radius: 18 },
+      classNames: { dropdown: classes.dropdown, option: classes.dropdownRow },
+    }),
+    Popover: Popover.extend({ defaultProps: { radius: 18 } }),
+    // Every split the same: a gap of the page with a slim grip in it.
+    Splitter: Splitter.extend({
+      defaultProps: { lineSize: 18 },
+      classNames: {
+        handle: classes.splitterHandle,
+        thumb: classes.splitterThumb,
+      },
     }),
   },
 });
@@ -63,6 +105,10 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-architecture-core-border': brand[4],
       '--noesis-requirement-quote': gray[0],
       '--noesis-requirement-gap': red[8],
+      // The app's navigation: a tinted rail with white surfaces raised on it.
+      '--noesis-rail-background': gray[1],
+      '--noesis-rail-border': gray[2],
+      '--noesis-rail-surface': current.white,
     },
     dark: {
       '--noesis-secondary-text': dark[1],
@@ -72,6 +118,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-architecture-module-border': brand[8],
       '--noesis-architecture-core': dark[7],
       '--noesis-architecture-core-border': brand[7],
+      '--noesis-rail-background': dark[8],
+      '--noesis-rail-border': dark[5],
+      '--noesis-rail-surface': dark[7],
       '--noesis-requirement-quote': dark[6],
       '--noesis-requirement-gap': red[4],
     },

@@ -40,10 +40,16 @@ describe('the diagram legend', () => {
 
   it('starts folded behind a toggle that says it is closed', () => {
     const toggle = legend.match(
-      /<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>Legend/,
+      /<button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>(?:<svg.*?<\/svg>)?<span[^>]*>Legend</,
     );
     expect(toggle).not.toBeNull();
-    expect(legend).toMatch(new RegExp(`<ul[^>]*id="${toggle?.[1]}" hidden=""`));
+    // What it controls is the Collapse round the list, shut: not shown, and
+    // out of reach of a screen reader and the keyboard.
+    expect(legend).toMatch(
+      new RegExp(
+        `<div style="[^"]*display:none[^"]*"[^>]*id="${toggle?.[1]}" aria-hidden="true" inert=""><div[^>]*><ul`,
+      ),
+    );
   });
 
   it('names every drawn kind once, in the order the cards are drawn', () => {
@@ -69,8 +75,9 @@ describe('the diagram legend', () => {
 });
 
 describe('the change marks on the cards', () => {
-  it('can be switched off from the toolbar', () => {
-    expect(html).toMatch(/<input[^>]*checked=""[^>]*>[\s\S]*?Changes</);
+  it('can be switched off from the toolbar, under its marks', () => {
+    // The switches open from a button saying how many marks are on.
+    expect(html).toMatch(/>Marks<span[^>]*aria-label="\d+ on"/);
   });
 
   it('mark each changed element as the tree does, and say so in its name', () => {

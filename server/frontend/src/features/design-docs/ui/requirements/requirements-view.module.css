@@ -12,10 +12,11 @@
 }
 
 /*
- * The entry in hand sits on a card — the page's ground, the brand's edge a
+ * The heading in hand sits on a card — the page's ground, the brand's edge a
  * focused input has, a deep shadow — that slides to it from the last one
- * (Mantine's floating indicator). Every entry keeps the card's inset, so the
- * text never moves when it is picked, and stands over the card.
+ * (Mantine's floating indicator). Every heading keeps the card's inset, so
+ * the text never moves when it is picked, and stands over the card. A rule
+ * is a card already, and is outlined in place (below).
  */
 .page {
   position: relative;
@@ -25,7 +26,10 @@
 .rule {
   position: relative;
   z-index: 1;
-  padding: 32px var(--mantine-spacing-sm);
+}
+
+.sectionHead {
+  padding: 24px var(--mantine-spacing-sm);
 }
 
 .indicator {
@@ -58,121 +62,291 @@
   color: var(--noesis-requirement-gap);
 }
 
-/*
- * A rule's title — and an unaddressed need's — stays at the top of the pane
- * while its entry is read, on the page's ground so what scrolls under it
- * does not show through. It sticks within its own entry, and leaves with it.
- */
-.entryTitle {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding-block: var(--mantine-spacing-xs);
-  background-color: var(--mantine-color-body);
+/* A need, then its rules, and so on down: well apart. */
+.section + .section {
+  margin-top: 40px;
 }
 
-/* Ruled off from its entries by the same line as runs between them. */
+/* A section's heading: what it is, its name, what it asks and how covered it is. */
 .sectionHead {
-  border-bottom: 1px solid var(--mantine-color-default-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  &[data-gap] {
-    border-bottom-color: var(--noesis-requirement-gap);
+.needEyebrow {
+  font-size: 13px;
+  color: var(--noesis-secondary-text);
+}
+
+/* Named with the line, to win over the text's own weight. */
+.needEyebrow .needKind {
+  font-weight: 600;
+  color: var(--mantine-color-brand-7);
+}
+
+/* Named with what holds it, to win over the title's own type scale. */
+.sectionHead .needName {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.needStatement.needStatement {
+  max-width: 720px;
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.55;
+  text-wrap: pretty;
+
+  &[data-small] {
+    font-size: 15px;
+    line-height: 1.6;
   }
 }
 
-.rule {
-  border-bottom: 1px solid var(--mantine-color-default-border);
+/* How many rules a scenario verifies: red while any is not, green once all are. */
+.coverage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding-top: 4px;
+  font-size: 14px;
+}
+
+.coverageVerified {
+  color: var(--mantine-color-red-7);
+
+  .coverage[data-complete] & {
+    color: var(--mantine-color-green-7);
+  }
+}
+
+.coverageBar {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background-color: var(--mantine-color-red-light);
+
+  .coverage[data-complete] & {
+    background-color: var(--mantine-color-green-light);
+  }
+}
+
+.coverageFill {
+  height: 100%;
+  border-radius: 3px;
+  background-color: var(--mantine-color-green-6);
+}
+
+/* The quiet label over a need's rules. */
+.rulesLabel {
+  margin: 28px var(--mantine-spacing-sm) 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noesis-secondary-text);
 }
 
 /*
- * The card is the entry's edge: the lines that would run along it — under
- * the entry, and under whatever sits just above it — give way, keeping their
- * room so nothing moves.
+ * What a section says when it holds nothing, on a card where its rules would
+ * be — the same edge and inset — so a section reads the same either way.
  */
-.section[aria-current] > .sectionHead,
-.rule[aria-current],
-.sectionHead:has(+ .rule[aria-current]),
-.rule:has(+ .rule[aria-current]) {
-  border-bottom-color: transparent;
+.emptyCard.emptyCard {
+  margin: 0;
+  padding: 20px 24px;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  font-size: 15px;
+  color: var(--noesis-secondary-text);
+  background-color: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
 }
 
-.ruleName {
+.rules {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-inline: var(--mantine-spacing-sm);
+}
+
+.section > .rules:first-of-type {
+  margin-top: 16px;
+}
+
+/*
+ * A rule on a card of its own: its head ruled off from what it says, and what
+ * verifies it on a band at its foot. The rule in hand is outlined in the
+ * brand's colour and lifted, as the card that lifts a heading is.
+ */
+.rule {
+  overflow: hidden;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-md);
+  background-color: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &[aria-current] {
+    border-color: var(--mantine-primary-color-filled);
+    box-shadow: var(--mantine-shadow-lg);
+  }
+}
+
+.ruleHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+}
+
+.entryTitle {
+  min-width: 0;
+}
+
+/* Named with the card, to win over the title's own type scale. */
+.rule .ruleName {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+
   &[data-removed] {
     text-decoration: line-through;
     color: var(--noesis-secondary-text);
   }
 }
 
-/* Named with what holds it, to win over the unstyled button's own reset, which loads later. */
-.details .toggle {
-  display: inline-flex;
+.location.location {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px var(--mantine-spacing-xs);
-  max-width: 100%;
-  padding: 4px 8px 4px 4px;
-  border-radius: var(--mantine-radius-sm);
-  font-size: var(--mantine-font-size-sm);
+  gap: 4px;
+  font-size: 13px;
   color: var(--noesis-secondary-text);
-
-  &:hover {
-    background: var(--noesis-requirement-quote);
-    color: var(--mantine-color-text);
-  }
-
-  /* Whatever the mouse gets, the keyboard gets. */
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-  }
 }
 
-.chevron {
-  flex: none;
-  transition: transform 0.15s ease;
-
-  &[data-open] {
-    transform: rotate(90deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chevron {
-    transition: none;
-  }
-}
-
-.peek {
-  overflow-wrap: anywhere;
+.cardBody {
+  padding: 16px 24px;
 }
 
 /*
- * The fields of a rule, their names in a column as wide in every rule; under
- * the details' toggle, in line with its label. Its `display` would otherwise
- * show a list the toggle has folded away.
+ * What the rule says, part by part: each part's name in a column as wide in
+ * every rule, beside what it says, a hairline between parts.
  */
-.details .fields {
-  padding-left: 22px;
+.parts {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) minmax(0, 1fr);
+  column-gap: 24px;
+  margin: 0;
+  padding: 8px 24px;
+  font-size: 15px;
+  line-height: 1.6;
 
-  &[hidden] {
-    display: none;
+  & dt {
+    padding: 14px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--noesis-secondary-text);
+  }
+
+  & dd {
+    min-width: 0;
+    margin: 0;
+    padding: 14px 0;
+    text-wrap: pretty;
+  }
+
+  & dt:not(:first-of-type),
+  & dt:not(:first-of-type) + dd {
+    border-top: 1px solid
+      light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+  }
+
+  & p {
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
   }
 }
 
-/* Too narrow for two columns, a name stands over its value. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* Too narrow for two columns, a part's name stands over what it says. */
 @media (max-width: 32em) {
-  .rule .fields {
-    gap: var(--mantine-spacing-xs);
-  }
+  .parts {
+    grid-template-columns: minmax(0, 1fr);
 
-  .fields .field {
-    flex-direction: column;
-    gap: 2px;
-  }
+    & dt {
+      padding-bottom: 0;
+    }
 
-  .details .fields {
-    padding-left: 0;
+    & dt:not(:first-of-type) + dd {
+      border-top: none;
+      padding-top: 4px;
+    }
   }
+}
+
+/* At the card's foot: a red band where nothing verifies the rule. */
+.unverified {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--noesis-requirement-gap);
+  background-color: var(--mantine-color-red-light);
+  border-top: 1px solid
+    light-dark(var(--mantine-color-red-2), var(--mantine-color-red-9));
+}
+
+.unverifiedText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footNote {
+  padding: 12px 24px;
+  font-size: 14px;
+  color: var(--noesis-secondary-text);
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+}
+
+.verification {
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+}
+
+/* A removed rule's fields, inside its card. */
+.rule .fields {
+  margin: 0;
+  padding: 16px 24px;
 }
 
 .elementLink {
@@ -181,18 +355,4 @@
     outline-offset: 2px;
     border-radius: var(--mantine-radius-xs);
   }
-}
-
-/* Its spacing, size and colour are the text's props. */
-.unverified {
-  display: flex;
-  align-items: center;
-  gap: var(--mantine-spacing-xs);
-  border-radius: var(--mantine-radius-sm);
-  background: var(--mantine-color-red-light);
-}
-
-.verification {
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
 }

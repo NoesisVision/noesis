@@ -1,19 +1,26 @@
-import { IconAffiliate, IconBinaryTree2 } from '@tabler/icons-react';
+import {
+  IconAffiliate,
+  IconBinaryTree2,
+  IconInfoCircle,
+} from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { type ReactNode, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   ModelReader,
   type SelectSource,
 } from '#/features/design-docs/model-reader.ts';
 import { describeFailure } from '#/shared/api/failure.ts';
+import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
+import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
+import { PageHeading } from '#/shared/ui/page-heading.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
@@ -33,32 +40,56 @@ const route = getRouteApi('/_shell/system-model');
  * The model scanned last, read as a design's model is read but as it stands:
  * the tree and the element in hand, nothing to move or write. Scanning again
  * replaces it with what the code holds now.
+ *
+ * Headed as every page is, its controls on the title's line: what was
+ * scanned and when behind an "i", the way to read it, and scanning again.
  */
 export function SystemModelView() {
   const query = useQuery(newestSystemModel);
   const scan = useScanSystemModel();
+  const { view, onView } = useView();
   const scanButton = (
     <Button loading={scan.isPending} onClick={() => scan.mutate()}>
       Scan
     </Button>
   );
-
-  if (query.isPending)
-    return <LoadingPanel label="Loading the system model…" />;
+  const model = query.data ?? null;
   const failure = scan.isError ? describeFailure(scan.error) : null;
   return (
     <div className={classes.surface}>
+      <Group justify="space-between" gap="md" className={classes.header}>
+        <PageHeading
+          title="System model"
+          eyebrow="System model"
+          meta="What the code is made of"
+          tone="brand"
+        />
+        <Group gap="sm" wrap="nowrap" className={classes.controls}>
+          {model !== null && (
+            <>
+              <ScanDetails model={model} />
+              <SegmentedControl
+                aria-label="Read the system model as"
+                value={view}
+                data={VIEWS}
+                onChange={(value) => {
+                  if (isSystemModelView(value)) onView(value);
+                }}
+              />
+            </>
+          )}
+          {!query.isPending && scanButton}
+        </Group>
+      </Group>
       {failure !== null && (
         <Alert color="red" title={failure.title}>
           {failure.description}
         </Alert>
       )}
-      {query.data ? (
-        <ScannedModel
-          key={query.data.id}
-          model={query.data}
-          action={scanButton}
-        />
+      {query.isPending ? (
+        <LoadingPanel label="Loading the system model…" />
+      ) : model !== null ? (
+        <ScannedModel key={model.id} model={model} view={view} />
       ) : (
         <StatusPanel
           headingLevel={2}
@@ -71,48 +102,45 @@ export function SystemModelView() {
   );
 }
 
+/**
+ * When the model was scanned, behind an "i" beside the controls; which
+ * project it is, the top bar says. The button is named by the same words, so
+ * a reader who cannot point at it still hears them.
+ */
+function ScanDetails({ model }: { model: SystemModel }) {
+  const details = (
+    <>
+      {'Scanned '}
+      <FormattedDate value={model.scanned_at} />
+    </>
+  );
+  return (
+    <Tooltip label={details} position="bottom">
+      <ActionIcon variant="subtle" color="gray" size={34}>
+        <IconInfoCircle size={18} stroke={1.7} aria-hidden />
+        <VisuallyHidden>{details}</VisuallyHidden>
+      </ActionIcon>
+    </Tooltip>
+  );
+}
+
 function ScannedModel({
   model,
-  action,
+  view,
 }: {
   model: SystemModel;
-  action: ReactNode;
+  view: SystemModelViewName;
 }) {
   const document = useMemo(() => designOf(model), [model]);
   const place = usePlace();
-  const { view, onView } = useView();
-  return (
-    <>
-      <Group justify="space-between" wrap="nowrap" className={classes.header}>
-        <Text c="dimmed" size="sm">
-          <Text component="span" inherit fw={700} c="var(--mantine-color-text)">
-            {model.name}
-          </Text>
-          {' · scanned '}
-          <FormattedDate value={model.scanned_at} />
-        </Text>
-        <Group gap="sm" wrap="nowrap">
-          <SegmentedControl
-            aria-label="Read the system model as"
-            value={view}
-            data={VIEWS}
-            onChange={(value) => {
-              if (isSystemModelView(value)) onView(value);
-            }}
-          />
-          {action}
-        </Group>
-      </Group>
-      {view === 'exploration' ? (
-        <ExplorationView
-          // Afresh for each scan: its diagram and its steps are its own.
-          key={model.id}
-          model={model}
-        />
-      ) : (
-        <ModelReader document={document} {...place} />
-      )}
-    </>
+  return view === 'exploration' ? (
+    <ExplorationView
+      // Afresh for each scan: its diagram and its steps are its own.
+      key={model.id}
+      model={model}
+    />
+  ) : (
+    <ModelReader document={document} {...place} />
   );
 }
 

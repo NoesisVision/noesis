@@ -24,26 +24,82 @@
 }
 
 .group {
+  /* How far before the row's middle its elbow starts to curve. */
+  --model-tree-curve: 8px;
+
   position: relative;
   margin: 0;
   padding-left: var(--model-tree-offset);
   list-style: none;
+}
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 12px;
-    left: calc(var(--model-tree-offset) / 2);
-    width: 1px;
-    border-radius: 1px;
-    background-color: var(--model-tree-rail);
-    transition: background-color 0.1s ease-in-out;
-  }
+/*
+ * Each row of a branch draws its own pieces of the rail, so each can be lit
+ * on its own: the run down to its elbow, the elbow curving into it, and —
+ * unless it is the last — the run past it, down beside what it holds, to the
+ * next row. Only the pieces on the way to the row in hand are lit; the rest
+ * of the branch, the elbows into the rows beside the way among them, stays
+ * grey. The row's own pieces are measured on the row, so a name that wraps
+ * still has its elbow at its middle, and drawn over the run past it.
+ */
+.group > .item {
+  position: relative;
+}
 
-  &[data-in-path]::before {
-    background-color: var(--model-tree-rail-lit);
-  }
+/* The run past the row, on to the next. */
+.group > .item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--model-tree-offset) / -2);
+  width: 1px;
+  background-color: var(--model-tree-rail);
+}
+
+/* The run down to the elbow, from the top of the row's margin above it. */
+.group > .item > .row::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -1px;
+  left: calc(var(--model-tree-offset) / -2);
+  width: 1px;
+  height: calc(50% - var(--model-tree-curve) + 1px);
+  background-color: var(--model-tree-rail);
+}
+
+/*
+ * The elbow: a quarter turn into the row. A grey one goes under every run,
+ * so where it shares a run's line with a lit run it never breaks it.
+ */
+.group > .item > .row::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: calc(50% - var(--model-tree-curve));
+  left: calc(var(--model-tree-offset) / -2);
+  width: calc(var(--model-tree-offset) / 2 - 2px);
+  height: var(--model-tree-curve);
+  border-left: 1px solid var(--model-tree-rail);
+  border-bottom: 1px solid var(--model-tree-rail);
+  border-bottom-left-radius: var(--model-tree-curve);
+}
+
+/*
+ * Lit: every run that passes a row above the way, the run down to the row
+ * on the way, and the elbow into that row alone.
+ */
+.group > .item:has(~ .item:is([data-selected], [data-ancestor]))::after,
+.group > .item:has(~ .item:is([data-selected], [data-ancestor])) > .row::after,
+.group > .item:is([data-selected], [data-ancestor]) > .row::after {
+  background-color: var(--model-tree-rail-lit);
+}
+
+/* A lit elbow goes over every run, grey ones included. */
+.group > .item:is([data-selected], [data-ancestor]) > .row::before {
+  z-index: 2;
+  border-color: var(--model-tree-rail-lit);
 }
 
 .item {
@@ -60,12 +116,15 @@
 }
 
 .row {
+  position: relative;
   display: flex;
   gap: var(--mantine-spacing-xs);
   align-items: center;
-  min-height: 1.75rem;
-  padding: 6px var(--mantine-spacing-xs) 6px 2px;
-  border-radius: var(--mantine-radius-sm);
+  min-height: 32px;
+  /* Apart from the next row, so a row's hover never runs into the one in hand. */
+  margin-block: 1px;
+  padding: 4px 8px 4px 2px;
+  border-radius: 10px;
   /* A click reads the row, so it says it can be clicked; and a second click
      opens it, which should not leave the name half-selected behind it. */
   cursor: pointer;
@@ -73,7 +132,7 @@
 
   &:hover {
     background-color: light-dark(
-      var(--mantine-color-gray-0),
+      var(--mantine-color-white),
       var(--mantine-color-dark-6)
     );
   }
@@ -97,7 +156,8 @@
   align-items: center;
   justify-content: center;
   width: 1rem;
-  border-radius: var(--mantine-radius-xs);
+  /* The row's own rounding, less the 2px it sits in from the row's edge. */
+  border-radius: 8px;
   color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
   transition: background-color 0.1s ease-in-out;
 
@@ -220,42 +280,39 @@
 }
 
 /*
- * The way down to the row in hand, in a lighter shade than the row
- * itself: a reader can follow the line from the context to where they are
- * without mistaking any of it for where they are.
+ * The way down to the row in hand, a shade firmer than the rows beside it
+ * and with its rails lit: a reader can follow the line from the context to
+ * where they are without mistaking any of it for where they are.
  */
 .item[data-ancestor] > .row {
   & .name {
-    font-weight: var(--mantine-font-weight-bold);
+    font-weight: 500;
   }
 }
 
 /*
- * The row in hand is filled, so everything on it has to be legible against
- * that fill rather than against the pane: the fill is the darkest of the
- * page's colour, the name comes up to its lightest, and what the row says about itself — its kind, its pattern,
- * its chevron, its diagram — a step behind it. Left alone, each of those
- * would keep the colour it is given elsewhere, which is dark on dark here.
+ * The row in hand is lifted: white and raised off the page, its name set
+ * firmer and its icon in the page's colour, as the rail's open row is.
  *
  * Last of the three, so it wins on order where it ties with them on weight.
  */
 .item[data-selected] > .row {
-  background-color: var(--noesis-tone-9);
-  color: var(--noesis-tone-0);
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-5)
+  );
+  box-shadow:
+    0 1px 3px rgba(16, 24, 40, 0.08),
+    0 0 0 1px
+      light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 
   & .name {
-    color: var(--noesis-tone-0);
+    font-weight: 600;
+    color: var(--mantine-color-text);
   }
 
-  & .icon,
-  & .chevron,
-  & .mark {
-    color: var(--noesis-tone-2);
-  }
-
-  & .chevron[data-opens]:hover {
-    background-color: var(--noesis-tone-7);
-    color: var(--noesis-tone-0);
+  & .icon {
+    color: var(--noesis-tone-6);
   }
 }
 

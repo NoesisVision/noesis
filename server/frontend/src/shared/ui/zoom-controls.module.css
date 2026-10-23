@@ -8,3 +8,20 @@
     min-width: 3.5rem;
   }
 }
+
+/* Quiet: the group on a soft grey pill of its own, its buttons inside it. */
+.pill.pill {
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* A button that cannot be pressed yet is a faint icon on the pill, not a box. */
+.pill :global(.mantine-ActionIcon-root)[data-disabled] {
+  background-color: transparent;
+  opacity: 0.45;
+}

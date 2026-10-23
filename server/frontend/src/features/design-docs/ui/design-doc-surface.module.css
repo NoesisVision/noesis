@@ -22,7 +22,9 @@
   flex: none;
 }
 
+/* The title takes the line; where the controls do not fit beside it, they wrap under it. */
 .title {
+  flex: 1 1 240px;
   min-width: 0;
 }
 
@@ -76,11 +78,11 @@
 
 .header[data-centred] .title {
   width: 100%;
-  max-width: 900px;
+  max-width: 1180px;
   margin-inline: auto;
   padding-inline-end: max(
     0px,
-    calc(var(--design-doc-controls) - (100% - 900px) / 2)
+    calc(var(--design-doc-controls) - (100% - 1180px) / 2)
   );
 }
 
@@ -99,5 +101,15 @@
 @media (max-width: 61.99em) {
   .surface {
     height: auto;
+  }
+
+  /* No room to keep beside the title: the switch flows under it instead. */
+  .header[data-centred] .title {
+    padding-inline-end: 0;
+  }
+
+  .header[data-centred] .controls {
+    position: static;
+    margin-block: 0;
   }
 }

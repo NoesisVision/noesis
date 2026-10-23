@@ -1,140 +1,20 @@
-import { IconViewportNarrow, IconViewportWide } from '@tabler/icons-react';
-import { type MouseEvent, type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
-import { useLocalStorage } from '#/shared/design-system/hooks.ts';
-import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
-import { Stack } from '#/shared/design-system/stack.tsx';
-import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
-import {
-  type IconComponent,
-  IconHeading,
-  type PageTone,
-} from '#/shared/ui/icon-heading.tsx';
-import { FullscreenButton } from '#/shared/ui/shell-fullscreen.tsx';
+import type { PageTone } from '#/shared/ui/icon-heading.tsx';
+import { PageHeading } from '#/shared/ui/page-heading.tsx';
 import classes from './reading-pane.module.css';
-
-/** The two measures a document is read at, in the order the switch shows them. */
-const WIDTHS = [
-  {
-    value: 'convenient' as const,
-    label: 'Convenient',
-    icon: IconViewportNarrow,
-  },
-  { value: 'full' as const, label: 'Full width', icon: IconViewportWide },
-];
-
-/** Centred at a measure a line can be followed at, or all the room there is. */
-type ReadingWidth = (typeof WIDTHS)[number]['value'];
-
-/** The same `noesis.shell.*` namespace the colour scheme is stored under. */
-const WIDTH_KEY = 'noesis.shell.readingWidth';
-
-/** What a reader who has never touched the switch gets. */
-const DEFAULT_WIDTH: ReadingWidth = 'convenient';
-
-/**
- * A width left in storage by another version of the app must not decide how a
- * page is laid out, so anything the switch does not offer reads as the
- * default. Values are stored as JSON, which is what is compared here.
- */
-function toReadingWidth(stored: string | undefined): ReadingWidth {
-  return (
-    WIDTHS.find(({ value }) => stored === JSON.stringify(value))?.value ??
-    DEFAULT_WIDTH
-  );
-}
-
-/** The width the switch moves to from `width`: of two, always the other. */
-function otherWidth(width: ReadingWidth): ReadingWidth {
-  return WIDTHS.find(({ value }) => value !== width)?.value ?? DEFAULT_WIDTH;
-}
 
 interface ReadingPaneProps {
   /** The item the page is about: a document's title, a design's name. */
   title: ReactNode;
-  /** The icon of the kind, as the domain exports it. */
-  icon: IconComponent;
-  /** A line under the title, for what the item is rather than what it says. */
-  description?: ReactNode;
+  /** What else is worth a glance, beside the kind over the title: a date. */
+  meta?: ReactNode;
   /** The colour of the kind of page, for its heading. */
   tone?: PageTone;
   /** The kind of page, over its title. */
-  eyebrow?: ReactNode;
+  eyebrow: ReactNode;
   /** The document itself, laid out under the heading. */
   children: ReactNode;
-}
-
-/**
- * The width a document is read at, remembered for the reader across every
- * page that offers the switch.
- */
-function useReadingWidth() {
-  const [width, setWidth] = useLocalStorage<ReadingWidth>({
-    key: WIDTH_KEY,
-    defaultValue: DEFAULT_WIDTH,
-    deserialize: toReadingWidth,
-    // Nothing renders on a server here, so the stored width can be read while
-    // the first paint is drawn rather than corrected after it.
-    getInitialValueInEffect: false,
-  });
-  return [width, setWidth] as const;
-}
-
-/**
- * The switch between the two widths: a glyph for each, its name for a reader
- * who cannot see it. Shown from the width the shell folds its sidebar at.
- */
-function ReadingWidthSwitch({
-  width,
-  onChange: setWidth,
-}: {
-  width: ReadingWidth;
-  onChange: (width: ReadingWidth) => void;
-}) {
-  /**
-   * Two widths make the control a switch rather than a choice of two, so
-   * clicking the one already in force means the other. That is the one click
-   * `onChange` never hears — a radio that is already checked does not change —
-   * which is why it is read here, and why `width` is still what it was: any
-   * click that did change the radio was answered before this one bubbled.
-   *
-   * The segment is read off the input and never the label, because activating
-   * a label forwards a second click through the input it names and both reach
-   * this root — the input's is the one click the reader made.
-   */
-  const switchOnReclick = (event: MouseEvent<HTMLDivElement>) => {
-    const segment = event.target;
-    if (segment instanceof HTMLInputElement && segment.value === width) {
-      setWidth(otherWidth(width));
-    }
-  };
-  return (
-    <SegmentedControl
-      aria-label="Content width"
-      size="md"
-      visibleFrom="md"
-      value={width}
-      onChange={(value) => setWidth(value as ReadingWidth)}
-      onClick={switchOnReclick}
-      data={WIDTHS.map(({ value, label, icon: Icon }) => ({
-        value,
-        // The glyph says it at a glance; the name says it to a reader
-        // who cannot see the glyph.
-        label: (
-          <>
-            <Icon
-              size={22}
-              stroke={1.6}
-              className={classes.segmentIcon}
-              aria-hidden
-            />
-            <VisuallyHidden>{label}</VisuallyHidden>
-          </>
-        ),
-      }))}
-    />
-  );
 }
 
 /**
@@ -173,52 +53,32 @@ export function useScrolledUnder(): boolean {
 }
 
 /**
- * The surface a whole document is read on: its heading, and above it the
- * controls for how much of the window it takes, full screen among them —
- * the shell's, so the pane is laid out the same in it and out of it.
+ * The surface a whole document is read on: its heading over it, stuck under
+ * the top bar as the document scrolls, both at the width the design's
+ * overview is read at.
  */
 export function ReadingPane({
   title,
-  icon,
-  description,
+  meta,
   tone,
   eyebrow,
   children,
 }: ReadingPaneProps) {
-  const [width, setWidth] = useReadingWidth();
   const stuck = useScrolledUnder();
 
   return (
     <Box component="article" className={classes.surface}>
-      <Box
-        className={classes.header}
-        data-width={width}
-        data-stuck={stuck || undefined}
-      >
+      <Box className={classes.header} data-stuck={stuck || undefined}>
         <Box className={classes.headerColumn}>
-          <IconHeading
+          <PageHeading
             title={title}
-            icon={icon}
-            description={description}
-            tone={tone}
             eyebrow={eyebrow}
+            meta={meta}
+            tone={tone}
           />
         </Box>
-        {/* A phone has one width to read at and no chrome worth hiding; the
-            same breakpoint the shell folds its sidebar at. */}
-        <Group
-          gap="xs"
-          wrap="nowrap"
-          visibleFrom="md"
-          className={classes.controls}
-        >
-          <ReadingWidthSwitch width={width} onChange={setWidth} />
-          <FullscreenButton />
-        </Group>
       </Box>
-      <Box className={classes.column} data-width={width}>
-        <Stack>{children}</Stack>
-      </Box>
+      <Box className={classes.column}>{children}</Box>
     </Box>
   );
 }

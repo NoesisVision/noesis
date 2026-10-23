@@ -4,6 +4,7 @@ Run everything from `server/frontend`.
 
 ## Build
 - The design system is a folder inside the app (`src/shared/design-system`), not a package. `node .design-sync/build-pkg.mjs` (`cfg.buildCmd`) packages it into gitignored `.ds-pkg/`: a barrel `index.ts` (every module except `wrap-component`, `create-polymorphic-wrapper`, `styles`, `mantine.d.ts`), a copy of `@mantine/core/styles.css`, and a `.d.ts` tree from `tsc`. Re-run it before every converter run.
+- The package tsconfig keeps `types: ['vite/client']`: `theme.ts` imports `theme.module.css`, and without vite's declaration tsc fails with TS2307 (and Button/Menu then lose their fallback `.d.ts`, so the diff reports them removed). Check `node .design-sync/build-pkg.mjs`'s own exit code - piping it through `tail` hides a failure.
 - tsc reports TS2883 for `button.tsx` and `menu.tsx` (Object.assign over Mantine statics) and emits no `.d.ts` for them; `build-pkg.mjs` writes hand-written fallbacks. If the wrapper API of Button/Menu changes, update `FALLBACK_DTS` there. Any other tsc error fails the build.
 - Converter: `node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules ./node_modules --out ./ds-bundle` (`cfg.entry` points at `.ds-pkg/index.ts`).
 - `cssEntry`/`extraFonts` paths are relative to the package dir (`.ds-pkg/`) and must stay inside the workspace; Mantine CSS is copied into `.ds-pkg/` because the converter refuses a cssEntry outside the package.
@@ -38,3 +39,4 @@ Run everything from `server/frontend`.
 - The provider also gets `cssVariablesResolver` (`$ref` to the export in theme.ts), so the `--noesis-*` variables resolve in previews as in the app.
 - `portal-target.tsx` is in `SKIP`: a provider that moves portals, with nothing to draw.
 - Design pages crash with "React 19 can't be loaded here" when `support.js` runs before React 19 is on the page: it loads React 18.3.1 from unpkg, on which Mantine 9 cannot render. The conventions header tells pages to load `_ds/<ds>/_vendor/react.js` first. Claude Design does not copy `_vendor/` into a project's `_ds/` folder, so a page in another project needs the file uploaded there too (done by hand for "Segmented Control" and "Navigation Proposals" on 2026-10-16). A React version bump re-ships `_vendor/react.js` here, but not those copies.
+- conventions.md drift (2026-10-23): it says `Card` ships `radius="md"`; since the app-redesign branch the wrapper's default is `radius: 18` (every card, pane and dropdown rounded alike). Proposed to the user, not yet edited.

@@ -1,0 +1,442 @@
+/* What holds the rail, open or folded, and the toggle on its right edge. */
+.frame {
+  position: relative;
+  height: 100%;
+}
+
+/*
+ * The strip along the rail's right edge: the gap between the change's card
+ * and the border, and a little past it. The toggle sits in its middle,
+ * astride the border, so it reads as belonging to the edge it moves; faint
+ * until the pointer comes into the strip. Not on a phone, where the rail is
+ * the whole screen and always open.
+ */
+.edge {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  bottom: 0;
+  z-index: 2;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  @media (max-width: 61.99em) {
+    display: none;
+  }
+}
+
+.toggle.toggle {
+  /* A tall rounded tab on the edge, its long side along the border. */
+  width: 16px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--noesis-secondary-text);
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.08),
+    0 0 0 1px var(--noesis-rail-border);
+  opacity: 0.4;
+  transition:
+    opacity 0.15s ease,
+    color 0.1s ease;
+
+  .edge:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: var(--mantine-color-text);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Without a pointer that hovers, there is no coming up: always shown. */
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+/*
+ * The rail: a tinted surface with white raised on it — the item you are on,
+ * and the card of the change you are in.
+ */
+.rail {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* No room above: the change's card starts level with the page's sheet. */
+  padding: 0 12px 14px;
+  background-color: var(--noesis-rail-background);
+}
+
+/* Shared by every row: a rounded line of icon and label. */
+.appLink,
+.row,
+.view {
+  border-radius: 10px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  color: var(--noesis-secondary-text);
+  text-decoration: none;
+  transition:
+    background-color 0.1s ease,
+    color 0.1s ease;
+
+  & svg {
+    color: var(--mantine-color-gray-6);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: -2px;
+  }
+
+  &[aria-current='page'] {
+    font-weight: 600;
+    color: var(--mantine-color-text);
+  }
+
+  &[data-disabled] {
+    color: var(--mantine-color-dimmed);
+  }
+}
+
+/* On the rail itself: lifted into a white pill while it is the page. */
+.appLink {
+  flex: none;
+  height: 36px;
+  padding: 0 12px;
+
+  &:hover {
+    background-color: light-dark(
+      rgba(255, 255, 255, 0.7),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  &[aria-current='page'] {
+    &,
+    &:hover {
+      background-color: var(--noesis-rail-surface);
+      box-shadow:
+        0 1px 3px rgba(16, 24, 40, 0.1),
+        0 0 0 1px var(--noesis-rail-border);
+    }
+
+    & svg {
+      color: var(--mantine-color-brand-6);
+    }
+  }
+}
+
+/* A row of a section — overview, a document, a design doc — draws its icon
+   in that section's colour, open or not; what it is open says by its ground.
+   Folded to icons, they are gray until pointed at or open. */
+.row.row[data-page-tone] svg {
+  color: var(--noesis-tone-6);
+}
+
+.iconRow.iconRow[data-page-tone] {
+  & svg {
+    color: var(--mantine-color-gray-6);
+  }
+
+  &:hover svg,
+  &[aria-current='page'] svg {
+    color: var(--noesis-tone-6);
+  }
+}
+
+/* Inside the card: tinted, not lifted, while it is the page. */
+.row,
+.view {
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  &[aria-current='page'] {
+    &,
+    &:hover {
+      background-color: light-dark(
+        var(--mantine-color-gray-1),
+        var(--mantine-color-dark-5)
+      );
+    }
+
+    & svg {
+      color: var(--mantine-color-brand-6);
+    }
+  }
+}
+
+.row {
+  flex: none;
+  min-height: 34px;
+  padding: 7px 12px;
+}
+
+/* A long name runs on to a second line, and only then is cut short. */
+.rowLabel {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--noesis-rail-surface);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 3px rgba(16, 24, 40, 0.06),
+    0 0 0 1px var(--noesis-rail-border);
+  overflow: hidden;
+}
+
+.divider {
+  flex: none;
+  height: 1px;
+  margin: 0 12px;
+  background-color: var(--noesis-rail-border);
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+}
+
+.listInner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 6px 8px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  /* The count ends where the rows' labels and the picker's chevron do. */
+  padding: 0 12px;
+}
+
+.sectionLabel {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-gray-6);
+}
+
+.count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--noesis-secondary-text);
+  background-color: var(--noesis-rail-background);
+}
+
+/* The open design doc's name: the head of its views, not a link. */
+.openDoc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 12px;
+  color: var(--mantine-color-text);
+}
+
+/*
+ * The views hang off a line that starts under the doc's tile: each draws its
+ * own elbow, and every view but the last carries the line on past it.
+ */
+.views {
+  --views-line: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-3)
+  );
+
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 4px 34px;
+}
+
+.view {
+  position: relative;
+  height: 30px;
+  margin: 1px 0;
+  padding: 0 10px;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    border-left: 1px solid var(--views-line);
+  }
+
+  /* The elbow into this view. */
+  &::before {
+    top: -1px;
+    width: 9px;
+    height: calc(50% + 1px);
+    border-bottom: 1px solid var(--views-line);
+  }
+
+  /* The line on to the next one. */
+  &::after {
+    top: 50%;
+    bottom: -2px;
+  }
+
+  &:last-child {
+    &::before {
+      border-bottom-left-radius: 6px;
+    }
+
+    &::after {
+      display: none;
+    }
+  }
+
+  /* The view being read, in the design doc's colour. */
+  &[aria-current='page'] {
+    &,
+    &:hover {
+      background-color: var(--noesis-tone-light);
+    }
+
+    & svg {
+      color: var(--noesis-tone-6);
+    }
+  }
+}
+
+/* The rail folded to icons: one column, centred. */
+.icons {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 12px;
+  background-color: var(--noesis-rail-background);
+}
+
+/* An icon on the rail itself, lifted as its open row is. */
+.iconLink.iconLink {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 10px;
+
+  & > * {
+    margin: 0;
+  }
+}
+
+/* Mantine's label box and the gap after the icon would push it off centre. */
+.iconSection.iconSection {
+  margin: 0;
+}
+
+.iconBody.iconBody {
+  display: none;
+}
+
+/* What pushes the system model to the foot of the folded rail. */
+.foot {
+  flex: 1;
+}
+
+/* The change's card, narrowed to its icons. */
+.iconCard {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 1px 3px rgba(16, 24, 40, 0.06),
+    0 0 0 1px var(--noesis-rail-border);
+}
+
+/* An icon in the card: a link to the overview, a document or a design doc. */
+.iconRow.iconRow {
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+
+  & > * {
+    margin: 0;
+  }
+}
+
+.iconDivider {
+  width: 16px;
+  height: 1px;
+  margin: 2px 0;
+  background-color: var(--noesis-rail-border);
+}
+
+/* A folded item's tooltip: its section, small, above its name. */
+.tooltipKind {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/*
+ * A design doc's tile keeps its own colours wherever it sits: the rows'
+ * icon colours are for bare icons, not for what is drawn on a tile.
+ */
+.tile.tile.tile svg {
+  color: inherit;
+}
