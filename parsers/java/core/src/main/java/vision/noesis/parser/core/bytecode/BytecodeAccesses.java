@@ -64,7 +64,7 @@ final class BytecodeAccesses {
             c.builder.edge(new Edge.Invokes(from, to, List.of(), site(call, type), InvocationKind.CALL, isStatic ? ExpressionKind.TYPE : ExpressionKind.OTHER));
         }
         for (JavaConstructorCall call : unit.getConstructorCallsFromSelf()) {
-            Optional<JavaConstructor> target = call.getTarget().resolveMember();
+            Optional<JavaConstructor> target = call.getTarget().resolveMember().map(BytecodeAccesses::accessedConstructor);
             NodeId to = target.map(c.ids::member).orElseGet(() -> unresolved(call.getTarget()));
             c.builder.edge(new Edge.Invokes(from, to, List.of(), site(call, type), InvocationKind.CALL, constructorReceiver(unit, call)));
         }
@@ -102,6 +102,21 @@ final class BytecodeAccesses {
         return object.getMethods().stream()
                 .filter(method -> method.getName().equals(call.getTarget().getName()) && method.getRawParameterTypes().size() == call.getTarget().getRawParameterTypes().size())
                 .findFirst();
+    }
+
+    /**
+     * Before nestmates (release 10 and older) javac compiles a call of a private constructor from another class of the
+     * nest to a synthetic access constructor, which takes one more parameter, an anonymous class standing as a tag; the
+     * call is to the constructor of the parameters before it.
+     */
+    private static JavaConstructor accessedConstructor(JavaConstructor constructor) {
+        List<JavaClass> parameters = constructor.getRawParameterTypes();
+        if (!constructor.getModifiers().contains(JavaModifier.SYNTHETIC) || parameters.isEmpty()) return constructor;
+        List<JavaClass> declared = parameters.subList(0, parameters.size() - 1);
+        for (JavaConstructor candidate : constructor.getOwner().getConstructors()) {
+            if (!BytecodeDeclarations.isSynthetic(candidate) && candidate.getRawParameterTypes().equals(declared)) return candidate;
+        }
+        return constructor;
     }
 
     /** {@code this(...)} targets the own class, {@code super(...)} the superclass; {@code new} has no receiver. */

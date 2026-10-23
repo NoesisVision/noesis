@@ -222,7 +222,7 @@ final class BytecodeDeclarations {
                 null,
                 LanguageBag.of(codeUnitBag(unit, flags, owner, componentNames)),
                 constructor ? MethodKind.CONSTRUCTOR : MethodKind.METHOD,
-                JavaModifiers.visibility(flags),
+                constructor && isEnumConstantBody(owner) ? Visibility.PRIVATE : JavaModifiers.visibility(flags),
                 JavaModifiers.method(flags, constructor),
                 typeParameters(unit.getTypeParameters(), null),
                 signature(unit, owner),
@@ -230,6 +230,14 @@ final class BytecodeDeclarations {
                 flags.isAbstract() || flags.isNative()));
         if (!constructor && !flags.isStatic() && !flags.isPrivate()) addOverridesEdge((JavaMethod) unit, owner, id);
         return id;
+    }
+
+    /**
+     * The class of an enum constant's body, whose constructor javac declares private. Before nestmates (release 10 and
+     * older) the class file leaves it package-private, for the enum to call.
+     */
+    private static boolean isEnumConstantBody(JavaClass type) {
+        return type.isAnonymousClass() && type.getRawSuperclass().map(JavaClass::isEnum).orElse(false);
     }
 
     /** {@code values()} and {@code valueOf(String)} the compiler declares for every enum. */
@@ -361,9 +369,10 @@ final class BytecodeDeclarations {
 
     /** The nearest method up the superclass chain with the same erased signature; a bridge tells where a generic override lands. */
     private void addOverridesEdge(JavaMethod method, JavaClass owner, NodeId id) {
-        for (String erasure : erasuresOf(method, owner)) {
-            for (JavaClass superclass = owner.getRawSuperclass().orElse(null); superclass != null; superclass = superclass.getRawSuperclass().orElse(null)) {
-                JavaMethod overridden = methodWithErasure(superclass, erasure);
+        List<String> erasures = erasuresOf(method, owner);
+        for (JavaClass superclass = owner.getRawSuperclass().orElse(null); superclass != null; superclass = superclass.getRawSuperclass().orElse(null)) {
+            for (String erasure : erasures) {
+                JavaMethod overridden = methodWithErasure(superclass, erasure, owner);
                 if (overridden != null) {
                     c.builder.edge(new Edge.Overrides(id, c.ids.member(overridden)));
                     return;
@@ -391,12 +400,29 @@ final class BytecodeDeclarations {
         return text.append(')').toString();
     }
 
-    private static JavaMethod methodWithErasure(JavaClass type, String erasure) {
+    /** The method of a superclass with the erased signature, among those the subclass inherits. */
+    private static JavaMethod methodWithErasure(JavaClass type, String erasure, JavaClass subclass) {
         for (JavaMethod candidate : type.getMethods()) {
-            if (candidate.getModifiers().contains(JavaModifier.PRIVATE) || candidate.getModifiers().contains(JavaModifier.STATIC) || isSynthetic(candidate)) continue;
+            if (candidate.getModifiers().contains(JavaModifier.STATIC) || isSynthetic(candidate) || !isInherited(candidate, subclass)) continue;
             if (erasureOf(candidate).equals(erasure)) return candidate;
         }
         return null;
+    }
+
+    /**
+     * Whether a superclass method is a member of the subclass: not private, and when package-private, javac's rule that
+     * every class from the subclass up to the declaring one is in the declaring class's package.
+     */
+    private static boolean isInherited(JavaMethod method, JavaClass subclass) {
+        Set<JavaModifier> modifiers = method.getModifiers();
+        if (modifiers.contains(JavaModifier.PRIVATE)) return false;
+        if (modifiers.contains(JavaModifier.PUBLIC) || modifiers.contains(JavaModifier.PROTECTED)) return true;
+        String declaring = method.getOwner().getName();
+        String pkg = method.getOwner().getPackageName();
+        for (JavaClass current = subclass; current != null && !current.getName().equals(declaring); current = current.getRawSuperclass().orElse(null)) {
+            if (!current.getPackageName().equals(pkg)) return false;
+        }
+        return true;
     }
 
     /** One edge per interface method the type satisfies, over every interface including inherited ones, from the method that fills the slot. */
@@ -454,6 +480,7 @@ final class BytecodeDeclarations {
         for (JavaClass current = type; current != null; current = type.isInterface() ? null : current.getRawSuperclass().orElse(null)) {
             for (JavaMethod candidate : current.getMethods()) {
                 if (candidate.getModifiers().contains(JavaModifier.STATIC) || !erasureOf(candidate).equals(erasure)) continue;
+                if (current != type && !isInherited(candidate, type)) continue;
                 if (candidate.equals(slot)) return null;
                 if (!candidate.getModifiers().contains(JavaModifier.BRIDGE)) return candidate;
                 JavaMethod delegate = bridgeTarget(candidate, current);
@@ -476,7 +503,7 @@ final class BytecodeDeclarations {
         }
         String erasure = erasureOf(bridge);
         for (JavaClass superclass = bridge.getOwner().getRawSuperclass().orElse(null); superclass != null; superclass = superclass.getRawSuperclass().orElse(null)) {
-            JavaMethod inherited = methodWithErasure(superclass, erasure);
+            JavaMethod inherited = methodWithErasure(superclass, erasure, bridge.getOwner());
             if (inherited != null) return Optional.of(inherited);
         }
         JavaMethod delegate = bridgeTarget(bridge, bridge.getOwner());
